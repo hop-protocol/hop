@@ -1,5 +1,5 @@
-import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
-import { actionHandler, parseNumber, parseString, root } from './shared'
+import IncompleteSettlementsWatcher from '#watchers/IncompleteSettlementsWatcher.js'
+import { actionHandler, parseNumber, parseString, root } from './shared/index.js'
 
 root
   .command('incomplete-settlements')
@@ -11,7 +11,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { config, token, days, offsetDays, format } = source
+  const { token, days, offsetDays, format } = source
   const watcher = new IncompleteSettlementsWatcher({
     token,
     days,

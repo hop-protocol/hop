@@ -1,19 +1,18 @@
-import React, { useEffect, useState, ChangeEvent } from 'react'
-import Button from 'src/components/buttons/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import logger from 'src/logger'
-import { commafy, NetworkTokenEntity } from 'src/utils'
-import { BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { Slider } from 'src/components/slider'
-import MenuItem from '@material-ui/core/MenuItem'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { useEffect, useState } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
+import Typography from '@mui/material/Typography'
+import logger from 'src/logger'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { BigNumber, utils } from 'ethers'
+import { Button } from 'src/components/Button'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { Slider } from 'src/components/slider'
+import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -65,8 +64,8 @@ const RemoveLiquidity = (props: Props) => {
   const [sending, setSending] = useState<boolean>(false)
   const selections: any[] = [
     { label: 'All tokens', value: -1 },
-    { label: token0.token.symbol, value: 0, icon: (token0.token as any).image },
-    { label: token1.token.symbol, value: 1, icon: (token1.token as any).image },
+    { label: token0.token.symbol, value: 0, icon: (token0.token).image },
+    { label: token1.token.symbol, value: 1, icon: (token1.token).image },
   ]
   const [selection, setSelection] = useState<any>(selections[0])
   const [proportional, setProportional] = useState<boolean>(true)
@@ -98,8 +97,8 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const updateDisplayAmount = (percent: number = amountPercent) => {
-    const _amount0 = Number(formatUnits(token0.amount, tokenDecimals))
-    const _amount1 = Number(formatUnits(token1.amount, tokenDecimals))
+    const _amount0 = Number(utils.formatUnits(token0.amount, tokenDecimals))
+    const _amount1 = Number(utils.formatUnits(token1.amount, tokenDecimals))
     const amount0 = commafy((_amount0 * (percent / 100)).toFixed(5), 5)
     const amount1 = commafy((_amount1 * (percent / 100)).toFixed(5), 5)
     const display = `${amount0} ${token0.token.symbol} + ${amount1} ${token1.token.symbol}`
@@ -112,7 +111,7 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const handleAmountSliderChange = (percent: number) => {
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const _amount = (_balance ?? 0) * (percent / 100)
     setAmount(_amount.toFixed(5))
     if (percent === 100) {
@@ -120,7 +119,7 @@ const RemoveLiquidity = (props: Props) => {
     }
   }
 
-  const handleSelection = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleSelection = (event: any) => {
     const value = Number(event.target.value)
     const _selection = selections.find(item => item.value === value)
     const _proportional = value === -1
@@ -133,7 +132,7 @@ const RemoveLiquidity = (props: Props) => {
 
   const handleAmountChange = (_amount: string) => {
     const value = Number(_amount)
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
     setAmount(_amount)
     setAmountSliderValue(sliderValue)
@@ -144,14 +143,14 @@ const RemoveLiquidity = (props: Props) => {
   }, [])
 
   useEffect(() => {
-    setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+    setAmountBN(utils.parseUnits((amount || 0).toString(), tokenDecimals))
   }, [amount])
 
   useEffect(() => {
     let isSubscribed = true
     const update = async () => {
       try {
-        const _priceImpact = await calculatePriceImpact({
+        const _priceImpact = calculatePriceImpact({
           proportional,
           amountPercent,
           tokenIndex,
@@ -212,7 +211,7 @@ const RemoveLiquidity = (props: Props) => {
               balance={maxBalance}
               balanceLabel={'Available:'}
               value={amount}
-              token={selectedToken as any}
+              token={selectedToken }
               onChange={handleAmountChange}
               decimalPlaces={5}
             />
@@ -221,7 +220,7 @@ const RemoveLiquidity = (props: Props) => {
           <div className={styles.details}>
             <DetailRow
               title={priceImpactLabel}
-              tooltip="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens."
+              tooltip="Withdrawing overpooled assets will give you bonus tokens. Withdrawing underpooled assets will give you less tokens."
               value={`${priceImpactFormatted}`}
             />
           </div>

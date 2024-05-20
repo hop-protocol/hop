@@ -1,13 +1,12 @@
-import ContractBase from './ContractBase'
-import getTokenMetadata from 'src/utils/getTokenMetadata'
-import isL1ChainId from 'src/utils/isL1ChainId'
-import isNativeToken from 'src/utils/isNativeToken'
-import { BigNumber, providers } from 'ethers'
-import { Chain } from 'src/constants'
-import { Hop } from '@hop-protocol/sdk'
-import { PayableOverrides } from '@ethersproject/contracts'
-import { formatUnits } from 'ethers/lib/utils'
-import { config as globalConfig } from 'src/config'
+import ContractBase from './ContractBase.js'
+import { BigNumber, utils } from 'ethers'
+import { ChainSlug, Hop } from '@hop-protocol/sdk'
+import { config as globalConfig } from '#config/index.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import { isNativeToken } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { providers } from 'ethers'
+import { getToken, TokenSymbol } from '@hop-protocol/sdk'
 
 export default class L2AmmWrapper extends ContractBase {
   decodeSwapAndSendData (data: string): any {
@@ -42,25 +41,25 @@ export default class L2AmmWrapper extends ContractBase {
 
     const deadline = bridge.defaultDeadlineSeconds
     let destinationDeadline = bridge.defaultDeadlineSeconds
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const { amountOut, totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
     let destinationAmountOutMin = amountOutMin
-    const isNativeTokenSend = isNativeToken(this.chainSlug, token)
-    const tokenDecimals = getTokenMetadata(token)?.decimals
-    if (destinationChain === Chain.Ethereum) {
+    const isNativeTokenSend = isNativeToken(this.chainId.toString(), token)
+    const tokenDecimals = getToken(token as TokenSymbol)?.decimals
+    if (destinationChain === ChainSlug.Ethereum) {
       destinationDeadline = 0
       destinationAmountOutMin = BigNumber.from(0)
     }
 
     if (totalFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${utils.formatUnits(totalFee, tokenDecimals)}`)
     }
 
-    const overrides: PayableOverrides = {
+    const overrides: TxOverrides = {
       ...(await this.txOverrides()),
       value: isNativeTokenSend ? amount : undefined
     }

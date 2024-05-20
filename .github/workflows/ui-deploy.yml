@@ -1,0 +1,133 @@
+name: Build and Deploy Frontend UIs
+on:
+  push:
+    branches:
+      - staging
+      - production
+    paths:
+      - 'packages/frontend/**'
+env:
+  PRODUCTION_ENVS: production
+  STAGING_ENVS: mainnet,sepolia
+
+jobs:
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
+    with:
+      package-names: 'frontend'
+
+  publishable-environments:
+    name: Check for environment that can be published
+    outputs:
+      publishable-environments: ${{ steps.publishable-environments.outputs.publishable_environments }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get environments
+        id: publishable-environments
+        run: |
+          if [ "${{ github.ref_name }}" == "production" ]; then
+            publishable_environments=${{ env.PRODUCTION_ENVS }}
+          else
+            publishable_environments=${{ env.STAGING_ENVS }}
+          fi
+
+          # Format for matrix
+          publishable_environments=$(echo $publishable_environments | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+          echo publishable_environments=$publishable_environments >> $GITHUB_OUTPUT
+
+  build-ui:
+    name: Build and Deploy UI
+    needs: [publishable-packages, publishable-environments]
+    runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
+    environment: ${{ matrix.env-name }}
+    strategy:
+      matrix:
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
+        env-name: ${{ fromJson(needs.publishable-environments.outputs.publishable-environments) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
+      - name: Install package
+        run: pnpm --filter-prod frontend... install
+
+      - name: Build the app
+        env:
+          REACT_APP_NETWORK: ${{ vars.REACT_APP_NETWORK }}
+          REACT_APP_ENABLED_CHAINS: ${{ vars.REACT_APP_ENABLED_CHAINS }}
+          REACT_APP_ENABLED_TOKENS: ${{ vars.REACT_APP_ENABLED_TOKENS }}
+          REACT_APP_DEPRECATED_TOKENS: ${{ vars.REACT_APP_DEPRECATED_TOKENS }}
+          REACT_APP_DEPRECATED_POOLS: ${{ vars.REACT_APP_DEPRECATED_POOLS }}
+          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ vars.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
+          REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ vars.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
+          REACT_APP_BLOCKLIST_ENABLED: ${{ vars.REACT_APP_BLOCKLIST_ENABLED }}
+          REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
+        run: pnpm --filter frontend... build
+
+      - name: Write commit file
+        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42
+        with:
+          path: packages/frontend/dist/cachebust
+          write-mode: overwrite
+          contents: ${{ github.sha }}
+
+      - name: Pin to IPFS on Pinata
+        id: upload
+        uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
+        with:
+          pin-name: Hop ${{ matrix.package-name }} ${{ matrix.env-name }}
+          path: './packages/frontend/dist'
+          pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
+          pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
+          remove-old: true
+
+      - name: Update CloudFlare DNS with new IPFS hash
+        env:
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: 'hop.exchange'
+          RECORD_NAME: ${{ vars.DNSLINK_SUBDOMAIN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
+        with:
+          cid: ${{ steps.upload.outputs.hash }}
+
+      - name: Convert CIDv0 to CIDv1
+        id: convert_cidv0
+        uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
+        with:
+          cidv0: ${{ steps.upload.outputs.hash }}
+
+      - name: Create GitHub Release
+        if: ${{ github.ref_name == 'production' }}
+        env:
+          CIDv0: ${{ steps.upload.outputs.hash }}
+          CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}
+        uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87
+        with:
+          name: ${{ github.sha }}
+          tag_name: ${{ github.run_id }}
+          body: |
+            IPFS hash of the deployment:
+            - CIDv0: `${{ env.CIDv0 }}`
+            - CIDv1: `${{ env.CIDv1 }}`
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.hop.exchange](https://app.hop.exchange).
+            You can also access the Hop Interface directly from an IPFS gateway.
+            **Note**: The Hop interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as slippage tolerance.
+            **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.hop.exchange](https://app.hop.exchange).
+            Your Hop settings are never remembered across different URLs.
+            IPFS gateways:
+            - https://${{ env.CIDv1 }}.ipfs.cf-ipfs.com/
+            - https://${{ env.CIDv1 }}.ipfs.dweb.link/
+            - https://hop.mypinata.cloud/ipfs/${{ env.CIDv0 }}/
+            - https://gateway.pinata.cloud/ipfs/${{ env.CIDv0 }}/
+            - https://cloudflare-ipfs.com/ipfs/${{ env.CIDv0 }}/
+            - https://gateway.ipfs.io/ipfs/${{ env.CIDv0 }}/
+            - https://crustwebsites.net/ipfs/${{ env.CIDv0 }}/
+            - [ipfs://${{ env.CIDv0 }}/](ipfs://${{ env.CIDv0 }}/)
+            - https://hop.eth.limo/
+            - https://hop.eth.link/

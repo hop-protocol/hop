@@ -1,0 +1,28 @@
+select
+strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) as date,
+token,
+ethereum_canonical_amount,
+ethereum_native_amount,
+polygon_canonical_amount,
+polygon_hToken_amount,
+polygon_native_amount,
+gnosis_canonical_amount,
+gnosis_hToken_amount,
+gnosis_native_amount,
+optimism_canonical_amount,
+optimism_hToken_amount,
+optimism_native_amount,
+arbitrum_canonical_amount,
+arbitrum_hToken_amount,
+arbitrum_native_amount,
+arbitrum_alias_amount,
+unstaked_amount,
+restaked_amount,
+eth_price_usd,
+matic_price_usd,
+result
+from bonder_balances
+where
+token = 'MATIC'
+and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2022-01-01'
+order by timestamp desc;

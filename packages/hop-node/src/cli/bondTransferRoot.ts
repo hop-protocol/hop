@@ -1,8 +1,10 @@
+import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondTransferRootWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import type { SendBondTransferRootTxParams } from '#watchers/BondTransferRootWatcher.js'
 
-import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('bond-transfer-root')
@@ -36,7 +38,7 @@ async function main (source: any) {
 
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   for (const rootHash of rootHashes) {
@@ -45,6 +47,15 @@ async function main (source: any) {
       throw new Error('TransferRoot does not exist in the DB')
     }
 
-    await watcher.sendBondTransferRoot(rootHash, dbTransferRoot.destinationChainId, dbTransferRoot.totalAmount)
+    const txParams: SendBondTransferRootTxParams = {
+      transferRootId: dbTransferRoot.transferRootId!,
+      transferRootHash: rootHash,
+      destinationChainId: dbTransferRoot.destinationChainId!,
+      totalAmount: dbTransferRoot.totalAmount!,
+      transferIds: dbTransferRoot.transferIds!,
+      rootCommittedAt: dbTransferRoot.committedAt!
+    }
+
+    await watcher.sendBondTransferRoot(txParams)
   }
 }

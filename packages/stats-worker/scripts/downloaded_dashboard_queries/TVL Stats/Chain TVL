@@ -1,0 +1,28 @@
+select * 
+from (
+ select sum(amount_usd) as sum_usd, chain from (select amount_usd, chain from tvl_pool_stats where chain = 'polygon' and token in ('USDC', 'USDT', 'DAI', 'MATIC', 'ETH') order by timestamp desc limit 5)
+)
+union all 
+select *
+from
+(
+ select sum(amount_usd) as sum_usd, chain from (select amount_usd, chain from tvl_pool_stats where chain = 'gnosis' and token in ('USDC', 'USDT', 'DAI', 'MATIC', 'ETH') order by timestamp desc limit 5)
+)
+union all 
+select *
+from
+(
+ select sum(amount_usd) as sum_usd, chain from (select amount_usd, chain from tvl_pool_stats where chain = 'optimism' and token in ('USDC', 'USDT', 'DAI', 'ETH') order by timestamp desc limit 4)
+)
+union all 
+select *
+from
+(
+ select sum(amount_usd) as sum_usd, chain from (select amount_usd, chain from tvl_pool_stats where chain = 'arbitrum' and token in ('USDC', 'USDT', 'DAI', 'ETH') order by timestamp desc limit 4)
+)
+union all 
+select *
+from
+(
+ select sum(amount_usd) as sum_usd, chain from (select amount_usd, chain from tvl_pool_stats where chain = 'ethereum' and token in ('USDC', 'USDT', 'DAI', 'MATIC', 'ETH') order by timestamp desc limit 5)
+)

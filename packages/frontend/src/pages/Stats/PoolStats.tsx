@@ -1,21 +1,25 @@
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, SortableTable } from 'src/components/Table'
+import { Icon } from 'src/components/ui/Icon'
 import { commafy } from 'src/utils'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
-function formatRatio(item) {
+function formatRatio(item: any) {
   const { reserve0, reserve1 } = item
+  if (!(reserve0 && reserve1)) {
+    return ''
+  }
   const div = reserve0 / reserve1
   return `${div.toString().slice(0, 6)}`
 }
 
-export const populatePoolStats = (item: any, extraData, i) => {
+export const populatePoolStats = (item: any, extraData: any, i: number) => {
   return {
-    chain: item.network.imageUrl,
+    chain: item.network?.imageUrl,
     canonicalToken: item.reserve0,
     hToken: item.reserve1,
-    tokenSymbol: item.token0.imageUrl,
+    tokenSymbol: item.token0?.imageUrl,
     ratio: formatRatio(item),
   }
 }
@@ -61,7 +65,7 @@ const PoolStats: FC = () => {
               return (
                 <CellWrapper cell={cell}>
                   <Icon mr={1} src={cell.row.original.tokenSymbol} />
-                  <Div justifySelf="right">{cell.value}</Div>
+                  <Box justifySelf="right">{cell.value}</Box>
                 </CellWrapper>
               )
             },
@@ -72,16 +76,19 @@ const PoolStats: FC = () => {
     []
   )
 
+  const error = poolStats?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Box>
       <SortableTable
         stats={poolStats}
         columns={columns}
         populateDataFn={populatePoolStats}
         extraData={poolStats}
         loading={fetching}
+        error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

@@ -1,0 +1,1 @@
+select token, sum(amount_usd) as total_usd from transfers where source_chain_slug = 'arbitrum' group by token;

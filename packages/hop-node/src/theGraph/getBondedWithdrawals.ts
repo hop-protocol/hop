@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getBondedWithdrawals (
   chain: string,
@@ -10,7 +10,7 @@ export default async function getBondedWithdrawals (
   bonder = bonder.toLowerCase()
   const filters = getFilters(bonder)
   const query = `
-    query WithdrawalBonded($token: String, $bonder: String $lastId: ID) {
+    query WithdrawalBonded($token: String, $bonder: String, $lastId: ID) {
       withdrawalBondeds(
         where: {
           ${filters}

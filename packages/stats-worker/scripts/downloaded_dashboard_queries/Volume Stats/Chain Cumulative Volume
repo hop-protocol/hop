@@ -1,0 +1,1 @@
+select chain, sum(amount_usd) as total_usd from volume_stats group by chain order by timestamp;

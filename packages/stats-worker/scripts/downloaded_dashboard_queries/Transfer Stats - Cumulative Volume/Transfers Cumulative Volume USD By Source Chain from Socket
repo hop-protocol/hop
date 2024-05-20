@@ -1,0 +1,1 @@
+select source_chain_slug, sum(amount_usd) as total_usd from transfers where integration_partner = 'socket' group by source_chain_slug

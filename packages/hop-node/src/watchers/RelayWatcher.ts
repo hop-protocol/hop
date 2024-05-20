@@ -1,18 +1,27 @@
-import '../moduleAlias'
-import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
-import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
-import isNativeToken from 'src/utils/isNativeToken'
-import { GasCostTransactionType, TxError } from 'src/constants'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
-import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
-import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { isExecutionError } from 'src/utils/isExecutionError'
-import { promiseQueue } from 'src/utils/promiseQueue'
-import { providers } from 'ethers'
-import { relayTransactionBatchSize } from 'src/config'
+import BaseWatcher from './classes/BaseWatcher.js'
+import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from '#config/index.js'
+import { GasCostTransactionType, TxError } from '#constants/index.js'
+import {
+  MessageInFlightError,
+  MessageInvalidError,
+  MessageRelayedError,
+  MessageUnknownError
+} from '@hop-protocol/hop-node-core'
+import { NonceTooLowError } from '@hop-protocol/hop-node-core'
+import { RelayerFeeTooLowError } from '#types/error.js'
+import { getChainBridge } from '@hop-protocol/hop-node-core'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core'
+import { isFetchRpcServerError } from '@hop-protocol/hop-node-core'
+import { isNativeToken } from '@hop-protocol/hop-node-core'
+import { promiseQueue } from '@hop-protocol/hop-node-core'
+import type { IChainBridge } from '@hop-protocol/hop-node-core'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { Logger } from '@hop-protocol/hop-node-core'
+import type { RelayableTransferRoot, TransferRootRelayProps } from '#db/TransferRootsDb.js'
+import type { Transfer, UnrelayedSentTransfer } from '#db/TransfersDb.js'
+import type { providers } from 'ethers'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -21,11 +30,15 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = ArbitrumBridgeWatcher
+type SendTransferRelayTxParams = {
+  transferId: string
+  destinationChainId: number
+  transferSentTxHash: string
+}
 
 class RelayWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: RelayWatcher }
-  relayWatcher: RelayWatchers
+  override siblingWatchers!: { [chainId: string]: RelayWatcher }
+  private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
     super({
@@ -35,15 +48,13 @@ class RelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-    this.relayWatcher = new ArbitrumBridgeWatcher({
-      chainSlug: config.chainSlug,
-      tokenSymbol: this.tokenSymbol,
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
+
+    if (EnforceRelayerFee) {
+      this.logger.debug('enforcing relayer fee')
+    }
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
@@ -52,7 +63,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkTransferSentToL2FromDb () {
-    const dbTransfers = await this.db.transfers.getUnrelayedSentTransfers(await this.getFilterRoute())
+    const dbTransfers = await this.db.transfers.getL1ToL2UnrelayedTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       this.logger.debug('no unrelayed transfer db items to check')
       return
@@ -86,13 +97,13 @@ class RelayWatcher extends BaseWatcher {
 
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
-    }, { concurrency: relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
+    }, { concurrency: this.relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
 
     this.logger.debug('checkTransferSentToL2FromDb completed')
   }
 
   async checkRelayableTransferRootsFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getRelayableTransferRoots(await this.getFilterRoute())
+    const dbTransferRoots = await this.db.transferRoots.getL1ToL2UnrelayedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       this.logger.debug('no relayable transfer root db items to check')
       return
@@ -125,7 +136,6 @@ class RelayWatcher extends BaseWatcher {
       amount,
       relayer,
       relayerFee,
-      transferSentTimestamp,
       transferSentTxHash
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
@@ -138,33 +148,15 @@ class RelayWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    const l1ToL2Messages = await this.relayWatcher.getL1ToL2Messages(transferSentTxHash)
-    let messageIndex = 0
-    if (l1ToL2Messages.length > 1) {
-      messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
-      logger.debug(`messageIndex: ${messageIndex}`)
-    }
-
-    logger.debug('processing transfer relay. checking isRelayComplete')
-    const isRelayComplete = await this.relayWatcher.isTransactionRedeemed(transferSentTxHash)
-    logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
-    if (isRelayComplete) {
-      logger.warn('checkTransferSentToL2 already complete. marking item not found')
-      await this.db.transfers.update(transferId, { isNotFound: true })
+    const bonderAddress = await destBridge.getBonderAddress()
+    const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
+    if (!isCorrectRelayer && EnforceRelayerFee) {
+      logger.warn('relayer is not correct. marking item not relayable.')
+      await this.db.transfers.update(transferId, { isRelayable: false })
       return
     }
 
-    const bonderAddress = await destBridge.getBonderAddress()
-    const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
-    if (!isCorrectRelayer) {
-      // Re-introduce when enforcing
-      logger.debug('relayer address is not correct')
-      // logger.warn('relayer is not correct. marking item not relayable.')
-      // await this.db.transfers.update(transferId, { isRelayable: false })
-      // return
-    }
-
-    const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
+    const isReceivingNativeToken = isNativeToken(destinationChainId.toString(), this.tokenSymbol)
     if (isReceivingNativeToken) {
       logger.debug('checkTransferSentToL2 getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
@@ -176,8 +168,8 @@ class RelayWatcher extends BaseWatcher {
       }
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayWatcher`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayWatcher`)
       return
     }
 
@@ -190,25 +182,21 @@ class RelayWatcher extends BaseWatcher {
     try {
       logger.debug('checkTransferSentToL2 getIsRelayerFeeOk')
       const isRelayerFeeOk = await this.getIsFeeOk(transferId, GasCostTransactionType.Relay)
-      if (!isRelayerFeeOk) {
-        // Re-introduce when enforcing
-        logger.debug('relayer fee is too low')
-        // const msg = 'Relayer fee is too low. Cannot relay.'
-        // logger.warn(msg)
-        // this.notifier.warn(msg)
-        // throw new RelayerFeeTooLowError(msg)
+      if (!isRelayerFeeOk && EnforceRelayerFee) {
+        const msg = 'Relayer fee is too low. Cannot relay.'
+        logger.warn(msg)
+        throw new RelayerFeeTooLowError(msg)
       }
 
       logger.debug('checkTransferSentToL2 sendRelayTx')
       const tx = await this.sendTransferRelayTx({
         transferId,
         destinationChainId,
-        transferSentTxHash,
-        messageIndex
+        transferSentTxHash
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
-      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB entry
+      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB item
       // since the L1 to L2 transferId relies on the L1 transaction hash. If the server does restart, we will be alerted
       // that a tx has not been relayed and we can investigate the status.
       await this.db.transfers.update(transferId, {
@@ -218,14 +206,46 @@ class RelayWatcher extends BaseWatcher {
 
       const msg = `sent relay on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
+      logger.debug('sendTransferRelayErr err:', err)
+
+      const transfer = await this.db.transfers.getByTransferId(transferId)
+      if (!transfer) {
+        throw new Error('transfer not found in db')
+      }
+
+      let { relayBackoffIndex } = transfer
+      if (!relayBackoffIndex) {
+        relayBackoffIndex = 0
+      }
+
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,
         transferFromL1CompleteTxHash: undefined
       })
 
+      if (
+        err instanceof MessageUnknownError ||
+        err instanceof MessageInFlightError ||
+        err instanceof MessageRelayedError ||
+        err instanceof MessageInvalidError
+      ) {
+        const {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
+        await this.db.transfers.update(transferId, {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        })
+        return
+      }
+
+      // Handle general errors
       logger.error('relayTx error:', err.message)
       const isUnrelayableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnrelayableError) {
@@ -235,17 +255,13 @@ class RelayWatcher extends BaseWatcher {
         })
       }
 
-      const isCallExceptionError = isExecutionError(err.message)
+      const isCallExceptionError = isFetchExecutionError(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.CallException
         })
       }
       if (err instanceof RelayerFeeTooLowError) {
-        let { relayBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-        if (!relayBackoffIndex) {
-          relayBackoffIndex = 0
-        }
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RelayerFeeTooLow,
@@ -258,6 +274,16 @@ class RelayWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           relayAttemptedAt: 0
         })
+      }
+      const isRpcError = isFetchRpcServerError(err.message)
+      if (isRpcError) {
+        logger.error('rpc server error. trying again.')
+        relayBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          relayTxError: TxError.RpcServerError,
+          relayBackoffIndex
+        })
+        return
       }
       throw err
     }
@@ -300,8 +326,8 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping bondTransferRoot`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondTransferRoot`)
       return
     }
 
@@ -315,72 +341,136 @@ class RelayWatcher extends BaseWatcher {
 
     try {
       const tx = await this.sendTransferRootRelayTx(
+        destinationChainId,
         transferRootId,
         l1TxHash
       )
       const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('transferRootSet error:', err.message)
+
+      // TODO: Should be same err handler as checkTransferSentToL2
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoot
+      if (!dbTransferRoot) {
+        this.logger.warn(`transferRoot id "${transferRootId}" not found in db`)
+        return
+      }
+
+      let { relayBackoffIndex } = dbTransferRoot
+      if (!relayBackoffIndex) {
+        relayBackoffIndex = 0
+      }
+
+      if (
+        err instanceof MessageUnknownError ||
+        err instanceof MessageInFlightError ||
+        err instanceof MessageRelayedError ||
+        err instanceof MessageInvalidError
+      ) {
+        const {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
+        await this.db.transferRoots.update(transferRootId, {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        })
+        return
+      }
+
       throw err
     }
   }
 
-  async sendTransferRelayTx (params: any): Promise<providers.TransactionResponse> {
+  async sendTransferRelayTx (params: SendTransferRelayTxParams): Promise<providers.TransactionResponse> {
     const {
       transferId,
       destinationChainId,
-      transferSentTxHash,
-      messageIndex
+      transferSentTxHash
     } = params
     const logger = this.logger.create({ id: transferId })
 
     logger.debug(
-      `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex}`
+      `relay transfer destinationChainId: ${destinationChainId} with l1TxHash: ${transferSentTxHash}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.sendRelayTx(transferSentTxHash, messageIndex)
+    return this.sendRelayTx(destinationChainId, transferSentTxHash)
   }
 
-  async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
+  async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
       `relay root destinationChainId with txHash ${txHash}`
     )
-    return await this.sendRelayTx(txHash)
+    return this.sendRelayTx(destinationChainId, txHash)
   }
 
-  async sendRelayTx (txHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
-    return await this.relayWatcher.redeemArbitrumTransaction(txHash, messageIndex)
-  }
-
-  async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {
-    // We need to deterministically order all the messages in an L1 tx, even if they have already been relayed
-    type TransferId = string
-    type LogIndex = number
-
-    // Get all the transfers at the same time so we can get the messageIndex for each one
-    const dateFilter = {
-      fromUnix: transferSentTimestamp,
-      toUnix: transferSentTimestamp
+  async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+    const destinationChainSlug = getChainSlug(destinationChainId.toString())
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(destinationChainSlug)) {
+      throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)
     }
-    const transfers: Transfer[] = await this.db.transfers.getTransfers(dateFilter)
+    const chainBridge: IChainBridge = getChainBridge(destinationChainSlug)
+    if (!chainBridge) {
+      throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
+    }
 
-    // Get all transfers within the same L1 tx and store their log index
-    const logIndicesPerTransferId: Record<TransferId, LogIndex> = {}
-    for (const transfer of transfers) {
-      if (transfer.transferSentTxHash !== transferSentTxHash) continue
-      if (typeof transfer.transferSentLogIndex === 'undefined') {
-        throw new Error(`transfer ${transfer.transferId} has no transferSentLogIndex. All L1 to L2 transfers with a tx hash should have a log index.`)
+    // A messageIndex greater than 0 is very rare. It is also difficult to calculate since it requires
+    // the context of the whole tx. Assuming 0 is reasonable for now.
+    messageIndex = messageIndex ?? 0
+    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
+    return chainBridge.relayL1ToL2Message(txHash, messageIndex)
+  }
+
+  async #handleMessageStatusError (
+    err: Error,
+    relayBackoffIndex: number,
+    logger: Logger
+  ): Promise<TransferRootRelayProps> {
+    if (err instanceof MessageUnknownError) {
+      logger.debug('message unknown. retrying')
+      relayBackoffIndex++
+      return {
+        relayTxError: TxError.MessageUnknownStatus,
+        relayBackoffIndex,
+        isRelayable: true
       }
-      logIndicesPerTransferId[transfer.transferId] = transfer.transferSentLogIndex
     }
 
-    // Sort the transfers by their log index
-    const entries: Array<[TransferId, LogIndex]> = Object.entries(logIndicesPerTransferId)
-    const sortedTransferIdsAndIndices: Array<[TransferId, LogIndex]> = entries.sort((a, b) => a[1] - b[1])
-    return sortedTransferIdsAndIndices.map(([t]) => t).indexOf(transferId)
+    if (err instanceof MessageInFlightError) {
+      logger.debug('message in flight. retrying')
+      relayBackoffIndex++
+      return {
+        relayTxError: TxError.MessageUnknownStatus,
+        relayBackoffIndex,
+        isRelayable: true
+      }
+    }
+
+    if (err instanceof MessageRelayedError) {
+      logger.error('message already relayed. marking unrelayable')
+      return {
+        relayTxError: TxError.MessageAlreadyRelayed,
+        relayBackoffIndex,
+        isRelayable: false
+      }
+    }
+
+    if (err instanceof MessageInvalidError) {
+      logger.error('message state invalid. marking unrelayable')
+      return {
+        relayTxError: TxError.MessageInvalidState,
+        relayBackoffIndex,
+        isRelayable: false
+      }
+    }
+
+    throw new Error('RelayWatcher: handleMessageStatusError: unknown error type')
   }
 }
 

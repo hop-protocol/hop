@@ -1,14 +1,15 @@
-import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
-import { BigNumber } from 'ethers'
-import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
+import React, { FC, ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import Token from 'src/models/Token'
-import { findNetworkBySlug } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import * as config from 'src/config'
-import { HToken, CanonicalToken } from '@hop-protocol/sdk'
+import { BigNumber, utils } from 'ethers'
+import { CanonicalToken, HToken } from '@hop-protocol/sdk'
+import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
+import { retryPromise } from 'src/utils/retryPromise'
+import { useApp } from 'src/contexts/AppContext'
+import * as config from 'src/config'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 interface Column {
   Header: string
@@ -59,11 +60,7 @@ const columns: TableColumns[] = [
       {
         Header: 'Available Native',
         accessor: 'availableNative',
-      },
-      {
-        Header: 'Vault Balance',
-        accessor: 'vaultBalance',
-      },
+      }
     ],
   },
 ]
@@ -99,7 +96,7 @@ type BonderStats = {
   virtualDebt: number
   totalAmount: number
   availableNative: number
-  vaultBalance: number
+  error?: string
 }
 
 type BalanceStats = {
@@ -108,6 +105,7 @@ type BalanceStats = {
   address: string
   balance: number
   tokenImageUrl: string
+  error?: string
 }
 
 type DebitWindowStats = {
@@ -115,6 +113,7 @@ type DebitWindowStats = {
   token: Token
   amountBonded: number[]
   remainingMin: number
+  error?: string
 }
 
 type PendingAmountStats = {
@@ -125,9 +124,10 @@ type PendingAmountStats = {
   pendingAmount: BigNumber
   formattedPendingAmount: number
   availableLiquidity: BigNumber
+  error?: string
 }
 
-const StatsProvider: FC = ({ children }) => {
+const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(true)
@@ -151,7 +151,7 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     const hopToken = new Token({
-      symbol: `h${token?.symbol}` as HToken,
+      symbol: `h${token?.symbol}` as TokenSymbol,
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
       decimals: token?.decimals,
@@ -172,11 +172,12 @@ const StatsProvider: FC = ({ children }) => {
       return
     }
     const reserves = await bridge.getSaddleSwapReserves(selectedNetwork.slug)
-    const reserve0 = Number(formatUnits(reserves[0].toString(), decimals))
-    const reserve1 = Number(formatUnits(reserves[1].toString(), decimals))
+    const reserve0 = Number(utils.formatUnits(reserves[0].toString(), decimals))
+    const reserve1 = Number(utils.formatUnits(reserves[1].toString(), decimals))
+    const id = `${selectedNetwork.slug}-${token0.symbol}-${token1.symbol}`
 
     return {
-      id: `${selectedNetwork.slug}-${token0.symbol}-${token1.symbol}`,
+      id,
       pairAddress: null,
       pairUrl: '#',
       totalLiquidity: reserve0 + reserve1,
@@ -190,14 +191,25 @@ const StatsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const updateStats = async () => {
+      setFetching(true)
       if (!filteredNetworks) {
         return
       }
-      setFetching(true)
       const promises: Promise<any>[] = []
       for (const network of filteredNetworks) {
         for (const token of tokens) {
-          promises.push(fetchStats(network, token).catch(logger.error))
+          if (token.symbol === 'HOP') {
+            continue
+          }
+          promises.push(retryPromise(fetchStats, network, token).catch((err: any) => {
+            const id = `${network.slug}-${token.symbol}`
+            return {
+              id,
+              token0: token,
+              network,
+              error: `FETCH ERROR: network: ${network.slug} token: ${token.symbol} error: ${err.message}`
+            }
+          }))
         }
       }
       const results: any[] = await Promise.all(promises)
@@ -224,43 +236,42 @@ const StatsProvider: FC = ({ children }) => {
       return
     }
 
+    const id = `${selectedNetwork.slug}-${token.symbol}-${bonder}`
     const bridge = sdk.bridge(selectedToken.symbol)
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] =
+    const [credit, debit, totalDebit, availableLiquidity, nativeBalance ] =
       await Promise.all([
         bridge.getCredit(selectedNetwork.slug, bonder),
         bridge.getDebit(selectedNetwork.slug, bonder),
         bridge.getTotalDebit(selectedNetwork.slug, bonder),
         bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
         bridge.getEthBalance(selectedNetwork.slug, bonder),
-        bridge.getVaultBalance(selectedNetwork.slug, bonder),
       ])
 
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token)) {
+      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token) && obj.pendingAmount) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
 
     return {
-      id: `${selectedNetwork.slug}-${token.symbol}-${bonder}`,
+      id,
       bonder,
       token,
       network: selectedNetwork,
-      credit: Number(formatUnits(credit.toString(), token.decimals)),
-      debit: Number(formatUnits(totalDebit.toString(), token.decimals)),
-      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
-      pendingAmount: Number(formatUnits(pendingAmount.toString(), token.decimals)),
-      virtualDebt: Number(formatUnits(virtualDebt.toString(), token.decimals)),
+      credit: Number(utils.formatUnits(credit.toString(), token.decimals)),
+      debit: Number(utils.formatUnits(totalDebit.toString(), token.decimals)),
+      availableLiquidity: Number(utils.formatUnits(availableLiquidity.toString(), token.decimals)),
+      pendingAmount: Number(utils.formatUnits(pendingAmount.toString(), token.decimals)),
+      virtualDebt: Number(utils.formatUnits(virtualDebt.toString(), token.decimals)),
       totalAmount: Number(
-        formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
+        utils.formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
-      availableNative: Number(formatEther(nativeBalance.toString())),
-      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals)),
+      availableNative: Number(utils.formatEther(nativeBalance.toString())),
     }
   }
 
@@ -268,6 +279,14 @@ const StatsProvider: FC = ({ children }) => {
     const updateBonderStats = async () => {
       setFetchingBonderStats(true)
       if (!networks) {
+        return
+      }
+      // start fetching after getting balance stats
+      if (!balances?.length) {
+        return
+      }
+      // start fetching after getting pending stats
+      if (!pendingAmounts?.length) {
         return
       }
       const promises: Promise<any>[] = []
@@ -284,7 +303,17 @@ const StatsProvider: FC = ({ children }) => {
             }
           }
           for (const bonder of bonders) {
-            promises.push(fetchBonderStats(network, token, bonder).catch(logger.error))
+            promises.push(retryPromise(fetchBonderStats, network, token, bonder).catch((err: any) => {
+              logger.error('error fetching bonder stats', token, network, bonder, err)
+              const id = `${network.slug}-${token.symbol}-${bonder}`
+              return {
+                id,
+                bonder,
+                token,
+                network,
+                error: `FETCH ERROR: network: ${network.slug} token: ${token.symbol} bonder: ${bonder} error: ${err.message}`
+              }
+            }))
           }
         }
       }
@@ -295,7 +324,7 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     updateBonderStats().catch(logger.error)
-  }, [pendingAmounts])
+  }, [pendingAmounts, balances])
 
   async function fetchPendingAmounts(
     sourceNetwork: Network,
@@ -318,16 +347,17 @@ const StatsProvider: FC = ({ children }) => {
     if (!isSupported || !isDestSupported) {
       return
     }
+    const id = `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
     const pendingAmount = await contract.pendingAmountForChainId(destinationNetwork.networkId)
-    const formattedPendingAmount = Number(formatUnits(pendingAmount, token.decimals))
+    const formattedPendingAmount = Number(utils.formatUnits(pendingAmount, token.decimals))
     const al = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destinationNetwork.slug
     )
 
     return {
-      id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,
+      id,
       sourceNetwork,
       destinationNetwork,
       token,
@@ -339,10 +369,14 @@ const StatsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const updatePendingAmounts = async () => {
+      setFetchingPendingAmounts(true)
       if (!filteredNetworks) {
         return
       }
-      setFetchingPendingAmounts(true)
+      // start fetching after getting pool stats
+      if (!stats?.length) {
+        return
+      }
       const promises: Promise<any>[] = []
       for (const sourceNetwork of filteredNetworks) {
         for (const token of tokens) {
@@ -351,7 +385,17 @@ const StatsProvider: FC = ({ children }) => {
               continue
             }
             promises.push(
-              fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch(logger.error)
+              retryPromise(fetchPendingAmounts, sourceNetwork, destinationNetwork, token).catch((err: any) => {
+                logger.error('error fetching pending amount stats', token, sourceNetwork, destinationNetwork)
+                const id = `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`
+                return {
+                  id,
+                  sourceNetwork,
+                  destinationNetwork,
+                  token,
+                  error: `FETCH ERROR: source: ${sourceNetwork.slug} destination: ${destinationNetwork.slug} token: ${token.symbol} error: ${err.message}`
+                }
+              })
             )
           }
         }
@@ -362,7 +406,7 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     updatePendingAmounts().catch(logger.error)
-  }, [])
+  }, [stats])
 
   async function fetchBalances(
     slug: string,
@@ -388,11 +432,11 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     const balance = await bridge.getEthBalance(slug, address)
-    const formattedBalance: number = Number(formatEther(balance))
+    const formattedBalance: number = Number(utils.formatEther(balance))
 
     const n = findNetworkBySlug(slug)
     return {
-      network: n!,
+      network: n,
       name,
       address,
       balance: formattedBalance,
@@ -402,10 +446,14 @@ const StatsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const updateBalances = async () => {
+      setFetchingBalances(true)
       if (!filteredNetworks) {
         return
       }
-      setFetchingBalances(true)
+      // start fetching after getting pending amount stats
+      if (!pendingAmounts?.length) {
+        return
+      }
       const addressDatas = [['ethereum', 'relayer', '0x2A6303e6b99d451Df3566068EBb110708335658f']]
 
       const arbitrumSlug = 'arbitrum'
@@ -415,14 +463,30 @@ const StatsProvider: FC = ({ children }) => {
           continue
         }
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
-        addressDatas.push(['ethereum', `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
+        addressDatas.push(['ethereum', `${token.symbol} Wrapper (Arbitrum)`, messengerWrapperAddress, token.symbol])
+      }
+      const novaSlug = 'nova'
+      for (const token of tokens) {
+        const tokenConfig = config.addresses.tokens[token.symbol][novaSlug]
+        if (!tokenConfig) {
+          continue
+        }
+        const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
+        addressDatas.push(['ethereum', `${token.symbol} Wrapper (Nova)`, messengerWrapperAddress, token.symbol])
       }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {
         const slug: string = addressData[0]
         const name: string = addressData[1]
         const address: string = addressData[2]
-        promises.push(fetchBalances(slug, name, address, addressData[3]).catch(logger.error))
+        promises.push(retryPromise(fetchBalances, slug, name, address, addressData[3]).catch((err: any) => {
+          logger.error('error fetching balance stats', slug, name, address, err)
+          return {
+            name,
+            address,
+            error: `FETCH ERROR: network: ${slug} name: ${name} address: ${address} error: ${err?.message}`
+          }
+        }))
       }
       const results: any[] = await Promise.all(promises)
       setFetchingBalances(false)
@@ -430,15 +494,12 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     updateBalances().catch(logger.error)
-  }, [])
+  }, [pendingAmounts])
 
   async function fetchDebitWindowStats(
     selectedToken: Token,
     bonder: string
   ): Promise<DebitWindowStats | undefined> {
-    if (!pendingAmounts?.length) {
-      return
-    }
     const token = tokens.find(token => token.symbol === selectedToken?.symbol)
     if (!token) {
       return
@@ -456,7 +517,7 @@ const StatsProvider: FC = ({ children }) => {
     for (let i = 0; i < Number(numTimeSlots); i++) {
       const timeSlot: number = Number(currentTimeSlot.sub(i))
       const amount: BigNumber = await bridge.timeSlotToAmountBonded(timeSlot, bonder)
-      amountBonded.push(Number(formatUnits(amount.toString(), token.decimals)))
+      amountBonded.push(Number(utils.formatUnits(amount.toString(), token.decimals)))
     }
 
     const timeElapsedInSlot: number = currentTime % Number(timeSlotSize)
@@ -477,13 +538,17 @@ const StatsProvider: FC = ({ children }) => {
       if (!networks) {
         return
       }
-      const promises: Promise<any>[] = []
+      // start fetching after getting pending amount stats
+      if (!pendingAmounts?.length) {
+        return
+      }
+      const results: any[] = []
       for (const token of tokens) {
         const bonders = new Set<string>()
         for (const bonder in config.addresses.bonders?.[token.symbol]) {
           for (const sourceChain in config.addresses.bonders?.[token.symbol]) {
             for (const destinationChain in config.addresses.bonders?.[token.symbol][
-              sourceChain as string
+              sourceChain 
             ]) {
               const bonder = config.addresses.bonders?.[token.symbol][sourceChain][destinationChain]
               if (bonder) {
@@ -493,11 +558,22 @@ const StatsProvider: FC = ({ children }) => {
           }
         }
         for (const bonder of bonders) {
-          promises.push(fetchDebitWindowStats(token, bonder).catch(logger.error))
+          try {
+            const result = await retryPromise(fetchDebitWindowStats, token, bonder)
+            logger.debug('got debit window stats result:', token, bonder)
+            if (result) {
+              results.push(result)
+            }
+          } catch (err: any) {
+            logger.error('error fetching debit window stats:', token, bonder, err)
+            results.push({
+              id: token.symbol,
+              token,
+              error: `FETCH ERROR: token: ${token.symbol} bonder: ${bonder} error: ${err.message}`
+            })
+          }
         }
       }
-      let results: any[] = await Promise.all(promises)
-      results = results.filter(x => x)
       setFetchingDebitWindowStats(!results.length)
       setDebitWindowStats(results)
     }
@@ -534,7 +610,7 @@ const StatsProvider: FC = ({ children }) => {
 export function useStats() {
   const ctx = useContext(StatsContext)
   if (ctx === undefined) {
-    throw new Error('useStats must be used within StatsProvider')
+    throw new Error('useStats must be used within the StatsProvider')
   }
   return ctx
 }

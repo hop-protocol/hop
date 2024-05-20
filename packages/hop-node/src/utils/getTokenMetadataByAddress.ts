@@ -1,4 +1,5 @@
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig } from '#config/index.js'
+import { getToken, TokenSymbol } from '@hop-protocol/sdk'
 
 const cache: Record<string, any> = {}
 
@@ -14,9 +15,7 @@ function getTokenMetadataByAddress (address: string, chain: string) {
     for (const k in globalConfig.addresses[tkn][chain]) {
       const val = globalConfig.addresses[tkn][chain][k]
       if (val === address) {
-        const meta = globalConfig.metadata.tokens[
-          tkn
-        ]
+        const meta = getToken(tkn as TokenSymbol)
         cache[cacheKey] = meta
         return meta
       }

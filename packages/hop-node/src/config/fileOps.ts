@@ -1,12 +1,12 @@
-import Logger, { setLogLevel } from 'src/logger'
-import fetch from 'node-fetch'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import {
-  BlocklistConfig,
-  Bonders,
-  CommitTransfersConfig, Fees, Routes, Vault,
+  type Bonders,
+  type BlocklistConfig,
+  type CommitTransfersConfig,
+  type Fees,
+  type Routes,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -19,16 +19,20 @@ import {
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setNetworkCustomSyncType,
   setNetworkMaxGasPrice,
+  setNetworkRedundantRpcUrls,
   setNetworkRpcUrl,
   setRoutesConfig,
-  setSyncConfig,
-  setVaultConfig
-} from './config'
-import { getAddress } from 'ethers/lib/utils'
-import { getParameter } from 'src/aws/parameterStore'
-import { promptPassphrase } from 'src/prompt'
-import { recoverKeystore } from 'src/keystore'
+  setSignerConfig,
+  setSyncConfig
+} from './config.js'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core'
+import { utils } from 'ethers'
+import { getParameter } from '@hop-protocol/hop-node-core'
+import { promptPassphrase } from '#prompt/index.js'
+import { recoverKeystore } from '@hop-protocol/hop-node-core'
+import type { SignerConfig } from '@hop-protocol/hop-node-core'
 
 const logger = new Logger('config')
 
@@ -88,6 +92,7 @@ export type FileConfig = {
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
+  signer?: SignerConfig
   settleBondedWithdrawals?: any
   commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
@@ -95,7 +100,6 @@ export type FileConfig = {
   fees?: Fees
   routes: Routes
   bonders?: Bonders
-  vault?: Vault
   blocklist?: BlocklistConfig
 }
 
@@ -141,6 +145,21 @@ export async function setGlobalConfigFromConfigFile (
     const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
+  if (config.signer) {
+    if (!config.signer.type) {
+      throw new Error('config for signer type is required')
+    }
+    if (!config.signer.keyId) {
+      throw new Error('config for signer keyId is required')
+    }
+    if (!config.signer.awsRegion) {
+      throw new Error('config for signer awsRegion is required')
+    }
+    if (!config.signer.lambdaFunctionName) {
+      throw new Error('config for signer lambdaFunctionName is required')
+    }
+    setSignerConfig(config.signer)
+  }
   const network = config.network
   if (!network) {
     throw new Error('config for network is required')
@@ -155,12 +174,18 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl, maxGasPrice } = v
+      const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
       }
       if (maxGasPrice) {
         setNetworkMaxGasPrice(k, maxGasPrice)
+      }
+      if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+        setNetworkRedundantRpcUrls(k, redundantRpcUrls)
+      }
+      if (customSyncType) {
+        setNetworkCustomSyncType(k, customSyncType)
       }
     }
   }
@@ -179,7 +204,10 @@ export async function setGlobalConfigFromConfigFile (
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
+
+    const { default: addresses } = await import(location, {
+      with: { type: "json" }
+    })
     setConfigAddresses(addresses)
   }
   if (config?.metrics) {
@@ -196,7 +224,7 @@ export async function setGlobalConfigFromConfigFile (
     throw new Error('config for watchers is required')
   }
 
-  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => (config?.watchers as any)?.[watcher])
+  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => config?.watchers?.[watcher as Watchers])
   if (!config?.watchers) {
     throw new Error('config for watchers is required')
   }
@@ -226,11 +254,6 @@ export async function setGlobalConfigFromConfigFile (
     setConfigBonders(config.bonders)
   }
 
-  logger.debug('optional vault config:', JSON.stringify(config.vault))
-  if (config.vault) {
-    setVaultConfig(config.vault)
-  }
-
   logger.debug('optional blocklist config:', JSON.stringify(config.blocklist))
   if (config.blocklist) {
     if (!config.blocklist.addresses) {
@@ -255,7 +278,7 @@ export async function setGlobalConfigFromConfigFile (
       for (const address in config.blocklist.addresses) {
         try {
           delete config.blocklist.addresses[address]
-          config.blocklist.addresses[getAddress(address).toLowerCase()] = true
+          config.blocklist.addresses[utils.getAddress(address).toLowerCase()] = true
         } catch (err) {
           throw new Error(`blocklist address "${address}" is invalid`)
         }
@@ -294,7 +317,10 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    config = require(configPath)
+    const { default: importedConfig } = await import(configPath, {
+      with: { type: "json" }
+    })
+    config = importedConfig
   }
   if (config != null) {
     logger.info('config file:', configPath)

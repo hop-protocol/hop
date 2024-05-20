@@ -1,22 +1,22 @@
-import React, { FC, ChangeEvent } from 'react'
-import { useHistory, useLocation, useRouteMatch } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import Grid from '@material-ui/core/Grid'
-import MenuItem from '@material-ui/core/MenuItem'
-import { useApp } from 'src/contexts/AppContext'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
-import SelectOption from 'src/components/selects/SelectOption'
+import Box from '@mui/material/Box'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
-import InfoTooltip from 'src/components/InfoTooltip'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { FC, useEffect } from 'react'
+import SelectOption from 'src/components/selects/SelectOption'
+import Typography from '@mui/material/Typography'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { findMatchingBridge } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem',
+    marginBottom: '4.2rem !important',
   },
   selects: {
     marginBottom: '4.4rem',
@@ -42,12 +42,18 @@ const useStyles = makeStyles(theme => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { convertOptions, selectedNetwork, selectBothNetworks } = useConvert()
+  const { convertOptions, selectedNetwork, selectBothNetworks, viaParamValue, setViaParamValue } = useConvert()
   const { pathname, search } = useLocation()
-  const { path } = useRouteMatch()
-  const history = useHistory()
+  const navigate = useNavigate()
+  const { via } = useParams<{ via: string }>()
 
-  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+  useEffect(() => {
+    if (!via) {
+      navigate(`/convert/${viaParamValue}${search}`)
+    }
+  }, [viaParamValue, navigate])
+
+  const handleBridgeChange = (event: any) => {
     const tokenSymbol = event.target.value as string
 
     const bridge = findMatchingBridge(bridges, tokenSymbol)
@@ -56,13 +62,10 @@ const Convert: FC = () => {
     }
   }
 
-  const lastPathname = pathname.replace(path, '') || '/amm'
-  const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTabChange = (event: any) => {
     const value = event.target.value as string
-    history.push({
-      pathname: `${path}${value}`,
-      search,
-    })
+    setViaParamValue(value)
+    navigate(`/convert/${value}${search}`)
   }
 
   return (
@@ -98,7 +101,7 @@ const Convert: FC = () => {
         </div>
 
         <div className={styles.select}>
-          <RaisedSelect value={lastPathname} onChange={handleTabChange}>
+          <RaisedSelect value={viaParamValue} onChange={handleTabChange}>
             {convertOptions.map(_convertOption => (
               <MenuItem value={_convertOption.path} key={_convertOption.path}>
                 via {_convertOption.name}

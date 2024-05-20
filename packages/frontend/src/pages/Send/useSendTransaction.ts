@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from 'react'
-import { BigNumber, Signer } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import logger from 'src/logger'
-import Transaction from 'src/models/Transaction'
-import { getBonderFeeWithId } from 'src/utils'
-import { createTransaction } from 'src/utils/createTransaction'
-import { amountToBN, formatError } from 'src/utils/format'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
-import { useTransactionReplacement } from 'src/hooks'
 import EventEmitter from 'eventemitter3'
+import Transaction from 'src/models/Transaction'
+import logger from 'src/logger'
+import { BigNumber, Signer, utils } from 'ethers'
+import { ChainSlug, Hop, HopBridge } from '@hop-protocol/sdk'
+import { amountToBN, formatError } from 'src/utils/format'
+import { createTransaction } from 'src/utils/createTransaction'
+import { getBonderFeeWithId } from 'src/utils'
+import { isGoerli } from 'src/config'
+import { useEffect, useMemo, useState } from 'react'
+import { useTransactionReplacement } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export type TransactionHandled = {
   transaction: any
@@ -20,10 +20,10 @@ function handleTransaction(
   tx: any,
   fromNetwork: any,
   toNetwork: any,
-  sourceToken: any,
+  fromToken: any,
   addTransaction: any
 ): TransactionHandled {
-  const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+  const txModel = createTransaction(tx, fromNetwork, toNetwork, fromToken)
   addTransaction(txModel)
 
   return {
@@ -43,7 +43,7 @@ export function useSendTransaction (props: any) {
     intermediaryAmountOutMin = BigNumber.from(0),
     sdk,
     setError,
-    sourceToken,
+    fromToken,
     toNetwork,
     txConfirm,
     estimatedReceived,
@@ -58,9 +58,9 @@ export function useSendTransaction (props: any) {
   const { waitForTransaction, addTransaction, updateTransaction } =
     useTransactionReplacement(walletName)
   const parsedAmount = useMemo(() => {
-    if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
-    return amountToBN(fromTokenAmount, sourceToken.decimals)
-  }, [fromTokenAmount, sourceToken?.decimals])
+    if (!fromTokenAmount || !fromToken) return BigNumber.from(0)
+    return amountToBN(fromTokenAmount, fromToken.decimals)
+  }, [fromTokenAmount, fromToken?.decimals])
 
   // Set signer
   useEffect(() => {
@@ -78,8 +78,8 @@ export function useSendTransaction (props: any) {
           const r = customRecipient || (await signer.getAddress())
           setRecipient(r)
 
-          if (sourceToken) {
-            const b = sdk.bridge(sourceToken.symbol).connect(signer)
+          if (fromToken) {
+            const b = sdk.bridge(fromToken.symbol).connect(signer)
             setBridge(b)
           }
         } catch (error) {}
@@ -87,7 +87,7 @@ export function useSendTransaction (props: any) {
     }
 
     setRecipientAndBridge()
-  }, [signer, sourceToken, customRecipient])
+  }, [signer, fromToken, customRecipient])
 
   // Master send method
   const send = async () => {
@@ -100,11 +100,13 @@ export function useSendTransaction (props: any) {
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       try {
         if (customRecipient) {
-          getAddress(customRecipient) // attempts to checksum
+          utils.getAddress(customRecipient) // attempts to checksum
         }
       } catch (err) {
         throw new Error('Custom recipient address is invalid')
@@ -113,7 +115,7 @@ export function useSendTransaction (props: any) {
       if (!signer) {
         throw new Error('Cannot send: signer does not exist.')
       }
-      if (!sourceToken) {
+      if (!fromToken) {
         throw new Error('No from token selected')
       }
 
@@ -137,7 +139,7 @@ export function useSendTransaction (props: any) {
 
       const watcher = (sdk as Hop).watch(
         txModel.hash,
-        sourceToken.symbol,
+        fromToken.symbol,
         fromNetwork.slug,
         toNetwork.slug
       )
@@ -160,7 +162,7 @@ export function useSendTransaction (props: any) {
       const txModelArgs = {
         networkName: fromNetwork.slug,
         destNetworkName: toNetwork.slug,
-        token: sourceToken,
+        token: fromToken,
       }
 
       const res = await waitForTransaction(transaction, txModelArgs)
@@ -172,7 +174,7 @@ export function useSendTransaction (props: any) {
         // Replace watcher
         const replacementWatcher = sdk.watch(
           txModelReplacement.hash,
-          sourceToken!.symbol,
+          fromToken.symbol,
           fromNetwork.slug,
           toNetwork.slug
         )
@@ -205,7 +207,7 @@ export function useSendTransaction (props: any) {
         isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
-          token: sourceToken,
+          token: fromToken,
           network: fromNetwork,
         },
         dest: {
@@ -218,20 +220,26 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
-        const relayerFeeWithId = getBonderFeeWithId(totalFee)
+        let relayerFeeWithId = getBonderFeeWithId(totalFee)
+        if (isGoerli) {
+          // Do not use an ID for a relayer fee on Goerli
+          relayerFeeWithId = getBonderFeeWithId(totalFee, '')
+        }
 
-        return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
+        return bridge.send(parsedAmount, ChainSlug.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,
-          amountOutMin: amountOutMin.sub(relayerFeeWithId),
+          amountOutMin: amountOutMin.sub(relayerFeeWithId)
         })
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, fromToken, addTransaction)
   }
 
   const sendl2ToL1 = async () => {
@@ -242,7 +250,7 @@ export function useSendTransaction (props: any) {
         isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
-          token: sourceToken,
+          token: fromToken,
           network: fromNetwork,
         },
         dest: {
@@ -258,7 +266,9 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -273,7 +283,7 @@ export function useSendTransaction (props: any) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, fromToken, addTransaction)
   }
 
   const sendl2ToL2 = async () => {
@@ -284,7 +294,7 @@ export function useSendTransaction (props: any) {
         isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
-          token: sourceToken,
+          token: fromToken,
           network: fromNetwork,
         },
         dest: {
@@ -300,7 +310,9 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -315,7 +327,7 @@ export function useSendTransaction (props: any) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, fromToken, addTransaction)
   }
 
   return {

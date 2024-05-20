@@ -1,11 +1,18 @@
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@mui/styles'
 
-export const useNetworkSelectorStyles = makeStyles(theme => ({
+export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
   networkSelectionBox: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    transition: 'all 0.15s ease-out',
+  },
+  selectNetworkText: {
+    fontSize: '1.4rem',
+    fontWeight: '700 !important',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    marginLeft: '0.4rem',
+    textAlign: 'center',
   },
   networkLabel: {
     display: 'flex',
@@ -24,5 +31,5 @@ export const useNetworkSelectorStyles = makeStyles(theme => ({
     display: 'flex',
     height: '2.2rem',
     margin: '0.7rem',
-  },
+  }
 }))

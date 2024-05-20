@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { getVotes } from './claims'
-import { commafy } from 'src/utils/commafy'
 import Address from 'src/models/Address'
 import shuffle from 'lodash/shuffle'
+import { BigNumber, utils } from 'ethers'
+import { claimChainId, delegatesJsonUrl } from 'src/pages/Claim/config'
+import { commafy } from 'src/utils/commafy'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
-import { delegatesJsonUrl, claimChainId } from './config'
-import { networkIdToSlug } from 'src/utils/networks'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { getVotes } from './claims'
+import { networkIdToSlug } from 'src/utils/networks'
+import { useEffect, useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const votesCache :any = {}
 const addressCache:any = {}
@@ -19,7 +18,7 @@ let cached : any[] = []
 export function useDelegates() {
   const [delegates, setDelegates] = useState<any[]>(cached || [])
   const { provider, address, connectedNetworkId } = useWeb3Context()
-  const [claimProvider, setClaimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState<any>(() => {
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 
@@ -104,7 +103,7 @@ export function useDelegates() {
             .then((votes: BigNumber) => {
               votesCache[delegateAddress] = votes
               delegate.votes = votesCache[delegateAddress]
-              const votesFormatted = delegate!.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4)} votes` : '0 votes'
+              const votesFormatted = delegate.votes!.gt(0) ? `${commafy(Number(utils.formatUnits(delegate.votes!.toString(), 18)), 4)} votes` : '0 votes'
               delegate.votesFormatted = votesFormatted
               setDelegates([...cached])
             })
@@ -117,7 +116,7 @@ export function useDelegates() {
           const votesFormatted = '...'
           delegate.votesFormatted = votesFormatted
         } catch (err) {
-          console.error(err)
+          console.error('delegates error:', err)
         }
         return delegate
       }))

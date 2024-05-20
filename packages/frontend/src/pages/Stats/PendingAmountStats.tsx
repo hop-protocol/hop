@@ -1,16 +1,17 @@
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy, formatTokenString } from 'src/utils'
-import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, SortableTable } from 'src/components/Table'
+import { Icon } from 'src/components/ui/Icon'
+import { commafy, formatTokenString } from 'src/utils'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populatePendingAmountStats = (item: any) => {
   return {
-    source: item.sourceNetwork.imageUrl,
-    destination: item.destinationNetwork.imageUrl,
+    source: item.sourceNetwork?.imageUrl,
+    destination: item.destinationNetwork?.imageUrl,
     pendingAmount: item.formattedPendingAmount,
     tokenDecimals: item.token.decimals,
-    availableLiquidity: formatTokenString(item.availableLiquidity.toString(), item.token.decimals),
+    availableLiquidity: formatTokenString(item.availableLiquidity?.toString(), item.token?.decimals),
     token: item.token.imageUrl,
   }
 }
@@ -71,15 +72,18 @@ const PendingAmountStats: FC = () => {
     []
   )
 
+  const error = pendingAmounts?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Box>
       <SortableTable
         stats={pendingAmounts}
         columns={columns}
         populateDataFn={populatePendingAmountStats}
         loading={fetchingPendingAmounts}
+        error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

@@ -1,6 +1,6 @@
-import makeRequest from './makeRequest'
-import { Chain } from 'src/constants'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferSents (chain: string, token: string) {
   const queryL1 = `
@@ -41,6 +41,7 @@ export default async function getTransferSents (chain: string, token: string) {
         },
         orderBy: timestamp,
         orderDirection: desc
+        first: 1000
       ) {
         id
         transferId
@@ -63,7 +64,7 @@ export default async function getTransferSents (chain: string, token: string) {
     }
   `
   let query = queryL1
-  if (chain !== Chain.Ethereum) {
+  if (chain !== ChainSlug.Ethereum) {
     query = queryL2
   }
   const jsonRes = await makeRequest(chain, query, {

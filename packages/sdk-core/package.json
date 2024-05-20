@@ -1,0 +1,55 @@
+{
+  "name": "@hop-protocol/sdk-core",
+  "version": "0.0.13",
+  "description": "The shared code for Hop Protocol TypeScript SDK",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "module": "dist/esm/index.js",
+  "main": "dist/cjs/index.js",
+  "files": [
+    "dist"
+  ],
+  "imports": {
+    "#*": {
+      "import": "./dist/esm/*",
+      "require": "./dist/cjs/*"
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./tsconfig.esm.tsbuildinfo ./tsconfig.cjs.tsbuildinfo",
+    "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "dev": "tsc --watch",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "lint": "eslint . --fix",
+    "version": "pnpm version"
+  },
+  "dependencies": {
+    "ethers": "5.7.2",
+    "p-queue": "6.6.2"
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/sdk-core"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
+}

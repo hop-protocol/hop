@@ -1,8 +1,8 @@
-import { actionHandler, parseBool, root } from './shared'
+import { actionHandler, parseBool, root } from './shared/index.js'
 
 import {
   startChallengeWatchers
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
 
 root
   .command('challenger')
@@ -16,7 +16,7 @@ root
 
 async function main (source: any) {
   const { dry: dryMode } = source
-  await startChallengeWatchers({
+  startChallengeWatchers({
     dryMode
   })
 }

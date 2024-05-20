@@ -1,21 +1,19 @@
-import '../moduleAlias'
-import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
-import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
-import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
-import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
-import ConfirmRootsWatcher from 'src/watchers/ConfirmRootsWatcher'
-import Logger from 'src/logger'
-import RelayWatcher from 'src/watchers/RelayWatcher'
-import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
-import SyncWatcher from 'src/watchers/SyncWatcher'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import contracts from 'src/contracts'
-import { BridgeContract } from 'src/watchers/classes/BaseWatcher'
-import { Chain } from 'src/constants'
-import { MetricsServer } from 'src/metrics'
-import { Watchers, getAllChains, getAllTokens, config as globalConfig } from 'src/config'
+import AvailableLiquidityWatcher from './AvailableLiquidityWatcher.js'
+import BondTransferRootWatcher from './BondTransferRootWatcher.js'
+import BondWithdrawalWatcher from './BondWithdrawalWatcher.js'
+import ChallengeWatcher from './ChallengeWatcher.js'
+import CommitTransfersWatcher from './CommitTransfersWatcher.js'
+import ConfirmRootsWatcher from './ConfirmRootsWatcher.js'
+import RelayWatcher from './RelayWatcher.js'
+import SettleBondedWithdrawalWatcher from './SettleBondedWithdrawalWatcher.js'
+import SyncWatcher from './SyncWatcher.js'
+import contracts from '#contracts/index.js'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { MetricsServer } from '#metrics/index.js'
+import { Watchers, getAllChains, getAllTokens, config as globalConfig } from '#config/index.js'
+import { Logger } from '@hop-protocol/hop-node-core'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import type { BridgeContract } from './classes/BaseWatcher.js'
 
 const logger = new Logger('config')
 
@@ -149,7 +147,7 @@ export async function getWatchers (config: GetWatchersConfig) {
       if (isL1) {
         return
       }
-      const l1BridgeContract = contracts.get(tokenSymbol, Chain.Ethereum)?.l1Bridge
+      const l1BridgeContract = contracts.get(tokenSymbol, ChainSlug.Ethereum)?.l1Bridge
       if (!l1BridgeContract) {
         return
       }
@@ -244,7 +242,7 @@ export async function startWatchers (config: GetWatchersConfig) {
   const starts = watchers.map(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
-      return await watcher.stop()
+      return watcher.stop()
     })
   }
 
@@ -253,10 +251,10 @@ export async function startWatchers (config: GetWatchersConfig) {
 
 export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   const watchers = getChallengeWatchers(config)
-  watchers.forEach(async (watcher: Watcher) => await watcher.start())
+  watchers.forEach(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
-      return await watcher.stop()
+      return watcher.stop()
     })
   }
 
@@ -301,7 +299,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
 
   for (const tokenSymbol of tokens) {
     for (const chainSlug of networks) {
-      const isL1 = chainSlug === Chain.Ethereum
+      const isL1 = chainSlug === ChainSlug.Ethereum
       const chainId = chainSlugToId(chainSlug)
       if (!contracts.has(tokenSymbol, chainSlug)) {
         continue
@@ -325,7 +323,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
         continue
       }
 
-      const slug = chainIdToSlug(chainId)
+      const slug = getChainSlug(chainId.toString())
 
       // Skip watcher if it's not specified as route
       if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
@@ -367,7 +365,7 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
   })
 }
 
-export async function getWatcher (config: GetWatcherConfig) {
+export async function getWatcher (config: GetWatcherConfig): Promise<Watcher> {
   const { chain, token, dryMode, watcherName } = config
   const watchers = await getWatchers({
     enabledWatchers: [watcherName!],
@@ -376,34 +374,37 @@ export async function getWatcher (config: GetWatcherConfig) {
   })
 
   const WatcherClass = WatcherClasses[watcherName!]
-  const watcher = findWatcher(watchers, WatcherClass, chain) as typeof WatcherClass
+  const watcher = findWatcher(watchers, WatcherClass, chain)
+  if (!watcher) {
+    throw new Error(`Watcher not found for chain ${chain} and token ${token}`)
+  }
   return watcher
 }
 
-export async function getBondTransferRootWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.BondTransferRoot })
+export async function getBondTransferRootWatcher (config: GetWatcherConfig): Promise<BondTransferRootWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.BondTransferRoot })) as BondTransferRootWatcher
 }
 
-export async function getBondWithdrawalWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.BondWithdrawal })
+export async function getBondWithdrawalWatcher (config: GetWatcherConfig): Promise<BondWithdrawalWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.BondWithdrawal })) as BondWithdrawalWatcher
 }
 
-export async function getCommitTransfersWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.CommitTransfers })
+export async function getCommitTransfersWatcher (config: GetWatcherConfig): Promise<CommitTransfersWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.CommitTransfers })) as CommitTransfersWatcher
 }
 
-export async function getConfirmRootsWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.ConfirmRoots })
+export async function getConfirmRootsWatcher (config: GetWatcherConfig): Promise<ConfirmRootsWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.ConfirmRoots })) as ConfirmRootsWatcher
 }
 
-export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })
+export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig): Promise<SettleBondedWithdrawalWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })) as SettleBondedWithdrawalWatcher
 }
 
-export async function getL1ToL2RelayWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.L1ToL2Relay })
+export async function getL1ToL2RelayWatcher (config: GetWatcherConfig): Promise<RelayWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.L1ToL2Relay })) as RelayWatcher
 }
 
-export async function getSyncWatcher (config: GetWatcherConfig) {
+export async function getSyncWatcher (config: GetWatcherConfig): Promise<SyncWatcher> {
   return (await getBondWithdrawalWatcher(config)).syncWatcher
 }

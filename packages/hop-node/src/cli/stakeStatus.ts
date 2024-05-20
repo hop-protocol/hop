@@ -1,12 +1,11 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import Token from 'src/watchers/classes/Token'
-import { Chain } from 'src/constants'
-import { actionHandler, logger, parseString, root } from './shared'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, logger, parseString, root } from './shared/index.js'
 import { constants } from 'ethers'
-import {
-  getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+import { getBondWithdrawalWatcher } from '#watchers/watchers.js'
+import type L1Bridge from '#watchers/classes/L1Bridge.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
+import type Token from '#watchers/classes/Token.js'
 
 root
   .command('stake-status')
@@ -21,7 +20,7 @@ async function main (source: any) {
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   const bridge: L2Bridge | L1Bridge = watcher.bridge
@@ -53,11 +52,11 @@ async function printAmounts (bridge: L2Bridge | L1Bridge) {
   logger.debug('allowance:', bridge.formatUnits(allowance))
 }
 
-async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
     return
-  } else if (bridge.chainSlug !== Chain.Ethereum) {
+  } else if (bridge.chainSlug !== ChainSlug.Ethereum) {
     return (bridge as L2Bridge).hToken()
   }
   return (bridge as L1Bridge).l1CanonicalToken()
@@ -69,5 +68,5 @@ async function getTokenAllowance (bridge: L2Bridge | L1Bridge) {
   }
   const spender: string = bridge.getAddress()
   const token: Token = (await getToken(bridge)) as Token
-  return await token.getAllowance(spender)
+  return token.getAllowance(spender)
 }

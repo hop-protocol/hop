@@ -1,8 +1,8 @@
-import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
-import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { Chain } from 'src/constants'
-import { actionHandler, parseString, parseStringArray, root } from './shared'
+import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
+import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
+import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('verify-commits')
@@ -30,14 +30,14 @@ async function main (source: any) {
     }
     console.log(`Commits retrieved: ${rootsCommitted.length}`)
 
-    const confirmedRes = await getTransferRootConfirmed(Chain.Ethereum, token)
+    const confirmedRes = await getTransferRootConfirmed(ChainSlug.Ethereum, token)
     const rootsConfirmed: string[] = []
     for (const res of confirmedRes) {
       rootsConfirmed.push(res.rootHash)
     }
     console.log(`Confirms retrieved: ${rootsConfirmed.length}`)
 
-    const bondedRes = await getTransferRootBonded(Chain.Ethereum, token)
+    const bondedRes = await getTransferRootBonded(ChainSlug.Ethereum, token)
     const rootsBonded: string[] = []
     for (const res of bondedRes) {
       rootsBonded.push(res.root)

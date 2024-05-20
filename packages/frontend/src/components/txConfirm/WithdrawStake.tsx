@@ -1,14 +1,13 @@
 import React, { useState } from 'react'
-import Button from 'src/components/buttons/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import { Slider } from 'src/components/slider'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { BigNumber } from 'ethers'
-import Typography from '@material-ui/core/Typography'
-import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import { Token } from '@hop-protocol/sdk'
+import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { BigNumber, utils } from 'ethers'
+import { Button } from 'src/components/Button'
+import { Slider } from 'src/components/slider'
+import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -58,28 +57,28 @@ const WithdrawStake = (props: Props) => {
   }
 
   const handleAmountSliderChange = (percent: number) => {
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const _amount = (_balance ?? 0) * (percent / 100)
     setInputValue(_amount.toFixed(5))
     setAmountSliderValue(percent)
     if (percent === 100) {
       setWithdrawAmount(maxBalance)
     } else {
-      setWithdrawAmount(parseUnits(_amount.toString(), tokenDecimals))
+      setWithdrawAmount(utils.parseUnits(_amount.toString(), tokenDecimals))
     }
   }
 
   const handleAmountChange = (_amount: string) => {
     const value = Number(_amount)
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
     setInputValue(_amount)
     setAmountSliderValue(sliderValue)
-    setWithdrawAmount(parseUnits(_amount, tokenDecimals))
+    setWithdrawAmount(utils.parseUnits(_amount, tokenDecimals))
   }
 
   const disabled = amountSliderValue === 0
-  const tokenAmount = Number(formatUnits(withdrawAmount, tokenDecimals))
+  const tokenAmount = Number(utils.formatUnits(withdrawAmount, tokenDecimals))
   const formattedAmount = commafy(tokenAmount.toFixed(5), 5)
   const withdrawAndClaim = amountSliderValue === 100
 

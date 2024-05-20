@@ -1,33 +1,76 @@
-import ContractBase from './ContractBase'
-import Logger from 'src/logger'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
-import { DbSet, getDbSet } from 'src/db'
-import { Event } from 'src/types'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { PriceFeed } from 'src/priceFeed'
-import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { config as globalConfig } from 'src/config'
+import ContractBase from './ContractBase.js'
+import getTokenMetadataByAddress from '#utils/getTokenMetadataByAddress.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
+import { BigNumber, utils } from 'ethers'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
+import { CoingeckoApiKey } from '#config/index.js'
+import { type DbSet, getDbSet } from '#db/index.js'
+import {
+  GasCostTransactionType,
+  SettlementGasLimitPerTx
+} from '#constants/index.js'
+import { Logger } from '@hop-protocol/hop-node-core'
+import { PriceFeed } from '@hop-protocol/sdk'
+import { estimateL1GasCost } from '@eth-optimism/sdk'
+import {
+  getNetworkCustomSyncType,
+  config as globalConfig
+} from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import type { Contract, providers } from 'ethers'
+import type { Event } from '@hop-protocol/hop-node-core'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import type {
+  MultipleWithdrawalsSettledEvent,
+  TransferRootSetEvent,
+  WithdrawalBondSettledEvent,
+  WithdrawalBondedEvent,
+  WithdrewEvent
+} from '@hop-protocol/sdk/contracts/Bridge'
+import type { State } from '#db/SyncStateDb.js'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import { getTokenDecimals } from '@hop-protocol/sdk'
 
 export type EventsBatchOptions = {
-  cacheKey: string
+  syncCacheKey: string
   startBlockNumber: number
   endBlockNumber: number
+}
+
+export type CanonicalTokenConvertOptions = {
+  shouldSkipNearestCheck?: boolean
+}
+
+export type GasCostEstimationRes = {
+  gasCost: BigNumber
+  gasCostInToken: BigNumber
+  gasLimit: BigNumber
+  tokenPriceUsd: number
+  nativeTokenPriceUsd: number
+}
+
+type BlockValues = {
+  end: number
+  start: number
+  batchBlocks?: number
+  earliestBlockInBatch: number
+  latestBlockInBatch: number
+}
+
+export type DecodedSettleBondedWithdrawalsDataRes = {
+  bonder: string
+  transferIds: string[]
+  totalAmount: BigNumber
 }
 
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
-const priceFeed = new PriceFeed()
+const priceFeed = new PriceFeed({
+  coingecko: CoingeckoApiKey ?? undefined
+})
 
 export default class Bridge extends ContractBase {
   db: DbSet
@@ -53,12 +96,13 @@ export default class Bridge extends ContractBase {
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
     }
-    if (tokenSymbol) {
-      this.tokenSymbol = tokenSymbol
+    if (!tokenSymbol) {
+      throw new Error(`expected tokenSymbol in Bridge constructor for chain "${this.chainSlug}" and bridge address "${bridgeContract.address}". Check config or try updating core package.`)
     }
+    this.tokenSymbol = tokenSymbol
     this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[ChainSlug.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -67,6 +111,7 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
+
     this.logger = new Logger({
       tag: 'Bridge',
       prefix: `${this.chainSlug}.${this.tokenSymbol}`
@@ -83,7 +128,7 @@ export default class Bridge extends ContractBase {
 
   isBonder = async (): Promise<boolean> => {
     const bonder = await this.getBonderAddress()
-    return await this.bridgeContract.getIsBonder(bonder)
+    return this.bridgeContract.getIsBonder(bonder)
   }
 
   getCredit = async (bonder?: string): Promise<BigNumber> => {
@@ -104,8 +149,10 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  getRawDebit = async (): Promise<BigNumber> => {
-    const bonder = await this.getBonderAddress()
+  getRawDebit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const debit = await this.bridgeContract.getRawDebit(bonder)
     return debit
   }
@@ -115,7 +162,6 @@ export default class Bridge extends ContractBase {
       this.getCredit(bonder),
       this.getDebit(bonder)
     ])
-
     return credit.sub(debit)
   }
 
@@ -125,7 +171,7 @@ export default class Bridge extends ContractBase {
 
   async getBondedWithdrawalAmount (transferId: string): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
-    return await this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
+    return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
 
   getBondedWithdrawalAmountByBonder = async (
@@ -152,7 +198,7 @@ export default class Bridge extends ContractBase {
     if (!event) {
       return 0
     }
-    return await this.getEventTimestamp(event)
+    return this.getEventTimestamp(event)
   }
 
   async getBondedWithdrawalEvent (
@@ -206,14 +252,14 @@ export default class Bridge extends ContractBase {
   }
 
   isTransferIdSpent = async (transferId: string): Promise<boolean> => {
-    return await this.bridgeContract.isTransferIdSpent(transferId)
+    return this.bridgeContract.isTransferIdSpent(transferId)
   }
 
   getWithdrawalBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
       startBlockNumber,
       endBlockNumber
@@ -224,7 +270,7 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.Withdrew(),
       startBlockNumber,
       endBlockNumber
@@ -235,21 +281,21 @@ export default class Bridge extends ContractBase {
     cb: EventCb<WithdrawalBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
+    return this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
   }
 
   async mapWithdrewEvents<R> (
     cb: EventCb<WithdrewEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getWithdrewEvents, cb, options)
+    return this.mapEventsBatch(this.getWithdrewEvents, cb, options)
   }
 
   getTransferRootSetEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber
@@ -260,10 +306,12 @@ export default class Bridge extends ContractBase {
     cb: EventCb<TransferRootSetEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getParamsFromMultipleSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+  getParamsFromMultipleSettleEventTransaction = async (
+    multipleWithdrawalsSettledTxHash: string
+  ): Promise<DecodedSettleBondedWithdrawalsDataRes> => {
     const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
     if (!tx) {
       throw new Error('expected tx object')
@@ -283,7 +331,7 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
       endBlockNumber
@@ -294,7 +342,7 @@ export default class Bridge extends ContractBase {
     cb: EventCb<MultipleWithdrawalsSettledEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(
+    return this.mapEventsBatch(
       this.getMultipleWithdrawalsSettledEvents,
       cb,
       options
@@ -305,7 +353,7 @@ export default class Bridge extends ContractBase {
     cb: EventCb<WithdrawalBondSettledEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(
+    return this.mapEventsBatch(
       this.getWithdrawalBondSettledEvents,
       cb,
       options
@@ -316,14 +364,14 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
       endBlockNumber
     )
   }
 
-  decodeSettleBondedWithdrawalsData (data: string): any {
+  decodeSettleBondedWithdrawalsData (data: string): DecodedSettleBondedWithdrawalsDataRes {
     if (!data) {
       throw new Error('data to decode is required')
     }
@@ -387,7 +435,7 @@ export default class Bridge extends ContractBase {
     transferRootHash: string,
     totalAmount: BigNumber
   ) => {
-    return await this.bridgeContract.getTransferRoot(
+    return this.bridgeContract.getTransferRoot(
       transferRootHash,
       totalAmount
     )
@@ -404,10 +452,10 @@ export default class Bridge extends ContractBase {
   }
 
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const bonder = await this.getBonderAddress()
-    const txOverrides = await this.txOverrides()
+    const bonder: string = await this.getBonderAddress()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
@@ -436,12 +484,15 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
-    if (this.chainSlug === Chain.Arbitrum) {
+    if (this.chainSlug === ChainSlug.Arbitrum) {
       gasLimit = 10_000_000
+    }
+    if (this.chainSlug === ChainSlug.Nova) {
+      gasLimit = 5_000_000
     }
     txOverrides.gasLimit = gasLimit
 
@@ -508,26 +559,26 @@ export default class Bridge extends ContractBase {
     if (!bonder) {
       throw new Error('expected bonder address')
     }
-    return await this.getBalance(bonder)
+    return this.getBalance(bonder)
   }
 
   formatUnits (value: BigNumber) {
     if (!value) {
       return 0
     }
-    return Number(formatUnits(value?.toString() ?? '', this.tokenDecimals))
+    return Number(utils.formatUnits(value?.toString() ?? '', this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {
-    return parseUnits(value.toString(), this.tokenDecimals)
+    return utils.parseUnits(value.toString(), this.tokenDecimals)
   }
 
   formatEth (value: BigNumber) {
-    return Number(formatUnits(value.toString(), 18))
+    return Number(utils.formatUnits(value.toString(), 18))
   }
 
   parseEth (value: string | number) {
-    return parseUnits(value.toString(), 18)
+    return utils.parseUnits(value.toString(), 18)
   }
 
   protected async mapEventsBatch<E extends Event, R> (
@@ -537,6 +588,7 @@ export default class Bridge extends ContractBase {
   ): Promise<R[]> {
     let i = 0
     const promises: R[] = []
+    // This will grow unbounded in memory and cause OOM issues if the sync range is too large
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
@@ -545,36 +597,90 @@ export default class Bridge extends ContractBase {
       }
       i++
     }, options)
-    return await Promise.all(promises)
+    return Promise.all(promises)
   }
 
   public async eventsBatch (
-    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
+    cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    this.validateEventsBatchInput(options)
+    this.#validateEventsBatchInput(options)
 
-    let cacheKey = ''
-    let state: State | undefined
-    if (options.cacheKey) {
-      cacheKey = this.getCacheKeyFromKey(
+    // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
+    let syncCacheKey = ''
+    let state: State | null = null
+    if (options.syncCacheKey) {
+      syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
         this.address,
-        options.cacheKey
+        options.syncCacheKey
       )
-      state = await this.db.syncState.getByKey(cacheKey)
+      state = await this.db.syncState.getByKey(syncCacheKey)
+      if (state) {
+        const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+        if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
+          // If a head sync does not have state or the state is stale, use the state of
+          // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+          // state since the bonder performs a full sync before beginning any other operations.
+          // * The head sync will not have state upon fresh bonder sync.
+          // * The head sync will have stale data if they use the head syncer, turn it off
+          //   for some time, and then turn it back on again.
+          const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
+          const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+          if (!finalizedState) {
+            throw new Error(`expected finalizedState for key ${finalizedStateKey}`)
+          }
+
+          const doesCustomSyncDbExist = !!state.latestBlockSynced
+          const isCustomSyncDataStale = state.latestBlockSynced < finalizedState.latestBlockSynced
+          if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
+            state = finalizedState
+          }
+        }
+      }
     }
 
-    const blockValues = await this.getBlockValues(options, state)
-    let {
+    const blockValues: BlockValues = await this.#getBlockValues(options, state)
+    const {
       start,
       end,
-      batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
     } = blockValues
 
-    this.logger.debug(`eventsBatch cacheKey: ${cacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
+    this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
+
+    // If the syncer is already at the head, do not fall into the while loop since that uses
+    // an unnecessary getLogs call
+    const isAtHead = (
+      start === end &&
+      start === earliestBlockInBatch &&
+      start === latestBlockInBatch
+    )
+
+    let traversalStart = start
+    if (!isAtHead) {
+      traversalStart = await this.#traverseBlockRange(cb, blockValues)
+    }
+
+    // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
+    // it traverses backwards from head.
+    // NOTE: The syncCacheKey here enforces that the syncState is only updated during a sync and not when this
+    // is called for other purposes, such as looking onchain for transferIds in a root.
+    if (syncCacheKey && traversalStart === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
+      await this.db.syncState.update(syncCacheKey, {
+        latestBlockSynced: latestBlockInBatch,
+        timestamp: Date.now()
+      })
+    }
+  }
+
+  readonly #traverseBlockRange = async (
+    cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
+    blockValues: BlockValues
+  ): Promise<number> => {
+    let { start, end, batchBlocks, earliestBlockInBatch } = blockValues
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -596,34 +702,29 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    // Only store latest block if a full sync is successful.
-    // Sync is complete when the start block is reached since
-    // it traverses backwards from head.
-    if (cacheKey && start === earliestBlockInBatch) {
-      this.logger.debug(`eventsBatch cacheKey: ${cacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
-      await this.db.syncState.update(cacheKey, {
-        latestBlockSynced: latestBlockInBatch,
-        timestamp: Date.now()
-      })
-    }
+    return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State) => {
-    const { startBlockNumber, endBlockNumber } = options
+  readonly #getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
+    const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let currentBlockNumberWithFinality: number
-    if (ChainHasFinalizationTag[this.chainSlug]) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+
+    // TODO: Better state handling
+    const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+    const isCustomSync = customSyncKeySuffix && syncCacheKey?.endsWith(customSyncKeySuffix)
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
+
+    let syncBlockNumber: number
+    if (isCustomSync) {
+      syncBlockNumber = await this.getSyncBlockNumber()
     } else {
-      const currentBlockNumber = await this.getBlockNumber()
-      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+      syncBlockNumber = await this.getSafeBlockNumber()
     }
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -632,13 +733,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = currentBlockNumberWithFinality
+      end = syncBlockNumber
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+    } else if (isSync || isCustomSync) {
+      end = Math.max(syncBlockNumber, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = currentBlockNumberWithFinality
+      end = syncBlockNumber
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -648,10 +749,14 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks!) {
+    if (batchBlocks == null) {
+      throw new Error('expected batchBlocks to be defined')
+    }
+
+    if (totalBlocksInBatch <= batchBlocks) {
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks!
+      start = end - batchBlocks
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch
@@ -669,12 +774,24 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  public getCacheKeyFromKey = (
+  public getSyncCacheKeyFromKey = (
     chainId: number,
     address: string,
     key: string
   ) => {
     return `${chainId}:${address}:${key}`
+  }
+
+  public getCustomSyncKeySuffix = (): string | undefined => {
+    const customSyncType = getNetworkCustomSyncType(this.chainSlug)
+    if (!customSyncType) {
+      return
+    }
+    return '_' + customSyncType
+  }
+
+  public shouldPerformCustomSync = (): boolean => {
+    return !!getNetworkCustomSyncType(this.chainSlug)
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {
@@ -684,10 +801,10 @@ export default class Bridge extends ContractBase {
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
-  private readonly validateEventsBatchInput = (
+  readonly #validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
-    const { cacheKey, startBlockNumber, endBlockNumber } = options
+    const { syncCacheKey, startBlockNumber, endBlockNumber } = options
 
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {
@@ -703,7 +820,7 @@ export default class Bridge extends ContractBase {
         )
       }
 
-      if (cacheKey) {
+      if (syncCacheKey) {
         throw new Error(
           'A key cannot exist when a start and end block are explicitly defined'
         )
@@ -715,16 +832,24 @@ export default class Bridge extends ContractBase {
     // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
     // relative fee will negate this value anyway
     const destinationChain = this.chainSlug
-    if (destinationChain === Chain.Ethereum) {
+    if (destinationChain === ChainSlug.Ethereum) {
+      return BigNumber.from(0)
+    }
+
+    // DAI into Gnosis can be bonded for a cheaper fee
+    if (
+      destinationChain === ChainSlug.Gnosis &&
+      tokenSymbol === TokenSymbol.DAI
+    ) {
       return BigNumber.from(0)
     }
 
     let minBonderFeeUsd = 0.25
-    if (destinationChain === Chain.Optimism) {
+    if (destinationChain === ChainSlug.Optimism || destinationChain === ChainSlug.Base) {
       minBonderFeeUsd = 0.10
     }
-    const tokenDecimals = getTokenDecimals(tokenSymbol)
-    let minBonderFeeAbsolute = parseUnits(
+    const tokenDecimals = getTokenDecimals(tokenSymbol as TokenSymbol)
+    let minBonderFeeAbsolute = utils.parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
@@ -738,7 +863,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderFeeBps (
-    destinationChain: Chain,
+    destinationChain: ChainSlug,
     amountIn: BigNumber,
     minBonderFeeAbsolute: BigNumber
   ) {
@@ -769,15 +894,13 @@ export default class Bridge extends ContractBase {
   async getGasCostEstimation (
     chain: string,
     tokenSymbol: string,
+    gasPrice: BigNumber,
     gasLimit: BigNumber,
     transactionType: GasCostTransactionType,
     data?: string,
     to?: string
-  ) {
+  ): Promise<GasCostEstimationRes> {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const provider = getRpcProvider(chain)!
-    const gasPrice = await provider.getGasPrice()
-
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
       // Relay transactions use the gasLimit as the gasCost
@@ -790,18 +913,22 @@ export default class Bridge extends ContractBase {
       gasCost = gasLimitWithSettlement.mul(gasPrice)
     }
 
-    if (this.chainSlug === Chain.Optimism && data && to) {
+    if (
+      (this.chainSlug === ChainSlug.Optimism || this.chainSlug === ChainSlug.Base) &&
+      data &&
+      to
+    ) {
       try {
-        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
-        const serializedTx = serializeTransaction({
-          value: parseEther('0'),
+        const txType = 0
+        const tx = {
+          value: utils.parseEther('0'),
           gasPrice,
           gasLimit,
           to,
-          data
-        })
-        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+          data,
+          type: txType
+        }
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug), tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
@@ -819,7 +946,7 @@ export default class Bridge extends ContractBase {
       priceUsdWei: nativeTokenPriceUsdWei
     } = await this.getGasCostTokenValues(chainNativeTokenSymbol)
 
-    const multiplier = parseEther('1')
+    const multiplier = utils.parseEther('1')
     const rate = (nativeTokenPriceUsdWei.mul(multiplier)).div(tokenPriceUsdWei)
     const exponent = nativeTokenDecimals - tokenDecimals
 
@@ -829,7 +956,6 @@ export default class Bridge extends ContractBase {
     return {
       gasCost,
       gasCostInToken,
-      gasPrice,
       gasLimit,
       tokenPriceUsd,
       nativeTokenPriceUsd
@@ -837,12 +963,17 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostTokenValues (symbol: string) {
-    const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    const decimals = getTokenDecimals(symbol as TokenSymbol)
+    let priceUsd
+    try {
+      priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    } catch (err) {
+      throw new Error(`failed to get price for ${symbol} with error message: ${err.message}`)
+    }
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }
-    const priceUsdWei = parseEther(priceUsd.toString())
+    const priceUsdWei = utils.parseEther(priceUsd.toString())
     return {
       decimals,
       priceUsd,
@@ -851,9 +982,9 @@ export default class Bridge extends ContractBase {
   }
 
   getChainNativeTokenSymbol (chain: string) {
-    if (chain === Chain.Polygon) {
+    if (chain === ChainSlug.Polygon) {
       return 'MATIC'
-    } else if (chain === Chain.Gnosis) {
+    } else if (chain === ChainSlug.Gnosis) {
       return 'DAI'
     }
 

@@ -1,6 +1,6 @@
-import getTransferId from 'src/theGraph/getTransfer'
-import getTransferRoot from 'src/theGraph/getTransferRoot'
-import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
+import getTransferId from '#theGraph/getTransfer.js'
+import getTransferRoot from '#theGraph/getTransferRoot.js'
+import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
 
 root
   .command('withdrawal-proof')
@@ -52,7 +52,7 @@ async function main (source: any) {
     proof,
     transferIndex,
     leaves
-  } = getWithdrawalProofData(transferId, transferRoot)
+  } = getWithdrawalProofDataForCli(transferId, transferRoot)
 
   const output = {
     transferId,

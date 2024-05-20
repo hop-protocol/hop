@@ -1,13 +1,16 @@
-import { useQuery } from 'react-query'
-import { ChainId, Token } from '@hop-protocol/sdk'
 import { Addressish } from 'src/models/Address'
-import { StakingRewards } from '@hop-protocol/core/contracts'
+import { Token } from '@hop-protocol/sdk'
+import { Contract } from 'ethers'
+import { StakingRewards } from '@hop-protocol/sdk/contracts'
+import { useQuery } from 'react-query'
 
-async function fetchBalance(token: Token | StakingRewards, address: string) {
-  return await token.balanceOf(address)
+type ContractType = Token | StakingRewards   | Contract
+
+async function fetchBalance(token: ContractType, address: string) {
+  return token.balanceOf(address)
 }
 
-const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainId?: ChainId) => {
+const useBalance = (token?: ContractType, address?: Addressish, chainId?: string) => {
   chainId = token instanceof Token ? token.chain.chainId : chainId
 
   const queryKey = `balance:${chainId}:${token?.address}:${address?.toString()}`
@@ -16,12 +19,12 @@ const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainI
     [queryKey, chainId, token?.address, address?.toString()],
     async () => {
       if (token && address) {
-        return await fetchBalance(token, address.toString())
+        return fetchBalance(token, address.toString())
       }
     },
     {
       enabled: !!chainId && !!token?.address && !!address?.toString(),
-      refetchInterval: 10e3,
+      refetchInterval: 10 * 1000,
     }
   )
 

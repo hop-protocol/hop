@@ -1,41 +1,45 @@
+import Address from 'src/models/Address'
+import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
+import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import Link from '@mui/material/Link'
+import Network from 'src/models/Network'
 import React, {
   FC,
+  ReactNode,
   createContext,
   useContext,
-  useState,
+  useEffect,
   useMemo,
   useRef,
-  useEffect,
-  ReactNode,
-  ChangeEvent,
+  useState,
 } from 'react'
+import Transaction from 'src/models/Transaction'
+import find from 'lodash/find'
+import logger from 'src/logger'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { BigNumber } from 'ethers'
-import { useLocation } from 'react-router-dom'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { Token } from '@hop-protocol/sdk'
-import find from 'lodash/find'
-import Network from 'src/models/Network'
-import Transaction from 'src/models/Transaction'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import logger from 'src/logger'
-import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
-import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import { toTokenDisplay, commafy } from 'src/utils'
+import { amountToBN, formatError } from 'src/utils/format'
+import { commafy, toTokenDisplay } from 'src/utils'
 import { defaultL2Network, l1Network } from 'src/config/networks'
+import { useApp } from 'src/contexts/AppContext'
 import {
-  useQueryParams,
-  useTransactionReplacement,
   useApprove,
+  useAssets,
   useBalance,
   useNeedsTokenForFee,
-  useAssets,
   useSelectedNetwork,
+  useTransactionReplacement,
 } from 'src/hooks'
-import { formatError, amountToBN } from 'src/utils/format'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
+import { useLocation, useParams } from 'react-router-dom'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 type ConvertContextProps = {
+  address: Address | undefined
   approveTokens: () => void
   approving: boolean
   convertOptions: ConvertOption[]
@@ -50,13 +54,14 @@ type ConvertContextProps = {
   loadingSourceBalance: boolean
   needsApproval?: boolean
   needsTokenForFee?: boolean
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
   selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void
   setError: (error?: string) => void
   setSourceTokenAmount: (value: string) => void
   setTx: (tx?: Transaction) => void
+  setViaParamValue: (viaParamValue: string) => void
   setWarning: (warning?: string) => void
   sourceBalance?: BigNumber
   sourceNetwork?: Network
@@ -67,21 +72,23 @@ type ConvertContextProps = {
   unsupportedAsset: any
   assetWithoutAmm: any
   validFormFields: boolean
+  viaParamValue: string
   warning?: ReactNode
+  info?: ReactNode
   convertOption: ConvertOption
   destinationChainPaused: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
-const ConvertProvider: FC = ({ children }) => {
-  const { queryParams } = useQueryParams()
+const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
-  const [isConvertingToHToken, setIsConvertingToHToken] = useState(queryParams?.fromHToken !== 'true')
+  const queryParams = new URLSearchParams(search)
+  const [isConvertingToHToken, setIsConvertingToHToken] = useState<boolean>(queryParams.get('fromHToken') !== 'true')
   const switchDirection = () => setIsConvertingToHToken(direction => !direction)
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
@@ -93,6 +100,7 @@ const ConvertProvider: FC = ({ children }) => {
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
+  const [info, setInfo] = useState<ReactNode>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
@@ -102,10 +110,20 @@ const ConvertProvider: FC = ({ children }) => {
 
   const { assetWithoutAmm, unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
+  const { via } = useParams<{via: string}>()
+  const [viaParamValue, setViaParamValue] = useState<string>(via ?? 'amm')
+
+  useEffect(() => {
+    setViaParamValue(via ?? 'amm')
+  }, [via])
+
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
-    () => find(convertOptions, option => pathname.includes(option.path)) || convertOptions[0],
-    [pathname]
+    () => find(
+      convertOptions,
+      option => pathname.includes(option.path) || option.path.includes(viaParamValue)
+    ) ?? convertOptions[0],
+    [pathname, viaParamValue]
   )
 
   const sourceNetwork = useMemo<Network | undefined>(() => {
@@ -133,6 +151,8 @@ const ConvertProvider: FC = ({ children }) => {
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(sourceToken, address)
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(destToken, address)
 
+  const isTokenDeprecated = useCheckPoolDeprecated(sourceToken?._symbol)
+
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
@@ -140,10 +160,15 @@ const ConvertProvider: FC = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
+    } else if (assetWithoutAmm && convertOption instanceof HopConvertOption) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use hTokens on ${chain}`)
+    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isLayer1) {
+      setError(`The ${sourceToken?._symbol} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {
       setError('')
     }
-  }, [unsupportedAsset, assetWithoutAmm, convertOption])
+  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption, sourceNetwork, sourceToken])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 
@@ -229,7 +254,7 @@ const ConvertProvider: FC = ({ children }) => {
         sourceNetwork,
         destNetwork,
         isConvertingToHToken,
-        selectedBridge.getTokenSymbol(),
+        selectedBridge.getTokenSymbol() as TokenSymbol,
         parsedSourceTokenAmount
       )
 
@@ -250,7 +275,6 @@ const ConvertProvider: FC = ({ children }) => {
         return
       }
 
-      setError(undefined)
       setWarning(warning)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
@@ -291,11 +315,13 @@ const ConvertProvider: FC = ({ children }) => {
 
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
-        selectedBridge?.getTokenSymbol(),
-        sourceNetwork
+        selectedBridge?.getTokenSymbol() as TokenSymbol,
+        sourceNetwork,
+        destNetwork
       )
 
-      return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      const isApprovalOk = await checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      return isApprovalOk
     } catch (err: any) {
       logger.error(err)
     }
@@ -324,7 +350,9 @@ const ConvertProvider: FC = ({ children }) => {
     try {
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       setError(undefined)
       setApproving(true)
       if (!sourceToken) {
@@ -333,8 +361,9 @@ const ConvertProvider: FC = ({ children }) => {
 
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
-        selectedBridge?.getTokenSymbol(),
-        sourceNetwork
+        selectedBridge?.getTokenSymbol() as TokenSymbol,
+        sourceNetwork,
+        destNetwork
       )
 
       const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
@@ -355,7 +384,9 @@ const ConvertProvider: FC = ({ children }) => {
       setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(undefined)
       if (
@@ -396,19 +427,22 @@ const ConvertProvider: FC = ({ children }) => {
             throw new Error('Missing convert param')
           }
 
-          return convertOption.convert(
+          const tx = await convertOption.convert(
             sdk,
             signer,
             sourceNetwork,
             destNetwork,
             isConvertingToHToken,
-            selectedBridge.getTokenSymbol(),
+            selectedBridge.getTokenSymbol() as TokenSymbol,
             value,
             amountOutMin,
             deadline(),
             bonderFee,
             customRecipient
           )
+
+          await tx?.wait()
+          return tx
         },
       })
 
@@ -475,15 +509,27 @@ const ConvertProvider: FC = ({ children }) => {
     update().catch(console.error)
   }, [sdk, sourceToken, sourceNetwork, destNetwork])
 
+  useEffect(() => {
+    const isUSDCe = sourceToken?.symbol === 'hUSDC.e' || destToken?.symbol === 'USDC.e'
+    if (isUSDCe && destNetwork?.isL1) {
+      setInfo(<>Notice: The USDC.e bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on March 20th, 2024. To transfer hUSDC.e to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
+    } else {
+      setInfo(null)
+    }
+  }, [sourceToken, destToken, destNetwork])
+
   return (
     <ConvertContext.Provider
       value={{
+        address,
         approveTokens,
         approving,
+        assetWithoutAmm,
         convertOption,
         convertOptions,
         convertTokens,
         destBalance,
+        destinationChainPaused,
         destNetwork,
         destToken,
         destTokenAmount,
@@ -500,6 +546,7 @@ const ConvertProvider: FC = ({ children }) => {
         selectBothNetworks,
         setSourceTokenAmount,
         setTx,
+        setViaParamValue,
         setWarning,
         sourceBalance,
         sourceNetwork,
@@ -508,10 +555,10 @@ const ConvertProvider: FC = ({ children }) => {
         switchDirection,
         tx,
         unsupportedAsset,
-        assetWithoutAmm,
         validFormFields,
+        viaParamValue,
         warning,
-        destinationChainPaused
+        info
       }}
     >
       {children}

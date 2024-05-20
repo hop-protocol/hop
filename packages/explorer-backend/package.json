@@ -1,0 +1,53 @@
+{
+  "name": "@hop-protocol/explorer-backend",
+  "version": "0.0.10",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "tsc -w",
+    "start": "ts-node src/index.ts",
+    "start:worker": "ts-node src/cli.ts --transfers",
+    "start:dist": "node --max_old_space_size=4096 dist/index.js",
+    "start:local": "npx ts-node src/index.ts --worker --transfers --days=1",
+    "dev:local": "npm run start:local",
+    "lint": "eslint . --fix",
+    "build": "tsc",
+    "version": "pnpm version",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo"
+  },
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/cors": "2.8.13",
+    "@types/express": "4.17.13",
+    "@types/isomorphic-fetch": "0.0.36",
+    "@types/lodash": "4.14.191",
+    "@types/luxon": "3.2.0",
+    "@types/minimist": "1.2.5",
+    "@types/uuid": "9.0.0",
+    "ts-node": "10.7.0"
+  },
+  "dependencies": {
+    "@hop-protocol/sdk": "workspace:*",
+    "@types/memory-cache": "0.2.2",
+    "@types/pidusage": "2.0.2",
+    "cors": "2.8.5",
+    "dotenv": "16.0.0",
+    "ethers": "5.7.2",
+    "express": "4.17.3",
+    "express-rate-limit": "7.2.0",
+    "isomorphic-fetch": "3.0.0",
+    "lodash": "4.17.21",
+    "luxon": "2.5.2",
+    "memory-cache": "0.2.0",
+    "minimist": "1.2.6",
+    "pg-promise": "10.11.1",
+    "pidusage": "3.0.2",
+    "to-hex": "0.0.18",
+    "uuid": "8.3.2",
+    "wait": "0.4.2"
+  }
+}

@@ -1,6 +1,6 @@
 import { formatError } from 'src/utils'
 
-class Logger {
+export class Logger {
   private prefix: string
 
   constructor(prefix: string = '') {

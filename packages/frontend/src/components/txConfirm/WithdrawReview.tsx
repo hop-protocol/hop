@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import Button from 'src/components/buttons/Button'
-import Alert from 'src/components/alert/Alert'
-import { makeStyles } from '@material-ui/core/styles'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
-import Typography from '@material-ui/core/Typography'
-import { commafy, NetworkTokenEntity } from 'src/utils'
-import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import Address from 'src/models/Address'
+import Typography from '@mui/material/Typography'
+import { Button } from 'src/components/Button'
 import { ExternalLink } from 'src/components/Link'
-import { useSendingTransaction } from './useSendingTransaction'
+import { NetworkTokenEntity } from 'src/utils'
+import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
+import { makeStyles } from '@mui/styles'
+import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {

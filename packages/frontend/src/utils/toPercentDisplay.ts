@@ -1,5 +1,4 @@
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { BigNumber, utils } from 'ethers'
 import { commafy } from 'src/utils'
 
 export const toPercentDisplay = (
@@ -12,7 +11,7 @@ export const toPercentDisplay = (
 
   try {
     const num = Number(
-      typeof decimals === 'number' && decimals > 0 ? formatUnits(value, decimals) : value.toString()
+      typeof decimals === 'number' && decimals > 0 ? utils.formatUnits(value, decimals) : value.toString()
     )
     const formatted = commafy(num * 100, 2)
 

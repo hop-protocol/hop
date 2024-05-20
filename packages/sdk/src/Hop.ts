@@ -1,14 +1,12 @@
-import Base, { ChainProviders } from './Base'
-import CanonicalBridge from './CanonicalBridge'
-import CanonicalWatcher from './watchers/CanonicalWatcher'
-import EventEmitter from 'eventemitter3'
-import HopBridge from './HopBridge'
-import Watcher from './watchers/Watcher'
-import _version from './version'
-import { ApiKeys } from './priceFeed'
-import { Chain, Token } from './models'
-import { Event } from './watchers/BaseWatcher'
-import { TChain, TProvider, TToken } from './types'
+import _version from './version.js'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
+import { Event } from './watchers/BaseWatcher.js'
+import { EventEmitter } from 'eventemitter3'
+import { HopBridge } from './HopBridge.js'
+import { PriceFeedApiKeys } from '@hop-protocol/sdk-core'
+import { TChain, TProvider, TToken } from './types.js'
+import { Watcher } from './watchers/Watcher.js'
+import { TokenModel } from '#models/index.js'
 
 /**
  * @desc Event watcher options
@@ -18,36 +16,30 @@ type WatchOptions = {
 }
 
 /**
- * Class reprensenting Hop
+ * Class representing Hop
  * @namespace Hop
  */
-class Hop extends Base {
+export class Hop extends Base {
   /** Event enum */
   static Event = Event
 
-  /** Chain class */
-  static Chain = Chain
-
   /** Token class */
-  static Token = Token
+  static Token = TokenModel
 
   /** Event enum */
   Event = Event
 
-  /** Chain class */
-  Chain = Chain
-
   /** Token class */
-  Token = Token
+  Token = TokenModel
 
-  priceFeedApiKeys: ApiKeys | null = null
+  priceFeedApiKeys: PriceFeedApiKeys | null = null
 
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} New Hop SDK instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns New Hop SDK instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -63,21 +55,19 @@ class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
-  // eslint-disable-next-line no-useless-constructor
+   
   constructor (
-    network: string,
+    networkOrOptionsObject: string | BaseConstructorOptions,
     signer?: TProvider,
     chainProviders?: ChainProviders
   ) {
-    super(network, signer, chainProviders)
+    super(networkOrOptionsObject, signer, chainProviders)
   }
 
   /**
    * @desc Returns a bridge set instance.
-   * @param {Object} token - Token model or symbol of token of bridge to use.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} A HopBridge instance.
+   * @param token - Token model or symbol of token of bridge to use.
+   * @returns A HopBridge instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -86,41 +76,34 @@ class Hop extends Base {
    *const bridge = hop.bridge('USDC')
    *```
    */
-  public bridge (token: TToken) {
-    const hopBridge = new HopBridge(this.network, this.signer, token, this.chainProviders)
+  public bridge (token: TToken): HopBridge {
+    const hopBridge = new HopBridge({
+      network: this.network,
+      signer: this.signer,
+      token,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      customCoreConfigJsonUrl: this.customCoreConfigJsonUrl,
+      customAvailableLiquidityJsonUrl: this.customAvailableLiquidityJsonUrl,
+      blocklist: this.blocklist,
+      debugTimeLogsEnabled: this.debugTimeLogsEnabled,
+      debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
+      debugTimeLogsCache: this.debugTimeLogsCache
+    })
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.priceFeed.setApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
     return hopBridge
   }
 
   /**
-   * @desc Returns a canonical bridge sdk instance.
-   * @param {Object} token - Token model or symbol of token of canonical bridge to use.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} A CanonicalBridge instance.
-   * @example
-   *```js
-   *import { Hop } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const bridge = hop.canonicalBridge('USDC')
-   *```
-   */
-  public canonicalBridge (token: TToken, chain?: TChain) {
-    return new CanonicalBridge(
-      this.network,
-      this.signer,
-      token,
-      chain,
-      this.chainProviders
-    )
-  }
-
-  /**
    * @desc Returns hop instance with signer connected. Used for adding or changing signer.
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} A new Hop SDK instance with connected Ethers Signer.
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns A new Hop SDK instance with connected Ethers Signer.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -132,14 +115,24 @@ class Hop extends Base {
    *hop = hop.connect(signer)
    *```
    */
-  connect (signer: TProvider) {
+  connect (signer: TProvider): Hop {
     this.signer = signer
-    return new Hop(this.network, signer, this.chainProviders)
+    return new Hop({
+      network: this.network,
+      signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist,
+      debugTimeLogsEnabled: this.debugTimeLogsEnabled,
+      debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
+      debugTimeLogsCache: this.debugTimeLogsCache
+    })
   }
 
   /**
    * @desc Returns the SDK version.
-   * @returns {String} version string
+   * @returns version string
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -148,16 +141,16 @@ class Hop extends Base {
    *console.log(hop.version)
    *```
    */
-  public get version () {
+  public get version () : string {
     return _version
   }
 
   /**
    * @desc Watches for Hop transaction events.
-   * @param {String} txHash - Source transaction hash.
-   * @param {Token} token - Token name or model.
-   * @param {Object} sourceChain - Source chain name or model.
-   * @param {Object} destinationChain - Destination chain name or model.
+   * @param txHash - Source transaction hash.
+   * @param token - Token name or model.
+   * @param sourceChain - Source chain name or model.
+   * @param destinationChain - Destination chain name or model.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -177,11 +170,9 @@ class Hop extends Base {
     destinationChain: TChain,
     isCanonicalTransfer: boolean = false,
     options: WatchOptions = {}
-  ): EventEmitter | Error | any {
+  ): EventEmitter {
     // TODO: detect type of transfer
-    return isCanonicalTransfer
-      ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
-      : this.watchBridge(txHash, token, sourceChain, destinationChain, options)
+    return this.watchBridge(txHash, token, sourceChain, destinationChain, options)
   }
 
   public watchBridge (
@@ -206,25 +197,7 @@ class Hop extends Base {
     }).watch()
   }
 
-  public watchCanonical (
-    txHash: string,
-    token: TToken,
-    sourceChain: TChain,
-    destinationChain: TChain
-  ) {
-    return new CanonicalWatcher({
-      network: this.network,
-      signer: this.signer,
-      sourceTxHash: txHash,
-      token: token,
-      sourceChain: sourceChain,
-      destinationChain: destinationChain
-    }).watch()
-  }
-
-  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+  setPriceFeedApiKeys (apiKeys: PriceFeedApiKeys = {}) {
     this.priceFeedApiKeys = apiKeys
   }
 }
-
-export default Hop

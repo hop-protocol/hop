@@ -1,17 +1,18 @@
-import { BigNumber, constants } from 'ethers'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { useApp } from 'src/contexts/AppContext'
-import { Token, Chain } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
+import { BigNumber, constants } from 'ethers'
+import { ChainSlug, NetworkSlug, Token, getChain } from '@hop-protocol/sdk'
 import { toTokenDisplay } from 'src/utils'
-import { useTransactionReplacement } from './useTransactionReplacement'
+import { useApp } from 'src/contexts/AppContext'
+import { useTransactionReplacement } from 'src/hooks/useTransactionReplacement'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import { reactAppNetwork } from 'src/config'
 
 const useApprove = (token: any) => {
   const { provider } = useWeb3Context()
   const { txConfirm } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
-  const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
+  const checkApproval = async (amount: BigNumber, token: Token, spender: string): Promise<boolean> => {
     try {
       const signer = provider?.getSigner()
       if (!signer) {
@@ -50,7 +51,7 @@ const useApprove = (token: any) => {
     }
 
     const formattedAmount = toTokenDisplay(amount, token.decimals)
-    const chain = Chain.fromSlug(token.chain.slug)
+    const chain = getChain(reactAppNetwork as NetworkSlug, token.chain.slug as ChainSlug)
     const tx = await txConfirm?.show({
       kind: 'approval',
       inputProps: {

@@ -1,26 +1,119 @@
-import { Chains } from './types'
-import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
-import { goerli as goerliConfig } from '@hop-protocol/core/config'
-import { goerli as networks } from '@hop-protocol/core/networks'
+import { Config } from './types.js'
 
-const chains: Chains = {}
-
-for (const chain in networks) {
-  const network = (networks as any)[chain] as any
-  if (!chains[chain]) {
-    chains[chain] = {}
+export const config: Config = {
+  bonderFeeBps: {
+    ETH: {
+      ethereum: 500,
+      polygon: 500,
+      gnosis: 500,
+      optimism: 500,
+      zksync: 500,
+      linea: 500,
+      arbitrum: 500,
+      scrollzk: 500,
+      base: 500,
+      polygonzk: 500
+    },
+    HOP: {
+      ethereum: 500,
+      polygon: 500,
+      gnosis: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    USDC: {
+      ethereum: 500,
+      polygon: 500,
+      gnosis: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    USDT: {
+      ethereum: 500,
+      polygon: 500,
+      arbitrum: 500,
+      optimism: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    DAI: {
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      zksync: 500,
+      arbitrum: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    UNI: {
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      arbitrum: 500,
+      base: 500
+    }
+  },
+  bonderTotalStake: {
+    ETH: 1000,
+    HOP: 100,
+    USDC: 100,
+    USDT: 100,
+    DAI: 100,
+    UNI: 100
+  },
+  destinationFeeGasPriceMultiplier: 1.2,
+  relayerFeeEnabled: {
+    polygon: false,
+    optimism: false,
+    arbitrum: false,
+    zksync: false,
+    linea: false,
+    scrollzk: false,
+    base: false,
+    polygonzk: false
+  },
+  relayerFeeWei: {
+    linea: '100000000000000'
+  },
+  bridgeDeprecated: {
+    USDC: true
+  },
+  defaultSendGasLimit: {
+    native: {
+      ethereum: 130000,
+      optimism: 225000,
+      gnosis: 260000,
+      arbitrum: 260000,
+      polygon: 260000,
+      linea: 500000,
+      scrollzk: 500000,
+      base: 225000,
+      polygonzk: 500000
+    },
+    token: {
+      ethereum: 180000,
+      optimism: 240000,
+      gnosis: 260000,
+      polygon: 260000,
+      arbitrum: 260000,
+      linea: 700000,
+      scrollzk: 700000,
+      base: 240000,
+      polygonzk: 700000
+    }
   }
-  chains[chain].name = network?.name
-  chains[chain].chainId = network?.networkId
-  chains[chain].rpcUrl = network?.publicRpcUrl
-  chains[chain].explorerUrl = network?.explorerUrls?.[0]
-  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
 }
-
-const addresses = goerliAddresses.bridges
-const bonders = goerliAddresses.bonders
-const bonderFeeBps = goerliConfig.bonderFeeBps
-const destinationFeeGasPriceMultiplier = goerliConfig.destinationFeeGasPriceMultiplier
-const relayerFeeEnabled = goerliConfig.relayerFeeEnabled
-
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

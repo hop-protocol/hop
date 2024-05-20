@@ -1,12 +1,17 @@
-import React from 'react'
-import Button from 'src/components/buttons/Button'
-import Alert from 'src/components/alert/Alert'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
-import Box from '@material-ui/core/Box'
-import { useSendingTransaction } from './useSendingTransaction'
+import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
+import React from 'react'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
+import { makeStyles } from '@mui/styles'
+import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
+import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
+import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -47,6 +52,12 @@ const ConfirmSend = (props: Props) => {
     source,
   })
 
+  const { fixedTimeEstimate, medianTimeEstimate, isLoading } = useTransferTimeEstimate(
+    source?.network?.slug,
+    dest?.network?.slug,
+    source?.token?.symbol
+  )
+
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
     warning =
@@ -58,27 +69,43 @@ const ConfirmSend = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div
-          style={{
-            marginBottom: '1rem',
-          }}
-        >
-          <Typography variant="h6" color="textSecondary">
+        <Typography variant="h6" color="textSecondary">
+          <strong>
             Send{' '}
-            <strong>
-              {commafy(source.amount, 5)} {source.token.symbol}
-            </strong>{' '}
-            from {source.network.name} to {dest?.network?.name}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="subtitle2" color="textSecondary">
-            Estimated Received:
-          </Typography>
-          <Typography variant="subtitle2" color="textPrimary">
-            {estimatedReceived}
-          </Typography>
-        </div>
+            {commafy(source.amount, 5)}
+            {' '}<TokenIcon width="16px" inline bgTransparent src={source.token.image} alt={source.token._symbol} title={source.token._symbol} />
+            &thinsp;{source.token.symbol}
+          </strong>
+          <br />
+          <TokenIcon width="16px" inline bgTransparent src={source.network.imageUrl} alt={source.network.name} title={source.token.name} />
+          &thinsp;{source.network.name}
+          {' → '}
+          <TokenIcon width="16px" inline bgTransparent src={dest?.network?.imageUrl} alt={dest?.network?.name} title={dest?.token?.name} />
+          &thinsp;{dest?.network?.name}
+        </Typography>
+
+        <br />
+
+        <Grid container justifyContent="center" spacing={6}>
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Received
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {estimatedReceived}
+            </Typography>
+          </Grid>
+
+
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Wait
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {isLoading ? <Skeleton animation="wave" width={'100px'} /> : transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
+            </Typography>
+          </Grid>
+        </Grid>
         {!!customRecipient && (
           <>
             <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>
@@ -94,9 +121,9 @@ const ConfirmSend = (props: Props) => {
         </Box>
       )}
       <Box mb={2} display="flex" flexDirection="column" alignItems="center" textAlign="center">
-        <Box style={{ maxWidth: '200px' }}>
+        <Box style={{ maxWidth: '350px' }}>
         <Typography variant="body2" color="textSecondary">
-          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network.
+          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network, otherwise it can result in loss of funds.
         </Typography>
         </Box>
       </Box>

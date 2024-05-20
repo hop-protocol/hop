@@ -1,9 +1,9 @@
-import getTransferId from 'src/theGraph/getTransfer'
-import isL1 from 'src/utils/isL1'
-import { actionHandler, logger, parseString, root } from './shared'
+import getTransferId from '#theGraph/getTransfer.js'
+import { actionHandler, logger, parseString, root } from './shared/index.js'
 import {
   getEnabledNetworks
-} from 'src/config'
+} from '#config/index.js'
+import { isL1 } from '@hop-protocol/hop-node-core'
 
 root
   .command('transfer-id')

@@ -1,0 +1,9 @@
+#public
+node_modules
+dist
+*.env
+*.db
+*.db-journal
+pgdata
+docker_compose/
+.npmignore

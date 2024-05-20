@@ -1,4 +1,10 @@
-require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
+import { loadEnvFile } from 'node:process'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
+
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
 
 export const privateKey = process.env.TEST_USER_PRIVATE_KEY
 export const mnemonic = process.env.TEST_MNEMONIC

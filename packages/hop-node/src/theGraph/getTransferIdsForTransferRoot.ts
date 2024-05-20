@@ -1,8 +1,9 @@
-import MerkleTree from 'src/utils/MerkleTree'
-import makeRequest from './makeRequest'
-import { mainnet as addresses } from '@hop-protocol/core/addresses'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { normalizeEntity } from './shared'
+import MerkleTree from '#utils/MerkleTree.js'
+import makeRequest from './makeRequest.js'
+import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
+import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
+import { normalizeEntity } from './shared.js'
+import type { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
@@ -86,20 +87,22 @@ export default async function getTransferIdsForTransferRoot (
     // get the transfer sent events between the two commit transfer events
     startBlockNumber = previousTransferCommitted.blockNumber
   } else {
-    startBlockNumber = (addresses as any)?.bridges?.[token]?.[chain]?.bridgeDeployedBlockNumber ?? 0
+    startBlockNumber = (addresses?.bridges?.[token as TokenSymbol]?.[chain as ChainSlug] as any)?.bridgeDeployedBlockNumber ?? 0
   }
 
   const endBlockNumber = transferCommitted.blockNumber
+  let lastId = '0'
   query = `
-    query TransfersSent($token: String, $startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
+    query TransfersSent($token: String, $startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String, $lastId: ID) {
       transferSents(
         where: {
           token: $token,
           blockNumber_gte: $startBlockNumber,
           blockNumber_lte: $endBlockNumber,
-          destinationChainId: $destinationChainId
+          destinationChainId: $destinationChainId,
+          id_gt: $lastId
         },
-        orderBy: blockNumber,
+        orderBy: id,
         orderDirection: asc,
         first: 1000,
       ) {
@@ -123,16 +126,44 @@ export default async function getTransferIdsForTransferRoot (
       }
     }
   `
-  jsonRes = await makeRequest(chain, query, {
-    token,
-    startBlockNumber: startBlockNumber.toString(),
-    endBlockNumber,
-    destinationChainId
-  })
 
-  // normalize fields
-  const _transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+  const _transfers: any[] = []
+  while (true) {
+    jsonRes = await makeRequest(chain, query, {
+      token,
+      startBlockNumber: startBlockNumber.toString(),
+      endBlockNumber,
+      destinationChainId,
+      lastId
+    })
+    const transferRes = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+
+    for (const transfer of transferRes) {
+      _transfers.push(transfer)
+    }
+
+    const maxItemsLength = 1000
+    if (transferRes.length === maxItemsLength) {
+      lastId = transferRes[transferRes.length - 1].id
+    } else {
+      break
+    }
+  }
+
   const { sortedTransfers } = getSortedTransferIds(_transfers, startBlockNumber)
+
+  const shouldLog = false
+  if (shouldLog) {
+    console.log(JSON.stringify(sortedTransfers.map((x: any) => {
+      return {
+        transferId: x.transferId,
+        transactionHash: x.transactionHash,
+        index: x.index,
+        blockNumber: x.blockNumber,
+        timestamp: x.timestamp
+      }
+    }), null, 2))
+  }
 
   const transferIds = sortedTransfers.map((x: any) => x.transferId)
 

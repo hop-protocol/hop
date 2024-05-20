@@ -1,9 +1,7 @@
-import '../moduleAlias'
-import memoize from 'fast-memoize'
-import { Chain } from 'src/constants'
-import { Signer, providers } from 'ethers'
+import { ChainSlug, NetworkSlug, TokenSymbol } from '@hop-protocol/sdk'
+import type { Signer, providers } from 'ethers'
 
-import wallets from 'src/wallets'
+import { wallets } from '@hop-protocol/hop-node-core'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,
@@ -12,26 +10,26 @@ import {
   L2_Bridge__factory,
   MessengerWrapper__factory,
   SaddleLpToken__factory
-} from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config'
+} from '@hop-protocol/sdk/contracts'
+import { config as globalConfig } from '#config/index.js'
 
 const getL1BridgeContract = (token: string) => {
-  if (token === 'USDC' && globalConfig.network === 'mainnet') {
+  if (token === TokenSymbol.USDC && globalConfig.network === NetworkSlug.Mainnet) {
     return L1_ERC20_Bridge_Legacy__factory.connect(
-      globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
-      wallets.get(Chain.Ethereum)
+      (globalConfig.addresses as any)[token][ChainSlug.Ethereum].l1Bridge,
+      wallets.get(ChainSlug.Ethereum)
     )
   }
   return L1_ERC20_Bridge__factory.connect(
-    globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
-    wallets.get(Chain.Ethereum)
+    globalConfig.addresses[token][ChainSlug.Ethereum].l1Bridge,
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
 const getL1TokenContract = (token: string) => {
   return ERC20__factory.connect(
-    globalConfig.addresses[token][Chain.Ethereum].l1CanonicalToken,
-    wallets.get(Chain.Ethereum)
+    globalConfig.addresses[token][ChainSlug.Ethereum].l1CanonicalToken,
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
@@ -89,21 +87,28 @@ const getL1MessengerWrapperContract = (
   // Note: This only returns the base implementation, not the chain-specific implementation
   return MessengerWrapper__factory.connect(
     globalConfig.addresses[token][network].l1MessengerWrapper,
-    wallets.get(Chain.Ethereum)
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
-const constructContractsObject = memoize((token: string) => {
+const cache: Record<string, any> = {}
+
+const constructContractsObject = (token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
   }
 
-  return Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
+  const cacheKey = `${token}`
+  if (cache[cacheKey]) {
+    return cache[cacheKey]
+  }
+
+  const contractObj = Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj
     }
-    if (network === Chain.Ethereum) {
+    if (network === ChainSlug.Ethereum) {
       obj[network] = {
         l1Bridge: getL1BridgeContract(token),
         l1CanonicalToken: getL1TokenContract(token)
@@ -120,7 +125,11 @@ const constructContractsObject = memoize((token: string) => {
     }
     return obj
   }, {})
-})
+
+  cache[cacheKey] = contractObj
+  return contractObj
+
+}
 
 export default {
   has (token: string, network: string) {

@@ -1,11 +1,11 @@
-import React from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
+import Box from '@mui/material/Box'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
+import Typography from '@mui/material/Typography'
 
-function SendHeader(props) {
+function SendHeader(props: any) {
   const { styles, bridges, selectedBridge, handleBridgeChange } = props
 
   return (
@@ -15,7 +15,7 @@ function SendHeader(props) {
           Send
         </Typography>
         <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
-          {bridges.map(bridge => (
+          {bridges.map((bridge: any) => (
             <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
               <SelectOption
                 value={bridge.getTokenSymbol()}

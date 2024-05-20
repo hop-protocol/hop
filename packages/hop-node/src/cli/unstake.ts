@@ -1,10 +1,11 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import { BigNumber } from 'ethers'
-import { actionHandler, logger, parseNumber, parseString, root } from './shared'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, logger, parseNumber, parseString, root } from './shared/index.js'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import type L1Bridge from '#watchers/classes/L1Bridge.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
+import type { BigNumber } from 'ethers'
 
 root
   .command('unstake')
@@ -27,7 +28,7 @@ async function main (source: any) {
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
   const bridge: L2Bridge | L1Bridge = watcher.bridge
   const parsedAmount: BigNumber = bridge.parseUnits(amount)

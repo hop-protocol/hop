@@ -1,3 +1,5 @@
+-- ETH Bonder 7 Day APR
+
 select
   ((((f - l) / (7.0 / 365.0)) / total) * 100) as apr
 from (

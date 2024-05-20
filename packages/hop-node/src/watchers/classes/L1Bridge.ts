@@ -1,16 +1,23 @@
-import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
-import Token from './Token'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
-import wallets from 'src/wallets'
-import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain, GasCostTransactionType, RelayableChains } from 'src/constants'
-import { ERC20 } from '@hop-protocol/core/contracts'
-import { Hop } from '@hop-protocol/sdk'
-import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
-import { config as globalConfig } from 'src/config'
+import Bridge, { type CanonicalTokenConvertOptions, type EventCb, type EventsBatchOptions } from './Bridge.js'
+import Token from './Token.js'
+import { wallets } from '@hop-protocol/hop-node-core'
+import { BigNumber, constants } from 'ethers'
+import { GasCostTransactionType, RelayableChains } from '#constants/index.js'
+import { ChainSlug, NetworkSlug, Hop, TokenSymbol } from '@hop-protocol/sdk'
+import { ERC20__factory,  L1_ERC20_Bridge__factory } from '@hop-protocol/sdk/contracts'
+import { config as globalConfig } from '#config/index.js'
+import type { ERC20 } from '@hop-protocol/sdk/contracts'
+import type {
+  L1_Bridge as L1BridgeContract,
+  TransferBondChallengedEvent,
+  TransferRootBondedEvent,
+  TransferRootConfirmedEvent,
+  TransferSentToL2Event
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { providers } from 'ethers'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -24,24 +31,23 @@ export default class L1Bridge extends Bridge {
   }
 
   static fromAddress (address: string): L1Bridge {
-    const contract = new Contract(
+    const contract = L1_ERC20_Bridge__factory.connect(
       address,
-      l1Erc20BridgeAbi,
-      wallets.get(Chain.Ethereum)
+      wallets.get(ChainSlug.Ethereum)
     )
 
-    return new L1Bridge(contract as L1BridgeContract)
+    return new L1Bridge(contract as unknown as L1BridgeContract)
   }
 
   getTransferBond = async (transferRootId: string) => {
-    return await this.l1BridgeContract.transferBonds(transferRootId)
+    return this.l1BridgeContract.transferBonds(transferRootId)
   }
 
   getTransferRootBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
       endBlockNumber
@@ -52,7 +58,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferBondChallenged(),
       startBlockNumber,
       endBlockNumber
@@ -63,7 +69,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferSentToL2(),
       startBlockNumber,
       endBlockNumber
@@ -74,21 +80,21 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
   }
 
   async mapTransferBondChallengedEvents<R> (
     cb: EventCb<TransferBondChallengedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
   async mapTransferSentToL2Events<R> (
     cb: EventCb<TransferSentToL2Event, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
+    return this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
   }
 
   async getTransferRootBondedEvent (
@@ -122,7 +128,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransferRootConfirmedEvent[]> => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
@@ -133,7 +139,7 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootConfirmedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
   async isTransferRootIdConfirmed (destChainId: number, transferRootId: string): Promise<boolean> {
@@ -143,7 +149,7 @@ export default class L1Bridge extends Bridge {
 
   getTransferRootCommittedAt = async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
-    if (this.tokenSymbol === 'USDC' && globalConfig.network === 'mainnet') {
+    if (this.tokenSymbol === TokenSymbol.USDC && globalConfig.network === NetworkSlug.Mainnet) {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     } else {
       committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
@@ -158,9 +164,8 @@ export default class L1Bridge extends Bridge {
 
   async l1CanonicalToken (): Promise<Token> {
     const tokenAddress = await (this.l1BridgeContract as L1ERC20BridgeContract).l1CanonicalToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.l1BridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)
@@ -171,12 +176,23 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l1BridgeContract.bondTransferRoot(
+    const txOverrides: TxOverrides = await this.txOverrides()
+
+    // Hardcode a gasLimit for chains that have variable gas costs in their messengers
+    if (
+      chainId === this.chainSlugToId(ChainSlug.Optimism) ||
+      chainId === this.chainSlugToId(ChainSlug.Base)
+    ) {
+      txOverrides.gasLimit = 1_000_000
+    }
+
+    const payload = [
       transferRootHash,
       chainId,
       totalAmount,
-      await this.txOverrides()
-    )
+      txOverrides
+    ] as const
+    const tx = await this.l1BridgeContract.bondTransferRoot(...payload)
 
     return tx
   }
@@ -214,7 +230,8 @@ export default class L1Bridge extends Bridge {
   convertCanonicalTokenToHopToken = async (
     destinationChainId: number,
     amount: BigNumber,
-    recipient: string
+    recipient: string,
+    options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -222,8 +239,8 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain)) {
+    const destinationChain = getChainSlug(destinationChainId.toString())
+    if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
@@ -233,19 +250,23 @@ export default class L1Bridge extends Bridge {
     }
 
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    if (!this.#isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
+    }
+
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -260,7 +281,8 @@ export default class L1Bridge extends Bridge {
   sendCanonicalTokensToL2 = async (
     destinationChainId: number,
     amount: BigNumber,
-    recipient: string
+    recipient: string,
+    options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -268,8 +290,8 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain)) {
+    const destinationChain = getChainSlug(destinationChainId.toString())
+    if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
@@ -281,23 +303,26 @@ export default class L1Bridge extends Bridge {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = bridge.defaultDeadlineSeconds
-    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
+    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.getSlugFromChainId(destinationChainId))
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    if (!this.#isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
+    }
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -317,7 +342,7 @@ export default class L1Bridge extends Bridge {
   }
 
   getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {
-    return await this.l1BridgeContract.getBondForTransferAmount(amount)
+    return this.l1BridgeContract.getBondForTransferAmount(amount)
   }
 
   async decodeBondTransferRootCalldata (data: string): Promise<any> {
@@ -336,5 +361,12 @@ export default class L1Bridge extends Bridge {
       totalAmount,
       destinationChainId
     }
+  }
+
+  #isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
+    return (
+      relayer !== constants.AddressZero ||
+      relayerFee.eq(0)
+    )
   }
 }

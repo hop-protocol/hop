@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { withStyles } from '@material-ui/core/styles'
-import MuiTooltip from '@material-ui/core/Tooltip'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { Div, EthAddress, EthAddressProps } from '.'
+import Box from '@mui/material/Box'
+import MuiTooltip from '@mui/material/Tooltip'
+import React, { SyntheticEvent, useState } from 'react'
+import { EthAddress, EthAddressProps } from 'src/components/ui/EthAddress'
+import { withStyles } from '@mui/styles'
 
 const tooltipStyles = {
   tooltip: {
@@ -20,23 +20,29 @@ export function CopyEthAddress(props: Props & EthAddressProps) {
   const { value, ...rest } = props
   const [text, setText] = useState<string>('')
 
-  function handleClick() {
+  function handleClick(event: SyntheticEvent<any>) {
+    try {
+      const { text } = event.currentTarget.dataset
+      navigator.clipboard.writeText(text)
+    } catch (err: any) {
+      console.error(err)
+    }
     if (!value) {
       return
     }
     setText('copied!')
     setTimeout(() => {
       setText('')
-    }, 1e3)
+    }, 1 * 1000)
   }
 
   return (
     <Tooltip title={text} open={!!text} placement="top-start">
-      <CopyToClipboard text={value} onCopy={handleClick}>
-        <Div pointer>
+      <Box data-text={value} onClick={handleClick}>
+        <Box style={{ cursor: "pointer" }}>
           <EthAddress {...rest} value={value} />
-        </Div>
-      </CopyToClipboard>
+        </Box>
+      </Box>
     </Tooltip>
   )
 }

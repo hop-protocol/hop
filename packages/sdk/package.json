@@ -1,99 +1,160 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.384",
-  "description": "The Hop Protocol JavaScript SDK",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
-  "engines": {
-    "node": ">=14"
-  },
+  "version": "0.0.10",
+  "description": "The v1 Hop Protocol TypeScript SDK",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "module": "dist/esm/index.js",
+  "main": "dist/cjs/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "jest",
-    "dev": "npm run version && tsc --watch",
-    "build": "npm run version && npm run build:ts",
-    "build:ts": "tsc",
-    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
-    "clean": "rimraf dist && rimraf hop.js",
-    "clean:docs": "rimraf docs",
-    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
-    "version:bump": "npm version prerelease --preid=beta",
-    "publish:latest": "npm publish --tag latest --access public",
-    "publish:beta": "npm publish --tag beta --access public",
-    "publish:next": "npm publish --tag next --access public",
-    "dist-tag:latest": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" latest",
-    "dist-tag:beta": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" beta",
-    "dist-tag:next": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" next",
-    "lerna:sync": "lerna-sync-version",
-    "release": "npm run clean && npm test && npm run publish:latest",
-    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
-    "prepare": "npm run lint && npm run build && npm run build:browser",
-    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
-    "docs:concat": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && npx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js ./tsconfig.esm.tsbuildinfo ./tsconfig.cjs.tsbuildinfo",
+    "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "dev": "tsc --watch",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "clean:docs": "rm -rf docs",
+    "clean:docs-ui": "rm -rf docs-ui",
+    "lint": "eslint . --fix",
+    "prebuild": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "version": "pnpm version",
+    "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
+    "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs:ui": "typedoc --out docs-ui src/index.ts",
+    "docs": "pnpm docs:ui && pnpm docs:markdown",
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
-  "directories": {},
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "@eth-optimism/contracts": "0.5.2",
-    "@hop-protocol/core": "0.0.1-beta.96",
-    "@maticnetwork/maticjs": "3.4.0-beta.0",
-    "dotenv": "8.6.0",
-    "ethereum-block-by-date": "1.4.5",
-    "ethers": "5.7.1",
-    "eventemitter3": "4.0.7",
+    "@hop-protocol/sdk-core": "workspace:*",
+    "@uniswap/sdk-core": "4.2.0",
+    "@uniswap/v3-sdk": "3.11.0",
+    "buffer": "6.0.3",
+    "dotenv": "16.4.1",
+    "ethereum-block-by-date": "1.4.9",
+    "ethers": "5.7.2",
+    "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",
-    "isomorphic-fetch": "3.0.0",
-    "luxon": "2.5.0",
-    "web3": "1.7.5"
+    "luxon": "3.4.4",
+    "merkletreejs": "0.3.11"
   },
   "devDependencies": {
-    "@babel/cli": "^7.7.0",
-    "@babel/core": "^7.7.2",
-    "@babel/node": "^7.7.0",
-    "@babel/plugin-transform-arrow-functions": "^7.2.0",
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "@babel/preset-env": "^7.5.2",
-    "@babel/preset-es2015": "^7.0.0-beta.53",
-    "@babel/runtime": "^7.7.2",
-    "@types/isomorphic-fetch": "0.0.35",
-    "@types/jest": "^27.0.3",
-    "@types/luxon": "^1.27.1",
-    "@types/node": "^17.0.21",
-    "@types/node-fetch": "2.5.10",
-    "@typescript-eslint/eslint-plugin": "^4.28.2",
-    "@typescript-eslint/parser": "^4.28.2",
-    "babelify": "^10.0.0",
-    "browserify": "^16.5.0",
-    "eslint": "^7.30.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.23.4",
-    "eslint-plugin-jest": "^24.3.6",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
-    "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
-    "eslint-plugin-unused-imports": "^1.1.2",
-    "jest": "^26.6.3",
-    "lerna-sync-version": "0.0.6",
-    "rimraf": "^3.0.2",
-    "standard": "^12.0.1",
-    "ts-jest": "^26.5.4",
-    "tsify": "^4.0.1",
-    "typedoc": "^0.23.10",
-    "typedoc-plugin-markdown": "^3.13.4",
-    "typescript": "^4.3.4",
-    "uglify-es": "^3.3.9"
+    "@types/luxon": "3.4.2",
+    "typedoc": "0.25.7",
+    "typedoc-plugin-markdown": "3.17.1"
   },
-  "standard": {
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint/eslint-plugin"
-    ]
+  "peerDependencies": {
+    "ethers": "^5"
   },
-  "husky": {
-    "hooks": {
-      "pre-push": "npm run lint"
+  "imports": {
+    "#*": {
+      "import": "./dist/esm/*",
+      "require": "./dist/cjs/*"
     }
-  }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./addresses": {
+      "import": {
+        "types": "./dist/esm/addresses/index.d.ts",
+        "default": "./dist/esm/addresses/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/addresses/index.d.ts",
+        "default": "./dist/cjs/addresses/index.js"
+      }
+    },
+    "./config": {
+      "import": {
+        "types": "./dist/esm/config/index.d.ts",
+        "default": "./dist/esm/config/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/config/index.d.ts",
+        "default": "./dist/cjs/config/index.js"
+      }
+    },
+    "./contracts": {
+      "import": {
+        "types": "./dist/esm/contracts/index.d.ts",
+        "default": "./dist/esm/contracts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/contracts/index.d.ts",
+        "default": "./dist/cjs/contracts/index.js"
+      }
+    },
+    "./contracts/*": {
+      "import": {
+        "types": "./dist/esm/contracts/*.d.ts",
+        "default": "./dist/esm/contracts/*.js"
+      },
+      "require": {
+        "types": "./dist/cjs/contracts/*.d.ts",
+        "default": "./dist/cjs/contracts/*.js"
+      }
+    },
+    "./metadata": {
+      "import": {
+        "types": "./dist/esm/metadata/index.d.ts",
+        "default": "./dist/esm/metadata/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/metadata/index.d.ts",
+        "default": "./dist/cjs/metadata/index.js"
+      }
+    },
+    "./metadata/tokens": {
+      "import": {
+        "types": "./dist/esm/metadata/tokens.d.ts",
+        "default": "./dist/esm/metadata/tokens.js"
+      },
+      "require": {
+        "types": "./dist/cjs/metadata/tokens.d.ts",
+        "default": "./dist/cjs/metadata/tokens.js"
+      }
+    },
+    "./networks": {
+      "import": {
+        "types": "./dist/esm/networks/index.d.ts",
+        "default": "./dist/esm/networks/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/networks/index.d.ts",
+        "default": "./dist/cjs/networks/index.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/esm/utils/index.d.ts",
+        "default": "./dist/esm/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/utils/index.d.ts",
+        "default": "./dist/cjs/utils/index.js"
+      }
+    }
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
 }

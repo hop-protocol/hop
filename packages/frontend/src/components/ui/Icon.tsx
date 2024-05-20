@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { Circle } from 'react-feather'
-import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
+import { ComposedStyleProps, SquareDimensions, composedStyleFns, squareDimensions } from 'src/utils'
 import { color, layout, space } from 'styled-system'
 
 interface StyledIconProps {
@@ -16,7 +16,7 @@ const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
   ${squareDimensions}
 `
 
-const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
+export const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
   const [error, setError] = useState(false)
   if (!src || error) {
     return null
@@ -26,7 +26,7 @@ const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProp
     <StyledIcon
       src={src}
       width={width || 24}
-      alt={alt === undefined ? `${src.slice(4)} icon` : alt}
+      alt={alt ?? `${src.slice(4)} icon`}
       color={color}
       onError={() => {
         setError(true)
@@ -42,5 +42,3 @@ Icon.Circle = styled(Circle)<any>`
   ${layout};
   ${color};
 `
-
-export default Icon

@@ -1,0 +1,1 @@
+select result, strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as day from bonder_balances where token = 'MATIC' AND strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2022-01-01' GROUP BY strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) ORDER BY timestamp ASC

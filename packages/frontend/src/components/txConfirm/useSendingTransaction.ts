@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { NetworkTokenEntity } from 'src/utils'
+import { useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 interface BaseSendingTransaction {
   onConfirm: (confirmed: boolean, params?: any) => void
@@ -46,7 +46,9 @@ export function useSendingTransaction(props: SendingTransaction) {
       }
       const txChainId = Number(src?.network?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(txChainId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setSending(true)
       onConfirm(true, opts)

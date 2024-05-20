@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import Network from 'src/models/Network'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import Network from 'src/models/Network'
+import { useMemo } from 'react'
 import { useQuery } from 'react-query'
 
 const useSendData = (
@@ -31,7 +31,7 @@ const useSendData = (
     {
       enabled:
         !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
-      refetchInterval: 5e3,
+      refetchInterval: 5 * 1000,
     }
   )
 

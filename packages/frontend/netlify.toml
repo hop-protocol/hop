@@ -18,6 +18,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    Access-Control-Allow-Origin = "*"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "no-referrer"

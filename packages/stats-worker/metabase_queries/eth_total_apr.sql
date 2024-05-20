@@ -1,3 +1,5 @@
+-- ETH Bonder Total APR
+
 select
   (((profit /( ((deposit_days_total-withdraw_days_total) / total) / 365.0)) / total) * 100) as apr
 from (

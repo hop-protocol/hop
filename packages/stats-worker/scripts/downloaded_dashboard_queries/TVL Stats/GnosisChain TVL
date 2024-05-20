@@ -1,0 +1,1 @@
+select sum(amount_usd) as sum_usd from (select amount_usd from tvl_pool_stats where chain = 'gnosis' and token in ('USDC', 'USDT', 'DAI', 'MATIC', 'ETH') order by timestamp desc limit 5);

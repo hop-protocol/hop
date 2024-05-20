@@ -1,13 +1,6 @@
-import {
-  mainnet as _mainnetAddresses,
-  staging as stagingAddresses,
-} from '@hop-protocol/core/addresses'
-import { mainnet as _mainnetNetworks } from '@hop-protocol/core/networks'
-
-import { HopAddresses, Networks } from './interfaces'
-
-const isStaging = process.env.REACT_APP_NETWORK === 'staging'
-const _addresses = isStaging ? stagingAddresses : _mainnetAddresses
+import { HopAddresses, Networks } from 'src/config/interfaces'
+import { mainnet as _mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 
 export const mainnetAddresses: HopAddresses = {
   governance: {
@@ -16,45 +9,20 @@ export const mainnetAddresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: '',
   },
-  tokens: _addresses.bridges,
-  bonders: _addresses.bonders,
+  tokens: _mainnetAddresses.bridges,
+  bonders: _mainnetAddresses.bonders,
 }
 
-const _networks = _mainnetNetworks as any
+const _network = getNetwork(NetworkSlug.Mainnet)
+const mainnetNetworks: Networks = {}
 
-export const mainnetNetworks: Networks = {
-  ethereum: {
-    networkId: _networks.ethereum.networkId,
-    rpcUrl: _networks.ethereum.publicRpcUrl,
-    explorerUrl: _networks.ethereum.explorerUrls[0],
-    waitConfirmations: _networks.ethereum.waitConfirmations,
-  },
-  polygon: {
-    networkId: _networks.polygon.networkId,
-    rpcUrl: _networks.polygon.publicRpcUrl,
-    explorerUrl: _networks.polygon.explorerUrls[0],
-    nativeBridgeUrl: _networks.polygon.nativeBridgeUrl,
-    waitConfirmations: _networks.polygon.waitConfirmations,
-  },
-  arbitrum: {
-    networkId: _networks.arbitrum.networkId,
-    rpcUrl: _networks.arbitrum.publicRpcUrl,
-    explorerUrl: _networks.arbitrum.explorerUrls[0],
-    nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
-    waitConfirmations: _networks.arbitrum.waitConfirmations,
-  },
-  optimism: {
-    networkId: _networks.optimism.networkId,
-    rpcUrl: _networks.optimism.publicRpcUrl,
-    explorerUrl: _networks.optimism.explorerUrls[0],
-    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
-    waitConfirmations: _networks.optimism.waitConfirmations,
-  },
-  gnosis: {
-    networkId: _networks.gnosis.networkId,
-    rpcUrl: _networks.gnosis.publicRpcUrl,
-    explorerUrl: _networks.gnosis.explorerUrls[0],
-    nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
-    waitConfirmations: _networks.gnosis.waitConfirmations,
-  },
+for (const chainSlug in _network.chains) {
+  mainnetNetworks[chainSlug] = {
+    networkId: _network.chains[chainSlug].chainId,
+    rpcUrl: _network.chains[chainSlug].publicRpcUrl,
+    fallbackRpcUrls: _network.chains[chainSlug].fallbackPublicRpcUrls,
+    explorerUrl: _network.chains[chainSlug].explorerUrls[0]
+  }
 }
+
+export { mainnetNetworks }

@@ -1,0 +1,1 @@
+select date_trunc('day', to_timestamp("timestamp")) as date, sum(amount_usd) as USD from transfers where "timestamp" > 1655830800 and timestamp < 1656349140 group by date_trunc('day', to_timestamp("timestamp"))

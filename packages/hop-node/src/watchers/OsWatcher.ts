@@ -1,10 +1,8 @@
-import Logger from 'src/logger'
-import Metrics from 'src/watchers/classes/Metrics'
-import checkDiskSpace from 'check-disk-space'
-import heapdump from 'heapdump'
-import os from 'os'
+import Metrics from './classes/Metrics.js'
+import os from 'node:os'
 import pidusage from 'pidusage'
-import wait from 'src/utils/wait'
+import { Logger } from '@hop-protocol/hop-node-core'
+import { wait } from '@hop-protocol/hop-node-core'
 
 type Config = {
   heapdump: boolean
@@ -38,7 +36,7 @@ class OsWatcher {
     ])
   }
 
-  async pollStats () {
+  async pollStats (): Promise<never> {
     while (true) {
       try {
         await this.logCpuMemory()
@@ -65,38 +63,13 @@ class OsWatcher {
   }
 
   static async getDiskUsage (): Promise<any> {
-    return new Promise((resolve) => {
-      checkDiskSpace('/').then((diskSpace) => {
-        const totalSize = diskSpace?.size
-        const freeSize = diskSpace?.free
-        const freeSizeGb = freeSize / 1024 / 1024 / 1024
-        const totalSizeGb = totalSize / 1024 / 1024 / 1024
-        const usedSize = totalSize - freeSize
-        const usedSizeGb = usedSize / 1024 / 1024 / 1024
-        const usedSizeFormatted = `${usedSizeGb?.toFixed(2)}GB`
-        const totalSizeFormatted = `${totalSizeGb?.toFixed(2)}GB`
-        const usedPercent = (usedSizeGb / totalSizeGb) * 100
-        const usedPercentFormatted = `${usedPercent.toFixed(2)}%`
-        resolve({
-          totalSize,
-          freeSize,
-          freeSizeGb,
-          totalSizeGb,
-          usedSize,
-          usedSizeGb,
-          usedSizeFormatted,
-          totalSizeFormatted,
-          usedPercent,
-          usedPercentFormatted
-        })
-      })
-    })
+    // TODO: Figure out package
   }
 
   async logDisk () {
-    const { totalSize, freeSize, usedSize, usedSizeFormatted, totalSizeFormatted, usedPercentFormatted } = await OsWatcher.getDiskUsage()
-    this.logger.info(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
-    this.metrics.setDisk(totalSize, freeSize, usedSize)
+    // const { totalSize, freeSize, usedSize, usedSizeFormatted, totalSizeFormatted, usedPercentFormatted } = await OsWatcher.getDiskUsage()
+    // this.logger.info(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
+    // this.metrics.setDisk(totalSize, freeSize, usedSize)
   }
 
   static async getCpuMemoryUsage (): Promise<any> {
@@ -145,13 +118,7 @@ class OsWatcher {
   }
 
   async logHeapdump () {
-    this.heapIndex++
-    const location = `/tmp/heapdump_${Date.now()}.heapsnapshot`
-    this.logger.debug('generating heapdump snapshot')
-    // note: if you see the error "Segmentation fault (core dumped)" on node v14,
-    // try using node v12
-    heapdump.writeSnapshot(location)
-    this.logger.info(`wrote heapdump snapshot to: ${location}`)
+    // TODO: Figure out package
   }
 }
 

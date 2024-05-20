@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { BigNumber, utils } from 'ethers'
 import { commafy } from 'src/utils'
+import { useEffect, useState } from 'react'
 
 const distributionCsvUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
 const baseAmountJsonUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/baseAirdropTokens.json'
@@ -105,15 +104,15 @@ export function useDistribution(address?: string) {
   if (address) {
     const data = allData?.[address.toLowerCase()]
     if (data && baseAmountBn.gt(0)) {
-      lpTokens = Number(formatUnits(data.lpTokens.toString(), 18))
-      hopUserTokens = Number(formatUnits(data.hopUserTokens.toString(), 18))
+      lpTokens = Number(utils.formatUnits(data.lpTokens.toString(), 18))
+      hopUserTokens = Number(utils.formatUnits(data.hopUserTokens.toString(), 18))
       earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(4)) || 1
       volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(4)) || 1
       if (hopUserTokens) {
-        baseAmount = Number(formatUnits(baseAmountBn.toString(), 18))
+        baseAmount = Number(utils.formatUnits(baseAmountBn.toString(), 18))
       }
       if (data.totalTokens) {
-        total = Number(formatUnits(data.totalTokens.toString(), 18))
+        total = Number(utils.formatUnits(data.totalTokens.toString(), 18))
       } else {
         total = (lpTokens + hopUserTokens)
       }
@@ -138,15 +137,15 @@ export function useDistribution(address?: string) {
     numTxs = Number(accountInfo?.totalTxs)
     addressVolume = Number(accountInfo?.totalVolume)
     if (accountInfo.authereumAmount) {
-      authereumAmount = Number(formatUnits(accountInfo.authereumAmount.toString(), 18))
+      authereumAmount = Number(utils.formatUnits(accountInfo.authereumAmount.toString(), 18))
       total += authereumAmount
     }
     if (accountInfo.twitterAmount) {
-      twitterAmount = Number(formatUnits(accountInfo.twitterAmount.toString(), 18))
+      twitterAmount = Number(utils.formatUnits(accountInfo.twitterAmount.toString(), 18))
       total += twitterAmount
     }
     if (accountInfo.discordAmount) {
-      discordAmount = Number(formatUnits(accountInfo.discordAmount.toString(), 18))
+      discordAmount = Number(utils.formatUnits(accountInfo.discordAmount.toString(), 18))
       total += discordAmount
     }
   }

@@ -1,0 +1,1 @@
+select source_chain_slug, count(*) as "count" from transfers where "timestamp" > 1655830800 and timestamp < 1656349140 group by (source_chain_slug, destination_chain_slug) having (destination_chain_slug = 'arbitrum')

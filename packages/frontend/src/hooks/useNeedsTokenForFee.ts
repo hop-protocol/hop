@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
 import Network from 'src/models/Network'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { BigNumber } from 'ethers'
 import logger from 'src/logger'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { BigNumber } from 'ethers'
+import { useEffect, useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
@@ -25,6 +25,12 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
         return
       }
 
+      if (!provider.getBalance) {
+        console.error('Provider does not support getBalance', provider)
+        setNeedsToken(false)
+        return
+      }
+
       const balance = await provider.getBalance(address.address)
 
       const gasPrice = await provider.getGasPrice()
@@ -37,7 +43,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
     }
 
     checkBalance().catch(logger.error)
-  }, [network, walletProvider, address])
+  }, [network, walletProvider, address, isSmartContractWallet])
 
   return needsToken
 }

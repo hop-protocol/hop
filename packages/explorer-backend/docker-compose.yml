@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: pg
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../../
+      dockerfile: ./packages/explorer-backend/Dockerfile
+    container_name: backend
+    ports:
+      - 8000:8000
+    # env_file:
+    #   - path: ./packages/explorer-backend/.env
+    #     required: true
+    environment:
+      PORT: 8000
+      NETWORK: mainnet
+      POSTGRES_USER: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_DBNAME: postgres
+      POSTGRES_PASS: password
+      POSTGRES_PORT: 5432
+      COINGECKO_API_KEY: $COINGECKO_API_KEY
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    command: node ./dist/index.js --worker --transfers --days=1
+
+volumes:
+  pgdata: {}

@@ -1,9 +1,9 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import makeRequest from './makeRequest'
+import getTransferRootId from '#utils/getTransferRootId.js'
+import makeRequest from './makeRequest.js'
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { utils } from 'ethers'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 
 export default async function getUnbondedTransferRoots (chain: string, token: string, destinationChain: string, startTime?: number, endTime?: number): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)
@@ -35,8 +35,8 @@ export default async function getUnbondedTransferRoots (chain: string, token: st
     if (transferRootBonded.length === 0) {
       const formattedTimestamp = DateTime.fromSeconds(timestamp)
       console.log(`No bond for ${rootHash} committed at ${formattedTimestamp} with an amount of ${totalAmount}`)
-      const decimals = getTokenDecimals(token)
-      const totalAmountFormatted = Number(formatUnits(totalAmount, decimals))
+      const decimals = getTokenDecimals(token as TokenSymbol)
+      const totalAmountFormatted = Number(utils.formatUnits(totalAmount, decimals))
       const rootId = getTransferRootId(rootHash, totalAmount)
       result.push({
         sourceChain: chain,

@@ -1,14 +1,16 @@
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import Token from 'src/watchers/classes/Token'
-import contracts from 'src/contracts'
-import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
-import isHToken from 'src/utils/isHToken'
-import wallets from 'src/wallets'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import contracts from '#contracts/index.js'
+import isHToken from '#utils/isHToken.js'
+import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
-import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-
-import { swap as oneInchSwap } from 'src/1inch'
+import { MIN_POLYGON_GAS_PRICE } from '@hop-protocol/hop-node-core'
+import { TokenIndex } from '#constants/index.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
+import { swap as dexSwap } from '#swap/index.js'
+import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
+import type Token from '#watchers/classes/Token.js'
+import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('swap')
@@ -21,6 +23,7 @@ root
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
   .option('--recipient <address>', 'Recipient', parseString)
+  .option('--dex <string>', 'Exchange to use. Options are: "1inch", "uniswap"', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -29,7 +32,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode } = source
+  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode, dex } = source
   if (!chain) {
     throw new Error('chain is required')
   }
@@ -42,8 +45,8 @@ async function main (source: any) {
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
-  const fromNative = fromToken === nativeChainTokens[chain]
-  const toNative = toToken === nativeChainTokens[chain]
+  const fromNative = fromToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
+  const toNative = toToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
@@ -92,7 +95,7 @@ async function main (source: any) {
     if (fromTokenCanonicalSymbol !== toTokenCanonicalSymbol) {
       throw new Error('both from-token and to-token must be the same asset type')
     }
-    if (chain === Chain.Ethereum) {
+    if (chain === ChainSlug.Ethereum) {
       throw new Error('no AMM on Ethereum chain')
     }
 
@@ -189,7 +192,7 @@ async function main (source: any) {
     }
   } else {
     logger.debug('dex swap')
-    tx = await oneInchSwap({
+    tx = await dexSwap(dex, {
       chain,
       fromToken,
       toToken,
@@ -233,8 +236,8 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
     value: parsedAmount,
     data
   }
-  if (chain === Chain.Polygon) {
-    tx.gasPrice = MinPolygonGasPrice
+  if (chain === ChainSlug.Polygon) {
+    tx.gasPrice = MIN_POLYGON_GAS_PRICE
   }
   return wallet.sendTransaction(tx)
 }
@@ -251,8 +254,8 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
     to: wrappedTokenAddress,
     data
   }
-  if (chain === Chain.Polygon) {
-    tx.gasPrice = MinPolygonGasPrice
+  if (chain === ChainSlug.Polygon) {
+    tx.gasPrice = MIN_POLYGON_GAS_PRICE
   }
   console.log(tx)
   return wallet.sendTransaction(tx)
@@ -271,15 +274,18 @@ function isWrappedNativeToken (token: string, chain: string) {
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
-  return nativeChainTokens[chain] === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
+  return getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain as ChainSlug) === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
 }
 
 const wrappedTokenAddresses: Record<string, string> = {
   ethereum: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   optimism: '0x4200000000000000000000000000000000000006',
   arbitrum: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  nova: '0x722E8BdD2ce80A4422E880164f2079488e115365',
   polygon: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-  gnosis: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'
+  gnosis: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
+  base: '0x4200000000000000000000000000000000000006',
+  linea: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f'
 }
 
 const wrappedNativeToNative: Record<string, string> = {
@@ -295,7 +301,7 @@ const nativeToWrappedNative: Record<string, string> = {
 }
 
 const chainPerNativeToken: Record<string, string[]> = {
-  ETH: ['mainnet', 'optimism', 'arbitrum'],
+  ETH: ['mainnet', 'optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base', 'polygonzk'],
   MATIC: ['polygon'],
   XDAI: ['xdai']
 }

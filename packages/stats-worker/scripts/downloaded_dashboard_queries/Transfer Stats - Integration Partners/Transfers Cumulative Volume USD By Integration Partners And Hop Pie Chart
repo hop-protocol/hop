@@ -1,0 +1,9 @@
+select
+    integration_partner,
+    total_usd
+from (
+    select coalesce(nullif(integration_partner, ''), 'hop') as integration_partner, sum(amount_usd) as total_usd from transfers where timestamp > 1667894400 and (integration_partner IS NULL or integration_partner = '') group by coalesce(nullif(integration_partner, ''), 'hop')
+) a
+union (
+  select integration_partner, sum(amount_usd) as total_usd from transfers where timestamp > 1667894400 and integration_partner IS NOT NULL and integration_partner != '' group by integration_partner
+)

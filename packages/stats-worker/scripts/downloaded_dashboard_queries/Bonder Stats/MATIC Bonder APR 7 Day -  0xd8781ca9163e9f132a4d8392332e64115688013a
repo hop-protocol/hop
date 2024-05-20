@@ -1,0 +1,8 @@
+
+select 
+((((f - l) * 52.1429) / 731948.94) * 100) as apr
+from (
+    select
+    (select result as r from bonder_balances b where token = 'MATIC' order by timestamp desc limit 1 offset 7) as l,
+    (select result as r from bonder_balances b where token = 'MATIC' order by timestamp desc limit 1) as f
+)

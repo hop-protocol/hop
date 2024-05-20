@@ -1,10 +1,15 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import MerkleTree from 'src/utils/MerkleTree'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Transfer } from 'src/db/TransfersDb'
-import { config as globalConfig } from 'src/config'
+import BaseWatcher from './classes/BaseWatcher.js'
+import MerkleTree from '#utils/MerkleTree.js'
+import { wallets } from '@hop-protocol/hop-node-core'
+import { ChainSlug, TokenSymbol, getChainSlug } from '@hop-protocol/sdk'
+import { Contract } from 'ethers'
+import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
+import { config as globalConfig } from '#config/index.js'
+import type { BigNumber, providers } from 'ethers'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+
+export class BatchExecuteError extends Error {}
 
 type Config = {
   chainSlug: string
@@ -15,8 +20,7 @@ type Config = {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
-  settleAttemptedAt: { [rootHash: string]: number } = {}
+  override siblingWatchers!: { [chainId: string]: SettleBondedWithdrawalWatcher }
 
   constructor (config: Config) {
     super({
@@ -28,125 +32,32 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkUnsettledTransferRootsFromDb()
   }
 
   async checkUnsettledTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(await this.getFilterRoute())
-
+    if (!dbTransferRoots.length) {
+      this.logger.debug('no unsettled db transfer roots to check')
+    }
+    this.logger.info(`total unsettled transfer roots db items: ${dbTransferRoots.length}`)
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootId, transferIds } = dbTransferRoot
-      const logger = this.logger.create({ id: transferRootId })
-
-      // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
-      // This comes into play when a transfer is bonded after others in the same root have been settled
-      const settleAttemptedAt = Date.now()
-      await this.db.transferRoots.update(transferRootId, {
-        settleAttemptedAt
-      })
-
-      // get all db transfer items that belong to root
-      const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds) {
-        const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-        if (!dbTransfer) {
-          continue
-        }
-        dbTransfers.push(dbTransfer)
-      }
-
-      if (dbTransfers.length !== transferIds.length) {
-        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
-        continue
-      }
-
-      // skip attempt to settle transfer root if none of the transfers are bonded because there is nothing to settle
-      const hasBondedWithdrawals = dbTransfers.some(
-        (dbTransfer: Transfer) => dbTransfer.withdrawalBonded
-      )
-      if (!hasBondedWithdrawals) {
-        continue
-      }
-
-      const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
-      if (allBondableTransfersSettled) {
-        await this.db.transferRoots.update(transferRootId, {
-          allSettled: true
-        })
-        continue
-      }
-
-      // find all unique bonders that have bonded transfers in this transfer root
-      const bonderSet = new Set<string>()
-      for (const dbTransfer of dbTransfers) {
-        const hasWithdrawalBonder = dbTransfer?.withdrawalBonder
-        const isAlreadySettled = dbTransfer?.withdrawalBondSettled
-        const shouldSkip = !hasWithdrawalBonder || isAlreadySettled
-        if (shouldSkip) {
-          continue
-        }
-
-        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}, transferAmount: ${this.bridge.formatUnits(dbTransfer.amount!)}`)
-        bonderSet.add(dbTransfer.withdrawalBonder!)
-      }
-
-      for (const bonder of bonderSet.values()) {
-        // check settle-able transfer root
-        promises.push(
-          this.checkTransferRootId(transferRootId, bonder)
-            .catch((err: Error) => {
-              this.logger.error('checkTransferRootId error:', err.message)
-            })
-        )
-      }
+      promises.push(this.checkTransferRootId(dbTransferRoot.transferRootId))
     }
-
-    if (promises.length === 0) {
-      this.logger.debug('no unsettled db transfer roots to check')
-      return
-    }
-
-    this.logger.info(
-      `checking ${promises.length} unsettled db transfer roots`
-    )
-
     await Promise.all(promises)
   }
 
-  async checkTransferRootHash (transferRootHash: string, bonder?: string) {
-    const logger = this.logger.create({ root: transferRootHash })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-    if (!dbTransferRoot) {
-      throw new Error('db transfer root not found')
-    }
-
-    const { transferRootId, transferIds } = dbTransferRoot
-    if (!bonder) {
-      const { transferRootId, transferIds } = dbTransferRoot
-      const transferId = transferIds![0]
-      const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-      if (!dbTransfer) {
-        throw new Error('db transfer not found')
-      }
-      const { withdrawalBonder } = dbTransfer
-      bonder = withdrawalBonder
-    }
-
-    return this.checkTransferRootId(transferRootId, bonder!)
-  }
-
-  async checkTransferRootId (transferRootId: string, bonder: string) {
-    if (!bonder) {
-      throw new Error('bonder is required')
-    }
+  async checkTransferRootId (transferRootId: string, bonder?: string) {
     const logger = this.logger.create({ root: transferRootId })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
     )
+    if (!dbTransferRoot) {
+      this.logger.error('db transfer root not found')
+      return
+    }
     const {
       transferRootHash,
       sourceChainId,
@@ -158,9 +69,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       throw new Error('transferIds expected to be array')
     }
 
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
-      .bridge
+    if (!destinationChainId || !totalAmount) {
+      logger.error('destinationChainId or totalAmount not found')
+      return
+    }
 
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
+      .bridge
+    bonder = bonder ?? await destBridge.getBonderAddress()
     logger.debug(`transferRootId: ${transferRootId}`)
 
     const tree = new MerkleTree(transferIds)
@@ -180,27 +96,27 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('computed transferRootHash:', transferRootHash)
     logger.debug('bonder:', bonder)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferIds', JSON.stringify(transferIds))
 
     const {
       total: onChainTotalAmount,
       amountWithdrawn: onChainAmountWithdrawn
-    } = await destBridge.getTransferRoot(transferRootHash, totalAmount!)
+    } = await destBridge.getTransferRoot(transferRootHash, totalAmount)
     if (onChainTotalAmount.eq(0)) {
       logger.debug('onChainTotalAmount is 0. Skipping')
       return
     }
     if (onChainTotalAmount.eq(onChainAmountWithdrawn)) {
-      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking transfer root as all settled`)
+      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking as not found`)
       await this.db.transferRoots.update(transferRootId, {
-        allSettled: true
+        isNotFound: true
       })
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping settleBondedWithdrawals`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping settleBondedWithdrawals`)
       return
     }
 
@@ -209,77 +125,169 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
     logger.debug('sending settle tx')
     try {
-      const tx = await destBridge.settleBondedWithdrawals(
-        bonder,
+      const txs: providers.TransactionResponse[] = await this.#executeSettlement(
+        destBridge,
+        transferRootHash,
+        bonder!,
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId: ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
-      logger.info(msg)
-      this.notifier.info(msg)
 
-      tx.wait()
-        .then(() => {
-          this.depositToVaultIfNeeded(destinationChainId!)
-        })
+      const txHashes = txs.map(tx => tx.hash)
+      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount)}, transferIds: ${transferIds.length}`
+      logger.info(msg)
     } catch (err) {
       logger.error('settleBondedWithdrawals error:', err.message)
+
+      if (err instanceof BatchExecuteError) {
+        await this.db.transferRoots.update(transferRootId, {
+          isNotFound: true
+        })
+      }
       throw err
     }
   }
 
-  async checkTransferId (transferId: string) {
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      throw new Error(`transfer id "${transferId}" not found in db`)
-    }
-    const { transferRootId, withdrawalBonder } = dbTransfer
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
-      transferRootId!
-    )
-    if (!dbTransferRoot) {
-      throw new Error(`transfer root id "${transferRootId}" not found in db`)
+  async #executeSettlement (
+    destBridge: L2BridgeContract,
+    rootHash: string,
+    bonder: string,
+    transferIds: string[],
+    totalAmount: BigNumber
+  ): Promise<providers.TransactionResponse[]> {
+    // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
+
+    // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
+    // number of keccak operations allowed in a single transaction.
+    const {
+      maxNumTransferIds,
+      settlementAggregatorAddress,
+      settlementAggregatorAbi
+    } = this.#getExecutionSettlementConfig()
+
+    const destChainId: BigNumber = await destBridge.getChainId()
+    if (!destChainId) {
+      throw new Error('destChainId not found')
     }
 
-    return await this.checkTransferRootId(transferRootId!, withdrawalBonder!)
+    // If there is no resource constraint, settle all
+    const destChainSlug = getChainSlug(destChainId.toString())
+    if (
+      destChainSlug !== ChainSlug.PolygonZk ||
+      transferIds.length <= maxNumTransferIds
+    ) {
+      const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
+        bonder,
+        transferIds,
+        totalAmount
+      )
+      return [tx]
+    }
+
+    // Otherwise, split into chunks and settle each chunk
+    const transferIdsChunks: string[][] = []
+    for (let i = 0; i < transferIds.length; i += maxNumTransferIds) {
+      transferIdsChunks.push(transferIds.slice(i, i + maxNumTransferIds))
+    }
+
+    const wallet = wallets.get(destChainSlug)
+    const settlementAggregatorContract = new Contract(
+      settlementAggregatorAddress,
+      settlementAggregatorAbi,
+      wallet
+    )
+
+    const txs: providers.TransactionResponse[] = []
+    for (const transferIdsChunk of transferIdsChunks) {
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(rootHash)
+
+      const transferIdTreeIndices: number[] = []
+      const siblings: string[][] = []
+      let numLeaves
+      for (const transferId of transferIdsChunk) {
+        let withdrawalData: WithdrawalProofData
+
+        if (!dbTransferRoot?.totalAmount || !dbTransferRoot?.transferIds?.length) {
+          throw new BatchExecuteError('db transfer root not found')
+        }
+
+        try {
+          withdrawalData = getWithdrawalProofData(
+            transferId,
+            dbTransferRoot?.totalAmount,
+            dbTransferRoot?.transferIds
+          )
+        } catch (err) {
+          throw new BatchExecuteError(`getWithdrawalProofData error: ${err.message}`)
+        }
+        transferIdTreeIndices.push(withdrawalData.transferIndex)
+        siblings.push(withdrawalData.proof)
+
+        // This value is the same for all withdrawals in the chunk
+        numLeaves = numLeaves ?? withdrawalData.numLeaves
+      }
+
+      const tx: providers.TransactionResponse = await settlementAggregatorContract.settleBondedWithdrawal(
+        bonder,
+        transferIdsChunk,
+        rootHash,
+        totalAmount,
+        transferIdTreeIndices,
+        siblings,
+        numLeaves
+      )
+      txs.push(tx)
+    }
+    return txs
   }
 
-  async depositToVaultIfNeeded (destinationChainId: number) {
-    const vaultConfig = (globalConfig.vault as any)?.[this.tokenSymbol]?.[this.chainSlug]
-    if (!vaultConfig) {
-      return
+  async checkTransferRootHash (transferRootHash: string, bonder: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (!dbTransferRoot?.transferRootId) {
+      throw new Error('db transfer root not found')
     }
+    return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder)
+  }
 
-    if (!vaultConfig?.autoDeposit) {
-      return
-    }
+  #getExecutionSettlementConfig (): {
+    maxNumTransferIds: number
+    settlementAggregatorAddress: string
+    settlementAggregatorAbi: string[]
+  } {
+    // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
-    const depositThresholdAmount = this.bridge.parseUnits(vaultConfig.depositThresholdAmount)
-    const depositAmount = this.bridge.parseUnits(vaultConfig.depositAmount)
-    if (depositAmount.eq(0) || depositThresholdAmount.eq(0)) {
-      return
-    }
+    // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
+    // number of keccak operations allowed in a single transaction.
 
-    return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const availableCreditMinusVault = availableCredit.sub(vaultBalance)
-      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(depositThresholdAmount)
-      if (shouldDeposit) {
-        try {
-          const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.unstakeAndDepositToVault(depositAmount)
-        } catch (err) {
-          const errMsg = `unstakeAndDepositToVault error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
+    const settlementAggregatorAbi = [
+      'function settleBondedWithdrawal(address bonder, bytes32[] calldata transferId, bytes32  rootHash, uint256 transferRootTotalAmount, uint256[] calldata transferIdTreeIndex, bytes32[][] calldata siblings, uint256 totalLeaves)'
+    ]
+
+    let settlementAggregatorAddresses: Record<string, string>
+    if (globalConfig.isMainnet) {
+      settlementAggregatorAddresses = {
+        [TokenSymbol.ETH]: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
+        [TokenSymbol.HOP]: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb'
       }
-    })
+    } else {
+      settlementAggregatorAddresses = {
+        [TokenSymbol.ETH]: '0xE670368c529C6B47662838bF039dd41945b57eF3'
+      }
+    }
+
+    // This value is limited by prover constraints and RPC timeout constraints. Alchemy
+    // endpoint has a 20s timeout. When processing more than 10 transferIds, the endpoint
+    // may timeout. It can work up to 20 transferIds, but will retry somewhere between
+    // 1 to 10 times before working, if at all.
+    const maxNumTransferIds = 10
+
+    return {
+      maxNumTransferIds,
+      settlementAggregatorAddress: settlementAggregatorAddresses[this.tokenSymbol],
+      settlementAggregatorAbi
+    }
   }
 }
 

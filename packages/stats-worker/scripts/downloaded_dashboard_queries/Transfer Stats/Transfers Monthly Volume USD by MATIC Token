@@ -1,0 +1,1 @@
+select sum(amount_usd) as total_usd, date_trunc('month', to_timestamp(timestamp)) as month from transfers where token = 'MATIC' and to_timestamp(timestamp) > now() - INTERVAL '24 month' group by month order by month;

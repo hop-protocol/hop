@@ -1,16 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { BigNumber, utils, providers } from 'ethers'
-import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply, getVotes, getMerkleRoot } from './claims'
-import { getAddress, isAddress, formatUnits } from 'ethers/lib/utils'
-import { useEns } from 'src/hooks'
 import Address from 'src/models/Address'
+import { BigNumber, providers, utils } from 'ethers'
+import { claimChainId } from 'src/pages/Claim/config'
+import { claimTokens, correctClaimChain, fetchClaim, getAirdropSupply, getContractBalance, getMerkleRoot, getVotes } from 'src/pages/Claim/claims'
 import { formatError } from 'src/utils/format'
-import { claimChainId } from './config'
+import { getProvider, getProviderByNetworkName } from 'src/utils/getProvider'
+import { isMainnet } from 'src/config'
 import { networkIdToSlug } from 'src/utils/networks'
-import { useInterval } from 'react-use'
-import { getProviderByNetworkName, getProvider } from 'src/utils/getProvider'
-import { reactAppNetwork } from 'src/config'
+import { useCallback, useEffect, useState } from 'react'
+import { useEns } from 'src/hooks'
+import { useInterval } from 'usehooks-ts'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export interface TokenClaim {
   entry: {
@@ -53,10 +52,10 @@ export function useClaim() {
   const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
-  const [claimProvider, setClaimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState<providers.Provider>(() => {
     // makes mainnet rpc available when react app network is testnet
     // so claim flow doesn't break frontend
-    if (reactAppNetwork !== 'mainnet' && claimChainId === 1) {
+    if (!isMainnet && claimChainId === 1) {
       const rpcUrl = 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
       return getProvider(rpcUrl)
     }
@@ -113,19 +112,19 @@ export function useClaim() {
           return setDelegate(initialDelegate)
         }
 
-        if (isAddress(inputValue?.toLowerCase())) {
+        if (utils.isAddress(inputValue?.toLowerCase())) {
           let votes = BigNumber.from(0)
           try {
             votes = await getVotes(claimProvider, inputValue)
           } catch (err) {
-            console.error(err)
+            console.error('getVotes error:', err)
           }
           return setDelegate({
-            ensName: ensName || '',
-            address: new Address(getAddress(inputValue.toLowerCase())),
+            ensName: ensName ?? '',
+            address: new Address(utils.getAddress(inputValue.toLowerCase())),
             votes: votes,
-            votesFormatted: formatUnits(votes.toString(), 18),
-            avatar: ensAvatar || '',
+            votesFormatted: utils.formatUnits(votes.toString(), 18),
+            avatar: ensAvatar ?? '',
             infoUrl: '',
             info: '',
           })
@@ -136,14 +135,14 @@ export function useClaim() {
           try {
             votes = await getVotes(claimProvider, ensAddress)
           } catch (err) {
-            console.error(err)
+            console.error('getVotes error:', err)
           }
           return setDelegate({
             ensName,
             address: new Address(ensAddress),
             votes: votes,
-            votesFormatted: formatUnits(votes.toString(), 18),
-            avatar: ensAvatar || '',
+            votesFormatted: utils.formatUnits(votes.toString(), 18),
+            avatar: ensAvatar ?? '',
             infoUrl: '',
             info: ''
           })
@@ -232,7 +231,7 @@ export function useClaim() {
     }
   }
 
-  useInterval(checkClaim, 5 * 1000)
+  useInterval(checkClaim, 60 * 1000)
 
   // Sets warning about claimable tokens
   useEffect(() => {
@@ -273,7 +272,7 @@ export function useClaim() {
         setClaiming(false)
         return receipt
       } catch (err: any) {
-        console.error(err)
+        console.error('sendClaimToken error:', err)
         setClaiming(false)
         setClaimed(false)
         setError(formatError(err.message))
@@ -291,8 +290,8 @@ export function useClaim() {
       if (contractBalance.eq(0) || airdropSupply.eq(0) || !_delegate?.votes || delegate.votes?.eq(0)) {
         return false
       }
-      const totalSupply = Number(formatUnits(airdropSupply.toString(), 18))
-      const allDelegatedVotes = Number(formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
+      const totalSupply = Number(utils.formatUnits(airdropSupply.toString(), 18))
+      const allDelegatedVotes = Number(utils.formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
 
       const minTotalThreshold = 0.01 // 1%
       const isMinMet = (totalSupply / allDelegatedVotes) > minTotalThreshold
@@ -300,13 +299,13 @@ export function useClaim() {
         return false
       }
 
-      const newAmount = Number(formatUnits(_delegate.votes.add(claimableTokens).toString(), 18))
+      const newAmount = Number(utils.formatUnits(_delegate.votes.add(claimableTokens).toString(), 18))
       const diff = newAmount / allDelegatedVotes
       const threshold = 0.05 // 5%
       const tooMany = diff > threshold
       return tooMany
     } catch (err) {
-      console.error(err)
+      console.error('hasManyVotes error:', err)
     }
     return false
   }

@@ -1,32 +1,33 @@
-import { useState, useEffect, useReducer } from 'react'
-import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
+import { BigNumber, providers, utils } from 'ethers'
 import {
+  L1Transfer,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
-  L1Transfer,
-  getLastLog,
   formatLogArgs,
+  getLastLog,
   networkIdToSlug,
 } from 'src/utils'
 import {
-  createDispatchAction,
-  TxActionType,
-  TxState,
-  txReducer,
   MethodNames,
-  TxType,
+  TxActionType,
   TxDetails,
+  TxState,
+  TxType,
+  createDispatchAction,
   getTxDetails,
+  txReducer,
 } from 'src/utils/transactions'
-import { BigNumber, providers, utils } from 'ethers'
+import { TToken } from '@hop-protocol/sdk'
+import { type TransactionResponse } from '@ethersproject/abstract-provider'
+import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getAllProviders } from 'src/utils/getProvider'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { useApp } from 'src/contexts/AppContext'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { getTokenByAddress } from 'src/utils/tokens'
-import { TToken, TokenSymbol } from '@hop-protocol/sdk'
+import { useApp } from 'src/contexts/AppContext'
+import { useEffect, useReducer, useState } from 'react'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
-// TODO: use typechain
 export const methodToSigHashes = {
   // HopBridgeToken
   approve: '0x095ea7b3',
@@ -101,7 +102,7 @@ const useTransaction = (txHash?: string) => {
           // TODO: add util to get token symbol by address
           const txDetails = getTxDetails(response, receipt)
           const { methodName, params, eventValues, txType } = txDetails
-          const tokenSymbol = getTokenByAddress(networkName, response.to!)
+          const tokenSymbol = getTokenByAddress(networkName, response.to)
 
           setLoading(false)
 
@@ -109,8 +110,9 @@ const useTransaction = (txHash?: string) => {
           const gasCost = utils.formatEther(gasUsed.mul(response.gasPrice!))
 
           let completed = false
-          const waitConfirmations = getNetworkWaitConfirmations(networkName as string)
-          if (waitConfirmations && response.confirmations >= waitConfirmations) {
+          const waitConfirmations = getNetworkWaitConfirmations(networkName)
+          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName) 
+          if (isFinalized) {
             completed = true
           }
 
@@ -134,10 +136,10 @@ const useTransaction = (txHash?: string) => {
 
           switch (methodName) {
             case MethodNames.sendToL2: {
-              return handleSendToL2(txDetails)
+              return await handleSendToL2(txDetails)
             }
             case MethodNames.swapAndSend: {
-              return handleSwapAndSend(txDetails)
+              return await handleSwapAndSend(txDetails)
             }
 
             default: {

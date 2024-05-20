@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react'
-import { Box, MenuItem, Typography } from '@material-ui/core'
-import { useApp } from 'src/contexts/AppContext'
+import Box from '@mui/material/Box'
 import FlatSelect from '../selects/FlatSelect'
-import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
-import { Flex, Text } from '../ui'
+import MenuItem from '@mui/material/MenuItem'
+import React, { useMemo } from 'react'
+import Typography from '@mui/material/Typography'
+import { Network } from 'src/models/Network'
 import { findNetworkBySlug } from 'src/utils'
-import Network from 'src/models/Network'
+import { useApp } from 'src/contexts/AppContext'
+import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
 
 interface Props {
   network?: Network
@@ -14,7 +15,7 @@ interface Props {
   availableNetworks?: Network[] | any[]
 }
 
-function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
+export function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
   const networks = useMemo(
@@ -22,7 +23,7 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     [availableNetworks, allNetworks]
   )
 
-  function selectNetwork(event) {
+  function selectNetwork(event: any) {
     if (onChange) {
       return onChange(event)
     }
@@ -34,24 +35,18 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
   }
 
   return (
-    <FlatSelect value={network?.slug || 'default'} onChange={selectNetwork}>
+    <FlatSelect value={network?.slug ?? 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
-        <Flex alignCenter height="3.8rem" pl="1.2rem">
-          <Text
-            fontSize="1.6rem"
-            fontWeight={700}
-            ml=".4rem"
-            overflow="hidden"
-            textOverflow="ellipsis"
-          >
+        <Box display="flex" alignItems="center" height="3.8rem" pl="1.2rem">
+          <Typography className={styles.selectNetworkText}>
             Select Network
-          </Text>
-        </Flex>
+          </Typography>
+        </Box>
       </MenuItem>
 
       {networks.map(network => (
         <MenuItem value={network.slug} key={network.slug}>
-          <Box className={styles.networkSelectionBox}>
+          <Box className={styles.networkSelectionBox} >
             <Box className={styles.networkIconContainer}>
               <img src={network.imageUrl} className={styles.networkIcon} alt={network.name} />
             </Box>
@@ -64,5 +59,3 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     </FlatSelect>
   )
 }
-
-export default NetworkSelector

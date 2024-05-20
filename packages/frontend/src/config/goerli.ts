@@ -1,47 +1,28 @@
-import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
-import { goerli as goerliNetworks } from '@hop-protocol/core/networks'
-import { HopAddresses, Networks } from './interfaces'
+import { HopAddresses, Networks } from 'src/config/interfaces'
+import { goerli as _goerliAddresses } from '@hop-protocol/sdk/addresses'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 
-export const addresses: HopAddresses = {
+export const goerliAddresses: HopAddresses = {
   governance: {
     l1Hop: '',
     stakingRewardsFactory: '',
     stakingRewards: '',
     governorAlpha: '',
   },
-  tokens: goerliAddresses.bridges,
-  bonders: goerliAddresses.bonders,
+  tokens: _goerliAddresses.bridges,
+  bonders: _goerliAddresses.bonders,
 }
 
-const _networks = goerliNetworks as any
+const _network = getNetwork(NetworkSlug.Goerli)
+const goerliNetworks: Networks = {}
 
-export const networks: Networks = {
-  ethereum: {
-    networkId: _networks.ethereum.networkId,
-    rpcUrl: _networks.ethereum.publicRpcUrl,
-    explorerUrl: _networks.ethereum.explorerUrls[0],
-    nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
-    waitConfirmations: _networks.ethereum.waitConfirmations
-  },
-  polygon: {
-    networkId: _networks.polygon.networkId,
-    rpcUrl: _networks.polygon.publicRpcUrl,
-    explorerUrl: _networks.polygon.explorerUrls[0],
-    nativeBridgeUrl: _networks.polygon.nativeBridgeUrl,
-    waitConfirmations: _networks.polygon.waitConfirmations
-  },
-  optimism: {
-    networkId: _networks.optimism.networkId,
-    rpcUrl: _networks.optimism.publicRpcUrl,
-    explorerUrl: _networks.optimism.explorerUrls[0],
-    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
-    waitConfirmations: _networks.optimism.waitConfirmations
-  },
-  arbitrum: {
-    networkId: _networks.arbitrum.networkId,
-    rpcUrl: _networks.arbitrum.publicRpcUrl,
-    explorerUrl: _networks.arbitrum.explorerUrls[0],
-    nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
-    waitConfirmations: _networks.arbitrum.waitConfirmations
-  },
+for (const chainSlug in _network.chains) {
+  goerliNetworks[chainSlug] = {
+    networkId: _network.chains[chainSlug].chainId,
+    rpcUrl: _network.chains[chainSlug].publicRpcUrl,
+    fallbackRpcUrls: _network.chains[chainSlug].fallbackPublicRpcUrls,
+    explorerUrl: _network.chains[chainSlug].explorerUrls[0]
+  }
 }
+
+export { goerliNetworks }

@@ -1,7 +1,15 @@
-import { Chain } from 'src/constants'
-import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
-import { URL } from 'url'
-import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
+import {
+  type Config,
+  type FileConfig,
+  Watchers,
+  getAllChains,
+  getAllTokens,
+  getEnabledTokens
+} from './index.js'
+import { SyncType } from '#constants/index.js'
+import { URL } from 'node:url'
+import { utils } from 'ethers'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()
@@ -47,7 +55,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'fees',
     'routes',
     'bonders',
-    'vault',
+    'signer',
     'blocklist'
   ]
 
@@ -62,38 +70,34 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   ]
 
   const validChainKeys = [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Gnosis,
-    Chain.Polygon
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Gnosis,
+    ChainSlug.Polygon,
+    ChainSlug.Nova,
+    ChainSlug.ZkSync,
+    ChainSlug.Linea,
+    ChainSlug.ScrollZk,
+    ChainSlug.Base,
+    ChainSlug.PolygonZk
   ]
 
-  const validTokenKeys = [
-    'USDC',
-    'USDT',
-    'DAI',
-    'ETH',
-    'MATIC',
-    'WBTC',
-    'HOP',
-    'SNX',
-    'sUSD'
-  ]
+  const validTokenKeys = Object.values(TokenSymbol)
 
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
   const enabledChains: string[] = Object.keys(config.chains)
-  if (!enabledChains.includes(Chain.Ethereum)) {
-    throw new Error(`config for chain "${Chain.Ethereum}" is required`)
+  if (!enabledChains.includes(ChainSlug.Ethereum)) {
+    throw new Error(`config for chain "${ChainSlug.Ethereum}" is required`)
   }
 
   validateKeys(validChainKeys, enabledChains)
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'customSyncType']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -103,6 +107,10 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   const watcherKeys = Object.keys(config.watchers)
   validateKeys(validWatcherKeys, watcherKeys)
+
+  if (config?.keystore && config?.signer) {
+    throw new Error('You cannot have both a keystore and a signer')
+  }
 
   if (config.db) {
     const validDbKeys = ['location']
@@ -117,7 +125,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
     if (config?.logging?.level) {
       const validLoggingLevels = ['debug', 'info', 'warn', 'error']
-      await validateKeys(validLoggingLevels, [config?.logging?.level])
+      validateKeys(validLoggingLevels, [config?.logging?.level])
     }
   }
 
@@ -131,6 +139,17 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     ]
     const keystoreProps = Object.keys(config.keystore)
     validateKeys(validKeystoreProps, keystoreProps)
+  }
+
+  if (config.signer) {
+    const validSignerProps = [
+      'type',
+      'keyId',
+      'awsRegion',
+      'lambdaFunctionName'
+    ]
+    const signerProps = Object.keys(config.signer)
+    validateKeys(validSignerProps, signerProps)
   }
 
   if (config.metrics) {
@@ -169,7 +188,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       const chains = Object.keys(config.fees[token])
       validateKeys(enabledChains, chains)
       for (const chain of destinationChains) {
-        const found = (config.fees[token] as any)?.[chain as string]
+        const found = config.fees[token as TokenSymbol]?.[chain as ChainSlug]
         if (!found) {
           throw new Error(`missing fee for chain "${chain}" for token "${token}"`)
         }
@@ -198,7 +217,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
         const chains = Object.keys(minThresholdAmount[token])
         validateKeys(enabledChains, chains)
         for (const sourceChain in config.routes) {
-          if (sourceChain === Chain.Ethereum) {
+          if (sourceChain === ChainSlug.Ethereum) {
             continue
           }
           if (!minThresholdAmount[token][sourceChain]) {
@@ -215,46 +234,34 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     if (!(bonders instanceof Object)) {
       throw new Error('bonders config should be an object')
     }
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
     for (const token of enabledTokens) {
-      if (!(bonders[token] instanceof Object)) {
+      if (!(bonders[token as TokenSymbol] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
-      const sourceChains = Object.keys(bonders[token])
+      const sourceChains = Object.keys(bonders[token as TokenSymbol])
       validateKeys(enabledChains, sourceChains)
-      for (const sourceChain in bonders[token]) {
-        if (!(bonders[token][sourceChain] instanceof Object)) {
+      for (const sourceChain in bonders[token as TokenSymbol]) {
+        if (!(bonders[token as TokenSymbol][sourceChain as ChainSlug] instanceof Object)) {
           throw new Error(`bonders config for "${token}.${sourceChain}" should be an object`)
         }
-        const destinationChains = Object.keys(bonders[token][sourceChain])
+        const obj = bonders[token as TokenSymbol][sourceChain as ChainSlug]
+        if (!obj) {
+          continue
+        }
+        const destinationChains = Object.keys(obj)
         validateKeys(enabledChains, destinationChains)
       }
     }
   }
 
-  if (config.vault) {
-    const vaultConfig = config.vault as any
-    const vaultTokens = Object.keys(vaultConfig)
-    validateKeys(validTokenKeys, vaultTokens)
-    for (const tokenSymbol in vaultConfig) {
-      const vaultChains = Object.keys(vaultConfig[tokenSymbol])
-      validateKeys(validChainKeys, vaultChains)
-      for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
-        const validConfigKeys = ['depositThresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
-        const chainTokenConfigKeys = Object.keys(chainTokenConfig)
-        validateKeys(validConfigKeys, chainTokenConfigKeys)
-      }
-    }
-  }
-
   if (config.blocklist) {
-    const blocklistConfig = config.blocklist as any
+    const blocklistConfig = config.blocklist
     if (!(blocklistConfig instanceof Object)) {
       throw new Error('blocklist config must be an object')
     }
@@ -278,7 +285,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, waitConfirmations } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -293,20 +300,35 @@ export async function validateConfigValues (config?: Config) {
     } catch (err) {
       throw new Error(`rpc url "${rpcUrl}" is invalid`)
     }
-    if (waitConfirmations != null) {
-      if (typeof waitConfirmations !== 'number') {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be a number`)
-      }
-      if (waitConfirmations <= 0) {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
-      }
-    }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)
       }
       if (maxGasPrice <= 0) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (customSyncType != null) {
+      if (!Object.values(SyncType).includes(customSyncType as SyncType)) {
+        throw new Error(`customSyncType for chain "${chainSlug}" must be of type SyncType`)
+      }
+    }
+    if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+      if (!Array.isArray(redundantRpcUrls)) {
+        throw new Error(`redundantRpcUrls for chain "${chainSlug}" must be an array`)
+      }
+      for (const redundantRpcUrl of redundantRpcUrls) {
+        if (typeof redundantRpcUrl !== 'string') {
+          throw new Error(`redundantRpcUrl for chain "${chainSlug}" must be a string`)
+        }
+        try {
+          const parsed = new URL(redundantRpcUrl)
+          if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
+            throw new URIError()
+          }
+        } catch (err) {
+          throw new Error(`redundantRpcUrl "${redundantRpcUrl}" is invalid`)
+        }
       }
     }
   }
@@ -318,7 +340,7 @@ export async function validateConfigValues (config?: Config) {
     if (Object.keys(minThresholdAmount).length) {
       for (const token of enabledTokens) {
         for (const sourceChain in config.routes) {
-          if (sourceChain === Chain.Ethereum) {
+          if (sourceChain === ChainSlug.Ethereum) {
             continue
           }
           for (const destinationChain in config.routes[sourceChain]) {
@@ -332,47 +354,19 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     for (const token of enabledTokens) {
-      for (const sourceChain in bonders[token]) {
-        for (const destinationChain in bonders[token][sourceChain]) {
-          const bonderAddress = bonders[token][sourceChain][destinationChain]
+      for (const sourceChain in bonders[token as TokenSymbol]) {
+        for (const destinationChain in bonders[token as TokenSymbol][sourceChain as ChainSlug]) {
+          const bonderAddress = bonders[token as TokenSymbol][sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
           if (typeof bonderAddress !== 'string') {
             throw new Error('config bonder address should be a string')
           }
           try {
-            checksumAddress(bonderAddress)
+            utils.getAddress(bonderAddress)
           } catch (err) {
             throw new Error(`config bonder address "${bonderAddress}" is invalid`)
           }
-        }
-      }
-    }
-  }
-
-  if (config.vault) {
-    const vaultConfig = config.vault as any
-    for (const tokenSymbol in vaultConfig) {
-      for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
-        if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
-          throw new Error('autoDeposit should be boolean')
-        }
-        if (chainTokenConfig.autoDeposit) {
-          if (typeof chainTokenConfig.depositThresholdAmount !== 'number') {
-            throw new Error('depositThresholdAmount should be a number')
-          }
-          if (typeof chainTokenConfig.depositAmount !== 'number') {
-            throw new Error('depositAmount should be a number')
-          }
-        }
-        if (typeof chainTokenConfig.autoWithdraw !== 'boolean') {
-          throw new Error('autoWithdraw should be boolean')
-        }
-
-        const validStrategies = new Set(['yearn', 'aave'])
-        if (!validStrategies.has(chainTokenConfig.strategy)) {
-          throw new Error('strategy is invalid. Valid options are: yearn, aave')
         }
       }
     }

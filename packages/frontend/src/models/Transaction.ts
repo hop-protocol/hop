@@ -1,23 +1,22 @@
-import { ethers, providers } from 'ethers'
+import logger from 'src/logger'
+import { ChainSlug, Hop, Token, getChainSlugFromName } from '@hop-protocol/sdk'
 import { EventEmitter } from 'events'
-import { Hop, Token, ChainSlug } from '@hop-protocol/sdk'
+import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
 import {
-  getBaseExplorerUrl,
-  findTransferFromL1CompletedLog,
-  getTransferSentDetailsFromLogs,
+  L1Transfer,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
-  L1Transfer,
+  findTransferFromL1CompletedLog,
+  getBaseExplorerUrl,
+  getTransferSentDetailsFromLogs,
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
-import { hopAppNetwork } from 'src/config'
-import logger from 'src/logger'
-import { formatError } from 'src/utils/format'
-import { getNetworkWaitConfirmations } from 'src/utils/networks'
-import { sigHashes } from 'src/hooks/useTransaction'
+import { ethers, providers } from 'ethers'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
+import { reactAppNetwork } from 'src/config'
+import { sigHashes } from 'src/hooks/useTransaction'
 
 interface ContructorArgs {
   hash: string
@@ -38,7 +37,7 @@ interface ContructorArgs {
   safeTx?: GatewayTransactionDetails
 }
 
-class Transaction extends EventEmitter {
+export class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   destNetworkName: string | null = null
@@ -79,7 +78,7 @@ class Transaction extends EventEmitter {
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || hopAppNetwork).trim().toLowerCase()
+    this.networkName = (networkName || reactAppNetwork).trim().toLowerCase()
 
     // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
@@ -89,7 +88,7 @@ class Transaction extends EventEmitter {
     }
 
     this.provider = getProviderByNetworkName(networkName)
-    this.timestampMs = timestampMs || Date.now()
+    this.timestampMs = timestampMs ?? Date.now()
     this.pending = pending
     this.transferId = transferId
     this.replaced = replaced
@@ -97,7 +96,7 @@ class Transaction extends EventEmitter {
     this.nonce = nonce
     this.from = from
     this.to = to
-    this.token = token || null
+    this.token = token ?? null
     this.safeTx = safeTx
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
@@ -106,6 +105,9 @@ class Transaction extends EventEmitter {
     })
 
     this.receipt().then(async (receipt: providers.TransactionReceipt) => {
+      if (!receipt) {
+        return
+      }
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
@@ -121,9 +123,9 @@ class Transaction extends EventEmitter {
         this.transferId = tsDetails.transferId
       }
 
+      const isFinalized = await getIsTxFinalized(receipt.blockNumber, this.networkName)
       this.status = !!receipt.status
-      const waitConfirmations = getNetworkWaitConfirmations(this.networkName)
-      if (waitConfirmations && receipt.status === 1 && receipt.confirmations > waitConfirmations) {
+      if (receipt.status === 1 && isFinalized) {
         this.pending = false
       }
       this.emit('pending', false, this)
@@ -133,50 +135,36 @@ class Transaction extends EventEmitter {
     }
 
     if (this.pendingDestinationConfirmation && this.destNetworkName) {
-      const sdk = new Hop(hopAppNetwork)
+      const sdk = new Hop(reactAppNetwork)
       this.checkIsTransferIdSpent(sdk)
     }
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith(ChainSlug.Ethereum)) {
-      return this._etherscanLink()
-    } else if (this.networkName.startsWith(ChainSlug.Arbitrum)) {
-      return this._arbitrumLink()
-    } else if (this.networkName.startsWith(ChainSlug.Optimism)) {
-      return this._optimismLink()
-    } else if (this.networkName.startsWith(ChainSlug.Gnosis)) {
-      return this._gnosisLink()
-    } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
-      return this._polygonLink()
-    } else {
-      return ''
+    if (!(this.networkName)) return ''
+
+    const chainSlug = getChainSlugFromName(this.networkName)
+    let url = getBaseExplorerUrl(chainSlug)
+    if (this.hash) {
+      url = `${url}/tx/${this.hash}`
     }
+    return url
   }
 
   get destExplorerLink(): string {
-    if (!this.destTxHash) return ''
+    if (!(this.destTxHash && this.destNetworkName)) return ''
 
-    if (this.destNetworkName?.startsWith(ChainSlug.Ethereum)) {
-      return this._etherscanLink(ChainSlug.Ethereum, this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Arbitrum)) {
-      return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Optimism)) {
-      return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Gnosis)) {
-      return this._gnosisLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
-      return this._polygonLink(this.destTxHash)
-    } else {
-      return ''
-    }
+    const chainSlug = getChainSlugFromName(this.destNetworkName)
+    const url = `${getBaseExplorerUrl(chainSlug)}/tx/${this.destTxHash}`
+    return url
   }
 
   get truncatedHash(): string {
     return `${this.hash.substring(0, 6)}…${this.hash.substring(62, 66)}`
   }
 
-  async receipt() {
+  async receipt(): Promise<any> {
+    // fyi issue: https://github.com/ethers-io/ethers.js/issues/3477
     return this.provider.waitForTransaction(this.hash)
   }
 
@@ -207,7 +195,23 @@ class Transaction extends EventEmitter {
       if (!this.pendingDestinationConfirmation) {
         return true
       }
+
+      try {
+        // attempt getting transfer status from explorer api
+        const transferStatus = await sdk.getTransferStatus(this.hash)
+        if (transferStatus?.bonded) {
+          this.destTxHash = transferStatus.bondTransactionHash
+          this.setPendingDestinationConfirmed()
+          return true
+        }
+      } catch (err: any) {
+        // logger.error('Transaction Model checkIsTransferIdSpent getTransferStatus error:', err)
+      }
+
       const receipt = await this.receipt()
+      if (!receipt) {
+        return false
+      }
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       const bridge = sdk.bridge(this.token.symbol)
@@ -217,7 +221,7 @@ class Transaction extends EventEmitter {
         const l1Bridge = await bridge.getL1Bridge(this.provider)
         // Get the rest of the event data
         const decodedData = l1Bridge.interface.decodeEventLog(
-          tsDetails?.eventName!,
+          tsDetails?.eventName,
           tsDetails?.log.data
         )
 
@@ -301,8 +305,8 @@ class Transaction extends EventEmitter {
         logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
       }
-    } catch (error) {
-      logger.error(formatError(error))
+    } catch (err: any) {
+      logger.error('Transaction Model checkIsTransferIdSpent error:', err)
     }
 
     return false
@@ -310,31 +314,6 @@ class Transaction extends EventEmitter {
 
   public get isBridgeTransfer() {
     return ['sendToL2', 'swapAndSend'].includes(this.methodName)
-  }
-
-  private _etherscanLink(networkName: string = this.networkName, txHash: string = this.hash) {
-    return `${getBaseExplorerUrl(networkName)}/tx/${txHash}`
-  }
-
-  private _arbitrumLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('arbitrum')}/tx/${txHash}`
-  }
-
-  private _optimismLink(txHash: string = this.hash) {
-    try {
-      const url = new URL(getBaseExplorerUrl('optimism'))
-      return `${url.origin}${url.pathname}/tx/${txHash}${url.search}`
-    } catch (err) {
-      return ''
-    }
-  }
-
-  private _gnosisLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('gnosis')}/tx/${txHash}`
-  }
-
-  private _polygonLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
   }
 
   private setPendingDestinationConfirmed() {

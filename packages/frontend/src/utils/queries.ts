@@ -1,45 +1,9 @@
-import { Slug } from '@hop-protocol/sdk'
-import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
+import { BigNumberish } from 'ethers'
+import { getSubgraphUrl } from '@hop-protocol/sdk'
 import { reactAppNetwork } from 'src/config'
 
-export function getUrl(chain: Slug | string) {
-  if (chain === Slug.gnosis) {
-    chain = 'xdai'
-  }
-  if (chain === Slug.ethereum) {
-    chain = 'mainnet'
-  }
-
-  if (reactAppNetwork === 'goerli') {
-    if (chain === 'mainnet') {
-      chain = 'goerli'
-    }
-    if (chain === 'polygon') {
-      chain = 'mumbai'
-    }
-    if (chain === 'optimism') {
-      chain = 'optimism-goerli'
-    }
-    if (chain === 'arbitrum') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'xdai') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  if (chain === Slug.mainnet) {
-    // return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet`
-    return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
-  } else {
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-}
-
-async function queryFetch(url, query, variables?: any) {
+async function queryFetch(url: string, query: string, variables?: any) {
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -85,7 +49,7 @@ export function normalizeBN(str: BigNumberish) {
 }
 
 export async function fetchTransferSents(
-  chain,
+  chain: string,
   recipient: string,
   txHash: string
 ): Promise<L2Transfer[]> {
@@ -116,14 +80,14 @@ export async function fetchTransferSents(
     }
   `
 
-  const url = getUrl(chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferSents
 }
 
 export async function fetchTransferFromL1Completeds(
-  chain,
+  chain: string,
   recipient: string,
   amount: BigNumberish,
   deadline: BigNumberish
@@ -147,13 +111,13 @@ export async function fetchTransferFromL1Completeds(
     }
   `
 
-  const url = getUrl(chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferFromL1Completeds
 }
 
-export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigNumberish) {
+export async function fetchWithdrawalBondedsByTransferId(chain: string, transferId: BigNumberish) {
   transferId = normalizeBN(transferId)
 
   const query = `
@@ -169,7 +133,7 @@ export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigN
         }
       }
     `
-  const url = getUrl(chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
   return data?.withdrawalBondeds
 }

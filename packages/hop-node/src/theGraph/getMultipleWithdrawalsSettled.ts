@@ -1,17 +1,22 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { MaxInt32 } from '#constants/index.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getMultipleWithdrawalsSettled (
   chain: string,
   token: string,
+  startDate: number = 0,
+  endDate: number = MaxInt32,
   lastId: string = '0'
 ) {
   const query = `
-    query MultipleWithdrawalsSettled($token: String, $lastId: ID) {
+    query MultipleWithdrawalsSettled(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
       multipleWithdrawalsSettleds(
         where: {
+          ${token ? 'token: $token,' : ''}
+          timestamp_gte: $startDate
+          timestamp_lte: $endDate
           id_gt: $lastId
-          token: $token
         },
         orderBy: id,
         orderDirection: asc,
@@ -22,11 +27,14 @@ export default async function getMultipleWithdrawalsSettled (
         totalBondsSettled
         bonder
         transactionHash
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
+    startDate,
+    endDate,
     lastId
   })
   let withdrawalsSettled = jsonRes.multipleWithdrawalsSettleds.map((x: any) => normalizeEntity(x))
@@ -37,6 +45,8 @@ export default async function getMultipleWithdrawalsSettled (
     withdrawalsSettled = withdrawalsSettled.concat(await getMultipleWithdrawalsSettled(
       chain,
       token,
+      startDate,
+      endDate,
       lastId
     ))
   }

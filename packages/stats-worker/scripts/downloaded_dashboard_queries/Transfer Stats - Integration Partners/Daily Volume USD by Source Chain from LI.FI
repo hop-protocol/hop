@@ -1,0 +1,1 @@
+select source_chain_slug, sum(amount_usd) as USD, date_trunc('day', to_timestamp("timestamp")) as date from transfers where integration_partner = 'lifi' and "timestamp" > 1667894400 group by (source_chain_slug, date_trunc('day', to_timestamp("timestamp")))

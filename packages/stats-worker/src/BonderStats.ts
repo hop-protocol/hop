@@ -1,29 +1,29 @@
-import path from 'path'
+import _ from 'lodash'
 import fs from 'fs'
-import BlockDater from 'ethereum-block-by-date'
-import { BigNumber, providers, Contract, constants } from 'ethers'
-import {
-  formatUnits,
-  parseEther,
-  formatEther,
-  parseUnits
-} from 'ethers/lib/utils'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
+import path from 'path'
+import { BigNumber, Contract, constants, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import { PriceFeed } from './PriceFeed.js'
 import {
-  ethereumRpc,
-  gnosisRpc,
-  gnosisArchiveRpc,
-  polygonRpc,
-  optimismRpc,
-  arbitrumRpc,
-  etherscanApiKeys
-} from './config'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { erc20Abi } from '@hop-protocol/core/abi'
+  archiveRpcUrls,
+  enabledChains,
+  enabledTokens,
+  etherscanApiKeys,
+  rpcUrls
+} from './config.js'
 import { createObjectCsvWriter } from 'csv-writer'
-import { chunk } from 'lodash'
+import { db } from './Db.js'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
+import { fileURLToPath } from 'url'
+import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl.js'
+import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { parse } from 'comment-json'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const jsonData = parse(
   fs
@@ -31,36 +31,12 @@ const jsonData = parse(
     .toString()
 ) as any
 
-const {
-  arbitrumAliases,
-  oldArbitrumAliases
-} = require('./data/arbitrum_alises.json')
-const { wethAddresses } = require('./data/weth_addresses.json')
+import arbData from './data/arbitrum_alises.json' with { type: "json" }
+import wethData from './data/weth_addresses.json' with { type: "json" }
+import { wait } from './utils/wait.js'
 
-const etherscanUrls: Record<string, string> = {
-  ethereum: 'https://api.etherscan.io',
-  polygon: 'https://api.polygonscan.com',
-  optimism: 'https://api-optimistic.etherscan.io',
-  arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://blockscout.com/poa/' // TODO: update to gnosisscan
-}
-
-const wait = (t: number) =>
-  new Promise(resolve => setTimeout(() => resolve(null), t))
-
-const allProviders: Record<string, any> = {
-  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
-  gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
-  polygon: new providers.StaticJsonRpcProvider(polygonRpc),
-  optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
-}
-
-const allArchiveProviders: Record<string, any> = {
-  gnosis: gnosisArchiveRpc
-    ? new providers.StaticJsonRpcProvider(gnosisArchiveRpc)
-    : undefined
-}
+const { arbitrumAliases, oldArbitrumAliases } = arbData
+const { wethAddresses } = wethData
 
 type Options = {
   days?: number
@@ -75,27 +51,20 @@ type Options = {
 }
 
 class BonderStats {
-  db = new Db()
+  db = db
   days: number = 1
   offsetDays: number = 0
   startDate?: DateTime
   endDate?: DateTime
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'HOP']
-  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
+  tokens: string[] = enabledTokens
+  chains: string[] = enabledChains
   trackOnlyProfit = false
   trackOnlyTxFees = false
   trackOnlyFees = false
   writeCsv = false
-
-  tokenDecimals: Record<string, number> = {
-    USDC: 6,
-    USDT: 6,
-    DAI: 18,
-    MATIC: 18,
-    ETH: 18,
-    WBTC: 8,
-    HOP: 18
-  }
+  priceFeed: PriceFeed
+  allProviders: Record<string, any> = {}
+  allArchiveProviders: Record<string, any> = {}
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -128,6 +97,7 @@ class BonderStats {
     this.trackOnlyProfit = !!options.trackBonderProfit
     this.trackOnlyTxFees = !!options.trackBonderTxFees
     this.trackOnlyFees = !!options.trackBonderFees
+    this.priceFeed = new PriceFeed()
 
     console.log(
       `trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`
@@ -137,20 +107,19 @@ class BonderStats {
       this.writeCsv = options.writeCsv
     }
 
-    process.once('uncaughtException', async err => {
-      console.error('uncaughtException:', err)
-      this.cleanUp()
-      process.exit(0)
-    })
+    for (const chain in rpcUrls) {
+      this.allProviders[chain] = new providers.StaticJsonRpcProvider({
+        allowGzip: true,
+        url: rpcUrls[chain]
+      })
+    }
 
-    process.once('SIGINT', () => {
-      this.cleanUp()
-    })
-  }
-
-  cleanUp () {
-    // console.log('closing db')
-    // this.db.close()
+    for (const chain in archiveRpcUrls) {
+      this.allArchiveProviders[chain] = new providers.StaticJsonRpcProvider({
+        allowGzip: true,
+        url: archiveRpcUrls[chain]
+      })
+    }
   }
 
   async trackBonderFee () {
@@ -159,7 +128,7 @@ class BonderStats {
         .fill(0)
         .map((n, i) => n + i)
       const chunkSize = 10
-      const allChunks = chunk(days, chunkSize)
+      const allChunks = _.chunk(days, chunkSize)
       const csv: any[] = []
       for (const chunks of allChunks) {
         csv.push(
@@ -198,13 +167,13 @@ class BonderStats {
       }
       totalFees = totalFees.add(chainFees)
       const chainFeesFormatted = Number(
-        formatUnits(chainFees, this.tokenDecimals[token])
+        utils.formatUnits(chainFees, getTokenDecimals(token as TokenSymbol))
       )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
     const totalFeesFormatted = Number(
-      formatUnits(totalFees, this.tokenDecimals[token])
+      utils.formatUnits(totalFees, getTokenDecimals(token as TokenSymbol))
     )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
@@ -216,6 +185,10 @@ class BonderStats {
         dbData.gnosisFeesAmount,
         dbData.arbitrumFeesAmount,
         dbData.optimismFeesAmount,
+        dbData.novaFeesAmount,
+        dbData.baseFeesAmount,
+        dbData.lineaFeesAmount,
+        dbData.polygonzkFeesAmount,
         dbData.ethereumFeesAmount,
         dbData.totalFeesAmount,
         startDate
@@ -244,11 +217,9 @@ class BonderStats {
         } else if (this.trackOnlyFees) {
           await this.trackBonderFee()
         } else {
-          await Promise.all([
-            this.trackProfit(),
-            this.trackBonderFee(),
-            this.trackBonderTxFees()
-          ])
+          await this.trackProfit()
+          await this.trackBonderFee()
+          await this.trackBonderTxFees()
         }
         break
       } catch (err) {
@@ -262,7 +233,6 @@ class BonderStats {
     const date = now.minus({ days: day }).startOf('day')
     const startDate = Math.floor(date.toSeconds())
     const endDate = Math.floor(date.endOf('day').toSeconds())
-    const isoDate = date.toISO()
     const address = Object.keys(jsonData[token])[0]
     if (!address) {
       throw new Error(`no address found for token "${token}"`)
@@ -278,20 +248,17 @@ class BonderStats {
     }
 
     const dbData: Record<string, any> = {}
-    await Promise.all(
-      this.chains.map(async (chain: string) => {
-        let chainFees = BigNumber.from(0)
-        const gasFees = await this.fetchBonderTxFees(
-          address,
-          chain,
-          startDate,
-          endDate
-        )
-        const chainFeesFormatted = Number(formatEther(gasFees))
-        dbData[`${chain}TxFees`] = chainFeesFormatted
-        console.log(chain, chainFeesFormatted)
-      })
-    )
+    this.chains.map(async (chain: string) => {
+      const gasFees = await this.fetchBonderTxFees(
+        address,
+        chain,
+        startDate,
+        endDate
+      )
+      const chainFeesFormatted = Number(utils.formatEther(gasFees))
+      dbData[`${chain}TxFees`] = chainFeesFormatted
+      console.log(chain, chainFeesFormatted)
+    })
 
     const ethPrice = priceMap.ETH
     const maticPrice = priceMap.MATIC
@@ -304,6 +271,10 @@ class BonderStats {
       Number(dbData.gnosisTxFees || 0) * xdaiPrice +
       (Number(dbData.arbitrumTxFees || 0) +
         Number(dbData.optimismTxFees || 0) +
+        Number(dbData.novaTxFees || 0) +
+        Number(dbData.baseTxFees || 0) +
+        Number(dbData.lineaTxFees || 0) +
+        Number(dbData.polygonzkTxFees || 0) +
         Number(dbData.ethereumTxFees || 0)) *
         ethPrice
     console.log(dbData.totalFees)
@@ -315,6 +286,10 @@ class BonderStats {
         dbData.gnosisTxFees,
         dbData.arbitrumTxFees,
         dbData.optimismTxFees,
+        dbData.novaTxFees,
+        dbData.baseTxFees,
+        dbData.lineaTxFees,
+        dbData.polygonzkTxFees,
         dbData.ethereumTxFees,
         dbData.totalFees,
         dbData.ethPrice,
@@ -344,35 +319,28 @@ class BonderStats {
 
   async getTokenPrices () {
     const priceDays = 365
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', priceDays),
-      this.getPriceHistory('tether', priceDays),
-      this.getPriceHistory('dai', priceDays),
-      this.getPriceHistory('ethereum', priceDays),
-      this.getPriceHistory('matic-network', priceDays),
-      this.getPriceHistory('wrapped-bitcoin', priceDays),
-      this.getPriceHistory('hop-protocol', priceDays)
-    ])
     const prices: Record<string, any> = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      HOP: pricesArr[6]
+      USDC: await this.priceFeed.getPriceHistory('USDC', priceDays),
+      USDT: await this.priceFeed.getPriceHistory('USDT', priceDays),
+      DAI: await this.priceFeed.getPriceHistory('DAI', priceDays),
+      ETH: await this.priceFeed.getPriceHistory('ETH', priceDays),
+      MATIC: await this.priceFeed.getPriceHistory('MATIC', priceDays),
+      WBTC: await this.priceFeed.getPriceHistory('WBTC', priceDays),
+      HOP: await this.priceFeed.getPriceHistory('HOP', priceDays),
+      SNX: await this.priceFeed.getPriceHistory('SNX', priceDays)
     }
 
     return prices
   }
 
   async trackProfitDay (day: number, token: string, prices: any) {
-    for (const bonderAddress in jsonData[token]) {
+    for (let bonderAddress in jsonData[token]) {
       const bonderData = jsonData[token][bonderAddress]
+      bonderAddress = bonderAddress.toLowerCase()
 
       console.log('day:', day)
-      let now = this.endDate ?? DateTime.utc()
-      let date = now.minus({ days: day + this.offsetDays }).startOf('day')
+      const now = this.endDate ?? DateTime.utc()
+      const date = now.minus({ days: day + this.offsetDays }).startOf('day')
       console.log('date:', date.toISO())
       const timestamp = Math.floor(date.toSeconds())
       const isoDate = date.toISO()
@@ -391,6 +359,10 @@ class BonderStats {
         timestamp,
         priceMap
       )
+
+      if (dbData.bonderAddress !== bonderAddress) {
+        // return
+      }
 
       const initialAggregateBalanceInAssetToken = BigNumber.from(0)
       const initialAggregateNativeBalance = BigNumber.from(0)
@@ -545,36 +517,36 @@ class BonderStats {
       })
 
       dbData.unstakedAmount = Number(
-        formatUnits(unstakedAmount, this.tokenDecimals[token])
+        utils.formatUnits(unstakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
-      dbData.unstakedEthAmount = Number(formatEther(unstakedEthAmount))
+      dbData.unstakedEthAmount = Number(utils.formatEther(unstakedEthAmount))
 
       dbData.restakedAmount = Number(
-        formatUnits(restakedAmount, this.tokenDecimals[token])
+        utils.formatUnits(restakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.restakedEthAmount = Number(
-        formatUnits(restakedEthAmount, this.tokenDecimals[token])
+        utils.formatUnits(restakedEthAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.depositAmount = Number(
-        formatUnits(depositAmount, this.tokenDecimals[token])
+        utils.formatUnits(depositAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.withdrawnAmount = Number(
-        formatUnits(withdrawnAmount, this.tokenDecimals[token])
+        utils.formatUnits(withdrawnAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.stakedAmount = Number(
-        formatUnits(stakedAmount, this.tokenDecimals[token])
+        utils.formatUnits(stakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.initialCanonicalAmount = Number(
-        formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
+        utils.formatUnits(initialCanonicalAmount, getTokenDecimals(token as TokenSymbol))
       )
 
-      dbData.bonderAddress = bonderAddress.toLowerCase()
+      dbData.bonderAddress = bonderAddress
 
       dbData.xdaiPriceUsd = 1
 
@@ -622,13 +594,13 @@ class BonderStats {
 
       if (depositEvent) {
         depositEvent = Number(
-          formatUnits(depositEvent, this.tokenDecimals[token])
+          utils.formatUnits(depositEvent, getTokenDecimals(token as TokenSymbol))
         )
       }
 
       if (withdrawEvent) {
         withdrawEvent = Number(
-          formatUnits(withdrawEvent, this.tokenDecimals[token])
+          utils.formatUnits(withdrawEvent, getTokenDecimals(token as TokenSymbol))
         )
       }
 
@@ -678,7 +650,23 @@ class BonderStats {
           dbData.initialMaticAmount,
           dbData.initialxDaiAmount,
           withdrawEvent,
-          dbData.arbitrumMessengerWrapperAmount
+          dbData.arbitrumMessengerWrapperAmount,
+          dbData.novaBlockNumber,
+          dbData.novaCanonicalAmount,
+          dbData.novaHTokenAmount,
+          dbData.novaNativeAmount,
+          dbData.baseBlockNumber,
+          dbData.baseCanonicalAmount,
+          dbData.baseHTokenAmount,
+          dbData.baseNativeAmount,
+          dbData.lineaBlockNumber,
+          dbData.lineaCanonicalAmount,
+          dbData.lineaHTokenAmount,
+          dbData.lineaNativeAmount,
+          dbData.polygonzkBlockNumber,
+          dbData.polygonzkCanonicalAmount,
+          dbData.polygonzkHTokenAmount,
+          dbData.polygonzkNativeAmount
         )
         console.log(
           day,
@@ -710,8 +698,8 @@ class BonderStats {
         .fill(0)
         .map((n, i) => n + i)
       const chunkSize = 10
-      const allChunks = chunk(days, chunkSize)
-      const csv: any[] = []
+      const allChunks = _.chunk(days, chunkSize)
+      let csv: any[] = []
       for (const chunks of allChunks) {
         csv.push(
           ...(await Promise.all(
@@ -722,7 +710,11 @@ class BonderStats {
         )
       }
 
+      csv = csv.filter(x => x)
       const data = Object.values(csv)
+      if (!data[0]) {
+        throw new Error('no data')
+      }
       const headers = Object.keys(data[0])
       const rows = Object.values(data)
       const csvPath = path.resolve(__dirname, '../', `${token}.csv`)
@@ -752,13 +744,22 @@ class BonderStats {
 
         for (const sourceChain in bonderMap) {
           for (const destinationChain in bonderMap[sourceChain]) {
+            const chain = destinationChain
+
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
-                  const chain = destinationChain
-                  let provider = allProviders[chain]
-                  const archiveProvider = allArchiveProviders[chain] || provider
-                  const bonder = bonderMap[sourceChain][destinationChain]
+                  // console.log('fetching', token, chain)
+                  const provider = this.allProviders[chain]
+                  const archiveProvider =
+                    this.allArchiveProviders[chain] || provider
+                  const bonder = bonderMap[sourceChain][
+                    destinationChain
+                  ].toLowerCase()
+                  if (!bonder) {
+                    throw new Error('bonder address is missing')
+                  }
+                  dbData.bonderAddress = bonder
                   if (bonderBalances[chain]) {
                     resolve(null)
                     return
@@ -778,43 +779,60 @@ class BonderStats {
                   const tokenAddress =
                     bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
                   const hTokenAddress = bridgeMap.l2HopBridgeToken
-                  const tokenContract = new Contract(
+                  const tokenContract = ERC20__factory.connect(
                     tokenAddress,
-                    erc20Abi,
                     archiveProvider
                   )
                   const hTokenContract = hTokenAddress
-                    ? new Contract(hTokenAddress, erc20Abi, archiveProvider)
+                    ? ERC20__factory.connect(hTokenAddress, archiveProvider)
                     : null
 
                   console.log(
                     `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
                   )
 
-                  const blockDater = new BlockDater(provider)
-                  const date = DateTime.fromSeconds(timestamp).toJSDate()
-                  const info = await blockDater.getDate(date)
-                  if (!info) {
-                    throw new Error('no info')
-                  }
-                  const blockTag = info.block
-                  const balancePromises: Promise<any>[] = []
+                  const blockTag = await getBlockNumberFromDate(
+                    chain,
+                    provider,
+                    timestamp
+                  )
 
-                  if (tokenAddress !== constants.AddressZero) {
+                  const isContractDeployed =
+                    blockTag >=
+                    (mainnetAddresses as any)?.bridges[token]?.[chain]
+                      ?.bridgeDeployedBlockNumber
+
+                  const balancePromises: Promise<any>[] = []
+                  if (
+                    tokenAddress !== constants.AddressZero &&
+                    isContractDeployed
+                  ) {
                     balancePromises.push(
-                      tokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
+                      tokenContract
+                        .balanceOf(bonder, {
+                          blockTag
+                        })
+                        .catch((err: any) => {
+                          throw new Error(
+                            `0 tokenContract balanceOf token: ${token} chain: ${chain} timestamp: ${timestamp} blockTag: ${blockTag} bonder: ${bonder} error: ${err.message}`
+                          )
+                        })
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
                   }
 
-                  if (hTokenContract) {
+                  if (hTokenContract && isContractDeployed) {
                     balancePromises.push(
-                      hTokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
+                      hTokenContract
+                        .balanceOf(bonder, {
+                          blockTag
+                        })
+                        .catch((err: any) => {
+                          throw new Error(
+                            `1 hTokenContract balanceOf token: ${token} chain: ${chain} timestamp: ${timestamp} blockTag: ${blockTag} bonder: ${bonder} hTokenAddress: ${hTokenAddress} error: ${err.message}`
+                          )
+                        })
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -825,8 +843,12 @@ class BonderStats {
                   )
 
                   if (chain === 'arbitrum') {
-                    let aliasAddress = arbitrumAliases[token]
-                    if (token === 'DAI' && timestamp < 1650092400) {
+                    let aliasAddress = (arbitrumAliases as Record<string, string>)[token]
+                    if (
+                      token === 'DAI' &&
+                      bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&
+                      timestamp < 1650092400
+                    ) {
                       aliasAddress = oldArbitrumAliases[token]
                     }
                     if (token === 'ETH' && timestamp < 1650067200) {
@@ -841,7 +863,7 @@ class BonderStats {
 
                   if (chain === 'ethereum') {
                     const messengerWrapperAddress = (mainnetAddresses as any)
-                      .bridges[token]['arbitrum'].l1MessengerWrapper
+                      .bridges[token].arbitrum.l1MessengerWrapper
                     balancePromises.push(
                       provider.getBalance(messengerWrapperAddress, blockTag)
                     )
@@ -849,13 +871,13 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
-                  const [
-                    balance,
-                    hBalance,
-                    native,
-                    aliasBalance,
-                    messengerWrapperBalance
-                  ] = await Promise.all(balancePromises)
+                  // TODO: Parallel processing of promises starts to hit rate limits
+                  // after enough token + chain combinations, so we serialize these calls.
+                  const balance = await balancePromises[0]
+                  const hBalance = await balancePromises[1]
+                  const native = await balancePromises[2]
+                  const aliasBalance = await balancePromises[3]
+                  const messengerWrapperBalance = await balancePromises[4]
 
                   bonderBalances[chain].canonical = balance
                   bonderBalances[chain].hToken = hBalance
@@ -868,46 +890,41 @@ class BonderStats {
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
                     ? Number(
-                        formatUnits(
-                          balance.toString(),
-                          this.tokenDecimals[token]
-                        )
+                        utils.formatUnits(balance.toString(), getTokenDecimals(token as TokenSymbol))
                       )
                     : 0
                   dbData[`${chain}NativeAmount`] = native
-                    ? Number(formatEther(native.toString()))
+                    ? Number(utils.formatEther(native.toString()))
                     : 0
 
-                  dbData.ethPriceUsd = Number(priceMap['ETH'])
-                  dbData.maticPriceUsd = Number(priceMap['MATIC'])
+                  dbData.ethPriceUsd = Number(priceMap.ETH)
+                  dbData.maticPriceUsd = Number(priceMap.MATIC)
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
                       ? Number(
-                          formatUnits(
+                          utils.formatUnits(
                             hBalance.toString(),
-                            this.tokenDecimals[token]
+                            getTokenDecimals(token as TokenSymbol)
                           )
                         )
                       : 0
                   }
                   if (chain === 'arbitrum') {
                     dbData[`${chain}AliasAmount`] = aliasBalance
-                      ? Number(formatEther(aliasBalance.toString()))
+                      ? Number(utils.formatEther(aliasBalance.toString()))
                       : 0
                     console.log(
                       `${chain} ${token} alias balance`,
-                      Number(formatEther(aliasBalance.toString()))
+                      Number(utils.formatEther(aliasBalance.toString()))
                     )
                   }
                   if (chain === 'ethereum') {
-                    dbData[
-                      `arbitrumMessengerWrapperAmount`
-                    ] = messengerWrapperBalance
-                      ? Number(formatEther(messengerWrapperBalance.toString()))
+                    dbData.arbitrumMessengerWrapperAmount = messengerWrapperBalance
+                      ? Number(utils.formatEther(messengerWrapperBalance.toString()))
                       : 0
                     console.log(
                       `${chain} ${token} messenger wrapper balance`,
-                      Number(formatEther(messengerWrapperBalance.toString()))
+                      Number(utils.formatEther(messengerWrapperBalance.toString()))
                     )
                   }
 
@@ -917,18 +934,23 @@ class BonderStats {
 
                   if (chain === 'arbitrum') {
                     const wethAddress = wethAddresses[chain]
-                    const wethContract = new Contract(
+                    const wethContract = ERC20__factory.connect(
                       wethAddress,
-                      erc20Abi,
                       provider
                     )
 
-                    const wethBalance = await wethContract.balanceOf(bonder, {
-                      blockTag
-                    })
+                    const wethBalance = await wethContract
+                      .balanceOf(bonder, {
+                        blockTag
+                      })
+                      .catch((err: any) => {
+                        throw new Error(
+                          `wethContract balanceOf ${token} ${chain} error: ${err.message}`
+                        )
+                      })
 
                     dbData[`${chain}WethAmount`] = Number(
-                      formatEther(wethBalance.toString())
+                      utils.formatEther(wethBalance.toString())
                     )
                   }
 
@@ -960,6 +982,7 @@ class BonderStats {
                   // TODO: move to config
                   if (
                     token === 'DAI' &&
+                    bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&
                     timestamp > 1656486000 &&
                     timestamp < 1656658800 &&
                     dbData.ethereumCanonicalAmount < 1500000
@@ -969,11 +992,12 @@ class BonderStats {
                   }
 
                   console.log(
-                    `done fetching daily bonder fee stat, chain: ${chain}`
+                    `done fetching daily bonder fee stat, chain: ${chain}, token: ${token}`
                   )
 
                   resolve(null)
                 } catch (err) {
+                  console.error(err)
                   reject(err)
                 }
               })
@@ -1039,15 +1063,15 @@ class BonderStats {
     }
     const nativeTokenDiffsInToken: Record<string, any> = {}
     for (const chain of this.chains) {
-      const multiplier = parseEther('1')
+      const multiplier = utils.parseEther('1')
       const nativeSymbol = this.getChainNativeTokenSymbol(chain)
-      const nativeTokenPriceUsdWei = parseEther(
+      const nativeTokenPriceUsdWei = utils.parseEther(
         priceMap[nativeSymbol].toString()
       )
-      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol as TokenSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+      const exponent = nativeTokenDecimals - getTokenDecimals(token as TokenSymbol)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1069,7 +1093,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), this.tokenDecimals[token])
+      utils.formatUnits(result.toString(), getTokenDecimals(token as TokenSymbol))
     )
 
     return {
@@ -1120,19 +1144,19 @@ class BonderStats {
 
     const nonEthNativeTokenDiffsInToken: Record<string, any> = {}
     for (const chain of this.chains) {
-      const multiplier = parseEther('1')
+      const multiplier = utils.parseEther('1')
       const nativeSymbol = this.getChainNativeTokenSymbol(chain)
       if (nativeSymbol === 'ETH') {
         ethAmounts = ethAmounts.add(nativeTokenDiffs[chain])
         continue
       }
-      const nativeTokenPriceUsdWei = parseEther(
+      const nativeTokenPriceUsdWei = utils.parseEther(
         priceMap[nativeSymbol].toString()
       )
-      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol as TokenSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+      const exponent = nativeTokenDecimals - getTokenDecimals(token as TokenSymbol)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1156,10 +1180,10 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), this.tokenDecimals[token])
+      utils.formatUnits(result.toString(), getTokenDecimals(token as TokenSymbol))
     )
 
-    const ethAmountsFormatted = Number(formatUnits(ethAmounts.toString(), 18))
+    const ethAmountsFormatted = Number(utils.formatUnits(ethAmounts.toString(), 18))
 
     return {
       result,
@@ -1183,10 +1207,19 @@ class BonderStats {
       dbData.arbitrumHTokenAmount +
       dbData.optimismCanonicalAmount +
       dbData.optimismHTokenAmount +
+      (dbData.novaCanonicalAmount || 0) +
+      (dbData.novaHTokenAmount || 0) +
+      (dbData.baseCanonicalAmount || 0) +
+      (dbData.baseHTokenAmount || 0) +
+      (dbData.lineaCanonicalAmount || 0) +
+      (dbData.lineaHTokenAmount || 0) +
+      (dbData.polygonzkCanonicalAmount || 0) +
+      (dbData.polygonzkHTokenAmount || 0) +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
       dbData.unstakedEthAmount * dbData.ethPriceUsd
+
     const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
@@ -1210,7 +1243,11 @@ class BonderStats {
         dbData.optimismNativeAmount +
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount +
-        dbData.arbitrumMessengerWrapperAmount) *
+        dbData.arbitrumMessengerWrapperAmount +
+        (dbData.novaNativeAmount || 0) +
+        (dbData.baseNativeAmount || 0) +
+        (dbData.lineaNativeAmount || 0)) *
+        (dbData.polygonzkNativeAmount || 0) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1222,7 +1259,11 @@ class BonderStats {
           dbData.optimismNativeAmount +
           dbData.arbitrumNativeAmount +
           dbData.arbitrumAliasAmount +
-          dbData.arbitrumMessengerWrapperAmount)
+          dbData.arbitrumMessengerWrapperAmount +
+          (dbData.novaNativeAmount || 0) +
+          (dbData.baseNativeAmount || 0) +
+          (dbData.lineaNativeAmount || 0) +
+          (dbData.polygonzkNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
@@ -1232,22 +1273,6 @@ class BonderStats {
     return {
       resultFormatted
     }
-  }
-
-  async getPriceHistory (coinId: string, days: number) {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    return fetch(url)
-      .then(res => res.json())
-      .then(json => {
-        if (!json.prices) {
-          console.log(json)
-          throw new Error(`got api error: ${JSON.stringify(json)}`)
-        }
-        return json.prices.map((data: any[]) => {
-          data[0] = Math.floor(data[0] / 1000)
-          return data
-        })
-      })
   }
 
   getChainNativeTokenSymbol (chain: string) {
@@ -1267,12 +1292,12 @@ class BonderStats {
       target = target.getTime()
     }
 
-    var nearest = Infinity
-    var winner = -1
+    let nearest = Infinity
+    let winner = -1
 
     dates.forEach(function (date, index) {
       if (date instanceof Date) date = date.getTime()
-      var distance = Math.abs(date - target)
+      const distance = Math.abs(date - target)
       if (distance < nearest) {
         nearest = distance
         winner = index
@@ -1280,14 +1305,6 @@ class BonderStats {
     })
 
     return winner
-  }
-
-  getGraphUrl (chain: string) {
-    if (chain == 'gnosis') {
-      chain = 'xdai'
-    }
-
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -1302,7 +1319,7 @@ class BonderStats {
         variables: variables || {}
       })
     })
-    const jsonRes = await res.json()
+    const jsonRes: any = await res.json()
     if (!jsonRes.data) {
       throw new Error(jsonRes.errors[0].message)
     }
@@ -1333,12 +1350,22 @@ class BonderStats {
         }
       }
     `
-    const url = this.getGraphUrl(chain)
-    const data = await this.queryFetch(url, query, {
-      token,
-      startDate,
-      endDate
-    })
+    const url = getSubgraphUrl(chain)
+    let data
+    try {
+      data = await this.queryFetch(url, query, {
+        token,
+        startDate,
+        endDate
+      })
+    } catch (err) {
+      console.log('caught err', err.message, 'trying again')
+      data = await this.queryFetch(url, query, {
+        token,
+        startDate,
+        endDate
+      })
+    }
 
     if (!data) {
       return []
@@ -1353,22 +1380,24 @@ class BonderStats {
     startDate: number,
     endDate: number
   ) {
-    const provider = allProviders[chain]
-    const blockDater = new BlockDater(provider)
-    const date = DateTime.fromSeconds(startDate - 86400).toJSDate()
+    const startTimestamp = startDate - 86400
+    const provider = this.allProviders[chain]
+    const startBlock = await getBlockNumberFromDate(
+      chain,
+      provider,
+      startTimestamp
+    )
     let retries = 0
     while (true) {
       try {
-        const info = await blockDater.getDate(date)
-        if (!info) {
-          throw new Error('no info')
-        }
-        const startBlock = info.block
         const endBlock = 99999999
+
+        // Wait here since these are two consecutive Etherscan calls
+        await wait(1 * 1000)
         const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 
         const res = await fetch(url)
-        const json = await res.json()
+        const json: any = await res.json()
         if (json.message === 'NOTOK') {
           throw new Error(json.result)
         }
@@ -1436,7 +1465,7 @@ class BonderStats {
     startBlock: number,
     endBlock: number
   ) {
-    const baseUrl = etherscanUrls[chain]
+    const baseUrl = getEtherscanApiUrl(chain)
     const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[
       chain
     ] || ''}`
@@ -1459,8 +1488,8 @@ class BonderStats {
       arr = amount
     }
 
-    return arr.map((value: string) =>
-      parseUnits(value, this.tokenDecimals[token])
+    return (arr as string[]).map((value: string) =>
+      utils.parseUnits(value, getTokenDecimals(token as TokenSymbol))
     )
   }
 }

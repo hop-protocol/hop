@@ -1,7 +1,7 @@
 import chalk from 'chalk'
-import getTransfer from 'src/theGraph/getTransfer'
-import getTransfers from 'src/theGraph/getTransfers'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import getTransfer from '#theGraph/getTransfer.js'
+import getTransfers from '#theGraph/getTransfers.js'
+import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 
 root
   .command('transfers-table')
@@ -69,7 +69,7 @@ async function main (source: any) {
       `${root || ''}`.padEnd(68, ' ')
     ]
     const str = fields.join(' ')
-    let color: string | undefined
+    let color: typeof chalk.Color | undefined
     if (needsSettlement) {
       color = 'magenta'
     } else if (!bonded) {

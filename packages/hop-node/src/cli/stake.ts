@@ -1,14 +1,17 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import Token from 'src/watchers/classes/Token'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import wait from 'src/utils/wait'
-import { BigNumber, constants } from 'ethers'
-import { Chain } from 'src/constants'
-import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
+import L1Bridge from '#watchers/classes/L1Bridge.js'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { constants } from 'ethers'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import { wait } from '@hop-protocol/hop-node-core'
+import type Token from '#watchers/classes/Token.js'
+import type { BigNumber} from 'ethers'
+import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
 
 root
   .command('stake')
@@ -28,6 +31,7 @@ async function main (source: any) {
   if (!chain) {
     throw new Error('chain is required')
   }
+
   const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
   const parsedAmount: BigNumber = bridge.parseUnits(amount)
 
@@ -36,10 +40,10 @@ async function main (source: any) {
     throw new Error('Not a valid bonder on the stake chain')
   }
 
-  const isStakeOnL2 = chain !== Chain.Ethereum
+  const isStakeOnL2 = chain !== ChainSlug.Ethereum
   const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
   if (shouldSendToL2) {
-    const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
+    const l1Bridge: L1Bridge = (await getBridge(token, ChainSlug.Ethereum)) as L1Bridge
     await sendTokensToL2(l1Bridge, parsedAmount, chain)
     logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
     await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
@@ -56,7 +60,8 @@ async function sendTokensToL2 (
 ) {
   const recipient = await bridge.getBonderAddress()
   const spender = bridge.getAddress()
-  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+
+  const token: Token | void = await getToken(bridge)
 
   let tx
   if (token) {
@@ -66,10 +71,14 @@ async function sendTokensToL2 (
   }
 
   logger.debug('Sending tokens to L2')
+  const options: CanonicalTokenConvertOptions = {
+    shouldSkipNearestCheck: true
+  }
   tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain),
     parsedAmount,
-    recipient
+    recipient,
+    options
   )
   await tx.wait()
 }
@@ -80,7 +89,7 @@ async function stake (
 ) {
   logger.debug('Staking')
 
-  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+  const token: Token | void = await getToken(bridge)
   const stakeTokenBalance: BigNumber = await getTokenBalance(bridge, token)
   const formattedAmount = bridge.formatUnits(parsedAmount)
   if (stakeTokenBalance.lt(parsedAmount)) {
@@ -135,10 +144,10 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
   }
 }
 
-async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
-    const isL1Bridge = bridge.chainSlug === Chain.Ethereum
+    const isL1Bridge = bridge.chainSlug === ChainSlug.Ethereum
     if (isL1Bridge) {
       return
     }
@@ -148,12 +157,12 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { /
     return bridge.l1CanonicalToken()
   } else if (bridge instanceof L2Bridge) {
     return bridge.hToken()
-  } else {
-    throw new Error('invalid bridge type')
   }
+
+  throw new Error('invalid bridge type')
 }
 
-async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> {
   if (!token) {
     return bridge.getEthBalance()
   }
@@ -164,7 +173,7 @@ async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Br
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   return watcher.bridge

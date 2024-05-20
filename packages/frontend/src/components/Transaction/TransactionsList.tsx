@@ -1,15 +1,16 @@
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import React from 'react'
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
-import { Flex } from '../ui'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
-import { useTxStatusStyles } from './useTxStatusStyles'
-import TransactionRow from './TransactionRow'
+import TransactionRow from 'src/components/Transaction/TransactionRow'
+import Typography from '@mui/material/Typography'
+import { useApp } from 'src/contexts/AppContext'
+import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()
-  const { transactions, clear, removeTransaction } = useTxHistory(props.transactions)
+  const { txHistory } = useApp()
+  const { transactions, clear, removeTransaction } = txHistory
 
   if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your recent transactions will appear here...</Typography>
@@ -17,14 +18,14 @@ function TransactionsList(props: any) {
 
   return (
     <>
-      <Flex justifyBetween alignCenter>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h3" className={styles.header}>
           Recent transactions
         </Typography>
         <Button className={styles.clearButton} onClick={clear}>
           (clear all)
         </Button>
-      </Flex>
+      </Box>
       {transactions?.map((tx: Transaction) => (
         <TransactionRow key={tx.hash} tx={tx} styles={styles} rmTx={removeTransaction} />
       ))}

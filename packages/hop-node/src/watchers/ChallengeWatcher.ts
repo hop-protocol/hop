@@ -1,11 +1,10 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Notifier } from 'src/notifier'
-import { hostname } from 'src/config'
+import BaseWatcher from './classes/BaseWatcher.js'
+import { Notifier } from '#notifier/index.js'
+import { hostname } from '#config/index.js'
+import type L1Bridge from './classes/L1Bridge.js'
+import type { ChallengeableTransferRoot } from '#db/TransferRootsDb.js'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 type Config = {
   chainSlug: string
@@ -15,7 +14,7 @@ type Config = {
 }
 
 class ChallengeWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: ChallengeWatcher }
+  override siblingWatchers!: { [chainId: string]: ChallengeWatcher }
 
   constructor (config: Config) {
     super({
@@ -29,7 +28,7 @@ class ChallengeWatcher extends BaseWatcher {
     this.notifier = new Notifier(`watcher: ChallengeWatcher, host: ${hostname}`)
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     if (!this.isL1) {
       return
     }
@@ -64,6 +63,9 @@ class ChallengeWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
     )
+    if (!dbTransferRoot) {
+      throw new Error('db transfer root not found')
+    }
 
     const { bondTxHash } = dbTransferRoot
     if (!bondTxHash) {
@@ -98,6 +100,7 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
+    // Do not set emergencyDryMode here. This tx should always be fired off if needed.
     if (this.dryMode) {
       logger.warn(`dry: ${this.dryMode}, skipping challengeTransferRootBond`)
       return

@@ -1,0 +1,1 @@
+select amount_usd, token from tvl_pool_stats where chain = 'polygon' and token in ('USDC', 'USDT', 'DAI', 'MATIC', 'ETH') order by timestamp desc limit 5

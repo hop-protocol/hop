@@ -1,17 +1,18 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
-import { TChain } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
-import { useInterval } from 'react-use'
 import Transaction from 'src/models/Transaction'
-import { loadState, saveState } from 'src/utils/localStorage'
+import find from 'lodash/find'
 import logger from 'src/logger'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
+import { TChain } from '@hop-protocol/sdk'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
-import { find } from 'lodash'
+import { loadState, saveState } from 'src/utils/localStorage'
+import { useApp } from 'src/contexts/AppContext'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useInterval } from 'usehooks-ts'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { transactions, updateTransaction } = useTxHistory()
+  const { sdk, txHistory } = useApp()
+  const { transactions, updateTransaction } = txHistory
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
@@ -20,11 +21,10 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   )
   const [replaced, setReplaced] = useState<Transaction>()
 
-  const { sdk } = useApp()
   const provider = useMemo(() => {
     if (!chain) return
-    const _chain = sdk.toChainModel(chain)
-    return _chain.provider
+    const _provider = sdk.getChainProvider(chain)
+    return _provider
   }, [chain])
 
   const updateTxStatus = useCallback(async () => {
@@ -78,7 +78,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
     setConfirmations(txResponse?.confirmations)
 
-    if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
+    const isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string)
+    if (isFinalized) {
       setCompleted(true)
       updateTransaction(transaction, { pending: false })
     }
@@ -114,8 +115,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     }
   }, [transactions, transaction])
 
-  useInterval(updateTxStatus, completed ? null : 10e3)
-  useInterval(updateDestTxStatus, !completed || destCompleted ? null : 10e3)
+  useInterval(updateTxStatus, completed ? null : 10 * 1000)
+  useInterval(updateDestTxStatus, !completed || destCompleted ? null : 10 * 1000)
 
   return {
     completed,

@@ -1,20 +1,12 @@
-import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
+import { utils } from 'ethers'
+import { getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 
 export type Filters = {
   startDate: string
   endDate: string
   orderDesc: boolean
   destinationChainId?: number
-}
-
-export const chainIdToSlug: any = {
-  1: 'ethereum',
-  10: 'optimism',
-  100: 'gnosis',
-  137: 'polygon',
-  42161: 'arbitrum'
 }
 
 export function normalizeEntity (x: any) {
@@ -30,21 +22,21 @@ export function normalizeEntity (x: any) {
   }
   if (x.sourceChainId) {
     x.sourceChainId = Number(x.sourceChainId)
-    x.sourceChain = chainIdToSlug[x.sourceChainId]
+    x.sourceChain = getChainSlug(x.sourceChainId.toString())
   }
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
-    x.destinationChain = chainIdToSlug[x.destinationChainId]
+    x.destinationChain = getChainSlug(x.destinationChainId.toString())
   }
 
   const decimals = getTokenDecimals(x.token)
 
   // TODO: use correct decimal places for future assets
   if (x.amount) {
-    x.formattedAmount = formatUnits(x.amount, decimals)
+    x.formattedAmount = utils.formatUnits(x.amount, decimals)
   }
   if (x.bonderFee) {
-    x.formattedBonderFee = formatUnits(x.bonderFee, decimals)
+    x.formattedBonderFee = utils.formatUnits(x.bonderFee, decimals)
   }
 
   x.blockNumber = Number(x.blockNumber)

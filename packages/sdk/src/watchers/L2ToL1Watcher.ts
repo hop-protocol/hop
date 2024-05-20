@@ -1,8 +1,8 @@
-import { default as BaseWatcher } from './BaseWatcher'
-import { makeRequest } from './makeRequest'
-import { transferSentTopic } from '../constants/eventTopics'
+import { BaseWatcher } from './BaseWatcher.js'
+import { makeRequest } from './makeRequest.js'
+import { transferSentTopic } from '../constants/eventTopics.js'
 
-class L2ToL1Watcher extends BaseWatcher {
+export class L2ToL1Watcher extends BaseWatcher {
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
@@ -25,8 +25,6 @@ class L2ToL1Watcher extends BaseWatcher {
     if (!transferHash) {
       return false
     }
-    let startBlock : number
-    let endBlock : number
     const filter = l1Bridge.filters.WithdrawalBonded()
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
@@ -53,7 +51,8 @@ class L2ToL1Watcher extends BaseWatcher {
       const events = await getWithdrawalBondedEvents(this.network, this.destinationChain.slug, transferId)
       if (events.length) {
         const event = events[0]
-        const destTx = await this.destinationChain.provider.getTransaction(event.transactionHash)
+        const destinationChainProvider = this.getChainProvider(this.destinationChain)
+        const destTx = await destinationChainProvider.getTransaction(event.transactionHash)
         return this.emitDestTxEvent(destTx)
       }
       return false
@@ -84,5 +83,3 @@ async function getWithdrawalBondedEvents (network: string, chain: string, transf
 
   return data.events || []
 }
-
-export default L2ToL1Watcher

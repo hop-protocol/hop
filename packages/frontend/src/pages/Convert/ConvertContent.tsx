@@ -1,22 +1,23 @@
-import React, { FC, useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import Button from 'src/components/buttons/Button'
-import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import Alert from 'src/components/alert/Alert'
-import TxStatusModal from 'src/components/modal/TxStatusModal'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
-import TokenWrapper from 'src/components/TokenWrapper'
-import { sanitizeNumericalString } from 'src/utils'
-import { ChainSlug } from '@hop-protocol/sdk'
-import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
-import { Div, Flex } from 'src/components/ui'
-import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
+import Box from '@mui/material/Box'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import IconButton from '@mui/material/IconButton'
+import React, { FC, useEffect, useState } from 'react'
+import TokenWrapper from 'src/components/TokenWrapper'
+import Typography from '@mui/material/Typography'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { Alert } from 'src/components/Alert'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { Button } from 'src/components/Button'
+import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
+import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
+import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
+import { makeStyles } from '@mui/styles'
+import { sanitizeNumericalString } from 'src/utils'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -29,8 +30,8 @@ const useStyles = makeStyles(theme => ({
   },
   downArrow: {
     margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    height: '2.4rem !important',
+    width: '2.4rem !important',
   },
   lastSelector: {
     marginBottom: '0'
@@ -123,6 +124,7 @@ const useStyles = makeStyles(theme => ({
 const ConvertContent: FC = () => {
   const styles = useStyles()
   const {
+    address,
     approveTokens,
     approving,
     convertTokens,
@@ -153,7 +155,8 @@ const ConvertContent: FC = () => {
     validFormFields,
     warning,
     convertOption,
-    destinationChainPaused
+    destinationChainPaused,
+    info
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
   const [customRecipient, setCustomRecipient] = useState<string>('')
@@ -190,10 +193,10 @@ const ConvertContent: FC = () => {
   }
 
   useEffect(() => {
-    if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
-      return setManualWarning('')
-      // return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
-    }
+    // uncomment and set custom warning here
+    // if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
+    // }
     setManualWarning('')
   }, [destNetwork?.slug, sourceNetwork?.slug])
 
@@ -202,16 +205,30 @@ const ConvertContent: FC = () => {
     setCustomRecipient(value)
   }
 
-  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
-  const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true)
+  const isTokenDeprecated = useCheckPoolDeprecated(sourceToken?._symbol)
+  const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
-  const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
+  const sendableWarning = !warning || (warning as string)?.startsWith('Warning:')
+
+  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
+  const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
+
+  useEffect(() => {
+    setSendButtonActive(checkSendButtonActive())
+  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated])
+
+  const checkApprovalButtonActive = () => (!needsTokenForFee && needsApproval && validFormFields && !specificRouteDeprecated)
+  const [approvalButtonActive, setApprovalButtonActive] = useState(checkApprovalButtonActive())
+
+  useEffect(() => {
+    setApprovalButtonActive(checkApprovalButtonActive())
+  }, [needsTokenForFee, needsApproval, validFormFields, specificRouteDeprecated])
+
   const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption)) ? (
+      {(unsupportedAsset || assetWithoutAmm) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}
@@ -232,10 +249,18 @@ const ConvertContent: FC = () => {
             methodName={MethodNames.convertTokens}
             selectedNetwork={sourceNetwork}
             destNetwork={destNetwork}
+            disableInput={specificRouteDeprecated}
           />
-          <Flex justifyCenter alignCenter my={1} onClick={switchDirection} pointer hover>
-            <ArrowDownIcon color="primary" className={styles.downArrow} />
-          </Flex>
+          <Box display="flex" style={{ position: 'relative' }}>
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <IconButton onClick={switchDirection} title="Click to switch direction">
+                <ArrowDownIcon color="primary" className={styles.downArrow} />
+              </IconButton>
+            </Box>
+            <Box style={{ position: 'absolute', left: '65px', top: '20px', width: '200px' }} onClick={switchDirection}>
+              <Typography variant="body2" style={{ opacity: '0.2' }}>click to switch direction</Typography>
+            </Box>
+          </Box>
           <AmountSelectorCard
             className={styles.lastSelector}
             value={destTokenAmount as string}
@@ -259,53 +284,60 @@ const ConvertContent: FC = () => {
             )}
           </Box>
 
-          <div className={styles.details}>{details}</div>
+          {!error && <Box className={styles.details}>{details}</Box>}
+          <Alert severity="info">{info}</Alert>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>
           {allowCustomRecipient && (
-            <div className={styles.smartContractWalletWarning}>
+            <Box className={styles.smartContractWalletWarning}>
               <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-            </div>
+            </Box>
           )}
           {destinationChainPaused && (
-            <div className={styles.pausedWarning}>
+            <Box className={styles.pausedWarning}>
               <Alert severity="warning">Deposits to destination chain {destNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
-            </div>
+            </Box>
           )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
-          <ButtonsWrapper>
-            {!sendButtonActive && (
-              <Div mb={[3]} fullWidth={approvalButtonActive}>
+          { address
+          ? <ButtonsWrapper>
+              {!sendButtonActive && (
+                <Box mb={3} width={approvalButtonActive ? '100%' : 'auto'}>
+                  <Button
+                    className={styles.button}
+                    large
+                    highlighted={!!needsApproval}
+                    disabled={!approvalButtonActive}
+                    onClick={handleApprove}
+                    loading={approving}
+                    fullWidth
+                  >
+                    Approve
+                  </Button>
+                </Box>
+              )}
+
+              <Box mb={3} width={sendButtonActive ? '100%' : 'auto'}>
                 <Button
                   className={styles.button}
+                  onClick={handleSend}
+                  disabled={!sendButtonActive}
                   large
-                  highlighted={!!needsApproval}
-                  disabled={!approvalButtonActive}
-                  onClick={handleApprove}
-                  loading={approving}
+                  highlighted
                   fullWidth
                 >
-                  Approve
+                  Convert
                 </Button>
-              </Div>
-            )}
-
-            <Div mb={[3]} fullWidth={sendButtonActive}>
-              <Button
-                className={styles.button}
-                onClick={handleSend}
-                disabled={!sendButtonActive}
-                loading={sending}
-                large
-                highlighted
-                fullWidth
-              >
-                Convert
-              </Button>
-            </Div>
-          </ButtonsWrapper>
+              </Box>
+            </ButtonsWrapper>
+          : <ButtonsWrapper>
+              <Box mb={3} width="100%">
+                <ConnectWalletButton fullWidth large />
+              </Box>
+            </ButtonsWrapper>
+          }
         </>
       )}
     </Box>

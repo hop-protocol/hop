@@ -1,9 +1,9 @@
-import { BigNumber, BigNumberish, utils, Event, providers } from 'ethers'
 import find from 'lodash/find'
-import { eventTopics } from '@hop-protocol/sdk'
-import { EventNames } from 'src/utils/constants'
-import { isSameAddress } from './addresses'
 import isBoolean from 'lodash/isBoolean'
+import { BigNumber, BigNumberish, Event, providers, utils } from 'ethers'
+import { EventNames } from 'src/utils/constants'
+import { eventTopics } from '@hop-protocol/sdk'
+import { isSameAddress } from './addresses'
 
 // Convert BNs, booleans -> strings
 function parseString(name: string, argValue: any) {

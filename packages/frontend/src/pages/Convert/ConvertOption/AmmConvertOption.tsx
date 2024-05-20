@@ -1,11 +1,11 @@
-import React, { ReactNode } from 'react'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import { Signer, BigNumber, BigNumberish } from 'ethers'
+import ConvertOption, { SendData } from 'src/pages/Convert/ConvertOption/ConvertOption'
 import Network from 'src/models/Network'
+import React, { ReactNode } from 'react'
+import { AmmDetails } from 'src/components/AmmDetails'
+import { BigNumber, BigNumberish, Signer } from 'ethers'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { commafy, toTokenDisplay } from 'src/utils'
-import ConvertOption, { SendData } from './ConvertOption'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import AmmDetails from 'src/components/AmmDetails'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -17,7 +17,7 @@ class AmmConvertOption extends ConvertOption {
 
     this.name = 'AMM'
     this.slug = 'amm'
-    this.path = '/amm'
+    this.path = 'amm'
   }
 
   async getTargetAddress(
@@ -54,7 +54,7 @@ class AmmConvertOption extends ConvertOption {
       }
     }
 
-    const bridge = await sdk.bridge(l1TokenSymbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
 
     const amm = bridge.getAmm(sourceNetwork.slug)
     let amountOut: BigNumber | undefined
@@ -73,7 +73,7 @@ class AmmConvertOption extends ConvertOption {
       sourceNetwork,
       destNetwork,
       isConvertingToHToken,
-      bridge.getTokenSymbol()
+      bridge.getTokenSymbol() as TokenSymbol
     )
 
     return {
@@ -94,7 +94,7 @@ class AmmConvertOption extends ConvertOption {
     deadline: number,
     bonderFee?: BigNumberish
   ) {
-    const bridge = await sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer)
 
     return bridge.execSaddleSwap(
       sourceNetwork.slug,
@@ -164,7 +164,7 @@ class AmmConvertOption extends ConvertOption {
     }
 
     amountIn = BigNumber.from(amountIn)
-    const bridge = await sdk.bridge(l1TokenSymbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
 
     const { rate, priceImpact, amountOutMin, lpFeeAmount } = await bridge.getAmmData(
       sourceNetwork.slug,

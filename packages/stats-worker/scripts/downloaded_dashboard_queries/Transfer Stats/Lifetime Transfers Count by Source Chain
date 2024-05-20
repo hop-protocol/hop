@@ -1,0 +1,1 @@
+select source_chain_slug, count(*) as "count" from transfers group by source_chain_slug;

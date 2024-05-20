@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react'
-import { Claiming, Claimed } from 'src/pages/Claim'
-import Box from '@material-ui/core/Box'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { ChooseDelegate } from './ChooseDelegate'
-import { ClaimReview } from './ClaimReview'
-import { ClaimStart } from './ClaimStart'
-import { useClaim } from './useClaim'
-import { ClaimWrapper } from './ClaimWrapper'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { correctClaimChain } from './claims'
+import Box from '@mui/material/Box'
+import React, { useEffect, useState } from 'react'
+import { ChooseDelegate } from 'src/pages/Claim/ChooseDelegate'
+import { ClaimReview } from 'src/pages/Claim/ClaimReview'
+import { ClaimStart } from 'src/pages/Claim/ClaimStart'
+import { ClaimWrapper } from 'src/pages/Claim/ClaimWrapper'
+import { Claimed, Claiming } from 'src/pages/Claim'
+import { correctClaimChain } from 'src/pages/Claim/claims'
 import { formatError } from 'src/utils/format'
+import { useClaim } from 'src/pages/Claim/useClaim'
 import { useQueryParams } from 'src/hooks'
+import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function Claim() {
   const { isDarkMode } = useThemeMode()
@@ -72,9 +72,9 @@ export function Claim() {
       } else {
         setShowTryAgain(true)
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err)
-      setError(formatError(err.message))
+      setError(formatError(err))
       setShowTryAgain(true)
     }
   }

@@ -1,0 +1,1 @@
+select date_trunc('day', to_timestamp("timestamp")) as date, count(*) as "count" from transfers group by date_trunc('day', to_timestamp("timestamp")) order by date_trunc('day', to_timestamp("timestamp")) asc

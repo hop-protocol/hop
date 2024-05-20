@@ -1,1 +1,1 @@
-export * from './promptPassphrase'
+export * from './promptPassphrase.js'

@@ -1,6 +1,7 @@
-import ContractBase from './ContractBase'
+import ContractBase from './ContractBase.js'
 import { BigNumber } from 'ethers'
-import { TokenIndex } from 'src/constants'
+import { TokenIndex } from '#constants/index.js'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
 
 export default class L2Amm extends ContractBase {
   calculateToHTokensAmount = async (amountIn: BigNumber): Promise<BigNumber> => {
@@ -22,7 +23,7 @@ export default class L2Amm extends ContractBase {
   }
 
   swap = async (fromTokenIndex: number, toTokenIndex: number, amountIn: BigNumber, minAmountOut: BigNumber = BigNumber.from(0), deadline: BigNumber = this.defaultDeadline()): Promise<BigNumber> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     return this.contract.swap(
       fromTokenIndex,
       toTokenIndex,

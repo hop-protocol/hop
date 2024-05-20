@@ -1,5 +1,3 @@
-import lolcatjs from 'lolcatjs'
-
 export const hopArt = `
     __  __
    / / / /___  ____
@@ -9,4 +7,4 @@ export const hopArt = `
            /_/
 `
 
-export const printHopArt = () => lolcatjs.fromString(hopArt)
+export const printHopArt = () => console.log(hopArt)

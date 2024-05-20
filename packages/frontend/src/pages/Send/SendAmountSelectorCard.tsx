@@ -1,17 +1,16 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import Card from '@material-ui/core/Card'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import { Token } from '@hop-protocol/sdk'
-import LargeTextField from 'src/components/LargeTextField'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Network from 'src/models/Network'
-import { toTokenDisplay } from 'src/utils'
+import React, { ChangeEvent, FC, useMemo } from 'react'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import { BigNumber, utils } from 'ethers'
+import { LargeTextField } from 'src/components/LargeTextField'
 import { NetworkSelector } from 'src/components/NetworkSelector'
-import { Flex } from 'src/components/ui'
+import { Token } from '@hop-protocol/sdk'
+import { toTokenDisplay } from 'src/utils'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 
 type Props = {
   value?: string
@@ -29,6 +28,7 @@ type Props = {
   disableInput?: boolean
   deadline?: any
   setWarning?: (message: string) => void
+  maxButtonFixedAmountToSubtract?: BigNumber
 }
 
 const SendAmountSelectorCard: FC<Props> = props => {
@@ -48,6 +48,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
     disableInput = false,
     deadline,
     setWarning,
+    maxButtonFixedAmountToSubtract
   } = props
   const styles = useAmountSelectorCardStyles()
 
@@ -94,18 +95,18 @@ const SendAmountSelectorCard: FC<Props> = props => {
       }
     }
 
-    let totalAmount = balance.sub(nativeTokenMaxGasCost)
+    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract ?? 0)
     if (totalAmount.lt(0)) {
       totalAmount = BigNumber.from(0)
     }
 
-    const maxValue = formatUnits(totalAmount, token.decimals)
+    const maxValue = utils.formatUnits(totalAmount, token.decimals)
     onChange(maxValue)
   }
 
   return (
     <Card className={styles.root}>
-      <Flex fullWidth justifyBetween alignCenter mb={'1.8rem'}>
+      <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
@@ -127,19 +128,23 @@ const SendAmountSelectorCard: FC<Props> = props => {
             </Typography>
           </div>
         ) : null}
-      </Flex>
+      </Box>
 
-      <Flex fullWidth justifyBetween alignCenter>
-        <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
-        <LargeTextField
-          value={value}
-          onChange={handleInputChange}
-          placeholder="0.0"
-          units={token?.symbol}
-          disabled={disableInput}
-          loadingValue={loadingValue}
-        />
-      </Flex>
+      <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" className={styles.mobileFlexColumn}>
+        <Box width="45%" overflow="hidden" className={styles.mobileFlexColumn}>
+          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
+        </Box>
+        <Box width="55%" className={styles.mobileFlexColumn}>
+          <LargeTextField
+            value={value}
+            onChange={handleInputChange}
+            placeholder="0.0"
+            units={token?.symbol}
+            disabled={disableInput}
+            loadingValue={loadingValue}
+          />
+        </Box>
+      </Box>
     </Card>
   )
 }

@@ -1,21 +1,27 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
-import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import getRpcUrl from 'src/utils/getRpcUrl'
-import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
-import { Chain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
-import { Event, PayableOverrides } from '@ethersproject/contracts'
-import { EventEmitter } from 'events'
-import { Transaction } from 'src/types'
-import { config as globalConfig } from 'src/config'
-
-export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
+import { BigNumber } from 'ethers'
+import {
+  MIN_GNOSIS_GAS_PRICE,
+  MIN_POLYGON_GAS_PRICE
+} from '@hop-protocol/hop-node-core'
+import { EventEmitter } from 'node:events'
+import { FinalityService } from '@hop-protocol/hop-node-core'
+import {
+  SyncType
+} from '#constants/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { getBumpedGasPrice } from '@hop-protocol/hop-node-core'
+import { getNetworkCustomSyncType, config as globalConfig } from '#config/index.js'
+import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
+import type { Contract, providers } from 'ethers'
+import type { Event } from '@ethersproject/contracts'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
-  public chainSlug: Chain
+  public chainSlug: ChainSlug
+  private readonly finalityService: FinalityService
 
   constructor (contract: Contract) {
     super()
@@ -23,15 +29,33 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
+
     const chainSlug = getProviderChainSlug(contract.provider)
     if (!chainSlug) {
       throw new Error('chain slug not found for contract provider')
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+
+    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder as unknown // note: ts type checker suggests using 'unknown' type first to fix type error
+    this.finalityService = new FinalityService(
+      this.contract.provider,
+      this.chainSlug,
+      syncType as any
+    )
+
+    if (syncType !== SyncType.Bonder) {
+      if (!this.finalityService.isCustomBlockNumberImplemented()) {
+        throw new Error(`getCustomSafeBlockNumber not implemented for chain ${this.chainSlug}`)
+      }
+    }
   }
 
   getChainId = async (): Promise<number> => {
+    return this.getChainIdFn()
+  }
+
+  getChainIdFn = async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }
@@ -41,8 +65,8 @@ export default class ContractBase extends EventEmitter {
     return _chainId
   }
 
-  chainIdToSlug (chainId: number): Chain {
-    return chainIdToSlug(chainId)
+  getSlugFromChainId (chainId: number): ChainSlug {
+    return getChainSlug(chainId.toString())
   }
 
   chainSlugToId (chainSlug: string): number {
@@ -57,37 +81,36 @@ export default class ContractBase extends EventEmitter {
     return this.contract.address
   }
 
-  getTransaction = async (txHash: string): Promise<Transaction> => {
+  getTransaction = async (txHash: string): Promise<providers.TransactionResponse> => {
     if (!txHash) {
       throw new Error('tx hash is required')
     }
-    return await this.contract.provider.getTransaction(txHash)
+    return this.contract.provider.getTransaction(txHash)
   }
 
   getTransactionReceipt = async (
     txHash: string
   ): Promise<providers.TransactionReceipt> => {
-    return await this.contract.provider.getTransactionReceipt(txHash)
+    return this.contract.provider.getTransactionReceipt(txHash)
   }
 
   getBlockNumber = async (): Promise<number> => {
-    return await this.contract.provider.getBlockNumber()
-  }
-
-  getFinalizedBlockNumber = async (): Promise<number> => {
-    // TODO: Use this.contract.provider when ethers.js is updated
-    const rpcUrl = getRpcUrl(this.chainSlug)
-    const provider = new providers.JsonRpcProvider(rpcUrl)
-    const block = await provider.getBlock('finalized')
-    return Number(block.number)
+    return this.finalityService.getBlockNumber()
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    // TODO: Use this.contract.provider when ethers.js is updated
-    const rpcUrl = getRpcUrl(this.chainSlug)
-    const provider = new providers.JsonRpcProvider(rpcUrl)
-    const block = await provider.getBlock('safe')
-    return Number(block.number)
+    return this.finalityService.getSafeBlockNumber()
+  }
+
+  getFinalizedBlockNumber = async (): Promise<number> => {
+    return this.finalityService.getFinalizedBlockNumber()
+  }
+
+  getSyncBlockNumber = async (): Promise<number> => {
+    if (!this.finalityService.isCustomBlockNumberImplemented()) {
+      throw new Error('Custom block number is not supported')
+    }
+    return this.finalityService.getCustomBlockNumber()
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {
@@ -95,7 +118,7 @@ export default class ContractBase extends EventEmitter {
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
-    return tx.blockNumber! // eslint-disable-line
+    return tx.blockNumber!
   }
 
   getBlockTimestamp = async (
@@ -112,7 +135,7 @@ export default class ContractBase extends EventEmitter {
     txHash: string
   ): Promise<number> {
     const blockNumber = await this.getTransactionBlockNumber(txHash)
-    return await this.getBlockTimestamp(blockNumber)
+    return this.getBlockTimestamp(blockNumber)
   }
 
   async getEventTimestamp (event: Event): Promise<number> {
@@ -130,7 +153,7 @@ export default class ContractBase extends EventEmitter {
     address: string,
     blockNumber: string | number = 'latest'
   ): Promise<string> => {
-    return await this.contract.provider.getCode(address, blockNumber)
+    return this.contract.provider.getCode(address, blockNumber)
   }
 
   getBalance = async (
@@ -139,11 +162,11 @@ export default class ContractBase extends EventEmitter {
     if (!address) {
       throw new Error('expected address')
     }
-    return await this.contract.provider.getBalance(address)
+    return this.contract.provider.getBalance(address)
   }
 
   protected getGasPrice = async (): Promise<BigNumber> => {
-    return await this.contract.provider.getGasPrice()
+    return this.contract.provider.getGasPrice()
   }
 
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
@@ -151,47 +174,37 @@ export default class ContractBase extends EventEmitter {
     return getBumpedGasPrice(gasPrice, multiplier)
   }
 
-  get waitConfirmations () {
-    const chainConfig = globalConfig.networks[this.chainSlug]
-    if (!chainConfig) {
-      throw new Error(`config for chain ${this.chainSlug} not found`)
-    }
-    const { waitConfirmations } = chainConfig
-    if (waitConfirmations <= 0) {
-      throw new Error('expected waitConfirmations to be > 0')
-    }
-    return waitConfirmations
-  }
-
   async txOverrides (): Promise<TxOverrides> {
     const txOptions: TxOverrides = {}
     if (globalConfig.isMainnet) {
       // Not all Polygon nodes follow recommended 30 Gwei gasPrice
       // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-      if (this.chainSlug === Chain.Polygon) {
+      if (this.chainSlug === ChainSlug.Polygon) {
         txOptions.gasPrice = await this.getBumpedGasPrice(1)
 
         const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = MinPolygonGasPrice
+        if (gasPriceBn.lt(MIN_POLYGON_GAS_PRICE)) {
+          txOptions.gasPrice = MIN_POLYGON_GAS_PRICE
         }
-      } else if (this.chainSlug === Chain.Gnosis) {
+      } else if (this.chainSlug === ChainSlug.Gnosis) {
         // increasing more gas multiplier for gnosis
         // to avoid the error "code:-32010, message: FeeTooLowToCompete"
         const multiplier = 3
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
 
         const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinGnosisGasPrice)) {
-          txOptions.gasPrice = MinGnosisGasPrice
+        if (gasPriceBn.lt(MIN_GNOSIS_GAS_PRICE)) {
+          txOptions.gasPrice = MIN_GNOSIS_GAS_PRICE
         }
       }
     } else {
-      if (this.chainSlug === Chain.Gnosis) {
+      if (this.chainSlug === ChainSlug.Gnosis) {
         txOptions.gasPrice = 50_000_000_000
-        txOptions.gasLimit = 5_000_000
-      } else if (this.chainSlug === Chain.Polygon) {
-        txOptions.gasLimit = 5_000_000
+        txOptions.gasLimit = 10_000_000
+      } else if (this.chainSlug === ChainSlug.Polygon) {
+        txOptions.gasLimit = 10_000_000
+      } else if (this.chainSlug === ChainSlug.Linea) {
+        txOptions.gasLimit = 10_000_000
       }
     }
 

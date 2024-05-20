@@ -1,6 +1,9 @@
-function getCanonicalTokenSymbol (tokenSymbol: string) {
-  // remove "h" (lowercase), "W", and "X" prefix
-  return tokenSymbol.replace(/^h?W?X?(ETH|MATIC|USDC|USDT|DAI|WBTC|HOP|SNX|sUSD)/g, '$1')
-}
+import { TokenSymbol } from '@hop-protocol/sdk'
 
-export default getCanonicalTokenSymbol
+export function getCanonicalTokenSymbol (tokenSymbol: string) {
+  const symbols = Object.values(TokenSymbol)
+  const pattern = symbols.join('|')
+
+  // remove "h" (lowercase), "W" (wrapped prefix), and "X" prefix (for xDai)
+  return tokenSymbol.replace(new RegExp(`^h?W?X?(${pattern})`, 'g'), '$1')
+}

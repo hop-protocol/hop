@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getBondedWithdrawal (chain: string, token: string, transferId: string) {
   const query = `
@@ -24,6 +24,9 @@ export default async function getBondedWithdrawal (chain: string, token: string,
         contractAddress
         token
         from
+        transaction {
+          to
+        }
       }
     }
   `

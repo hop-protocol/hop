@@ -1,7 +1,7 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import { RewardsWidget } from './RewardsWidget'
-import { configs } from './config'
+import { RewardsWidget } from 'src/pages/Rewards/RewardsWidget'
+import { configs } from 'src/pages/Rewards/config'
 
 export function Rewards() {
   return (

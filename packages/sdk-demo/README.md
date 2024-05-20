@@ -1,4 +1,4 @@
-# Hop SDK Demo
+# Hop v1 SDK Demo
 
 > A simple React demo for the [Hop SDK](https://github.com/hop-protocol/hop/tree/develop/packages/sdk)
 

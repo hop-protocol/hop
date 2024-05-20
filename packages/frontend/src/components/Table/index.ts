@@ -1,2 +1,2 @@
-export * from './Table'
-export * from './RightAlignedData'
+export * from 'src/components/Table/Table'
+export * from 'src/components/Table/RightAlignedData'

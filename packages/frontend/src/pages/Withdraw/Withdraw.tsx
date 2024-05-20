@@ -1,18 +1,22 @@
-import React, { FC, ChangeEvent, useEffect, useState } from 'react'
-import Card from '@material-ui/core/Card'
-import { WithdrawalProof } from './WithdrawalProof'
-import { makeStyles } from '@material-ui/core/styles'
-import LargeTextField from 'src/components/LargeTextField'
-import Typography from '@material-ui/core/Typography'
-import Alert from 'src/components/alert/Alert'
-import { toTokenDisplay } from 'src/utils'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import React, { ChangeEvent, FC, useEffect, useState } from 'react'
+import Typography from '@mui/material/Typography'
+import useQueryParams from 'src/hooks/useQueryParams'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button/Button'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { LargeTextField } from 'src/components/LargeTextField'
+import { WithdrawalProof } from '@hop-protocol/sdk/utils'
 import { formatError } from 'src/utils/format'
+import { makeStyles } from '@mui/styles'
+import { reactAppNetwork } from 'src/config'
+import { toTokenDisplay } from 'src/utils'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import Button from 'src/components/buttons/Button'
-import InfoTooltip from 'src/components/InfoTooltip'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     maxWidth: '680px',
     margin: '0 auto',
@@ -43,14 +47,21 @@ export const Withdraw: FC = () => {
   const styles = useStyles()
   const { sdk, networks, txConfirm } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
+  const { queryParams } = useQueryParams()
   const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
-    return localStorage.getItem('withdrawTransferIdOrTxHash') || ''
+    return queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
+    try {
+      updateQueryParams({
+        transferId: transferIdOrTxHash || ''
+      })
+    } catch (err: any) {
+      console.error(err)
+    }
   }, [transferIdOrTxHash])
 
   async function handleSubmit(event: ChangeEvent<any>) {
@@ -61,7 +72,7 @@ export const Withdraw: FC = () => {
       let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
         try {
-          wp = new WithdrawalProof(transferIdOrTxHash)
+          wp = new WithdrawalProof(reactAppNetwork, transferIdOrTxHash)
           await wp.generateProof()
           const { sourceChain } = wp.transfer
           await txConfirm?.show({
@@ -86,11 +97,11 @@ export const Withdraw: FC = () => {
                 }
               },
               sendTx: async () => {
-                await wp.checkWithdrawable()
+                wp.checkWithdrawable()
                 const networkId = Number(wp.transfer.destinationChainId)
                 const isNetworkConnected = await checkConnectedNetworkId(networkId)
                 if (!isNetworkConnected) {
-                  return
+                  throw new Error('wrong network connected')
                 }
                 const {
                   recipient,
@@ -114,15 +125,15 @@ export const Withdraw: FC = () => {
                   bonderFee,
                   amountOutMin,
                   deadline,
-                  transferRootHash!,
-                  rootTotalAmount!,
-                  transferIdTreeIndex!,
-                  siblings!,
-                  totalLeaves!
+                  transferRootHash,
+                  rootTotalAmount,
+                  transferIdTreeIndex,
+                  siblings,
+                  totalLeaves
                 )
                 return tx
               },
-              onError: err => {
+              onError: (err: any) => {
                 reject(err)
               },
             },
@@ -130,6 +141,49 @@ export const Withdraw: FC = () => {
           })
           resolve(null)
         } catch (err) {
+          console.error('withdraw check error', err)
+
+          try {
+            const bridge = sdk.bridge('USDC')
+            const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
+            if (data) {
+              const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
+              if (nonceUsed) {
+                reject(new Error('The withdrawal for this transfer has already been processed'))
+                return
+              }
+              await txConfirm?.show({
+                kind: 'withdrawReview',
+                inputProps: {
+                  source: {
+                    network: fromChain,
+                  },
+                  getProof: async () => {
+                    return null
+                  },
+                  getInfo: async () => {
+                    return null
+                  },
+                  sendTx: async () => {
+                    const networkId = Number(toChainId)
+                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                    if (!isNetworkConnected) {
+                      throw new Error('wrong network connected')
+                    }
+                    const tx = await bridge.cctpWithdraw(fromChain, toChain, transactionHash)
+                    return tx
+                  },
+                  onError: (err: any) => {
+                    reject(err)
+                  },
+                },
+                onConfirm: async () => {}, // needed to close modal
+              })
+            }
+          } catch (err: any) {
+            console.error('withdraw check error cctp', error)
+          }
+
           reject(err)
         }
       })
@@ -145,20 +199,25 @@ export const Withdraw: FC = () => {
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.header}>
+    <Box className={styles.root}>
+      <Box className={styles.header}>
         <Typography variant="h4">Withdraw</Typography>
-      </div>
+      </Box>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div>
+        <Box>
           <Card className={styles.card}>
             <Typography variant="h6">
               Transfer ID
               <InfoTooltip
                 title={
-                  'Enter the transfer ID or transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination.'
+                  'Enter the transfer ID or origin transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination. The transfer ID can be found in the Hop explorer.'
                 }
               />
+              <Box ml={2} display="inline-flex">
+                <Typography variant="body2" color="secondary" component="span">
+                  Enter transfer ID or origin transaction hash
+                </Typography>
+              </Box>
             </Typography>
             <LargeTextField
               value={transferIdOrTxHash}
@@ -168,16 +227,16 @@ export const Withdraw: FC = () => {
               leftAlign
             />
           </Card>
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Button onClick={handleSubmit} loading={loading} large highlighted>
             Withdraw
           </Button>
-        </div>
+        </Box>
       </form>
-      <div className={styles.notice}>
+      <Box className={styles.notice}>
         <Alert severity="error">{error}</Alert>
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }

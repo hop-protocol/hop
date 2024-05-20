@@ -1,14 +1,14 @@
-import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
-import { ContractTransaction, utils } from 'ethers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import Transaction from 'src/models/Transaction'
-import { networkIdToName, wait } from 'src/utils'
-import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
-import { useSelectedNetwork } from '.'
-import useIsSmartContractWallet from './useIsSmartContractWallet'
 import Network from 'src/models/Network'
+import Transaction from 'src/models/Transaction'
+import useIsSmartContractWallet from './useIsSmartContractWallet'
+import { ContractTransaction, utils } from 'ethers'
+import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
+import { networkIdToName, wait } from 'src/utils'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
+import { useSelectedNetwork } from '.'
 
-interface GnosisSafeWarning {
+export interface GnosisSafeWarning {
   severity: 'warning' | 'error' | 'info'
   text: string
 }
@@ -41,9 +41,11 @@ export function useGnosisSafeTransaction(
 
     if (!utils.isAddress(customRecipient)) return
 
-    toNetwork.provider.getCode(customRecipient).then(val => {
-      setIsRecipientContract(val !== '0x')
-      setIsRecipientSelfContract(safe.safeAddress === customRecipient)
+    toNetwork.provider.getCode(customRecipient).then((val: string) => {
+      const isContract = val !== '0x'
+      const isSame = safe.safeAddress === customRecipient
+      setIsRecipientContract(isContract)
+      setIsRecipientSelfContract(isContract && isSame)
     })
   }, [isGnosisSafeWallet, safe, customRecipient, toNetwork])
 
@@ -73,7 +75,7 @@ export function useGnosisSafeTransaction(
       // incorrect source chain set
       return {
         severity: 'warning',
-        text: `The connected account is detected to be a Gnosis Safe. Please match the "From" network to the connected Gnosis safe-app network (${networkIdToName(
+        text: `The connected account is detected to be a Gnosis Safe. Please match the "From" network above to the connected Gnosis safe-app network (${networkIdToName(
           safe.chainId
         )})`,
       }
@@ -97,7 +99,7 @@ export function useGnosisSafeTransaction(
     if (isRecipientSelfContract) {
       // custom recipient is set to self (gnosis-safe)
       return {
-        severity: 'warning',
+        severity: 'info',
         text: `The recipient account is detected to be a Gnosis Safe on the ${toNetwork?.name} network.`,
       }
     }
@@ -105,7 +107,7 @@ export function useGnosisSafeTransaction(
     if (isRecipientContract) {
       // custom recipient is a smart contract (non gnosis-safe)
       return {
-        severity: 'warning',
+        severity: 'info',
         text: `The recipient account is detected to be a smart contract on the ${toNetwork?.name} network.`,
       }
     }
@@ -114,6 +116,7 @@ export function useGnosisSafeTransaction(
   }, [
     isGnosisSafeWallet,
     isCorrectSignerNetwork,
+    isRecipientContract,
     isRecipientSelfContract,
     isSmartContractWallet,
     customRecipient,
@@ -130,7 +133,7 @@ export function useGnosisSafeTransaction(
 
         if (!safeTransaction) {
           await wait(3000)
-          return getSafeTx(tx)
+          return await getSafeTx(tx)
         }
 
         if (safeTransaction.txHash) {

@@ -1,10 +1,10 @@
-import getTransfersCount from 'src/theGraph/getTransfersCount'
-import { Chain } from 'src/constants'
-import { actionHandler, root } from './shared'
+import getTransfersCount from '#theGraph/getTransfersCount.js'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { actionHandler, root } from './shared/index.js'
 import {
   getEnabledNetworks,
   getEnabledTokens
-} from 'src/config'
+} from '#config/index.js'
 
 root
   .command('transfers-count')
@@ -17,7 +17,7 @@ async function main (source: any) {
   const counts: Record<string, Record<string, number>> = {}
   let total = 0
   for (const chain of chains) {
-    if (chain === Chain.Ethereum) {
+    if (chain === ChainSlug.Ethereum) {
       continue
     }
     for (const token of tokens) {

@@ -1,20 +1,21 @@
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
-import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
+import { Icon } from 'src/components/ui/Icon'
+import { commafy } from 'src/utils'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
-export const populateDebitWindowStats = (item: any, bonderStats, i) => {
+export const populateDebitWindowStats = (item: any, bonderStats: any, i: number) => {
   return {
-    token: item.token.imageUrl,
-    slot0: item.amountBonded[0],
-    slot1: item.amountBonded[1],
-    slot2: item.amountBonded[2],
-    slot3: item.amountBonded[3],
-    slot4: item.amountBonded[4],
-    slot5: item.amountBonded[5],
+    token: item.token?.imageUrl,
+    slot0: item.amountBonded?.[0],
+    slot1: item.amountBonded?.[1],
+    slot2: item.amountBonded?.[2],
+    slot3: item.amountBonded?.[3],
+    slot4: item.amountBonded?.[4],
+    slot5: item.amountBonded?.[5],
     minutes: item.remainingMin,
-    virtualDebt: bonderStats[i]?.virtualDebt,
+    virtualDebt: bonderStats?.[i]?.virtualDebt
   }
 }
 
@@ -104,16 +105,19 @@ const DebitWindowStats: FC = () => {
     [bonderStats]
   )
 
+  const error = debitWindowStats?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
-    <Div fontSize={[0, 1, 2]} overflowX="scroll">
+    <Box overflow-x="scroll">
       <SortableTable
         stats={debitWindowStats}
         columns={columns}
         populateDataFn={populateDebitWindowStats}
         extraData={bonderStats}
         loading={fetchingDebitWindowStats}
+        error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

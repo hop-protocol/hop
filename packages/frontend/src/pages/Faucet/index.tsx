@@ -1,6 +1,6 @@
+import Faucet from 'src/pages/Faucet/Faucet'
+import FaucetContext from 'src/pages/Faucet/FaucetContext'
 import React from 'react'
-import Faucet from './Faucet'
-import FaucetContext from './FaucetContext'
 
 const fc = () => (
   <FaucetContext>

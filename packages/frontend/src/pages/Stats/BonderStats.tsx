@@ -1,14 +1,14 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import styled from 'styled-components/macro'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { Div, Flex, Icon } from 'src/components/ui'
-import { RightAlignedValue, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { Icon } from 'src/components/ui/Icon'
+import { RightAlignedValue, SortableTable } from 'src/components/Table'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populateBonderStats = (item: any) => {
   return {
-    chain: item.network.imageUrl,
-    token: item.token.imageUrl,
+    chain: item.network?.imageUrl,
+    token: item.token?.imageUrl,
     bonder: item.bonder,
     credit: item.credit,
     debit: item.debit,
@@ -16,14 +16,8 @@ export const populateBonderStats = (item: any) => {
     pendingAmount: item.pendingAmount,
     totalAmount: item.totalAmount,
     availableNative: item.availableNative,
-    vaultBalance: item.vaultBalance,
   }
 }
-
-const Container: any = styled(Div)<any>`
-  align-self: center;
-  overflow-x: scroll;
-`
 
 function BonderStats() {
   const { bonderStats, fetchingBonderStats } = useStats()
@@ -38,9 +32,9 @@ function BonderStats() {
             accessor: 'chain',
             Cell: ({ cell }) => {
               return (
-                <Flex justifyCenter {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
                   <Icon src={cell.value} />
-                </Flex>
+                </Box>
               )
             },
           },
@@ -49,9 +43,9 @@ function BonderStats() {
             accessor: 'token',
             Cell: ({ cell }) => {
               return (
-                <Flex justifyCenter {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
                   <Icon src={cell.value} />
-                </Flex>
+                </Box>
               )
             },
           },
@@ -60,9 +54,9 @@ function BonderStats() {
             accessor: 'bonder',
             Cell: ({ cell }) => {
               return (
-                <Flex justifyCenter {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
                   <CopyEthAddress value={cell.value} />
-                </Flex>
+                </Box>
               )
             },
           },
@@ -95,27 +89,25 @@ function BonderStats() {
             Header: 'Available Native',
             accessor: 'availableNative',
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
-          {
-            Header: 'Vault Balance',
-            accessor: 'vaultBalance',
-            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
+          }
         ],
       },
     ],
     []
   )
 
+  const error = bonderStats?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
-    <Container fontSize={[0, 1, 2]}>
+    <Box overflow-x="scroll" alignSelf="center">
       <SortableTable
         stats={bonderStats}
         columns={columns}
         populateDataFn={populateBonderStats}
         loading={fetchingBonderStats}
+        error={error}
       />
-    </Container>
+    </Box>
   )
 }
 

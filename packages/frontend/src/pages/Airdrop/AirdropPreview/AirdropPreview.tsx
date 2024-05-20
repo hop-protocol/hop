@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react'
-import Alert from 'src/components/alert/Alert'
-import Box from '@material-ui/core/Box'
-import { EthAddress } from 'src/components/ui'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
-import { StyledButton } from 'src/components/buttons/StyledButton'
-import Typography from '@material-ui/core/Typography'
-import { useDistribution } from './useDistribution'
-import Button from 'src/components/buttons/Button'
-import { useTheme } from '@material-ui/core'
-import { AddressModal } from './AddressModal'
-import { getAddress } from 'ethers/lib/utils'
-import InfoTooltip from 'src/components/InfoTooltip'
+import Box from '@mui/material/Box'
+import React, { useEffect, useState } from 'react'
+import Typography from '@mui/material/Typography'
+import { AddressModal } from 'src/pages/Airdrop/AirdropPreview/AddressModal'
+import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { EthAddress } from 'src/components/ui/EthAddress'
 import { ExternalLink } from 'src/components/Link'
-import { useHistory } from 'react-router-dom';
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { utils } from 'ethers'
 import { useClaim } from 'src/pages/Claim/useClaim'
+import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
+import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@mui/styles'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
   const theme = useTheme()
-  const history = useHistory()
+  const navigate = useNavigate()
   const { address } = useWeb3Context()
-  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
+  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address ?? '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001
@@ -41,7 +41,7 @@ export function AirdropPreview() {
 
   async function handleAddressChange(_address: string) {
     try {
-      setAirdropAddress(getAddress(_address))
+      setAirdropAddress(utils.getAddress(_address))
     } catch (err) {
       console.error(err)
       setAirdropAddress('')
@@ -202,7 +202,7 @@ export function AirdropPreview() {
                   </Box>
                 )}
 
-                <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
+                <Box my={2} style={{ borderTop: `1px solid ${theme.palette?.secondary?.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between" mb={4}>
                   <Typography variant="body1" component="div">
                     <strong>Total:</strong> <InfoTooltip
@@ -255,7 +255,7 @@ export function AirdropPreview() {
           {canClaim && (
             <Box mt={2} mb={3} display="flex" justifyContent="center" width="100%">
               <Button large highlighted onClick={() => {
-                  history.push('/claim')
+                  navigate('/claim')
                 }}>
                 Claim HOP
               </Button>

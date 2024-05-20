@@ -1,17 +1,16 @@
-import Logger from 'src/logger'
-import MerkleTree from 'src/utils/MerkleTree'
-import fs from 'fs'
-import path from 'path'
-import { Chain } from 'src/constants'
+import fs from 'node:fs'
+import path from 'node:path'
 import { Command } from 'commander'
+import { Logger } from '@hop-protocol/hop-node-core'
+import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import {
-  getAllChains,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   validateConfigFileStructure,
   validateConfigValues
-} from 'src/config'
+} from '#config/index.js'
+import type { BigNumber } from 'ethers'
 
 export const logger = new Logger('config')
 export const program = new Command()
@@ -24,7 +23,7 @@ export const root = program
   )
   .option('--env <path>', 'Environment variables file', parseString)
 
-export function actionHandler (fn: Function) {
+export function actionHandler (fn: (source: any) => any) {
   return async (source: any = {}) => {
     try {
       const configFilePath = source.config || source?.parent?.config
@@ -88,54 +87,15 @@ export function parseInputFileList (value: string) {
   return null
 }
 
-export function getWithdrawalProofData (
+export function getWithdrawalProofDataForCli (
   transferId: string,
   dbTransferRoot: any
-) {
-  const rootTotalAmount = dbTransferRoot.totalAmount.toString()
-  const transferIds = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
+): WithdrawalProofData {
+  const rootTotalAmount: BigNumber = dbTransferRoot.totalAmount
+  const transferIds: string[] = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
   if (!transferIds?.length) {
     throw new Error('expected transfer ids for transfer root hash')
   }
-  const tree = new MerkleTree(transferIds)
-  const leaves = tree.getHexLeaves()
-  const numLeaves = leaves.length
-  const transferIndex = leaves.indexOf(transferId)
-  const proof = tree.getHexProof(leaves[transferIndex])
 
-  return {
-    rootTotalAmount,
-    numLeaves,
-    proof,
-    transferIndex,
-    leaves
-  }
-}
-
-export function getSourceChains (token: string, settlementChain: string | null = null): string[] {
-  const allChains = getAllChains()
-  const sourceChains: string[] = []
-  for (const chain of allChains) {
-    if (
-      chain === Chain.Ethereum ||
-      chain === settlementChain
-    ) continue
-
-    if (token === 'MATIC') {
-      if (
-        chain === Chain.Arbitrum ||
-        chain === Chain.Optimism
-      ) continue
-    }
-
-    if (token === 'SNX') {
-      if (
-        chain !== Chain.Optimism
-      ) continue
-    }
-
-    sourceChains.push(chain)
-  }
-
-  return sourceChains
+  return getWithdrawalProofData(transferId, rootTotalAmount, transferIds)
 }

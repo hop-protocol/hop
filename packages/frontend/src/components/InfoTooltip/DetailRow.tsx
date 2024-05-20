@@ -1,14 +1,15 @@
-import React, { FC, ReactFragment } from 'react'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import InfoTooltip from 'src/components/InfoTooltip'
-import classnames from 'classnames'
-import { Flex } from '../ui'
+import Box from '@mui/material/Box'
+import React, { FC } from 'react'
+import Typography from '@mui/material/Typography'
+import clsx from 'clsx'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { Theme } from '@mui/material/styles'
+import { makeStyles } from '@mui/styles'
 
 export type DetailRowProps = {
   title: string
-  value: string | undefined
-  tooltip?: ReactFragment
+  value?: any
+  tooltip?: React.ReactNode
   highlighted?: boolean
   large?: boolean
   xlarge?: boolean
@@ -22,15 +23,16 @@ type StyleProps = {
   contrastText: boolean
 }
 
-const useStyles = makeStyles<Theme, StyleProps>(theme => {
+const useStyles = makeStyles<Theme, StyleProps>((theme: any) => {
   const label = {
+    width: '100% !important',
     color: ({ highlighted, contrastText }) => {
       if (highlighted) {
-        return theme.palette.primary.main
+        return `${theme.palette.primary.main} !important`
       } else if (contrastText) {
-        return 'white'
+        return 'white !important'
       } else {
-        return theme.palette.text.secondary
+        return `${theme.palette.text.secondary} !important`
       }
     },
     fontWeight: ({ bold }) => (bold ? 800 : 700),
@@ -40,22 +42,32 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
     detailLabel: {
       display: 'flex',
       alignItems: 'center',
+      width: '100%',
     },
     label,
     xlabel: Object.assign(
       {
         fontSize: '2.8rem',
         textAlign: 'right',
+        width: '100%',
+        whiteSpace: 'nowrap',
         [theme.breakpoints.down('xs')]: {
           fontSize: '2rem',
         },
       } as any,
       label
     ),
+    mobileFlexColumn: {
+      '@media (max-width: 550px)': {
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+      },
+    },
+    noop: {}
   }
 })
 
-const DetailRow: FC<DetailRowProps> = props => {
+export const DetailRow: FC<DetailRowProps> = props => {
   const {
     title,
     tooltip,
@@ -70,15 +82,15 @@ const DetailRow: FC<DetailRowProps> = props => {
   const variant = xlarge || large ? 'h6' : 'subtitle2'
 
   return (
-    <Flex justifyBetween alignCenter fullWidth mt="1rem">
+    <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mt="1rem" className={xlarge ? styles.mobileFlexColumn : styles.noop}>
       <Typography
         variant={variant}
         color="textSecondary"
-        className={classnames(styles.detailLabel, styles.label)}
+        className={clsx(styles.detailLabel, styles.label)}
       >
-        <Flex $wrap maxWidth={[100, 1000]}>
+        <Box display="column" flexWrap="wrap">
           {title}&nbsp;
-        </Flex>
+        </Box>
         {tooltip ? <InfoTooltip title={tooltip} /> : null}
       </Typography>
       <Typography
@@ -89,8 +101,6 @@ const DetailRow: FC<DetailRowProps> = props => {
       >
         {value || '•'}
       </Typography>
-    </Flex>
+    </Box>
   )
 }
-
-export default DetailRow

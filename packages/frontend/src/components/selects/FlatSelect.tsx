@@ -1,16 +1,18 @@
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Select, { SelectProps } from '@material-ui/core/Select'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import Select, { SelectProps } from '@mui/material/Select'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
-    color: value === 'default' ? 'white' : theme.palette.text.secondary,
-    background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
-    width: '13.5rem',
+    color: value === 'default' ? '#fff' : theme.palette.text.secondary,
+    background: value === 'default' ? theme.bgGradient?.flat : theme.palette.action.disabled,
+    minWidth: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
-    '&.MuiSelect-select': {
+    '& .MuiSelect-select': {
+      minHeight: '0',
+      padding: '0',
       paddingRight: '2.8rem',
     },
     fontSize: '1.8rem',
@@ -20,8 +22,17 @@ const useStyles = makeStyles(theme => ({
       borderRadius: '2.3rem',
       backgroundColor: theme.palette.action.disabled,
     },
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none'
+    },
+    '&.MuiInputBase-colorPrimary': {
+      '& .MuiTypography-root': {
+        color: value === 'default' ? theme.palette?.primary.contrastText : 'inherit',
+      },
+    },
     [theme.breakpoints.down('xs')]: {
-      width: '12rem',
+      minWidth: 0,
+      maxWidth: '100%',
     },
   }),
   selectMenu: {
@@ -29,9 +40,9 @@ const useStyles = makeStyles(theme => ({
     height: '3.6rem',
   },
   icon: ({ value }: any) => ({
-    top: 'calc(50% - 0.75rem)',
-    right: '0.8rem',
-    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+    top: 'calc(50% - 0.75rem) !important',
+    right: '0.8rem !important',
+    color: `${value === 'default' ? '#fff' : theme.palette.text.secondary} !important`,
   }),
 }))
 

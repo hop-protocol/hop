@@ -1,23 +1,80 @@
-import buildInfo from 'src/.build-info.json'
-import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
-import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
-import os from 'os'
-import path from 'path'
-import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
-import { Tokens as Metadata } from '@hop-protocol/core/metadata'
-import { Networks } from '@hop-protocol/core/networks'
-import { parseEther } from 'ethers/lib/utils'
-import * as goerliConfig from './goerli'
-import * as kovanConfig from './kovan'
-import * as mainnetConfig from './mainnet'
-import * as stagingConfig from './staging'
-import * as testConfig from './test'
-require('./loadEnvFile')
-const defaultDbPath = path.resolve(__dirname, '../../../db_data')
+import { execSync } from 'node:child_process'
+import os from 'node:os'
+import path from 'node:path'
+import url from 'node:url'
+import { type Addresses, type Bonders, type Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
+import {
+  TimeIntervals,
+  AVG_BLOCK_TIME_SECONDS,
+} from '@hop-protocol/hop-node-core'
+import { CoreEnvironment } from '@hop-protocol/hop-node-core'
+import { DefaultBondThreshold } from '#constants/index.js'
+import { utils } from 'ethers'
+import type { Bps } from '@hop-protocol/sdk'
+import type {
+  SignerConfig,
+  Tokens
+} from '@hop-protocol/hop-node-core'
+import {
+  normalizeEnvVarArray,
+  normalizeEnvVarNumber,
+} from './types.js'
+import type { BonderConfig } from './types.js'
+import type { SyncType } from '#constants/index.js'
+import { loadEnvFile } from 'node:process'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
+import {
+  ChainSlug,
+  NetworkSlug,
+  TokenSymbol,
+  getNetworks,
+  sdkConfig as coreConfig
+} from '@hop-protocol/sdk'
 
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
+
+export type BlocklistConfig = {
+  path: string
+  addresses: Record<string, boolean>
+}
+const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
+
+// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
+export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
+const dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const defaultDbPath = path.resolve(dirname, '../../db_data')
+// const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
-export const hostname = process.env.HOSTNAME ?? os.hostname()
+export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL
+
+// This value must be longer than the longest chain's finality
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : TimeIntervals.ONE_HOUR_MS
+export const BondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
+export const RelayTransactionBatchSize = BondWithdrawalBatchSize
+
+export const defaultConfigDir = `${os.homedir()}/.hop`
+export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
+export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
+export const minEthBonderFeeBn = utils.parseEther('0.00001')
+export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
+export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
+export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
+export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?? DefaultBondThreshold
+// TODO: Normalize bool. This will be true if ENFORCE_RELAYER_FEE is set to anything
+export const EnforceRelayerFee = !!process.env.ENFORCE_RELAYER_FEE ?? false
+export const isTestMode = !!process.env.TEST_MODE
+
+// Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
+// available liquidity watcher to have up-to-date info
+export const SyncIntervalSec = process.env.SYNC_INTERVAL_SEC ? Number(process.env.SYNC_INTERVAL_SEC) : 30
+export const SyncIntervalMultiplier = process.env.SYNC_INTERVAL_MULTIPLIER ? Number(process.env.SYNC_INTERVAL_MULTIPLIER) : 1
+export const SyncCyclesPerFullSync = process.env.SYNC_CYCLES_PER_FULL_SYNC ? Number(process.env.SYNC_CYCLES_PER_FULL_SYNC) : 60
+
+// Slack
 export const slackChannel = process.env.SLACK_CHANNEL
 export const slackWarnChannel = process.env.SLACK_WARN_CHANNEL // optional
 export const slackErrorChannel = process.env.SLACK_ERROR_CHANNEL // optional
@@ -26,44 +83,80 @@ export const slackLogChannel = process.env.SLACK_LOG_CHANNEL // optional
 export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
 export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
-export const gasBoostWarnSlackChannel = process.env.GAS_BOOST_WARN_SLACK_CHANNEL // optional
-export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANNEL // optional
-export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
+
+export const etherscanApiKeys: Record<string, string> = {
+  [ChainSlug.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
+  [ChainSlug.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
+  [ChainSlug.Optimism]: process.env.OPTIMISM_API_KEY ?? '',
+  [ChainSlug.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
+  [ChainSlug.Gnosis]: process.env.XDAI_API_KEY ?? '',
+  [ChainSlug.Nova]: process.env.NOVA_API_KEY ?? '',
+  [ChainSlug.Base]: process.env.BASE_API_KEY ?? '',
+  [ChainSlug.Linea]: process.env.LINEA_API_KEY ?? '',
+  [ChainSlug.PolygonZk]: process.env.POLYGONZK_API_KEY ?? ''
+}
+
+/**
+ * Core Config
+ */
+
+// Other
+export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
+export const envNetwork = process.env.NETWORK as NetworkSlug ?? NetworkSlug.Mainnet
+export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
+export const rpcTimeoutSeconds = normalizeEnvVarNumber(process.env.RPC_TIMEOUT_SECONDS) ?? 90
+export const CoingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
+export const hostname = process.env.HOSTNAME ?? os.hostname()
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
+
+// Gasboost
+export const setLatestNonceOnStart = !!process.env.SET_LATEST_NONCE_ON_START ?? false
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
 export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
-export const minPriorityFeePerGas = normalizeEnvVarNumber(process.env.MIN_PRIORITY_FEE_PER_GAS)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
 export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
 export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
-export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
-export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+// This value must be longer than the longest chain's finality
+export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
+export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
+
+// AWS
+export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID ?? ''
+export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY ?? ''
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
-export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = buildInfo.rev
-export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
-export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
-export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
-export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
-export const relayTransactionBatchSize = bondWithdrawalBatchSize
-export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
-const envNetwork = process.env.NETWORK ?? Network.Mainnet
-const isTestMode = !!process.env.TEST_MODE
-const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
-export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon])
-export const rateLimitMaxRetries = 5
-export const rpcTimeoutSeconds = 90
-export const defaultConfigDir = `${os.homedir()}/.hop-node`
-export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
-export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
-export const minEthBonderFeeBn = parseEther('0.00001')
-export const pendingCountCommitThreshold = 256
-export const appTld = process.env.APP_TLD ?? 'hop.exchange'
-export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+export const emergencyDryMode = false
 
-// TODO: Remove this when the exit system is fully live
-export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
+CoreEnvironment.getInstance().setEnvironment({
+  // Gasboost
+  setLatestNonceOnStart,
+  gasPriceMultiplier,
+  initialTxGasPriceMultiplier,
+  priorityFeePerGasCap,
+  maxGasPriceGwei,
+  timeTilBoostMs,
+  maxPriorityFeeConfidenceLevel,
+  blocknativeApiKey,
+
+  // AWS
+  awsAccessKeyId,
+  awsSecretAccessKey,
+  awsRegion,
+
+  // Other
+  gitRev,
+  envNetwork,
+  rateLimitMaxRetries,
+  rpcTimeoutSeconds,
+  CoingeckoApiKey,
+  hostname,
+  appTld,
+})
+
+if (bonderPrivateKey) {
+  const coreEnvironment = CoreEnvironment.getInstance()
+  coreEnvironment.setBonderPrivateKey(bonderPrivateKey)
+}
 
 type SyncConfig = {
   totalBlocks?: number
@@ -73,158 +166,187 @@ type SyncConfigs = { [key: string]: SyncConfig }
 type DbConfig = {
   path: string
 }
-type MetricsConfig = {
-  enabled: boolean
-  port?: number
-}
-
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-}
 
 export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
 export type CommitTransfersConfig = {
   minThresholdAmount: Record<string, Record<string, Record<string, any>>>
 }
-type Tokens = Record<string, boolean>
 
-export type VaultChainTokenConfig = {
-  depositThresholdAmount: number
-  depositAmount: number
-  autoDeposit: boolean
-  autoWithdraw: boolean
-  strategy: string
-}
-
-export type VaultChain = {
-  ethereum?: VaultChainTokenConfig
-  polygon?: VaultChainTokenConfig
-  gnosis?: VaultChainTokenConfig
-  optimism?: VaultChainTokenConfig
-  arbitrum?: VaultChainTokenConfig
-}
-
-export type Vault = Record<string, VaultChain>
-
-export type BlocklistConfig = {
-  path: string
-  addresses: Record<string, boolean>
+export type MetricsConfig = {
+  enabled: boolean
+  port?: number
 }
 
 export type Config = {
-  isMainnet: boolean
   tokens: Tokens
-  addresses: Bridges & {[network: string]: any}
-  network: string
-  networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
-  metadata: Metadata & {[network: string]: any}
+  signerConfig: SignerConfig
+  blocklist: BlocklistConfig
+  emergencyDryMode: boolean
+  isMainnet: boolean
+  network: string
+  networks: any & {[network: string]: any}
+  addresses: Partial<Bridges> & {[network: string]: any}
   bonders: Bonders
+  bonderConfig: BonderConfig
   db: DbConfig
   sync: SyncConfigs
-  metrics: MetricsConfig
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
-  vault: Vault
-  blocklist: BlocklistConfig
+  metrics: MetricsConfig
 }
 
-const networkConfigs: {[key: string]: any} = {
-  test: testConfig,
-  kovan: kovanConfig,
-  goerli: goerliConfig,
-  mainnet: mainnetConfig,
-  staging: stagingConfig
-}
+const networkConfigs: {[key: string]: any} = {}
 
-const normalizeNetwork = (network: string) => {
-  if (network === Network.Staging) {
-    return Network.Mainnet
+for (const network of getNetworks()) {
+  if (network.slug !== envNetwork) continue
+  const coreEnvironment = CoreEnvironment.getInstance()
+  const { bridges: addresses, bonders } = coreAddresses[network.slug]
+  const bonderConfig: BonderConfig = {}
+  const networks: any = {}
+
+  for (const chain of Object.values(network.chains)) {
+    if (!networks[chain.slug]) {
+      networks[chain.slug] = {}
+    }
+    networks[chain.slug].name = chain.name
+    networks[chain.slug].chainId = Number(chain.chainId)
+    networks[chain.slug].rpcUrl = chain.publicRpcUrl
+    networks[chain.slug].subgraphUrl = chain.subgraphUrl
+    coreEnvironment.setRpcUrl(chain.slug, chain.publicRpcUrl)
   }
-  return network
+
+  bonderConfig.totalStake = coreConfig[network.slug].bonderTotalStake
+
+  // Convert USDC to USDC.e
+  if (addresses.USDC && addresses['USDC.e']) {
+    addresses.USDC = addresses['USDC.e']
+    delete addresses['USDC.e']
+  }
+
+  // Convert USDC to USDC.e
+  if (bonders.USDC && bonders['USDC.e']) {
+    bonders.USDC = bonders['USDC.e']
+    delete bonders['USDC.e']
+  }
+
+  const networkInfo = { addresses, bonders, bonderConfig, networks }
+  networkConfigs[network.slug] = networkInfo
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
-  network = normalizeNetwork(network)
-  const isMainnet = network === Network.Mainnet
+const getConfigByNetwork = (network: NetworkSlug | string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'bonderConfig' | 'networks' | 'isMainnet'> => {
+  const networkConfig = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  if (!networkConfig) {
+    throw new Error(`Network config not found for network: ${network}`)
+  }
+
+  const { addresses, bonders, bonderConfig, networks } = networkConfig
+  const isMainnet = network === NetworkSlug.Mainnet
 
   return {
     network,
     addresses,
     bonders,
+    bonderConfig,
     networks,
-    metadata,
     isMainnet
   }
 }
 
-// get default config
-const { addresses, bonders, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
-// defaults
+const { network, networks, addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
+
+const DefaultBatchBlocks = 10000
+export const TotalBlocks = {
+  Ethereum: Math.floor(TimeIntervals.ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!),
+  Polygon: Math.floor(TimeIntervals.ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Polygon]!),
+  Gnosis: Math.floor(TimeIntervals.ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Gnosis]!)
+}
+
 export const config: Config = {
+  tokens: {},
+  bonderPrivateKey: '',
+  signerConfig: {
+    type: 'keystore'
+  },
+  blocklist: {
+    path: '',
+    addresses: {}
+  },
+  emergencyDryMode: false,
   isMainnet,
-  addresses,
   network,
   networks,
-  tokens: {},
-  bonderPrivateKey: bonderPrivateKey ?? '',
-  metadata,
+  addresses,
   bonders,
+  bonderConfig,
   fees: {},
   routes: {},
   db: {
     path: defaultDbPath
   },
   sync: {
-    [Chain.Ethereum]: {
+    [ChainSlug.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
       batchBlocks: 2000
     },
-    [Chain.Arbitrum]: {
+    [ChainSlug.Arbitrum]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },
-    [Chain.Optimism]: {
+    [ChainSlug.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
-    [Chain.Polygon]: {
+    [ChainSlug.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
       batchBlocks: 2000
     },
-    [Chain.Gnosis]: {
+    [ChainSlug.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,
       batchBlocks: DefaultBatchBlocks
+    },
+    [ChainSlug.Nova]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [ChainSlug.ZkSync]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [ChainSlug.Linea]: {
+      totalBlocks: 100_000,
+      batchBlocks: 2000
+    },
+    [ChainSlug.ScrollZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [ChainSlug.Base]: {
+      totalBlocks: 100_000,
+      batchBlocks: 2000
+    },
+    [ChainSlug.PolygonZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
     }
-  },
-  metrics: {
-    enabled: false
   },
   commitTransfers: {
     minThresholdAmount: {}
   },
-  vault: {},
-  blocklist: {
-    path: '',
-    addresses: {}
-  }
+  metrics: {
+    enabled: false
+  },
 }
 
 export const setConfigByNetwork = (network: string) => {
-  const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
+  const { addresses, networks, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
   config.addresses = addresses
-  config.network = normalizeNetwork(network)
+  config.network = network
   config.networks = networks
-  config.metadata = metadata
 }
 
 export const setConfigAddresses = (addresses: Addresses) => {
@@ -236,41 +358,50 @@ export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
 }
 
-export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
+export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
+  if (config.networks[network]) {
+    config.networks[network].customSyncType = customSyncType
+  }
 }
 
-export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
-  const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
-  return bonder
-}
+// Core Setters
 
 export const setBonderPrivateKey = (privateKey: string) => {
+  const coreEnvironment = CoreEnvironment.getInstance()
   config.bonderPrivateKey = privateKey
+  coreEnvironment.setBonderPrivateKey(privateKey)
 }
 
 export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  network = normalizeNetwork(network)
+  const coreEnvironment = CoreEnvironment.getInstance()
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
+    coreEnvironment.setRpcUrl(network as ChainSlug, rpcUrl)
+  }
+}
+
+export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
+  if (config.networks[network]) {
+    config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].maxGasPrice = maxGasPrice
   }
 }
 
-export const getNetworkMaxGasPrice = (network: string) => {
-  return config.networks[network].maxGasPrice
+export const getNetworkCustomSyncType = (network: string): SyncType | undefined => {
+  return config.networks[network]?.customSyncType
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (const network of networks) {
+    if (!syncConfigs[network]) {
+      continue
+    }
     if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}
@@ -294,7 +425,7 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.addresses) {
+  for (const token in config.tokens) {
     for (const network in config.addresses[token]) {
       networks[network] = true
     }
@@ -308,6 +439,22 @@ export function getAllChains () {
 
 export function getAllTokens () {
   return Object.keys(config.addresses)
+}
+
+export function getSourceChains (tokenSymbol: string, settlementChain?: string): string[] {
+  const enabledChains = getAllChains()
+  const sourceChains = new Set<string>([])
+  for (const chain of enabledChains) {
+    if (chain === ChainSlug.Ethereum || chain === settlementChain) {
+      continue
+    }
+    if (!config.addresses[tokenSymbol][chain]) {
+      continue
+    }
+    sourceChains.add(chain)
+  }
+
+  return Array.from(sourceChains)
 }
 
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
@@ -330,8 +477,10 @@ export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
 }
 
-export const setVaultConfig = (vault: Vault) => {
-  config.vault = { ...config.vault, ...vault }
+export const setSignerConfig = (signerConfig: SignerConfig) => {
+  const coreEnvironment = CoreEnvironment.getInstance()
+  config.signerConfig = { ...config.signerConfig, ...signerConfig }
+  coreEnvironment.setSignerConfig(signerConfig)
 }
 
 export const setBlocklistConfig = (blocklist: BlocklistConfig) => {
@@ -354,6 +503,25 @@ export enum Watchers {
   L1ToL2Relay = 'L1ToL2Relay',
 }
 
-export { Bonders }
-export * from './validation'
-export * from './fileOps'
+export function enableEmergencyMode () {
+  config.emergencyDryMode = true
+}
+
+export const getBonderTotalStake = (token: string): number | undefined => {
+  return config.bonderConfig?.totalStake?.[token as TokenSymbol]
+}
+
+const getConfigBondersForToken = (token: string) => {
+  return config.bonders?.[token as TokenSymbol]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
+  return bonder
+}
+
+
+export { type Bonders }
+export * from './validation.js'
+export * from './fileOps.js'

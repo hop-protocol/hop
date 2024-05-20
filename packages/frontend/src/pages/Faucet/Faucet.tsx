@@ -1,14 +1,15 @@
-import React, { FC, ChangeEvent, SyntheticEvent } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
-import Box from '@material-ui/core/Box'
-import { useApp } from 'src/contexts/AppContext'
+import Box from '@mui/material/Box'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import Alert from 'src/components/alert/Alert'
-import { useFaucet } from 'src/pages/Faucet/FaucetContext'
-import Button from 'src/components/buttons/Button'
+import React, { FC } from 'react'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { findMatchingBridge } from 'src/utils'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -32,22 +33,37 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const mintAmounts = {
+  HOP: '1000',
+  USDT: '100',
+  DAI: '100',
+  UNI: '10',
+}
+
 const Faucet: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { mintToken, mintAmount, isMinting, error, setError, tokens, selectedNetwork } = useFaucet()
+  const { mintToken, mintAmount, setMintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
 
-  const handleMint = () => {
-    mintToken()
-  }
-
-  const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTokenChange = (event: SelectChangeEvent<unknown>) => {
     const tokenSymbol = event.target.value as string
     const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
   }
+
+  let selectedToken = selectedBridge?.getTokenSymbol()
+  if (selectedToken === 'ETH' || selectedToken === 'USDC') {
+    selectedToken = 'HOP'
+  }
+
+  const handleMint = () => {
+    mintToken(selectedToken)
+  }
+  setMintAmount(mintAmounts[selectedToken])
+
+  const filteredTokens = tokens?.filter(token => token.symbol !== 'ETH')
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -59,22 +75,18 @@ const Faucet: FC = () => {
       <Box display="flex" alignItems="center" className={styles.box}>
         <Box display="flex" alignItems="center" flexDirection="row" className={styles.selectBox}>
           <Typography variant="body1" className={styles.text}>
-            Mint {mintAmount} {selectedNetwork?.name}
+            Mint {mintAmount} {selectedToken}
           </Typography>
-          <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleTokenChange}>
-            {tokens.filter(token => token.symbol !== 'ETH').map(token => (
-              <MenuItem value={token.symbol} key={token.symbol}>
-                {token.symbol}
-              </MenuItem>
-            ))}
-          </RaisedSelect>
+          {filteredTokens?.length > 0 && (
+            <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
+              {filteredTokens.filter(token => token.symbol !== 'USDC').map(token => (
+                <MenuItem value={token.symbol} key={token.symbol}>
+                  {token.symbol}
+                </MenuItem>
+              ))}
+            </RaisedSelect>
+          )}
         </Box>
-        <Alert
-          className={styles.alert}
-          severity="error"
-          onClose={() => setError(null)}
-          text={error}
-        />
         <Button
           className={styles.button}
           onClick={handleMint}
@@ -82,8 +94,20 @@ const Faucet: FC = () => {
           highlighted
           loading={isMinting}
         >
-          Mint {selectedBridge?.getTokenSymbol()}
+          Mint {selectedToken}
         </Button>
+        <Alert
+          className={styles.alert}
+          severity="error"
+          onClose={() => setError('')}
+          text={error}
+        />
+        <Alert
+          className={styles.alert}
+          severity="success"
+          onClose={() => setSuccess('')}
+          text={success}
+        />
       </Box>
     </Box>
   )

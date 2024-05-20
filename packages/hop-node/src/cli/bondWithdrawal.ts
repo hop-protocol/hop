@@ -1,12 +1,17 @@
+import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import type { SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
+import type { Transfer } from '#db/TransfersDb.js'
 
-import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('bond-withdrawal')
   .description('Bond withdrawal')
+  .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-ids <id, ...>', 'Comma-separated transfer ids', parseStringArray)
   .option('--transfer-ids-file <filepath>', 'Filenamepath containing list of transfer IDs', parseInputFileList)
@@ -18,7 +23,16 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { token, dry: dryMode, transferIds, transferIdsFile: transferIdsFileList } = source
+  let {
+    sourceChain: chain,
+    token,
+    dry: dryMode,
+    transferIds,
+    transferIdsFile: transferIdsFileList
+  } = source
+  if (!chain) {
+    throw new Error('source chain is required in order to apply correct reorg redundant protection')
+  }
   if (transferIdsFileList && !transferIds) {
     transferIds = transferIdsFileList
   }
@@ -29,23 +43,40 @@ async function main (source: any) {
     throw new Error('transfer ID is required')
   }
 
-  const watcher = await getBondWithdrawalWatcher({ token, dryMode })
+  const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   for (const transferId of transferIds) {
     try {
-      const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
+      const dbTransfer: Transfer | null = await watcher.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         throw new Error('TransferId does not exist in the DB')
       }
-      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
-      if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1) {
+      if (dbTransfer.sourceChainSlug !== chain) {
+        throw new Error(`Source chain from DB does not match the source chain: dbTransfer.sourceChainSlug=${dbTransfer.sourceChainSlug}, chain=${chain}`)
+      }
+      const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin!, dbTransfer.deadline!)
+      if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {
         throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
       }
 
-      await watcher.sendBondWithdrawalTx(dbTransfer)
+      const txParams: SendBondWithdrawalTxParams = {
+        transferId: dbTransfer.transferId,
+        recipient: dbTransfer.recipient!,
+        amount: dbTransfer.amount!,
+        transferNonce: dbTransfer.transferNonce!,
+        bonderFee: dbTransfer.bonderFee!,
+        attemptSwap,
+        destinationChainId: dbTransfer.destinationChainId!,
+        amountOutMin: dbTransfer.amountOutMin!,
+        deadline: dbTransfer.deadline!,
+        transferSentIndex: dbTransfer.transferSentIndex!,
+        transferSentTimestamp: dbTransfer.transferSentTimestamp!,
+        isFinalized: dbTransfer.isFinalized!
+      }
+      await watcher.sendBondWithdrawalTx(txParams)
     } catch (err: any) {
       console.log(err)
       // nop

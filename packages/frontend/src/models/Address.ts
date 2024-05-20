@@ -2,7 +2,7 @@ import { utils } from 'ethers'
 
 export type Addressish = Address | string | undefined
 
-class Address {
+export class Address {
   public readonly address: string
 
   constructor(address: Addressish) {

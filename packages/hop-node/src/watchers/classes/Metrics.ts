@@ -1,8 +1,9 @@
-import { config as globalConfig, hostname } from 'src/config'
-import { metrics } from 'src/metrics'
+import { config as globalConfig } from '#config/index.js'
+import { hostname } from '#config/index.js'
+import { metrics } from '#metrics/index.js'
 
 class Metrics {
-  metrics = metrics
+  metrics: any = metrics
   enabled: boolean = globalConfig?.metrics?.enabled
 
   setBonderBalance (chain: string, token: string, balance: number) {

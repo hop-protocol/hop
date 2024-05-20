@@ -1,19 +1,21 @@
-import OsWatcher from 'src/watchers/OsWatcher'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
+import OsWatcher from '#watchers/OsWatcher.js'
 import {
-  bondWithdrawalBatchSize,
-  gitRev,
+  BondThreshold,
+  BondWithdrawalBatchSize,
   config as globalConfig,
   slackAuthToken,
   slackChannel,
-  slackUsername
-} from 'src/config'
-
-import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
-import { printHopArt } from './shared/art'
+  slackUsername,
+} from '#config/index.js'
+import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
+import { utils } from 'ethers'
+import { main as enableCCTP } from './shared/cctp.js'
+import { printHopArt } from './shared/art.js'
 import {
   startWatchers
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import { gitRev } from '#config/index.js'
 
 root
   .description('Start Hop node')
@@ -27,7 +29,6 @@ root
     'File containing password to unlock keystore',
     parseString
   )
-  .option('--clear-db [boolean]', 'Clear cache database on start', parseBool)
   .option('--log-db-state [boolean]', 'Log db state periodically', parseBool)
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
@@ -36,6 +37,13 @@ root
   .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
+  .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
+  .option('--cctp [boolean]', 'Run CCTP', parseBool)
+  .option(
+    '--arb-bot-config <path>',
+    'Arb bot(s) config JSON file',
+    parseString
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
@@ -43,7 +51,8 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig, cctp: runCCTP } = source
+
   if (!config) {
     throw new Error('config file is required')
   }
@@ -54,11 +63,6 @@ async function main (source: any) {
   }
   if (s3Namespace) {
     logger.info(`s3 namespace: ${s3Namespace}`)
-  }
-
-  if (clearDb) {
-    await clearDb()
-    logger.debug(`cleared db at: ${globalConfig.db.path}`)
   }
 
   const tokens = []
@@ -92,19 +96,54 @@ async function main (source: any) {
         config.settleBondedWithdrawals?.thresholdPercent
     }
   }
-  logger.debug(`bondWithdrawalBatchSize: ${bondWithdrawalBatchSize}`)
+  logger.debug(`BondWithdrawalBatchSize: ${BondWithdrawalBatchSize}`)
   const slackEnabled = slackAuthToken && slackChannel && slackUsername
   if (slackEnabled) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)
   }
   for (const k in globalConfig.networks) {
-    const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-    logger.info(`${k} wait confirmations: ${waitConfirmations}`)
+    if (!Object.keys(enabledNetworks).includes(k)) continue
+    const { rpcUrl, redundantRpcUrls, subgraphUrl, customSyncType } = globalConfig.networks[k]
     logger.info(`${k} rpc: ${rpcUrl}`)
+    logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
+    logger.info(`${k} subgraphUrl: ${subgraphUrl}`)
+    if (customSyncType) {
+      logger.info(`${k} customSyncType: ${customSyncType}`)
+    }
   }
   if (globalConfig.bonders) {
-    logger.info(`config bonders: ${JSON.stringify(globalConfig.bonders)}`)
+    const bonders: any = globalConfig.bonders
+    for (const token of tokens) {
+      logger.info(`config bonders for ${token}: ${JSON.stringify(bonders?.[token])}`)
+    }
   }
+
+  if (globalConfig?.bonderConfig) {
+    logger.info(`using bond threshold: ${BondThreshold}`)
+    const totalStake = globalConfig.bonderConfig?.totalStake
+    if (totalStake) {
+      for (const token of tokens) {
+        if (token in totalStake) {
+          logger.info(`bonder total stake for ${token}: ${totalStake[token]}`)
+        }
+      }
+    }
+  }
+
+  if (globalConfig.bonderPrivateKey) {
+    let privateKey = globalConfig.bonderPrivateKey
+    if (!globalConfig.bonderPrivateKey.startsWith('0x')) {
+      privateKey = '0x' + privateKey
+    }
+    const bonderPublicAddress = utils.computeAddress(privateKey)
+    logger.info('Bonder public address:', bonderPublicAddress)
+  }
+
+  // Don't start watchers if running CCTP
+  if (runCCTP) {
+    return enableCCTP()
+  }
+
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]

@@ -1,0 +1,1 @@
+select integration_partner, sum(amount_usd) as total_usd from transfers where timestamp > 1667894400 and integration_partner IS NOT NULL and integration_partner != '' group by integration_partner

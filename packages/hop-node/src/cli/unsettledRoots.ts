@@ -1,11 +1,12 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
+import getMultipleWithdrawalsSettled from '#theGraph/getMultipleWithdrawalsSettled.js'
+import getTransferIdsForTransferRoot from '#theGraph/getTransferIdsForTransferRoot.js'
+import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber, utils } from 'ethers'
-import { actionHandler, getSourceChains, parseString, root } from './shared'
+import { actionHandler, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { getSourceChains } from '#config/index.js'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -27,7 +28,7 @@ async function main (source: any) {
 
   console.log('\n*** This will only look back until 01/01/2022. Prior data may be invalid due to the OVM regenesis. ***\n')
   const startTimestamp = 1640995200
-  const decimals = getTokenDecimals(token)
+  const decimals = getTokenDecimals(token as TokenSymbol)
 
   // Get all settlements
   const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)
@@ -40,7 +41,7 @@ async function main (source: any) {
 
     // Get all roots that were committed at the source
     const settlementChainId = chainSlugToId(settlementChain)
-    const commitsRes = await getTransfersCommitted(chain, token, startTimestamp, settlementChainId)
+    const commitsRes = await getTransfersCommitted(chain, token, settlementChainId, startTimestamp)
     const rootsCommitted: any = {}
     for (const res of commitsRes) {
       rootsCommitted[res.rootHash] = BigNumber.from(res.totalAmount)
@@ -85,6 +86,7 @@ async function main (source: any) {
 
         tempAmt = tempAmt.add(bondData.amount)
         const bonder = bondData.from
+
         if (!bondedAmountPerBonder[bonder]) {
           bondedAmountPerBonder[bonder] = BigNumber.from('0')
         }

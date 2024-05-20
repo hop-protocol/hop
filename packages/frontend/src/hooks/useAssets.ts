@@ -1,8 +1,7 @@
-import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
-import { useMemo } from 'react'
-import { hopAppNetwork } from 'src/config'
-import logger from 'src/logger'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
+import { HopBridge } from '@hop-protocol/sdk'
+import { useMemo } from 'react'
 
 export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwork?: Network) {
   // Check if asset is supported by networks
@@ -39,33 +38,21 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     if (!(selectedBridge && network)) {
       return null
     }
-    const assetsWithoutAmm = {
-      Polygon: [CanonicalToken.HOP],
-      Optimism: [CanonicalToken.HOP],
-      Arbitrum: [CanonicalToken.HOP],
-      Gnosis: [CanonicalToken.HOP],
-    }
-    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in assetsWithoutAmm) {
-      const tokenSymbols = assetsWithoutAmm[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedTokenSymbol === tokenSymbol &&
-          [network?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
-        }
+    const nonAmmAssets = selectedBridge.getNonAmmAssets()
+    const tokenSymbol = selectedBridge?.getTokenSymbol()
+    const isUnsupported = nonAmmAssets.has(tokenSymbol)
+    if (isUnsupported) {
+      return {
+        chain: network?.slug,
+        tokenSymbol
       }
     }
 
     return null
   }, [selectedBridge, network, toNetwork])
 
-  // Set source token
-  const sourceToken = useMemo(() => {
+  // Set from token
+  const fromToken = useMemo(() => {
     try {
       if (!network || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(network?.slug)
@@ -74,8 +61,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     }
   }, [unsupportedAsset, selectedBridge, network])
 
-  // Set destination token
-  const destToken = useMemo(() => {
+  // Set to token
+  const toToken = useMemo(() => {
     try {
       if (!toNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(toNetwork?.slug)
@@ -92,8 +79,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
 
   return {
     unsupportedAsset,
-    sourceToken,
-    destToken,
+    fromToken,
+    toToken,
     placeholderToken,
     assetWithoutAmm
   }

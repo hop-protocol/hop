@@ -1,24 +1,26 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useInterval } from 'react-use'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import './App.css'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton'
-import Alert from '@mui/material/Alert'
-import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import { providers } from 'ethers'
-import { formatEther } from 'ethers/lib/utils'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import LoadingButton from '@mui/lab/LoadingButton'
+import MenuItem from '@mui/material/MenuItem'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/sdk'
-import './App.css'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { providers, utils } from 'ethers'
+import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useInterval } from 'usehooks-ts'
+
+// Temp fix to resolve type issues
+const AnySyntaxHighlighter = SyntaxHighlighter as any
 
 function TokenDropdown (props: any) {
-  const { label, value, handleChange } = props
+  const { label, tokens, value, handleChange } = props
   return (
     <FormControl fullWidth>
       <InputLabel id="select-label">{label}</InputLabel>
@@ -29,17 +31,18 @@ function TokenDropdown (props: any) {
         label={label}
         onChange={handleChange}
       >
-        <MenuItem value="USDC">USDC</MenuItem>
-        <MenuItem value="USDT">USDT</MenuItem>
-        <MenuItem value="DAI">DAI</MenuItem>
-        <MenuItem value="ETH">ETH</MenuItem>
+        {tokens?.map((token: any, i: number) => {
+          return (
+            <MenuItem key={i} value={token.symbol}>{token.symbol}</MenuItem>
+          )
+        })}
       </Select>
     </FormControl>
   )
 }
 
 function ChainDropdown (props: any) {
-  const { label, value, handleChange } = props
+  const { label, chains, value, handleChange } = props
   return (
     <FormControl fullWidth>
       <InputLabel id="select-label">{label}</InputLabel>
@@ -50,11 +53,11 @@ function ChainDropdown (props: any) {
         label={label}
         onChange={handleChange}
       >
-        <MenuItem value="ethereum">Ethereum</MenuItem>
-        <MenuItem value="arbitrum">Arbitrum</MenuItem>
-        <MenuItem value="optimism">Optimism</MenuItem>
-        <MenuItem value="polygon">Polygon</MenuItem>
-        <MenuItem value="gnosis">Gnosis</MenuItem>
+        {chains?.map((chain: any, i: number) => {
+          return (
+            <MenuItem key={i} value={chain.slug}>{chain.name}</MenuItem>
+          )
+        })}
       </Select>
     </FormControl>
   )
@@ -86,6 +89,16 @@ function App () {
     const bridge = hop.bridge(tokenSymbol)
     return bridge
   }, [tokenSymbol, signer])
+
+  const supportedChains = useMemo(() => {
+    const _chains = bridge.getSupportedChains()
+    return _chains.map((chainSlug: string) => bridge.toChainModel(chainSlug))
+  }, [bridge])
+
+  const supportedTokens = useMemo(() => {
+    const _tokens = bridge.getSupportedTokens()
+    return _tokens.map((tokenSymbol: string) => bridge.toTokenModel(tokenSymbol))
+  }, [bridge])
 
   const updateBalance = async () => {
     try {
@@ -248,7 +261,7 @@ function App () {
   }
 
   const isConnected = !!signer
-  const nativeTokenBalanceFormatted = address && nativeTokenBalance ? Number(formatEther(nativeTokenBalance)).toFixed(4) : '-'
+  const nativeTokenBalanceFormatted = address && nativeTokenBalance ? Number(utils.formatEther(nativeTokenBalance)).toFixed(4) : '-'
   const tokenBalanceFormatted = address && tokenBalance ? bridge.formatUnits(tokenBalance).toFixed(4) : '-'
   const totalFeeFormatted = estimate && amount ? `${bridge.formatUnits(estimate.totalFee).toFixed(4)} ${tokenSymbol}` : '-'
   const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'
@@ -319,17 +332,17 @@ main().catch(console.error)
                   </Typography>
                 </Box>
                 <Box mb={2}>
-                  <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
+                  <TokenDropdown tokens={supportedTokens} label="Token" value={tokenSymbol} handleChange={(event: any) => {
                     setTokenSymbol(event.target.value)
                   }} />
                 </Box>
                 <Box mb={2}>
-                  <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
+                  <ChainDropdown label="From Chain" chains={supportedChains} value={fromChain} handleChange={(event: any) => {
                     setFromChain(event.target.value)
                   }} />
                 </Box>
                 <Box mb={2}>
-                  <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
+                  <ChainDropdown label="To Chain" chains={supportedChains} value={toChain} handleChange={(event: any) => {
                     setToChain(event.target.value)
                   }} />
                 </Box>
@@ -372,13 +385,13 @@ main().catch(console.error)
                 )}
               </Box>
               <Box p={4}>
-                <SyntaxHighlighter
+                <AnySyntaxHighlighter
                   language="javascript"
                   style={theme}
                   showLineNumbers={true}
                 >
                   {codeSnippet}
-                </SyntaxHighlighter>
+                </AnySyntaxHighlighter>
               </Box>
             </Box>
           </Box>

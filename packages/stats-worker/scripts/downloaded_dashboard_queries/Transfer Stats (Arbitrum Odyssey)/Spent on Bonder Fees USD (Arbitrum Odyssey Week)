@@ -1,0 +1,1 @@
+select sum(bonder_fee_usd) as bonder_fees from transfers where "timestamp" > 1655830800 and timestamp < 1656349140

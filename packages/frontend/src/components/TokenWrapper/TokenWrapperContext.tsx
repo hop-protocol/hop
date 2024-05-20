@@ -1,16 +1,15 @@
-import React, { FC, createContext, useContext, useState, useMemo } from 'react'
-import { Signer, BigNumber } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
-import { Token } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
+import React, { FC, ReactNode, createContext, useContext, useMemo, useState } from 'react'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { formatError } from 'src/utils'
-import { useTransactionReplacement } from 'src/hooks'
+import { BigNumber, Signer, utils } from 'ethers'
+import { Token } from '@hop-protocol/sdk'
 import { defaultL2Network } from 'src/config/networks'
+import { formatError } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
 import { useQuery } from 'react-query'
+import { useTransactionReplacement } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 type TokenWrapperContextProps = {
   amount: string
@@ -48,7 +47,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   wrappedTokenBalance: undefined,
 })
 
-const TokenWrapperContextProvider: FC = ({ children }) => {
+const TokenWrapperContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
   const { txConfirm, selectedBridge } = useApp()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
@@ -105,7 +104,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     },
     {
       enabled: !!address?.address && !!canonicalToken && !!wrappedToken,
-      refetchInterval: 5e3,
+      refetchInterval: 5 * 1000,
     }
   )
 
@@ -114,7 +113,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setWrapping(true)
@@ -130,7 +131,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
-      const parsedAmount = parseUnits(amount, canonicalToken.decimals)
+      const parsedAmount = utils.parseUnits(amount, canonicalToken.decimals)
       if (parsedAmount.gt(data?.canonicalBalance)) {
         throw new Error('not enough balance')
       }
@@ -147,6 +148,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).wrapToken(parsedAmount)
         },
       })
@@ -174,7 +179,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setUnwrapping(true)
@@ -187,7 +194,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
-      const parsedAmount = parseUnits(amount, wrappedToken.decimals)
+      const parsedAmount = utils.parseUnits(amount, wrappedToken.decimals)
       if (parsedAmount.gt(data?.wrappedBalance)) {
         throw new Error('not enough balance')
       }
@@ -204,6 +211,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).unwrapToken(parsedAmount)
         },
       })

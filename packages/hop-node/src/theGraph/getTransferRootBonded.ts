@@ -1,6 +1,6 @@
-import makeRequest from './makeRequest'
-import { MaxInt32 } from 'src/constants'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { MaxInt32 } from '#constants/index.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferRootBonded (
   chain: string,
@@ -27,6 +27,7 @@ export default async function getTransferRootBonded (
         transactionHash
         amount
         timestamp
+        token
       }
     }
   `

@@ -1,20 +1,18 @@
-import Logger from 'src/logger'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransfer from 'src/theGraph/getTransfer'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
-import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
-import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
+import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
+import getTransferSent from '#theGraph/getTransferSent.js'
+import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
+import { BigNumber, Contract, utils } from 'ethers'
+import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { promiseQueue } from 'src/utils/promiseQueue'
+import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { Logger } from '@hop-protocol/hop-node-core'
+import { getEnabledTokens } from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
+import { promiseQueue } from '@hop-protocol/hop-node-core'
+import { wait } from '@hop-protocol/hop-node-core'
 
 type Options = {
   token?: string
@@ -29,14 +27,18 @@ class IncompleteSettlementsWatcher {
   format: string = 'table'
 
   chains: string[] = [
-    Chain.Ethereum,
-    Chain.Arbitrum,
-    Chain.Optimism,
-    Chain.Gnosis,
-    Chain.Polygon
+    ChainSlug.Ethereum,
+    ChainSlug.Arbitrum,
+    ChainSlug.Optimism,
+    ChainSlug.Gnosis,
+    ChainSlug.Polygon,
+    ChainSlug.Nova,
+    ChainSlug.Base,
+    ChainSlug.PolygonZk,
+    ChainSlug.Linea
   ]
 
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'HOP', 'SNX', 'sUSD']
+  tokens: string[] = getEnabledTokens()
 
   days: number = 7
   offsetDays: number = 0
@@ -90,12 +92,12 @@ class IncompleteSettlementsWatcher {
   }
 
   private async tilReady (): Promise<any> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-
-    await wait(100)
-    return await this.tilReady()
   }
 
   private async sync () {
@@ -111,11 +113,7 @@ class IncompleteSettlementsWatcher {
       const promises: Array<Promise<any>> = []
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
-        if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
-          continue
-        }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
-        if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
+        if (!isTokenSupportedForChain(token, chain)) {
           continue
         }
         if (chain === 'ethereum') {
@@ -140,18 +138,18 @@ class IncompleteSettlementsWatcher {
     await Promise.all(this.chains.map(async (chain: string) => {
       this.logger.debug(`${chain} - getting start and end block numbers`)
       const date = DateTime.fromMillis(Date.now()).minus({ days: this.days + this.offsetDays })
-      const timestamp = date.toSeconds()
+      const timestamp = Math.floor(date.toSeconds())
       const startBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       this.startBlockNumbers[chain] = startBlockNumber
 
-      const provider = getRpcProvider(chain)
+      const provider = getRpcProvider(chain as ChainSlug)
       let endBlockNumber: number
       if (this.offsetDays) {
         const date = DateTime.fromMillis(Date.now()).minus({ days: this.offsetDays })
         const timestamp = date.toSeconds()
         endBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       } else {
-        endBlockNumber = await provider!.getBlockNumber()
+        endBlockNumber = await provider.getBlockNumber()
       }
       this.endBlockNumbers[chain] = endBlockNumber
       this.logger.debug(`${chain} - done getting block numbers`)
@@ -181,7 +179,7 @@ class IncompleteSettlementsWatcher {
     const concurrency = 20
     await promiseQueue(logs, async (log: any, i: number) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
-      const destinationChain = chainIdToSlug(destinationChainId)
+      const destinationChain = getChainSlug(destinationChainId.toString())
       this.rootHashMeta[rootHash] = {
         token,
         sourceChain: chain,
@@ -189,8 +187,8 @@ class IncompleteSettlementsWatcher {
       }
       this.rootHashTotals[rootHash] = totalAmount
 
-      const provider = getRpcProvider(chain)
-      const { timestamp } = await provider!.getBlock(log.blockNumber)
+      const provider = getRpcProvider(chain as ChainSlug)
+      const { timestamp } = await provider.getBlock(log.blockNumber)
       this.rootHashTimestamps[rootHash] = timestamp
     }, { concurrency })
   }
@@ -243,9 +241,9 @@ class IncompleteSettlementsWatcher {
   }
 
   private async setRootTransferIds (chain: string, token: string, log: any) {
-    const provider = getRpcProvider(chain)
+    const provider = getRpcProvider(chain as ChainSlug)
     const rootHash = log.args.rootHash
-    const { data } = await provider!.getTransaction(log.transactionHash)
+    const { data } = await provider.getTransaction(log.transactionHash)
     const contract = this.getContract(chain, token)
     const { transferIds } = contract.interface.decodeFunctionData(
       'settleBondedWithdrawals',
@@ -258,9 +256,12 @@ class IncompleteSettlementsWatcher {
   }
 
   private getContract (chain: string, token: string) {
-    const provider = getRpcProvider(chain)
-    const config = (mainnetAddresses as any).bridges[token][chain]
-    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider!)
+    const provider = getRpcProvider(chain as ChainSlug)
+    const config = mainnetAddresses.bridges[token as TokenSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
+    if (!config) {
+      throw new Error(`Could not find bridge config for ${token} on ${chain}`)
+    }
+    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? L1_Bridge__factory.abi : L2_Bridge__factory.abi, provider)
     return contract
   }
 
@@ -269,7 +270,7 @@ class IncompleteSettlementsWatcher {
     const batchSize = 10000
     let start = startBlockNumber
     let end = start + batchSize
-    while (end < endBlockNumber) {
+    while (end <= endBlockNumber) {
       const _logs = await contract.queryFilter(
         filter,
         start,
@@ -277,15 +278,25 @@ class IncompleteSettlementsWatcher {
       )
 
       logs.push(..._logs)
-      start = end
-      end = start + batchSize
+
+      // Add 1 so that boundary blocks are not double counted
+      start = end + 1
+
+      // If the batch is less than the batchSize, use the endBlockNumber
+      const newEnd = start + batchSize
+      end = Math.min(endBlockNumber, newEnd)
+
+      // For the last batch, start will be greater than end because end is capped at endBlockNumber
+      if (start > end) {
+        break
+      }
     }
     return logs
   }
 
   async start () {
     const result = await this.getDiffResults()
-    this.logResult(result)
+    await this.logResult(result)
   }
 
   async getDiffResults (): Promise<any> {
@@ -352,6 +363,7 @@ class IncompleteSettlementsWatcher {
       // TODO: get transfer sent amount
       const amount = BigNumber.from(0)
       const rootHash = this.transferIdRootHashes[transferId]
+      if (!rootHash) continue
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 
@@ -372,14 +384,14 @@ class IncompleteSettlementsWatcher {
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const isSet = !!this.rootHashSets[rootHash]
-      const tokenDecimals = getTokenDecimals(token)
+      const tokenDecimals = getTokenDecimals(token as TokenSymbol)
       // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
-      const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
+      const totalAmountFormatted = Number(utils.formatUnits(_totalAmount, tokenDecimals))
       const diff = totalAmount.sub(settledTotalAmount).toString()
-      const diffFormatted = Number(formatUnits(diff, tokenDecimals))
+      const diffFormatted = Number(utils.formatUnits(diff, tokenDecimals))
       const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
       let unsettledTransfers: any[] = []
       let unsettledTransferBonders: string[] = []
@@ -415,6 +427,23 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, isSet: ${isSet}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
     }, { concurrency })
 
+    // Check to see if the only remaining unsettled amounts are withdrawn
+    incompletes = incompletes.filter((item: any) => {
+      if (item.unsettledTransfers?.length) {
+        let totalAmountUnbonded = BigNumber.from(0)
+        for (const transfer of item.unsettledTransfers) {
+          if (!transfer.bonded) {
+            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
+          }
+        }
+        const isAllSettled = BigNumber.from(item.diff).eq(totalAmountUnbonded)
+        if (isAllSettled) {
+          return false
+        }
+      }
+      return true
+    })
+
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
     this.logger.debug('done checking root diffs')
@@ -441,7 +470,7 @@ class IncompleteSettlementsWatcher {
 
   private async getUnsettledTransfers (rootHash: string) {
     const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-    const tokenDecimals = getTokenDecimals(token)
+    const tokenDecimals = getTokenDecimals(token as TokenSymbol)
     const contract = this.getContract(destinationChain, token)
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []
@@ -451,8 +480,13 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
-        const { amount } = await getTransfer(sourceChain, token, transferId)
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        // Return if it is withdrawn. Do it after checking if it is bonded so we only make RPC calls when necessary.
+        const isWithdrawn = await contract.isTransferIdSpent(transferId)
+        if (isWithdrawn) {
+          return
+        }
+        const { amount } = await getTransferSent(sourceChain, transferId)
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,
           transferId,
@@ -462,11 +496,12 @@ class IncompleteSettlementsWatcher {
         })
         return
       }
+
       const bonder = bondWithdrawalEvent.from
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
       if (bondedWithdrawalAmount.gt(0)) {
         const amount = bondedWithdrawalAmount.toString()
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: true,
           transferId,
@@ -483,7 +518,7 @@ class IncompleteSettlementsWatcher {
 
   private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: BigNumber) {
     const contract = this.getContract(destinationChain, token)
-    const { total, amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
+    const { amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
     return amountWithdrawn
   }
 

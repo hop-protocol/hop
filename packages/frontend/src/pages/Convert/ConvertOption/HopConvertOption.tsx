@@ -1,14 +1,23 @@
-import React, { ReactNode } from 'react'
-import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
+import { ChainSlug } from '@hop-protocol/sdk'
+import Network from 'src/models/Network'
+import React, { ReactNode } from 'react'
+import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { RelayableChains } from 'src/utils/constants'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
+import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
+
+type GetDetailsInput = {
+  totalFee: BigNumber,
+  adjustedDestinationTxFee: BigNumber,
+  adjustedBonderFee: BigNumber,
+  estimatedReceived: BigNumber,
+  token?: Token
+  relayFeeEth?: BigNumber
+}
 
 class HopConvertOption extends ConvertOption {
   readonly name: string
@@ -20,7 +29,7 @@ class HopConvertOption extends ConvertOption {
 
     this.name = 'Hop Bridge'
     this.slug = 'hop-bridge'
-    this.path = '/hop'
+    this.path = 'hop'
   }
 
   async convert(
@@ -36,7 +45,7 @@ class HopConvertOption extends ConvertOption {
     bonderFee?: BigNumberish,
     customRecipient?: string
   ) {
-    const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer)
     if (bonderFee) {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }
@@ -47,7 +56,7 @@ class HopConvertOption extends ConvertOption {
 
     try {
       if (customRecipient) {
-        getAddress(customRecipient) // attempts to checksum
+        utils.getAddress(customRecipient) // attempts to checksum
       }
     } catch (err) {
       throw new Error('Custom recipient address is invalid')
@@ -56,6 +65,17 @@ class HopConvertOption extends ConvertOption {
     let recipient : string | undefined
     if (customRecipient) {
       recipient = customRecipient
+    }
+
+    // note: usdc.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
+    if (isUsdceWithdrawal) {
+      if (BigNumber.from(bonderFee ?? 0).eq(0)) {
+        const isHTokenSend = true
+        const relativeFee = await bridge.getBonderFeeRelative(amountIn, sourceNetwork?.slug, destNetwork?.slug, isHTokenSend)
+        const absoluteFee = await bridge.getBonderFeeAbsolute(sourceNetwork?.slug, destNetwork?.slug)
+        bonderFee = relativeFee.gt(absoluteFee) ? relativeFee : absoluteFee
+      }
     }
 
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
@@ -85,26 +105,41 @@ class HopConvertOption extends ConvertOption {
       ? bridge.getCanonicalToken(sourceNetwork?.slug)
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
-    const {
+    const isHTokenSend = true
+    let {
       totalFee,
       adjustedBonderFee,
       adjustedDestinationTxFee,
-    } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, true)
+      relayFeeEth
+    } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, isHTokenSend)
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
-      destNetwork.slug
+      destNetwork.slug,
+      isHTokenSend
     )
 
     let estimatedReceived = amountIn
-    let warning
+    let warning : any
 
-    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
-      warning = 'Bonder fee greater than estimated received'
+    const isUsdceWithdrawal = token.symbol === 'hUSDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+
+    // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    if (isUsdceWithdrawal) {
+      totalFee = BigNumber.from(0)
     }
 
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
+
+      // note: bypass liquidity check since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time.
+      if (isUsdceWithdrawal) {
+        warning = ''
+      }
+    }
+
+    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
+      warning = 'Bonder fee greater than estimated received'
     }
 
     if (amountIn.gte(totalFee)) {
@@ -122,7 +157,14 @@ class HopConvertOption extends ConvertOption {
     }
 
     const l1Token = bridge.getL1Token()
-    const details = this.getDetails(totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, l1Token)
+    const details = this.getDetails({
+      totalFee,
+      adjustedDestinationTxFee,
+      adjustedBonderFee,
+      estimatedReceived,
+      token: l1Token,
+      relayFeeEth
+    })
 
     return {
       amountOut: amountIn,
@@ -135,7 +177,8 @@ class HopConvertOption extends ConvertOption {
   async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol?: TokenSymbol,
-    sourceNetwork?: Network
+    sourceNetwork?: Network,
+    destNetwork?: Network,
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token symbol is required to get target address')
@@ -183,15 +226,19 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  private getDetails(totalFee: BigNumber, adjustedDestinationTxFee: BigNumber, adjustedBonderFee: BigNumber, estimatedReceived: BigNumber, token?: Token): ReactNode {
+  private getDetails(input: GetDetailsInput): ReactNode {
+    const { totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token, relayFeeEth } = input
     if (!token) return <></>
 
     const {
       destinationTxFeeDisplay,
+      destinationTxFeeUsdDisplay,
       bonderFeeDisplay,
+      bonderFeeUsdDisplay,
       totalBonderFeeDisplay,
       estimatedReceivedDisplay,
-    } = getConvertedFees(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token)
+      relayFeeEthDisplay
+    } = getConvertedFees({ destinationTxFee: adjustedDestinationTxFee, bonderFee: adjustedBonderFee, estimatedReceived, destToken: token, relayFee: relayFeeEth })
 
     return (
       <>
@@ -199,7 +246,7 @@ class HopConvertOption extends ConvertOption {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} />
             }
             value={totalBonderFeeDisplay}
             large

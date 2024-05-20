@@ -1,0 +1,1 @@
+select destination_chain_slug, count(*) as "count", date_trunc('day', to_timestamp("timestamp")) as date from transfers where source_chain_slug = 'polygon' and to_timestamp(timestamp) > now() - INTERVAL '6 day' group by (destination_chain_slug, date_trunc('day', to_timestamp("timestamp")))

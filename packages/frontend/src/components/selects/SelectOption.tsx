@@ -1,8 +1,9 @@
+import Box from '@mui/material/Box'
+import Icon from '@mui/material/Icon'
+import ListItemIcon from '@mui/material/ListItemIcon'
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import Icon from '@material-ui/core/Icon'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -10,7 +11,6 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    transition: 'all 0.15s ease-out',
   },
   listItemIcon: {
     display: 'flex',
@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 0,
-    marginRight: '1rem',
+    marginRight: '1rem'
   },
   icon: {
     display: 'flex',
@@ -28,6 +28,7 @@ const useStyles = makeStyles(theme => ({
   },
   image: {
     width: 'auto',
+    maxWidth: '3rem',
     height: '3rem',
     objectFit: 'contain',
   },
@@ -36,7 +37,7 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   value?: string
   label?: string
-  icon?: string
+  icon?: any
 }
 
 const SelectOption: FC<Props> = props => {
@@ -47,12 +48,23 @@ const SelectOption: FC<Props> = props => {
     return null
   }
 
+  const isIconComponent = typeof icon !== 'string'
+
   return (
     <div className={styles.root}>
-      {icon && (
+      {(icon && !isIconComponent) && (
         <ListItemIcon className={styles.listItemIcon}>
           <Icon className={styles.icon}>
             <img src={icon} className={styles.image} alt="" />
+          </Icon>
+        </ListItemIcon>
+      )}
+      {(icon && isIconComponent) && (
+        <ListItemIcon className={styles.listItemIcon}>
+          <Icon className={styles.icon}>
+            <Box className={styles.image}>
+              {icon}
+            </Box>
           </Icon>
         </ListItemIcon>
       )}

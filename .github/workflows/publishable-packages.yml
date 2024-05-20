@@ -1,0 +1,80 @@
+# A publishable package is a package that has been modified and, if the
+# if the branch is production, has a new version.
+
+name: Get packages that should be published
+on:
+  workflow_call:
+    inputs:
+      package-names:
+        description: 'Package names to consider, separated by commas.'
+        required: true
+        type: string
+    outputs:
+      publishable-packages:
+        description: 'Returns the name of all packages that should be published.'
+        value: ${{ jobs.publishable-packages.outputs.publishable-packages }}
+
+jobs:
+  publishable-packages:
+    runs-on: ubuntu-latest
+    outputs:
+      publishable-packages: ${{ steps.publishable-packages.outputs.publishable_packages }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+    - name: Get modified dirs
+      id: modified-dirs
+      uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
+      with:
+        since_last_remote_commit: true
+        dir_names: true
+        dir_names_max_depth: 2
+        separator: ','
+        files: ${{ github.event.inputs.paths }}
+
+    - name: Get publishable packages
+      id: publishable-packages
+      run: |
+        # Extract changed directories from output, removing the 'package/' prefix
+        # Example: packages/hop-node,packages/v2-explorer-backend,packages/frontend
+        modified_dirs="${{ steps.modified-dirs.outputs.all_changed_files }}"
+    
+        # Read input package names, compare with modified directories
+        # Example: packages/hop-node,packages/v2-explorer-backend
+        IFS=":"
+        read -a input_packages <<< "${{ inputs.package-names }}"
+        publishable_packages=""
+    
+        for package in "${input_packages[@]}"; do
+          package_path="packages/$package"
+    
+          # Skip packages not modified
+          if [[ $modified_dirs != *"$package_path"* ]]; then
+            continue
+          fi
+    
+          # On the production branch, publish only if there's a version change
+          if [ "${{ github.ref_name }}" == "production" ]; then
+            version_changed=$(git diff HEAD^ HEAD -- "${package_path}/package.json" | grep '"version":' || true)
+            if [ -z "$version_changed" ]; then
+              continue
+            fi
+          fi
+    
+          publishable_packages+="$package,"
+        done
+    
+        # Strip the trailing comma
+        # Example: packages/hop-node,packages/v2-explorer-backend
+        publishable_packages="${publishable_packages%,}"
+
+        # Convert from string with commas to array for consumption by matrix
+        # Example: ["hop-node", "v2-explorer-backend"]
+        if [ -z "$publishable_packages" ]; then
+          publishable_packages='[""]'
+        else
+          publishable_packages=$(echo $publishable_packages | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+        fi
+
+        echo "publishable_packages=$publishable_packages" >> $GITHUB_OUTPUT

@@ -1,3 +1,5 @@
+-- ETH Bonder 1 Day APR
+
 select
   ((((f - l) / (1.0 / 365.0)) / total) * 100) as apr
 from (

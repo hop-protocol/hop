@@ -1,16 +1,18 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { MaxInt32 } from '#constants/index.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransfersCommitted (
   chain: string,
   token: string,
-  startTimestamp: number = 0,
   destinationChainId: number = 0,
+  startTimestamp: number = 0,
+  endTimestamp: number = MaxInt32,
   lastId: string = '0'
 ) {
-  const filters = getFilters(startTimestamp, destinationChainId)
+  const filters = getFilters(destinationChainId, startTimestamp, endTimestamp)
   const query = `
-    query TransfersCommitted($token: String, $startTimestamp: Int, $destinationChainId: Int, $lastId: ID) {
+    query TransfersCommitted($token: String, $startTimestamp: Int, $endTimestamp: Int, $destinationChainId: Int, $lastId: ID) {
       transfersCommitteds(
         where: {
           ${filters}
@@ -25,13 +27,15 @@ export default async function getTransfersCommitted (
         transactionHash
         destinationChainId
         rootCommittedAt
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    startTimestamp,
     destinationChainId,
+    startTimestamp,
+    endTimestamp,
     lastId
   })
   let transfersCommitted = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
@@ -42,8 +46,9 @@ export default async function getTransfersCommitted (
     transfersCommitted = transfersCommitted.concat(await getTransfersCommitted(
       chain,
       token,
-      startTimestamp,
       destinationChainId,
+      startTimestamp,
+      endTimestamp,
       lastId
     ))
   }
@@ -51,18 +56,26 @@ export default async function getTransfersCommitted (
   return transfersCommitted
 }
 
-function getFilters (startTimestamp: number, destinationChainId: number): string {
+function getFilters (
+  destinationChainId: number,
+  startTimestamp: number,
+  endTimestamp: number
+): string {
   let filters: string = `
     id_gt: $lastId
     token: $token
   `
 
+  if (destinationChainId) {
+    filters += 'destinationChainId: $destinationChainId\n'
+  }
+
   if (startTimestamp) {
     filters += 'timestamp_gte: $startTimestamp\n'
   }
 
-  if (destinationChainId) {
-    filters += 'destinationChainId: $destinationChainId\n'
+  if (endTimestamp) {
+    filters += 'timestamp_lte: $endTimestamp\n'
   }
 
   return filters

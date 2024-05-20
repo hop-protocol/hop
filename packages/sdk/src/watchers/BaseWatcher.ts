@@ -1,9 +1,10 @@
-import Base, { ChainProviders } from '../Base'
-import EventEmitter from 'eventemitter3'
-import HopBridge from '../HopBridge'
-import wait from '../utils/wait'
-import { Chain, Token } from '../models'
-import { TChain, TProvider, TToken } from '../types'
+import { Base, ChainProviders } from '../Base.js'
+import { Chain } from '@hop-protocol/sdk-core'
+import { EventEmitter } from 'eventemitter3'
+import { HopBridge } from '../HopBridge.js'
+import { TChain, TProvider, TToken } from '../types.js'
+import { wait } from '../utils/index.js'
+import { TokenModel } from '#models/index.js'
 
 /**
  * @desc Event types for transaction watcher.
@@ -29,13 +30,13 @@ export type Config = {
   chainProviders?: ChainProviders
 }
 
-class BaseWatcher extends Base {
+export class BaseWatcher extends Base {
   ee: EventEmitter
   sourceTxHash: string
   sourceTx: any
   sourceBlock: any
   sourceReceipt: any
-  token: Token
+  token: TokenModel
   sourceChain: Chain
   destinationChain: Chain
   pollDelayMs = 10 * 1000
@@ -56,17 +57,21 @@ class BaseWatcher extends Base {
   public async startBase () {
     this.bridge = new HopBridge(this.network, this.signer, this.token)
 
-    const receipt = await this.sourceChain.provider.waitForTransaction(
+    const sourceChainProvider = this.getChainProvider(this.sourceChain)
+    const receipt = await sourceChainProvider.waitForTransaction(
       this.sourceTxHash
     )
     await this.emitSourceTxEvent(receipt)
-    if (!receipt.status) {
+    if (!receipt?.status) {
       return
     }
-    const sourceTx = await this.sourceChain.provider.getTransaction(
+    const sourceTx = await sourceChainProvider.getTransaction(
       this.sourceTxHash
     )
-    const sourceBlock = await this.sourceChain.provider.getBlock(
+    if (!sourceTx?.blockNumber) {
+      return
+    }
+    const sourceBlock = await sourceChainProvider.getBlock(
       sourceTx.blockNumber
     )
     if (!sourceBlock) {
@@ -101,7 +106,8 @@ class BaseWatcher extends Base {
     if (!destTx) {
       return false
     }
-    const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+    const destinationChainProvider = this.getChainProvider(this.destinationChain)
+    const destTxReceipt = await destinationChainProvider.waitForTransaction(
       destTx.hash
     )
     this.ee.emit(
@@ -127,5 +133,3 @@ class BaseWatcher extends Base {
     return true
   }
 }
-
-export default BaseWatcher

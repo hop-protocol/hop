@@ -1,4 +1,4 @@
-import { Addressish } from 'src/models/Address'
+import { Addressish } from '#models/Address.js'
 import { Token } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
 import { StakingRewards } from '@hop-protocol/sdk/contracts'

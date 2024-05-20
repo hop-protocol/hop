@@ -5,8 +5,8 @@ import merge from 'lodash/merge'
 import { ThemeProvider as MuiThemeProvider, Theme } from '@mui/material/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { Theme as StyledSystemTheme } from 'styled-system'
-import { darkTheme, lightTheme } from 'src/theme/theme'
-import { paletteDark, paletteLight } from 'src/theme/overrides'
+import { darkTheme, lightTheme } from '#theme/theme.js'
+import { paletteDark, paletteLight } from '#theme/overrides.js'
 import { useLocalStorage } from 'usehooks-ts'
 
 const shadows = {

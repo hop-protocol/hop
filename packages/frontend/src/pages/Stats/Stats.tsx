@@ -1,11 +1,11 @@
-import BalanceStats from 'src/pages/Stats/BalanceStats'
-import BonderStats from 'src/pages/Stats/BonderStats'
+import BalanceStats from '#pages/Stats/BalanceStats.js'
+import BonderStats from '#pages/Stats/BonderStats.js'
 import Box from '@mui/material/Box'
-import DebitWindowStats from 'src/pages/Stats/DebitWindowStats'
-import PendingAmountStats from 'src/pages/Stats/PendingAmountStats'
-import PoolStats from 'src/pages/Stats/PoolStats'
+import DebitWindowStats from '#pages/Stats/DebitWindowStats.js'
+import PendingAmountStats from '#pages/Stats/PendingAmountStats.js'
+import PoolStats from '#pages/Stats/PoolStats.js'
 import React, { FC, useState } from 'react'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useThemeMode } from '#theme/ThemeProvider.js'
 
 function Group({ title, children, clickTitle, ...rest }) {
   return (

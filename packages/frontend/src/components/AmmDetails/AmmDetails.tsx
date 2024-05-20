@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
-import { commafy } from 'src/utils'
+import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
+import { commafy } from '#utils/index.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({

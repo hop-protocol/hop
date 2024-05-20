@@ -1,13 +1,14 @@
-import 'src/App.css'
-import AppRoutes from 'src/AppRoutes'
+import '#App.css'
+import AppRoutes from '#AppRoutes.js'
 import Box from '@mui/material/Box'
 import React from 'react'
-import TxConfirm from 'src/components/txConfirm/TxConfirm'
+import TxConfirm from '#components/txConfirm/TxConfirm.js'
+import { Web3Modal } from '#components/Web3Modal/index.js'
 import styled from 'styled-components'
-import { AccountDetails } from 'src/components/AccountDetails'
-import { Footer } from 'src/components/Footer'
-import { Header } from 'src/components/Header'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { AccountDetails } from '#components/AccountDetails/index.js'
+import { Footer } from '#components/Footer/index.js'
+import { Header } from '#components/Header/index.js'
+import { useThemeMode } from '#theme/ThemeProvider.js'
 
 const AppWrapper = styled(Box)<any>`
   display: flex;
@@ -28,6 +29,7 @@ function App() {
       <AccountDetails />
       <AppRoutes />
       <TxConfirm />
+      <Web3Modal />
       <Footer />
     </AppWrapper>
   )

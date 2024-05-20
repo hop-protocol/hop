@@ -1,12 +1,12 @@
-import Network from 'src/models/Network'
-import Transaction from 'src/models/Transaction'
-import useIsSmartContractWallet from './useIsSmartContractWallet'
+import Network from '#models/Network.js'
+import Transaction from '#models/Transaction.js'
+import useIsSmartContractWallet from './useIsSmartContractWallet.js'
 import { ContractTransaction, utils } from 'ethers'
 import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
-import { networkIdToName, wait } from 'src/utils'
+import { networkIdToName, wait } from '#utils/index.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
-import { useSelectedNetwork } from '.'
+import { useSelectedNetwork } from './index.js'
 
 export interface GnosisSafeWarning {
   severity: 'warning' | 'error' | 'info'

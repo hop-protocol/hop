@@ -1,5 +1,5 @@
-import { deprecatedTokens } from 'src/config'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { deprecatedTokens } from '#config/index.js'
+import { normalizeTokenSymbol } from '#utils/normalizeTokenSymbol.js'
 import { useEffect, useState } from 'react'
 
 export function checkIsTokenDeprecated(token: string | undefined): boolean {

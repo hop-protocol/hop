@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { ClaimDateMessage } from '#pages/Airdrop/ClaimDateMessage.js'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons"
-import { StyledButton } from 'src/components/Button/StyledButton'
+import { StyledButton } from '#components/Button/StyledButton.js'
 
 export function SocialVerify() {
   return (

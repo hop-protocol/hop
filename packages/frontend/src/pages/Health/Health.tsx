@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
 import React, { useEffect, useState } from 'react'
 import Typography from '@mui/material/Typography'
-import { CellWrapper, SortableTable } from 'src/components/Table'
-import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { CellWrapper, SortableTable } from '#components/Table/index.js'
+import { CopyEthAddress } from '#components/ui/CopyEthAddress.js'
 import { DateTime } from 'luxon'
-import { Icon } from 'src/components/ui/Icon'
-import { findNetworkBySlug } from 'src/utils'
-import { getTokenImage } from 'src/utils/tokens'
+import { Icon } from '#components/ui/Icon.js'
+import { findNetworkBySlug } from '#utils/index.js'
+import { getTokenImage } from '#utils/tokens.js'
 import { useInterval } from 'usehooks-ts'
 
 export const populateLowBonderBalances = (item: any) => {

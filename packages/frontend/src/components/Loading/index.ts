@@ -1,1 +1,1 @@
-export { Loading } from 'src/components/Loading/Loading'
+export { Loading } from '#components/Loading/Loading.js'

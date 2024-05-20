@@ -1,5 +1,5 @@
 import { BigNumber, utils } from 'ethers'
-import { commafy } from 'src/utils/commafy'
+import { commafy } from '#utils/commafy.js'
 
 export function toUsdDisplay(amount?: BigNumber, tokenDecimals?: number, tokenUsdPrice?: number): string {
   try {

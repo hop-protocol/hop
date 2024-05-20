@@ -1,6 +1,6 @@
-import { checkIsTokenDeprecated } from './useCheckTokenDeprecated'
-import { deprecatedPools } from 'src/config'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { checkIsTokenDeprecated } from './useCheckTokenDeprecated.js'
+import { deprecatedPools } from '#config/index.js'
+import { normalizeTokenSymbol } from '#utils/normalizeTokenSymbol.js'
 import { useEffect, useState } from 'react'
 
 export function checkIsPoolDeprecated(token: string | undefined): boolean {

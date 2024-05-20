@@ -1,4 +1,4 @@
-import { HopAddresses, Networks } from 'src/config/interfaces'
+import { HopAddresses, Networks } from '#config/interfaces.js'
 import { mainnet as _mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 

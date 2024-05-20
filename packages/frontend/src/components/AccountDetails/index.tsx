@@ -1,1 +1,1 @@
-export { AccountDetails } from 'src/components/AccountDetails/AccountDetails'
+export { AccountDetails } from '#components/AccountDetails/AccountDetails.js'

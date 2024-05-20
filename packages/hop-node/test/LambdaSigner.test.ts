@@ -1,6 +1,6 @@
 import { ChainSlug } from '@hop-protocol/sdk'
-import { LambdaSigner } from '@hop-protocol/hop-node-core'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { LambdaSigner } from '#aws/index.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 describe.skip('LambdaSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!

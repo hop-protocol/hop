@@ -1,8 +1,8 @@
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { BigNumber, Contract, type Signer, constants, utils } from 'ethers'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { Logger } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { ChainSlug, ERC20__factory } from '@hop-protocol/sdk'

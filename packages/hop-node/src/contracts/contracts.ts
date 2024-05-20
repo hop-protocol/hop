@@ -1,7 +1,7 @@
 import { ChainSlug, NetworkSlug, TokenSymbol } from '@hop-protocol/sdk'
 import type { Signer, providers } from 'ethers'
 
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,

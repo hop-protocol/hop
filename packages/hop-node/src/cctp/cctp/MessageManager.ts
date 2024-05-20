@@ -1,4 +1,4 @@
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChainSlug } from '@hop-protocol/sdk'
 import { FSMPoller } from '../fsm/FSMPoller.js'

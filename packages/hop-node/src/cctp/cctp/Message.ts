@@ -8,12 +8,12 @@ import {
 } from './utils.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import type { NetworkSlug } from '@hop-protocol/sdk'
-import { MIN_POLYGON_GAS_PRICE } from '@hop-protocol/hop-node-core'
+import { MIN_POLYGON_GAS_PRICE } from '#constants/index.js'
 import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
-import { wait } from '@hop-protocol/hop-node-core'
+import { wait } from '#utils/wait.js'
 
 // Temp to handle API rate limit
 const mutex = new Mutex()

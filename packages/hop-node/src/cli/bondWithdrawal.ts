@@ -2,7 +2,7 @@ import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
-import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import { isL1ChainId } from '#utils/isL1ChainId.js'
 import type { SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
 import type { Transfer } from '#db/TransfersDb.js'
 

@@ -10,8 +10,8 @@ import {
   config as globalConfig,
   modifiedLiquidityRoutes
 } from '#config/index.js'
-import { TimeIntervals } from '@hop-protocol/hop-node-core'
-import { S3Upload } from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
+import { S3Upload } from '#aws/index.js'
 import type L1Bridge from './classes/L1Bridge.js'
 import type L2Bridge from './classes/L2Bridge.js'
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'

@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers'
 import { Message } from '#cctp/cctp/Message.js'
-import { getRpcProvider, wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'

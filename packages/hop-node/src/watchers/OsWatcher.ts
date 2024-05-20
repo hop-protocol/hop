@@ -1,8 +1,8 @@
 import Metrics from './classes/Metrics.js'
 import os from 'node:os'
 import pidusage from 'pidusage'
-import { Logger } from '@hop-protocol/hop-node-core'
-import { wait } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
+import { wait } from '#utils/wait.js'
 
 type Config = {
   heapdump: boolean

@@ -9,16 +9,16 @@ import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from '#constants/index.js'
-import { Logger } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import {
   getNetworkCustomSyncType,
   config as globalConfig
 } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Contract, providers } from 'ethers'
-import type { Event } from '@hop-protocol/hop-node-core'
+import type { Event } from '#types/index.js'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
@@ -30,7 +30,7 @@ import type {
   WithdrewEvent
 } from '@hop-protocol/sdk/contracts/Bridge'
 import type { State } from '#db/SyncStateDb.js'
-import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '#types/index.js'
 import { getTokenDecimals } from '@hop-protocol/sdk'
 
 export type EventsBatchOptions = {

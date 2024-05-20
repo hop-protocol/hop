@@ -6,15 +6,15 @@ import { type Addresses, type Bonders, type Bridges, addresses as coreAddresses 
 import {
   TimeIntervals,
   AVG_BLOCK_TIME_SECONDS,
-} from '@hop-protocol/hop-node-core'
-import { CoreEnvironment } from '@hop-protocol/hop-node-core'
+} from '#constants/index.js'
+import { CoreEnvironment } from './coreConfig.js'
 import { DefaultBondThreshold } from '#constants/index.js'
 import { utils } from 'ethers'
 import type { Bps } from '@hop-protocol/sdk'
 import type {
   SignerConfig,
   Tokens
-} from '@hop-protocol/hop-node-core'
+} from './coreConfig.js'
 import {
   normalizeEnvVarArray,
   normalizeEnvVarNumber,

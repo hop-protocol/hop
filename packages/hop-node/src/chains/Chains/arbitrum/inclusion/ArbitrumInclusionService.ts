@@ -1,7 +1,7 @@
 import { AbstractInclusionService, type IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { ArbitrumAddresses, type ArbitrumCanonicalAddresses, type ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
 import { BigNumber, Contract } from 'ethers'
-import type { ChainSlug, NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { ChainSlug, NetworkSlug } from '@hop-protocol/sdk/chains'
 import type { providers } from 'ethers'
 import { CoreEnvironment } from '#config/index.js'
 

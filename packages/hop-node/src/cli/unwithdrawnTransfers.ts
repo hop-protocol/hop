@@ -1,7 +1,7 @@
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { TimeIntervals } from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
 import { DateTime } from 'luxon'
 import {
   actionHandler,
@@ -10,7 +10,7 @@ import {
 } from './shared/index.js'
 import { Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
 import { ChainSlug } from '@hop-protocol/sdk'
 

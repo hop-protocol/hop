@@ -1,4 +1,4 @@
-import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk-core'
+import { ChainSlug, NetworkSlug } from '#chains/index.js'
 
 export function getChainSlugFromName (name: string) {
   let slug = (name || '').trim().toLowerCase().split(' ')[0]

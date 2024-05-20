@@ -1,6 +1,6 @@
 import { actionHandler, parseString, root } from './shared/index.js'
 
-import { wait } from '@hop-protocol/hop-node-core'
+import { wait } from '#utils/wait.js'
 root
   .command('refresh-api-stats')
   .description('Refresh API stats')

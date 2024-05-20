@@ -19,24 +19,24 @@ import {
   SyncType,
   TxError
 } from '#constants/index.js'
+import { TimeIntervals } from '#constants/index.js'
 import {
   NonceTooLowError,
-  TimeIntervals,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
-} from '@hop-protocol/hop-node-core'
+} from '#types/error.js'
 import { utils } from 'ethers'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core'
-import { isFetchRpcServerError } from '@hop-protocol/hop-node-core'
-import { isL1ChainId } from '@hop-protocol/hop-node-core'
-import { isNativeToken } from '@hop-protocol/hop-node-core'
-import { promiseQueue } from '@hop-protocol/hop-node-core'
+import { isFetchExecutionError } from '#utils/isFetchExecutionError.js'
+import { isFetchRpcServerError } from '#utils/isFetchRpcServerError.js'
+import { isL1ChainId } from '#utils/isL1ChainId.js'
+import { isNativeToken } from '#utils/isNativeToken.js'
+import { promiseQueue } from '#utils/promiseQueue.js'
 import type L2Bridge from './classes/L2Bridge.js'
 import type {
   L1_Bridge as L1BridgeContract,
 L2_Bridge as L2BridgeContract
 } from '@hop-protocol/sdk/contracts'
-import type { Logger } from '@hop-protocol/hop-node-core'
+import type { Logger } from '#logger/index.js'
 import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
 import { ChainSlug, getChainSlug, getTokenDecimals, TokenSymbol } from '@hop-protocol/sdk'

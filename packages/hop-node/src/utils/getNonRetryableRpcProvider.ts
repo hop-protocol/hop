@@ -1,5 +1,5 @@
 import { providers } from 'ethers'
-import { CoreEnvironment } from '#config/config.js'
+import { CoreEnvironment } from '#config/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, providers.Provider> = {}

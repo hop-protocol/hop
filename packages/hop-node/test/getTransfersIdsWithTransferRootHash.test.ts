@@ -1,6 +1,6 @@
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
-import { TimeIntervals } from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile

@@ -1,9 +1,7 @@
 import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
-import {
-  TimeIntervals,
-  getExponentialBackoffDelayMs
-} from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
+import { getExponentialBackoffDelayMs } from '#utils/getExponentialBackoffDelayMs.js'
 import {
   RelayWaitTimeMs,
   RelayableChains,

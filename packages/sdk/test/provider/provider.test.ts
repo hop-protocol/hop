@@ -1,4 +1,4 @@
-import { FallbackProvider } from '@hop-protocol/sdk-core'
+import { FallbackProvider } from '#provider/index.js'
 import { Hop } from '#index.js'
 import { type Network } from '@ethersproject/networks'
 import { providers } from 'ethers'

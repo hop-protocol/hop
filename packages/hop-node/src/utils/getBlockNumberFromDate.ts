@@ -1,7 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
 import { DateTime } from 'luxon'
 import { etherscanApiKeys } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { ChainSlug } from '@hop-protocol/sdk'
 
 export const etherscanApiUrls: Record<string, string> = {

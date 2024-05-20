@@ -19,13 +19,6 @@
 [@hop-protocol/v2-sdk](packages/v2-sdk) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-sdk.svg)](https://badge.fury.io/js/) | V2 TypeScript Hop SDK |
 [@hop-protocol/v2-hop-node](packages/v-2hop-node) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-hop-node.svg)](https://badge.fury.io/js/) | TypeScript Hop Node |
 
-### Shared
-
-| Lib/App | Current Version | Description |
-| --- | --- |  --- |
-| [@hop-protocol/sdk-core](packages/sdk-core) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk-core.svg)](https://badge.fury.io/js/) | Shared Hop SDK code |
-| [@hop-protocol/hop-node-core](packages/hop-node-core) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fhop-node-core.svg)](https://badge.fury.io/js/) | Shared Hop Node code |
-
 ## Quickstart
 
 The Hop monorepo uses [PNPM](https://pnpm.io/) for package and workspace management.

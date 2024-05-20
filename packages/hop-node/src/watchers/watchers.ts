@@ -11,7 +11,7 @@ import contracts from '#contracts/index.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { MetricsServer } from '#metrics/index.js'
 import { Watchers, getAllChains, getAllTokens, config as globalConfig } from '#config/index.js'
-import { Logger } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import type { BridgeContract } from './classes/BaseWatcher.js'
 

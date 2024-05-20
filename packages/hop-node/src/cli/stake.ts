@@ -8,7 +8,7 @@ import { constants } from 'ethers'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
-import { wait } from '@hop-protocol/hop-node-core'
+import { wait } from '#utils/wait.js'
 import type Token from '#watchers/classes/Token.js'
 import type { BigNumber} from 'ethers'
 import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'

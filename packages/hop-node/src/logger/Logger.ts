@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import type { ColorName } from 'chalk'
+import type { Color } from 'chalk'
 
 type Options = {
   tag?: string
@@ -69,7 +69,7 @@ export class Logger {
     }
     if (tag) {
       if (opts.color) {
-        const color: ColorName | undefined = opts?.color as any
+        const color: typeof Color | undefined = opts?.color as any
         if (!color) {
           throw new Error(`invalid color: ${opts.color}`)
         }
@@ -108,7 +108,7 @@ export class Logger {
       throw new Error(`invalid log level: ${logLevelEnum}`)
     }
     const logLevelName = name.toUpperCase()
-    const color: ColorName | undefined = logLevelColors?.[logLevelEnum] as any
+    const color: typeof Color | undefined = logLevelColors?.[logLevelEnum] as any
     if (!color) {
       throw new Error(`invalid color: ${logLevelColors?.[logLevelEnum]}`)
     }

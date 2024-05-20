@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { Chain, ChainSlug } from '@hop-protocol/sdk-core'
+import { Chain, ChainSlug } from '#chains/index.js'
 
 // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
 

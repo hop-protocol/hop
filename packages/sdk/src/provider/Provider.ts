@@ -5,6 +5,93 @@ import { BigNumber, type BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { type Deferrable } from '@ethersproject/properties'
 import { type Network } from '@ethersproject/networks'
+import { rateLimitRetry } from '#utils/index.js'
+
+export class RetryProvider extends providers.StaticJsonRpcProvider implements providers.Provider {
+  override async perform (method: string, params: any): Promise<any> {
+    return super.perform(method, params)
+  }
+
+  // Network
+  override getNetwork = rateLimitRetry(async (): Promise<Network> => {
+    return super.getNetwork()
+  })
+
+  // Latest State
+  override getBlockNumber = rateLimitRetry(async (): Promise<number> => {
+    return super.getBlockNumber()
+  })
+
+  override getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
+    return super.getGasPrice()
+  })
+
+  // Account
+  override getBalance = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber> => {
+    return super.getBalance(addressOrName, blockTag)
+  })
+
+  override getTransactionCount = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number> => {
+    return super.getTransactionCount(addressOrName, blockTag)
+  })
+
+  override getCode = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+    return super.getCode(addressOrName, blockTag)
+  })
+
+  override getStorageAt = rateLimitRetry(async (addressOrName: string | Promise<string>, position: BigNumberish | Promise<BigNumberish>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+    return super.getStorageAt(addressOrName, position, blockTag)
+  })
+
+  // Execution
+  override sendTransaction = rateLimitRetry(async (signedTransaction: string | Promise<string>): Promise<TransactionResponse> => {
+    return super.sendTransaction(signedTransaction)
+  })
+
+  override call = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+    return super.call(transaction, blockTag)
+  })
+
+  override estimateGas = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>): Promise<BigNumber> => {
+    return super.estimateGas(transaction)
+  })
+
+  // Queries
+  override getBlock = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block> => {
+    return super.getBlock(blockHashOrBlockTag)
+  })
+
+  override getBlockWithTransactions = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<BlockWithTransactions> => {
+    return super.getBlockWithTransactions(blockHashOrBlockTag)
+  })
+
+  override getTransaction = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionResponse> => {
+    return super.getTransaction(transactionHash)
+  })
+
+  override getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
+    return super.getTransactionReceipt(transactionHash)
+  })
+
+  // Bloom-filter Queries
+  override getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
+    return super.getLogs(filter)
+  })
+
+  // ENS
+  override resolveName = rateLimitRetry(async (name: string | Promise<string>): Promise<null | string> => {
+    return super.resolveName(name)
+  })
+
+  override lookupAddress = rateLimitRetry(async (address: string | Promise<string>): Promise<null | string> => {
+    return super.lookupAddress(address)
+  })
+
+  override getAvatar = rateLimitRetry(async (nameOrAddress: string): Promise<string> => {
+    return (await super.getAvatar(nameOrAddress))!
+  })
+}
+
 
 export class FallbackProvider implements providers.Provider {
   private _providersFn: any[] = []

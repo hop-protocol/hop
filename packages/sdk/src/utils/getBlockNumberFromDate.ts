@@ -1,7 +1,8 @@
 // @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
 import { providers } from 'ethers'
-import { fetchJsonOrThrow, getChain } from '@hop-protocol/sdk-core'
+import { getChain } from '#chains/index.js'
+import { fetchJsonOrThrow } from '#utils/index.js'
 
 export async function getBlockNumberFromDate (provider: providers.Provider, timestamp: number, etherscanApiKey?: string): Promise<number> {
   if (etherscanApiKey) {

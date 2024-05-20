@@ -18,7 +18,7 @@ import type {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/sdk/contracts/L2_Bridge'
-import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '#types/index.js'
 
 export default class L2Bridge extends Bridge {
   ammWrapper!: L2AmmWrapper

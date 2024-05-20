@@ -1,6 +1,6 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import contracts from '#contracts/index.js'
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared/index.js'
 import { utils } from 'ethers'

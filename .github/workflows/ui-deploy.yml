@@ -80,10 +80,11 @@ jobs:
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
         with:
-          pin-name: Hop ${{ github.sha }}
+          pin-name: Hop ${{ matrix.package-name }} ${{ matrix.env-name }}
           path: './packages/frontend/dist'
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
+          remove-old: true
 
       - name: Update CloudFlare DNS with new IPFS hash
         env:

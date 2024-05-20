@@ -1,11 +1,11 @@
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import { BigNumber, constants } from 'ethers'
 import { ChainSlug, NetworkSlug, Token, getChain } from '@hop-protocol/sdk'
-import { toTokenDisplay } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
-import { useTransactionReplacement } from 'src/hooks/useTransactionReplacement'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { reactAppNetwork } from 'src/config'
+import { toTokenDisplay } from '#utils/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useTransactionReplacement } from '#hooks/useTransactionReplacement.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
+import { reactAppNetwork } from '#config/index.js'
 
 const useApprove = (token: any) => {
   const { provider } = useWeb3Context()

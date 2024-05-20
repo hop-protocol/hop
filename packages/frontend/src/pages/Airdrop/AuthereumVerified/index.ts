@@ -1,3 +1,3 @@
-import { AuthereumVerified } from 'src/pages/Airdrop/AuthereumVerified/AuthereumVerified'
+import { AuthereumVerified } from '#pages/Airdrop/AuthereumVerified/AuthereumVerified.js'
 
 export default AuthereumVerified

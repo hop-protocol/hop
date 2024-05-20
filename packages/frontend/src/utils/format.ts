@@ -1,6 +1,6 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { BigNumber, FixedNumber, utils } from 'ethers'
-import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
+import { commafy, prettifyErrorMessage, toTokenDisplay } from './index.js'
 
 type PossibleError = {
   data?: {

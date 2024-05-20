@@ -1,2 +1,2 @@
-export { InfoTooltip } from 'src/components/InfoTooltip/InfoTooltip'
-export { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
+export { InfoTooltip } from '#components/InfoTooltip/InfoTooltip.js'
+export { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'

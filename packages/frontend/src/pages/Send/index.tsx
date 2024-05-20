@@ -1,3 +1,3 @@
-import Send from 'src/pages/Send/Send'
+import Send from '#pages/Send/Send.js'
 
 export default Send

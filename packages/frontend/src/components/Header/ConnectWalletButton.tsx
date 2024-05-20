@@ -1,8 +1,8 @@
 import React from 'react'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { wait } from 'src/utils'
+import { StyledButton } from '#components/Button/StyledButton.js'
+import { useThemeMode } from '#theme/ThemeProvider.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
+import { wait } from '#utils/index.js'
 
 export function ConnectWalletButton(props: any) {
   const { fullWidth, large } = props

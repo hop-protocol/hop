@@ -3,8 +3,8 @@ import React, { ChangeEvent } from 'react'
 import Typography from '@mui/material/Typography'
 import { BigNumber } from 'ethers'
 import { Link } from 'react-router-dom'
-import { sanitizeNumericalString } from 'src/utils'
-import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
+import { sanitizeNumericalString } from '#utils/index.js'
+import { useStyles } from '#pages/Pools/PoolDetails/useStyles.js'
 
 type Props = {
   balanceFormatted: string

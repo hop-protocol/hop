@@ -1,20 +1,20 @@
 /// <reference types="vite-plugin-svgr/client" />
-import Bolt from 'src/assets/bolt.svg?react'
+import Bolt from '../../../assets/bolt.svg?react' // eslint-disable-line n/no-missing-import
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { BalanceText } from 'src/pages/Pools/components/BalanceText'
+import { Alert } from '#components/Alert/index.js'
+import { BalanceText } from '#pages/Pools/components/BalanceText.js'
 import { BigNumber, utils } from 'ethers'
-import { Button } from 'src/components/Button'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { InputField } from 'src/pages/Pools/components/InputField'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { sanitizeNumericalString } from 'src/utils'
-import { useStaking } from 'src/pages/Pools/useStaking'
-import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
+import { Button } from '#components/Button/index.js'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { InputField } from '#pages/Pools/components/InputField.js'
+import { normalizeTokenSymbol } from '#utils/normalizeTokenSymbol.js'
+import { sanitizeNumericalString } from '#utils/index.js'
+import { useStaking } from '#pages/Pools/useStaking.js'
+import { useStyles } from '#pages/Pools/PoolDetails/useStyles.js'
 
 type Props = {
   chainSlug: string

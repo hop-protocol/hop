@@ -1,30 +1,29 @@
-import Address from 'src/models/Address'
+import Address from '#models/Address.js'
 import React, {
   FC,
   ReactNode,
   createContext,
   useContext,
   useEffect,
-  useState,
-  useMemo
+  useState
 } from 'react'
-import MetaMaskLogo from 'src/assets/logos/metamask.svg'
-import WalletConnectLogo from 'src/assets/logos/walletconnect.svg'
-import GnosisSafeLogo from 'src/assets/logos/gnosissafe.svg'
-import CoinbaseWalletLogo from 'src/assets/logos/coinbasewallet.svg'
-import logger from 'src/logger'
+import MetaMaskLogo from '#assets/logos/metamask.svg'
+import WalletConnectLogo from '#assets/logos/walletconnect.svg'
+import GnosisSafeLogo from '#assets/logos/gnosissafe.svg'
+import CoinbaseWalletLogo from '#assets/logos/coinbasewallet.svg'
+import logger from '#logger/index.js'
 import { providers } from 'ethers'
 import { useWeb3React } from '@web3-react/core'
 import { NetworkSlug, getChains } from '@hop-protocol/sdk'
-import { isGoerli, isMainnet, reactAppNetwork, walletConnectProjectId } from 'src/config'
-import { capitalize } from 'src/utils/capitalize'
+import { isGoerli, isMainnet, reactAppNetwork, walletConnectProjectId } from '#config/index.js'
+import { capitalize } from '#utils/capitalize.js'
 import { Web3ReactHooks, initializeConnector } from '@web3-react/core'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import { MetaMask } from '@web3-react/metamask'
 import { GnosisSafe } from '@web3-react/gnosis-safe'
 import type { Connector } from '@web3-react/types'
 import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
-import { formatError } from 'src/utils/format'
+import { formatError } from '#utils/format.js'
 
 type ChainInfo = {
   chainId: number

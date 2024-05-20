@@ -1,9 +1,9 @@
-import Network from 'src/models/Network'
-import logger from 'src/logger'
-import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import Network from '#models/Network.js'
+import logger from '#logger/index.js'
+import useIsSmartContractWallet from '#hooks/useIsSmartContractWallet.js'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)

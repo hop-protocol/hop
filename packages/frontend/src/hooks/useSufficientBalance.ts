@@ -1,7 +1,7 @@
-import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import useIsSmartContractWallet from '#hooks/useIsSmartContractWallet.js'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
-import { toTokenDisplay } from 'src/utils'
+import { toTokenDisplay } from '#utils/index.js'
 import { useEffect, useState } from 'react'
 
 export function useSufficientBalance(

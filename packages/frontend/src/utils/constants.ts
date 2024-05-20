@@ -1,4 +1,4 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { ChainSlug, Token } from '@hop-protocol/sdk'
 import { getNetworks } from '@hop-protocol/sdk'
 import { getTokens } from '@hop-protocol/sdk'

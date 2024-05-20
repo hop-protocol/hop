@@ -1,1 +1,1 @@
-export { Alert } from 'src/components/Alert/Alert'
+export { Alert } from '#components/Alert/Alert.js'

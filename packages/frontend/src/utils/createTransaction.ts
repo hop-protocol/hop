@@ -1,4 +1,4 @@
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import { providers } from 'ethers'
 
 export function createTransaction(

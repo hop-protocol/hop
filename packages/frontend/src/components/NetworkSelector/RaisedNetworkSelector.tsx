@@ -1,10 +1,10 @@
 import MenuItem from '@mui/material/MenuItem'
-import Network from 'src/models/Network'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
+import Network from '#models/Network.js'
+import RaisedSelect from '#components/selects/RaisedSelect.js'
 import React, { useMemo } from 'react'
-import SelectOption from 'src/components/selects/SelectOption'
-import { findNetworkBySlug } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
+import SelectOption from '#components/selects/SelectOption.js'
+import { findNetworkBySlug } from '#utils/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
 
 interface Props {
   selectedNetwork?: Network

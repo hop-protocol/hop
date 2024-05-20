@@ -1,4 +1,4 @@
-import { formatError } from 'src/utils'
+import { formatError } from '#utils/index.js'
 
 export class Logger {
   private prefix: string

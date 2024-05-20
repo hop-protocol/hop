@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { StakingRewardsClaim } from '#pages/Pools/PoolDetails/StakingRewardsClaim.js'
 
 type Props = {
   chainSlug: string

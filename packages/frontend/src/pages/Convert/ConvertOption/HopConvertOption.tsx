@@ -1,14 +1,14 @@
-import ConvertOption, { SendData } from './ConvertOption'
+import ConvertOption, { SendData } from './ConvertOption.js'
 import { ChainSlug } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import React, { ReactNode } from 'react'
 import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
-import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
-import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
+import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
+import { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import { RelayableChains } from 'src/utils/constants'
-import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
-import { getConvertedFees } from 'src/hooks/useFeeConversions'
+import { RelayableChains } from '#utils/constants.js'
+import { getBonderFeeWithId, toTokenDisplay } from '#utils/index.js'
+import { getConvertedFees } from '#hooks/useFeeConversions.js'
 
 type GetDetailsInput = {
   totalFee: BigNumber,

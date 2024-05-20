@@ -1,5 +1,5 @@
 import pluralize from 'pluralize'
-import { getTransferTimeSeconds } from './getTransferTimeSeconds'
+import { getTransferTimeSeconds } from './getTransferTimeSeconds.js'
 
 export function getTransferTimeString(fromChainSlug: string, toChainSlug: string) {
   if (!(fromChainSlug && toChainSlug)) {

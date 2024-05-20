@@ -1,5 +1,5 @@
-import PoolDetails from 'src/pages/Pools/PoolDetails'
-import PoolsProvider from 'src/pages/Pools/PoolsContext'
+import PoolDetails from '#pages/Pools/PoolDetails/index.js'
+import PoolsProvider from '#pages/Pools/PoolsContext.js'
 import React from 'react'
 
 const fc = () => (

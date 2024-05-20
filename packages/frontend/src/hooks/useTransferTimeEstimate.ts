@@ -1,4 +1,3 @@
-import { getChain } from '@hop-protocol/sdk'
 import { getTransferTimeSeconds } from 'src/utils/getTransferTimeSeconds'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useRef, useState } from 'react'

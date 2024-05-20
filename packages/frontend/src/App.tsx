@@ -3,6 +3,7 @@ import AppRoutes from 'src/AppRoutes'
 import Box from '@mui/material/Box'
 import React from 'react'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
+import { Web3Modal } from 'src/components/Web3Modal'
 import styled from 'styled-components'
 import { AccountDetails } from 'src/components/AccountDetails'
 import { Footer } from 'src/components/Footer'
@@ -28,6 +29,7 @@ function App() {
       <AccountDetails />
       <AppRoutes />
       <TxConfirm />
+      <Web3Modal />
       <Footer />
     </AppWrapper>
   )

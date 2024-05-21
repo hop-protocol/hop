@@ -607,6 +607,12 @@ importers:
 
   packages/sdk:
     dependencies:
+      '@arbitrum/sdk':
+        specifier: 2.0.18
+        version: 2.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@20.12.7)(bufferutil@4.0.8)(typescript@5.4.3)(utf-8-validate@5.0.10)
+      '@eth-optimism/sdk':
+        specifier: 3.1.4
+        version: 3.1.4(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
       '@maticnetwork/maticjs':
         specifier: 3.5.0
         version: 3.5.0(encoding@0.1.13)
@@ -22148,7 +22154,7 @@ snapshots:
 
   rimraf@2.7.1:
     dependencies:
-      glob: 7.2.0
+      glob: 7.2.3
 
   rimraf@3.0.2:
     dependencies:

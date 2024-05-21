@@ -3,6 +3,7 @@ import { wait } from '#utils/wait.js'
 import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 // import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import { MessageDirection } from './types.js'
 
 const { ZkEvmClient, setProofApi } = MaticJsDefaults
 const { default: maticJsDefault } = MaticJsDefaults
@@ -19,10 +20,6 @@ interface ZkEvmBridges {
 type Message = string
 
 const DefaultL1RelayGasLimit = 1_000_000
-enum MessageDirection {
-  L1_TO_L2 = 0,
-  L2_TO_L1 = 1
-}
 
 const polygonSdkNetwork: Record<string, string> = {
   mainnet: 'mainnet',
@@ -36,7 +33,6 @@ const polygonSdkVersion: Record<string, string> = {
 }
 
 export class PolygonZkRelayer {
-  networkSlug: string
   l1Wallet: Signer | providers.Provider
   l2Wallet: Signer | providers.Provider
 
@@ -44,7 +40,6 @@ export class PolygonZkRelayer {
   zkEvmClient: ZkEvmClientType
 
   constructor (networkSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-    this.networkSlug = networkSlug
     this.l1Wallet = l1Wallet
     this.l2Wallet = l2Wallet
 
@@ -52,7 +47,7 @@ export class PolygonZkRelayer {
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.zkEvmClient = new ZkEvmClient()
-    this.#init(this.networkSlug)
+    this.#init(networkSlug)
       .then(() => {
         this.ready = true
         console.debug('zkEVM client initialized')

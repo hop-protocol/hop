@@ -7,11 +7,10 @@ import { Alert } from '#components/Alert/index.js'
 import { Button } from '#components/Button/Button.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { LargeTextField } from '#components/LargeTextField/index.js'
-import { PolygonZkRelayer } from '@hop-protocol/sdk'
+import { getRelayer, MessageDirection } from '@hop-protocol/sdk'
 import { formatError } from '#utils/format.js'
 import { makeStyles } from '@mui/styles'
 import { reactAppNetwork } from '#config/index.js'
-import { toTokenDisplay } from '#utils/index.js'
 import { updateQueryParams } from '#utils/updateQueryParams.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
@@ -91,14 +90,12 @@ export const Relay: FC = () => {
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
-          if (!(l1Wallet as any).getSigner) {
-            (l1Wallet as any).getSigner = () => l1Wallet
+          if (selectedNetwork.slug === 'polygonzk') {
+            if (!(l1Wallet as any).getSigner) {
+              (l1Wallet as any).getSigner = () => l1Wallet
+            }
           }
-          const relayer = new PolygonZkRelayer(reactAppNetwork, l1Wallet, l2Wallet)
-          enum MessageDirection {
-            L1_TO_L2 = 0,
-            L2_TO_L1 = 1
-          }
+          const relayer = getRelayer(reactAppNetwork, selectedNetwork.slug, l1Wallet, l2Wallet)
           const messageDirection = MessageDirection.L1_TO_L2
           const tx = await relayer.sendRelayTx(txHash, messageDirection)
           setSuccess(tx.hash)

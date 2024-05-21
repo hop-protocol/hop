@@ -137,7 +137,7 @@ const addresses: any = {
 }
 
 export async function getUSDCSwapParams(options: any) {
-  let { network, provider, amountIn, recipient, getQuote = false } = options
+  const { network, provider, amountIn, recipient, getQuote = false } = options
   const chain = getSlugFromChainId(options.chainId)
   const chainIdInt = Number(options.chainId)
 

@@ -43,6 +43,7 @@
     "@aws-sdk/client-ssm": "3.338.0",
     "@consensys/linea-sdk": "0.1.6",
     "@eth-optimism/sdk": "3.1.4",
+    "@ethereumjs/rlp": "5.0.2",
     "@ethereumjs/tx": "5.3.0",
     "@ethersproject/hdnode": "5.0.9",
     "@hop-protocol/sdk": "workspace:*",
@@ -79,7 +80,6 @@
     "uuid": "9.0.1"
   },
   "devDependencies": {
-    "@ethereumjs/rlp": "5.0.2",
     "@types/ethereum-block-by-date": "1.4.1",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.2",

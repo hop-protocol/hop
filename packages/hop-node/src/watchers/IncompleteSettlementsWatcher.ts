@@ -243,11 +243,12 @@ class IncompleteSettlementsWatcher {
   private async setRootTransferIds (chain: string, token: string, log: any) {
     const provider = getRpcProvider(chain as ChainSlug)
     const rootHash = log.args.rootHash
-    const { data } = await provider.getTransaction(log.transactionHash)
+    const tx = await provider.getTransaction(log.transactionHash)
+    if (!tx) return
     const contract = this.getContract(chain, token)
     const { transferIds } = contract.interface.decodeFunctionData(
       'settleBondedWithdrawals',
-      data
+      tx.data
     )
     this.rootTransferIds[rootHash] = transferIds
     for (const transferId of transferIds) {

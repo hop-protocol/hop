@@ -465,6 +465,9 @@ importers:
       '@eth-optimism/sdk':
         specifier: 3.1.4
         version: 3.1.4(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@ethereumjs/rlp':
+        specifier: 5.0.2
+        version: 5.0.2
       '@ethereumjs/tx':
         specifier: 5.3.0
         version: 5.3.0
@@ -568,9 +571,6 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
     devDependencies:
-      '@ethereumjs/rlp':
-        specifier: 5.0.2
-        version: 5.0.2
       '@types/ethereum-block-by-date':
         specifier: 1.4.1
         version: 1.4.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)

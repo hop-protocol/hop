@@ -607,6 +607,15 @@ importers:
 
   packages/sdk:
     dependencies:
+      '@maticnetwork/maticjs':
+        specifier: 3.5.0
+        version: 3.5.0(encoding@0.1.13)
+      '@maticnetwork/maticjs-ethers':
+        specifier: 1.0.3
+        version: 1.0.3(@maticnetwork/maticjs@3.5.0(encoding@0.1.13))(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@maticnetwork/maticjs-pos-zkevm':
+        specifier: npm:@maticnetwork/maticjs@3.8.0
+        version: '@maticnetwork/maticjs@3.8.0(encoding@0.1.13)'
       '@uniswap/sdk-core':
         specifier: 4.2.0
         version: 4.2.0
@@ -12725,10 +12734,10 @@ snapshots:
     dependencies:
       '@ethersproject/abstract-provider': 5.5.1
       '@ethersproject/abstract-signer': 5.5.0
-      '@ethersproject/address': 5.5.0
+      '@ethersproject/address': 5.7.0
       '@ethersproject/basex': 5.5.0
-      '@ethersproject/bignumber': 5.5.0
-      '@ethersproject/bytes': 5.5.0
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/bytes': 5.7.0
       '@ethersproject/constants': 5.5.0
       '@ethersproject/hash': 5.5.0
       '@ethersproject/logger': 5.5.0

@@ -104,7 +104,8 @@ const connectSrc = new Set([
   "https://gateway.ipfs.io",
   "https://media-exp1.licdn.com",
   "https://iris-api.circle.com",
-  "https://iris-api-sandbox.circle.com"
+  "https://iris-api-sandbox.circle.com",
+  "https://*.polygon.technology"
 ])
 
 for (const network of getNetworks()) {

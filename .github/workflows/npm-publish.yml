@@ -34,7 +34,7 @@ jobs:
       - name: Get pnpm store directory
         id: pnpm-store
         shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPU
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         name: Setup pnpm cache
@@ -44,11 +44,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install package
-        run: pnpm --filter-prod ${{ matrix.package-name }}... install
-
-      - name: Build package
-        run: pnpm --filter ${{ matrix.package-name }}... build
+     - name: Install and build package
+        run: |
+          pnpm --filter-prod ${{ matrix.package-name }}... install
+          pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
         run: NPM_CONFIG_PROVENANCE=true pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public

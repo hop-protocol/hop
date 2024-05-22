@@ -30,8 +30,7 @@ async function main (source: any) {
     const destinationChain = await getDestinationChainFromTxHash(chain, txHash)
 
     const wallet = wallets.get(destinationChain)
-    const messageHash = Message.getMessageHashFromMessage(message)
-    const attestation = await Message.fetchAttestation(messageHash)
+    const attestation = await Message.fetchAttestation(message)
     const tx = await Message.relayMessage(wallet , message, attestation)
     console.log(`Relayed message to ${destinationChain} with tx ${tx.transactionHash}`)
   }

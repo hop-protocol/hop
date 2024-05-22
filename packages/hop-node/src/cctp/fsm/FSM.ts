@@ -18,6 +18,7 @@ export abstract class FSM<State extends string, StateData>{
   readonly #stateDB: StateMachineDB<State, string, StateData>
   readonly #dataRepository: AbstractRepository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
+  isFSMInitialized: boolean = false
 
   protected abstract isTransitionReady(state: State, value: StateData): boolean
 
@@ -28,14 +29,27 @@ export abstract class FSM<State extends string, StateData>{
   ) {
     this.#states = states
     this.#stateDB = new StateMachineDB(stateMachineName)
-    this.#dataRepository = dataRepository 
+    this.#dataRepository = dataRepository
   }
 
   async start(): Promise<void> {
     await this.#init()
     this.#startListeners()
     this.#startPollers()
+    this.isFSMInitialized = true
   }
+
+  /**
+   * Public API
+   */
+
+  async *getItemsInState(state: State): AsyncIterable<[string, StateData]> {
+    yield* this.#stateDB.getItemsInState(state)
+  }
+
+  /**
+   * Internal Processing
+   */
 
   async #init(): Promise<void> {
     // Handle unsynced item initialization

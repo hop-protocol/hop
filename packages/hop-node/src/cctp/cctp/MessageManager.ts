@@ -16,22 +16,16 @@ interface ISentMessage {
   sentTimestampMs: number
 }
 
-// TODO: Get rid of this state
-// interface IAttestedMessage {
-//   attestation: string
-// }
-
 interface IRelayedMessage {
   relayTransactionHash: string
   relayTimestampMs: number
 }
 
-export type IMessage = ISentMessage & IAttestedMessage & IRelayedMessage
+export type IMessage = ISentMessage & IRelayedMessage
 
 // TODO: I should be able to not need the string after, but that is what is used for db index so maybe i do?
 export enum MessageState {
   Sent = 'sent',
-  Attested = 'attested',
   Relayed = 'relayed'
 }
 
@@ -43,59 +37,58 @@ export class MessageManager extends FSM<MessageState, IMessage> {
 
   constructor (chains: ChainSlug[]) {
     super(
+      [MessageState.Sent, MessageState.Relayed],
       'MessageManager',
-      [MessageState.Sent, MessageState.Attested, MessageState.Relayed],
       new TransitionDataProvider(chains)
     )
     this.#startPollers()
   }
-
-  // // Return the unique ID for each message
-  // getId (value: IMessage): string {
-  //   // TODO: Use different separator. With redundant chainId, the filtering of the db is messed up
-  //   const { messageNonce, sourceChainId } = value as ISentMessage
-  //   return messageNonce.toString() + '!!' + sourceChainId.toString()
-  // }
 
   #startPollers (): void {
     poll(this.#checkRelay, this.#pollIntervalMs)
   }
 
   #checkRelay = async (): Promise<void> => {
-    if (!this.isInitialSetupComplete()) return
+    if (!this.isFSMInitialized) return
 
     for await (const value of this.#getRelayableMessages()) {
-      const { message, attestation, destinationChainId } = value as IMessage
-      await this.#relayMessage(message, attestation, destinationChainId)
+      const { message, destinationChainId } = value as IMessage
+      await this.#relayMessage(message, destinationChainId)
     }
   }
 
-  async *#getRelayableMessages (): AsyncIterable<IAttestedMessage> {
-    for await (const [, value] of this.getItemsInState(MessageState.Attested)) {
-      const canRelay = this.#canRelayMessage(value as IAttestedMessage)
+  async *#getRelayableMessages (): AsyncIterable<ISentMessage> {
+    for await (const [, value] of this.getItemsInState(MessageState.Sent)) {
+      const canRelay = await this.#canRelayMessage(value as IMessage)
       if (!canRelay) continue
 
-      yield value as IAttestedMessage
+      yield value as ISentMessage
     }
   }
 
-  #canRelayMessage (value: IAttestedMessage): boolean {
-    const hasRelayBeenSent = this.#inFlightTxCache.has(value.attestation)
+  async #canRelayMessage (value: ISentMessage): Promise<boolean> {
+    const { sourceChainId, sentTimestampMs } = value as IMessage
+    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
+    const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
 
     return (
-      !hasRelayBeenSent
+      !finalityTimestampOk
     )
   }
 
-  async #relayMessage (message: string, attestation: string, destinationChainId: string): Promise<void> {
+  async #relayMessage (message: string, destinationChainId: string): Promise<void> {
     const chainSlug = getChain(destinationChainId).slug
     const wallet = wallets.get(chainSlug)
+
     try {
+      const attestation = await Message.fetchAttestation(message)
+
       this.#inFlightTxCache.add(attestation)
       await Message.relayMessage(wallet, message, attestation)
     } catch (err) {
       // TODO: better err handling
       // error={"reason":"execution reverted: Nonce already used"
+      // Also handle attestation failure
       console.log('Relay failed', err)
     }
   }
@@ -108,24 +101,12 @@ export class MessageManager extends FSM<MessageState, IMessage> {
     switch (state) {
       case MessageState.Sent:
         return this.#isSent(value as ISentMessage)
-      case MessageState.Attested:
-        return this.#isAttested(value as IAttestedMessage)
       case MessageState.Relayed:
         return this.#isRelayed(value as IRelayedMessage)
     }
   }
 
   #isSent (value: ISentMessage): boolean {
-    const { sourceChainId, sentTimestampMs } = value
-    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
-    const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
-
-    return (
-      finalityTimestampOk
-    )
-  }
-
-  #isAttested (value: IAttestedMessage): boolean {
     return true
   }
 

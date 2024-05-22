@@ -114,8 +114,9 @@ export class Message {
    * {"attestation":"PENDING","status":"pending_confirmations"}
    * {"attestation":"0x123...","status":"complete"}
    */
-  static async fetchAttestation (messageHash: string): Promise<string> {
+  static async fetchAttestation (message: string): Promise<string> {
     return await mutex.runExclusive(async () => {
+    const messageHash = Message.getMessageHashFromMessage(message)
       const url = getAttestationUrl(messageHash)
       console.log('temp000', messageHash)
       const res = await fetch(url)

@@ -41,7 +41,7 @@ type S3JsonData = {
 // These should be global since they apply to all instances.
 const cache: Record<string, BigNumber> = {}
 
-// TODO: better way of managing aggregate state.
+// TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
 class AvailableLiquidityWatcher extends BaseWatcher {

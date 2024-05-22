@@ -7,7 +7,7 @@ import { Alert } from '#components/Alert/index.js'
 import { Button } from '#components/Button/Button.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { LargeTextField } from '#components/LargeTextField/index.js'
-import { getRelayer, ChainSlug, MessageDirection } from '@hop-protocol/sdk'
+import { getRelayer, ChainSlug, NetworkSlug, getTransferCommittedEventForTransferId } from '@hop-protocol/sdk'
 import { formatError } from '#utils/format.js'
 import { makeStyles } from '@mui/styles'
 import { reactAppNetwork } from '#config/index.js'
@@ -18,6 +18,8 @@ import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
 import { l2Networks, l1Network } from '#config/networks.js'
+import Network from '#models/Network.js'
+import { findNetworkBySlug, networkSlugToId } from '#utils/index.js'
 import {
   useSelectedNetwork
 } from '#hooks/index.js'
@@ -60,7 +62,8 @@ export const Relay: FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
-  const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
+  // const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
 
   useEffect(() => {
     try {
@@ -81,23 +84,30 @@ export const Relay: FC = () => {
       await new Promise((resolve, reject) => {
         const run = async () => {
           console.log('selectedNetwork', selectedNetwork)
-          const isNetworkConnected = await checkConnectedNetworkId(selectedNetwork.networkId)
+          const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
           if (!isNetworkConnected) {
             throw new Error('wrong network connected')
           }
-          const l1Wallet = sdk.getChainProvider(ChainSlug.Ethereum)
+          const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
-          if (selectedNetwork.slug.startsWith(ChainSlug.Polygon)) {
-            if (!(l1Wallet as any).getSigner) {
-              (l1Wallet as any).getSigner = () => l1Wallet
-            }
+          // let commitTxHash = '0x86f1dfc3ced80aa27c1116ebda552b5cd5009eac5f6f3c2d01a521faae398677' // base ETH
+          // let commitTxHash = '0xb3b1e32b65aab3dd5374130fe92ff3108fef1d5d61be62bb99e041e596b64265' // optimism ETH
+          // let commitTxHash = '0x5a75ff2131895ec42da3bc851df8854683f20bb7dadb6f149e527da021d91456' // polygon ETH
+          let commitTxHash = '' // polygon ETH
+          if (!commitTxHash) {
+            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, 'ETH', txHash)
+            console.log('event', event)
+            commitTxHash = event?.transactionHash
           }
-          const relayer: any = getRelayer(reactAppNetwork, selectedNetwork.slug, l1Wallet, l2Wallet)
-          const messageDirection = MessageDirection.L2_TO_L1
-          const tx = await relayer.sendRelayTx(txHash, messageDirection)
+          if (!commitTxHash) {
+            throw new Error('The commit tx hash not found for transfer. This means the transfer root has not been committed yet.')
+          }
+          console.log('commitTxHash', commitTxHash)
+          const relayer = getRelayer(reactAppNetwork as NetworkSlug, selectedNetwork.slug as ChainSlug, l1Wallet, l2Wallet)
+          const tx = await relayer.relayL2ToL1Message(commitTxHash)
           setSuccess(tx.hash)
           console.log('tx', tx)
           const receipt = await tx.wait()
@@ -131,7 +141,10 @@ export const Relay: FC = () => {
                   Source Chain
                 </Typography>
               </Box>
-              <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
+              <RaisedSelect value={selectedNetwork?.slug} onChange={(event: any) => {
+                const selectedNetworkSlug = event.target.value as string
+                setSelectedNetwork(findNetworkBySlug(selectedNetworkSlug, l2Networks))
+              }}>
                 {l2Networks.map(network => (
                   <MenuItem value={network.slug} key={network.slug}>
                     <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
@@ -147,7 +160,7 @@ export const Relay: FC = () => {
                   Destination Chain
                 </Typography>
               </Box>
-              <RaisedSelect value={selectedNetwork?.slug}>
+              <RaisedSelect value={l1Network.slug}>
                 <MenuItem value={l1Network.slug} key={l1Network.slug}>
                   <SelectOption value={l1Network.slug} icon={l1Network.imageUrl} label={l1Network.name} />
                 </MenuItem>
@@ -158,15 +171,15 @@ export const Relay: FC = () => {
 
           <Card className={styles.card}>
             <Typography variant="h6">
-              Transaction Hash
+              Transfer ID
               <InfoTooltip
                 title={
-                  'Enter the origin transaction hash to relay'
+                  'Enter the origin transfer ID or transaction hash to relay'
                 }
               />
               <Box ml={2} display="inline-flex">
                 <Typography variant="body2" color="secondary" component="span">
-                  Enter origin transaction hash
+                  Enter transfer ID or origin transaction hash
                 </Typography>
               </Box>
             </Typography>

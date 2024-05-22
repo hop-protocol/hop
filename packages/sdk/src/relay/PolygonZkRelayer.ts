@@ -44,6 +44,13 @@ export class PolygonZkRelayer extends Relayer<Message, MessageStatus> {
   constructor (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
     super(networkSlug, chainSlug, l1Wallet, l2Wallet)
 
+    if (!(l1Wallet as any).getSigner) {
+      (this.l1Wallet as any).getSigner = () => l1Wallet
+    }
+    if (!(l2Wallet as any).getSigner) {
+      (this.l2Wallet as any).getSigner = () => l2Wallet
+    }
+
     maticJsDefault.use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 

@@ -43,8 +43,7 @@
     "@maticnetwork/maticjs-ethers": "1.0.3",
     "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
     "@eth-optimism/sdk": "3.1.4",
-    "@arbitrum/sdk": "2.0.18",
-    "@consensys/linea-sdk": "0.1.6"
+    "@arbitrum/sdk": "2.0.18"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",

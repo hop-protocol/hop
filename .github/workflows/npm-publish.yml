@@ -28,18 +28,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2
-        with:
-          version: 9
-          run_install: false
-
-      - name: Setup node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
-        with:
-          node-version-file: '.nvmrc'
-          registry-url: https://registry.npmjs.org
-          cache: 'pnpm'
+      - name: Setup workflow
+        uses: ./.github/actions/setup
 
       - name: Get pnpm store directory
         shell: bash

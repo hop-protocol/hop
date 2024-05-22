@@ -5,8 +5,8 @@ import {
 } from '../../Services/AbstractMessageService.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import {
-  type IL1ToL2MessageWriter,
-  type IL2ToL1MessageWriter,
+  type L1ToL2MessageWriter,
+  type L2ToL1MessageWriter,
   L1ToL2MessageStatus,
   L1TransactionReceipt,
   L2ToL1MessageStatus,
@@ -14,7 +14,7 @@ import {
 } from '@arbitrum/sdk'
 import type { Overrides, providers } from 'ethers'
 
-type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
+type Message = L1ToL2MessageWriter | L2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 
 // A custom gasLimit is set for L2 relays because the estimates are sometimes failing
@@ -28,13 +28,13 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       const overrides: Overrides = {
         gasLimit: DEFAULT_L2_RELAY_GAS_LIMIT
       }
-      return (message as IL1ToL2MessageWriter).redeem()
+      return (message as L1ToL2MessageWriter).redeem()
     }
 
     const overrides: Overrides = {
       gasLimit: DefaultL1RelayGasLimit
     }
-    return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
+    return (message as L2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
   }
 
   protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<Message> {
@@ -69,7 +69,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
     const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-    const messages: Message[] = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as Message[]
+    const messages: Message[] = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet) as Message[]
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
@@ -88,7 +88,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       return message.status(this.l2Wallet.provider!)
     }
     // TODO: Shouldn't need to cast
-    return (message as IL1ToL2MessageWriter).status()
+    return (message as L1ToL2MessageWriter).status()
   }
 
   protected isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {

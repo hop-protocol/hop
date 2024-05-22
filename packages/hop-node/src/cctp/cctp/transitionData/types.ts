@@ -1,8 +1,7 @@
 import type { LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 
-export type IAPIEventStoreRes = string
 export type IOnchainEventStoreRes = LogWithChainId
-export type IGetStoreDataRes = IAPIEventStoreRes | IOnchainEventStoreRes
+export type IGetStoreDataRes = IOnchainEventStoreRes
 
 
 export interface ITransitionDataProvider<T, U> {

@@ -1,7 +1,6 @@
-import { APIEventStore } from './ApiEventStore'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'node:events'
-import { IAPIEventStoreRes, IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
+import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
 import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
 import { Message } from '../Message'
 import { MessageState } from '../MessageManager'
@@ -20,12 +19,10 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
   constructor (chains: Chain[]) {
     super()
     const onchainEventSourceIndexer = new OnchainEventStore(chains)
-    const apiFetchEventSourceIndexer = new APIEventStore()
 
     this.#transitionStores = {
       // [this.#initializationState]: onchainEventSourceIndexer,
       [MessageState.Sent]: onchainEventSourceIndexer,
-      [MessageState.Attested]: apiFetchEventSourceIndexer,
       [MessageState.Relayed]: onchainEventSourceIndexer
     } as Record<T, IDataStore>
 

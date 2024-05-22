@@ -17,9 +17,17 @@ import type { Overrides, providers } from 'ethers'
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 
+// A custom gasLimit is set for L2 relays because the estimates are sometimes failing
+// This value is 20x higher than baseline but should still remain within reasonable limits
+// for the sequencer to include.
+const DEFAULT_L2_RELAY_GAS_LIMIT = 5_000_000
+
 export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
+      const overrides: Overrides = {
+        gasLimit: DEFAULT_L2_RELAY_GAS_LIMIT
+      }
       return (message as IL1ToL2MessageWriter).redeem()
     }
 

@@ -51,6 +51,29 @@ jobs:
             echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Build PNPM Cache for Docker
+        with:
+          path: pnpm
+          key: pnpm-install-cache-${{ hashFiles(.pnpm-lock.yaml) }}
+
+      - name: Inject Cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@87e6a3bbd976a1476e29b60fe743ab0977034ff5
+        with:
+          cache-source: ${{ env.STORE_PATH }}
+
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:

@@ -73,7 +73,7 @@ jobs:
         with:
           cache-map: |
             {
-              ${{ steps.pnpm-store.outputs.STORE_PATH }}: {
+              "${{ steps.pnpm-store.outputs.STORE_PATH }}": {
                 "target": "/pnpm/store",
                 "id": "pnpm"
               },

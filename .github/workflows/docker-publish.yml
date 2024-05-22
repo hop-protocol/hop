@@ -71,6 +71,7 @@ jobs:
         uses: reproducible-containers/buildkit-cache-dance@87e6a3bbd976a1476e29b60fe743ab0977034ff5
         with:
           cache-source: ${{ env.STORE_PATH }}
+          cache-target: /pnpm/store
 
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0

@@ -61,3 +61,4 @@ jobs:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true
+          provenance: mode=max

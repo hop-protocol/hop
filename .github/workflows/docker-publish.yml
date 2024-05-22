@@ -54,11 +54,16 @@ jobs:
             echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Get pnpm store directory
+        id: pnpm-store
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
       - name: Setup pnpm cache
-        id: cache
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        id: cache
         with:
-          path: pnpm
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
@@ -68,7 +73,10 @@ jobs:
         with:
           cache-map: |
             {
-              "pnpm": "/pnpm/store"
+              ${{ steps.pnpm-store.outputs.STORE_PATH }}: {
+                "target": "/pnpm/store",
+                "id": "pnpm"
+              },
             }
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 

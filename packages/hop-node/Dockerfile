@@ -6,7 +6,7 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS build
-RUN --mount=type=cache,target=/pnpm/store pnpm --filter-prod=hop-node... install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=hop-node... install
 
 RUN pnpm --filter=hop-node... build
 RUN pnpm --filter=hop-node deploy --prod /prod/app

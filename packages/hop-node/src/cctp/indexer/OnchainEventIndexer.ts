@@ -1,11 +1,10 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChainSlug } from '@hop-protocol/sdk'
+import { getChainSlug, getChain } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
 import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
@@ -66,8 +65,8 @@ export class OnchainEventIndexer {
   }
 
   #syncEvents = async (chain: ChainSlug): Promise<void> => {
-    const chainId = chainSlugToId(chain)
-    const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
+    const chainId = getChain(chain).chainId
+    const filterId = this.#getUniqueFilterId(Number(chainId), this.#eventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
     const { endBlockNumber, logs } = await getEventsInRange(chain, this.#eventFilter, lastBlockSynced, this.#maxBlockRange)
 
@@ -95,7 +94,7 @@ export async function getEventsInRange (
   endBlockNumber: number,
   logs: LogWithChainId[]
 }> {
-  const chainId = chainSlugToId(chain)
+  const chainId = getChain(chain).chainId
   const provider = getRpcProvider(chain)
 
   const lastBlockSynced = syncStartBlock

@@ -1,9 +1,9 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import type { IDataStore, IOnchainEventStoreRes } from './types.js'
 import { type LogWithChainId, OnchainEventIndexerDB } from '../../db/OnchainEventIndexerDB.js'
 import { Message } from '../Message.js'
 import { OnchainEventIndexer, type RequiredEventFilter } from '../../indexer/OnchainEventIndexer.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 export class OnchainEventStore implements IDataStore {
   // TODO: No !
@@ -22,10 +22,10 @@ export class OnchainEventStore implements IDataStore {
   }
 
   #getEventFilters (chain: ChainSlug): RequiredEventFilter[] {
-    const chainId = chainSlugToId(chain)
+    const chainId = getChain(chain).chainId
     return [
-      Message.getCCTPTransferSentEventFilter(chainId),
-      Message.getMessageReceivedEventFilter(chainId)
+      Message.getCCTPTransferSentEventFilter(Number(chainId)),
+      Message.getMessageReceivedEventFilter(Number(chainId))
     ]
   }
 

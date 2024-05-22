@@ -1,6 +1,5 @@
-import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
 import { Contract, utils } from 'ethers'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 
 export function getAttestationUrl (messageHash: string): string {
@@ -85,9 +84,9 @@ export const CCTP_DOMAIN_MAP: Partial<Record<NetworkSlug, Record<number, number>
 // Remove all this in favor of the contract instance from the SDK when available
 export function getMessageTransmitterContract (chainId: number): Contract {
   const iface = getCCTPMessageTransmitterContractInterface()
-  const chainSlug = chainIdToSlug(chainId)
+  const chainSlug = getChainSlug(chainId.toString())
   return new Contract(
-    MessageTransmitterAddresses[globalConfig.network][chainSlug]!,
+    MessageTransmitterAddresses[globalConfig.network][chainSlug as ChainSlug]!,
     iface
   )
 }
@@ -95,9 +94,9 @@ export function getMessageTransmitterContract (chainId: number): Contract {
 // Remove all this in favor of the contract instance from the SDK when available
 export function getHopCCTPContract (chainId: number): Contract {
   const iface = getHopCCTPInterface()
-  const chainSlug = chainIdToSlug(chainId)
+  const chainSlug = getChainSlug(chainId.toString())
   return new Contract(
-    HopCCTPAddresses[globalConfig.network][chainSlug]!,
+    HopCCTPAddresses[globalConfig.network][chainSlug as ChainSlug]!,
     iface
   )
 }

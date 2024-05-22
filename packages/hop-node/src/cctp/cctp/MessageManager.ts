@@ -1,5 +1,5 @@
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import wallets from '#wallets/index.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import { FSM } from '../fsm/FSM.js'
 import { Message } from './Message.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
@@ -40,7 +40,7 @@ export class MessageManager extends FSM<MessageState, IMessage> {
   readonly #inFlightTxCache: Set<string> = new Set()
   readonly #pollIntervalMs: number = 60_000
 
-  constructor (chains: Chain[]) {
+  constructor (chains: ChainSlug[]) {
     super(
       'MessageManager',
       [MessageState.Sent, MessageState.Attested, MessageState.Relayed],

@@ -9,9 +9,8 @@ import {
 } from './utils'
 import { LogWithChainId } from '../db/OnchainEventIndexerDB.js'
 import type { RequiredEventFilter, RequiredFilter } from '../indexer/OnchainEventIndexer.js'
-import { Chain, MinPolygonGasPrice } from '@hop-protocol/hop-node-core/constants'
-import type { Network } from '@hop-protocol/hop-node-core/constants'
-import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { type NetworkSlug, ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { getRpcProvider } from '#utils/index.js'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
 import { wait } from '#utils/wait.js'
@@ -154,7 +153,7 @@ export class Message {
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    const chainSlug = chainIdToSlug(chainId)
+    const chainSlug = getChainSlug(chainId.toString())
     if (chainSlug === Chain.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 

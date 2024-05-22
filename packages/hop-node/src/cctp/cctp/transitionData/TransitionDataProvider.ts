@@ -1,5 +1,5 @@
 import { APIEventStore } from './ApiEventStore.js'
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import { EventEmitter } from 'node:events'
 import type {
   IAPIEventStoreRes,
@@ -23,7 +23,7 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
   readonly #transitionStores: Record<T, IDataStore>
   readonly #eventEmitter: EventEmitter = new EventEmitter()
 
-  constructor (chains: Chain[]) {
+  constructor (chains: ChainSlug[]) {
     super()
     const onchainEventSourceIndexer = new OnchainEventStore(chains)
     const apiFetchEventSourceIndexer = new APIEventStore()

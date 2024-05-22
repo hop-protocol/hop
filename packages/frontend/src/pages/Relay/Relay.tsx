@@ -93,10 +93,14 @@ export const Relay: FC = () => {
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
+          // example commit txs
           // let commitTxHash = '0x86f1dfc3ced80aa27c1116ebda552b5cd5009eac5f6f3c2d01a521faae398677' // base ETH
           // let commitTxHash = '0xb3b1e32b65aab3dd5374130fe92ff3108fef1d5d61be62bb99e041e596b64265' // optimism ETH
           // let commitTxHash = '0x5a75ff2131895ec42da3bc851df8854683f20bb7dadb6f149e527da021d91456' // polygon ETH
-          let commitTxHash = '' // polygon ETH
+          // let commitTxHash = '0x43c5f6baf4100fbd7924a9f0664f20ed8b36bf3feb4218aea41d1e01f5076bf4' // arbitrum ETH
+          // let commitTxHash = '0x886158d6ce41723af5364b9f89d51416c09345ff920c8e7af23dfd67ccd34da2' // nova ETH
+          // let commitTxHash = '0xc02c7337289afbc5d73199e26585da58b7cf77334f8d49255751a6da421a13a4' // gnosis ETH
+          let commitTxHash = ''
           if (!commitTxHash) {
             const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, 'ETH', txHash)
             console.log('event', event)

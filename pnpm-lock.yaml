@@ -608,8 +608,8 @@ importers:
   packages/sdk:
     dependencies:
       '@arbitrum/sdk':
-        specifier: 2.0.18
-        version: 2.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@20.12.7)(bufferutil@4.0.8)(typescript@5.4.3)(utf-8-validate@5.0.10)
+        specifier: 3.4.1
+        version: 3.4.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@consensys/linea-sdk':
         specifier: 0.1.6
         version: 0.1.6(bufferutil@4.0.8)(sqlite3@5.1.7)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))(utf-8-validate@5.0.10)
@@ -1045,6 +1045,10 @@ packages:
 
   '@arbitrum/sdk@3.0.0-beta.12':
     resolution: {integrity: sha512-VM9+Vpnr2ZSy7nTVvMKbw6wslVTX6KvHNwN/k7C+bdhS8ehFOv6aWm0ldZQDFZVpP+3x93HQlgi4fDcolcn4Ig==}
+    engines: {node: '>=v11', npm: please-use-yarn, yarn: '>= 1.0.0'}
+
+  '@arbitrum/sdk@3.4.1':
+    resolution: {integrity: sha512-NNGef0Enuf2DDV0IO0FHEClRCJohof6KgHH+vVU5hFYwssxV+Tc/yVoGYbttfGX1Ea6yYjA3HjiUSXPvQJ7xQg==}
     engines: {node: '>=v11', npm: please-use-yarn, yarn: '>= 1.0.0'}
 
   '@aws-crypto/crc32@3.0.0':
@@ -10537,6 +10541,17 @@ snapshots:
       - typescript
       - utf-8-validate
 
+  '@arbitrum/sdk@3.4.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/bytes': 5.7.0
+      async-mutex: 0.4.1
+      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@aws-crypto/crc32@3.0.0':
     dependencies:
       '@aws-crypto/util': 3.0.0
@@ -12747,10 +12762,10 @@ snapshots:
     dependencies:
       '@ethersproject/abstract-provider': 5.5.1
       '@ethersproject/abstract-signer': 5.5.0
-      '@ethersproject/address': 5.5.0
+      '@ethersproject/address': 5.7.0
       '@ethersproject/basex': 5.5.0
-      '@ethersproject/bignumber': 5.5.0
-      '@ethersproject/bytes': 5.5.0
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/bytes': 5.7.0
       '@ethersproject/constants': 5.5.0
       '@ethersproject/hash': 5.5.0
       '@ethersproject/logger': 5.5.0
@@ -17774,16 +17789,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.7.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint@9.1.0):
-    dependencies:
-      debug: 3.2.7
-    optionalDependencies:
-      '@typescript-eslint/parser': 7.7.0(eslint@9.1.0)(typescript@5.4.3)
-      eslint: 9.1.0
-      eslint-import-resolver-node: 0.3.9
-    transitivePeerDependencies:
-      - supports-color
-
   eslint-plugin-es-x@7.6.0(eslint@9.1.0):
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@9.1.0)
@@ -17801,7 +17806,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.1.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.7.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint@9.1.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@9.1.0))(eslint@9.1.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3
@@ -22167,7 +22172,7 @@ snapshots:
 
   rimraf@2.7.1:
     dependencies:
-      glob: 7.2.0
+      glob: 7.2.3
 
   rimraf@3.0.2:
     dependencies:

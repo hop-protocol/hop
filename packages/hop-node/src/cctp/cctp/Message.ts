@@ -37,7 +37,7 @@ type IAttestationResponse = IAttestationResponseError | IAttestationResponseSucc
 // TODO: Get from SDK
 export type HopCCTPTransferSentDecoded = {
   cctpNonce: BigNumber
-  chainId: number
+  chainId: string
   recipient: string
   amount: BigNumber
   bonderFee: BigNumber
@@ -62,19 +62,19 @@ export class Message {
   static MESSAGE_RECEIVED_EVENT_SIG = '0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d'
 
   // TODO: Get from SDK
-  static getCCTPTransferSentEventFilter(chainId: number): RequiredEventFilter {
+  static getCCTPTransferSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getHopCCTPContract(chainId)
     return contract.filters.CCTPTransferSent() as RequiredEventFilter
   }
 
   // TODO: Get from SDK
-  static getMessageSentEventFilter(chainId: number): RequiredEventFilter {
+  static getMessageSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getMessageTransmitterContract(chainId)
     return contract.filters.MessageSent() as RequiredEventFilter
   }
 
   // TODO: Get from SDK
-  static getMessageReceivedEventFilter(chainId: number): RequiredEventFilter {
+  static getMessageReceivedEventFilter(chainId: string): RequiredEventFilter {
     const contract = getMessageTransmitterContract(chainId)
     return contract.filters.MessageReceived() as RequiredEventFilter
   }
@@ -100,7 +100,7 @@ export class Message {
   }
 
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
-    const chainId = await signer.getChainId()
+    const chainId: string = (await signer.getChainId()).toString()
     // Remove this in favor of the contract instance from the SDK when available
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
     // TODO: Config overrides
@@ -147,14 +147,14 @@ export class Message {
   }
 
   // TODO: rm for config
-  static async getTxOverrides (chainId: number): Promise<any>{
+  static async getTxOverrides (chainId: string): Promise<any>{
     const provider = getRpcProvider(chainId)
     const txOptions: any = {}
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    const chainSlug = getChainSlug(chainId.toString())
-    if (chainSlug === Chain.Polygon) {
+    const chainSlug = getChainSlug(chainId).slug
+    if (chainSlug === ChainSlug.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
       const minGasPrice = BigNumber.from(MIN_POLYGON_GAS_PRICE).mul(2)
@@ -170,7 +170,7 @@ export class Message {
   // Returns the CCTP message as well as the Hop-specific data
   static async parseHopCCTPTransferSentLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage> {
     const iface = getHopCCTPInterface()
-    const parsed =iface.parseLog(log)
+    const parsed = iface.parseLog(log)
 
     const {
       cctpNonce,
@@ -185,7 +185,7 @@ export class Message {
 
     return {
       cctpNonce,
-      chainId: Number(chainId),
+      chainId,
       recipient,
       amount,
       bonderFee,
@@ -194,7 +194,7 @@ export class Message {
   }
 
   // TODO: This shouldn't be public, but everything else is static...
-  static async getCCTPMessagesByTxHash (chainId: number, txHash: string): Promise<string[]> {
+  static async getCCTPMessagesByTxHash (chainId: string, txHash: string): Promise<string[]> {
     const provider = getRpcProvider(chainId)
     const txReceipt = await provider.getTransactionReceipt(txHash)
     const blockNumber = txReceipt.blockNumber

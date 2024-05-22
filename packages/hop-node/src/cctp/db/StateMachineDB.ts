@@ -54,7 +54,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
 
     // Add the next state entry
-    const opts = nextState === null ? {}: { sublevel: this.sublevel(nextState) }
+    const opts = nextState === null ? {} : { sublevel: this.sublevel(nextState) }
     batch.put(key, updatedValue, opts)
 
     return batch.write()

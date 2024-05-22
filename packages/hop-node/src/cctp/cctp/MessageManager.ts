@@ -1,5 +1,6 @@
 import wallets from '#wallets/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import { FSM } from '../fsm/FSM.js'
 import { Message } from './Message.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
@@ -9,8 +10,8 @@ import { TransitionDataProvider } from './transitionData/TransitionDataProvider.
 interface ISentMessage {
   messageNonce: number
   message: string
-  sourceChainId: number
-  destinationChainId: number
+  sourceChainId: string
+  destinationChainId: string
   sentTxHash: string
   sentTimestampMs: number
 }
@@ -86,8 +87,8 @@ export class MessageManager extends FSM<MessageState, IMessage> {
     )
   }
 
-  async #relayMessage (message: string, attestation: string, destinationChainId: number): Promise<void> {
-    const chainSlug = chainIdToSlug(destinationChainId)
+  async #relayMessage (message: string, attestation: string, destinationChainId: string): Promise<void> {
+    const chainSlug = getChain(destinationChainId).slug
     const wallet = wallets.get(chainSlug)
     try {
       this.#inFlightTxCache.add(attestation)

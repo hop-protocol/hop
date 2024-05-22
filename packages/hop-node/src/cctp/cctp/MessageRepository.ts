@@ -102,6 +102,7 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
    */
 
   async #parseInitializationLog (transferSentLog: LogWithChainId): Promise<U> {
+    // TODO: Is this chainId string or number
     const { transactionHash, chainId, blockNumber } = transferSentLog
     const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
     const {
@@ -173,6 +174,7 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
   }
 
   async #parseRelayedLog (log: LogWithChainId): Promise<U> {
+    // TODO: Is this chainId string or number
     const { transactionHash, chainId, blockNumber } = log
     const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
     return {

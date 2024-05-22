@@ -1,6 +1,6 @@
 import os from 'node:os'
 import path from 'node:path'
-import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 
@@ -31,7 +31,7 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug
   }
 }
 
-export function getDefaultStartBlockNumber (chainId: number): number {
-  const chainSlug = getChainSlug(chainId.toString())
-  return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network][chainSlug]!
+export function getDefaultStartBlockNumber (chainId: string): number {
+  const chainSlug = getChain(chainId).slug
+  return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network as NetworkSlug][chainSlug]
 }

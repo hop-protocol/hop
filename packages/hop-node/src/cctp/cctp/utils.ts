@@ -1,4 +1,4 @@
-import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Contract, utils } from 'ethers'
 import { config as globalConfig } from '#config/index.js'
 
@@ -25,9 +25,9 @@ export const FinalityTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, 
   }
 }
 
-export function getFinalityTimeFromChainIdMs (chainId: number): number {
-  const chainSlug = getChainSlug(chainId.toString())
-  return (FinalityTimeForChainIdMs as any)[globalConfig.network][chainSlug]!
+export function getFinalityTimeFromChainIdMs (chainId: string): number {
+  const chainSlug = getChain(chainId).slug
+  return (FinalityTimeForChainIdMs as any)[globalConfig.network as NetworkSlug][chainSlug]!
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
@@ -82,9 +82,9 @@ export const CCTP_DOMAIN_MAP: Partial<Record<NetworkSlug, Record<number, number>
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
-export function getMessageTransmitterContract (chainId: number): Contract {
+export function getMessageTransmitterContract (chainId: string): Contract {
   const iface = getCCTPMessageTransmitterContractInterface()
-  const chainSlug = getChainSlug(chainId.toString())
+  const chainSlug = getChain(chainId).slug
   return new Contract(
     MessageTransmitterAddresses[globalConfig.network][chainSlug as ChainSlug]!,
     iface
@@ -92,9 +92,9 @@ export function getMessageTransmitterContract (chainId: number): Contract {
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
-export function getHopCCTPContract (chainId: number): Contract {
+export function getHopCCTPContract (chainId: string): Contract {
   const iface = getHopCCTPInterface()
-  const chainSlug = getChainSlug(chainId.toString())
+  const chainSlug = getChain(chainId).slug
   return new Contract(
     HopCCTPAddresses[globalConfig.network][chainSlug as ChainSlug]!,
     iface

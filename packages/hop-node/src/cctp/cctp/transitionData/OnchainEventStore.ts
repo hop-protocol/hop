@@ -24,8 +24,8 @@ export class OnchainEventStore implements IDataStore {
   #getEventFilters (chain: ChainSlug): RequiredEventFilter[] {
     const chainId = getChain(chain).chainId
     return [
-      Message.getCCTPTransferSentEventFilter(Number(chainId)),
-      Message.getMessageReceivedEventFilter(Number(chainId))
+      Message.getCCTPTransferSentEventFilter(chainId),
+      Message.getMessageReceivedEventFilter(chainId)
     ]
   }
 

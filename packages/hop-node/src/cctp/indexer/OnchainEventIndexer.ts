@@ -1,5 +1,5 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChainSlug, getChain } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
 import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
@@ -66,7 +66,7 @@ export class OnchainEventIndexer {
 
   #syncEvents = async (chain: ChainSlug): Promise<void> => {
     const chainId = getChain(chain).chainId
-    const filterId = this.#getUniqueFilterId(Number(chainId), this.#eventFilter)
+    const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
     const { endBlockNumber, logs } = await getEventsInRange(chain, this.#eventFilter, lastBlockSynced, this.#maxBlockRange)
 
@@ -75,8 +75,8 @@ export class OnchainEventIndexer {
   }
 
   // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
-  #getUniqueFilterId = (chainId: number, eventFilter: RequiredEventFilter): string => {
-    const chainSlug = getChainSlug(chainId.toString())
+  #getUniqueFilterId = (chainId: string, eventFilter: RequiredEventFilter): string => {
+    const chainSlug = getChain(chainId).slug
     const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
   }

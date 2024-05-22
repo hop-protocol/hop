@@ -4,7 +4,7 @@ import { Message } from '../cctp/Message.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { providers } from 'ethers'
 
-export type LogWithChainId = providers.Log & { chainId: number }
+export type LogWithChainId = providers.Log & { chainId: string }
 
 type DBValue = LogWithChainId | number
 
@@ -40,7 +40,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     yield* this.values(filter)
   }
 
-  async getLastBlockSynced(chainId: number, syncDBKey: string): Promise<number> {
+  async getLastBlockSynced(chainId: string, syncDBKey: string): Promise<number> {
     // TODO: Use decorator for creation
     let dbValue = 0
     try {

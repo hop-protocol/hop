@@ -101,7 +101,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/8746007881f545ae41f5f0f632254737/subgraphs/id/Be1kFUUP7S7JTyF2KUqpGVkWfFhhZgq69SpgWYDkD5px',
     etherscanApiUrl: 'https://api.basescan.org',
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     txOverrides: {}

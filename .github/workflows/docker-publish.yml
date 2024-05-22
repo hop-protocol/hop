@@ -58,3 +58,5 @@ jobs:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

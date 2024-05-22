@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 
 /**
- * This represents all of the roots committed on Optimism before the regenesis on Nov 11, 2021
+ * This represents all of the roots committed on Optimism before the regenesis on Nov 11, 2021.
  */
 
 interface RootsCommitted {

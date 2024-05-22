@@ -41,7 +41,8 @@ export const chains: Chains = {
       'https://mainnet.optimism.io'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/7b8d7c8ccda8d3128cb383b5ec8e61a1/subgraphs/id/GUb7jdSZ3qAUxA7q4GSzVQKVLdGuePhh8UvQLLDGpPZK',
     etherscanApiUrl: 'https://api-optimistic.etherscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -56,7 +57,8 @@ export const chains: Chains = {
       'https://rpc.gnosischain.com'
     ],
     explorerUrls: ['https://gnosisscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/da7eff85b91ed0e2f7c46653068050b3/subgraphs/id/GcYkjMbTYYbarjoY99kQJZEUAv1rxQPJiWPcZhBpYSC1',
     etherscanApiUrl: 'https://api.gnosisscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {
@@ -72,7 +74,8 @@ export const chains: Chains = {
       'https://rpc.ankr.com/polygon'
     ],
     explorerUrls: ['https://polygonscan.com'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/22e2ed843249e40568457e147dd4eb0b/subgraphs/id/37p7BEvXpZ72URtNZtHHW7pTqzmqyT9XmxvKHj6DGJmy',
     etherscanApiUrl: 'https://api.polygonscan.com',
     txOverrides: {
       // Not all Polygon nodes follow recommended 30 Gwei gasPrice
@@ -101,7 +104,8 @@ export const chains: Chains = {
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
-    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/8746007881f545ae41f5f0f632254737/subgraphs/id/Be1kFUUP7S7JTyF2KUqpGVkWfFhhZgq69SpgWYDkD5px',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/a0b705b1b518cb9a649b8eb0fa484d6b/subgraphs/id/Be1kFUUP7S7JTyF2KUqpGVkWfFhhZgq69SpgWYDkD5px',
     etherscanApiUrl: 'https://api.basescan.org',
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     txOverrides: {}

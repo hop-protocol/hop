@@ -7,7 +7,7 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=api... install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter=api... install --prod
 RUN pnpm --filter=api... build
 RUN pnpm --filter=api deploy --prod /prod/app
 

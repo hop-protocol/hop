@@ -33,7 +33,7 @@ jobs:
 
       - name: Install and build package
         run: |
-          pnpm --filter-prod ${{ matrix.package-name }}... install
+          pnpm --filter ${{ matrix.package-name }}... install --prod
           pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package

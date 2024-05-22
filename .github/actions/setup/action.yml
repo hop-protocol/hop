@@ -3,14 +3,15 @@ description: Common setup steps used by our workflows
 runs:
   using: composite
   steps:
-    - name: Setup node
-      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
-      with:
-        node-version-file: '.nvmrc'
-        registry-url: https://registry.npmjs.org
-
     - name: Setup pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2
       with:
         version: 9
         run_install: false
+
+    - name: Setup node
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      with:
+        node-version-file: '.nvmrc'
+        registry-url: https://registry.npmjs.org
+        cache: pnpm

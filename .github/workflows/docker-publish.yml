@@ -13,6 +13,9 @@ on:
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
+#@dev Do not cache node_modules. It takes longer to inject/extract the cache than to install the dependencies.
+# https://github.com/reproducible-containers/buildkit-cache-dance/issues/13#issuecomment-1921725152
+
 jobs:
   publishable-packages:
     name: Check for package that can be published
@@ -31,9 +34,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-
-      - name: Setup workflow
-        uses: ./.github/actions/setup
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
@@ -54,32 +54,6 @@ jobs:
             echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get pnpm store directory
-        id: pnpm-store
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
-        id: cache
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Inject Cache into docker
-        uses: reproducible-containers/buildkit-cache-dance@87e6a3bbd976a1476e29b60fe743ab0977034ff5
-        with:
-          cache-map: |
-            {
-              "${{ steps.pnpm-store.outputs.STORE_PATH }}": {
-                "target": "/pnpm/store",
-                "id": "pnpm"
-              }
-            }
-          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
-
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
@@ -87,5 +61,3 @@ jobs:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

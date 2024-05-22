@@ -54,7 +54,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Install package
-        run: pnpm --filter frontend... install --prod
+        run: pnpm --filter-prod frontend... install
 
       - name: Build the app
         env:

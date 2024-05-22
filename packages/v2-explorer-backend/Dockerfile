@@ -7,7 +7,7 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter=v2-explorer-backend... install --prod
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=v2-explorer-backend... install
 RUN pnpm --filter=v2-explorer-backend... build
 RUN pnpm --filter=v2-explorer-backend deploy --prod /prod/app
 

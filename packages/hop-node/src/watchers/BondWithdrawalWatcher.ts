@@ -67,7 +67,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   override siblingWatchers!: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
-  // Disable specific routes if something goes wrong.
+  // Disable specific routes if something goes wrong
   #localEmergencyDryMode: Record<number, boolean> = {}
 
   constructor (config: Config) {

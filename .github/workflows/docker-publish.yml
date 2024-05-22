@@ -64,11 +64,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Build PNPM Cache for Docker
-        with:
-          path: pnpm
-          key: pnpm-install-cache-${{ hashFiles(.pnpm-lock.yaml) }}
-
       - name: Inject Cache into docker
         uses: reproducible-containers/buildkit-cache-dance@87e6a3bbd976a1476e29b60fe743ab0977034ff5
         with:

@@ -39,7 +39,7 @@ type S3JsonData = {
   }
 }
 
-// These should be global since they apply to all instances.
+// These should be global since they apply to all instances
 const cache: Record<string, BigNumber> = {}
 
 // TODO: better way of managing aggregate state

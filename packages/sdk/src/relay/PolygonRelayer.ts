@@ -3,7 +3,9 @@ import { wait } from '#utils/wait.js'
 import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import { NetworkSlug, ChainSlug } from '../index.js'
 import { MessageDirection } from './types.js'
+import { Relayer } from './Relayer.js'
 
 const { POSClient, setProofApi } = MaticJs
 const { default: maticJsDefault } = MaticJsDefaults
@@ -12,11 +14,11 @@ const { Web3ClientPlugin } = MaticJsEthers
 const DefaultL1RelayGasLimit = 1_000_000
 
 type Message = string
+type MessageStatus = string
+
+type Provider = providers.Provider
 
 type POSClientType = MaticJs.POSClient
-
-type PolygonMessage = string
-type PolygonMessageStatus = string
 
 type PolygonApiResError = {
   error: boolean
@@ -51,18 +53,13 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'mumbai'
 }
 
-export class PolygonRelayer {
-  l1Wallet: Signer | providers.Provider
-  l2Wallet: Signer | providers.Provider
-
+export class PolygonRelayer extends Relayer<Message, MessageStatus> {
   ready: boolean = false
   maticClient: POSClientType
   apiUrl: string
 
-  constructor (networkSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-    this.l1Wallet = l1Wallet
-    this.l2Wallet = l2Wallet
-
+  constructor (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
+    super(networkSlug, chainSlug, l1Wallet, l2Wallet)
     const polygonNetwork: string = polygonChainSlugs[networkSlug]!
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
@@ -71,7 +68,7 @@ export class PolygonRelayer {
 
     this.maticClient = new POSClient()
 
-    this.#initClient(networkSlug)
+    this.#init(networkSlug)
       .then(() => {
         this.ready = true
         console.debug('Matic client initialized')
@@ -91,8 +88,8 @@ export class PolygonRelayer {
     }
   }
 
-  async #initClient (l1Network: string): Promise<void> {
-    const from = await (this.l2Wallet as Signer).getAddress()
+  async #init(l1Network: string): Promise<void> {
+    const from = await (this.l1Wallet as Signer).getAddress()
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
     await this.maticClient.init({
@@ -133,7 +130,7 @@ export class PolygonRelayer {
     })
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
@@ -141,7 +138,7 @@ export class PolygonRelayer {
     // Get the bridge address from the logs
     // TransfersCommitted(uint256,bytes32,uint256,uint256)
     const logEvent = '0xf52ad20d3b4f50d1c40901dfb95a9ce5270b2fc32694e5c668354721cd87aa74'
-    const receipt: providers.TransactionReceipt = await (this.l2Wallet as Signer).provider!.getTransactionReceipt(l2TxHash)
+    const receipt: providers.TransactionReceipt = await (this.l2Wallet as Provider).getTransactionReceipt(l2TxHash)
     if (!receipt.logs) {
       throw new Error(`no logs found for ${l2TxHash}`)
     }
@@ -160,7 +157,7 @@ export class PolygonRelayer {
     // Get the messengerProxy address from the bridge state
     // function messengerProxy() view returns (address)
     const messengerProxySelector = '0xce2d280e'
-    let messengerProxyAddress = await (this.l2Wallet as Signer).provider!.call({
+    let messengerProxyAddress = await (this.l2Wallet as Provider)!.call({
       to: bridgeAddress,
       data: messengerProxySelector
     })
@@ -173,7 +170,7 @@ export class PolygonRelayer {
     // function fxRootTunnel() view returns (address)
     messengerProxyAddress = utils.defaultAbiCoder.decode(['address'], messengerProxyAddress)[0]
     const fxRootTunnelSelector = '0x7f1e9cb0'
-    const rootTunnelAddress = await (this.l2Wallet as Signer).provider!.call({
+    const rootTunnelAddress = await (this.l2Wallet as Provider)!.call({
       to: messengerProxyAddress,
       data: fxRootTunnelSelector
     })
@@ -184,18 +181,18 @@ export class PolygonRelayer {
     return utils.defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
 
-  protected async getMessage (txHash: string): Promise<PolygonMessage> {
+  protected async getMessage (txHash: string): Promise<Message> {
     await this.#tilReady()
     // Polygon message is defined by the txHash, so we return that
     return txHash
   }
 
-  protected async getMessageStatus (message: PolygonMessage): Promise<PolygonMessageStatus> {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
     // Polygon status is defined by the message (txHash), so we return that
     return message
   }
 
-  protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
     const apiRes: PolygonApiResError = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResError
     return (
       apiRes?.error &&
@@ -203,8 +200,8 @@ export class PolygonRelayer {
     )
   }
 
-  protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const tx = await (this.l2Wallet as Signer).provider!.getTransactionReceipt(messageStatus)
+  protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
+    const tx = await (this.l2Wallet as Provider).getTransactionReceipt(messageStatus)
     const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
 
     return (
@@ -214,8 +211,8 @@ export class PolygonRelayer {
     )
   }
 
-  protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const tx = await (this.l2Wallet as Signer).provider!.getTransactionReceipt(messageStatus)
+  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
+    const tx = await (this.l2Wallet as Provider).getTransactionReceipt(messageStatus)
     const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
 
     // This is not accurate, but we don't have a way to check if a message has been relayed
@@ -229,8 +226,8 @@ export class PolygonRelayer {
     )
   }
 
-  async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<PolygonApiRes> {
-    const l2Block = await (this.l2Wallet as Signer).provider!.getTransactionReceipt(messageStatus)
+  async #fetchBlockIncluded (messageStatus: MessageStatus): Promise<PolygonApiRes> {
+    const l2Block = await (this.l2Wallet as Provider)!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)
     return (await res.json() as PolygonApiRes)

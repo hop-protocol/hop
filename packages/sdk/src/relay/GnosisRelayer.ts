@@ -3,9 +3,12 @@ import type { L1_xDaiAMB, L2_xDaiAMB } from '../index.js'
 import { NetworkSlug } from '../index.js'
 import { ChainSlug, L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '../index.js'
 import type { Overrides, providers, Signer } from 'ethers'
+import { Relayer } from './Relayer.js'
 
 type Message = string
 type MessageStatus = string
+
+type Provider = providers.Provider
 
 const DefaultL1RelayGasLimit = 1_000_000
 
@@ -37,16 +40,12 @@ const GnosisAddresses: GnosisAddressesType = {
 // references:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-export class GnosisRelayer {
-  l1Wallet: Signer | providers.Provider
-  l2Wallet: providers.Provider
-
+export class GnosisRelayer extends Relayer<Message, MessageStatus> {
   readonly #l1Amb: L1_xDaiAMB
   readonly #l2Amb: L2_xDaiAMB
 
-  constructor (networkSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-    this.l1Wallet = l1Wallet
-    this.l2Wallet = l2Wallet as providers.Provider
+  constructor (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
+    super(networkSlug, chainSlug , l1Wallet, l2Wallet)
 
     // Get chain contracts
     const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses?.[networkSlug as NetworkSlug]?.[ChainSlug.Gnosis]
@@ -56,16 +55,16 @@ export class GnosisRelayer {
 
     const l1AmbAddress = gnosisAddresses.l1AmbAddress
     const l2AmbAddress = gnosisAddresses.l2AmbAddress
-    this.#l1Amb = L1_xDaiAMB__factory.connect(l1AmbAddress, this.l1Wallet) as L1_xDaiAMB
-    this.#l2Amb = L2_xDaiAMB__factory.connect(l2AmbAddress, this.l2Wallet) as L2_xDaiAMB
+    this.#l1Amb = L1_xDaiAMB__factory.connect(l1AmbAddress, this.l1Wallet as Signer) as L1_xDaiAMB
+    this.#l2Amb = L2_xDaiAMB__factory.connect(l2AmbAddress, this.l2Wallet as Provider) as L2_xDaiAMB
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
   async #getValidSigEvent (l2TxHash: string) {
-    const tx = await this.l2Wallet!.getTransactionReceipt(l2TxHash)
+    const tx = await (this.l2Wallet as Provider).getTransactionReceipt(l2TxHash)
     const sigEvents = await this.#l2Amb.queryFilter(
       this.#l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber,

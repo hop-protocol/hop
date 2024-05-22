@@ -7,7 +7,7 @@ import { Alert } from '#components/Alert/index.js'
 import { Button } from '#components/Button/Button.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { LargeTextField } from '#components/LargeTextField/index.js'
-import { getRelayer, MessageDirection } from '@hop-protocol/sdk'
+import { getRelayer, ChainSlug, MessageDirection } from '@hop-protocol/sdk'
 import { formatError } from '#utils/format.js'
 import { makeStyles } from '@mui/styles'
 import { reactAppNetwork } from '#config/index.js'
@@ -17,7 +17,7 @@ import { useWeb3Context } from '#contexts/Web3Context.js'
 import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
-import { l2Networks } from '#config/networks.js'
+import { l2Networks, l1Network } from '#config/networks.js'
 import {
   useSelectedNetwork
 } from '#hooks/index.js'
@@ -85,18 +85,18 @@ export const Relay: FC = () => {
           if (!isNetworkConnected) {
             throw new Error('wrong network connected')
           }
-          const l1Wallet = sdk.getChainProvider('ethereum')
+          const l1Wallet = sdk.getChainProvider(ChainSlug.Ethereum)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
-          if (selectedNetwork.slug === 'polygonzk') {
+          if (selectedNetwork.slug.startsWith(ChainSlug.Polygon)) {
             if (!(l1Wallet as any).getSigner) {
               (l1Wallet as any).getSigner = () => l1Wallet
             }
           }
-          const relayer = getRelayer(reactAppNetwork, selectedNetwork.slug, l1Wallet, l2Wallet)
-          const messageDirection = MessageDirection.L1_TO_L2
+          const relayer: any = getRelayer(reactAppNetwork, selectedNetwork.slug, l1Wallet, l2Wallet)
+          const messageDirection = MessageDirection.L2_TO_L1
           const tx = await relayer.sendRelayTx(txHash, messageDirection)
           setSuccess(tx.hash)
           console.log('tx', tx)
@@ -128,7 +128,7 @@ export const Relay: FC = () => {
             <Box display="flex" alignItems="center">
               <Box mr={2} display="flex" alignItems="center">
                 <Typography variant="subtitle1">
-                  Destination Chain
+                  Source Chain
                 </Typography>
               </Box>
               <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
@@ -137,6 +137,20 @@ export const Relay: FC = () => {
                     <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
                   </MenuItem>
                 ))}
+              </RaisedSelect>
+            </Box>
+          </Box>
+          <Box display="flex" justifyContent="center">
+            <Box display="flex" alignItems="center">
+              <Box mr={2} display="flex" alignItems="center">
+                <Typography variant="subtitle1">
+                  Destination Chain
+                </Typography>
+              </Box>
+              <RaisedSelect value={selectedNetwork?.slug}>
+                <MenuItem value={l1Network.slug} key={l1Network.slug}>
+                  <SelectOption value={l1Network.slug} icon={l1Network.imageUrl} label={l1Network.name} />
+                </MenuItem>
               </RaisedSelect>
             </Box>
           </Box>

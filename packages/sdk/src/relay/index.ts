@@ -1,4 +1,5 @@
 import type { providers, Signer } from 'ethers'
+import { NetworkSlug, ChainSlug } from '../index.js'
 
 export { MessageDirection } from './types.js'
 import { PolygonRelayer } from './PolygonRelayer.js'
@@ -6,28 +7,29 @@ import { PolygonZkRelayer } from './PolygonZkRelayer.js'
 import { OptimismRelayer } from './OptimismRelayer.js'
 // import { ArbitrumRelayer } from './ArbitrumRelayer.js'
 import { GnosisRelayer } from './GnosisRelayer.js'
-// import { LineaRelayer } from './LineaRelayer.js'
+import { LineaRelayer } from './LineaRelayer.js'
 
 export { PolygonRelayer }
 export { PolygonZkRelayer }
 export { OptimismRelayer }
 // export { ArbitrumRelayer}
 export { GnosisRelayer }
-// export { LineaRelayer }
+export { LineaRelayer }
 
-export function getRelayer (networkSlug: string, chainSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-  if (chainSlug === 'polygon') {
-    return new PolygonRelayer(networkSlug, l1Wallet, l2Wallet)
-  } else if (chainSlug === 'polygonzk') {
-    return new PolygonZkRelayer(networkSlug, l1Wallet, l2Wallet)
-  } else if (chainSlug === 'optimism' || chainSlug === 'base') {
-    return new OptimismRelayer(networkSlug, l1Wallet, l2Wallet)
-  } else if (chainSlug === 'gnosis') {
-    return new GnosisRelayer(networkSlug, l1Wallet, l2Wallet)
+type Provider = providers.Provider
+
+export function getRelayer (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
+  if (chainSlug === ChainSlug.Polygon) {
+    return new PolygonRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
+  } else if (chainSlug === ChainSlug.PolygonZk) {
+    return new PolygonZkRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
+  } else if (chainSlug === ChainSlug.Optimism || chainSlug === ChainSlug.Base) {
+    return new OptimismRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
+  } else if (chainSlug === ChainSlug.Gnosis) {
+    return new GnosisRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
+  } else if (chainSlug === ChainSlug.Linea) {
+    return new LineaRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
   }
-  // } else if (chainSlug === 'linea') {
-  //   return new LineaRelayer(networkSlug, l1Wallet, l2Wallet)
-  // }
   // } else if (chainSlug === 'arbitrum' || chainSlug === 'nova') {
   //   return new ArbitrumRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
   // }

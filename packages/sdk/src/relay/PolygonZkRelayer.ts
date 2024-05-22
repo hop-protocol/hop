@@ -4,6 +4,8 @@ import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 // import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import { MessageDirection } from './types.js'
+import { NetworkSlug, ChainSlug } from '../index.js'
+import { Relayer } from './Relayer.js'
 
 const { ZkEvmClient, setProofApi } = MaticJsDefaults
 const { default: maticJsDefault } = MaticJsDefaults
@@ -12,12 +14,15 @@ const { Web3ClientPlugin } = MaticJsEthers
 type ZkEvmBridgeType = any // MaticJs.ZkEvmBridge
 type ZkEvmClientType = any // MaticJs.ZkEvmClient
 
+type Provider = providers.Provider
+
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridgeType
   destBridge: ZkEvmBridgeType
 }
 
 type Message = string
+type MessageStatus = string
 
 const DefaultL1RelayGasLimit = 1_000_000
 
@@ -32,16 +37,12 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'blueberry'
 }
 
-export class PolygonZkRelayer {
-  l1Wallet: Signer | providers.Provider
-  l2Wallet: Signer | providers.Provider
-
+export class PolygonZkRelayer extends Relayer<Message, MessageStatus> {
   ready: boolean = false
   zkEvmClient: ZkEvmClientType
 
-  constructor (networkSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-    this.l1Wallet = l1Wallet
-    this.l2Wallet = l2Wallet
+  constructor (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
+    super(networkSlug, chainSlug, l1Wallet, l2Wallet)
 
     maticJsDefault.use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
@@ -68,7 +69,7 @@ export class PolygonZkRelayer {
   }
 
   async #init (l1Network: string): Promise<void> {
-    const from = await (this.l2Wallet as Signer).getAddress()
+    const from = await (this.l1Wallet as Signer).getAddress()
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
     await this.zkEvmClient.init({
@@ -124,6 +125,54 @@ export class PolygonZkRelayer {
     return wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
+  protected async getMessage (txHash: string): Promise<Message> {
+    await this.#tilReady()
+    // PolygonZk message is just the tx hash
+    return txHash
+  }
+
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+    await this.#tilReady()
+    // PolygonZk status is retrieved from the hash
+    return message
+  }
+
+  protected async isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    /**
+     * A message is in flight if:
+     * 1. It is neither relayable nor relayed
+     * 2. The client does not know about it
+     */
+
+    let isRelayable: boolean
+    let isRelayed: boolean
+    try {
+      console.log('debug000', messageStatus, messageDirection)
+      isRelayable = await this.#isMessageRelayable(messageStatus, messageDirection)
+      console.log('debug111', messageStatus, messageDirection, isRelayable)
+      isRelayed = await this.#isMessageRelayed(messageStatus, messageDirection)
+      console.log('debug222', messageStatus, messageDirection, isRelayed)
+    } catch (err) {
+      console.log('debug333', messageStatus, messageDirection, err)
+      return true
+    }
+
+    console.log('debug444', messageStatus, messageDirection)
+    if (isRelayable || isRelayed) {
+      console.log('debug555', messageStatus, messageDirection)
+      return false
+    }
+    return true
+  }
+
+  protected async isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    return this.#isMessageRelayable(messageStatus, messageDirection)
+  }
+
+  protected async isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    return this.#isMessageRelayed(messageStatus, messageDirection)
+  }
+
   #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return {
@@ -136,5 +185,22 @@ export class PolygonZkRelayer {
         destBridge: this.zkEvmClient.rootChainBridge
       }
 
+  }
+
+  async #isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return this.zkEvmClient.isDepositClaimable(messageStatus)
+    } else {
+      return this.zkEvmClient.isWithdrawExitable(messageStatus)
+    }
+  }
+
+  async #isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
+    } else {
+      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
+    }
   }
 }

@@ -7,17 +7,16 @@ import type { providers, Signer } from 'ethers'
 import { getChain } from '../index.js'
 import { NetworkSlug, ChainSlug } from '../index.js'
 import { MessageDirection } from './types.js'
+import { Relayer } from './Relayer.js'
 
-export class OptimismRelayer {
-  l1Wallet: Signer | providers.Provider
-  l2Wallet: Signer | providers.Provider
+type Provider = providers.Provider
 
+export class OptimismRelayer extends Relayer<CrossChainMessage, MessageStatus> {
   readonly #csm: CrossChainMessenger
 
-  constructor (networkSlug: string, l1Wallet: Signer | providers.Provider, l2Wallet: Signer | providers.Provider) {
-    const l2Chain = getChain(networkSlug as NetworkSlug, ChainSlug.Optimism)
-    this.l1Wallet = l1Wallet
-    this.l2Wallet = l2Wallet
+  constructor (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wallet: Signer | Provider, l2Wallet: Signer | Provider) {
+    super(networkSlug, chainSlug, l1Wallet, l2Wallet)
+    const l2Chain = getChain(networkSlug as NetworkSlug, chainSlug)
     this.#csm = new CrossChainMessenger({
       bedrock: true,
       l1ChainId: Number(l2Chain.parentChainId),

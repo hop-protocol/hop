@@ -72,10 +72,8 @@ jobs:
         with:
           cache-map: |
             {
-              "var-cache-apt": "/var/cache/apt",
+              "pnpm-store": "/pnpm/store",
             }
-          cache-source: ${{ 
-          cache-target: /pnpm/store
 
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0

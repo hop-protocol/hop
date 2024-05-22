@@ -76,7 +76,7 @@ jobs:
               "${{ steps.pnpm-store.outputs.STORE_PATH }}": {
                 "target": "/pnpm/store",
                 "id": "pnpm"
-              },
+              }
             }
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 

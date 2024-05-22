@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -45,12 +45,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install package
-        run: |
-          pnpm --filter-prod ${{ matrix.package-name }}... install
+        run: pnpm --filter-prod ${{ matrix.package-name }}... install
 
       - name: Build package
-        run: |
-          pnpm --filter ${{ matrix.package-name }}... build
+        run: pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
         run: NPM_CONFIG_PROVENANCE=true pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public

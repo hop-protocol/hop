@@ -5,7 +5,6 @@
 [![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)
 [![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)
-[![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/sdk@latest)
 
 ## Demo
 
@@ -14,7 +13,7 @@
 ## Install
 
 ```bash
-pnpm install @hop-protocol/sdk
+pnpm --filter @hop-protocol/sdk... install
 ```
 
 ## CDN
@@ -61,12 +60,6 @@ Generate documentation
 
 ```bash
 pnpm run docs
-```
-
-Run github action build locally with [act](https://github.com/nektos/act):
-
-```sh
-(cd ../../ && act --job publish-sdk --workflows .github/workflows/npm_publish_sdk.yml --secret-file=.secrets --verbose)
 ```
 
 ## Test

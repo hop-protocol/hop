@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { getProvider } from 'src/utils/getProvider'
+import { getProvider } from '#utils/getProvider.js'
 
 export type Networkish = Network | string | undefined
 
@@ -14,7 +14,6 @@ export type NetworkProps = {
   nativeTokenSymbol: string
   isLayer1?: boolean
   isL1?: boolean
-  nativeBridgeUrl?: string
   explorerUrl: string
 }
 
@@ -30,7 +29,6 @@ export class Network {
   readonly nativeTokenSymbol: string
   readonly isLayer1: boolean
   readonly isL1: boolean
-  readonly nativeBridgeUrl: string | undefined
   readonly explorerUrl: string
 
   constructor(props: NetworkProps) {
@@ -46,7 +44,6 @@ export class Network {
     this.nativeTokenSymbol = props.nativeTokenSymbol
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
     this.isL1 = this.isLayer1
-    this.nativeBridgeUrl = props.nativeBridgeUrl
     this.explorerUrl = props.explorerUrl
   }
 

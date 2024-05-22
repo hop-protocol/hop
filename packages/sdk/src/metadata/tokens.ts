@@ -1,1 +1,0 @@
-export { tokens } from '@hop-protocol/sdk-core/metadata/tokens'

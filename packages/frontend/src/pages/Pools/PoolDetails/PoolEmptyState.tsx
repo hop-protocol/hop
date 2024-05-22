@@ -3,7 +3,7 @@ import LaunchIcon from '@mui/icons-material/Launch'
 import MuiLink from '@mui/material/Link'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { DinoGame } from 'src/pages/Pools/PoolDetails/DinoGame'
+import { DinoGame } from '#pages/Pools/PoolDetails/DinoGame.js'
 
 export function PoolEmptyState() {
   return (

@@ -1,2 +1,2 @@
-export * from 'src/components/Table/Table'
-export * from 'src/components/Table/RightAlignedData'
+export * from '#components/Table/Table.js'
+export * from '#components/Table/RightAlignedData.js'

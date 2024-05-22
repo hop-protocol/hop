@@ -1,14 +1,14 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import L2Bridge from '#watchers/classes/L2Bridge.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { constants } from 'ethers'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '#utils/wait.js'
 import type Token from '#watchers/classes/Token.js'
 import type { BigNumber} from 'ethers'
 import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
@@ -40,10 +40,10 @@ async function main (source: any) {
     throw new Error('Not a valid bonder on the stake chain')
   }
 
-  const isStakeOnL2 = chain !== Chain.Ethereum
+  const isStakeOnL2 = chain !== ChainSlug.Ethereum
   const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
   if (shouldSendToL2) {
-    const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
+    const l1Bridge: L1Bridge = (await getBridge(token, ChainSlug.Ethereum)) as L1Bridge
     await sendTokensToL2(l1Bridge, parsedAmount, chain)
     logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
     await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
@@ -147,7 +147,7 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
 async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
-    const isL1Bridge = bridge.chainSlug === Chain.Ethereum
+    const isL1Bridge = bridge.chainSlug === ChainSlug.Ethereum
     if (isL1Bridge) {
       return
     }

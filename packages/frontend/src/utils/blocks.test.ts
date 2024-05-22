@@ -1,5 +1,5 @@
-import { getProviderByNetworkName } from '.'
-import { getRecentBlocks } from './blocks'
+import { getProviderByNetworkName } from './index.js'
+import { getRecentBlocks } from './blocks.js'
 
 describe('getRecentBlocks', () => {
   it('should return recent blocks from a provider', async () => {

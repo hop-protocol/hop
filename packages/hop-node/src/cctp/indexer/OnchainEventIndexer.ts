@@ -1,8 +1,11 @@
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
 import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
-import { chainIdToSlug, chainSlugToId, getRpcProvider, wait } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { wait } from '#utils/wait.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
@@ -20,7 +23,7 @@ export class OnchainEventIndexer {
   constructor (
     db: OnchainEventIndexerDB,
     eventFilter: RequiredEventFilter,
-    chain: Chain
+    chain: ChainSlug
   ) {
     this.#db = db
     this.#eventFilter = eventFilter
@@ -49,7 +52,7 @@ export class OnchainEventIndexer {
    */
 
 
-  #initPoller = async (chain: Chain): Promise<never> => {
+  #initPoller = async (chain: ChainSlug): Promise<never> => {
     try {
       while (true) {
         await this.#syncEvents(chain)
@@ -62,7 +65,7 @@ export class OnchainEventIndexer {
     }
   }
 
-  #syncEvents = async (chain: Chain): Promise<void> => {
+  #syncEvents = async (chain: ChainSlug): Promise<void> => {
     const chainId = chainSlugToId(chain)
     const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
@@ -74,7 +77,7 @@ export class OnchainEventIndexer {
 
   // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
   #getUniqueFilterId = (chainId: number, eventFilter: RequiredEventFilter): string => {
-    const chainSlug = chainIdToSlug(chainId)
+    const chainSlug = getChainSlug(chainId.toString())
     const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
   }
@@ -84,7 +87,7 @@ export class OnchainEventIndexer {
 // TODO: getEvents? or getLogs? better name?
 // TODO: Max block range not constant
 export async function getEventsInRange (
-  chain: Chain,
+  chain: ChainSlug,
   eventFilter: RequiredEventFilter,
   syncStartBlock: number,
   maxBlockRange: number = 2_000

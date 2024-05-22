@@ -1,12 +1,12 @@
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import find from 'lodash/find'
-import logger from 'src/logger'
+import logger from '#logger/index.js'
 import { TChain } from '@hop-protocol/sdk'
-import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
-import { getNetworkWaitConfirmations } from 'src/utils/networks'
-import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
-import { loadState, saveState } from 'src/utils/localStorage'
-import { useApp } from 'src/contexts/AppContext'
+import { getIsTxFinalized } from '#utils/getIsTxFinalized.js'
+import { getNetworkWaitConfirmations } from '#utils/networks.js'
+import { getRecentTransactionsByFromAddress } from '#utils/blocks.js'
+import { loadState, saveState } from '#utils/localStorage.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInterval } from 'usehooks-ts'
 
@@ -23,8 +23,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   const provider = useMemo(() => {
     if (!chain) return
-    const _chain = sdk.toChainModel(chain)
-    return _chain.provider
+    const _provider = sdk.getChainProvider(chain)
+    return _provider
   }, [chain])
 
   const updateTxStatus = useCallback(async () => {

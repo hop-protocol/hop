@@ -35,9 +35,8 @@ import Typography from '@mui/material/Typography'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
-import { chains, tokens } from '@hop-protocol/sdk/metadata'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/sdk/networks'
+import { ChainSlug, NetworkSlug, TokenSymbol, getNetwork, getChain, getTokens, getToken } from '@hop-protocol/sdk'
 import { styled } from '@mui/material/styles'
 import { useInterval } from 'react-use'
 import * as luxon from 'luxon'
@@ -143,7 +142,7 @@ for (let i = 0; i < enabledChains.length; i++) {
   chainToIndexMapDestination[enabledChains[i]] = i + enabledChains.length
 }
 
-const networks: any = isGoerli ? goerliNetworks : mainnetNetworks
+const networks: any = isGoerli ? getNetwork(NetworkSlug.Goerli) : getNetwork(NetworkSlug.Mainnet)
 const chainSlugToNameMap :any = {}
 
 for (const chain in networks) {
@@ -156,14 +155,16 @@ const colorsMap: any = {
   fallback: '#9f9fa3'
 }
 
-for (const chain in chains) {
-  colorsMap[chain] = (chains as any)[chain].primaryColor
+for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
+  for (const chain of Object.values(chains)) {
+    colorsMap[chain.slug] = chain.color
+  }
 }
 
 const chainSlugToIdMap :any = {}
 
-for (const chain in networks) {
-  chainSlugToIdMap[chain] = networks[chain].networkId
+for (const chain in networks.chains) {
+  chainSlugToIdMap[chain] = networks.chains[chain].chainId
 }
 
 export function chainSlugToId (chainSlug: string) {
@@ -434,11 +435,11 @@ function useData () {
       })
 
       function label (node: any) {
-        return node.name.replace(/\s*\(.*?\)$/, '')
+        return node?.name?.replace(/\s*\(.*?\)$/, '') ?? ''
       }
 
       function color (node: any, depth: number): any {
-        const id = node.id.replace(/(_score)?(_\d+)?$/, '')
+        const id = node?.id?.replace(/(_score)?(_\d+)?$/, '') ?? ''
         if (colorsMap[id]) {
           return colorsMap[id]
         } else if (depth > 0 && node.targetLinks && node.targetLinks.length === 1) {
@@ -887,14 +888,14 @@ const Index: NextPage = (props: any) => {
   const chainMenuItems: any[] = []
   for (const chain of enabledChains) {
     chainMenuItems.push(
-      <MenuItem key={chain} value={chain}><MenuItemIcon src={(chains as any)[chain].image} /> {chainSlugToNameMap[chain]}</MenuItem>,
+      <MenuItem key={chain} value={chain}><MenuItemIcon src={getChain(isGoerli ? NetworkSlug.Goerli : NetworkSlug.Mainnet, chain as ChainSlug).image} /> {chainSlugToNameMap[chain]}</MenuItem>,
     )
   }
 
   const tokenMenuItems: any[] = []
   for (const tokenSymbol of enabledTokens) {
     tokenMenuItems.push(
-      <MenuItem key={tokenSymbol} value={tokenSymbol}><MenuItemIcon src={(tokens as any)[tokenSymbol].image} /> {tokenSymbol}</MenuItem>
+      <MenuItem key={tokenSymbol} value={tokenSymbol}><MenuItemIcon src={getToken(tokenSymbol as TokenSymbol).image} /> {tokenSymbol}</MenuItem>
     )
   }
 
@@ -1352,7 +1353,7 @@ const Index: NextPage = (props: any) => {
                                 </Box>
                               )}
                             </span>
-                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded && x.sourceChainSlug !== 'ethereum') && (
                               <Tooltip title={<Box>This transaction is still waiting to be bonded, received, or relayed at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />

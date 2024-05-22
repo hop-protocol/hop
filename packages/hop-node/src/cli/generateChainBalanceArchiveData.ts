@@ -1,11 +1,10 @@
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { ChainBalanceArchiveData } from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils.js'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers.js'
 import { config as globalConfig } from '#config/index.js'
-import type { Token } from '@hop-protocol/hop-node-core/constants'
 
 root
   .command('generate-chain-balance-archive-data')
@@ -47,31 +46,31 @@ async function main (source: any) {
   const promises: Array<Promise<void>> = []
   for (const supportedChainForToken of supportedChainsForToken) {
     promises.push(getArchiveData(
-      token as Token,
-      supportedChainForToken as Chain,
+      token as TokenSymbol,
+      supportedChainForToken as ChainSlug,
       Number(timestamp)
     ))
   }
   await Promise.all([...promises])
 }
 
-async function getArchiveData (token: Token, chain: Chain, timestamp: number): Promise<void> {
-  if (chain === Chain.Ethereum) {
+async function getArchiveData (token: TokenSymbol, chain: ChainSlug, timestamp: number): Promise<void> {
+  if (chain === ChainSlug.Ethereum) {
     return getL1ArchiveData(token, timestamp)
   }
   return getL2ArchiveData(token, chain, timestamp)
 }
 
-async function getL1ArchiveData (token: Token, timestamp: number): Promise<void> {
+async function getL1ArchiveData (token: TokenSymbol, timestamp: number): Promise<void> {
   // Unwithdrawn Transfers
   const l1UnwithdrawnTransfers = await getUnwithdrawnTransfers({
     token,
-    chain: Chain.Ethereum,
+    chain: ChainSlug.Ethereum,
     startDate: 0,
     endDate: timestamp
   })
-  const expected = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[Chain.Ethereum] ?? '0'
-  compare(ArchiveType.UnwithdrawnTransfers, Chain.Ethereum, expected, l1UnwithdrawnTransfers)
+  const expected = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[ChainSlug.Ethereum] ?? '0'
+  compare(ArchiveType.UnwithdrawnTransfers, ChainSlug.Ethereum, expected, l1UnwithdrawnTransfers)
 
   // L1 tokens sent directly to bridge contract
   // Data from Dune - https://gist.github.com/shanefontaine/2da8c8c997a173f000f2906518c4e03a
@@ -82,7 +81,7 @@ async function getL1ArchiveData (token: Token, timestamp: number): Promise<void>
   // Data from archive Arbitrum RPC endpoint
 }
 
-async function getL2ArchiveData (token: Token, chain: Chain, timestamp: number): Promise<void> {
+async function getL2ArchiveData (token: TokenSymbol, chain: ChainSlug, timestamp: number): Promise<void> {
   const l2UnwithdrawnTransfers = await getUnwithdrawnTransfers({
     token,
     chain,

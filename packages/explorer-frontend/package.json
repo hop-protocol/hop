@@ -12,7 +12,8 @@
     "dev:local:goerli": "NEXT_PUBLIC_LOCAL=true NEXT_PUBLIC_NETWORK=goerli next dev",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "version": "pnpm version"
   },
   "engines": {
     "node": ">=14",
@@ -32,7 +33,7 @@
     "ethers": "5.6.2",
     "lodash": "4.17.21",
     "luxon": "2.5.2",
-    "next": "14.1.0",
+    "next": "14.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-use": "17.3.2",

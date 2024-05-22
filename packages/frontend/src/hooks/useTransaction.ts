@@ -6,7 +6,7 @@ import {
   formatLogArgs,
   getLastLog,
   networkIdToSlug,
-} from 'src/utils'
+} from '#utils/index.js'
 import {
   MethodNames,
   TxActionType,
@@ -16,16 +16,17 @@ import {
   createDispatchAction,
   getTxDetails,
   txReducer,
-} from 'src/utils/transactions'
+} from '#utils/transactions.js'
 import { TToken } from '@hop-protocol/sdk'
 import { type TransactionResponse } from '@ethersproject/abstract-provider'
-import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
-import { getAllProviders } from 'src/utils/getProvider'
-import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
-import { getTokenByAddress } from 'src/utils/tokens'
-import { useApp } from 'src/contexts/AppContext'
+import { findNetworkBySlug, getNetworkWaitConfirmations } from '#utils/networks.js'
+import { getAllProviders } from '#utils/getProvider.js'
+import { getExplorerTxUrl } from '#utils/getExplorerUrl.js'
+import { getIsTxFinalized } from '#utils/getIsTxFinalized.js'
+import { getTokenByAddress } from '#utils/tokens.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useEffect, useReducer, useState } from 'react'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 export const methodToSigHashes = {
   // HopBridgeToken
@@ -110,7 +111,7 @@ const useTransaction = (txHash?: string) => {
 
           let completed = false
           const waitConfirmations = getNetworkWaitConfirmations(networkName)
-          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName) 
+          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName)
           if (isFinalized) {
             completed = true
           }
@@ -187,7 +188,7 @@ const useTransaction = (txHash?: string) => {
       const { token, transactionHash, timestamp } = tfl1
 
       dispatchAction(TxActionType.setTx, {
-        tokenSymbol: token,
+        tokenSymbol: token as TokenSymbol,
         token: sdk.toTokenModel(token as TToken),
         destTx: {
           networkName: destNetworkName,

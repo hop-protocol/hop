@@ -1,10 +1,10 @@
 import { CanonicalToken, ChainSlug, Token } from '@hop-protocol/sdk'
 import { ChainName } from '@hop-protocol/sdk'
-import { claimTokenAddress } from 'src/pages/Claim/config'
-import { networkIdToSlug, wait } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
+import { claimTokenAddress } from '#pages/Claim/config.js'
+import { networkIdToSlug, wait } from '#utils/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 interface AddTokenToMetamask {
   addToken: (networkId: number) => void
@@ -64,7 +64,7 @@ export function useAddTokenToMetamask(
       }
 
       await wait(1500)
-      addToken(destinationChain.chainId)
+      addToken(Number(destinationChain.chainId))
     } else {
       setSuccess(false)
     }

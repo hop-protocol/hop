@@ -2,13 +2,14 @@ import L1Bridge from '#watchers/classes/L1Bridge.js'
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import Token from '#watchers/classes/Token.js'
 import contracts from '#contracts/index.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import { Chain, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
+import { wallets } from '#wallets/index.js'
+import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { utils } from 'ethers'
 import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { TxOverrides } from '#types/index.js'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('send')
@@ -68,8 +69,8 @@ async function sendNativeToken (
   }
 
   let txOverrides: TxOverrides = {}
-  if (chain === Chain.Polygon) {
-    const tokenContracts = contracts.get('ETH', Chain.Polygon)
+  if (chain === ChainSlug.Polygon) {
+    const tokenContracts = contracts.get('ETH', ChainSlug.Polygon)
     if (!tokenContracts) {
       throw new Error('token contracts not found')
     }
@@ -113,7 +114,7 @@ async function transferTokens (
     throw new Error('token contracts not found')
   }
   let instance: Token
-  if (chain === Chain.Ethereum) {
+  if (chain === ChainSlug.Ethereum) {
     instance = new Token(tokenContracts.l1CanonicalToken)
   } else {
     if (isHToken) {
@@ -155,7 +156,7 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
-  const isFromNative = nativeChainTokens[fromChain] === token && !isHToken
+  const isFromNative = getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, fromChain as ChainSlug) === token && !isHToken
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
@@ -169,7 +170,7 @@ async function sendTokens (
   }
   let tokenClass: Token
   let bridge: L1Bridge | L2Bridge
-  if (fromChain === Chain.Ethereum) {
+  if (fromChain === ChainSlug.Ethereum) {
     tokenClass = new Token(tokenContracts.l1CanonicalToken)
     bridge = new L1Bridge(tokenContracts.l1Bridge)
   } else {
@@ -206,7 +207,7 @@ async function sendTokens (
   let tx: any
   if (!isFromNative) {
     let spender = bridge.address
-    if (fromChain !== Chain.Ethereum && !isHToken) {
+    if (fromChain !== ChainSlug.Ethereum && !isHToken) {
       spender = (bridge as L2Bridge).ammWrapper.contract.address
     }
     const tx = await tokenClass.approve(spender, parsedAmount)
@@ -219,7 +220,7 @@ async function sendTokens (
   const formattedAmount = (bridge.formatUnits(parsedAmount)).toString()
   logger.debug(`sendTokens: attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
   const destinationChainId = chainSlugToId(toChain)
-  if (fromChain === Chain.Ethereum) {
+  if (fromChain === ChainSlug.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
         destinationChainId,

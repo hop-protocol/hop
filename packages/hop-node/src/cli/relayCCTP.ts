@@ -1,8 +1,10 @@
-import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber } from 'ethers'
 import { Message } from '#cctp/cctp/Message.js'
-import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { wallets } from '#wallets/index.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 
@@ -37,7 +39,7 @@ async function main (source: any) {
 
 // TODO: Get from Message
 async function getDestinationChainFromTxHash (chain: string, txHash: string): Promise<string> {
-  const provider = getRpcProvider(chain)
+  const provider = getRpcProvider(chain as ChainSlug)
   const tx = await provider.getTransaction(txHash)
   if (!tx) {
     throw new Error('Tx not found')
@@ -63,7 +65,7 @@ async function getDestinationChainFromTxHash (chain: string, txHash: string): Pr
       }
 
       const destinationChainIdString = BigNumber.from(destinationChainId).toString()
-      return chainIdToSlug(destinationChainIdString)
+      return getChainSlug(destinationChainIdString)
     }
   }
 
@@ -72,7 +74,7 @@ async function getDestinationChainFromTxHash (chain: string, txHash: string): Pr
 
 // TODO: Get from Message
 async function getMessageFromTxHash (chain: string, txHash: string): Promise<string> {
-  const provider = getRpcProvider(chain)
+  const provider = getRpcProvider(chain as ChainSlug)
   const tx = await provider.getTransaction(txHash)
   if (!tx) {
     throw new Error('Tx not found')

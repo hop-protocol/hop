@@ -13,6 +13,7 @@ import { MessageState } from '../MessageManager.js'
 import { Message } from '../Message.js'
 import { OnchainEventStore } from './OnchainEventStore.js'
 import { getTimestampFromBlockNumberMs } from './utils.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 export enum Event {
   Initialization = 'initialization'

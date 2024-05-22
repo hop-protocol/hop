@@ -1,5 +1,5 @@
-import { getQueryParam } from 'src/utils/getQueryParam'
-import { isGoerli, isMainnet } from 'src/config'
+import { getQueryParam } from '#utils/getQueryParam.js'
+import { isGoerli, isMainnet } from '#config/index.js'
 
 let configs :any[] = []
 

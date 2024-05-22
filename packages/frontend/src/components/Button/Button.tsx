@@ -3,7 +3,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button'
 import React, { FC } from 'react'
 import { makeStyles } from '@mui/styles'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useThemeMode } from '#theme/ThemeProvider.js'
 
 interface StyleProps {
   highlighted: boolean

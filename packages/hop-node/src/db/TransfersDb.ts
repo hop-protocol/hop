@@ -1,19 +1,14 @@
 import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
-import {
-  Chain,
-  OneDayMs,
-  OneHourMs,
-  OneWeekMs
-} from '@hop-protocol/hop-node-core/constants'
+import { TimeIntervals } from '#constants/index.js'
+import { getExponentialBackoffDelayMs } from '#utils/getExponentialBackoffDelayMs.js'
 import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError
 } from '#constants/index.js'
 import { TxRetryDelayMs } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
@@ -255,7 +250,7 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
-    const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
+    const fromUnix = Math.floor((Date.now() - TimeIntervals.ONE_DAY_MS) / 1000)
     return this.getTransfers({
       fromUnix
     })
@@ -263,8 +258,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
   async getTransfersWithinHour (targetTimestampSec: number): Promise<Transfer[]> {
     const targetTimestampMs = targetTimestampSec * 1000
-    const fromUnix = Math.floor((targetTimestampMs - OneHourMs) / 1000)
-    const toUnix = Math.floor((targetTimestampMs + OneHourMs) / 1000)
+    const fromUnix = Math.floor((targetTimestampMs - TimeIntervals.ONE_HOUR_MS) / 1000)
+    const toUnix = Math.floor((targetTimestampMs + TimeIntervals.ONE_HOUR_MS) / 1000)
     return this.getTransfers({
       fromUnix,
       toUnix
@@ -335,7 +330,7 @@ class TransfersDb extends BaseDb<Transfer> {
           item.withdrawalBondTxError === TxError.RpcServerError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
-          if (delayMs > OneWeekMs) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS) {
             return false
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
@@ -380,8 +375,8 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const sourceChainSlug = chainIdToSlug(item.sourceChainId)
-      if (sourceChainSlug !== Chain.Ethereum) {
+      const sourceChainSlug = getChainSlug(item.sourceChainId.toString())
+      if (sourceChainSlug !== ChainSlug.Ethereum) {
         return false
       }
 
@@ -399,7 +394,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const destinationChain = getChainSlug(item.destinationChainId.toString())
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -425,7 +420,7 @@ class TransfersDb extends BaseDb<Transfer> {
           item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
-          if (delayMs > OneWeekMs) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS) {
             return false
           }
           timestampOk = item.relayAttemptedAt + delayMs < Date.now()
@@ -498,8 +493,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
     const now = Date.now()
     for (let i = 0; i <= maxLookbackIndex; i++) {
-      const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)
-      const toUnix = Math.floor((now - (OneDayMs * i)) / 1000)
+      const fromUnix = Math.floor((now - (TimeIntervals.ONE_DAY_MS * (i + 1))) / 1000)
+      const toUnix = Math.floor((now - (TimeIntervals.ONE_DAY_MS * i)) / 1000)
       const transfers: Transfer[] = await this.getTransfers({
         fromUnix,
         toUnix
@@ -535,10 +530,10 @@ class TransfersDb extends BaseDb<Transfer> {
 
   #normalizeTransferValue = (item: Transfer): Transfer => {
     if (item.destinationChainId) {
-      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
+      item.destinationChainSlug = getChainSlug(item.destinationChainId.toString())
     }
     if (item.sourceChainId) {
-      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+      item.sourceChainSlug = getChainSlug(item.sourceChainId.toString())
     }
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons

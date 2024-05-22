@@ -1,5 +1,5 @@
-import Faucet from 'src/pages/Faucet/Faucet'
-import FaucetContext from 'src/pages/Faucet/FaucetContext'
+import Faucet from '#pages/Faucet/Faucet.js'
+import FaucetContext from '#pages/Faucet/FaucetContext.js'
 import React from 'react'
 
 const fc = () => (

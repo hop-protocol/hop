@@ -1,34 +1,29 @@
 import L1Bridge from './L1Bridge.js'
 import L2Bridge from './L2Bridge.js'
 import Metrics from './Metrics.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import {
-  Chain
-} from '@hop-protocol/hop-node-core/constants'
+import { wallets } from '#wallets/index.js'
 import { type DbSet, getDbSet, isDbSetReady } from '#db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from '#constants/index.js'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Logger } from '#logger/index.js'
 import { Mutex } from 'async-mutex'
-import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { Notifier } from '#notifier/index.js'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
-} from '@hop-protocol/hop-node-core/types'
+} from '#types/index.js'
 import {
   TxRetryDelayMs,
   config as globalConfig
 } from '#config/index.js'
-import { bigNumberMin } from '@hop-protocol/hop-node-core/utils'
-import { getRpcProviderFromUrl } from '@hop-protocol/hop-node-core/utils'
-import {
-  hostname
-} from '@hop-protocol/hop-node-core/config'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { bigNumberMin } from '#utils/bigNumberMin.js'
+import { getRpcProviderFromUrl } from '#utils/getRpcProviderFromUrl.js'
+import { hostname } from '#config/index.js'
+import { isFetchExecutionError } from '#utils/isFetchExecutionError.js'
+import { wait } from '#utils/wait.js'
 import type AvailableLiquidityWatcher from '../AvailableLiquidityWatcher.js'
 import type Bridge from './Bridge.js'
 import type SyncWatcher from '../SyncWatcher.js'
@@ -36,6 +31,7 @@ import type { BigNumber } from 'ethers'
 import type { IBaseWatcher } from './IBaseWatcher.js'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -111,7 +107,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   get isL1 (): boolean {
-    return this.chainSlug === Chain.Ethereum
+    return this.chainSlug === ChainSlug.Ethereum
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -200,8 +196,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.availableLiquidityWatcher = availableLiquidityWatcher
   }
 
-  chainIdToSlug (chainId: number): Chain {
-    return this.bridge.chainIdToSlug(chainId)
+  getSlugFromChainId (chainId: number): ChainSlug {
+    return this.bridge.getSlugFromChainId(chainId)
   }
 
   chainSlugToId (chainSlug: string): number {
@@ -243,7 +239,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // TODO: More robust check for PolygonZk
-    if (destinationBridge.chainSlug === Chain.PolygonZk) {
+    if (destinationBridge.chainSlug === ChainSlug.PolygonZk) {
       return true
     }
 
@@ -294,8 +290,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (!amount || (!bonderFee && !relayerFee) || !sourceChainId || !destinationChainId) {
       throw new Error('expected complete dbTransfer data')
     }
-    const sourceChain = this.chainIdToSlug(sourceChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const sourceChain = this.getSlugFromChainId(sourceChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')

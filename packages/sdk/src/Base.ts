@@ -1,22 +1,32 @@
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/sdk-core/addresses'
+import { Addresses } from '#addresses/index.js'
 import { ArbERC20 } from './contracts/index.js'
 import { ArbERC20__factory } from './contracts/index.js'
 import { ArbitrumGlobalInbox } from './contracts/index.js'
 import { ArbitrumGlobalInbox__factory } from './contracts/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers, utils } from 'ethers'
 import {
-  Chain,
-  TokenModel,
-  fetchJsonOrThrow,
+  type Chain,
+  ChainSlug,
+  NetworkSlug,
   getMinGasLimit,
   getMinGasPrice,
-  getProviderFromUrl,
+  getChain,
+  getChains,
+  isValidNetworkSlug,
+  isValidChainSlug,
+} from '#chains/index.js'
+import {
+  // utils
+  fetchJsonOrThrow,
   getUrlFromProvider,
   promiseTimeout,
   rateLimitRetry,
-} from '@hop-protocol/sdk-core'
-import { ChainSlug, Errors, NetworkSlug } from './constants/index.js'
+} from '#utils/index.js'
+import {
+  getToken,
+  isValidTokenSymbol
+} from '#tokens/index.js'
 import { L1_OptimismTokenBridge } from './contracts/index.js'
 import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
 import { L1_PolygonPosRootChainManager } from './contracts/index.js'
@@ -29,13 +39,11 @@ import { L2_PolygonChildERC20 } from './contracts/index.js'
 import { L2_PolygonChildERC20__factory } from './contracts/index.js'
 import { L2_xDaiToken } from './contracts/index.js'
 import { L2_xDaiToken__factory } from './contracts/index.js'
-import {
-  Multicall,
-  MulticallBalance
-} from '@hop-protocol/sdk-core'
 import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
-import { config, metadata } from './config/index.js'
+import { config, sdkConfig } from './config/index.js'
+import { TokenModel } from './models/index.js'
+import { getProviderFromUrl } from '#utils/index.js'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -52,16 +60,20 @@ let s3FileCacheTimestamp: number = 0
 const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
-const getProvider = memoize((network: string, chain: string) => {
-  if (!config[network]?.chains[chain]) {
-    throw new Error(`config for chain not found: ${network} ${chain}`)
+const getProvider = memoize((network: string, chainSlug: string) => {
+  if (!isValidNetworkSlug(network)) {
+    throw new Error(`invalid network "${network}"`)
   }
-  const rpcUrl = config[network].chains[chain].rpcUrl
+  if (!isValidChainSlug(chainSlug)) {
+    throw new Error(`invalid chain "${chainSlug}"`)
+  }
+  const chain = getChain(network, chainSlug)
+  const rpcUrl = chain.publicRpcUrl
   if (!rpcUrl) {
     return providers.getDefaultProvider(network)
   }
 
-  const fallbackRpcUrls = config[network].chains[chain].fallbackRpcUrls ?? []
+  const fallbackRpcUrls = chain.fallbackPublicRpcUrls ?? []
   const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
 
   const provider = getProviderFromUrl(rpcUrls)
@@ -230,9 +242,14 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = config[network].chains
-    this.addresses = config[network].addresses
-    this.bonders = config[network].bonders
+    for (const chain of getChains(network)) {
+      if (!this.chains) {
+        this.chains ={}
+      }
+      this.chains[chain.slug] = chain
+    }
+    this.addresses = sdkConfig[network].addresses
+    this.bonders = sdkConfig[network].bonders
 
     if (this.bonders && this.bonders.USDC && !this.bonders['USDC.e']) {
       this.bonders['USDC.e'] = this.bonders.USDC
@@ -307,6 +324,10 @@ export class Base {
     chain = this.toChainModel(chain)
     const chainId = chain.chainId
     await this.checkBlocklist()
+
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
 
     if (!transactionRequest.to) {
       throw new Error('tx "to" address is required')
@@ -387,7 +408,7 @@ export class Base {
   }
 
   // all chains supported.
-  // this may be overriden by child class to make it asset specific.
+  // this may be overridden by child class to make it asset specific.
   get supportedChains (): string[] {
     return this.configChains
   }
@@ -420,14 +441,20 @@ export class Base {
       throw new Error('expected chain')
     }
     if (typeof chain === 'string') {
-      chain = Chain.fromSlug(chain)
+      if (!isValidNetworkSlug(this.network)) {
+        throw new Error(`invalid network "${this.network}"`)
+      }
+      if (chain === 'xdai') {
+        chain = getChain(this.network, ChainSlug.Gnosis)
+      } else {
+        if (!isValidChainSlug(chain)) {
+          throw new Error(`invalid chainSlug "${chain}"`)
+        }
+        chain = getChain(this.network, chain)
+      }
     }
     if (!chain) {
       throw new Error(`invalid chain "${chain}"`)
-    }
-    if (chain.slug === 'xdai') {
-      console.warn(Errors.xDaiRebrand)
-      chain = Chain.fromSlug('gnosis')
     }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
@@ -438,8 +465,11 @@ export class Base {
         )}`
       )
     }
-    chain.provider = this.getChainProvider(chain)!
-    chain.chainId = this.getChainId(chain)
+
+    if (!chain.chainId) {
+      throw new Error(`chainId is not found on chain model "${chain.slug}"`)
+    }
+
     return chain
   }
 
@@ -451,7 +481,10 @@ export class Base {
   public toTokenModel (token: TToken): TokenModel {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
-      const { name, decimals } = metadata.tokens[canonicalSymbol]
+      if (!isValidTokenSymbol(canonicalSymbol)) {
+        throw new Error(`invalid token "${token}"`)
+      }
+      const { name, decimals } = getToken(canonicalSymbol)
       return new TokenModel(0, '', decimals, token, name)
     }
 
@@ -492,18 +525,17 @@ export class Base {
    * @param chain - Chain model.
    * @returns Ethers provider.
    */
-  public getChainProvider (chain: Chain | string): any {
+  public getChainProvider (chain: Chain | string): providers.Provider {
     let chainSlug: string
-    if (chain instanceof Chain && chain?.slug) {
-      chainSlug = chain?.slug
-    } else if (typeof chain === 'string') {
+    if (typeof chain === 'string') {
       chainSlug = chain
+    } else if (chain?.slug) {
+      chainSlug = chain.slug
     } else {
       throw new Error(`unknown chain "${chain}"`)
     }
 
     if (chainSlug === 'xdai') {
-      console.warn(Errors.xDaiRebrand)
       chainSlug = ChainSlug.Gnosis
     }
 
@@ -518,16 +550,6 @@ export class Base {
     for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
       obj[chainSlug] = provider
-    }
-
-    return obj
-  }
-
-  public getChainProviderUrls (): any {
-    const obj : Record<string, string> = {}
-    for (const chainSlug of this.configChains) {
-      const provider = this.getChainProvider(chainSlug)
-      obj[chainSlug] = (provider)?.connection?.url
     }
 
     return obj
@@ -562,33 +584,29 @@ export class Base {
     chain: TChain,
     signer: TProvider = this.signer as Signer
   ): Promise<Signer | providers.Provider> {
-    // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {
-      return chain.provider!
+      return this.getChainProvider(chain)
     }
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
         const connectedChainId = await signer.getChainId()
-        // console.log('connectedChainId: ', connectedChainId)
-        // console.log('chain.chainId: ', chain.chainId)
-        if (connectedChainId !== chain.chainId) {
+        if (connectedChainId.toString() !== chain.chainId) {
           if (!signer.provider) {
-            // console.log('connect provider')
-            return (signer).connect(chain.provider!)
+            const provider = this.getChainProvider(chain)
+            return (signer).connect(provider)
           }
-          // console.log('return chain.provider')
-          return chain.provider!
+          return this.getChainProvider(chain)
         }
         return signer
       } else {
-        return chain.provider!
+        return this.getChainProvider(chain)
       }
     } else {
       // console.log('isSigner')
       const { chainId } = await signer.getNetwork()
-      if (chainId !== chain.chainId) {
-        return chain.provider!
+      if (chainId.toString() !== chain.chainId) {
+        return this.getChainProvider(chain)
       }
       return signer
     }
@@ -698,9 +716,13 @@ export class Base {
       )
     }
 
+    if (!isValidNetworkSlug(this.network)) {
+      throw new Error(`invalid network "${this.network}"`)
+    }
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
-      const currentGasPrice = await this.getGasPrice(sourceChain.provider!)
+      const provider = this.getChainProvider(sourceChain)
+      const currentGasPrice = await this.getGasPrice(provider)
       const minGasPriceBn = BigNumber.from(minGasPrice)
       if (currentGasPrice.lte(minGasPriceBn)) {
         txOptions.gasPrice = minGasPriceBn
@@ -718,18 +740,18 @@ export class Base {
     // RPC endpoints to incorrectly estimate gas.
     // TODO: Remove this when estimation is fixed
     if (
-      sourceChain.equals(Chain.Ethereum) &&
+      sourceChain.slug === ChainSlug.Ethereum &&
       destinationChain && (
-        (destinationChain as Chain)?.equals(Chain.Optimism) ||
-        (destinationChain as Chain)?.equals(Chain.Base)
+        (destinationChain as Chain)?.slug === ChainSlug.Optimism ||
+        (destinationChain as Chain)?.slug === ChainSlug.Base
       )) {
       txOptions.gasLimit = BigNumber.from(200_000)
     }
     if (
-      sourceChain.equals(Chain.Ethereum) &&
+      sourceChain.slug === ChainSlug.Ethereum &&
       destinationChain && (
-        (destinationChain as Chain)?.equals(Chain.Arbitrum) ||
-        (destinationChain as Chain)?.equals(Chain.Nova)
+        (destinationChain as Chain)?.slug === ChainSlug.Arbitrum ||
+        (destinationChain as Chain)?.slug === ChainSlug.Nova
       )) {
       txOptions.gasLimit = BigNumber.from(500_000)
     }
@@ -787,7 +809,7 @@ export class Base {
     let feeBps = fees[destinationChain.slug] || 0
 
     // Special case for DAI transfers out of Gnosis Chain
-    if (sourceChain.equals(Chain.Gnosis) && token.symbol === TokenModel.XDAI) {
+    if (sourceChain.slug === ChainSlug.Gnosis && token.symbol === TokenModel.XDAI) {
       feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
     }
 
@@ -1004,11 +1026,12 @@ export class Base {
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero,
-    destChain: Chain | string = Chain.Optimism
+    destChain: TChain | string = ChainSlug.Optimism
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await this.getGasPrice(chain.provider!)
+    const provider = this.getChainProvider(chain)
+    const gasPrice = await this.getGasPrice(provider)
     const serializedTx = utils.serializeTransaction({
       value: utils.parseEther('0'),
       gasPrice,
@@ -1019,7 +1042,7 @@ export class Base {
 
     const gasPriceOracleAddress = '0x420000000000000000000000000000000000000F'
     const gasPriceOracleAbi = ['function getL1Fee(bytes memory _data) external view returns (uint256)']
-    const GasPriceOracle: Contract = new Contract(gasPriceOracleAddress, gasPriceOracleAbi, chain.provider!)
+    const GasPriceOracle: Contract = new Contract(gasPriceOracleAddress, gasPriceOracleAbi, provider)
     const timeStart = Date.now()
     const l1FeeInWei = await GasPriceOracle.getL1Fee(serializedTx)
     this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
@@ -1159,12 +1182,6 @@ export class Base {
       console.warn('debugTimeLogsCacheEnabled is false')
     }
     return this.debugTimeLogsCache
-  }
-
-  async getTokenBalancesForAccount (accountAddress: string): Promise<MulticallBalance[]> {
-    const multicall = new Multicall({ network: this.network, accountAddress })
-    const balances = await multicall.getBalances()
-    return balances
   }
 
   async getContractExists (address: string, chain: TChain): Promise<boolean> {

@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { CellWrapper, SortableTable } from 'src/components/Table'
-import { Icon } from 'src/components/ui/Icon'
-import { commafy } from 'src/utils'
-import { useStats } from 'src/pages/Stats/StatsContext'
+import { CellWrapper, SortableTable } from '#components/Table/index.js'
+import { Icon } from '#components/ui/Icon.js'
+import { commafy } from '#utils/index.js'
+import { useStats } from '#pages/Stats/StatsContext.js'
 
 function formatRatio(item: any) {
   const { reserve0, reserve1 } = item

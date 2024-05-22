@@ -1,9 +1,10 @@
 import { BigNumber } from 'ethers'
 import { CCTP_DOMAIN_MAP } from '#cctp/cctp/utils.js'
-import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
 import { Message } from '#cctp/cctp/Message.js'
 import { actionHandler, root } from './shared/index.js'
-import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getDefaultStartBlockNumber } from '#cctp/db/utils.js'
 import { getEventsInRange } from '#cctp/indexer/OnchainEventIndexer.js'
 import { config as globalConfig } from '#config/index.js'
@@ -12,19 +13,19 @@ import { config as globalConfig } from '#config/index.js'
 // TODO: This is CLI call so does not assume local DB
 
 // TODO: Automate
-const CHAINS: Partial<Record<Network, Chain[]>> = {
-  [Network.Mainnet]: [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Base,
-    Chain.Polygon
+const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
+  [NetworkSlug.Mainnet]: [
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Base,
+    ChainSlug.Polygon
   ],
-  [Network.Sepolia]: [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Base
+  [NetworkSlug.Sepolia]: [
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Base
   ]
 }
 
@@ -34,7 +35,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const chains = CHAINS[globalConfig.network as Network]!
+  const chains = CHAINS[globalConfig.network as NetworkSlug]!
 
 
   const transfersSent: any[] = []
@@ -64,7 +65,7 @@ async function main (source: any) {
 
   for (const transferSent of transfersSent) {
     const { nonce, destinationChainId, sourceChainId } = transferSent
-    const destinationChain = chainIdToSlug(destinationChainId)
+    const destinationChain = getChainSlug(destinationChainId.toString())
     const isRelayed = transfersRelayed.find((transferRelayed) => {
       return transferRelayed.nonce === nonce && transferRelayed.sourceChainId === sourceChainId
     })
@@ -73,7 +74,7 @@ async function main (source: any) {
     }
 
     // TODO: Better
-    const sourceChain = chainIdToSlug(transferSent.sourceChainId)
+    const sourceChain = getChainSlug(transferSent.sourceChainId)
     const sourceProvider = getRpcProvider(sourceChain)
     const transaction = await sourceProvider.getTransaction(transferSent.transactionHash)
     const block = await sourceProvider.getBlock(transaction.blockNumber!)
@@ -92,7 +93,7 @@ async function getTransfersSent (chain: string): Promise<{ sourceChainId: number
   const chainId = chainSlugToId(chain)
   const eventFilter = Message.getCCTPTransferSentEventFilter(chainId)
   const startBlock = getDefaultStartBlockNumber(chainId)
-  const { logs } = await getEventsInRange(chain as Chain, eventFilter, startBlock)
+  const { logs } = await getEventsInRange(chain as ChainSlug, eventFilter, startBlock)
   if (logs.length === 0) {
     return []
   }
@@ -111,7 +112,7 @@ async function getTransfersRelayed (chain: string): Promise<{ nonce: number, sou
   const chainId = chainSlugToId(chain)
   const eventFilter = Message.getMessageReceivedEventFilter(chainId)
   const startBlock = getDefaultStartBlockNumber(chainId)
-  const { logs } = await getEventsInRange(chain as Chain, eventFilter, startBlock)
+  const { logs } = await getEventsInRange(chain as ChainSlug, eventFilter, startBlock)
   if (logs.length === 0) {
     return []
   }
@@ -120,7 +121,7 @@ async function getTransfersRelayed (chain: string): Promise<{ nonce: number, sou
   for (const log of logs) {
     // TODO: Not as hacky
     const decodedSourceDomain = BigNumber.from(log.data.substring(0, 66)).toNumber()
-    const sourceChainId = CCTP_DOMAIN_MAP[globalConfig.network as Network]?.[decodedSourceDomain]
+    const sourceChainId = CCTP_DOMAIN_MAP[globalConfig.network as NetworkSlug]?.[decodedSourceDomain]
     if (!sourceChainId) {
       continue
     }

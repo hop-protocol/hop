@@ -1,0 +1,39 @@
+name: Publish Packages to NPM
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - 'packages/sdk/**'
+
+jobs:
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
+    with:
+      package-names: 'sdk'
+
+  publish-sdk:
+    name: Publish NPM
+    needs: publishable-packages
+    if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
+      - name: Install and build package
+        run: |
+          pnpm --filter-prod ${{ matrix.package-name }}... install
+          pnpm --filter ${{ matrix.package-name }}... build
+
+      - name: Publish package
+        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

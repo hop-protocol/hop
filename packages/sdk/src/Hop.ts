@@ -1,12 +1,12 @@
 import _version from './version.js'
 import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
-import { Chain, TokenModel } from '@hop-protocol/sdk-core'
 import { Event } from './watchers/BaseWatcher.js'
 import { EventEmitter } from 'eventemitter3'
 import { HopBridge } from './HopBridge.js'
-import { PriceFeedApiKeys } from '@hop-protocol/sdk-core'
+import { PriceFeedApiKeys } from '#priceFeed/index.js'
 import { TChain, TProvider, TToken } from './types.js'
 import { Watcher } from './watchers/Watcher.js'
+import { TokenModel } from '#models/index.js'
 
 /**
  * @desc Event watcher options
@@ -16,24 +16,18 @@ type WatchOptions = {
 }
 
 /**
- * Class reprensenting Hop
+ * Class representing Hop
  * @namespace Hop
  */
 export class Hop extends Base {
   /** Event enum */
   static Event = Event
 
-  /** Chain class */
-  static Chain = Chain
-
   /** Token class */
   static Token = TokenModel
 
   /** Event enum */
   Event = Event
-
-  /** Chain class */
-  Chain = Chain
 
   /** Token class */
   Token = TokenModel

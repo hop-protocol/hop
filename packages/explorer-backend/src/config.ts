@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/sdk/networks'
 
 dotenv.config()
 
@@ -52,7 +52,7 @@ for (const chain of enabledChains) {
   rpcUrls[chain] = process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(network, chain)
 }
 
-export const networks = isGoerli ? goerliNetworks : mainnetNetworks
+export const networks = isGoerli ? getNetwork(NetworkSlug.Goerli).chains : getNetwork(NetworkSlug.Mainnet).chains
 
 // TODO: maybe move this to core config?
 export const transferTimes = {

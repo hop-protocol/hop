@@ -1,5 +1,5 @@
-import { getBaseExplorerUrl } from './getBaseExplorerUrl'
-import { networkIdToSlug } from './networks'
+import { getBaseExplorerUrl } from './getBaseExplorerUrl.js'
+import { networkIdToSlug } from './networks.js'
 
 export function getEtherscanLink(
   networkId: string | number,

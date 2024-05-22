@@ -1,6 +1,6 @@
 import DatabaseMigrator from './DatabaseMigrator.js'
 import _ from 'lodash'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Logger } from '#logger/index.js'
 // @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
 import os from 'node:os'

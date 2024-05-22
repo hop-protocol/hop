@@ -1,9 +1,9 @@
-import logger from 'src/logger'
-import { ChainSlug, Slug } from '@hop-protocol/sdk'
-import { getBaseExplorerUrl } from './getBaseExplorerUrl'
+import logger from '#logger/index.js'
+import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
+import { getBaseExplorerUrl } from './getBaseExplorerUrl.js'
 
-export function getExplorerTxUrl(networkName?: Slug | ChainSlug | string, txHash: string = '') {
-  if (networkName === Slug.mainnet) {
+export function getExplorerTxUrl(networkName?: NetworkSlug | ChainSlug | string, txHash: string = '') {
+  if (networkName === NetworkSlug.Mainnet) {
     networkName = ChainSlug.Ethereum
   }
 

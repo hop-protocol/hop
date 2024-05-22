@@ -6,22 +6,22 @@ import {
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
-} from '@hop-protocol/hop-node-core/chains'
-import { NonceTooLowError } from '@hop-protocol/hop-node-core/types'
+} from '#chains/index.js'
+import { NonceTooLowError } from '#types/index.js'
 import { RelayerFeeTooLowError } from '#types/error.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
-import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
-import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
-import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
-import type { IChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { getChainBridge } from '#chains/index.js'
+import { isFetchExecutionError } from '#utils/isFetchExecutionError.js'
+import { isFetchRpcServerError } from '#utils/isFetchRpcServerError.js'
+import { isNativeToken } from '#utils/isNativeToken.js'
+import { promiseQueue } from '#utils/promiseQueue.js'
+import type { IChainBridge } from '#chains/index.js'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
-import type { Logger } from '@hop-protocol/hop-node-core/logger'
+import type { Logger } from '#logger/index.js'
 import type { RelayableTransferRoot, TransferRootRelayProps } from '#db/TransferRootsDb.js'
 import type { Transfer, UnrelayedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -156,7 +156,7 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
+    const isReceivingNativeToken = isNativeToken(destinationChainId.toString(), this.tokenSymbol)
     if (isReceivingNativeToken) {
       logger.debug('checkTransferSentToL2 getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
@@ -410,7 +410,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const destinationChainSlug = chainIdToSlug(destinationChainId)
+    const destinationChainSlug = getChainSlug(destinationChainId.toString())
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(destinationChainSlug)) {
       throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)

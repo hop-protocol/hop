@@ -1,23 +1,24 @@
 import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, Contract, Signer, ethers, providers, utils } from 'ethers'
-import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { Chain, ChainSlug, getChain } from '#chains/index.js'
+import { TokenSymbol } from '#tokens/index.js'
 import { ERC20__factory } from './contracts/index.js'
 import { TAmount, TChain } from './types.js'
-import { TokenSymbol, WrappedToken } from './constants/index.js'
+import { WrappedToken } from './constants/index.js'
 import { WETH9__factory } from './contracts/index.js'
-import { chains as chainMetadata } from '@hop-protocol/sdk-core/metadata'
+import { TokenModel } from '#models/index.js'
 
 export type TokenConstructorOptions = {
   chain: TChain,
   address: string,
   decimals: number,
-  symbol: TokenSymbol,
+  symbol:  TokenSymbol | string,
   name: string,
   image: string,
 } & BaseConstructorOptions
 
 /**
- * Class reprensenting ERC20 Token
+ * Class representing ERC20 Token
  * @namespace Token
  */
 export class Token extends Base {
@@ -27,7 +28,7 @@ export class Token extends Base {
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
-  _symbol: TokenSymbol
+  _symbol: TokenSymbol | string
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -46,7 +47,7 @@ export class Token extends Base {
     chain?: TChain,
     address?: string,
     decimals?: number,
-    symbol?: TokenSymbol,
+    symbol?:  TokenSymbol | string,
     name?: string,
     image?: string,
     signer?: Signer | providers.Provider,
@@ -260,16 +261,17 @@ export class Token extends Base {
     return (
       this.symbol.toLowerCase() === token.symbol.toLowerCase() &&
       this.address.toLowerCase() === token.address.toLowerCase() &&
-      this.chain.equals(token.chain)
+      this.chain.slug === token.chain.slug
     )
   }
 
   get isNativeToken (): boolean {
-    const nativeTokenSymbol = (chainMetadata as any)[this.chain.slug]?.nativeTokenSymbol
+    const chain = getChain(this.chain.chainId)
+    const nativeTokenSymbol = chain.nativeTokenSymbol
     let isNative = nativeTokenSymbol === this._symbol
 
     // check for both XDAI and DAI on Gnosis Chain
-    if (!isNative && this.chain.equals(Chain.Gnosis) && TokenModel.DAI === this._symbol) {
+    if (!isNative && this.chain.slug === ChainSlug.Gnosis && TokenModel.DAI === this._symbol) {
       isNative = true
     }
 
@@ -285,7 +287,8 @@ export class Token extends Base {
     if (!address) {
       throw new Error('address is required')
     }
-    return this.chain.provider!.getBalance(address)
+    const chainProvider = this.getChainProvider(this.chain)
+    return chainProvider.getBalance(address)
   }
 
   async getWethContract (): Promise<any> {
@@ -323,7 +326,8 @@ export class Token extends Base {
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
       const from = await this.getGasEstimateFromAddress()
-      return contract.connect(this.chain.provider).estimateGas.deposit({
+      const chainProvider = this.getChainProvider(this.chain)
+      return contract.connect(chainProvider).estimateGas.deposit({
         value: amount,
         from
       })
@@ -351,12 +355,14 @@ export class Token extends Base {
     const contract = await this.getWethContract()
     // a `from` address is required if using only provider (not signer)
     const from = await this.getGasEstimateFromAddress()
+    // TODO: Should this be this.chain or chain? Historically it has been this.chain so leaving it for now.
+    const chainProvider = this.getChainProvider(this.chain)
     const [gasLimit, tx] = await Promise.all([
-      contract.connect(this.chain.provider).estimateGas.deposit({
+      contract.connect(chainProvider).estimateGas.deposit({
         value: amount,
         from
       }),
-      contract.connect(this.chain.provider).populateTransaction.deposit({
+      contract.connect(chainProvider).populateTransaction.deposit({
         value: amount,
         from
       })
@@ -371,7 +377,7 @@ export class Token extends Base {
   private async getGasEstimateFromAddress (): Promise<string> {
     let address = await this.getSignerAddress()
     if (!address) {
-      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+      address = await this._getBonderAddress(this._symbol, this.chain, ChainSlug.Ethereum)
     }
     return address
   }

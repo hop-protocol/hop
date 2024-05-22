@@ -1,15 +1,15 @@
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import type { IDataStore, IOnchainEventStoreRes } from './types.js'
 import { type LogWithChainId, OnchainEventIndexerDB } from '../../db/OnchainEventIndexerDB.js'
 import { Message } from '../Message.js'
 import { OnchainEventIndexer, type RequiredEventFilter } from '../../indexer/OnchainEventIndexer.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 export class OnchainEventStore implements IDataStore {
   // TODO: No !
   readonly #indexer!: OnchainEventIndexer
 
-  constructor(chains: Chain[]) {
+  constructor(chains: ChainSlug[]) {
     // TODO: Not sure if DB init makes sense at this level. However, one level
     // lower and we would have to pass in unique db names for each indexer
     const db = new OnchainEventIndexerDB('OnchainEventStore')
@@ -21,7 +21,7 @@ export class OnchainEventStore implements IDataStore {
     }
   }
 
-  #getEventFilters (chain: Chain): RequiredEventFilter[] {
+  #getEventFilters (chain: ChainSlug): RequiredEventFilter[] {
     const chainId = chainSlugToId(chain)
     return [
       Message.getCCTPTransferSentEventFilter(chainId),

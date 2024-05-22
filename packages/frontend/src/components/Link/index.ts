@@ -1,1 +1,1 @@
-export * from 'src/components/Link/Link'
+export * from '#components/Link/Link.js'

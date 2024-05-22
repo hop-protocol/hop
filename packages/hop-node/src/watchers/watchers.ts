@@ -8,12 +8,11 @@ import RelayWatcher from './RelayWatcher.js'
 import SettleBondedWithdrawalWatcher from './SettleBondedWithdrawalWatcher.js'
 import SyncWatcher from './SyncWatcher.js'
 import contracts from '#contracts/index.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { MetricsServer } from '@hop-protocol/hop-node-core/metrics'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { MetricsServer } from '#metrics/index.js'
 import { Watchers, getAllChains, getAllTokens, config as globalConfig } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { Logger } from '#logger/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import type { BridgeContract } from './classes/BaseWatcher.js'
 
 const logger = new Logger('config')
@@ -148,7 +147,7 @@ export async function getWatchers (config: GetWatchersConfig) {
       if (isL1) {
         return
       }
-      const l1BridgeContract = contracts.get(tokenSymbol, Chain.Ethereum)?.l1Bridge
+      const l1BridgeContract = contracts.get(tokenSymbol, ChainSlug.Ethereum)?.l1Bridge
       if (!l1BridgeContract) {
         return
       }
@@ -300,7 +299,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
 
   for (const tokenSymbol of tokens) {
     for (const chainSlug of networks) {
-      const isL1 = chainSlug === Chain.Ethereum
+      const isL1 = chainSlug === ChainSlug.Ethereum
       const chainId = chainSlugToId(chainSlug)
       if (!contracts.has(tokenSymbol, chainSlug)) {
         continue
@@ -324,7 +323,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
         continue
       }
 
-      const slug = chainIdToSlug(chainId)
+      const slug = getChainSlug(chainId.toString())
 
       // Skip watcher if it's not specified as route
       if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {

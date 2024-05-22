@@ -1,15 +1,15 @@
-import { Slug } from '@hop-protocol/sdk'
-import { gitRevision } from 'src/config/config'
-import { goerliAddresses, goerliNetworks } from 'src/config/goerli'
-import { mainnetAddresses, mainnetNetworks } from 'src/config/mainnet'
-import { sepoliaAddresses, sepoliaNetworks } from 'src/config/sepolia'
+import { NetworkSlug } from '@hop-protocol/sdk'
+import { gitRevision } from '#config/config.js'
+import { goerliAddresses, goerliNetworks } from '#config/goerli.js'
+import { mainnetAddresses, mainnetNetworks } from '#config/mainnet.js'
+import { sepoliaAddresses, sepoliaNetworks } from '#config/sepolia.js'
 
-const reactAppNetwork = process.env.REACT_APP_NETWORK ?? Slug.mainnet
+const reactAppNetwork = process.env.REACT_APP_NETWORK ?? NetworkSlug.Mainnet
 let addresses: any
 let networks: any
-const isMainnet = reactAppNetwork === Slug.mainnet
-const isGoerli = reactAppNetwork === Slug.goerli
-const isSepolia = reactAppNetwork === Slug.sepolia
+const isMainnet = reactAppNetwork === NetworkSlug.Mainnet
+const isGoerli = reactAppNetwork === NetworkSlug.Goerli
+const isSepolia = reactAppNetwork === NetworkSlug.Sepolia
 
 if (isMainnet) {
   addresses = mainnetAddresses

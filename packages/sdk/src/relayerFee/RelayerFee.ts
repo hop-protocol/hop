@@ -1,6 +1,6 @@
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/sdk-core'
+import { ChainSlug } from '#chains/index.js'
 import { IRelayerFee } from './IRelayerFee.js'
 import { LineaRelayerFee } from './LineaRelayerFee.js'
 import { PolygonZkRelayerFee } from './PolygonZkRelayerFee.js'
@@ -8,10 +8,10 @@ import { PolygonZkRelayerFee } from './PolygonZkRelayerFee.js'
 type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
 
 const RelayerFees: Record<string, RelayerFeeClass> = {
-  [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
-  [Chain.Nova.slug]: ArbitrumRelayerFee,
-  [Chain.Linea.slug]: LineaRelayerFee,
-  [Chain.PolygonZk.slug]: PolygonZkRelayerFee
+  [ChainSlug.Arbitrum]: ArbitrumRelayerFee,
+  [ChainSlug.Nova]: ArbitrumRelayerFee,
+  [ChainSlug.Linea]: LineaRelayerFee,
+  [ChainSlug.PolygonZk]: PolygonZkRelayerFee
 }
 
 export class RelayerFee {

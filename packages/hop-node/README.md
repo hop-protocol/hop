@@ -2,9 +2,6 @@
 
 > V1 Hop Node for bonding transfers
 
-> [!NOTE]
-> This package is only meant to be used by other Hop Node packages. We recommend installing one of the Hop Node packages if you want access to functionality in this package.
-
 ## Documentation
 
 See the [Hop docs site](https://docs.hop.exchange/v/developer-docs)
@@ -36,20 +33,6 @@ Docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopp
 | `mainnet-bonder`    | `hopprotocol/hop-node:mainnet` | Beta     | Mainnet pre-release environment             |
 | `develop-bonder`    | `hopprotocol/hop-node:develop` | Unstable | Unstable mainnet staging environment        |
 
-### Github Actions
-
-Run github action build locally with [act](https://github.com/nektos/act):
-
-```sh
-(cd ../../ && act --job build-hop-node --workflows .github/workflows/hop_node.yml --secret-file=.secrets --verbose)
-```
-
-`.secrets`
-
-```sh
-DOCKER_USER=<username>
-DOCKER_PASS=<password>
-```
 
 ## License
 

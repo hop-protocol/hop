@@ -1,4 +1,4 @@
-import { transferTimes } from 'src/config'
+import { transferTimes } from '#config/index.js'
 
 export function getTransferTimeSeconds (fromChainSlug: string, toChainSlug: string) {
   if (!(fromChainSlug && toChainSlug)) {

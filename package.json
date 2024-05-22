@@ -7,7 +7,7 @@
   "private": true,
   "engines": {
     "node": ">=20.12.2",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -17,17 +17,17 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@eslint/js": "8.57.0",
-    "@stylistic/eslint-plugin": "1.7.0",
+    "@eslint/js": "9.1.1",
+    "@stylistic/eslint-plugin": "1.7.2",
     "@types/jest": "29.5.12",
     "@types/node": "20.12.7",
-    "eslint": "9.0.0",
-    "eslint-plugin-n": "17.2.0",
+    "eslint": "9.1.0",
+    "eslint-plugin-n": "17.2.1",
     "eslint-plugin-unused-imports": "3.1.0",
     "husky": "9.0.11",
     "jest": "29.7.0",
     "ts-jest": "29.1.2",
     "typescript": "5.4.3",
-    "typescript-eslint": "7.5.0"
+    "typescript-eslint": "7.7.0"
   }
 }

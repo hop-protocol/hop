@@ -2,12 +2,12 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import discord from 'src/assets/logos/discord.svg?react'
-import github from 'src/assets/logos/github.svg?react'
-import medium from 'src/assets/logos/medium.svg?react'
-import twitter from 'src/assets/logos/twitter.svg?react'
-import { StyledLink } from 'src/components/Link/StyledLink'
-import { SvgImg } from 'src/components/ui/SvgImg'
+import discord from '../../assets/logos/discord.svg?react' // eslint-disable-line n/no-missing-import
+import github from '../../assets/logos/github.svg?react' // eslint-disable-line n/no-missing-import
+import medium from '../../assets/logos/medium.svg?react' // eslint-disable-line n/no-missing-import
+import twitter from '../../assets/logos/twitter.svg?react' // eslint-disable-line n/no-missing-import
+import { StyledLink } from '#components/Link/StyledLink.js'
+import { SvgImg } from '#components/ui/SvgImg.js'
 import {
   careersUrl,
   discordUrl,
@@ -17,11 +17,11 @@ import {
   githubUrl,
   mediumUrl,
   twitterUrl,
-} from 'src/utils/constants'
-import { gitRevision } from 'src/config/config'
+} from '#utils/constants.js'
+import { gitRevision } from '#config/config.js'
 import { makeStyles } from '@mui/styles'
-import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useBlockNumber } from '#components/Footer/useBlockNumber.js'
+import { useThemeMode } from '#theme/ThemeProvider.js'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {

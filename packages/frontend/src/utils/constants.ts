@@ -1,7 +1,7 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { ChainSlug, Token } from '@hop-protocol/sdk'
-import { networks } from '@hop-protocol/sdk/networks'
-import { tokens } from '@hop-protocol/sdk/metadata/tokens'
+import { getNetworks } from '@hop-protocol/sdk'
+import { getTokens } from '@hop-protocol/sdk'
 
 export const L1_NETWORK = ChainSlug.Ethereum
 
@@ -30,12 +30,10 @@ export interface NetworkTokenEntity {
 }
 
 const relayableChainsSet = new Set(<string[]>[])
-for (const network in networks) {
-  const networkObj = networks[network]
-  for (const chain in networkObj) {
-    const chainObj = networkObj[chain]
-    if (chainObj?.isRelayable) {
-      relayableChainsSet.add(chain)
+for (const network of getNetworks()) {
+  for (const chain of Object.values(network.chains)) {
+    if (chain.isManualRelayOnL2) {
+      relayableChainsSet.add(chain.slug)
     }
   }
 }
@@ -43,9 +41,8 @@ for (const network in networks) {
 export const RelayableChains = Array.from(relayableChainsSet)
 
 export const stableCoins = new Set(<string[]>[])
-for (const tokenSymbol in tokens) {
-  const tokenObj = tokens[tokenSymbol]
-  if (tokenObj?.isStablecoin) {
-    stableCoins.add(tokenSymbol)
+for (const token of getTokens()) {
+  if (token.isStableCoin) {
+    stableCoins.add(token.symbol)
   }
 }

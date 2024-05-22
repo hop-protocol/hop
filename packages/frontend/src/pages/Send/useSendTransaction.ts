@@ -1,15 +1,15 @@
 import EventEmitter from 'eventemitter3'
-import Transaction from 'src/models/Transaction'
-import logger from 'src/logger'
+import Transaction from '#models/Transaction.js'
+import logger from '#logger/index.js'
 import { BigNumber, Signer, utils } from 'ethers'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
-import { amountToBN, formatError } from 'src/utils/format'
-import { createTransaction } from 'src/utils/createTransaction'
-import { getBonderFeeWithId } from 'src/utils'
-import { isGoerli } from 'src/config'
+import { ChainSlug, Hop, HopBridge } from '@hop-protocol/sdk'
+import { amountToBN, formatError } from '#utils/format.js'
+import { createTransaction } from '#utils/createTransaction.js'
+import { getBonderFeeWithId } from '#utils/index.js'
+import { isGoerli } from '#config/index.js'
 import { useEffect, useMemo, useState } from 'react'
-import { useTransactionReplacement } from 'src/hooks'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useTransactionReplacement } from '#hooks/index.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 export type TransactionHandled = {
   transaction: any
@@ -230,7 +230,7 @@ export function useSendTransaction (props: any) {
           relayerFeeWithId = getBonderFeeWithId(totalFee, '')
         }
 
-        return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
+        return bridge.send(parsedAmount, ChainSlug.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,

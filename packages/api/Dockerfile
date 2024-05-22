@@ -7,10 +7,8 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-RUN pnpm --filter=sdk-core build
-RUN pnpm --filter=sdk build
-RUN pnpm --filter=api build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=api... install
+RUN pnpm --filter=api... build
 RUN pnpm --filter=api deploy --prod /prod/app
 
 FROM base

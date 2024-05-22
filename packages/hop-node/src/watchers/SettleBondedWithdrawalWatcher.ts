@@ -1,10 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { wallets } from '#wallets/index.js'
+import { ChainSlug, TokenSymbol, getChainSlug } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
 import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 import type { BigNumber, providers } from 'ethers'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
@@ -172,9 +171,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     // If there is no resource constraint, settle all
-    const destChainSlug = chainIdToSlug(destChainId.toString())
+    const destChainSlug = getChainSlug(destChainId.toString())
     if (
-      destChainSlug !== Chain.PolygonZk ||
+      destChainSlug !== ChainSlug.PolygonZk ||
       transferIds.length <= maxNumTransferIds
     ) {
       const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
@@ -269,12 +268,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     let settlementAggregatorAddresses: Record<string, string>
     if (globalConfig.isMainnet) {
       settlementAggregatorAddresses = {
-        [Token.ETH]: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
-        [Token.HOP]: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb'
+        [TokenSymbol.ETH]: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
+        [TokenSymbol.HOP]: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb'
       }
     } else {
       settlementAggregatorAddresses = {
-        [Token.ETH]: '0xE670368c529C6B47662838bF039dd41945b57eF3'
+        [TokenSymbol.ETH]: '0xE670368c529C6B47662838bF039dd41945b57eF3'
       }
     }
 

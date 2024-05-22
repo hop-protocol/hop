@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.636",
+  "version": "0.0.11",
   "description": "The v1 Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -12,17 +12,15 @@
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js ./tsconfig.esm.tsbuildinfo ./tsconfig.cjs.tsbuildinfo",
     "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
-    "dev": "pnpm version && tsc --watch",
-    "build": "pnpm version && pnpm build:cjs && pnpm build:esm",
+    "dev": "tsc --watch",
+    "build": "pnpm build:cjs && pnpm build:esm",
     "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --fix",
-    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "bump": "pnpm version prerelease --preid=beta",
-    "release": "pnpm build && pnpm lint && pnpm test && pnpm bump",
-    "bump-release": "pnpm bump && pnpm release",
+    "prebuild": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "version": "pnpm version",
     "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
     "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
     "docs:ui": "typedoc --out docs-ui src/index.ts",
@@ -30,14 +28,17 @@
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "dependencies": {
-    "@hop-protocol/sdk-core": "workspace:*",
+    "@uniswap/sdk-core": "4.2.0",
+    "@uniswap/v3-sdk": "3.11.0",
     "buffer": "6.0.3",
     "dotenv": "16.4.1",
+    "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",
     "luxon": "3.4.4",
-    "merkletreejs": "0.3.11"
+    "merkletreejs": "0.3.11",
+    "p-queue": "6.6.2"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
@@ -72,6 +73,16 @@
       "require": {
         "types": "./dist/cjs/addresses/index.d.ts",
         "default": "./dist/cjs/addresses/index.js"
+      }
+    },
+    "./chains": {
+      "import": {
+        "types": "./dist/esm/chains/index.d.ts",
+        "default": "./dist/esm/chains/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/chains/index.d.ts",
+        "default": "./dist/cjs/chains/index.js"
       }
     },
     "./config": {

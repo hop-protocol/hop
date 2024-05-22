@@ -1,5 +1,5 @@
 import getSubgraphUrl from '#utils/getSubgraphUrl.js'
-import { rateLimitRetry } from '@hop-protocol/hop-node-core/utils'
+import { rateLimitRetry } from '#utils/rateLimitRetry.js'
 
 export default async function makeRequest (
   chain: string,

@@ -1,12 +1,12 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import find from 'lodash/find'
 import { ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { Signer, providers } from 'ethers'
-import { WaitConfirmations, networks } from 'src/config'
-import { allNetworks } from 'src/config/networks'
-import { networks as coreNetworks } from '@hop-protocol/sdk/networks'
-import { getNativeTokenSymbol } from './getNativeTokenSymbol'
+import { WaitConfirmations, networks } from '#config/index.js'
+import { allNetworks } from '#config/networks.js'
+import { getChain } from '@hop-protocol/sdk'
+import { getNativeTokenSymbol } from './getNativeTokenSymbol.js'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
   return find(networks, ['slug', slug])
@@ -58,14 +58,9 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     networkId = networkId.toString()
   }
 
-  for (const _network in coreNetworks) {
-    const chains = (coreNetworks as any)[_network]
-    for (const chainSlug in chains) {
-      const chainObj = chains[chainSlug]
-      if (chainObj.networkId.toString() === networkId) {
-        return chainSlug as Slug
-      }
-    }
+  const chains = getChain(networkId)
+  if (chains) {
+    return chains.slug
   }
 
   return ''

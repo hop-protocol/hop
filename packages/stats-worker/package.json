@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/stats-worker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Hop Protocol Stats Worker",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -18,9 +18,11 @@
     "start:bonder": "tsx src/index.ts --bonder --bonderDays=30",
     "start:bonder:migration": "tsx src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "tsx src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
+    "upload-config": "tsx src/index.ts --uploadConfig",
     "watch": "tsc --watch",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint . --fix",
+    "version": "pnpm version",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {

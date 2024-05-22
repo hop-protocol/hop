@@ -13,6 +13,11 @@ import { Chain, MinPolygonGasPrice } from '@hop-protocol/hop-node-core/constants
 import type { Network } from '@hop-protocol/hop-node-core/constants'
 import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
+import { Mutex } from 'async-mutex'
+import { wait } from '#utils/wait.js'
+
+// Temp to handle API rate limit
+const mutex = new Mutex()
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -87,7 +92,7 @@ export class Message {
 
   // TODO: Get from SDK
   static convertDomainToChainId (domainId: BigNumber): BigNumber {
-    const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as Network]
+    const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as NetworkSlug]
     if (!domainMap) {
       throw new Error('Domain map not found')
     }
@@ -111,23 +116,35 @@ export class Message {
    * {"attestation":"0x123...","status":"complete"}
    */
   static async fetchAttestation (messageHash: string): Promise<string> {
-    const url = getAttestationUrl(messageHash)
-    const res = await fetch(url)
-    const json: IAttestationResponse = await res.json()
+    return await mutex.runExclusive(async () => {
+      const url = getAttestationUrl(messageHash)
+      console.log('temp000', messageHash)
+      const res = await fetch(url)
+      console.log('temp111', messageHash, res)
+      if (res.status === 429) {
+        // Temp to handle API rate limit
+        await wait(2_000)
+      }
+      const json: IAttestationResponse = await res.json()
+      console.log('temp222', messageHash, json)
 
-    if (!json) {
-      throw new Error('Message hash not found')
-    }
+      if (!json) {
+        throw new Error('Message hash not found')
+      }
 
-    if ('error' in json) {
-      throw new Error(json.error)
-    }
+      console.log('temp333', messageHash)
+      if ('error' in json) {
+        throw new Error(json.error)
+      }
 
-    if (json.status !== 'complete') {
-      throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
-    }
+      console.log('temp444', messageHash)
+      if (json.status !== 'complete') {
+        throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
+      }
 
-    return json.attestation
+      console.log('temp555', messageHash, json)
+      return json.attestation
+    })
   }
 
   // TODO: rm for config
@@ -141,7 +158,7 @@ export class Message {
     if (chainSlug === Chain.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
-      const minGasPrice = BigNumber.from(MinPolygonGasPrice).mul(2)
+      const minGasPrice = BigNumber.from(MIN_POLYGON_GAS_PRICE).mul(2)
       const gasPriceBn = BigNumber.from(txOptions.gasPrice)
       if (gasPriceBn.lt(minGasPrice)) {
         txOptions.gasPrice = minGasPrice

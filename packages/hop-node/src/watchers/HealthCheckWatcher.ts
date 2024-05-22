@@ -7,24 +7,22 @@ import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
 import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
-import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
+import { AVG_BLOCK_TIME_SECONDS, TimeIntervals } from '#constants/index.js'
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { Logger } from '#logger/index.js'
+import { Notifier } from '#notifier/index.js'
 import { RelayableChains } from '#constants/index.js'
-import { S3Upload } from '@hop-protocol/hop-node-core/aws'
-import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { S3Upload } from '#aws/index.js'
+import { appTld, hostname } from '#config/index.js'
 import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
 import { getInvalidBondWithdrawals } from '#theGraph/getInvalidBondWithdrawals.js'
 import { getNameservers } from '#utils/getNameservers.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
-import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { wait } from '#utils/wait.js'
+import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals, getTokens } from '@hop-protocol/sdk'
 import type { Routes } from '@hop-protocol/sdk/addresses'
 import type { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import type { providers } from 'ethers'
@@ -228,9 +226,9 @@ export class HealthCheckWatcher {
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
   lowBalanceThresholds: Record<string, BigNumber> = {
-    [NativeChainToken.ETH]: utils.parseEther('0.5'),
-    [NativeChainToken.XDAI]: utils.parseEther('10'),
-    [NativeChainToken.MATIC]: utils.parseEther('10')
+    [TokenSymbol.ETH]: utils.parseEther('0.5'),
+    [TokenSymbol.XDAI]: utils.parseEther('10'),
+    [TokenSymbol.MATIC]: utils.parseEther('10')
   }
 
   cacheTimestamps: Record<string, any> = {}
@@ -480,7 +478,7 @@ export class HealthCheckWatcher {
 
     let shouldSendLowOsResourceNotification = true
     if (this.lastLowOsResourceNotificationSentAt) {
-      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + OneDayMs < Date.now()
+      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + TimeIntervals.ONE_DAY_MS < Date.now()
     }
     if (shouldSendLowOsResourceNotification) {
       for (const item of lowOsResources) {
@@ -491,7 +489,7 @@ export class HealthCheckWatcher {
 
     let shouldSendUnsyncedSubgraphNotification = true
     if (this.lastUnsyncedSubgraphNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + OneDayMs < Date.now()
+      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + TimeIntervals.ONE_DAY_MS < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
@@ -543,9 +541,9 @@ export class HealthCheckWatcher {
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
     // TODO: Add Arbitrum and Optimism
     const chainProviders: Record<string, providers.Provider> = {
-      [Chain.Ethereum]: getRpcProvider(Chain.Ethereum),
-      [Chain.Gnosis]: getRpcProvider(Chain.Gnosis),
-      [Chain.Polygon]: getRpcProvider(Chain.Polygon)
+      [ChainSlug.Ethereum]: getRpcProvider(ChainSlug.Ethereum),
+      [ChainSlug.Gnosis]: getRpcProvider(ChainSlug.Gnosis),
+      [ChainSlug.Polygon]: getRpcProvider(ChainSlug.Polygon)
     }
 
     const bonders = new Set<string>()
@@ -554,7 +552,7 @@ export class HealthCheckWatcher {
     const result: any = []
 
     for (const token in configBonders) {
-      const tokenConfig = configBonders[token as keyof typeof AssetSymbol] as Routes
+      const tokenConfig = configBonders[token as keyof typeof TokenSymbol] as Routes
       if (!tokenConfig) {
         continue
       }
@@ -574,40 +572,40 @@ export class HealthCheckWatcher {
     for (const bonder of bonders) {
       const bridge = bonderBridges[bonder]
       const [ethBalance, xdaiBalance, maticBalance] = await Promise.all([
-        chainProviders[Chain.Ethereum].getBalance(bonder),
-        chainProviders[Chain.Gnosis].getBalance(bonder),
-        chainProviders[Chain.Polygon].getBalance(bonder)
+        chainProviders[ChainSlug.Ethereum].getBalance(bonder),
+        chainProviders[ChainSlug.Gnosis].getBalance(bonder),
+        chainProviders[ChainSlug.Polygon].getBalance(bonder)
       ])
 
       const excludedChains = this.chainsIgnoredByBonder[bonder]
-      if (ethBalance.lt(this.lowBalanceThresholds.ETH) && excludedChains && !excludedChains.includes(Chain.Ethereum)) {
+      if (ethBalance.lt(this.lowBalanceThresholds.ETH) && excludedChains && !excludedChains.includes(ChainSlug.Ethereum)) {
         result.push({
           bonder,
           bridge,
-          chain: Chain.Ethereum,
-          nativeToken: NativeChainToken.ETH,
+          chain: ChainSlug.Ethereum,
+          nativeToken: TokenSymbol.ETH,
           amount: ethBalance.toString(),
           amountFormatted: Number(utils.formatEther(ethBalance.toString()))
         })
       }
 
-      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI) && excludedChains && !excludedChains.includes(Chain.Gnosis)) {
+      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI) && excludedChains && !excludedChains.includes(ChainSlug.Gnosis)) {
         result.push({
           bonder,
           bridge,
-          chain: Chain.Gnosis,
-          nativeToken: NativeChainToken.XDAI,
+          chain: ChainSlug.Gnosis,
+          nativeToken: TokenSymbol.XDAI,
           amount: xdaiBalance.toString(),
           amountFormatted: Number(utils.formatEther(xdaiBalance.toString()))
         })
       }
 
-      if (maticBalance.lt(this.lowBalanceThresholds.MATIC) && excludedChains && !excludedChains.includes(Chain.Polygon)) {
+      if (maticBalance.lt(this.lowBalanceThresholds.MATIC) && excludedChains && !excludedChains.includes(ChainSlug.Polygon)) {
         result.push({
           bonder,
           bridge,
-          chain: Chain.Polygon,
-          nativeToken: NativeChainToken.MATIC,
+          chain: ChainSlug.Polygon,
+          nativeToken: TokenSymbol.MATIC,
           amount: maticBalance.toString(),
           amountFormatted: Number(utils.formatEther(maticBalance.toString()))
         })
@@ -650,7 +648,7 @@ export class HealthCheckWatcher {
         availableLiquidity = BigNumber.from(0)
       }
 
-      const tokenDecimals = getTokenDecimals(token)!
+      const tokenDecimals = getTokenDecimals(token as TokenSymbol)
       const availableLiquidityFormatted = Number(utils.formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(utils.formatUnits(totalLiquidity, tokenDecimals))
       const oneToken = utils.parseUnits('1', tokenDecimals)
@@ -700,11 +698,11 @@ export class HealthCheckWatcher {
     const bufferMinutes = 5
     const earliestTimestamp = timestamp - (((this.healthCheckFinalityTimeMinutes * 2) + bufferMinutes) * 60)
     result = result.filter((x: any) => earliestTimestamp > Number(x.timestamp))
-    result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
+    result = result.filter((x: any) => x.sourceChain !== ChainSlug.Ethereum)
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
-    const l1Chains: string[] = [Chain.Ethereum]
-    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base, Chain.Linea]
+    const l1Chains: string[] = [ChainSlug.Ethereum]
+    const l2Chains: string[] = [ChainSlug.Optimism, ChainSlug.Arbitrum, ChainSlug.Polygon, ChainSlug.Gnosis, ChainSlug.Nova, ChainSlug.Base, ChainSlug.Linea]
     result = result.map((x: any) => {
       let isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
@@ -715,7 +713,7 @@ export class HealthCheckWatcher {
 
       // DAI into Gnosis can be bonded for a cheaper fee
       if (
-        x.destinationChain === Chain.Gnosis &&
+        x.destinationChain === ChainSlug.Gnosis &&
         x.token === 'DAI'
       ) {
         isBonderFeeTooLow = false
@@ -747,7 +745,7 @@ export class HealthCheckWatcher {
       }
       // DAI into Gnosis can be bonded for a cheaper fee
       if (
-        x.destinationChain === Chain.Gnosis &&
+        x.destinationChain === ChainSlug.Gnosis &&
         x.token === 'DAI'
       ) {
         return false
@@ -755,7 +753,7 @@ export class HealthCheckWatcher {
       if (x.destinationChain === 'ethereum') {
         return Number(x.bonderFeeFormatted) > 0.001
       }
-      if (stableCoins.has(x.token)) {
+      if (this.#getStablecoins().has(x.token)) {
         return Number(x.bonderFeeFormatted) > 0.25
       }
       return Number(x.bonderFeeFormatted) > 0.0001
@@ -769,8 +767,8 @@ export class HealthCheckWatcher {
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
-    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
+    const sourceChains = [ChainSlug.Optimism, ChainSlug.Arbitrum, ChainSlug.Nova, ChainSlug.Base, ChainSlug.Linea]
+    const destinationChains = [ChainSlug.Ethereum, ChainSlug.Optimism, ChainSlug.Arbitrum, ChainSlug.Nova, ChainSlug.Base, ChainSlug.Linea]
     const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
@@ -856,15 +854,15 @@ export class HealthCheckWatcher {
     // This function does not use TheGraph, as that adds an additional layer/failure point.
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
-    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
-    const provider = getRpcProvider(Chain.Ethereum)
+    const blocksInDay = TimeIntervals.ONE_DAY_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!
+    const provider = getRpcProvider(ChainSlug.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay
 
     const result: any[] = []
     for (const token of this.tokens) {
       this.logger.debug(`done ${token} bridge for challenged roots`)
-      const l1BridgeContract = contracts.get(token, Chain.Ethereum).l1Bridge
+      const l1BridgeContract = contracts.get(token, ChainSlug.Ethereum).l1Bridge
       const l1Bridge = new L1Bridge(l1BridgeContract)
       await l1Bridge.mapTransferBondChallengedEvents(
         async (event: TransferBondChallengedEvent) => {
@@ -872,7 +870,7 @@ export class HealthCheckWatcher {
           const transferRootHash = event.args.rootHash.toString()
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
-          const tokenDecimals = getTokenDecimals(token)!
+          const tokenDecimals = getTokenDecimals(token as TokenSymbol)
           const originalAmountFormatted = Number(utils.formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
@@ -901,7 +899,7 @@ export class HealthCheckWatcher {
     // This value always needs to match healthCheckFinalityTimeMinutes exactly. If it does not, we may see false readings
     // because we are unaware that the subgraph is out of sync.
     const outOfSyncTimestamp = Math.floor(now.minus({ minutes: this.healthCheckFinalityTimeMinutes }).toSeconds())
-    const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
+    const chains = [ChainSlug.Ethereum, ChainSlug.Optimism, ChainSlug.Arbitrum, ChainSlug.Polygon, ChainSlug.Gnosis]
 
     // Note: Nova, Base, and Linea are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
@@ -996,7 +994,7 @@ export class HealthCheckWatcher {
     const endDateSeconds = Math.floor(endDate.toSeconds())
     const startDateSeconds = Math.floor(startDate.toSeconds())
     const tokens = ''
-    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, startDateSeconds, endDateSeconds)
+    const transfersSent = await getTransferSentToL2(ChainSlug.Ethereum, tokens, startDateSeconds, endDateSeconds)
 
     // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
 
@@ -1011,7 +1009,7 @@ export class HealthCheckWatcher {
       const receiveHashesFounds: any = {}
       for (const transferSent of transfersSent) {
         const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
-        const destinationChain = chainIdToSlug(destinationChainId)
+        const destinationChain = getChainSlug(destinationChainId.toString())
         if (destinationChain !== chain) {
           continue
         }
@@ -1168,5 +1166,15 @@ export class HealthCheckWatcher {
     // }
 
     // return invalidChainBalances
+  }
+
+  #getStablecoins (): Set<string> {
+    const stableCoins = new Set<string>([])
+    for (const token of getTokens()) {
+      if (token.isStableCoin) {
+        stableCoins.add(token.symbol)
+      }
+    }
+    return stableCoins
   }
 }

@@ -1,4 +1,4 @@
-import AppContext from 'src/contexts/AppContext/AppContext'
-export * from 'src/contexts/AppContext/AppContext'
+import AppContext from '#contexts/AppContext/AppContext.js'
+export * from '#contexts/AppContext/AppContext.js'
 
 export default AppContext

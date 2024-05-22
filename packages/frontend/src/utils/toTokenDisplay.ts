@@ -1,5 +1,5 @@
 import { BigNumberish, utils } from 'ethers'
-import { commafy } from 'src/utils'
+import { commafy } from '#utils/index.js'
 
 export const toTokenDisplay = (num?: BigNumberish, decimals: number = 18, symbol?: string, significantDecimals?: number) => {
   if (!num || !decimals) {

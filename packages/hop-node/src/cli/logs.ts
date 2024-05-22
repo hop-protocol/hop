@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
-import { getLogGroups, getLogStreams, getLogs } from '@hop-protocol/hop-node-core/aws'
+import { getLogGroups, getLogStreams, getLogs } from '#aws/index.js'
 
 root
   .command('logs')

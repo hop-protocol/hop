@@ -18,7 +18,7 @@ import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { fileURLToPath } from 'url'
 import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl.js'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
-import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { parse } from 'comment-json'
 
@@ -167,13 +167,13 @@ class BonderStats {
       }
       totalFees = totalFees.add(chainFees)
       const chainFeesFormatted = Number(
-        utils.formatUnits(chainFees, getTokenDecimals(token))
+        utils.formatUnits(chainFees, getTokenDecimals(token as TokenSymbol))
       )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
     const totalFeesFormatted = Number(
-      utils.formatUnits(totalFees, getTokenDecimals(token))
+      utils.formatUnits(totalFees, getTokenDecimals(token as TokenSymbol))
     )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
@@ -517,33 +517,33 @@ class BonderStats {
       })
 
       dbData.unstakedAmount = Number(
-        utils.formatUnits(unstakedAmount, getTokenDecimals(token))
+        utils.formatUnits(unstakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.unstakedEthAmount = Number(utils.formatEther(unstakedEthAmount))
 
       dbData.restakedAmount = Number(
-        utils.formatUnits(restakedAmount, getTokenDecimals(token))
+        utils.formatUnits(restakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.restakedEthAmount = Number(
-        utils.formatUnits(restakedEthAmount, getTokenDecimals(token))
+        utils.formatUnits(restakedEthAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.depositAmount = Number(
-        utils.formatUnits(depositAmount, getTokenDecimals(token))
+        utils.formatUnits(depositAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.withdrawnAmount = Number(
-        utils.formatUnits(withdrawnAmount, getTokenDecimals(token))
+        utils.formatUnits(withdrawnAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.stakedAmount = Number(
-        utils.formatUnits(stakedAmount, getTokenDecimals(token))
+        utils.formatUnits(stakedAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.initialCanonicalAmount = Number(
-        utils.formatUnits(initialCanonicalAmount, getTokenDecimals(token))
+        utils.formatUnits(initialCanonicalAmount, getTokenDecimals(token as TokenSymbol))
       )
 
       dbData.bonderAddress = bonderAddress
@@ -594,13 +594,13 @@ class BonderStats {
 
       if (depositEvent) {
         depositEvent = Number(
-          utils.formatUnits(depositEvent, getTokenDecimals(token))
+          utils.formatUnits(depositEvent, getTokenDecimals(token as TokenSymbol))
         )
       }
 
       if (withdrawEvent) {
         withdrawEvent = Number(
-          utils.formatUnits(withdrawEvent, getTokenDecimals(token))
+          utils.formatUnits(withdrawEvent, getTokenDecimals(token as TokenSymbol))
         )
       }
 
@@ -890,7 +890,7 @@ class BonderStats {
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
                     ? Number(
-                        utils.formatUnits(balance.toString(), getTokenDecimals(token))
+                        utils.formatUnits(balance.toString(), getTokenDecimals(token as TokenSymbol))
                       )
                     : 0
                   dbData[`${chain}NativeAmount`] = native
@@ -904,7 +904,7 @@ class BonderStats {
                       ? Number(
                           utils.formatUnits(
                             hBalance.toString(),
-                            getTokenDecimals(token)
+                            getTokenDecimals(token as TokenSymbol)
                           )
                         )
                       : 0
@@ -1069,9 +1069,9 @@ class BonderStats {
         priceMap[nativeSymbol].toString()
       )
       const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol as TokenSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - getTokenDecimals(token)
+      const exponent = nativeTokenDecimals - getTokenDecimals(token as TokenSymbol)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1093,7 +1093,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      utils.formatUnits(result.toString(), getTokenDecimals(token))
+      utils.formatUnits(result.toString(), getTokenDecimals(token as TokenSymbol))
     )
 
     return {
@@ -1154,9 +1154,9 @@ class BonderStats {
         priceMap[nativeSymbol].toString()
       )
       const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol as TokenSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - getTokenDecimals(token)
+      const exponent = nativeTokenDecimals - getTokenDecimals(token as TokenSymbol)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1180,7 +1180,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      utils.formatUnits(result.toString(), getTokenDecimals(token))
+      utils.formatUnits(result.toString(), getTokenDecimals(token as TokenSymbol))
     )
 
     const ethAmountsFormatted = Number(utils.formatUnits(ethAmounts.toString(), 18))
@@ -1489,7 +1489,7 @@ class BonderStats {
     }
 
     return (arr as string[]).map((value: string) =>
-      utils.parseUnits(value, getTokenDecimals(token))
+      utils.parseUnits(value, getTokenDecimals(token as TokenSymbol))
     )
   }
 }

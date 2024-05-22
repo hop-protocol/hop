@@ -46,16 +46,6 @@ Build distribution build:
 pnpm build
 ```
 
-## Github Actions
-
-Run github action build locally with [act](https://github.com/nektos/act):
-
-```sh
-(cd ../../ && act --workflows .github/workflows/debug.yml)
-```
-
-Make sure to set `if: true` in `debug.yml` first.
-
 ## Deployments
 
 | Branch       | Network | URL                                                  | Release  | Description                                 |

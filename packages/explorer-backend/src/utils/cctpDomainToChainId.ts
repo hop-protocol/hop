@@ -10,5 +10,5 @@ const domainMap: Record<string, string> = {
 
 export function cctpDomainToChainId (sourceDomain: number): number | null {
   const slug = domainMap[sourceDomain.toString()]
-  return slug ? chainSlugToId(slug) : null
+  return slug ? Number(chainSlugToId(slug)) : null
 }

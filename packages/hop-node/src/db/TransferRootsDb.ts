@@ -7,14 +7,10 @@ import {
   RootSetSettleDelayMs,
   TxError
 } from '#constants/index.js'
-import {
-  Chain,
-  OneWeekMs,
-  TenMinutesMs
-} from '@hop-protocol/hop-node-core/constants'
+import { TimeIntervals } from '#constants/index.js'
+import { getExponentialBackoffDelayMs } from '#utils/getExponentialBackoffDelayMs.js'
 import { TxRetryDelayMs } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, getChain, getChainSlug } from '@hop-protocol/sdk'
 import { transferRootsMigrations } from './migrations.js'
 import type { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
@@ -323,7 +319,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)
+    const fromUnix = Math.floor((Date.now() - (TimeIntervals.ONE_WEEK_MS)) / 1000)
     return this.getTransferRoots({
       fromUnix
     })
@@ -371,7 +367,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
       if (!doesChainSupportRootBond) {
         return false
@@ -384,7 +380,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       // reorgs deeper than finality.
       let finalityTimestampOk = false
       if (item?.committedAt) {
-        const longestTimeToFinalityMs = 3 * TenMinutesMs
+        const longestTimeToFinalityMs = 3 * TimeIntervals.TEN_MINUTES_MS
         finalityTimestampOk = item.committedAt + longestTimeToFinalityMs < Date.now()
       }
 
@@ -392,7 +388,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       if (item.sentBondTxAt) {
         if (item?.rootBondTxError === TxError.RedundantRpcOutOfSync) {
           const delayMs = getExponentialBackoffDelayMs(item.rootBondBackoffIndex!)
-          if (delayMs > OneWeekMs * 2) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS * 2) {
             return false
           }
           sentBondTxAtTimestampOk = item.sentBondTxAt + delayMs < Date.now()
@@ -440,7 +436,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const isRelayable = RelayableChains.L2_TO_L1.includes(sourceChain)
       if (!isRelayable) {
         return false
@@ -558,7 +554,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const destinationChain = getChainSlug(item.destinationChainId.toString())
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -582,7 +578,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
           item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
-          if (delayMs > OneWeekMs) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS) {
             return false
           }
           sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()
@@ -620,8 +616,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       }
 
       let isWithinChallengePeriod = true
-      const sourceChain = chainIdToSlug(item?.sourceChainId)
-      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
+      const sourceChain = getChain(item?.sourceChainId.toString())
+      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain.toString())
       if (doesChainSupportRootBond && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
@@ -661,7 +657,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.Gnosis
+      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && getChainSlug(filter.destinationChainId.toString()) === ChainSlug.Gnosis
       if (checkRootSetTimestamp) {
         rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now()
       }

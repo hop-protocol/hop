@@ -1,10 +1,5 @@
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/networks'
-
-const networks: Record<string, any> = {
-  mainnet: mainnetAddresses,
-  goerli: goerliAddresses
-}
+import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 
 export function getDefaultRpcUrl (network: string, chain: string) {
-  return networks[network]?.[chain]?.publicRpcUrl
+  return (getNetwork(network as NetworkSlug)?.chains as any)?.[chain]?.publicRpcUrl
 }

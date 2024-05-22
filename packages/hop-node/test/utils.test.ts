@@ -1,22 +1,22 @@
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
-import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { getAllChains } from '#config/index.js'
 
 describe('isTokenSupportedForChain', () => {
   test('Happy path', () => {
-    const token: Token = Token.USDC
-    const chain: Chain = Chain.Optimism
+    const token: TokenSymbol = TokenSymbol.USDC
+    const chain: ChainSlug = ChainSlug.Optimism
     expect(isTokenSupportedForChain(token, chain)).toBe(true)
   })
   test('Non-Happy path', () => {
-    let token: any = Token.MAGIC
-    let chain: any = Chain.Optimism
+    let token: any = TokenSymbol.MAGIC
+    let chain: any = ChainSlug.Optimism
     expect(isTokenSupportedForChain(token, chain)).toBe(false)
 
     // TODO: native jest throw test
     try {
       token = 'test'
-      chain = Chain.Optimism
+      chain = ChainSlug.Optimism
       expect(isTokenSupportedForChain(token, chain)).toBe(false)
       throw new Error('should not reach here')
     } catch (err) {
@@ -24,7 +24,7 @@ describe('isTokenSupportedForChain', () => {
     }
 
     try {
-      token = Token.MAGIC
+      token = TokenSymbol.MAGIC
       chain = 'test'
       expect(isTokenSupportedForChain(token, chain)).toBe(false)
       throw new Error('should not reach here')
@@ -34,28 +34,28 @@ describe('isTokenSupportedForChain', () => {
   })
   test('Current routes', () => {
     const supportedChainsForToken: Record<string, string[]> = {
-      [Token.MATIC]: [
-        Chain.Ethereum,
-        Chain.Polygon,
-        Chain.Gnosis
+      [TokenSymbol.MATIC]: [
+        ChainSlug.Ethereum,
+        ChainSlug.Polygon,
+        ChainSlug.Gnosis
       ],
-      [Token.SNX]: [
-        Chain.Ethereum,
-        Chain.Optimism
+      [TokenSymbol.SNX]: [
+        ChainSlug.Ethereum,
+        ChainSlug.Optimism
       ],
-      [Token.sUSD]: [
-        Chain.Ethereum,
-        Chain.Optimism
+      [TokenSymbol.sUSD]: [
+        ChainSlug.Ethereum,
+        ChainSlug.Optimism
       ],
-      [Token.rETH]: [
-        Chain.Ethereum,
-        Chain.Optimism,
-        Chain.Arbitrum
+      [TokenSymbol.rETH]: [
+        ChainSlug.Ethereum,
+        ChainSlug.Optimism,
+        ChainSlug.Arbitrum
       ],
-      [Token.MAGIC]: [
-        Chain.Ethereum,
-        Chain.Arbitrum,
-        Chain.Nova
+      [TokenSymbol.MAGIC]: [
+        ChainSlug.Ethereum,
+        ChainSlug.Arbitrum,
+        ChainSlug.Nova
       ]
     }
 

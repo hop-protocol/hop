@@ -1,7 +1,7 @@
-import { Chain, Network, Token } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, NetworkSlug, TokenSymbol } from '@hop-protocol/sdk'
 import type { Signer, providers } from 'ethers'
 
-import wallets from '@hop-protocol/hop-node-core/wallets'
+import { wallets } from '#wallets/index.js'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,
@@ -14,22 +14,22 @@ import {
 import { config as globalConfig } from '#config/index.js'
 
 const getL1BridgeContract = (token: string) => {
-  if (token === Token.USDC && globalConfig.network === Network.Mainnet) {
+  if (token === TokenSymbol.USDC && globalConfig.network === NetworkSlug.Mainnet) {
     return L1_ERC20_Bridge_Legacy__factory.connect(
-      (globalConfig.addresses as any)[token][Chain.Ethereum].l1Bridge,
-      wallets.get(Chain.Ethereum)
+      (globalConfig.addresses as any)[token][ChainSlug.Ethereum].l1Bridge,
+      wallets.get(ChainSlug.Ethereum)
     )
   }
   return L1_ERC20_Bridge__factory.connect(
-    globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
-    wallets.get(Chain.Ethereum)
+    globalConfig.addresses[token][ChainSlug.Ethereum].l1Bridge,
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
 const getL1TokenContract = (token: string) => {
   return ERC20__factory.connect(
-    globalConfig.addresses[token][Chain.Ethereum].l1CanonicalToken,
-    wallets.get(Chain.Ethereum)
+    globalConfig.addresses[token][ChainSlug.Ethereum].l1CanonicalToken,
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
@@ -87,7 +87,7 @@ const getL1MessengerWrapperContract = (
   // Note: This only returns the base implementation, not the chain-specific implementation
   return MessengerWrapper__factory.connect(
     globalConfig.addresses[token][network].l1MessengerWrapper,
-    wallets.get(Chain.Ethereum)
+    wallets.get(ChainSlug.Ethereum)
   )
 }
 
@@ -108,7 +108,7 @@ const constructContractsObject = (token: string) => {
     if (!wallet) {
       return obj
     }
-    if (network === Chain.Ethereum) {
+    if (network === ChainSlug.Ethereum) {
       obj[network] = {
         l1Bridge: getL1BridgeContract(token),
         l1CanonicalToken: getL1TokenContract(token)

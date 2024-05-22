@@ -3,20 +3,17 @@ import MerkleTree from '#utils/MerkleTree.js'
 import contracts from '#contracts/index.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import { BondTransferRootDelayBufferSeconds, TxError } from '#constants/index.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/types'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import {
-  config as globalConfig
-} from '#config/index.js'
-import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
+import { PossibleReorgDetected, RedundantProviderOutOfSync } from '#types/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import type L1Bridge from './classes/L1Bridge.js'
 import type { BigNumber, providers } from 'ethers'
+import { ChainSlug } from '@hop-protocol/sdk'
 import type {
   L1_Bridge as L1BridgeContract,
   L2_Bridge as L2BridgeContract
-} from '@hop-protocol/sdk/contracts'
+} from '@hop-protocol/sdk'
 import type { TransferRoot } from '#db/TransferRootsDb.js'
+import { config as globalConfig } from '#config/index.js'
 
 type Config = {
   chainSlug: string
@@ -75,7 +72,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
-      const bondChainId = chainSlugToId(Chain.Ethereum)
+      const bondChainId = chainSlugToId(ChainSlug.Ethereum)
       const availableCredit = this.getAvailableCreditForBond(bondChainId)
       const notEnoughCredit = availableCredit.lt(totalAmount)
       if (notEnoughCredit) {
@@ -110,7 +107,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferIds: string[]
   ) {
     const logger = this.logger.create({ root: transferRootId })
-    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
+    const l1Bridge = this.getSiblingWatcherByChainSlug(ChainSlug.Ethereum).bridge as L1Bridge
 
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const delaySeconds = minTransferRootBondDelaySeconds + BondTransferRootDelayBufferSeconds
@@ -154,7 +151,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    const bondChainId = chainSlugToId(Chain.Ethereum)
+    const bondChainId = chainSlugToId(ChainSlug.Ethereum)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     const availableCredit = this.getAvailableCreditForBond(bondChainId)
     const notEnoughCredit = availableCredit.lt(bondAmount)
@@ -231,7 +228,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
-    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
+    const l1Bridge = this.getSiblingWatcherByChainSlug(ChainSlug.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
       destinationChainId,
@@ -323,7 +320,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       throw new Error(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
     }
 
-    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
+    const redundantRpcUrls = globalConfig.networks[this.chainSlug].redundantRpcUrls ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransfersCommitted(

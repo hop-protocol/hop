@@ -1,11 +1,11 @@
-import ConvertOption, { SendData } from 'src/pages/Convert/ConvertOption/ConvertOption'
-import Network from 'src/models/Network'
+import ConvertOption, { SendData } from '#pages/Convert/ConvertOption/ConvertOption.js'
+import Network from '#models/Network.js'
 import React, { ReactNode } from 'react'
-import { AmmDetails } from 'src/components/AmmDetails'
+import { AmmDetails } from '#components/AmmDetails/index.js'
 import { BigNumber, BigNumberish, Signer } from 'ethers'
-import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import { commafy, toTokenDisplay } from 'src/utils'
+import { commafy, toTokenDisplay } from '#utils/index.js'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -73,7 +73,7 @@ class AmmConvertOption extends ConvertOption {
       sourceNetwork,
       destNetwork,
       isConvertingToHToken,
-      bridge.getTokenSymbol()
+      bridge.getTokenSymbol() as TokenSymbol
     )
 
     return {

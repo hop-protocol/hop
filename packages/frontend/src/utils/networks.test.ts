@@ -1,5 +1,5 @@
 import { ChainSlug } from '@hop-protocol/sdk'
-import { findNetworkBySlug, isL1ToL2 } from './networks'
+import { findNetworkBySlug, isL1ToL2 } from './networks.js'
 
 describe('networks', () => {
   it('isL1ToL2: should return the correct value', () => {

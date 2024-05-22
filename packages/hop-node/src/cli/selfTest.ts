@@ -1,7 +1,7 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import contracts from '#contracts/index.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { wallets } from '#wallets/index.js'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared/index.js'
 import { utils } from 'ethers'
 
@@ -22,12 +22,12 @@ async function main (source: any) {
   }
 
   // Instantiate objects
-  const tokenContracts = contracts.get(token, Chain.Ethereum)
+  const tokenContracts = contracts.get(token, ChainSlug.Ethereum)
   if (!tokenContracts) {
     throw new Error('token contracts not found')
   }
   const bridge = new L1Bridge(tokenContracts.l1Bridge)
-  const wallet = wallets.get(Chain.Ethereum)
+  const wallet = wallets.get(ChainSlug.Ethereum)
   const walletAddress = await wallet.getAddress()
 
   // Validate balances
@@ -41,7 +41,7 @@ async function main (source: any) {
   // NOTE: this only works with ERC20 tokens, not native tokens
   const l1CanonicalTokenContract = tokenContracts.l1CanonicalToken
   let parsedStakeAmount = utils.parseEther(amount.toString())
-  if (token !== Token.ETH) {
+  if (token !== TokenSymbol.ETH) {
     parsedStakeAmount = utils.parseUnits(amount.toString(), await l1CanonicalTokenContract.decimals())
     const tokenBalance = await l1CanonicalTokenContract.balanceOf(walletAddress)
     if (tokenBalance.lt(parsedStakeAmount)) {

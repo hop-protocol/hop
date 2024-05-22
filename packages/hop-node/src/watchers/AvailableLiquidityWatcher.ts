@@ -17,8 +17,7 @@ import type L2Bridge from './classes/L2Bridge.js'
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import type {
   L1_Bridge as L1BridgeContract,
-  L2_Bridge as L2BridgeContract,
-  getChain
+  L2_Bridge as L2BridgeContract
 } from '@hop-protocol/sdk'
 import type { TransferRoot } from '#db/TransferRootsDb.js'
 
@@ -39,10 +38,10 @@ type S3JsonData = {
   }
 }
 
-// These should be global since they apply to all instances
+// These should be global since they apply to all instances.
 const cache: Record<string, BigNumber> = {}
 
-// TODO: better way of managing aggregate state
+// TODO: better way of managing aggregate state.
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
 class AvailableLiquidityWatcher extends BaseWatcher {

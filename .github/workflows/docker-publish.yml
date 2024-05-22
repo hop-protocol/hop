@@ -13,6 +13,9 @@ on:
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
+#@dev Do not cache node_modules. It takes longer to inject/extract the cache than to install the dependencies.
+# https://github.com/reproducible-containers/buildkit-cache-dance/issues/13#issuecomment-1921725152
+
 jobs:
   publishable-packages:
     name: Check for package that can be published
@@ -58,3 +61,5 @@ jobs:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true
+          provenance: mode=max
+          sbom: true

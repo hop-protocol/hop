@@ -181,6 +181,8 @@ export type Props = {
   web3ModalActive: boolean
   setWeb3ModalActive: (active: boolean) => void
   setWeb3ModalChoice: (choice: string) => void
+  web3ModalChoice: string
+  walletChoiceLoading: boolean
   error: string
 }
 
@@ -193,6 +195,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<Address | undefined>()
   const [web3ModalActive, setWeb3ModalActive] = useState<boolean>(false)
   const [web3ModalChoice, setWeb3ModalChoice] = useState<string>('')
+  const [walletChoiceLoading, setWalletChoiceLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const { account, chainId: connectedNetworkId, connector } = useWeb3React()
 
@@ -268,6 +271,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
           if (!connectorToUse) {
             throw new Error(`connector not found "${web3ModalChoice}"`)
           }
+          setWalletChoiceLoading(true)
           await connectorToUse.activate()
         }
         setWeb3ModalActive(false)
@@ -275,6 +279,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setError(formatError(err.message))
         logger.error('web3 react activate error:', err)
       }
+      setWalletChoiceLoading(false)
     }
 
     update().catch(logger.error)
@@ -379,6 +384,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         web3ModalActive,
         setWeb3ModalActive,
         setWeb3ModalChoice,
+        web3ModalChoice,
+        walletChoiceLoading,
         error
       }}
     >

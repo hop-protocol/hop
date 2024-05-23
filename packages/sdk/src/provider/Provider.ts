@@ -281,4 +281,8 @@ export class FallbackProvider implements providers.Provider {
   getResolver (address: string): Promise<string> {
     return this.tryProvider(() => (this.getActiveProvider() as any).getResolver(address))
   }
+
+  send (method: string, params: any): Promise<any> {
+    return this.tryProvider(() => (this.getActiveProvider() as any).send(method, params))
+  }
 }

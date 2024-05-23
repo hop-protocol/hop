@@ -11,6 +11,7 @@ const PoolDetails = lazy(() => import(/* webpackChunkName: "Pools" */ '#pages/Po
 const Convert = lazy(() => import(/* webpackChunkName: "Convert" */ '#pages/Convert/index.js'))
 const Stats = lazy(() => import(/* webpackChunkName: "Stats" */ '#pages/Stats/index.js'))
 const Withdraw = lazy(() => import(/* webpackChunkName: "Withdraw" */ '#pages/Withdraw/index.js'))
+const Relay = lazy(() => import(/* webpackChunkName: "Relay" */ '#pages/Relay/index.js'))
 const Faucet = lazy(() => import(/* webpackChunkName: "Faucet" */ '#pages/Faucet/index.js'))
 const Health = lazy(() => import(/* webpackChunkName: "Health" */ '#pages/Health/index.js'))
 const Rewards = lazy(() => import(/* webpackChunkName: "Rewards" */ '#pages/Rewards/index.js'))
@@ -59,6 +60,7 @@ const AppRoutes: FC = () => {
                   <Route path="/pool/:tab/*" element={<PoolDetails />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/withdraw" element={<Withdraw />} />
+                  <Route path="/relay" element={<Relay />} />
                   <Route path="/health" element={<Health />} />
                   <Route path="/faucet" element={<Faucet />} />
                   <Route path="/claim/*" element={<Claim />} />

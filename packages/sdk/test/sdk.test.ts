@@ -8,7 +8,6 @@ import { FallbackProvider } from '#provider/index.js'
 import { promiseQueue, fetchJsonOrThrow } from '#utils/index.js'
 import { TokenModel } from '#models/index.js'
 import { ChainSlug, getSlugFromChainId, getChain } from '#chains/index.js'
-// @ts-ignore
 import pkg from '../package.json'
 
 dotenv.config()
@@ -740,7 +739,7 @@ describe.skip('get call data only (no signer connected)', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
     const chain = 'gnosis'
-    const amm = await bridge.getAmm(chain)
+    const amm = bridge.getAmm(chain)
     const amount0 = utils.parseUnits('1', 6)
     const amount1 = utils.parseUnits('1', 6)
     const minToMint = BigNumber.from(0)
@@ -752,7 +751,7 @@ describe.skip('get call data only (no signer connected)', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
     const chain = 'gnosis'
-    const amm = await bridge.getAmm(chain)
+    const amm = bridge.getAmm(chain)
     const lpTokenAmount = utils.parseUnits('1', 18)
     const amount0Min = BigNumber.from(0)
     const amount1Min = BigNumber.from(0)

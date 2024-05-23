@@ -5,7 +5,7 @@ import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
-let sdkConfig: any = {}
+const sdkConfig: any = {}
 const bondableChainsSet = new Set<string>([])
 const config: any = { goerli, sepolia, mainnet }
 for (const network of Object.values(NetworkSlug)) {

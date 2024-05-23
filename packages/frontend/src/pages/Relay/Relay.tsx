@@ -7,7 +7,8 @@ import { Alert } from '#components/Alert/index.js'
 import { Button } from '#components/Button/Button.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { LargeTextField } from '#components/LargeTextField/index.js'
-import { getRelayer, ChainSlug, NetworkSlug, getTransferCommittedEventForTransferId } from '@hop-protocol/sdk'
+import { getRelayer, getTransferCommittedEventForTransferId } from './relayer/index.js'
+import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { formatError } from '#utils/format.js'
 import { makeStyles } from '@mui/styles'
 import { reactAppNetwork } from '#config/index.js'
@@ -16,13 +17,11 @@ import { useApp } from '#contexts/AppContext/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
+import Link from '@mui/material/Link'
 import SelectOption from '#components/selects/SelectOption.js'
 import { l2Networks, l1Network } from '#config/networks.js'
 import Network from '#models/Network.js'
-import { findNetworkBySlug, networkSlugToId } from '#utils/index.js'
-import {
-  useSelectedNetwork
-} from '#hooks/index.js'
+import { findNetworkBySlug, findMatchingBridge } from '#utils/index.js'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -53,27 +52,36 @@ const useStyles = makeStyles((theme: any) => ({
 
 export const Relay: FC = () => {
   const styles = useStyles()
-  const { sdk, networks, txConfirm } = useApp()
+  const { sdk, networks, txConfirm, bridges, selectedBridge, setSelectedBridge } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
   const { queryParams } = useQueryParams()
-  const [txHash, setTxHash] = useState<string>(() => {
-    return queryParams?.txHash as string || ''
+  const [transferId, setTransferId] = useState<string>(() => {
+    return queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
+  const [commitTxHashForTransferId, setCommitTxHashForTransferId] = useState<string>('')
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
-  // const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
 
   useEffect(() => {
     try {
       updateQueryParams({
-        txHash: txHash || ''
+        transferId: transferId || ''
       })
     } catch (err: any) {
       console.error(err)
     }
-  }, [txHash])
+  }, [transferId])
+
+  const handleBridgeChange = (event: any) => {
+    const tokenSymbol = event.target.value as string
+
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
+    }
+  }
 
   async function handleSubmit(event: ChangeEvent<any>) {
     event.preventDefault()
@@ -81,6 +89,7 @@ export const Relay: FC = () => {
       setLoading(true)
       setError('')
       setSuccess('')
+      setCommitTxHashForTransferId('')
       await new Promise((resolve, reject) => {
         const run = async () => {
           console.log('selectedNetwork', selectedNetwork)
@@ -90,9 +99,11 @@ export const Relay: FC = () => {
           }
           const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
+          const token = selectedBridge.getTokenSymbol()
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
+          console.log('token', token)
           // example commit txs
           // let commitTxHash = '0x86f1dfc3ced80aa27c1116ebda552b5cd5009eac5f6f3c2d01a521faae398677' // base ETH
           // let commitTxHash = '0xb3b1e32b65aab3dd5374130fe92ff3108fef1d5d61be62bb99e041e596b64265' // optimism ETH
@@ -100,9 +111,10 @@ export const Relay: FC = () => {
           // let commitTxHash = '0x43c5f6baf4100fbd7924a9f0664f20ed8b36bf3feb4218aea41d1e01f5076bf4' // arbitrum ETH
           // let commitTxHash = '0x886158d6ce41723af5364b9f89d51416c09345ff920c8e7af23dfd67ccd34da2' // nova ETH
           // let commitTxHash = '0xc02c7337289afbc5d73199e26585da58b7cf77334f8d49255751a6da421a13a4' // gnosis ETH
+          // let commitTxHash = '0x99eb21f48b5bc2d4b097ac8997d5636a239b7be04c20aeb4781d88614651f735' // linea ETH
           let commitTxHash = ''
           if (!commitTxHash) {
-            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, 'ETH', txHash)
+            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
             console.log('event', event)
             commitTxHash = event?.transactionHash
           }
@@ -110,9 +122,16 @@ export const Relay: FC = () => {
             throw new Error('The commit tx hash not found for transfer. This means the transfer root has not been committed yet.')
           }
           console.log('commitTxHash', commitTxHash)
+          const transferStatus = await sdk.getTransferStatus(transferId)
+          console.log('transferStatus', transferStatus)
+          const bonded = transferStatus?.[0]?.bonded
+          if (bonded) {
+            throw new Error('The transfer has already been bonded or withdrawn. No need to relay.')
+          }
+          setCommitTxHashForTransferId(commitTxHash)
           const relayer = getRelayer(reactAppNetwork as NetworkSlug, selectedNetwork.slug as ChainSlug, l1Wallet, l2Wallet)
           const tx = await relayer.relayL2ToL1Message(commitTxHash)
-          setSuccess(tx.hash)
+          setSuccess(`Transaction hash: ${tx.hash}`)
           console.log('tx', tx)
           const receipt = await tx.wait()
           console.log('receipt', receipt)
@@ -127,24 +146,34 @@ export const Relay: FC = () => {
   }
 
   function handleInputChange(event: ChangeEvent<any>) {
-    setTxHash(event.target.value)
+    setTransferId(event.target.value)
   }
 
   return (
     <Box className={styles.root}>
       <Box className={styles.header}>
-        <Typography variant="h4">Relay</Typography>
+        <Typography variant="h4">Relay Transfer</Typography>
       </Box>
       <form className={styles.form} onSubmit={handleSubmit}>
         <Box>
 
-          <Box display="flex" justifyContent="center">
-            <Box display="flex" alignItems="center">
-              <Box mr={2} display="flex" alignItems="center">
-                <Typography variant="subtitle1">
-                  Source Chain
-                </Typography>
-              </Box>
+          <Box mb={2} display="flex" justifyContent="center">
+            <Box display="flex" alignItems="center" justifyContent="center">
+
+              <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
+                {bridges.map(bridge => (
+                  <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
+                    <SelectOption
+                      value={bridge.getTokenSymbol()}
+                      icon={bridge.getTokenImage()}
+                      label={bridge.getTokenSymbol()}
+                    />
+                  </MenuItem>
+                ))}
+              </RaisedSelect>
+
+              <Box mr={2}></Box>
+
               <RaisedSelect value={selectedNetwork?.slug} onChange={(event: any) => {
                 const selectedNetworkSlug = event.target.value as string
                 setSelectedNetwork(findNetworkBySlug(selectedNetworkSlug, l2Networks))
@@ -155,30 +184,28 @@ export const Relay: FC = () => {
                   </MenuItem>
                 ))}
               </RaisedSelect>
-            </Box>
-          </Box>
-          <Box display="flex" justifyContent="center">
-            <Box display="flex" alignItems="center">
-              <Box mr={2} display="flex" alignItems="center">
-                <Typography variant="subtitle1">
-                  Destination Chain
-                </Typography>
+              <Box ml={2} mr={2}>
+                <Typography variant="subtitle1">To</Typography>
               </Box>
               <RaisedSelect value={l1Network.slug}>
                 <MenuItem value={l1Network.slug} key={l1Network.slug}>
                   <SelectOption value={l1Network.slug} icon={l1Network.imageUrl} label={l1Network.name} />
                 </MenuItem>
               </RaisedSelect>
+              <InfoTooltip
+                title={
+                  'Only relays to Ethereum L1 are supported'
+                }
+              />
             </Box>
           </Box>
-
 
           <Card className={styles.card}>
             <Typography variant="h6">
               Transfer ID
               <InfoTooltip
                 title={
-                  'Enter the origin transfer ID or transaction hash to relay'
+                  'Enter the transfer ID or origin transaction hash to relay at destination'
                 }
               />
               <Box ml={2} display="inline-flex">
@@ -188,7 +215,7 @@ export const Relay: FC = () => {
               </Box>
             </Typography>
             <LargeTextField
-              value={txHash}
+              value={transferId}
               onChange={handleInputChange}
               placeholder="0x123"
               smallFontSize
@@ -207,6 +234,14 @@ export const Relay: FC = () => {
       </Box>
       <Box className={styles.notice}>
         <Alert severity="success">{success}</Alert>
+      </Box>
+      {commitTxHashForTransferId && (
+        <Box className={styles.notice}>
+          <Alert severity="info">Found commit tx hash: {commitTxHashForTransferId}</Alert>
+        </Box>
+      )}
+      <Box mt={10} display="flex" justifyContent="center" style={{ opacity: 0.7 }}>
+        <Typography variant="body1">After the transfer has been relayed, it can then be withdrawn using the <Link href="#/withdraw">Withdraw page</Link>.</Typography>
       </Box>
     </Box>
   )

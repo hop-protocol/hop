@@ -1,4 +1,4 @@
-import { NetworkSlug, ChainSlug } from '../index.js'
+import { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 import type { Signer, providers } from 'ethers'
 import { MessageDirection } from './types.js'
 

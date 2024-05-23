@@ -1,10 +1,7 @@
 import { utils } from 'ethers'
-import { DateTime } from 'luxon'
-import { ChainSlug, getChainSlug, getTokenDecimals, TokenSymbol } from '../index.js'
-import { mainnet as addresses } from '../addresses/index.js'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
-import { getSubgraphUrl } from '#utils/getSubgraphUrl.js'
-import { rateLimitRetry } from '#utils/rateLimitRetry.js'
+import { ChainSlug, TokenSymbol, getSubgraphUrl, rateLimitRetry } from '@hop-protocol/sdk'
+import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -52,34 +49,21 @@ function normalizeEntity (x: any) {
     return x
   }
 
-  if (x.index !== undefined) {
-    x.index = Number(x.index)
+  if (x.index ) {
+    x.index = Number(x.index )
   }
-  if (x.originChainId) {
-    x.originChainId = Number(x.originChainId)
-  }
-  if (x.sourceChainId) {
-    x.sourceChainId = Number(x.sourceChainId)
-    x.sourceChain = getChainSlug(x.sourceChainId.toString())
-  }
+
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
-    x.destinationChain = getChainSlug(x.destinationChainId.toString())
   }
 
-  const decimals = getTokenDecimals(x.token)
-
-  // TODO: use correct decimal places for future assets
-  if (x.amount) {
-    x.formattedAmount = utils.formatUnits(x.amount, decimals)
-  }
-  if (x.bonderFee) {
-    x.formattedBonderFee = utils.formatUnits(x.bonderFee, decimals)
+  if (x.timestamp) {
+    x.timestamp = Number(x.timestamp)
   }
 
-  x.blockNumber = Number(x.blockNumber)
-  x.timestamp = Number(x.timestamp)
-  x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
+  if (x.blockNumber) {
+    x.blockNumber = Number(x.blockNumber)
+  }
 
   return x
 }
@@ -108,15 +92,8 @@ async function getTransferCommitted (chain: string, token: string, transferRootH
         id
         rootHash
         destinationChainId
-        totalAmount
-        rootCommittedAt
-
         transactionHash
-        transactionIndex
         timestamp
-        blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -124,7 +101,7 @@ async function getTransferCommitted (chain: string, token: string, transferRootH
     token,
     transferRootHash
   })
-  return normalizeEntity(jsonRes.transfersCommitteds?.[0])
+  return normalizeEntity(jsonRes.transfersCommitteds?.[0] ?? null)
 }
 
 async function getTransferRootForTransferId (chain: string, token: string, transferId: string): Promise<any> {
@@ -142,20 +119,8 @@ async function getTransferRootForTransferId (chain: string, token: string, trans
         id
         transferId
         destinationChainId
-        recipient
-        amount
-        transferNonce
-        bonderFee
-        index
-        amountOutMin
-        deadline
-
         transactionHash
-        transactionIndex
         timestamp
-        blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -164,6 +129,9 @@ async function getTransferRootForTransferId (chain: string, token: string, trans
     transferId
   })
   const transfer = jsonRes.transferSents?.[0]
+  if (!transfer) {
+    throw new Error(`The transfer was not found on chain "${chain}" for ${token} transferId "${transferId}"`)
+  }
   const { timestamp, destinationChainId } = transfer
   query = `
     query TransferCommitted($token: String, $timestamp: String, $destinationChainId: String) {
@@ -179,16 +147,6 @@ async function getTransferRootForTransferId (chain: string, token: string, trans
       ) {
         id
         rootHash
-        destinationChainId
-        totalAmount
-        rootCommittedAt
-
-        transactionHash
-        transactionIndex
-        timestamp
-        blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -205,8 +163,7 @@ async function getTransferRootForTransferId (chain: string, token: string, trans
     const transferIds = await getTransferIdsForTransferRoot(chain, token, transferRoot.rootHash)
     const exists = transferIds.find((x: any) => x.transferId === transferId)
     if (exists) {
-      // get complete object
-      return getTransferRoot(chain, token, transferRoot.rootHash)
+      return transferRoot
     }
   }
 }
@@ -228,18 +185,9 @@ async function getTransferIdsForTransferRoot (
         orderDirection: asc,
         first: 1
       ) {
-        id
-        rootHash
         destinationChainId
-        totalAmount
-        rootCommittedAt
-
-        transactionHash
-        transactionIndex
         timestamp
         blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -267,18 +215,7 @@ async function getTransferIdsForTransferRoot (
         orderDirection: desc,
         first: 1,
       ) {
-        id
-        rootHash
-        destinationChainId
-        totalAmount
-        rootCommittedAt
-
-        transactionHash
-        transactionIndex
-        timestamp
         blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -315,20 +252,10 @@ async function getTransferIdsForTransferRoot (
         id
         transferId
         destinationChainId
-        recipient
-        amount
-        transferNonce
-        bonderFee
         index
-        amountOutMin
-        deadline
-
         transactionHash
-        transactionIndex
         timestamp
         blockNumber
-        contractAddress
-        token
       }
     }
   `
@@ -357,20 +284,6 @@ async function getTransferIdsForTransferRoot (
   }
 
   const { sortedTransfers } = getSortedTransferIds(_transfers, startBlockNumber)
-
-  const shouldLog = false
-  if (shouldLog) {
-    console.log(JSON.stringify(sortedTransfers.map((x: any) => {
-      return {
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        index: x.index,
-        blockNumber: x.blockNumber,
-        timestamp: x.timestamp
-      }
-    }), null, 2))
-  }
-
   const transferIds = sortedTransfers.map((x: any) => x.transferId)
 
   // verify that the computed root matches the original root hash
@@ -389,7 +302,6 @@ type Transfer = {
   index: number
 }
 
-// TODO: simplify this
 function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: number = 0): any {
   let transfers: any[] = _transfers.sort((a: any, b: any) => {
     if (a.index > b.index) return 1
@@ -398,8 +310,6 @@ function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: number 
     if (a.blockNumber < b.blockNumber) return -1
     return 0
   })
-
-  // console.log(JSON.stringify(transfers, null, 2))
 
   const seen: any = {}
   const replace: Record<string, any> = {}
@@ -449,128 +359,4 @@ function findMissingIndexes (sortedTransfers: Transfer[]) {
   }
 
   return missingIndexes
-}
-
-async function queryTransferRoot (chain: string, token: string, transferRootHash: string) {
-  const query = `
-    query TransferRoot($token: String, $transferRootHash: String) {
-      transfersCommitteds(
-        where: {
-          token: $token,
-          rootHash: $transferRootHash
-        }
-        orderBy: timestamp,
-        orderDirection: desc,
-        first: 1
-      ) {
-        id
-        rootHash
-        destinationChainId
-        totalAmount
-        rootCommittedAt
-
-        transactionHash
-        transactionIndex
-        timestamp
-        blockNumber
-        contractAddress
-        token
-      }
-    }
-  `
-  const jsonRes = await makeRequest(chain, query, {
-    token,
-    transferRootHash
-  })
-  return normalizeEntity(jsonRes.transfersCommitteds?.[0])
-}
-
-async function queryRootSet (chain: string, token: string, transferRootHash: string) {
-  const query = `
-    query TransferRootSet($token: String, $transferRootHash: String) {
-      transferRootSets(
-        where: {
-          token: $token,
-          rootHash: $transferRootHash
-        }
-        orderBy: timestamp,
-        orderDirection: desc,
-        first: 1
-      ) {
-        id
-        rootHash
-        totalAmount
-
-        transactionHash
-        transactionIndex
-        timestamp
-        blockNumber
-        contractAddress
-        token
-      }
-    }
-  `
-  const jsonRes = await makeRequest(chain, query, {
-    token,
-    transferRootHash
-  })
-  return normalizeEntity(jsonRes.transferRootSets?.[0])
-}
-
-async function queryRootConfirmed (chain: string, token: string, transferRootHash: string) {
-  const query = `
-    query TransferRootConfirmed($token: String, $transferRootHash: String) {
-      transferRootConfirmeds(
-        where: {
-          token: $token,
-          rootHash: $transferRootHash
-        }
-        orderBy: timestamp,
-        orderDirection: desc,
-        first: 1
-      ) {
-        id
-        rootHash
-        totalAmount
-        originChainId
-        destinationChainId
-
-        transactionHash
-        transactionIndex
-        timestamp
-        blockNumber
-        contractAddress
-        token
-      }
-    }
-  `
-  const jsonRes = await makeRequest(chain, query, {
-    token,
-    transferRootHash
-  })
-  return normalizeEntity(jsonRes.transferRootConfirmeds?.[0])
-}
-
-async function getTransferRoot (chain: string, token: string, transferRootHash: string): Promise<any> {
-  const transferRoot = await queryTransferRoot(chain, token, transferRootHash)
-  if (!transferRoot) {
-    return transferRoot
-  }
-  const destinationChain = getChainSlug(transferRoot.destinationChainId.toString())
-
-  const [rootSet, rootConfirmed, transferIds] = await Promise.all([
-    queryRootSet(destinationChain, token, transferRootHash),
-    queryRootConfirmed(ChainSlug.Ethereum, token, transferRootHash),
-    getTransferIdsForTransferRoot(chain, token, transferRootHash)
-  ])
-
-  transferRoot.committed = true
-  transferRoot.rootSet = !!rootSet
-  transferRoot.rootSetEvent = rootSet
-  transferRoot.rootConfirmed = !!rootConfirmed
-  transferRoot.rootConfirmedEvent = rootConfirmed
-  transferRoot.numTransfers = transferIds.length
-  transferRoot.transferIds = transferIds
-
-  return transferRoot
 }

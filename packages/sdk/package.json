@@ -28,11 +28,6 @@
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "dependencies": {
-    "@arbitrum/sdk": "3.4.1",
-    "@eth-optimism/sdk": "3.1.4",
-    "@maticnetwork/maticjs": "3.5.0",
-    "@maticnetwork/maticjs-ethers": "1.0.3",
-    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
     "@uniswap/sdk-core": "4.2.0",
     "@uniswap/v3-sdk": "3.11.0",
     "buffer": "6.0.3",
@@ -51,11 +46,6 @@
     "typedoc-plugin-markdown": "3.17.1"
   },
   "peerDependencies": {
-    "@consensys/linea-sdk": "0.1.6",
-    "@eth-optimism/sdk": "3.1.4",
-    "@maticnetwork/maticjs": "3.5.0",
-    "@maticnetwork/maticjs-ethers": "1.0.3",
-    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
     "ethers": "^5"
   },
   "imports": {

@@ -3,7 +3,7 @@ import { wait } from '#utils/wait.js'
 import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
-import { NetworkSlug, ChainSlug } from '../index.js'
+import { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 import { MessageDirection } from './types.js'
 import { Relayer } from './Relayer.js'
 

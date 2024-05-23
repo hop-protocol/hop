@@ -4,8 +4,7 @@ import {
   MessageStatus
 } from '@eth-optimism/sdk'
 import type { providers, Signer } from 'ethers'
-import { getChain } from '../index.js'
-import { NetworkSlug, ChainSlug } from '../index.js'
+import { getChain, NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 import { MessageDirection } from './types.js'
 import { Relayer } from './Relayer.js'
 

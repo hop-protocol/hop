@@ -4,7 +4,7 @@ import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 // import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import { MessageDirection } from './types.js'
-import { NetworkSlug, ChainSlug } from '../index.js'
+import { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 import { Relayer } from './Relayer.js'
 
 const { ZkEvmClient, setProofApi } = MaticJsDefaults

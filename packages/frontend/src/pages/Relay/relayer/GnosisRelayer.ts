@@ -1,7 +1,6 @@
 import { utils } from 'ethers'
-import type { L1_xDaiAMB, L2_xDaiAMB } from '../index.js'
-import { NetworkSlug } from '../index.js'
-import { ChainSlug, L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '../index.js'
+import type { L1_xDaiAMB, L2_xDaiAMB } from '@hop-protocol/sdk'
+import { NetworkSlug, ChainSlug, L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '@hop-protocol/sdk'
 import type { Overrides, providers, Signer } from 'ethers'
 import { Relayer } from './Relayer.js'
 

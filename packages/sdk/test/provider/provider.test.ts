@@ -76,7 +76,7 @@ describe('fallback provider', () => {
     console.log('call:', call)
     expect(call).toBe('0x')
 
-    const sendTransaction = provider.sendTransaction
+    const sendTransaction = provider.sendTransaction // eslint-disable-line @typescript-eslint/unbound-method
     expect(typeof sendTransaction).toBe('function')
 
     const logs = await provider.getLogs({

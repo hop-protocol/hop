@@ -9,7 +9,7 @@ import {
 import type { Overrides, Signer, providers } from 'ethers'
 import { MessageDirection } from './types.js'
 import { Relayer } from './Relayer.js'
-import { NetworkSlug, ChainSlug } from '../index.js'
+import { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 
 type Message = L1ToL2MessageWriter | L2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus

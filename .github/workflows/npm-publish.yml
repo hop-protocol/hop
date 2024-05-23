@@ -18,6 +18,9 @@ jobs:
     needs: publishable-packages
     if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
     runs-on: ubuntu-latest
+    # Required for provenance
+    permissions:
+      id-token: write
     strategy:
       matrix:
         package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
@@ -34,6 +37,6 @@ jobs:
           pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
-        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
+        run: NPM_CONFIG_PROVENANCE=true pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

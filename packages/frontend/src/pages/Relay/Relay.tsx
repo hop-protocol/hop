@@ -104,7 +104,8 @@ export const Relay: FC = () => {
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
           console.log('token', token)
-          let commitTxHash = ''
+          // let commitTxHash = ''
+          let commitTxHash = '0x99eb21f48b5bc2d4b097ac8997d5636a239b7be04c20aeb4781d88614651f735' // linea ETH
           if (!commitTxHash) {
             const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
             console.log('event', event)
@@ -118,7 +119,7 @@ export const Relay: FC = () => {
           console.log('transferStatus', transferStatus)
           const bonded = transferStatus?.[0]?.bonded
           if (bonded) {
-            throw new Error('The transfer has already been bonded or withdrawn. No need to relay.')
+            // throw new Error('The transfer has already been bonded or withdrawn. No need to relay.')
           }
           setCommitTxHashForTransferId(commitTxHash)
           const relayer = getRelayer(reactAppNetwork as NetworkSlug, selectedNetwork.slug as ChainSlug, l1Wallet, l2Wallet)

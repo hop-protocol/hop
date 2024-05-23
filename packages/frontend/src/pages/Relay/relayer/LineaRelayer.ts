@@ -7,8 +7,7 @@ import {
 } from '@consensys/linea-sdk'
 import { constants } from 'ethers'
 import type { BytesLike, CallOverrides, Contract, providers, Signer } from 'ethers'
-import type { ChainSlug } from '@hop-protocol/sdk'
-import { NetworkSlug } from '@hop-protocol/sdk'
+import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { MessageDirection } from './types.js'
 import { Relayer } from './Relayer.js'
 
@@ -47,9 +46,17 @@ export class LineaRelayer extends Relayer<LineaMessage, OnChainMessageStatus> {
       mode: 'read-only',
       network: lineaNetwork // options are: "linea-mainnet", "linea-goerli"
     }
+    console.log(getRpcUrlFromProvider((this.l1Wallet as Signer).provider as Provider))
+    console.log(getRpcUrlFromProvider(this.l2Wallet as Provider))
+    let l1RpcUrl = getRpcUrlFromProvider((this.l1Wallet as Signer).provider as Provider)
+    // Note; it's not possible to read metamask rpc url so we need to use the public rpc url
+    if (l1RpcUrl === 'metamask') {
+      l1RpcUrl = getChain(networkSlug, ChainSlug.Ethereum).publicRpcUrl
+    }
+    let l2RpcUrl = getRpcUrlFromProvider(this.l2Wallet as Provider)
     const lineaSdk: LineaSDK = new LineaSDK({
-      l1RpcUrl: getRpcUrlFromProvider((this.l1Wallet as Signer).provider as Provider),
-      l2RpcUrl: getRpcUrlFromProvider(this.l2Wallet as Provider),
+      l1RpcUrl,
+      l2RpcUrl,
       network: sdkOptions.network!,
       mode: sdkOptions.mode!
     })

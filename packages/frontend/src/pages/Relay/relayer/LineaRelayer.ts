@@ -53,7 +53,7 @@ export class LineaRelayer extends Relayer<LineaMessage, OnChainMessageStatus> {
     if (l1RpcUrl === 'metamask') {
       l1RpcUrl = getChain(networkSlug, ChainSlug.Ethereum).publicRpcUrl
     }
-    let l2RpcUrl = getRpcUrlFromProvider(this.l2Wallet as Provider)
+    const l2RpcUrl = getRpcUrlFromProvider(this.l2Wallet as Provider)
     const lineaSdk: LineaSDK = new LineaSDK({
       l1RpcUrl,
       l2RpcUrl,

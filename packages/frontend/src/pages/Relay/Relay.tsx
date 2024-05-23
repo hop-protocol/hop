@@ -104,8 +104,7 @@ export const Relay: FC = () => {
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
           console.log('token', token)
-          // let commitTxHash = ''
-          let commitTxHash = '0x99eb21f48b5bc2d4b097ac8997d5636a239b7be04c20aeb4781d88614651f735' // linea ETH
+          let commitTxHash = '' // for debugging
           if (!commitTxHash) {
             const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
             console.log('event', event)

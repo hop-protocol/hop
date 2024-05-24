@@ -27,6 +27,7 @@
     "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
     "@gnosis.pm/safe-apps-sdk": "7.8.0",
     "@hop-protocol/sdk": "workspace:*",
+    "@hop-protocol/v2-sdk": "workspace:*",
     "@mui/icons-material": "5.15.6",
     "@mui/lab": "5.0.0-alpha.162",
     "@mui/material": "5.15.6",

@@ -19,7 +19,7 @@ export abstract class OnchainEventIndexer {
   #db: OnchainEventIndexerDB
   #eventFilter: RequiredEventFilter
   #chain: ChainSlug
-  #indexName: string
+  #indexNames: string[]
 
   // TODO: config option
   readonly #maxBlockRange: number = 2000
@@ -38,11 +38,11 @@ export abstract class OnchainEventIndexer {
   protected initIndexer (
     chain: ChainSlug,
     eventFilter: RequiredEventFilter,
-    indexName: string
+    indexNames: string[]
   ) {
     this.#chain = chain
     this.#eventFilter = eventFilter
-    this.#indexName = indexName
+    this.#indexNames = indexNames
   }
 
   start(): void {
@@ -64,7 +64,8 @@ export abstract class OnchainEventIndexer {
    * Public methods
    */
 
-  protected getItem(eventSig: string, chainId: string, index: string): Promise<any> {
+  protected getItem(eventSig: string, chainId: string, indexes: string[]): Promise<any> {
+    // TODO: Concat indexes
     return this.#db.getItem(eventSig, chainId, index)
   }
 

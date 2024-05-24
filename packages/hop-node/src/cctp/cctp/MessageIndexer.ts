@@ -8,7 +8,7 @@ import { IDB } from '../db/DB.js'
 
 interface IndexerData {
   filter: RequiredEventFilter
-  indexName: keyof IMessage
+  indexNames: (keyof IMessage)[]
 }
 
 /**
@@ -30,8 +30,8 @@ export class MessageIndexer extends OnchainEventIndexer {
 
     for (const state of states) {
       for (const chainId of chainIds) {
-        const { filter, indexName } = this.#getIndexerData(chainId, state)
-        this.initIndexer(chainId, filter, indexName)
+        const { filter, indexNames } = this.#getIndexerData(chainId, state)
+        this.initIndexer(chainId, filter, indexNames)
       }
     }
   }
@@ -43,9 +43,8 @@ export class MessageIndexer extends OnchainEventIndexer {
   async getData(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
     const eventSig = this.#getEventSigForState(chainId, state)
-    const indexName = this.#getIndexerData(chainId, state).indexName
-    const indexValue = value[indexName as keyof IMessage] as string
-    return this.getItem(eventSig, chainId, indexValue)
+    const indexValues: string[] = this.#getIndexValues(state, value, chainId)
+    return this.getItem(eventSig, chainId, indexValues)
   }
 
   /**
@@ -74,12 +73,14 @@ export class MessageIndexer extends OnchainEventIndexer {
     if (MessageState.Sent === state) {
       return {
         filter: Message.getCCTPTransferSentEventFilter(chainId),
-        indexName: 'nonce'
+        // TODO: Correct index. This might be it.
+        indexNames: ['nonce', 'sourceChainId']
       }
     } else if (MessageState.Attested === state) {
       return {
         filter: Message.getMessageReceivedEventFilter(chainId),
-        indexName: 'nonce'
+        // TODO: Correct index. This might be it.
+        indexNames: ['nonce', 'sourceChainId']
       }
     }
     throw new Error('Invalid state')
@@ -103,5 +104,10 @@ export class MessageIndexer extends OnchainEventIndexer {
       throw new Error('Invalid chainId')
     }
     return chainId
+  }
+
+  #getIndexValues (state: IMessage, value: IMessage, chainId: string): string[] {
+    const indexNames = this.#getIndexerData(chainId, state).indexNames
+    return indexNames.map(indexName => value[indexName as keyof IMessage] as string)
   }
 }

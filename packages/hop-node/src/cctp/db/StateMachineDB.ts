@@ -4,6 +4,8 @@ import { DB } from './DB'
  * Uses state-indexed subDBs with the state to allow for efficient querying.
  * - Ex: relayed!0x1234
  *
+ * The value of the item in each state contains the data for that state and all previous states.
+ * 
  * The final state writes to the top-level DB. It will exist in no other state subDB.
  * - Ex: 0x1234
  * 

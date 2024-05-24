@@ -1,6 +1,6 @@
-import { AbstractRepository } from '../db/AbstractRepository'
-import { StateMachineDB } from '../db/StateMachineDB'
-import { poll } from '../utils'
+import { Repository } from '../repository/Repository.js'
+import { StateMachineDB } from '../db/StateMachineDB.js'
+import { poll } from '../utils.js'
 
 /**
  * FSM that is strictly concerned with the creation, transition, and termination of states. This
@@ -16,7 +16,7 @@ import { poll } from '../utils'
 export abstract class FSM<State extends string, StateData>{
   readonly #states: State[]
   readonly #stateDB: StateMachineDB<State, string, StateData>
-  readonly #dataRepository: AbstractRepository<State, StateData>
+  readonly #dataRepository: Repository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
   isFSMInitialized: boolean = false
 
@@ -25,7 +25,7 @@ export abstract class FSM<State extends string, StateData>{
   constructor (
     states: State[],
     stateMachineName: string,
-    dataRepository: AbstractRepository<State, StateData>
+    dataRepository: Repository<State, StateData>
   ) {
     this.#states = states
     this.#stateDB = new StateMachineDB(stateMachineName)
@@ -43,7 +43,7 @@ export abstract class FSM<State extends string, StateData>{
    * Public API
    */
 
-  async *getItemsInState(state: State): AsyncIterable<[string, StateData]> {
+  protected async *getItemsInState(state: State): AsyncIterable<[string, StateData]> {
     yield* this.#stateDB.getItemsInState(state)
   }
 
@@ -68,7 +68,7 @@ export abstract class FSM<State extends string, StateData>{
   }
 
   #startListeners (): void {
-    this.#dataRepository.on(AbstractRepository.EVENT_ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
+    this.#dataRepository.on(Repository.ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
     this.#dataRepository.on('error', () => { throw new Error('Data repository error') })
   }
 

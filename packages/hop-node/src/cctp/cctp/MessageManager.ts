@@ -5,7 +5,7 @@ import { FSM } from '../fsm/FSM.js'
 import { Message } from './Message.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
-import { TransitionDataProvider } from './transitionData/TransitionDataProvider.js'
+import { MessageDataRepository } from './MessageRepository.js'
 
 interface ISentMessage {
   messageNonce: number
@@ -39,7 +39,7 @@ export class MessageManager extends FSM<MessageState, IMessage> {
     super(
       [MessageState.Sent, MessageState.Relayed],
       'MessageManager',
-      new TransitionDataProvider(chains)
+      new MessageDataRepository(states, chains)
     )
     this.#startPollers()
   }

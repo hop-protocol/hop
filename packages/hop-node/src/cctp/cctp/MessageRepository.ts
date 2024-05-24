@@ -1,97 +1,81 @@
-import { Chain } from 'src/constants'
 import { EventEmitter } from 'node:events'
-import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
-import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
-import { Message } from '../Message'
-import { MessageState } from '../MessageManager'
-import { OnchainEventStore } from './OnchainEventStore'
-import { getTimestampFromBlockNumberMs } from './utils'
-import { AbstractRepository } from '../repository/AbstractRepository'
+import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, IMessageDataRepository } from './types.js'
+import type { LogWithChainId } from '../types.js'
+import { Message } from './Message.js'
+import { MessageState } from './MessageManager.js'
+import { getTimestampFromBlockNumberMs } from './utils.js'
+import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { MessageIndexer } from './MessageIndexer.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { Repository } from '../repository/Repository.js'
 
-export enum Event {
-  Initialization = 'initialization'
-}
 
-export class TransitionDataProvider<T, U> extends EventEmitter implements ITransitionDataProvider<T, U> {
-  readonly #transitionStores: Record<T, IDataStore>
+// Since the messages are unique by chainId, his MessageDataRepository should be the
+// class that abstracts this away.
+
+// from datastore
+export class MessageDataRepository<T, U> extends Repository<T, U> {
+  readonly #indexer: MessageIndexer<T>
   readonly #eventEmitter: EventEmitter = new EventEmitter()
 
-  constructor (chains: Chain[]) {
+  constructor (states: T[], chains: ChainSlug[]) {
     super()
-    const onchainEventSourceIndexer = new OnchainEventStore(chains)
 
-    this.#transitionStores = {
-      // [this.#initializationState]: onchainEventSourceIndexer,
-      [MessageState.Sent]: onchainEventSourceIndexer,
-      [MessageState.Relayed]: onchainEventSourceIndexer
-    } as Record<T, IDataStore>
-
-    this.#init()
-  }
-
-  /////////////// Event
-
-  #init (): void {
-    this.#eventEmitter.on('write', (items: any) => this.#eventEmitter.emit('lolg', items))
-  }
-
-  async *getSyncItems (syncMarker: string): AsyncIterable<[string, U, string]> {
-    // TODO: State var
-    const initializationEvent = Message.HOP_CCTP_TRANSFER_SENT_SIG
-    // TODO: Not arbitrary
-    const oneDayMs = 86_400_000
-    const end = Date.now()
-    const start = end - oneDayMs
-    const filter = {
-      gte: `${initializationEvent}!${start}`,
-      lt: `${initializationEvent}!${end}~`
-    }
-    // TODO: Limit in filter? or does generator handle that
-    const store: any = this.#transitionStores[initialState]
-    const initialEventSig = Message.HOP_CCTP_TRANSFER_SENT_SIG
-    for await (const log of store.getAllLogsForTopic(initialEventSig)) {
-      const parsedLog: any = await this.#parseInitializationLog(log)
-      const key = Message.getMessageHashFromMessage(parsedLog.message)
-      // TODO: 
-      yield [key, parsedLog, 'syncMarker']
-    }
-  }
-
-  async *getAllItems (): AsyncIterable<[string, U]> {
-    // TODO: Limit in filter? or does generator handle that
-    const store: any = this.#transitionStores[initialState]
-    const initialEventSig = Message.HOP_CCTP_TRANSFER_SENT_SIG
-    for await (const log of store.getAllLogsForTopic(initialEventSig)) {
-      const parsedLog: any = await this.#parseInitializationLog(log)
-      const key = Message.getMessageHashFromMessage(parsedLog.message)
-      // TODO: 
-      yield [key, parsedLog]
-    }
-  }
-
-
-  /////////////////////////////////////
-  /**
-   * Public Interface
-   */
-
-  async *getUninitializedItems(): AsyncIterable<U> {
-    // TODO: Should know the initial state
-    const store: any = this.#transitionStores[initialState]
-    const initialEventSig = Message.HOP_CCTP_TRANSFER_SENT_SIG
-
-    for await (const log of store.getAllLogsForTopic(initialEventSig)) {
-      yield await this.#parseInitializationLog(log)
-    }
+    this.#indexer = new MessageIndexer(states, chains)
+    this.#indexer.on(Repository.ITEM_CREATED, this.#handleInitialEvent)
   }
 
   // TODO: Value and resp are different U
   async getItem(state: T, value: U): Promise<U | undefined> {
-    const transitionKey = this.#getTransitionDataKey(state, value)
-    const eventData: IGetStoreDataRes | undefined = await this.#transitionStores[state].getData(transitionKey)
+    const chainId = this.#getChainIdForItem(state, value)
+    const transitionKey = this.#getIndexForItem(state, value)
+    // TODO: err handle
+    const eventData: LogWithChainId | undefined = await this.#indexer.getData(chainId, state, transitionKey)
     if (!eventData) return
 
+    // TODO: Probably fmt, not prs
     return this.#parseEventData(state, eventData)
+  }
+
+  /**
+   * Public interface
+   */
+
+  // TODO: Multiple indicies?
+  async getData (chainId: string, index: string): Promise<IOnchainEventStoreRes | undefined> {
+    return this.#db.getIndexedDataBySecondIndex(chainId, index)
+  }
+
+  // TODO: needs more than chainId. What if there are multiple bridges deployed on the same chain
+  #getChainIdForItem (state: T, value: U): string {
+    if (MessageState.Sent === state) {
+      return value.sourceChainId
+    } else if (MessageState.Attested === state) {
+      return value.destinationChainId
+    }
+    throw new Error('Invalid state')
+  }
+
+  #getIndexForItem (state: T, value: U): string {
+    if (MessageState.Sent === state) {
+      throw new Error('No transition data key for initial state')
+    } else if (MessageState.Relayed === state) {
+      return key
+    }
+    throw new Error('Invalid state')
+  }
+
+  /**
+   * Event handler
+   */
+
+  on (event: string, listener: (...args: any[]) => void): void {
+    this.#eventEmitter.on(event, listener)
+  }
+
+  #handleInitialEvent (log: LogWithChainId): void {
+    const parsedLog = this.#parseInitializationLog(log)
+    this.#eventEmitter.emit(Repository.ITEM_CREATED, parsedLog)
   }
 
   /**
@@ -122,16 +106,6 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
    * State transition
    */
 
-  #getTransitionDataKey (state: T, value: U): string {
-    if (MessageState.Sent === state) {
-      throw new Error('No transition data key for initial state')
-    } else if (MessageState.Attested === state) {
-      return Message.getMessageHashFromMessage(value.message)
-    } else if (MessageState.Relayed === state) {
-      return key
-    }
-    throw new Error('Invalid state')
-  }
 
 
   async #parseEventData (state: T, data: IGetStoreDataRes): Promise<U> {
@@ -185,4 +159,11 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
       attestation
     } as U
   }
+}
+
+export async function getTimestampFromBlockNumberMs (chainId: string, blockNumber: number): Promise<number> {
+  const chainSlug = getChain(chainId).slug
+  const provider = getRpcProvider(chainSlug as ChainSlug)
+  const block = await provider.getBlock(blockNumber)
+  return block.timestamp * 1000
 }

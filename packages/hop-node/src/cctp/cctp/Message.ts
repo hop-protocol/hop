@@ -7,7 +7,7 @@ import {
   getHopCCTPInterface,
   getMessageTransmitterContract,
 } from './utils'
-import { LogWithChainId } from '../db/OnchainEventIndexerDB.js'
+import type { LogWithChainId } from '../types.js'
 import type { RequiredEventFilter, RequiredFilter } from '../indexer/OnchainEventIndexer.js'
 import { type NetworkSlug, ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/index.js'

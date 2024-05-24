@@ -2,16 +2,22 @@ import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChain } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
-import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
+import type { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
+import type { LogWithChainId } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
-export class OnchainEventIndexer {
-  readonly #db: OnchainEventIndexerDB
-  readonly #eventFilter: RequiredEventFilter
+/**
+ * Returns data in the form of LogWithChainId. 
+ */
+
+export abstract class OnchainEventIndexer {
+  #db: OnchainEventIndexerDB = new OnchainEventIndexerDB('TODO')
+  #eventFilter: RequiredEventFilter
+  #indexes: string[]
 
   // TODO: config option
   readonly #maxBlockRange: number = 2000
@@ -19,15 +25,33 @@ export class OnchainEventIndexer {
   // TODO: SLow down
   readonly #pollIntervalMs: number = 10_000
 
-  constructor (
-    db: OnchainEventIndexerDB,
-    eventFilter: RequiredEventFilter,
-    chain: ChainSlug
-  ) {
-    this.#db = db
-    this.#eventFilter = eventFilter
+  // TODO
+  protected abstract handleEvent?(topic: string, data: any): any
 
+  protected initIndexer (
+    chain: ChainSlug,
+    eventFilter: RequiredEventFilter,
+    indexes: string[]
+  ) {
+    this.#eventFilter = eventFilter
+    this.#indexes = indexes
+
+    this.#initEventHandler()
     this.#initPoller(chain)
+  }
+
+  /**
+   * Event emitter
+   */
+
+  #initEventHandler = (): void => {
+    // https://github.com/Level/abstract-level?tab=readme-ov-file#write
+    this.#db.on('write', (operations: any) => {
+      for (const op of operations) {
+        if (op.type !== 'put') continue
+        this.handleEvent?.(op.key, op.value)
+      }
+    })
   }
 
   /**
@@ -38,6 +62,10 @@ export class OnchainEventIndexer {
     for await (const log of this.#db.getLogsByTopic(topic)) {
       yield log
     }
+  }
+
+  protected getItem(eventSig: string, chainId: string, index: string): Promise<any> {
+    return this.#db.getItem(eventSig, chainId, index)
   }
 
   async getIndexedDataBySecondIndex(firstIndex: string, secondIndex: string): Promise<LogWithChainId | undefined> {

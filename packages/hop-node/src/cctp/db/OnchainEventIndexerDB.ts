@@ -2,12 +2,14 @@ import { BigNumber } from 'ethers'
 import { type ChainedBatch, DB } from './DB.js'
 import { Message } from '../cctp/Message.js'
 import { getDefaultStartBlockNumber } from './utils.js'
-import type { providers } from 'ethers'
-
-export type LogWithChainId = providers.Log & { chainId: string }
+import type { LogWithChainId } from '../types.js'
 
 type DBValue = LogWithChainId | number
 
+/**
+ * This DB should only be used to get individual items. There should never be a
+ * need to iterate over all items in the DB.
+ */
 
 /**
  * First index: topic[0]!chainId!blockNumber!logIndex

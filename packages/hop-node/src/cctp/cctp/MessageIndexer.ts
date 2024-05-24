@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { Message } from './Message.js'
 import { OnchainEventIndexer, type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
-import { Repository } from '../repository/Repository.js'
+import { DataStore } from '../data-store/DataStore.js'
 import { MessageState, IMessage } from './types.js'
 
 interface IndexerData {
@@ -61,7 +61,7 @@ export class MessageIndexer extends OnchainEventIndexer {
   }
 
   #handleInitialEvent (log: LogWithChainId): void {
-    this.#eventEmitter.emit(Repository.ITEM_CREATED, log)
+    this.#eventEmitter.emit(DataStore.ITEM_CREATED, log)
   }
 
   /**

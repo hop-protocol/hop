@@ -5,15 +5,17 @@ import { Message } from './Message.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { MessageIndexer } from './MessageIndexer.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { Repository } from '../repository/Repository.js'
+import { DataStore } from '../data-store/DataStore.js'
 import { MessageState } from './types.js'
 import type { IMessage } from './types.js'
 
-// Since the messages are unique by chainId, his MessageRepository should be the
+// Since the messages are unique by chainId, his MessageDataStore should be the
 // class that abstracts this away.
 
-// from datastore
-export class MessageRepository extends Repository<MessageState, IMessage> {
+// TODO: This seems like the only implementation that doesn't have an abstract
+// class. Is that reasonable?
+
+export class MessageDataStore extends DataStore<MessageState, IMessage> {
   readonly #indexer: MessageIndexer
   readonly #eventEmitter: EventEmitter = new EventEmitter()
 
@@ -21,12 +23,16 @@ export class MessageRepository extends Repository<MessageState, IMessage> {
     super()
 
     this.#indexer = indexer
-    this.#indexer.on(Repository.ITEM_CREATED, this.#handleInitialEvent)
+    this.#indexer.on(DataStore.ITEM_CREATED, this.#handleInitialEvent)
   }
 
-  async start(): Promise<void> {
+  start(): void {
     this.#indexer.start()
   }
+
+  // TODO: I'm starting to think this `value` doesn't need to encompass all the data
+  //////////// it does as long as i need the chain id
+  ///////////////////// but then that means every single step needs a chainId. is that ok? if so, add to nots for our v2 contract emissiosn
 
   // TODO: Value and resp are different IMessage
   async getItem(state: MessageState, value: IMessage): Promise<IMessage> {
@@ -44,7 +50,7 @@ export class MessageRepository extends Repository<MessageState, IMessage> {
 
   #handleInitialEvent (log: LogWithChainId): void {
     const parsedLog = this.#parseInitializationLog(log)
-    this.#eventEmitter.emit(Repository.ITEM_CREATED, parsedLog)
+    this.#eventEmitter.emit(DataStore.ITEM_CREATED, parsedLog)
   }
 
   /**

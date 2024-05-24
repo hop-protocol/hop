@@ -1,5 +1,5 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { MessageRepository } from './MessageRepository.js'
+import { MessageDataStore } from './MessageDataStore.js'
 import { MessageIndexer } from './MessageIndexer.js'
 import { MessageFSM } from './MessageFSM.js'
 
@@ -11,8 +11,8 @@ export enum MessageState {
 }
 
 export class MessageManager {
-  #started: boolean = false
   readonly #FSM: MessageFSM
+  #started: boolean = false
 
   constructor (chains: ChainSlug[]) {
     // Config
@@ -24,10 +24,10 @@ export class MessageManager {
 
     // Data handler
     const indexer = new MessageIndexer(states, chains)
-    const repository = new MessageRepository(indexer)
+    const dataStore = new MessageDataStore(indexer)
 
     // State handler
-    this.#FSM = new MessageFSM(name, states, repository)
+    this.#FSM = new MessageFSM(name, states, dataStore)
   }
 
   async start (): Promise<void> {

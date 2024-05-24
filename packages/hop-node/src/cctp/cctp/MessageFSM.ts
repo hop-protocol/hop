@@ -6,7 +6,6 @@ import { Message } from './Message.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
 import { MessageState } from './types.js'
-import { Repository } from '../repository/Repository.js'
 import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
 
 // TODO: Handle inflight transactions on restart

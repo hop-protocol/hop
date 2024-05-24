@@ -37,7 +37,14 @@ export abstract class OnchainEventIndexer {
     this.#chain = chain
     this.#eventFilter = eventFilter
     this.#indexName = indexName
+  }
 
+  start(): void {
+    this.#startListeners()
+    this.#startPoller()
+  }
+
+  #startListeners = () => {
     // https://github.com/Level/abstract-level?tab=readme-ov-file#write
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
@@ -45,11 +52,6 @@ export abstract class OnchainEventIndexer {
         this.handleEvent?.(op.key, op.value)
       }
     })
-  }
-
-  async start(): Promise<void> {
-    // Intentionally not awaited
-    this.#initPoller()
   }
 
   /**
@@ -70,8 +72,7 @@ export abstract class OnchainEventIndexer {
    * Poller
    */
 
-
-  #initPoller = async (): Promise<never> => {
+  #startPoller = async (): Promise<never> => {
     try {
       while (true) {
         await this.#syncEvents(this.#chain)

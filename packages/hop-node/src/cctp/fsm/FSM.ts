@@ -1,4 +1,4 @@
-import { Repository } from '../repository/Repository.js'
+import { DataStore } from '../data-store/DataStore.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
 
@@ -6,7 +6,7 @@ import { poll } from '../utils.js'
  * FSM that is strictly concerned with the creation, transition, and termination of states. This
  * class is not concerned with performing any actions on the states or any implementation details.
  * 
- * Data used is retrieved from an external data repository.
+ * Data used is retrieved from an external data stores.
  * 
  * Upon startup, the FSM will sync back to the latest known state.
  * 
@@ -16,7 +16,7 @@ import { poll } from '../utils.js'
 export abstract class FSM<State extends string, StateData>{
   readonly #states: State[]
   readonly #stateDB: StateMachineDB<State, string, StateData>
-  readonly #dataRepository: Repository<State, StateData>
+  readonly #dataStore: DataStore<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
   protected abstract isTransitionReady(state: State, value: StateData): boolean
@@ -24,11 +24,11 @@ export abstract class FSM<State extends string, StateData>{
   constructor (
     stateMachineName: string,
     states: State[],
-    dataRepository: Repository<State, StateData>
+    dataStore: DataStore<State, StateData>
   ) {
     this.#stateDB = new StateMachineDB(stateMachineName)
     this.#states = states
-    this.#dataRepository = dataRepository
+    this.#dataStore = dataStore
   }
 
   async init(): Promise<void> {
@@ -38,7 +38,7 @@ export abstract class FSM<State extends string, StateData>{
   start (): void {
     this.#startListeners()
     this.#startPollers()
-    this.#dataRepository.start()
+    this.#dataStore.start()
   }
 
   /**
@@ -70,8 +70,8 @@ export abstract class FSM<State extends string, StateData>{
   }
 
   #startListeners (): void {
-    this.#dataRepository.on(Repository.ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
-    this.#dataRepository.on('error', () => { throw new Error('Data repository error') })
+    this.#dataStore.on(DataStore.ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
+    this.#dataStore.on('error', () => { throw new Error('Data store error') })
   }
 
   #startPollers (): void {
@@ -105,7 +105,7 @@ export abstract class FSM<State extends string, StateData>{
       return this.#stateDB.updateState(state, nextState, key, value)
     }
 
-    const stateTransitionData = await this.#dataRepository.getItem(nextState, value)
+    const stateTransitionData = await this.#dataStore.getItem(nextState, value)
     if (!stateTransitionData) {
       return
     }

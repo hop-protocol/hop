@@ -2,7 +2,7 @@ import wallets from '#wallets/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChain } from '@hop-protocol/sdk'
 import { FSM } from '../fsm/FSM.js'
-import { Message } from './Message.js'
+import { MessageSDK } from './MessageSDK.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
 import { MessageState } from './types.js'
@@ -54,10 +54,10 @@ export class MessageFSM extends FSM<MessageState, IMessage> {
     const wallet = wallets.get(chainSlug)
 
     try {
-      const attestation = await Message.fetchAttestation(message)
+      const attestation = await MessageSDK.fetchAttestation(message)
 
       this.#inFlightTxCache.add(attestation)
-      await Message.relayMessage(wallet, message, attestation)
+      await MessageSDK.relayMessage(wallet, message, attestation)
     } catch (err) {
       // TODO: better err handling
       // error={"reason":"execution reverted: Nonce already used"

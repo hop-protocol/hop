@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { type ChainedBatch, DB } from './DB.js'
-import { Message } from '../cctp/Message.js'
+import { MessageSDK } from '../cctp/MessageSDK.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { LogWithChainId } from '../types.js'
 
@@ -65,7 +65,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       console.log('putting log', syncDBKey, syncedBlockNumber, log)
 
       // TODO: Temp second index, pass this in thru constructor
-      if (log.topics[0] === Message.MESSAGE_RECEIVED_EVENT_SIG) {
+      if (log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
         const secondIndex = this.#getIndexKey(log, BigNumber.from(log.topics[2]).toString())
         batch.put(secondIndex, log)
         console.log('putting secondary log', syncDBKey, syncedBlockNumber, log)

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { IGetStoreDataRes, IOnchainEventStoreRes } from './types.js'
 import type { LogWithChainId } from '../types.js'
-import { Message } from './Message.js'
+import { MessageSDK } from './MessageSDK.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { MessageIndexer } from './MessageIndexer.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
@@ -65,7 +65,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
       message,
       cctpNonce,
       chainId: destinationChainId
-    } = await Message.parseHopCCTPTransferSentLog(transferSentLog)
+    } = await MessageSDK.parseHopCCTPTransferSentLog(transferSentLog)
 
     return {
       message,
@@ -100,7 +100,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
   }
 
   #getLogState(eventSig: string): MessageState | undefined {
-    if (eventSig === Message.MESSAGE_RECEIVED_EVENT_SIG) {
+    if (eventSig === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
       return MessageState.Relayed
     }
   }

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { Message } from './Message.js'
+import { MessageSDK } from './MessageSDK.js'
 import { OnchainEventIndexer, type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
 import { DataStore } from '../data-store/DataStore.js'
@@ -26,7 +26,7 @@ export class MessageIndexer extends OnchainEventIndexer {
     super(db)
 
     // TODO: Get from SDK
-    this.#initialEventTopic = Message.HOP_CCTP_TRANSFER_SENT_SIG
+    this.#initialEventTopic = MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG
 
     for (const state of states) {
       for (const chainId of chainIds) {
@@ -72,13 +72,13 @@ export class MessageIndexer extends OnchainEventIndexer {
   #getIndexerData(chainId: string, state: IMessage): IndexerData {
     if (MessageState.Sent === state) {
       return {
-        filter: Message.getCCTPTransferSentEventFilter(chainId),
+        filter: MessageSDK.getCCTPTransferSentEventFilter(chainId),
         // TODO: Correct index. This might be it.
         indexNames: ['nonce', 'sourceChainId']
       }
     } else if (MessageState.Attested === state) {
       return {
-        filter: Message.getMessageReceivedEventFilter(chainId),
+        filter: MessageSDK.getMessageReceivedEventFilter(chainId),
         // TODO: Correct index. This might be it.
         indexNames: ['nonce', 'sourceChainId']
       }

@@ -1,7 +1,7 @@
-import logger from 'src/logger'
+import logger from '#logger/index.js'
 import { BigNumberish } from 'ethers'
 import { getSubgraphUrl } from '@hop-protocol/sdk'
-import { reactAppNetwork } from 'src/config'
+import { reactAppNetwork } from '#config/index.js'
 
 async function queryFetch(url: string, query: string, variables?: any) {
   try {

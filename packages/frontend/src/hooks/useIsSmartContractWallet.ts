@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 export default function useIsSmartContractWallet() {
   const { provider, address } = useWeb3Context()

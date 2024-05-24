@@ -1,12 +1,12 @@
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import { ContractTransaction, errors } from 'ethers'
 import { TransactionStatus as GnosisSafeTxStatus } from '@gnosis.pm/safe-apps-sdk'
-import { WalletName } from 'src/utils'
-import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
-import { useApp } from 'src/contexts/AppContext'
+import { WalletName } from '#utils/index.js'
+import { getTransferSentDetailsFromLogs } from '#utils/logs.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback } from 'react'
-import { useGnosisSafeTransaction } from './useGnosisSafeTransaction'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useGnosisSafeTransaction } from './useGnosisSafeTransaction.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 function useTransactionReplacement(walletName?: WalletName | string) {
   const { txHistory } = useApp()

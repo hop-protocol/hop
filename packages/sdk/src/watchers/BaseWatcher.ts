@@ -1,5 +1,5 @@
 import { Base, ChainProviders } from '../Base.js'
-import { Chain } from '@hop-protocol/sdk-core'
+import { Chain } from '#chains/index.js'
 import { EventEmitter } from 'eventemitter3'
 import { HopBridge } from '../HopBridge.js'
 import { TChain, TProvider, TToken } from '../types.js'

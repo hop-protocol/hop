@@ -1,4 +1,4 @@
-import { ENSToken__factory } from 'src/abis'
+import { ENSToken__factory } from '#abis/index.js'
 import {
   ERC20__factory,
   HopBridgeToken__factory,

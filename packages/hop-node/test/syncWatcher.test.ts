@@ -4,7 +4,7 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from '#config/index.js'
-import { promiseQueue } from '@hop-protocol/hop-node-core'
+import { promiseQueue } from '#utils/promiseQueue.js'
 
 // known to cause getLogs issues with alchemy
 /*

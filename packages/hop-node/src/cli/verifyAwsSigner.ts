@@ -1,12 +1,12 @@
-import { KmsSigner } from '@hop-protocol/hop-node-core'
-import { LambdaSigner } from '@hop-protocol/hop-node-core'
+import { KmsSigner } from '#aws/index.js'
+import { LambdaSigner } from '#aws/index.js'
 import { actionHandler, parseBool, root } from './shared/index.js'
 import { utils } from 'ethers'
 import {
   getEnabledNetworks,
   config as globalConfig
 } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { ChainSlug } from '@hop-protocol/sdk'
 
 root

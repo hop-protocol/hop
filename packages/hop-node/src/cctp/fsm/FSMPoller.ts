@@ -1,7 +1,7 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { TransitionDataProvider } from '../cctp/transitionData/TransitionDataProvider.js'
-import { wait } from '@hop-protocol/hop-node-core'
+import { wait } from '#utils/wait.js'
 
 // TODO: Not this here
 import type { IMessage, MessageState } from '../cctp/MessageManager.js'

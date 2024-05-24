@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 
@@ -16,7 +16,7 @@ export interface BundleReceived extends EventBase {
 export class BundleReceivedEventFetcher extends Event<BundleReceived> {
   override eventName = 'BundleReceived'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const hubMessageBridge = HubMessageBridge__factory.connect(this.address, this.provider)
     const filter = hubMessageBridge.filters.BundleReceived()
     return filter

@@ -1,4 +1,4 @@
-import { utils } from 'ethers/'
+import { utils } from 'ethers'
 
 export function isSameAddress(addr1?: string, addr2?: string) {
   if (!addr1 || !addr2 || !utils.isAddress(addr1) || !utils.isAddress(addr2)) {

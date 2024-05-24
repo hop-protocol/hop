@@ -15,7 +15,7 @@ import { Message } from '../Message.js'
 import { OnchainEventStore } from './OnchainEventStore.js'
 import type { RequiredFilter } from '../../indexer/OnchainEventIndexer.js'
 import { getTimestampFromBlockNumberMs } from './utils.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 export class TransitionDataProvider<T extends MessageState, U extends IMessage> implements ITransitionDataProvider<T, U> {
   readonly #stores: Record<T, IDataStore>

@@ -1,29 +1,29 @@
 import L1Bridge from './L1Bridge.js'
 import L2Bridge from './L2Bridge.js'
 import Metrics from './Metrics.js'
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { type DbSet, getDbSet, isDbSetReady } from '#db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from '#constants/index.js'
-import { Logger } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
 import { Mutex } from 'async-mutex'
 import { Notifier } from '#notifier/index.js'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
-} from '@hop-protocol/hop-node-core'
+} from '#types/index.js'
 import {
   TxRetryDelayMs,
   config as globalConfig
 } from '#config/index.js'
-import { bigNumberMin } from '@hop-protocol/hop-node-core'
-import { getRpcProviderFromUrl } from '@hop-protocol/hop-node-core'
+import { bigNumberMin } from '#utils/bigNumberMin.js'
+import { getRpcProviderFromUrl } from '#utils/getRpcProviderFromUrl.js'
 import { hostname } from '#config/index.js'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core'
-import { wait } from '@hop-protocol/hop-node-core'
+import { isFetchExecutionError } from '#utils/isFetchExecutionError.js'
+import { wait } from '#utils/wait.js'
 import type AvailableLiquidityWatcher from '../AvailableLiquidityWatcher.js'
 import type Bridge from './Bridge.js'
 import type SyncWatcher from '../SyncWatcher.js'

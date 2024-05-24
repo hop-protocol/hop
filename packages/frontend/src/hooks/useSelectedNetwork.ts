@@ -1,11 +1,11 @@
-import Network from 'src/models/Network'
-import useQueryParams from './useQueryParams'
+import Network from '#models/Network.js'
+import useQueryParams from './useQueryParams.js'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
-import { defaultL2Network as _defaultL2Network, l2Networks } from 'src/config/networks'
-import { findNetworkBySlug, networkSlugToId } from 'src/utils'
+import { defaultL2Network as _defaultL2Network, l2Networks } from '#config/networks.js'
+import { findNetworkBySlug, networkSlugToId } from '#utils/index.js'
 
 interface Options {
   l2Only?: boolean

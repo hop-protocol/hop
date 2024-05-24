@@ -1,6 +1,5 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
-import { rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk-core'
-import { getProviderFromUrl } from '@hop-protocol/sdk'
+import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'

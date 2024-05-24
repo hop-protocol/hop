@@ -1,6 +1,6 @@
 import Bridge, { type CanonicalTokenConvertOptions, type EventCb, type EventsBatchOptions } from './Bridge.js'
 import Token from './Token.js'
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { BigNumber, constants } from 'ethers'
 import { GasCostTransactionType, RelayableChains } from '#constants/index.js'
 import { ChainSlug, NetworkSlug, Hop, TokenSymbol } from '@hop-protocol/sdk'
@@ -15,7 +15,7 @@ import type {
   TransferSentToL2Event
 } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
-import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '#types/index.js'
 import type { providers } from 'ethers'
 import { getChainSlug } from '@hop-protocol/sdk'
 

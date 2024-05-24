@@ -491,6 +491,48 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
   }
 }
 
+export async function fetchTransferFromL1CompletedsByRecipient (chain: string, recipient: string) {
+  try {
+    const query = `
+      query TransferFromL1Completed($recipient: String) {
+        events: transferFromL1Completeds(
+          where: {
+            recipient: $recipient
+          },
+          first: 1000,
+          orderBy: id,
+          orderDirection: desc
+        ) {
+          id
+          recipient
+          amount
+          amountOutMin
+          deadline
+          transactionHash
+          from
+          timestamp
+        }
+      }
+    `
+
+    let url :string
+    try {
+      url = getSubgraphUrl(chain)
+    } catch (err) {
+      return []
+    }
+    const data = await queryFetch(url, query, {
+      recipient
+    })
+    let events = data.events || []
+
+    return events
+  } catch (err) {
+    console.error(err)
+    return []
+  }
+}
+
 export async function fetchTransferEventsByTransferIds (chain: string, transferIds: string[]) {
   try {
     if (chain === 'mainnet' || chain === 'ethereum') {

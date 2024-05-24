@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Typography from '@mui/material/Typography'
-import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
+import { TokenIcon } from '#pages/Pools/components/TokenIcon.js'
 import { makeStyles } from '@mui/styles'
 
 export const useStyles = makeStyles(theme => ({

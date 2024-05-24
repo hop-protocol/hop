@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import React, { FC } from 'react'
 import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { Theme } from '@mui/material/styles'
 import { makeStyles } from '@mui/styles'
 

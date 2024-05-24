@@ -1,10 +1,10 @@
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import find from 'lodash/find'
 import isFunction from 'lodash/isFunction'
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { Hop } from '@hop-protocol/sdk'
-import { filterByHash, sortByRecentTimestamp } from 'src/utils'
+import { filterByHash, sortByRecentTimestamp } from '#utils/index.js'
 
 export interface TxHistory {
   transactions?: Transaction[]

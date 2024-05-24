@@ -39,15 +39,23 @@ import { getUSDCSwapParams, getCctpDomain } from '#utils/index.js'
 import { TokenModel } from '#models/index.js'
 import {
   Chain,
+  getSlugFromChainId,
+} from '#chains/index.js'
+import {
   Multicall,
+} from '#multicall/index.js'
+import {
   PriceFeedApiKeys,
   PriceFeedFromS3,
+} from '#priceFeed/index.js'
+import {
   TokenSymbol,
-  getSlugFromChainId,
-  fetchJsonOrThrow,
   getToken,
   isValidTokenSymbol
-} from '@hop-protocol/sdk-core'
+} from '#tokens/index.js'
+import {
+  fetchJsonOrThrow,
+} from '#utils/index.js'
 
 const {
   getAddress: checksumAddress,

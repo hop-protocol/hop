@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { Button }  from 'src/components/Button'
+import { Button }  from '#components/Button/index.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({

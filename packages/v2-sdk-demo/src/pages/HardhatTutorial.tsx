@@ -337,7 +337,7 @@ export function HardhatTutorial () {
           hubConnectorFactory: hubConnectorFactoryOnGoerliAddress
         }
       }
-    })
+    } as any) // TODO
 
     const tx = await sdk.hubConnector.connect(signer).connectTargets({
       hubChainId: 5,
@@ -435,7 +435,7 @@ export function HardhatTutorial () {
           connector: ''
         }
       }
-    })
+    } as any) // TODO
 
     const messageFee1 = await sdk.messenger.getMessageFee({
       fromChainId: chainId,
@@ -520,7 +520,7 @@ export function HardhatTutorial () {
           connector: ''
         }
       }
-    })
+    } as any) // TODO
 
     const fromChainId = 420
 

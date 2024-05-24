@@ -27,12 +27,12 @@ import {
   setSignerConfig,
   setSyncConfig
 } from './config.js'
-import { Logger, setLogLevel } from '@hop-protocol/hop-node-core'
+import { Logger, setLogLevel } from '#logger/index.js'
 import { utils } from 'ethers'
-import { getParameter } from '@hop-protocol/hop-node-core'
+import { getParameter } from '#aws/index.js'
 import { promptPassphrase } from '#prompt/index.js'
-import { recoverKeystore } from '@hop-protocol/hop-node-core'
-import type { SignerConfig } from '@hop-protocol/hop-node-core'
+import { recoverKeystore } from '#keystore/index.js'
+import type { SignerConfig } from '#config/index.js'
 
 const logger = new Logger('config')
 

@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import { RewardsWidget } from 'src/pages/Rewards/RewardsWidget'
-import { configs } from 'src/pages/Rewards/config'
+import { RewardsWidget } from '#pages/Rewards/RewardsWidget.js'
+import { configs } from '#pages/Rewards/config.js'
 
 export function Rewards() {
   return (

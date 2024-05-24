@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import React from 'react'
 import styled, { css, keyframes } from 'styled-components'
 import { background, color } from 'styled-system'
-import { squareDimensions } from 'src/utils'
+import { squareDimensions } from '#utils/index.js'
 import { useTheme } from '@mui/styles'
 
 export function logStyleProps(props: any) {

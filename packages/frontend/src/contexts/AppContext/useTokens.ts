@@ -1,5 +1,5 @@
-import Token from 'src/models/Token'
-import { addresses } from 'src/config'
+import Token from '#models/Token.js'
+import { addresses } from '#config/index.js'
 import { useMemo } from 'react'
 import { TokenSymbol, getToken } from '@hop-protocol/sdk'
 

@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
-import FlatSelect from '../selects/FlatSelect'
+import FlatSelect from '#components/selects/FlatSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import React, { useMemo } from 'react'
 import Typography from '@mui/material/Typography'
-import { Network } from 'src/models/Network'
-import { findNetworkBySlug } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
-import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
+import { Network } from '#models/Network.js'
+import { findNetworkBySlug } from '#utils/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useNetworkSelectorStyles } from './useNetworkSelectorStyles.js'
 
 interface Props {
   network?: Network

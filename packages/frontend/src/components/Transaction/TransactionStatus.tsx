@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Link from '@mui/material/Link'
 import React, { useEffect, useState } from 'react'
 import Typography from '@mui/material/Typography'
-import { isLayer1, networkSlugToName } from 'src/utils'
+import { isLayer1, networkSlugToName } from '#utils/index.js'
 
 function TransactionStatus(props: any) {
   const {

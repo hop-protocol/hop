@@ -13,6 +13,7 @@
     "dev": "pnpm start",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
     "lint": "eslint . --fix",
+    "version": "pnpm version",
     "preview": "vite preview"
   },
   "dependencies": {

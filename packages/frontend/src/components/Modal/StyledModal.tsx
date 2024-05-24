@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Theme } from '@mui/material/styles'
 import { Transition } from 'react-transition-group'
 import { makeStyles } from '@mui/styles'
-import { useApp } from 'src/contexts/AppContext'
+import { useApp } from '#contexts/AppContext/index.js'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {

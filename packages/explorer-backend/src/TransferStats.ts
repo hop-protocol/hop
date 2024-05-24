@@ -19,6 +19,7 @@ import {
   fetchTransferBonds,
   fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
+  fetchTransferFromL1CompletedsByRecipient,
   fetchTransferSents,
   fetchTransferSentsForTransferId,
   fetchWithdrews
@@ -984,7 +985,7 @@ export class TransferStats {
           if (
             receivedEvent.transferId === x.transferId &&
             x.destinationChain.toString() === receivedEvent.destinationChainId.toString() &&
-            x.sourceChain.toString() === receivedEvent.sourceChainId.toString()
+            receivedEvent.sourceChainId && x.sourceChain.toString() === receivedEvent.sourceChainId.toString()
           ) {
             x.bonded = true
             x.bondTransactionHash = receivedEvent?.transaction?.hash
@@ -1005,6 +1006,11 @@ export class TransferStats {
       }
       const destChainSlug = getSlugFromChainId(x.destinationChain)
       const events = fromL1CompletedsMap[destChainSlug]
+      if (single) {
+        const receivedEventsByRecipient = await fetchTransferFromL1CompletedsByRecipient(destChainSlug, x.recipient)
+        events.push(...receivedEventsByRecipient)
+      }
+
       if (events) {
         for (const event of events) {
           const l1ToL2RelayTimeMaxSec = 120 * 60
@@ -1015,8 +1021,8 @@ export class TransferStats {
             event.deadline.toString() === x.deadline.toString() &&
             event.relayer?.toString() === x.relayer?.toString() &&
             event.relayerFee?.toString() === x.relayerFee?.toString() &&
-            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= l1ToL2RelayTimeMaxSec &&
-            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0
+            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0 &&
+            (single || (Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= l1ToL2RelayTimeMaxSec))
           ) {
             x.bonded = true
 
@@ -1380,6 +1386,7 @@ export class TransferStats {
             }
           }
         }
+
         if (transferId && destinationChainId && token) {
           try {
             const destinationChainSlug = getSlugFromChainId(destinationChainId)

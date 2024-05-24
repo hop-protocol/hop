@@ -1,7 +1,7 @@
 import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { MessageManager } from '#cctp/cctp/MessageManager.js'
 import { config as globalConfig } from '#config/index.js'
-import { wait } from '@hop-protocol/hop-node-core'
+import { wait } from '#utils/wait.js'
 
 // TODO: Automate
 const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {

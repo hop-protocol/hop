@@ -1,3 +1,3 @@
-import { Withdraw } from 'src/pages/Withdraw/Withdraw'
+import { Withdraw } from '#pages/Withdraw/Withdraw.js'
 
 export default Withdraw

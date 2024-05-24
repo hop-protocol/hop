@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Alert } from 'src/components/Alert'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { Alert } from '#components/Alert/index.js'
+import { useThemeMode } from '#theme/ThemeProvider.js'
 
 type Props = {
   children: any

@@ -1,2 +1,2 @@
-export { Modal } from 'src/components/Modal/Modal'
-export { StyledModal } from 'src/components/Modal/StyledModal'
+export { Modal } from '#components/Modal/Modal.js'
+export { StyledModal } from '#components/Modal/StyledModal.js'

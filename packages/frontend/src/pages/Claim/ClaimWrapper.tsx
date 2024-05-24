@@ -2,8 +2,8 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { Button } from 'src/components/Button'
+import { Alert } from '#components/Alert/index.js'
+import { Button } from '#components/Button/index.js'
 import { useNavigate } from 'react-router-dom'
 
 export function ClaimWrapper(props: any) {

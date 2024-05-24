@@ -51,21 +51,6 @@ ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
 ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
 ```
 
-### Github Actions
-
-Run github action build locally with [act](https://github.com/nektos/act):
-
-```sh
-(cd ../../ && act --job build-explorer-backend --workflows .github/workflows/hop_explorer_backend.yml --secret-file=.secrets --verbose)
-```
-
-`.secrets`
-
-```sh
-DOCKER_USER=<username>
-DOCKER_PASS=<password>
-```
-
 ## Adding new tokens or chains
 
 Update `@hop-protocol/core` version and push. By default all chains and tokens from core package will be enabled.

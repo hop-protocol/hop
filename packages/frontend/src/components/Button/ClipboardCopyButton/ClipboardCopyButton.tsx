@@ -3,7 +3,7 @@ import React, { SyntheticEvent, useState } from 'react'
 import clsx from 'clsx'
 import copy from 'copy-to-clipboard'
 import { ButtonProps } from '@mui/material/Button'
-import { ClipboardIcon } from 'src/components/Button/ClipboardCopyButton/ClipboardIcon'
+import { ClipboardIcon } from '#components/Button/ClipboardCopyButton/ClipboardIcon.js'
 import { Theme } from '@mui/material/styles'
 import { makeStyles, withStyles } from '@mui/styles'
 

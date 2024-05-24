@@ -1,11 +1,11 @@
-import { NetworkSlug, getNetwork } from '@hop-protocol/sdk-core'
+import { NetworkSlug, getNetwork } from '#chains/index.js'
 import { addresses as chainAddresses } from '#addresses/index.js'
 
 import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
-let sdkConfig: any = {}
+const sdkConfig: any = {}
 const bondableChainsSet = new Set<string>([])
 const config: any = { goerli, sepolia, mainnet }
 for (const network of Object.values(NetworkSlug)) {
@@ -67,9 +67,7 @@ export {
   Config
 } from './types.js'
 
-export {
-  ChainSlug,
-  TokenSymbol
-} from '@hop-protocol/sdk-core'
-
 export const bondableChains = Array.from(bondableChainsSet)
+
+export const RPC_TIMEOUT_SECONDS: number = 60
+export const RATE_LIMIT_MAX_RETRIES: number = 3

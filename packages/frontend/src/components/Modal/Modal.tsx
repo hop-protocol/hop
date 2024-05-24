@@ -3,9 +3,9 @@ import ClickAwayListener from '@mui/material/ClickAwayListener'
 import React, { forwardRef, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
 import { Transition } from 'react-transition-group'
-import { isDarkMode } from 'src/theme/theme'
+import { isDarkMode } from '#theme/theme.js'
 import { makeStyles } from '@mui/styles'
-import { useApp } from 'src/contexts/AppContext'
+import { useApp } from '#contexts/AppContext/index.js'
 
 const useStyles = makeStyles(theme => ({
   root: {

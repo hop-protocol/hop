@@ -1,8 +1,8 @@
-import { addresses } from 'src/config'
-import { commafy, toPercentDisplay } from 'src/utils'
-import { findNetworkBySlug } from 'src/utils/networks'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { useApp } from 'src/contexts/AppContext'
+import { addresses } from '#config/index.js'
+import { commafy, toPercentDisplay } from '#utils/index.js'
+import { findNetworkBySlug } from '#utils/networks.js'
+import { normalizeTokenSymbol } from '#utils/normalizeTokenSymbol.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback } from 'react'
 import { useQuery } from 'react-query'
 

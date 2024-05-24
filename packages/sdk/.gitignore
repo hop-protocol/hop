@@ -27,3 +27,5 @@ test/_*
 /version.d.ts
 /contracts
 .npmignore
+
+src/version.ts

@@ -1,4 +1,4 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useQuery } from 'react-query'

@@ -9,19 +9,24 @@ import {
   type Chain,
   ChainSlug,
   NetworkSlug,
-  fetchJsonOrThrow,
   getMinGasLimit,
   getMinGasPrice,
   getChain,
   getChains,
-  getToken,
+  isValidNetworkSlug,
+  isValidChainSlug,
+} from '#chains/index.js'
+import {
+  // utils
+  fetchJsonOrThrow,
   getUrlFromProvider,
   promiseTimeout,
   rateLimitRetry,
-  isValidChainSlug,
-  isValidNetworkSlug,
+} from '#utils/index.js'
+import {
+  getToken,
   isValidTokenSymbol
-} from '@hop-protocol/sdk-core'
+} from '#tokens/index.js'
 import { L1_OptimismTokenBridge } from './contracts/index.js'
 import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
 import { L1_PolygonPosRootChainManager } from './contracts/index.js'
@@ -320,6 +325,10 @@ export class Base {
     const chainId = chain.chainId
     await this.checkBlocklist()
 
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+
     if (!transactionRequest.to) {
       throw new Error('tx "to" address is required')
     }
@@ -399,7 +408,7 @@ export class Base {
   }
 
   // all chains supported.
-  // this may be overriden by child class to make it asset specific.
+  // this may be overridden by child class to make it asset specific.
   get supportedChains (): string[] {
     return this.configChains
   }
@@ -455,6 +464,10 @@ export class Base {
           ','
         )}`
       )
+    }
+
+    if (!chain.chainId) {
+      throw new Error(`chainId is not found on chain model "${chain.slug}"`)
     }
 
     return chain

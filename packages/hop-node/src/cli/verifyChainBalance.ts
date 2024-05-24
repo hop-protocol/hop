@@ -11,7 +11,7 @@ import {
 } from '#constants/index.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
 import { getTokenDecimals } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'

@@ -1,3 +1,3 @@
-import TxConfirm from 'src/components/txConfirm/TxConfirm'
+import TxConfirm from '#components/txConfirm/TxConfirm.js'
 
 export default TxConfirm

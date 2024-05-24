@@ -30,45 +30,16 @@ export * from './contracts/index.js'
 export * from './provider/index.js'
 
 export { type Bps, sdkConfig } from './config/index.js'
-export {
-  getChainSlugFromName,
-  getLpFeeBps,
-  getSubgraphChains,
-  getSubgraphUrl
-} from './utils/index.js'
-
-export {
-  Chain,
-  Multicall,
-  PriceFeed,
-  RetryProvider,
-  RpcProvider,
-  TokenSymbol,
-  getSlugFromChainId,
-  fetchJsonOrThrow,
-  getChain,
-  getChains,
-  getChainNativeTokenSymbol,
-  getChainSlug,
-  getToken,
-  getTokens,
-  getTokenDecimals,
-  getNetwork,
-  getNetworks,
-  getMinGasLimit,
-  getMinGasPrice,
-  getUrlFromProvider,
-  promiseQueue,
-  promiseTimeout,
-  rateLimitRetry,
-  shiftBNDecimals,
-  rpcProviders,
-  RpcProviderSlug
-} from '@hop-protocol/sdk-core'
 
 export { TokenModel } from '#models/index.js'
-export { getProviderFromUrl } from '#utils/index.js'
 
 if (typeof window !== 'undefined') {
   (window as any).Hop = Hop
 }
+
+export * from './chains/index.js'
+export * from './tokens/index.js'
+export * from './utils/index.js'
+export * from './priceFeed/index.js'
+export * from './multicall/index.js'
+export * from './networks/index.js'

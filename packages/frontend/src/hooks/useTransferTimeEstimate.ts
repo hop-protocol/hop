@@ -1,5 +1,5 @@
-import { getTransferTimeSeconds } from 'src/utils/getTransferTimeSeconds'
-import { useApp } from 'src/contexts/AppContext'
+import { getTransferTimeSeconds } from '#utils/getTransferTimeSeconds.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useEffect, useRef, useState } from 'react'
 
 // return statistical data in whole minutes given recent transaction times

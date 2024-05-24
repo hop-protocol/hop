@@ -1,12 +1,12 @@
 import React, { ChangeEvent, ReactNode, useEffect, useMemo, useState } from 'react'
-import logger from 'src/logger'
-import useAvailableLiquidity from './useAvailableLiquidity'
-import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
-import useSendData from 'src/pages/Send/useSendData'
-import { Address } from 'src/models/Address'
+import logger from '#logger/index.js'
+import useAvailableLiquidity from './useAvailableLiquidity.js'
+import useIsSmartContractWallet from '#hooks/useIsSmartContractWallet.js'
+import useSendData from '#pages/Send/useSendData.js'
+import { Address } from '#models/Address.js'
 import { BigNumber, utils } from 'ethers'
 import { ChainSlug, HopBridge, Token } from '@hop-protocol/sdk'
-import { DisabledRoute } from 'src/config/disabled'
+import { DisabledRoute } from '#config/disabled.js'
 import {
   GnosisSafeWarning,
   useApprove,
@@ -21,18 +21,18 @@ import {
   useQueryParams,
   useSufficientBalance,
   useTxResult
-} from 'src/hooks'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { Network } from 'src/models/Network'
-import { Transaction } from 'src/models/Transaction'
-import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
-import { getTransferTimeString } from 'src/utils/getTransferTimeString'
-import { isGoerli, showRewards } from 'src/config'
-import { useApp } from 'src/contexts/AppContext'
-import { useCheckTokenDeprecated } from 'src/hooks/useCheckTokenDeprecated'
+} from '#hooks/index.js'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { Network } from '#models/Network.js'
+import { Transaction } from '#models/Transaction.js'
+import { amountToBN, formatError } from '#utils/format.js'
+import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from '#utils/index.js'
+import { getTransferTimeString } from '#utils/getTransferTimeString.js'
+import { isGoerli, showRewards } from '#config/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
 import { useSendTransaction } from './useSendTransaction'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 export type SendResponseProps = {
   accountAddress: Address | undefined

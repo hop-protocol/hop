@@ -26,7 +26,6 @@
 
     // Projects
     "composite": true,
-    "skipLibCheck": true,
 
    /**
     * Custom config - reverse over time as codebase is cleaned up

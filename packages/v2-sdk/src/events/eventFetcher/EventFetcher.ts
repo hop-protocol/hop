@@ -1,5 +1,5 @@
 import { Filter } from '@ethersproject/abstract-provider'
-import { promiseQueue } from '@hop-protocol/sdk-core'
+import { promiseQueue } from '@hop-protocol/sdk'
 import { providers, utils, Event as EthersEvent } from 'ethers'
 
 const { getAddress: checksumAddress } = utils

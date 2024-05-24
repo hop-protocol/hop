@@ -1,15 +1,15 @@
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
-import TokenWrapper from 'src/components/TokenWrapper'
+import TokenWrapper from '#components/TokenWrapper/index.js'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { BalanceText } from 'src/pages/Pools/components/BalanceText'
+import { Alert } from '#components/Alert/index.js'
+import { BalanceText } from '#pages/Pools/components/BalanceText.js'
 import { BigNumber, utils } from 'ethers'
-import { Button } from 'src/components/Button'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { InputField } from 'src/pages/Pools/components/InputField'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { sanitizeNumericalString } from 'src/utils'
+import { Button } from '#components/Button/index.js'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { InputField } from '#pages/Pools/components/InputField.js'
+import { normalizeTokenSymbol } from '#utils/normalizeTokenSymbol.js'
+import { sanitizeNumericalString } from '#utils/index.js'
 
 type Props = {
   addLiquidity: any

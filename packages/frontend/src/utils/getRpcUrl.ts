@@ -1,5 +1,4 @@
-import { networks } from 'src/config'
-import { reactAppNetwork } from '../config'
+import { networks, reactAppNetwork } from '#config/index.js'
 
 export const getRpcUrlOrThrow = (network: string) => {
   if (!network) {

@@ -1,4 +1,4 @@
-import { fetchJsonOrThrow } from '@hop-protocol/sdk-core'
+import { fetchJsonOrThrow } from '@hop-protocol/sdk'
 
 interface GasFeeDataResponse {
   status: string

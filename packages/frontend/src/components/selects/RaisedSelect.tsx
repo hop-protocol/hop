@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
 
 const RaisedSelect: FC<SelectProps & { children: any }> = props => {
   const styles = useStyles(props)
-  const isSingle = props?.children?.filter((x: any) => x).length <= 1
+  const isSingle = Array.from(props?.children).filter((x: any) => x).length <= 1
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
   return <Select IconComponent={icon} {...props} classes={styles} />

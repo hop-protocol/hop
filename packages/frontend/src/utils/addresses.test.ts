@@ -1,4 +1,4 @@
-import { isSameAddress } from './addresses'
+import { isSameAddress } from './addresses.js'
 
 describe('isSameAddress', () => {
   const addr1 = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'

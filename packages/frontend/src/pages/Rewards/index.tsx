@@ -1,3 +1,3 @@
-import { Rewards } from 'src/pages/Rewards/Rewards'
+import { Rewards } from '#pages/Rewards/Rewards.js'
 
 export default Rewards

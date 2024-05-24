@@ -6,5 +6,5 @@ const addresses: Record<string, any> = {
 }
 
 export function getProxyAddress (network: string, token: string, destinationChainSlug: string) {
-  return addresses[network].bridges?.[token]?.[destinationChainSlug]?.proxy
+  return addresses[network]?.[token]?.[destinationChainSlug]?.proxy
 }

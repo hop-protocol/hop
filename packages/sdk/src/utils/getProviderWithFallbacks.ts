@@ -1,5 +1,4 @@
-import { FallbackProvider } from '#provider/index.js'
-import { RetryProvider } from '@hop-protocol/sdk-core'
+import { FallbackProvider, RetryProvider } from '#provider/index.js'
 
 export function getProviderWithFallbacks (rpcUrls: string[]): any {
   const timeout = 60 * 1000

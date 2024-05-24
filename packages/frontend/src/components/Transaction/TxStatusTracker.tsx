@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import React, { useMemo } from 'react'
 import RightArrow from '@mui/icons-material/ArrowRightAlt'
-import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
-import { findNetworkBySlug } from 'src/utils/networks'
+import { TransactionStatus, useTxStatusStyles } from '#components/Transaction/index.js'
+import { findNetworkBySlug } from '#utils/networks.js'
 
 function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkConfirmations }) {
   const styles = useTxStatusStyles()

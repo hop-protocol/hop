@@ -1,6 +1,6 @@
 import React from 'react'
-import Stats from 'src/pages/Stats/Stats'
-import StatsProvider from 'src/pages/Stats/StatsContext'
+import Stats from '#pages/Stats/Stats.js'
+import StatsProvider from '#pages/Stats/StatsContext.js'
 
 const fc = () => (
   <StatsProvider>

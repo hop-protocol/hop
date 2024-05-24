@@ -1,6 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { ChainSlug, TokenSymbol, getChainSlug } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
 import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'

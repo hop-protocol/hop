@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { useStyles } from '#pages/Pools/PoolDetails/useStyles.js'
 
 type Props = {
   feeFormatted: string

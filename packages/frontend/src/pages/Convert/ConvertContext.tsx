@@ -1,9 +1,9 @@
-import Address from 'src/models/Address'
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
-import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
-import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import Address from '#models/Address.js'
+import AmmConvertOption from '#pages/Convert/ConvertOption/AmmConvertOption.js'
+import ConvertOption from '#pages/Convert/ConvertOption/ConvertOption.js'
+import HopConvertOption from '#pages/Convert/ConvertOption/HopConvertOption.js'
 import Link from '@mui/material/Link'
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import React, {
   FC,
   ReactNode,
@@ -14,17 +14,17 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import Transaction from 'src/models/Transaction'
+import Transaction from '#models/Transaction.js'
 import find from 'lodash/find'
-import logger from 'src/logger'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import logger from '#logger/index.js'
+import useAsyncMemo from '#hooks/useAsyncMemo.js'
 import { BigNumber } from 'ethers'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { Token } from '@hop-protocol/sdk'
-import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, toTokenDisplay } from 'src/utils'
-import { defaultL2Network, l1Network } from 'src/config/networks'
-import { useApp } from 'src/contexts/AppContext'
+import { amountToBN, formatError } from '#utils/format.js'
+import { commafy, toTokenDisplay } from '#utils/index.js'
+import { defaultL2Network, l1Network } from '#config/networks.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import {
   useApprove,
   useAssets,
@@ -32,10 +32,10 @@ import {
   useNeedsTokenForFee,
   useSelectedNetwork,
   useTransactionReplacement,
-} from 'src/hooks'
-import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
+} from '#hooks/index.js'
+import { useCheckPoolDeprecated } from '#hooks/useCheckPoolDeprecated.js'
 import { useLocation, useParams } from 'react-router-dom'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 import { TokenSymbol } from '@hop-protocol/sdk'
 
 type ConvertContextProps = {

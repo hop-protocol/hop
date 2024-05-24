@@ -1,1 +1,1 @@
-export { PoolDetails as default } from 'src/pages/Pools/PoolDetails/PoolDetails'
+export { PoolDetails as default } from '#pages/Pools/PoolDetails/PoolDetails.js'

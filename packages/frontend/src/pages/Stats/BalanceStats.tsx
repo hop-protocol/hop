@@ -1,11 +1,11 @@
 import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import ethLogo from 'src/assets/logos/eth.svg'
-import { CellWrapper, SortableTable } from 'src/components/Table'
-import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
-import { Icon } from 'src/components/ui/Icon'
-import { commafy } from 'src/utils'
-import { useStats } from 'src/pages/Stats/StatsContext'
+import ethLogo from '#assets/logos/eth.svg'
+import { CellWrapper, SortableTable } from '#components/Table/index.js'
+import { CopyEthAddress } from '#components/ui/CopyEthAddress.js'
+import { Icon } from '#components/ui/Icon.js'
+import { commafy } from '#utils/index.js'
+import { useStats } from '#pages/Stats/StatsContext.js'
 
 export const populatePoolStats = (item: any) => {
   return {

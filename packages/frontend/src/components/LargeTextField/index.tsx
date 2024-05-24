@@ -1,1 +1,1 @@
-export { LargeTextField } from 'src/components/LargeTextField/LargeTextField'
+export { LargeTextField } from '#components/LargeTextField/LargeTextField.js'

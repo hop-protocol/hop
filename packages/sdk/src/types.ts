@@ -1,5 +1,6 @@
 import { BigNumberish, Signer, providers } from 'ethers'
-import type { Chain, ChainSlug, TokenSymbol } from '@hop-protocol/sdk-core'
+import type { Chain, ChainSlug } from '#chains/index.js'
+import type { TokenSymbol } from '#tokens/index.js'
 import { TokenModel } from '#models/index.js'
 
 /** Chain-ish type */

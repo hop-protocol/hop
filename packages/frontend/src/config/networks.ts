@@ -1,9 +1,9 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
-import { networks } from 'src/config/addresses'
-import { reactAppNetwork } from 'src/config'
+import { networks } from '#config/addresses.js'
+import { reactAppNetwork } from '#config/index.js'
 
 export const allNetworks = Object.keys(networks).map(key => {
   const net = networks[key]

@@ -1,4 +1,4 @@
-import { wait } from '@hop-protocol/sdk-core'
+import { wait } from '@hop-protocol/sdk'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { constants, providers } from 'ethers'

@@ -1,7 +1,7 @@
 import { BigNumber, utils } from 'ethers'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { actionHandler, parseString, root } from '../shared/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import {
   hopAccountAddresses,
   possibleYears,

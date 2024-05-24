@@ -1,10 +1,10 @@
 import { BigNumber, utils } from 'ethers'
 import { StakingRewards__factory } from '@hop-protocol/sdk/contracts'
-import { commafy, findNetworkBySlug } from 'src/utils'
-import { hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useApp } from 'src/contexts/AppContext'
+import { commafy, findNetworkBySlug } from '#utils/index.js'
+import { hopStakingRewardsContracts, reactAppNetwork } from '#config/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 import { getToken, TokenSymbol } from '@hop-protocol/sdk'
 
 export function useStakingAll () {

@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers, Event as EthersEvent } from 'ethers'
+import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from SpokeMessageBridge (ICrossChainSource)
 export interface MessageSent extends EventBase {
@@ -14,13 +14,13 @@ export interface MessageSent extends EventBase {
 export class MessageSentEventFetcher extends Event<MessageSent> {
   override eventName = 'MessageSent'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageSent()
     return filter
   }
 
-  getMessageIdFilter (messageId: string) {
+  getMessageIdFilter (messageId: string): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageSent(messageId)
     return filter

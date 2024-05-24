@@ -1,15 +1,15 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import React, { ChangeEvent, FC, useCallback, useMemo } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
 import { BigNumber, utils } from 'ethers'
-import { LargeTextField } from 'src/components/LargeTextField'
+import { LargeTextField } from '#components/LargeTextField/index.js'
 import { Token } from '@hop-protocol/sdk'
-import { commafy } from 'src/utils'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import { commafy } from '#utils/index.js'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 
 type AmountSelectorProps = {
   value?: string

@@ -1,7 +1,7 @@
-import Network from 'src/models/Network'
-import { ALL, DisabledRoute, disabledRoutes } from 'src/config/disabled'
+import Network from '#models/Network.js'
+import { ALL, DisabledRoute, disabledRoutes } from '#config/disabled.js'
 import { ChainSlug } from '@hop-protocol/sdk'
-import { isSameNetwork } from 'src/utils'
+import { isSameNetwork } from '#utils/index.js'
 import { useEffect, useState } from 'react'
 
 export function useDisableTxs(

@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
 import React, { FC, useEffect, useState } from 'react'
-import { Alert } from 'src/components/Alert'
+import { Alert } from '#components/Alert/index.js'
 import { Theme } from '@mui/material/styles'
 import { makeStyles } from '@mui/styles'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {},

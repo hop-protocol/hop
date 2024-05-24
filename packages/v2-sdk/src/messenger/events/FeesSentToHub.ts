@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 
@@ -10,7 +10,7 @@ export interface FeesSentToHub extends EventBase {
 export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
   override eventName = 'FeesSentToHub'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.FeesSentToHub()
     return filter

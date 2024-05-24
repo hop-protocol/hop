@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import MuiTooltip from '@mui/material/Tooltip'
 import React, { SyntheticEvent, useState } from 'react'
-import { EthAddress, EthAddressProps } from 'src/components/ui/EthAddress'
+import { EthAddress, EthAddressProps } from '#components/ui/EthAddress.js'
 import { withStyles } from '@mui/styles'
 
 const tooltipStyles = {

@@ -1,5 +1,5 @@
-import logger from 'src/logger'
-import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
+import logger from '#logger/index.js'
+import { getEnsAddress, getEnsAvatar, getEnsName } from '#utils/ens.js'
 import { utils } from 'ethers'
 import { useEffect, useState } from 'react'
 

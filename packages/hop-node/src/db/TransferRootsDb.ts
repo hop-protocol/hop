@@ -7,10 +7,8 @@ import {
   RootSetSettleDelayMs,
   TxError
 } from '#constants/index.js'
-import {
-  TimeIntervals,
-  getExponentialBackoffDelayMs
-} from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
+import { getExponentialBackoffDelayMs } from '#utils/getExponentialBackoffDelayMs.js'
 import { TxRetryDelayMs } from '#config/index.js'
 import { ChainSlug, getChain, getChainSlug } from '@hop-protocol/sdk'
 import { transferRootsMigrations } from './migrations.js'

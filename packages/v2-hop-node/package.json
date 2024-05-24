@@ -1,0 +1,47 @@
+{
+  "name": "@hop-protocol/v2-hop-node",
+  "version": "0.0.0",
+  "description": "The V2 Hop Node pakcage for Hop Protocol",
+  "author": "Authereum Labs, Inc.",
+  "type": "module",
+  "license": "MIT",
+  "imports": {
+    "#*": "./dist/*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.12.2",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
+    "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "build": "tsc -p ./tsconfig.json",
+    "lint": "eslint .",
+    "version": "pnpm version"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/v2-hop-node"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
+}

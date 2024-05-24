@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
-import { toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { toTokenDisplay, toUsdDisplay } from '#utils/index.js'
 import { useMemo } from 'react'
-import { useTokenPrice } from 'src/hooks/useTokenPrice'
+import { useTokenPrice } from '#hooks/useTokenPrice.js'
 
 type Input = {
   destinationTxFee?: BigNumber

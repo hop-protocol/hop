@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 
@@ -15,26 +15,26 @@ export interface TransferBonded extends EventBase {
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
   override eventName = 'TransferBonded'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferBonded()
     return filter
   }
 
-  getPathIdFilter (pathId: string) {
+  getPathIdFilter (pathId: string): EventFilter {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferBonded(pathId)
     return filter
   }
 
-  getTransferIdFilter (transferId: string) {
+  getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     // TODO: currently transferId is not indexed by contract, so this doesn't work
     const filter = railsGateway.filters.TransferBonded(transferId)
     return filter
   }
 
-  getCheckpointFilter (checkpoint: string) {
+  getCheckpointFilter (checkpoint: string): EventFilter {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferBonded(null, null, checkpoint)
     return filter

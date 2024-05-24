@@ -1,7 +1,7 @@
-import logger from 'src/logger'
-import { NetworkTokenEntity } from 'src/utils'
+import logger from '#logger/index.js'
+import { NetworkTokenEntity } from '#utils/index.js'
 import { useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 interface BaseSendingTransaction {
   onConfirm: (confirmed: boolean, params?: any) => void

@@ -1,4 +1,4 @@
-import { FallbackProvider } from '@hop-protocol/sdk-core'
+import { FallbackProvider } from '#provider/index.js'
 import { Hop } from '#index.js'
 import { type Network } from '@ethersproject/networks'
 import { providers } from 'ethers'
@@ -76,7 +76,7 @@ describe('fallback provider', () => {
     console.log('call:', call)
     expect(call).toBe('0x')
 
-    const sendTransaction = provider.sendTransaction
+    const sendTransaction = provider.sendTransaction // eslint-disable-line @typescript-eslint/unbound-method
     expect(typeof sendTransaction).toBe('function')
 
     const logs = await provider.getLogs({

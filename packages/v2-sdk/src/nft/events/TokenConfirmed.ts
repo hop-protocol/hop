@@ -1,6 +1,6 @@
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
 import { Event, EventBase } from '#events/index.js'
-import { ethers, Event as EthersEvent } from 'ethers'
+import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from ERC721Bridge
 export interface TokenConfirmed extends EventBase {
@@ -10,7 +10,7 @@ export interface TokenConfirmed extends EventBase {
 export class TokenConfirmedEventFetcher extends Event<TokenConfirmed> {
   override eventName = 'TokenConfirmed'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const nftBridge = ERC721Bridge__factory.connect(this.address, this.provider)
     const filter = nftBridge.filters.TokenSent()
     return filter

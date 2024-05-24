@@ -2,19 +2,19 @@ import { BigNumber } from 'ethers'
 import {
   MIN_GNOSIS_GAS_PRICE,
   MIN_POLYGON_GAS_PRICE
-} from '@hop-protocol/hop-node-core'
+} from '#constants/index.js'
 import { EventEmitter } from 'node:events'
-import { FinalityService } from '@hop-protocol/hop-node-core'
+import { FinalityService } from '#finality/index.js'
 import {
   SyncType
 } from '#constants/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { getBumpedGasPrice } from '@hop-protocol/hop-node-core'
+import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
 import { getNetworkCustomSyncType, config as globalConfig } from '#config/index.js'
 import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import type { Contract, providers } from 'ethers'
 import type { Event } from '@ethersproject/contracts'
-import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '#types/index.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 export default class ContractBase extends EventEmitter {

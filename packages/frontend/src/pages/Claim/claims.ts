@@ -1,9 +1,9 @@
-import Address from 'src/models/Address'
+import Address from '#models/Address.js'
 import { BigNumber, Signer, providers } from 'ethers'
-import { Delegate, TokenClaim } from 'src/pages/Claim/useClaim'
-import { ShardedMerkleTree, getEntryProofIndex } from 'src/pages/Claim/merkle'
-import { claimChainId, claimTokenAddress } from 'src/pages/Claim/config'
-import { getClaimTokenContract } from 'src/utils/contracts'
+import { Delegate, TokenClaim } from '#pages/Claim/useClaim.js'
+import { ShardedMerkleTree, getEntryProofIndex } from '#pages/Claim/merkle.js'
+import { claimChainId, claimTokenAddress } from '#pages/Claim/config.js'
+import { getClaimTokenContract } from '#utils/contracts.js'
 
 const claimChains = {
   1: {

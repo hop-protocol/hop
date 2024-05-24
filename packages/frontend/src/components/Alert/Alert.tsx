@@ -2,7 +2,7 @@ import MuiAlert, { AlertProps as MuiAlertProps } from '@mui/material/Alert'
 import React, { FC } from 'react'
 import clsx from 'clsx'
 import { makeStyles } from '@mui/styles'
-import { prettifyErrorMessage } from 'src/utils'
+import { prettifyErrorMessage } from '#utils/index.js'
 
 const useStyles = makeStyles(theme => ({
   root: (props: any) => ({

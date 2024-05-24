@@ -9,7 +9,7 @@ import {
   tokenDataForYear,
   tokenDecimals
 } from '../metrics/sharedMetrics.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 

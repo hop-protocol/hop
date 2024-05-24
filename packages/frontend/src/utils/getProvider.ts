@@ -1,7 +1,7 @@
 import memoize from 'fast-memoize'
 import { FallbackProvider } from '@hop-protocol/sdk'
-import { getRpcUrls } from './getRpcUrl'
-import { networks } from 'src/config'
+import { getRpcUrls } from './getRpcUrl.js'
+import { networks } from '#config/index.js'
 
 export const getProvider = memoize((rpcUrl: string | string[]) => {
   const rpcUrls = Array.isArray(rpcUrl) ? rpcUrl : [rpcUrl]

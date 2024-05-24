@@ -1,7 +1,7 @@
 import Link, { LinkProps } from '@mui/material/Link'
 import React from 'react'
 import styled from 'styled-components'
-import { ComposedStyleProps, composedStyleFns } from 'src/utils'
+import { ComposedStyleProps, composedStyleFns } from '#utils/index.js'
 
 type StyledLinkProps = LinkProps & ComposedStyleProps
 

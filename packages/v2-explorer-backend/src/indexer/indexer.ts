@@ -151,7 +151,7 @@ export class Indexer {
       }
 
       console.log('get', eventNames, chainId, fromBlock, toBlock)
-      const events = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
+      const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
       console.log('events', eventNames, events.length)
       for (const event of events) {
         console.log('event', event)

@@ -1,4 +1,4 @@
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { getChainSlug, ChainSlug } from '@hop-protocol/sdk'
 
 export async function getTimestampFromBlockNumberMs (chainId: number, blockNumber: number): Promise<number> {

@@ -3,9 +3,9 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import Typography from '@mui/material/Typography'
 import remarkGfm from 'remark-gfm'
-import { Button } from 'src/components/Button'
-import { Link } from 'src/components/Link'
-import { Modal } from 'src/components/Modal'
+import { Button } from '#components/Button/index.js'
+import { Link } from '#components/Link/index.js'
+import { Modal } from '#components/Modal/index.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({

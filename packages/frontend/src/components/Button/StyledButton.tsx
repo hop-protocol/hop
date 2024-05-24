@@ -1,6 +1,6 @@
 import styled from 'styled-components'
-import { Button } from 'src/components/Button/Button'
-import { ComposedStyleProps, composedStyleFns } from 'src/utils'
+import { Button } from '#components/Button/Button.js'
+import { ComposedStyleProps, composedStyleFns } from '#utils/index.js'
 
 interface StyleProps {
   highlighted?: boolean

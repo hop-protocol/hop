@@ -1,5 +1,5 @@
-import Address from 'src/models/Address'
-import Network from 'src/models/Network'
+import Address from '#models/Address.js'
+import Network from '#models/Network.js'
 import React, {
   FC,
   ReactNode,
@@ -9,25 +9,25 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import logger from 'src/logger'
+import logger from '#logger/index.js'
 import { BigNumber, Signer, constants, utils } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
-import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
+import { amountToBN, formatError } from '#utils/format.js'
+import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from '#utils/index.js'
 import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
-import { getTokenImage } from 'src/utils/tokens'
-import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
-import { l2Networks } from 'src/config/networks'
-import { stableCoins } from 'src/utils/constants'
-import { useApp } from 'src/contexts/AppContext'
-import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
-import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
+import { getTokenImage } from '#utils/tokens.js'
+import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from '#config/index.js'
+import { l2Networks } from '#config/networks.js'
+import { stableCoins } from '#utils/constants.js'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from '#hooks/index.js'
+import { useCheckPoolDeprecated } from '#hooks/useCheckPoolDeprecated.js'
 import { useLocation  } from 'react-router-dom'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
-import { useStaking } from 'src/pages/Pools/useStaking'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useStaking } from '#pages/Pools/useStaking.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 type PoolsContextProps = {
   addLiquidityAndStake: () => void

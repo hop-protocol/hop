@@ -1,4 +1,4 @@
-import { wait } from '@hop-protocol/sdk-core'
+import { wait } from '@hop-protocol/sdk'
 import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
 import { Signer, providers } from 'ethers'
 

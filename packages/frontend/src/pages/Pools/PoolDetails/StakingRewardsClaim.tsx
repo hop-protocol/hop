@@ -1,10 +1,10 @@
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Typography from '@mui/material/Typography'
-import { Button } from 'src/components/Button'
+import { Button } from '#components/Button/index.js'
 import { makeStyles } from '@mui/styles'
-import { useStaking } from 'src/pages/Pools/useStaking'
-import { useStakingAll } from 'src/pages/Pools/useStakingAll'
+import { useStaking } from '#pages/Pools/useStaking.js'
+import { useStakingAll } from '#pages/Pools/useStakingAll.js'
 
 export const useStyles = makeStyles(theme => ({
   claimRewards: {

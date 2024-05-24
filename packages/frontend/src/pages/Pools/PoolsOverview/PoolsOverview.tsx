@@ -3,12 +3,12 @@ import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
-import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
+import { Alert } from '#components/Alert/index.js'
+import { InfoTooltip } from '#components/InfoTooltip/index.js'
+import { PoolRow } from '#pages/Pools/PoolsOverview/PoolRow.js'
+import { StakingRewardsClaim } from '#pages/Pools/PoolDetails/StakingRewardsClaim.js'
 import { makeStyles } from '@mui/styles'
-import { usePools } from 'src/pages/Pools/PoolsOverview/usePools'
+import { usePools } from '#pages/Pools/PoolsOverview/usePools.js'
 
 export const useStyles = makeStyles(theme => ({
   box: {

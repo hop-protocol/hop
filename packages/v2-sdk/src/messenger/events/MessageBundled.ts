@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers, Event as EthersEvent } from 'ethers'
+import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from SpokeMessageBridge
 export interface MessageBundled extends EventBase {
@@ -12,19 +12,19 @@ export interface MessageBundled extends EventBase {
 export class MessageBundledEventFetcher extends Event<MessageBundled> {
   override eventName = 'MessageBundled'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageBundled()
     return filter
   }
 
-  getBundleIdFilter (bundleId: string) {
+  getBundleIdFilter (bundleId: string): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageBundled(bundleId)
     return filter
   }
 
-  getMessageIdFilter (messageId: string) {
+  getMessageIdFilter (messageId: string): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageBundled(null, null, messageId)
     return filter

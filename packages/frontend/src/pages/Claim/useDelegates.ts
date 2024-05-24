@@ -1,14 +1,14 @@
-import Address from 'src/models/Address'
+import Address from '#models/Address.js'
 import shuffle from 'lodash/shuffle'
 import { BigNumber, utils } from 'ethers'
-import { claimChainId, delegatesJsonUrl } from 'src/pages/Claim/config'
-import { commafy } from 'src/utils/commafy'
-import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { getVotes } from './claims'
-import { networkIdToSlug } from 'src/utils/networks'
+import { claimChainId, delegatesJsonUrl } from '#pages/Claim/config.js'
+import { commafy } from '#utils/commafy.js'
+import { getEnsAddress, getEnsAvatar } from '#utils/ens.js'
+import { getProviderByNetworkName } from '#utils/getProvider.js'
+import { getVotes } from './claims.js'
+import { networkIdToSlug } from '#utils/networks.js'
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 const votesCache :any = {}
 const addressCache:any = {}

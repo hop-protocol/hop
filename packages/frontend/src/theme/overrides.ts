@@ -1,5 +1,5 @@
-export { boxShadows as boxShadowsLight, overridesLight, palette as paletteLight } from 'src/theme/light'
-export { boxShadows as boxShadowsDark, overridesDark, palette as paletteDark } from 'src/theme/dark'
+export { boxShadows as boxShadowsLight, overridesLight, palette as paletteLight } from '#theme/light.js'
+export { boxShadows as boxShadowsDark, overridesDark, palette as paletteDark } from '#theme/dark.js'
 
 export const bgGradients = {
   flat: 'linear-gradient(101.98deg, #B32EFF -23.47%, #E185B3 125.55%)',

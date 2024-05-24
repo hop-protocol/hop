@@ -1,4 +1,4 @@
-import { ethers, Event as EthersEvent } from 'ethers'
+import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 
@@ -14,7 +14,7 @@ export interface ConnectorDeployed extends EventBase {
 export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
   override eventName = 'ConnectorDeployed'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const contract = HubERC5164ConnectorFactory__factory.connect(this.address, this.provider)
     const filter = contract.filters.ConnectorDeployed()
     return filter

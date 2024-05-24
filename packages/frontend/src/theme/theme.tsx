@@ -7,11 +7,11 @@ boxShadowsDark,
 boxShadowsLight,
 overridesDark,
 overridesLight,
-} from 'src/theme/overrides'
+} from '#theme/overrides.js'
 import { createTheme } from '@mui/material/styles'
-import { palette as paletteDark } from 'src/theme/dark'
-import { palette as paletteLight } from 'src/theme/light'
-import { typographyOptions } from 'src/theme/typography'
+import { palette as paletteDark } from '#theme/dark.js'
+import { palette as paletteLight } from '#theme/light.js'
+import { typographyOptions } from '#theme/typography.js'
 
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {

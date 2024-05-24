@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import { StyledLink } from 'src/components/Link/StyledLink'
-import { SvgImg } from 'src/components/ui/SvgImg'
+import { StyledButton } from '#components/Button/StyledButton.js'
+import { StyledLink } from '#components/Link/StyledLink.js'
+import { SvgImg } from '#components/ui/SvgImg.js'
 
 interface ButtonLinkProps {
   href: string

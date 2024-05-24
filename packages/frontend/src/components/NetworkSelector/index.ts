@@ -1,2 +1,2 @@
-export { NetworkSelector } from 'src/components/NetworkSelector/NetworkSelector'
-export { useNetworkSelectorStyles } from 'src/components/NetworkSelector/useNetworkSelectorStyles'
+export { NetworkSelector } from '#components/NetworkSelector/NetworkSelector.js'
+export { useNetworkSelectorStyles } from '#components/NetworkSelector/useNetworkSelectorStyles.js'

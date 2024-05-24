@@ -1,5 +1,5 @@
 import { ChainSlug } from '@hop-protocol/sdk'
-import { getProviderByNetworkName } from './getProvider'
+import { getProviderByNetworkName } from './getProvider.js'
 
 const provider = getProviderByNetworkName(ChainSlug.Ethereum)
 

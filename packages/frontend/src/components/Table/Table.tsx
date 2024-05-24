@@ -2,9 +2,9 @@ import Box from '@mui/material/Box'
 import React from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import makeData from './makeData'
+import makeData from './makeData.js'
 import styled from 'styled-components'
-import { Alert } from 'src/components/Alert'
+import { Alert } from '#components/Alert/index.js'
 import { useSortBy, useTable } from 'react-table'
 
 const Styles = styled.div`

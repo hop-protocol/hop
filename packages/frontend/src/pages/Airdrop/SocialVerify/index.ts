@@ -1,3 +1,3 @@
-import { SocialVerify } from 'src/pages/Airdrop/SocialVerify/SocialVerify'
+import { SocialVerify } from '#pages/Airdrop/SocialVerify/SocialVerify.js'
 
 export default SocialVerify

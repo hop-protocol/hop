@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import { Alert } from 'src/components/Alert'
+import { Alert } from '#components/Alert/index.js'
 
 export function ClaimDateMessage () {
   return (

@@ -1,4 +1,5 @@
-import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk-core'
+import { ChainSlug } from '#chains/index.js'
+import { TokenSymbol } from '#tokens/index.js'
 
 export type Bps = {
   [key in ChainSlug]: number

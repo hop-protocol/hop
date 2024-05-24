@@ -1,3 +1,3 @@
-import Health from 'src/pages/Health/Health'
+import Health from '#pages/Health/Health.js'
 
 export default Health

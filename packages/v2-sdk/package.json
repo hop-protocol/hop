@@ -37,7 +37,6 @@
     "docs": "pnpm docs:ui && pnpm docs:markdown"
   },
   "dependencies": {
-    "@hop-protocol/sdk-core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "buffer": "6.0.3",
     "dotenv": "16.4.1",

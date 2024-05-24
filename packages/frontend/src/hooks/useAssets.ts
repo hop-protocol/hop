@@ -1,5 +1,5 @@
-import Network from 'src/models/Network'
-import logger from 'src/logger'
+import Network from '#models/Network.js'
+import logger from '#logger/index.js'
 import { HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
 

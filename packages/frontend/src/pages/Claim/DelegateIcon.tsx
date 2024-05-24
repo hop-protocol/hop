@@ -1,7 +1,7 @@
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
 import React, { useEffect, useState } from 'react'
-import { Circle } from 'src/components/ui/Circle'
-import { Icon } from 'src/components/ui/Icon'
+import { Circle } from '#components/ui/Circle.js'
+import { Icon } from '#components/ui/Icon.js'
 
 const cache:any = {}
 const loaded:any = {}

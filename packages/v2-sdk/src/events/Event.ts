@@ -1,7 +1,7 @@
 import { EventContext, EventBase, Filter } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
-import { promiseQueue } from '@hop-protocol/sdk-core'
+import { promiseQueue } from '@hop-protocol/sdk'
 import { providers, BigNumberish, Event as EthersEvent } from 'ethers'
 
 export class Event<T> {

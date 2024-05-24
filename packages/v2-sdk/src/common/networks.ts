@@ -1,4 +1,4 @@
-import { getNetworks } from '@hop-protocol/sdk-core'
+import { getNetworks } from '@hop-protocol/sdk'
 
 export type Network = {
   name: string

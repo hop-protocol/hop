@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
-import { wallets } from '@hop-protocol/hop-node-core'
+import { wallets } from '#wallets/index.js'
 import { BigNumber, type EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
@@ -11,7 +11,7 @@ import {
   GasCostTransactionType,
   RelayableChains
 } from '#constants/index.js'
-import { TimeIntervals } from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '#constants/index.js'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -24,14 +24,14 @@ import {
   wsEnabledChains
 } from '#config/index.js'
 import { ChainSlug, Hop } from '@hop-protocol/sdk'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
-import { getRpcRootProviderName } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
 import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
 import { isDbSetReady } from '#db/index.js'
-import { isL1ChainId } from '@hop-protocol/hop-node-core'
-import { promiseQueue } from '@hop-protocol/hop-node-core'
-import { promiseTimeout } from '@hop-protocol/hop-node-core'
-import { wait } from '@hop-protocol/hop-node-core'
+import { isL1ChainId } from '#utils/isL1ChainId.js'
+import { promiseQueue } from '#utils/promiseQueue.js'
+import { promiseTimeout } from '#utils/promiseTimeout.js'
+import { wait } from '#utils/wait.js'
 import type L1Bridge from './classes/L1Bridge.js'
 import type L2Bridge from './classes/L2Bridge.js'
 import type { Contract} from 'ethers'

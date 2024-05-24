@@ -7,12 +7,12 @@ import { BigNumber, Contract, utils } from 'ethers'
 import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { Logger } from '@hop-protocol/hop-node-core'
+import { Logger } from '#logger/index.js'
 import { getEnabledTokens } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
-import { promiseQueue } from '@hop-protocol/hop-node-core'
-import { wait } from '@hop-protocol/hop-node-core'
+import { promiseQueue } from '#utils/promiseQueue.js'
+import { wait } from '#utils/wait.js'
 
 type Options = {
   token?: string
@@ -243,11 +243,12 @@ class IncompleteSettlementsWatcher {
   private async setRootTransferIds (chain: string, token: string, log: any) {
     const provider = getRpcProvider(chain as ChainSlug)
     const rootHash = log.args.rootHash
-    const { data } = await provider.getTransaction(log.transactionHash)
+    const tx = await provider.getTransaction(log.transactionHash)
+    if (!tx) return
     const contract = this.getContract(chain, token)
     const { transferIds } = contract.interface.decodeFunctionData(
       'settleBondedWithdrawals',
-      data
+      tx.data
     )
     this.rootTransferIds[rootHash] = transferIds
     for (const transferId of transferIds) {

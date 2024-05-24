@@ -1,7 +1,7 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useMemo } from 'react'
 import { useQuery } from 'react-query'
 

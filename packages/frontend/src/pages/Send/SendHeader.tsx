@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import MenuItem from '@mui/material/MenuItem'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
+import RaisedSelect from '#components/selects/RaisedSelect.js'
 import React from 'react'
-import SelectOption from 'src/components/selects/SelectOption'
+import SelectOption from '#components/selects/SelectOption.js'
 import Typography from '@mui/material/Typography'
 
 function SendHeader(props: any) {

@@ -2,13 +2,13 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
-import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
-import { Modal } from 'src/components/Modal'
+import { AccountTransferHistory } from '#components/AccountDetails/AccountTransferHistory.js'
+import { ClipboardCopyButton } from '#components/Button/ClipboardCopyButton/index.js'
+import { Modal } from '#components/Modal/index.js'
 import { Theme } from '@mui/material/styles'
 import { makeStyles } from '@mui/styles'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 const useStyles = makeStyles((theme: Theme) => ({
   box: {

@@ -2,7 +2,7 @@ import getBondedWithdrawal from './getBondedWithdrawal.js'
 import getTransferRootForTransferId from './getTransferRootForTransferId.js'
 import makeRequest from './makeRequest.js'
 import { normalizeEntity } from './shared.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { getChainSlug } from '@hop-protocol/sdk'
 
 export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {

@@ -3,7 +3,8 @@ import { getChainSlug } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
 import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
-import { getRpcProvider, wait } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { wait } from '#utils/wait.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 export type RequiredEventFilter = Required<EventFilter>

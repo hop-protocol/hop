@@ -9,7 +9,7 @@ Thank you for your interest in contributing to the Hop frontend!🐰
 Before running anything, you'll need to install the dependencies:
 
 ```sh
-pnpm --filter frontend install
+pnpm --filter frontend... install
 ```
 
 ### Running the interface locally
@@ -23,7 +23,7 @@ Navigate to [http://localhost:3000].
 ### Creating a production build
 
 ```sh
-pnpm --filter frontend build
+pnpm --filter frontend... build
 ```
 
 ### Guidelines

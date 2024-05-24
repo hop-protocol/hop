@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
-import { amountToBN } from './format'
-import { shiftBNDecimals } from './shiftBNDecimals'
+import { amountToBN } from './format.js'
+import { shiftBNDecimals } from './shiftBNDecimals.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 

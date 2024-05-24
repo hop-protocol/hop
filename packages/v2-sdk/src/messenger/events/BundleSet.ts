@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers, Event as EthersEvent } from 'ethers'
+import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from SpokeMessageBridge
 export interface BundleSet extends EventBase {
@@ -12,7 +12,7 @@ export interface BundleSet extends EventBase {
 export class BundleSetEventFetcher extends Event<BundleSet> {
   override eventName = 'BundleSet'
 
-  override getFilter () {
+  override getFilter (): EventFilter {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.BundleSet()
     return filter

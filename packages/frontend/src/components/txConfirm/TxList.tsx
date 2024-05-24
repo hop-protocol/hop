@@ -9,9 +9,9 @@ import StepIcon from '@mui/material/StepIcon'
 import StepLabel from '@mui/material/StepLabel'
 import Stepper from '@mui/material/Stepper'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { Button } from 'src/components/Button'
-import { formatError } from 'src/utils'
+import { Alert } from '#components/Alert/index.js'
+import { Button } from '#components/Button/index.js'
+import { formatError } from '#utils/index.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({

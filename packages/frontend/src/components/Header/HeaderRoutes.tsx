@@ -1,9 +1,9 @@
 import React, { ChangeEvent, FC } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
-import { isMainnet, showRewards } from 'src/config'
+import { isMainnet, showRewards } from '#config/index.js'
 import { makeStyles, useTheme } from '@mui/styles'
-import { useClaim } from 'src/pages/Claim/useClaim'
+import { useClaim } from '#pages/Claim/useClaim.js'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({

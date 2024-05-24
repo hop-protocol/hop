@@ -9,9 +9,3 @@ export enum HToken {
   hUNI = 'hUNI',
   hMAGIC = 'hMAGIC'
 }
-
-export {
-  Network,
-  NetworkSlug,
-  ChainSlug
-} from '@hop-protocol/sdk-core'

@@ -1,4 +1,4 @@
-import logger from 'src/logger'
+import logger from '#logger/index.js'
 import { ChainSlug, Hop, Token, getChainSlugFromName } from '@hop-protocol/sdk'
 import { EventEmitter } from 'events'
 import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
@@ -11,12 +11,12 @@ import {
   getTransferSentDetailsFromLogs,
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
-} from 'src/utils'
+} from '#utils/index.js'
 import { ethers, providers } from 'ethers'
-import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { reactAppNetwork } from 'src/config'
-import { sigHashes } from 'src/hooks/useTransaction'
+import { getIsTxFinalized } from '#utils/getIsTxFinalized.js'
+import { getProviderByNetworkName } from '#utils/getProvider.js'
+import { reactAppNetwork } from '#config/index.js'
+import { sigHashes } from '#hooks/useTransaction.js'
 
 interface ContructorArgs {
   hash: string

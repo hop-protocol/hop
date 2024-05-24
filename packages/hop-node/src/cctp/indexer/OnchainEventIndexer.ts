@@ -17,7 +17,8 @@ export type RequiredFilter = Required<providers.Filter>
 export abstract class OnchainEventIndexer {
   #db: OnchainEventIndexerDB = new OnchainEventIndexerDB('TODO')
   #eventFilter: RequiredEventFilter
-  #indexes: string[]
+  #chain: ChainSlug
+  #indexName: string
 
   // TODO: config option
   readonly #maxBlockRange: number = 2000
@@ -31,20 +32,12 @@ export abstract class OnchainEventIndexer {
   protected initIndexer (
     chain: ChainSlug,
     eventFilter: RequiredEventFilter,
-    indexes: string[]
+    indexName: string
   ) {
+    this.#chain = chain
     this.#eventFilter = eventFilter
-    this.#indexes = indexes
+    this.#indexName = indexName
 
-    this.#initEventHandler()
-    this.#initPoller(chain)
-  }
-
-  /**
-   * Event emitter
-   */
-
-  #initEventHandler = (): void => {
     // https://github.com/Level/abstract-level?tab=readme-ov-file#write
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
@@ -54,15 +47,14 @@ export abstract class OnchainEventIndexer {
     })
   }
 
+  async start(): Promise<void> {
+    // Intentionally not awaited
+    this.#initPoller()
+  }
+
   /**
    * Public methods
    */
-
-  async *getAllLogsForTopic (topic: string): AsyncIterable<LogWithChainId> {
-    for await (const log of this.#db.getLogsByTopic(topic)) {
-      yield log
-    }
-  }
 
   protected getItem(eventSig: string, chainId: string, index: string): Promise<any> {
     return this.#db.getItem(eventSig, chainId, index)
@@ -79,10 +71,10 @@ export abstract class OnchainEventIndexer {
    */
 
 
-  #initPoller = async (chain: ChainSlug): Promise<never> => {
+  #initPoller = async (): Promise<never> => {
     try {
       while (true) {
-        await this.#syncEvents(chain)
+        await this.#syncEvents(this.#chain)
 
         await wait(this.#pollIntervalMs)
       }

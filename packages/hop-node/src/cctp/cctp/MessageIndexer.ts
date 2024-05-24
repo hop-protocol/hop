@@ -1,26 +1,27 @@
 import { EventEmitter } from 'node:events'
 import { Message } from './Message.js'
 import { OnchainEventIndexer, type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
-import { MessageState } from './MessageManager.js '
 import type { LogWithChainId } from '../types.js'
 import { Repository } from '../repository/Repository.js'
+import { MessageState, IMessage } from './types.js'
 
-interface IndexData {
+interface IndexerData {
   filter: RequiredEventFilter
-  index: string[]
+  indexName: string
 }
 
 /**
- * This class is responsible for mapping concrete states to indexes so
- * that the rest of the message implementation doesn't need to concern
- * itself with the details of the indexing.
+ * This class is responsible for abstracting away indexing logic
+ * and for mapping concrete states to indexes so that the rest of
+ * the message implementation doesn't need to concern itself with
+ * the details of the indexing.
  */
 
-export class MessageIndexer<T> extends OnchainEventIndexer {
+export class MessageIndexer extends OnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #initialEventTopic: string
 
-  constructor (states: T[], chainIds: string[]) {
+  constructor (states: MessageState[], chainIds: string[]) {
     super()
 
     // TODO: Get from SDK
@@ -28,15 +29,21 @@ export class MessageIndexer<T> extends OnchainEventIndexer {
 
     for (const state of states) {
       for (const chainId of chainIds) {
-        const indexData = this.#getIndexDataForState(state, chainId)
-        this.initIndexer(chainId, indexData.filter, indexData.index)
+        const { filter, indexName } = this.#getIndexerData(chainId, state)
+        this.initIndexer(chainId, filter, indexName)
       }
     }
   }
 
-  async getData(state: T, chainId: string, index: string): Promise<LogWithChainId> {
-    const eventSig = this.#getEventSigForState(state, chainId)
-    return this.getItem(eventSig, chainId, index)
+  /**
+   * Public API
+   */
+
+  async getData(state: MessageState, value: IMessage): Promise<LogWithChainId> {
+    const chainId: string = this.#getChainIdForItem(state, value)
+    const eventSig = this.#getEventSigForState(chainId, state)
+    const indexName = this.#getIndexerData(chainId, state).indexName
+    return this.getItem(eventSig, chainId, value[indexName])
   }
 
   /**
@@ -61,22 +68,24 @@ export class MessageIndexer<T> extends OnchainEventIndexer {
    * Internal
    */
 
-  #getIndexDataForState (state: T, chainId: string): IndexData {
+  #getIndexerData(chainId: string, state: IMessage): IndexerData {
     if (MessageState.Sent === state) {
       return {
         filter: Message.getCCTPTransferSentEventFilter(chainId),
-        index: ['sourceChainId', 'destinationChainId', 'messageNonce']
+        // TODO: This should be Pick<>
+        indexName: 'nonce'
       }
     } else if (MessageState.Attested === state) {
       return {
         filter: Message.getMessageReceivedEventFilter(chainId),
-        index: ['sourceChainId', 'destinationChainId', 'messageNonce']
+        // TODO: This should be Pick<>
+        indexName: 'nonce'
       }
     }
     throw new Error('Invalid state')
   }
 
-  #getEventSigForState (state: T, chainId: string): string {
-    return this.#getIndexDataForState(state, chainId).filter.topics[0] as string
+  #getEventSigForState (chainId: string, state: IMessage): string {
+    return this.#getIndexDataForState(chainId, state).filter.topics[0] as string
   }
 }

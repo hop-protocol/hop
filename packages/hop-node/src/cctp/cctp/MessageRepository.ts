@@ -1,68 +1,37 @@
 import { EventEmitter } from 'node:events'
-import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, IMessageDataRepository } from './types.js'
+import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes } from './types.js'
 import type { LogWithChainId } from '../types.js'
 import { Message } from './Message.js'
-import { MessageState } from './MessageManager.js'
-import { getTimestampFromBlockNumberMs } from './utils.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { MessageIndexer } from './MessageIndexer.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { Repository } from '../repository/Repository.js'
+import { MessageState } from './types.js'
+import type { IMessage } from './types.js'
 
-
-// Since the messages are unique by chainId, his MessageDataRepository should be the
+// Since the messages are unique by chainId, his MessageRepository should be the
 // class that abstracts this away.
 
 // from datastore
-export class MessageDataRepository<T, U> extends Repository<T, U> {
-  readonly #indexer: MessageIndexer<T>
+export class MessageRepository extends Repository<MessageState, IMessage> {
+  readonly #indexer: MessageIndexer
   readonly #eventEmitter: EventEmitter = new EventEmitter()
 
-  constructor (states: T[], chains: ChainSlug[]) {
+  constructor (indexer: MessageIndexer) {
     super()
 
-    this.#indexer = new MessageIndexer(states, chains)
+    this.#indexer = indexer
     this.#indexer.on(Repository.ITEM_CREATED, this.#handleInitialEvent)
   }
 
-  // TODO: Value and resp are different U
-  async getItem(state: T, value: U): Promise<U | undefined> {
-    const chainId = this.#getChainIdForItem(state, value)
-    const transitionKey = this.#getIndexForItem(state, value)
-    // TODO: err handle
-    const eventData: LogWithChainId | undefined = await this.#indexer.getData(chainId, state, transitionKey)
-    if (!eventData) return
+  async start(): Promise<void> {
+    this.#indexer.start()
+  }
 
-    // TODO: Probably fmt, not prs
+  // TODO: Value and resp are different IMessage
+  async getItem(state: MessageState, value: IMessage): Promise<IMessage> {
+    const eventData: LogWithChainId = await this.#indexer.getData(state, value)
     return this.#parseEventData(state, eventData)
-  }
-
-  /**
-   * Public interface
-   */
-
-  // TODO: Multiple indicies?
-  async getData (chainId: string, index: string): Promise<IOnchainEventStoreRes | undefined> {
-    return this.#db.getIndexedDataBySecondIndex(chainId, index)
-  }
-
-  // TODO: needs more than chainId. What if there are multiple bridges deployed on the same chain
-  #getChainIdForItem (state: T, value: U): string {
-    if (MessageState.Sent === state) {
-      return value.sourceChainId
-    } else if (MessageState.Attested === state) {
-      return value.destinationChainId
-    }
-    throw new Error('Invalid state')
-  }
-
-  #getIndexForItem (state: T, value: U): string {
-    if (MessageState.Sent === state) {
-      throw new Error('No transition data key for initial state')
-    } else if (MessageState.Relayed === state) {
-      return key
-    }
-    throw new Error('Invalid state')
   }
 
   /**
@@ -79,13 +48,13 @@ export class MessageDataRepository<T, U> extends Repository<T, U> {
   }
 
   /**
-   * Initialization
+   * Parsing
    */
 
-  async #parseInitializationLog (transferSentLog: LogWithChainId): Promise<U> {
+  async #parseInitializationLog (transferSentLog: LogWithChainId): Promise<IMessage> {
     // TODO: Is this chainId string or number
     const { transactionHash, chainId, blockNumber } = transferSentLog
-    const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
+    const timestampMs = await this.#getTimestampFromBlockNumberMs(chainId, blockNumber)
     const {
       message,
       cctpNonce,
@@ -99,16 +68,10 @@ export class MessageDataRepository<T, U> extends Repository<T, U> {
       destinationChainId,
       sentTxHash: transactionHash,
       sentTimestampMs: timestampMs
-    } as U
+    } as IMessage
   }
 
-  /**
-   * State transition
-   */
-
-
-
-  async #parseEventData (state: T, data: IGetStoreDataRes): Promise<U> {
+  async #parseEventData (state: MessageState, data: IGetStoreDataRes): Promise<IMessage> {
     if (MessageState.Sent === state) {
       // TODO
       const res = data as IAPIEventStoreRes
@@ -122,7 +85,7 @@ export class MessageDataRepository<T, U> extends Repository<T, U> {
     throw new Error('Invalid state')
   }
 
-  async #parseOnchainEventData (state: T, log: IOnchainEventStoreRes): Promise<U> {
+  async #parseOnchainEventData (state: MessageState, log: IOnchainEventStoreRes): Promise<IMessage> {
     const logState = this.#getLogState(log.topics[0])
     if (!logState) {
      throw new Error('Invalid log')
@@ -136,7 +99,7 @@ export class MessageDataRepository<T, U> extends Repository<T, U> {
     }
   }
 
-  async #parseLogForState (state: MessageState, log: LogWithChainId): Promise<U> {
+  async #parseLogForState (state: MessageState, log: LogWithChainId): Promise<IMessage> {
     switch (state) {
       case MessageState.Relayed:
         return this.#parseRelayedLog(log)
@@ -144,26 +107,30 @@ export class MessageDataRepository<T, U> extends Repository<T, U> {
     throw new Error('Invalid state')
   }
 
-  async #parseRelayedLog (log: LogWithChainId): Promise<U> {
+  async #parseRelayedLog (log: LogWithChainId): Promise<IMessage> {
     // TODO: Is this chainId string or number
     const { transactionHash, chainId, blockNumber } = log
-    const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
+    const timestampMs = await this.#getTimestampFromBlockNumberMs(chainId, blockNumber)
     return {
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
-    } as U
+    } as IMessage
   }
 
-  #parseApiEventData (attestation: IAPIEventStoreRes): U {
+  #parseApiEventData (attestation: IAPIEventStoreRes): IMessage {
     return {
       attestation
-    } as U
+    } as IMessage
   }
-}
 
-export async function getTimestampFromBlockNumberMs (chainId: string, blockNumber: number): Promise<number> {
-  const chainSlug = getChain(chainId).slug
-  const provider = getRpcProvider(chainSlug as ChainSlug)
-  const block = await provider.getBlock(blockNumber)
-  return block.timestamp * 1000
+  /**
+   * Utils
+   */
+
+  async #getTimestampFromBlockNumberMs (chainId: string, blockNumber: number): Promise<number> {
+    const chainSlug = getChain(chainId).slug
+    const provider = getRpcProvider(chainSlug as ChainSlug)
+    const block = await provider.getBlock(blockNumber)
+    return block.timestamp * 1000
+  }
 }

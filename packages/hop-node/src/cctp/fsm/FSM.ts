@@ -18,25 +18,27 @@ export abstract class FSM<State extends string, StateData>{
   readonly #stateDB: StateMachineDB<State, string, StateData>
   readonly #dataRepository: Repository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
-  isFSMInitialized: boolean = false
 
   protected abstract isTransitionReady(state: State, value: StateData): boolean
 
   constructor (
-    states: State[],
     stateMachineName: string,
+    states: State[],
     dataRepository: Repository<State, StateData>
   ) {
-    this.#states = states
     this.#stateDB = new StateMachineDB(stateMachineName)
+    this.#states = states
     this.#dataRepository = dataRepository
   }
 
-  async start(): Promise<void> {
+  async init(): Promise<void> {
     await this.#init()
+  }
+    
+  start (): void {
     this.#startListeners()
     this.#startPollers()
-    this.isFSMInitialized = true
+    this.#dataRepository.start()
   }
 
   /**

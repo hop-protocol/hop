@@ -3,6 +3,10 @@ export abstract class Repository<T, U> {
   static readonly ITEM_CREATED: string = 'itemCreated'
   abstract on(event: string, listener: (...args: any[]) => void): void
 
+  // Init
+  abstract start (): Promise<void>
+
+  // TODO: Diff U
   // Getters
-  abstract getItem(state: T, value: U): Promise<U | undefined>
+  abstract getItem(primaryIndex: T, secondaryIndex: U): Promise<U | undefined>
 }

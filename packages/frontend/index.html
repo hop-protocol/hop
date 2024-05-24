@@ -56,6 +56,11 @@
     <script type="module">
       import { Buffer } from "buffer";
       window.Buffer = Buffer;
+
+      // Note: this is needed by some of the L2 sdks on the relay page.
+      if (!window.process) {
+        window.process = {};
+      }
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <!--

@@ -4,10 +4,11 @@ import { OnchainEventIndexer, type RequiredEventFilter } from '../indexer/Onchai
 import type { LogWithChainId } from '../types.js'
 import { DataStore } from '../data-store/DataStore.js'
 import { MessageState, IMessage } from './types.js'
+import { IDB } from '../db/DB.js'
 
 interface IndexerData {
   filter: RequiredEventFilter
-  indexName: string
+  indexName: keyof IMessage
 }
 
 /**
@@ -21,8 +22,8 @@ export class MessageIndexer extends OnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #initialEventTopic: string
 
-  constructor (states: MessageState[], chainIds: string[]) {
-    super()
+  constructor (db: IDB, states: MessageState[], chainIds: string[]) {
+    super(db)
 
     // TODO: Get from SDK
     this.#initialEventTopic = Message.HOP_CCTP_TRANSFER_SENT_SIG
@@ -43,7 +44,8 @@ export class MessageIndexer extends OnchainEventIndexer {
     const chainId: string = this.#getChainIdForItem(state, value)
     const eventSig = this.#getEventSigForState(chainId, state)
     const indexName = this.#getIndexerData(chainId, state).indexName
-    return this.getItem(eventSig, chainId, value[indexName])
+    const indexValue = value[indexName as keyof IMessage] as string
+    return this.getItem(eventSig, chainId, indexValue)
   }
 
   /**
@@ -72,13 +74,11 @@ export class MessageIndexer extends OnchainEventIndexer {
     if (MessageState.Sent === state) {
       return {
         filter: Message.getCCTPTransferSentEventFilter(chainId),
-        // TODO: This should be Pick<>
         indexName: 'nonce'
       }
     } else if (MessageState.Attested === state) {
       return {
         filter: Message.getMessageReceivedEventFilter(chainId),
-        // TODO: This should be Pick<>
         indexName: 'nonce'
       }
     }
@@ -86,6 +86,22 @@ export class MessageIndexer extends OnchainEventIndexer {
   }
 
   #getEventSigForState (chainId: string, state: IMessage): string {
-    return this.#getIndexDataForState(chainId, state).filter.topics[0] as string
+    return this.#getIndexerData(chainId, state).filter.topics[0] as string
+  }
+
+  #getChainIdForItem (state: IMessage, value: IMessage): string {
+    let chainId: string
+    if (MessageState.Sent === state) {
+      chainId = value?.sourceChainId
+    } else if (MessageState.Attested === state) {
+      chainId = value?.destinationChainId
+    } else {
+      throw new Error('Invalid state')
+    }
+
+    if (!chainId) {
+      throw new Error('Invalid chainId')
+    }
+    return chainId
   }
 }

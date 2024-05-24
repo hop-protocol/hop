@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { IDataStore, IGetStoreDataRes, IOnchainEventStoreRes } from './types.js'
+import { IGetStoreDataRes, IOnchainEventStoreRes } from './types.js'
 import type { LogWithChainId } from '../types.js'
 import { Message } from './Message.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'

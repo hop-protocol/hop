@@ -14,7 +14,7 @@ export class MessageFSM extends FSM<MessageState, IMessage> {
   readonly #inFlightTxCache: Set<string> = new Set()
   readonly #pollIntervalMs: number = 60_000
 
-  override async start(): Promise<void> {
+  override start(): void {
     super.start()
     this.#startPollers()
   }

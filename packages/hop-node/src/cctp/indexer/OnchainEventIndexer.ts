@@ -6,6 +6,7 @@ import type { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import type { LogWithChainId } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
+import { IDB } from '#cctp/db/DB.js'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
@@ -15,7 +16,7 @@ export type RequiredFilter = Required<providers.Filter>
  */
 
 export abstract class OnchainEventIndexer {
-  #db: OnchainEventIndexerDB = new OnchainEventIndexerDB('TODO')
+  #db: OnchainEventIndexerDB
   #eventFilter: RequiredEventFilter
   #chain: ChainSlug
   #indexName: string
@@ -28,6 +29,11 @@ export abstract class OnchainEventIndexer {
 
   // TODO
   protected abstract handleEvent?(topic: string, data: any): any
+
+  constructor (db: IDB) {
+    // TODO: This class shouldn't care about sublevels
+    this.#db = db.sublevel('onchain-event-indexer')
+  }
 
   protected initIndexer (
     chain: ChainSlug,

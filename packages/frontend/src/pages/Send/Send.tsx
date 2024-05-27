@@ -2,7 +2,7 @@ import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import Box from '@mui/material/Box'
 import CustomRecipientDropdown from './CustomRecipientDropdown.js'
 import IconButton from '@mui/material/IconButton'
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import SendAmountSelectorCard from '#pages/Send/SendAmountSelectorCard.js'
 import SendHeader from './SendHeader.js'
 import SendIcon from '@mui/icons-material/Send'
@@ -20,6 +20,7 @@ import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useSend } from '#pages/Send/useSend.js'
 import { useSendStyles } from './useSendStyles.js'
+import { useV2Send } from '#hooks/useV2Send.js'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -91,6 +92,55 @@ const Send: FC = () => {
     tx,
     warning,
   } = useSend()
+  const {
+    tokenList: v2TokenList,
+    needsApproval: v2NeedsApproval,
+    approveTokens: v2ApproveTokens,
+    sendTokens: v2SendTokens,
+    sendReady: v2SendReady,
+    tokenSymbol: v2TokenSymbol,
+    setTokenSymbol: setV2TokenSymbol,
+    setAmountIn: setV2AmountIn,
+    fromChainId: v2FromChainId,
+    setFromChainId: setV2FromChainId,
+    toChainId: v2ToChainId,
+    setToChainId: setV2ToChainId,
+    setRecipient: setV2Recipient,
+  } = useV2Send()
+
+  const test = false
+
+  // test
+  useEffect(() => {
+    if (!test) {
+      return
+    }
+    console.log('v2 tokenList', v2TokenList)
+    setV2TokenSymbol('MOCK')
+    setV2AmountIn('1')
+    setV2FromChainId('11155111')
+    setV2ToChainId('11155420')
+    setV2Recipient(accountAddress?.toString())
+  }, [v2TokenList, accountAddress])
+  useEffect(() => {
+    if (!test) {
+      return
+    }
+    async function update() {
+      if (!accountAddress) {
+        return
+      }
+      if (v2NeedsApproval) {
+        console.log('v2 needs token approval')
+        await v2ApproveTokens()
+      }
+      if (v2SendReady) {
+        //console.log('v2 send tokens')
+        //await v2SendTokens()
+      }
+    }
+    update().catch(console.error)
+  }, [accountAddress, v2TokenSymbol, v2NeedsApproval, v2SendReady, v2ApproveTokens, v2SendTokens])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

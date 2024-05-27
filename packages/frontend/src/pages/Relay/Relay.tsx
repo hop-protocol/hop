@@ -55,7 +55,7 @@ export const Relay: FC = () => {
   const { sdk, networks, txConfirm, bridges, selectedBridge, setSelectedBridge } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
   const { queryParams } = useQueryParams()
-  const [transferId, setTransferId] = useState<string>(() => {
+  const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
     return queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
@@ -67,12 +67,12 @@ export const Relay: FC = () => {
   useEffect(() => {
     try {
       updateQueryParams({
-        transferId: transferId || ''
+        transferId: transferIdOrTxHash || ''
       })
     } catch (err: any) {
       console.error(err)
     }
-  }, [transferId])
+  }, [transferIdOrTxHash])
 
   const handleBridgeChange = (event: any) => {
     const tokenSymbol = event.target.value as string
@@ -99,11 +99,24 @@ export const Relay: FC = () => {
           }
           const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
-          const token = selectedBridge.getTokenSymbol()
+          let token = selectedBridge.getTokenSymbol()
+          if (token === 'USDC.e') {
+            token = 'USDC' // it needs to be USDC for graph lookups for USDC.e
+          }
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
           console.log('token', token)
+          let transferId = transferIdOrTxHash
+          const transferStatus = await sdk.getTransferStatus(transferId)
+          console.log('transferStatus', transferStatus)
+          const bonded = transferStatus?.[0]?.bonded
+          if (bonded) {
+            throw new Error(`The transfer has already been bonded or withdrawn. There's no need to relay.`)
+          }
+          if (transferStatus?.[0]?.transferId && transferStatus?.[0]?.transferId !== transferId) {
+            transferId = transferStatus?.[0]?.transferId
+          }
           let commitTxHash = '' // for debugging
           if (!commitTxHash) {
             const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
@@ -111,15 +124,9 @@ export const Relay: FC = () => {
             commitTxHash = event?.transactionHash
           }
           if (!commitTxHash) {
-            throw new Error('The commit tx hash not found for transfer. This means the transfer root has not been committed yet.')
+            throw new Error('The commit transaction hash was not found for this transfer, which is required for the relay. This means the transfer root has not been committed yet and it will just take a little longer. Your funds are safe.')
           }
           console.log('commitTxHash', commitTxHash)
-          const transferStatus = await sdk.getTransferStatus(transferId)
-          console.log('transferStatus', transferStatus)
-          const bonded = transferStatus?.[0]?.bonded
-          if (bonded) {
-            // throw new Error('The transfer has already been bonded or withdrawn. No need to relay.')
-          }
           setCommitTxHashForTransferId(commitTxHash)
           const relayer = getRelayer(reactAppNetwork as NetworkSlug, selectedNetwork.slug as ChainSlug, l1Wallet, l2Wallet)
           const tx = await relayer.relayL2ToL1Message(commitTxHash)
@@ -138,7 +145,7 @@ export const Relay: FC = () => {
   }
 
   function handleInputChange(event: ChangeEvent<any>) {
-    setTransferId(event.target.value)
+    setTransferIdOrTxHash(event.target.value)
   }
 
   return (
@@ -207,7 +214,7 @@ export const Relay: FC = () => {
               </Box>
             </Typography>
             <LargeTextField
-              value={transferId}
+              value={transferIdOrTxHash}
               onChange={handleInputChange}
               placeholder="0x123"
               smallFontSize

@@ -1,8 +1,16 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
-import { useWeb3Context } from '#contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 import { providers } from 'ethers'
+
+type ApproveTokensInput = {
+  fromChainId: string
+  toChainId: string
+  fromToken: string
+  toToken: string
+  amount: string
+}
 
 type SendTokensInput = {
   fromChainId: string
@@ -14,25 +22,13 @@ type SendTokensInput = {
   minAmountOut: string
 }
 
-type ApproveTokensInput = {
-  fromChainId: string
-  toChainId: string
-  fromToken: string
-  toToken: string
-  amount: string
-}
-
 type V2Hook = {
   v2Sdk: Hop | null
-  tx: providers.TransactionRequest | null
-  sendTokens: (input: SendTokensInput) => Promise<void>
-  approveTokens: (input: ApproveTokensInput) => Promise<void>
-  tokenList: string[]
+  sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
+  getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
+  approveTokens: (input: ApproveTokensInput) => Promise<providers.TransactionResponse>
   getTokenAddress: (chainId: string, tokenSymbol: string) => string
-  fromChainId: string
-  setFromChainId: (chainId: string) => void
-  toChainId: string
-  setToChainId: (chainId: string) => void
+  getTokenList: (fromChainId: string) => string[]
 }
 
 // TODO: pull from a token list
@@ -50,25 +46,75 @@ const tokenListByChain = {
 }
 
 export function useV2(): V2Hook {
-  const { account, provider } = useWeb3Context()
+  const { address, provider } = useWeb3Context()
   const [v2Sdk, setV2Sdk] = useState<Hop | undefined>()
-  const [tx, setTx] = useState<providers.TransactionRequest | null>(null)
-  const [fromChainId, setFromChainId] = useState<string>(Object.keys(tokenListByChain[reactAppNetwork])[0])
-  const [toChainId, setToChainId] = useState<string>(Object.keys(tokenListByChain[reactAppNetwork])[1])
-  const tokenList = useMemo(() => {
-    return Object.keys(tokenListByChain[reactAppNetwork][fromChainId]).sort()
-  }, [fromChainId])
 
-  function getTokenAddress (chainId: string, tokenSymbol: string) {
+  useEffect(() => {
+    const hop = new Hop({
+      network: reactAppNetwork,
+      signer: provider?.getSigner(),
+    })
+    setV2Sdk(hop)
+  }, [address, provider])
+
+  function getTokenList (fromChainId?: string) {
+    let list : Set<string> = new Set<string>([])
+
+    if (!fromChainId) {
+      for (const chainId in tokenListByChain[reactAppNetwork]) {
+        for (const token in tokenListByChain[reactAppNetwork][chainId]) {
+          list.add(token)
+        }
+      }
+    } else {
+      for (const token in tokenListByChain[reactAppNetwork][fromChainId]) {
+        list.add(token)
+      }
+    }
+
+    return Array.from(list)
+  }
+
+  function getTokenAddress (chainId: string, tokenSymbol: string): string {
     return tokenListByChain[reactAppNetwork][chainId][tokenSymbol]
   }
 
-  async function approveTokens (input: ApproveTokensInput) {
+  async function getNeedsApprovalForSendTokens (input: ApproveTokensInput): Promise<boolean> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }
 
-    setTx(null)
+    if (!address) {
+      throw new Error('Account is not connected')
+    }
+
+    const {
+      fromChainId,
+      fromToken,
+      toChainId,
+      toToken,
+      amount
+    } = input
+
+    const needs = await v2Sdk.getNeedsApprovalForSendTokens({
+      fromChainId,
+      fromToken,
+      toChainId,
+      toToken,
+      amount
+    })
+
+    return needs
+  }
+
+  async function approveTokens (input: ApproveTokensInput): Promise<providers.TransactionResponse> {
+    if (!v2Sdk) {
+      throw new Error('Hop SDK not initialized')
+    }
+
+    if (!address) {
+      throw new Error('Account is not connected')
+    }
 
     const {
       fromChainId,
@@ -86,15 +132,17 @@ export function useV2(): V2Hook {
       amount
     })
 
-    setTx(tx)
+    return tx
   }
 
-  async function sendTokens (input: SendTokensInput) {
+  async function sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }
 
-    setTx(null)
+    if (!address) {
+      throw new Error('Account is not connected')
+    }
 
     const {
       fromChainId,
@@ -106,7 +154,7 @@ export function useV2(): V2Hook {
       minAmountOut
     } = input
 
-    const needsApproval = await v2Sdk.getNeedsApprovalForSendTokens({
+    const needsApproval = await getNeedsApprovalForSendTokens({
       fromChainId,
       fromToken,
       toChainId,
@@ -128,27 +176,15 @@ export function useV2(): V2Hook {
       minAmountOut
     })
 
-    setTx(tx)
+    return tx
   }
-
-  useEffect(() => {
-    const hop = new Hop({
-      network: reactAppNetwork,
-      signer: provider?.getSigner(),
-    })
-    setV2Sdk(hop)
-  }, [account, provider])
 
   return {
     v2Sdk,
-    tx,
     sendTokens,
     approveTokens,
-    tokenList,
+    getNeedsApprovalForSendTokens,
     getTokenAddress,
-    fromChainId,
-    setFromChainId,
-    toChainId,
-    setToChainId
+    getTokenList
   }
 }

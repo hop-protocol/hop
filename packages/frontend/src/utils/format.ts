@@ -81,6 +81,8 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('no matching key')) { // https://github.com/WalletConnect/walletconnect-monorepo/issues/1772
     errMsg = `A WalletConnect error occurred. This may be an issue with the Wallet you are using. Error: ${errMsg}`
+  } else if (errMsg.includes('wrong network connected')) {
+    errMsg = `Please check your wallet is connected to the correct network ${network?.slug ?? ''} and try again. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

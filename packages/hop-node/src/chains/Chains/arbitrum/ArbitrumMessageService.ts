@@ -28,7 +28,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       const overrides: Overrides = {
         gasLimit: DEFAULT_L2_RELAY_GAS_LIMIT
       }
-      return (message as L1ToL2MessageWriter).redeem()
+      return (message as L1ToL2MessageWriter).redeem(overrides)
     }
 
     const overrides: Overrides = {

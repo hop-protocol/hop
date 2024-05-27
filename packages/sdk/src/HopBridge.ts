@@ -304,6 +304,10 @@ export class HopBridge extends Base {
       address = this.getL2CanonicalTokenAddress(token.symbol, chain)
     }
 
+    if (!address) {
+      throw new Error(`Route not supported. Token address not found for ${token.symbol} on ${chain.name}.`)
+    }
+
     return new Token({
       network,
       chain,

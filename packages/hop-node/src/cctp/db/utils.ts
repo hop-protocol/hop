@@ -21,11 +21,11 @@ export function getDbPathForNameOrLocation (dbNameOrLocation: string): string {
 // TODO: Get these from more persistent config
 export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
-    [ChainSlug.Ethereum]: 19786200, //19447854,
-    [ChainSlug.Optimism]: 119550000, //117499078,
-    [ChainSlug.Arbitrum]: 207240000, //190986712,
-    [ChainSlug.Base]: 13956000, //11903793,
-    [ChainSlug.Polygon]: 56513000, //54729294
+    [ChainSlug.Ethereum]: 19970000, // 19786200, //19447854,
+    [ChainSlug.Optimism]: 120660000, // 119550000, //117499078,
+    [ChainSlug.Arbitrum]: 216000000, // 207240000, //190986712,
+    [ChainSlug.Base]: 15065000, // 13956000, //11903793,
+    [ChainSlug.Polygon]: 57499000, // 56513000, //54729294
   },
   [NetworkSlug.Sepolia]: {
     [ChainSlug.Ethereum]: 5498073,

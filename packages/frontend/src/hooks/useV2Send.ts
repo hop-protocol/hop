@@ -1,69 +1,106 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Hop } from '@hop-protocol/v2-sdk'
-import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
-import { BigNumber, providers, utils } from 'ethers'
+import { useApp } from '#contexts/AppContext/index.js'
+import { BigNumber, providers, utils, Contract } from 'ethers'
 import { useV2 } from './useV2.js'
 import { formatError } from '#utils/format.js'
 import {
-  GnosisSafeWarning,
-  useApprove,
-  useAssets,
-  useAsyncMemo,
   useBalance,
-  useDisableTxs,
-  useEstimateTxCost,
   useFeeConversions,
-  useGnosisSafeTransaction,
-  useNeedsTokenForFee,
-  useQueryParams,
-  useSufficientBalance,
-  useTxResult
 } from '#hooks/index.js'
 
-const { parseUnits } = utils
+const { formatUnits, parseUnits } = utils
 
 type V2SendHook = {
   accountAddress: string | null
-  tx: providers.TransactionRequest | null
-  setTx: (tx: providers.TransactionRequest | null) => void
-  sendTokens: () => Promise<void>
-  sendReady: boolean
-  needsApproval: boolean
-  approveTokens: () => Promise<void>
-  tokenList: string[]
-  fromChainId: string
-  setFromChainId: (chainId: string) => void
-  toChainId: string
-  setToChainId: (chainId: string) => void
-  tokenSymbol: string | null
-  setTokenSymbol: (symbol: string) => void
   amountIn: string | null
-  setAmountIn: (amount: string) => void
-  recipient: string | null
-  setRecipient: (recipient: string) => void
+  approveReady: boolean
+  approveTokens: () => Promise<void>
+  bonderFee: BigNumber
+  bonderFeeDisplay: string
+  bonderFeeUsdDisplay: string
+  chains: any[]
   error: string
-  setError: (error: string) => void
-  info: string
-  setInfo: (info: string) => void
-  warning: string
-  setWarning: (warning: string) => void
-  isApproving: boolean
-  isSending: boolean
+  estimatedReceivedDisplay: string
+  estimatedReceivedUsdDisplay: string
+  fromChain: any
+  fromChainId: string
+  fromToken: Token | null
   fromTokenBalance: BigNumber | null
-  toTokenBalance: BigNumber | null
+  handleApprove: () => void
+  handleFromChainChange: (network: any) => void
+  handleRecipientInput: (event: any) => void
+  handleSwitchDirection: () => void
+  handleToChainChange: (network: any) => void
+  handleTokenChange: (event: any) => void
+  info: string
+  isApproving: boolean
   isLoadingFromTokenBalance: boolean
   isLoadingToTokenBalance: boolean
+  isSending: boolean
+  needsApproval: boolean
+  recipient: string | null
+  sendReady: boolean
+  sendTokens: () => Promise<void>
+  setAmountIn: (amount: string) => void
+  setError: (error: string) => void
+  setFromChainId: (chainId: string) => void
+  setInfo: (info: string) => void
+  setRecipient: (recipient: string) => void
+  setToChainId: (chainId: string) => void
+  setTokenSymbol: (symbol: string) => void
+  setTx: (tx: providers.TransactionResponse | null) => void
+  setWarning: (warning: string) => void
+  toChain: any
+  toChainId: string
+  toToken: Token | null
+  toTokenAmount: string
+  toTokenBalance: BigNumber | null
+  tokenList: string[]
+  tokenSymbol: string | null
+  totalFeeDisplay: string
+  totalFeeUsdDisplay: string
+  tx: providers.TransactionResponse | null
+  warning: string
+}
+
+class Token {
+  address: string
+  decimals: number
+  symbol: string
+  contract: Contract
+
+  constructor (contract: Contract) {
+    this.contract = contract
+    this.address = contract.address
+    this.init().catch(console.error)
+  }
+
+  async init() {
+    this.decimals = await this.contract.decimals()
+    this.symbol = await this.contract.symbol()
+  }
+
+  async balanceOf (address: string) {
+    return this.contract.balanceOf(address)
+  }
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getTokenList, getTokenAddress } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const {
+    networks
+  } = useApp()
   const { address, provider } = useWeb3Context()
   const [tx, setTx] = useState<providers.TransactionResponse | null>(null)
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null)
   const [tokenList, setTokenList] = useState<string[]>([])
   const [fromTokenAddress, setFromTokenAddress] = useState<string | null>(null)
+  const [fromTokenName, setFromTokenName] = useState<string | null>(null)
+  const [fromTokenDecimals, setFromTokenDecimals] = useState<number | null>(null)
   const [toTokenAddress, setToTokenAddress] = useState<string | null>(null)
+  const [toTokenName, setToTokenName] = useState<string | null>(null)
+  const [toTokenDecimals, setToTokenDecimals] = useState<number | null>(null)
   const [fromChainId, setFromChainId] = useState<string | null>(null)
   const [toChainId, setToChainId] = useState<string | null>(null)
   const [amountIn, setAmountIn] = useState<string | null>(null)
@@ -72,11 +109,13 @@ export function useV2Send(): V2SendHook {
   const [recipient, setRecipient] = useState<string | null>(null)
   const [needsApproval, setNeedsApproval] = useState<boolean>(false)
   const [sendReady, setSendReady] = useState<boolean>(false)
+  const [approveReady, setApproveReady] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [warning, setWarning] = useState<string>('')
   const [info, setInfo] = useState<string>('')
   const [isApproving, setIsApproving] = useState<boolean>(false)
   const [isSending, setIsSending] = useState<boolean>(false)
+  const [bonderFee, setBonderFee] = useState<BigNumber | null>(null)
 
   useEffect(() => {
     const list = getTokenList()
@@ -84,27 +123,34 @@ export function useV2Send(): V2SendHook {
   }, [])
 
   useEffect(() => {
-    if (amountIn) {
-      const tokenDecimals = 18 // TODO
-      setParsedAmountIn(parseUnits(amountIn, tokenDecimals).toString())
+    if (amountIn && fromTokenDecimals) {
+      setParsedAmountIn(parseUnits(amountIn, fromTokenDecimals).toString())
     } else {
       setParsedAmountIn('0')
     }
-  }, [amountIn])
+  }, [amountIn, fromTokenDecimals])
 
   useEffect(() => {
     if (tokenSymbol && fromChainId) {
       setFromTokenAddress(getTokenAddress(fromChainId, tokenSymbol))
+      setFromTokenName(getTokenName(fromChainId, tokenSymbol))
+      setFromTokenDecimals(getTokenDecimals(fromChainId, tokenSymbol))
     } else {
       setFromTokenAddress(null)
+      setFromTokenName(null)
+      setFromTokenDecimals(null)
     }
   }, [tokenSymbol, fromChainId])
 
   useEffect(() => {
     if (tokenSymbol && toChainId) {
       setToTokenAddress(getTokenAddress(toChainId, tokenSymbol))
+      setToTokenName(getTokenName(toChainId, tokenSymbol))
+      setToTokenDecimals(getTokenDecimals(toChainId, tokenSymbol))
     } else {
       setToTokenAddress(null)
+      setToTokenName(null)
+      setToTokenDecimals(null)
     }
   }, [tokenSymbol, toChainId])
 
@@ -180,57 +226,158 @@ export function useV2Send(): V2SendHook {
     setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0')
   }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn])
 
+  useEffect(() => {
+    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0')
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn])
+
   const accountAddress = address?.toString() ?? null
 
   const fromToken = useMemo(() => {
     if (!(fromChainId && fromTokenAddress)) {
       return null
     }
-    console.log('here00', fromChainId, fromTokenAddress)
-    return v2Sdk?.railsGateway.getTokenContract({ chainId: fromChainId, address: fromTokenAddress })
+    const contract = v2Sdk?.railsGateway.getTokenContract({ chainId: fromChainId, address: fromTokenAddress })
+    return new Token(contract)
   }, [fromChainId, fromTokenAddress])
 
   const toToken = useMemo(() => {
     if (!(toChainId && toTokenAddress)) {
       return null
     }
-    return v2Sdk?.railsGateway.getTokenContract({ chainId: toChainId, address: toTokenAddress })
+    const contract = v2Sdk?.railsGateway.getTokenContract({ chainId: toChainId, address: toTokenAddress })
+    return new Token(contract)
   }, [toChainId, toTokenAddress])
 
-  // Get token balances for both networks
-  const { balance: fromTokenBalance, loading: isLoadingFromTokenBalance } = useBalance(fromToken, accountAddress, fromChainId)
-  const { balance: toTokenBalance, loading: isLoadingToTokenBalance } = useBalance(toToken, accountAddress, toChainId)
+  const feeToken = useMemo(() => {
+    return {
+      symbol: 'ETH',
+      decimals: 18
+    }
+  }, [])
+
+  const { balance: fromTokenBalance, loading: isLoadingFromTokenBalance } = useBalance(fromToken as any, accountAddress, fromChainId)
+  const { balance: toTokenBalance, loading: isLoadingToTokenBalance } = useBalance(toToken as any, accountAddress, toChainId)
+
+  useEffect(() => {
+    async function update() {
+      if (fromChainId && toChainId && fromTokenAddress && toTokenAddress) {
+        const fee = await getFee({
+          fromChainId,
+          toChainId,
+          fromToken: fromTokenAddress,
+          toToken: toTokenAddress
+        })
+        setBonderFee(fee)
+      } else {
+        setBonderFee(null)
+      }
+    }
+
+    update().catch(console.error)
+  }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress])
+
+  const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
+  const toChain = networks.find(network => network.networkId?.toString() === toChainId)
+  const chains = getChainsSupportedByToken(tokenSymbol).map(chainId => networks.find(network => network.networkId?.toString() === chainId))
+
+  const amountInBn = BigNumber.from(parsedAmountIn)
+  const estimatedReceived = amountInBn
+
+  const {
+    bonderFeeDisplay,
+    bonderFeeUsdDisplay,
+    totalFeeDisplay,
+    totalFeeUsdDisplay,
+    estimatedReceivedUsdDisplay,
+    estimatedReceivedDisplay
+  } = useFeeConversions({
+    bonderFee: bonderFee,
+    feeToken,
+    destToken: toToken,
+    estimatedReceived,
+  })
+
+  const toTokenAmount = formatUnits(estimatedReceived, toTokenDecimals)
+
+  function handleTokenChange(event: any) {
+    setTokenSymbol(event.target.value)
+  }
+  function handleFromChainChange(network: any) {
+    if (network.networkId?.toString() === toChainId) {
+      handleSwitchDirection()
+    } else {
+      setFromChainId(network.networkId.toString())
+    }
+  }
+  function handleToChainChange(network: any) {
+    if (network.networkId?.toString() === fromChainId) {
+      handleSwitchDirection()
+    } else {
+      setToChainId(network.networkId.toString())
+    }
+  }
+  function handleSwitchDirection() {
+    setAmountIn('')
+    setFromChainId(toChainId)
+    setToChainId(fromChainId)
+  }
+  function handleRecipientInput(event: any) {
+    setRecipient(event.target.value)
+  }
+  function handleApprove() {
+    approveTokens()
+  }
 
   return {
     accountAddress,
-    tx,
-    setTx,
-    sendTokens,
-    sendReady,
-    needsApproval,
+    amountIn,
+    approveReady,
     approveTokens,
+    bonderFee,
+    bonderFeeDisplay,
+    bonderFeeUsdDisplay,
+    chains,
+    error,
+    estimatedReceivedDisplay,
+    estimatedReceivedUsdDisplay,
+    fromChain,
     fromChainId,
+    fromToken,
+    fromTokenBalance,
+    handleApprove,
+    handleFromChainChange,
+    handleRecipientInput,
+    handleSwitchDirection,
+    handleToChainChange,
+    handleTokenChange,
+    info,
+    isApproving,
+    isLoadingFromTokenBalance,
+    isLoadingToTokenBalance,
+    isSending,
+    needsApproval,
+    recipient,
+    sendReady,
+    sendTokens,
+    setAmountIn,
+    setError,
     setFromChainId,
-    toChainId,
+    setInfo,
+    setRecipient,
     setToChainId,
+    setTokenSymbol,
+    setTx,
+    setWarning,
+    toChain,
+    toChainId,
+    toToken,
+    toTokenAmount,
+    toTokenBalance,
     tokenList,
     tokenSymbol,
-    setTokenSymbol,
-    amountIn,
-    setAmountIn,
-    recipient,
-    setRecipient,
-    error,
-    setError,
+    totalFeeDisplay,
+    totalFeeUsdDisplay,
+    tx,
     warning,
-    setWarning,
-    info,
-    setInfo,
-    isApproving,
-    isSending,
-    fromTokenBalance,
-    toTokenBalance,
-    isLoadingFromTokenBalance,
-    isLoadingToTokenBalance
   }
 }

@@ -46,7 +46,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
     loadingBalance = false,
     loadingValue = false,
     disableInput = false,
-    deadline,
+    deadline = 0,
     setWarning,
     maxButtonFixedAmountToSubtract
   } = props
@@ -132,7 +132,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
 
       <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" className={styles.mobileFlexColumn}>
         <Box width="45%" overflow="hidden" className={styles.mobileFlexColumn}>
-          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
+          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} availableNetworks={networkOptions} />
         </Box>
         <Box width="55%" className={styles.mobileFlexColumn}>
           <LargeTextField

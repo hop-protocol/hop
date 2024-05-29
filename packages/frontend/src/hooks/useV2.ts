@@ -2,45 +2,72 @@ import React, { useEffect, useState } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
-import { providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 
 type ApproveTokensInput = {
-  fromChainId: string
-  toChainId: string
-  fromToken: string
-  toToken: string
   amount: string
+  fromChainId: string
+  fromToken: string
+  toChainId: string
+  toToken: string
 }
 
 type SendTokensInput = {
-  fromChainId: string
-  toChainId: string
-  fromToken: string
-  toToken: string
-  to: string
   amount: string
+  fromChainId: string
+  fromToken: string
   minAmountOut: string
+  to: string
+  toChainId: string
+  toToken: string
+}
+
+type GetFeeInput = {
+  fromChainId: string
+  fromToken: string
+  toChainId: string
+  toToken: string
 }
 
 type V2Hook = {
-  v2Sdk: Hop | null
-  sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
-  getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
   approveTokens: (input: ApproveTokensInput) => Promise<providers.TransactionResponse>
+  getChainsSupportedByToken: (tokenSymbol: string) => string[]
+  getFee: (input: GetFeeInput) => Promise<BigNumber>
+  getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
   getTokenAddress: (chainId: string, tokenSymbol: string) => string
+  getTokenDecimals: (chainId: string, tokenSymbol: string) => number
   getTokenList: (fromChainId: string) => string[]
+  getTokenName: (chainId: string, tokenSymbol: string) => string
+  sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
+  v2Sdk: Hop | null
 }
 
 // TODO: pull from a token list
 const tokenListByChain = {
   sepolia: {
     '11155111': {
-      MOCK: '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32',
-      USDC: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+      MOCK: {
+        address: '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32',
+        name: 'Mock Token',
+        decimals: 18
+      },
+      USDC: {
+        address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+        name: 'USD Coin',
+        decimals: 6
+      }
     },
     '11155420': {
-      MOCK: '0xaCa72C8D5360dC237001cD963566F411732980B0',
-      USDC: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'
+      MOCK: {
+        address: '0xaCa72C8D5360dC237001cD963566F411732980B0',
+        name: 'Mock Token',
+        decimals: 18
+      },
+      USDC: {
+        address: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+        name: 'USD Coin',
+        decimals: 6
+      }
     }
   }
 }
@@ -76,7 +103,24 @@ export function useV2(): V2Hook {
   }
 
   function getTokenAddress (chainId: string, tokenSymbol: string): string {
-    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol]
+    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].address
+  }
+
+  function getTokenDecimals (chainId: string, tokenSymbol: string): number {
+    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].decimals
+  }
+
+  function getTokenName (chainId: string, tokenSymbol: string): string {
+    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].name
+  }
+
+  function getChainsSupportedByToken (tokenSymbol: string): string[] {
+    const chains = Object.keys(tokenListByChain[reactAppNetwork])
+    const supportedChains = chains.filter(chainId => {
+      return tokenListByChain[reactAppNetwork][chainId][tokenSymbol]
+    })
+
+    return supportedChains
   }
 
   async function getNeedsApprovalForSendTokens (input: ApproveTokensInput): Promise<boolean> {
@@ -179,12 +223,43 @@ export function useV2(): V2Hook {
     return tx
   }
 
+  async function getFee (input: GetFeeInput): Promise<BigNumber> {
+    if (!v2Sdk) {
+      throw new Error('Hop SDK not initialized')
+    }
+
+    const {
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+    } = input
+
+    const pathId = await v2Sdk.railsGateway.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken
+    })
+
+    const fee = await v2Sdk.railsGateway.getFee({
+      chainId: fromChainId,
+      pathId
+    })
+
+    return fee
+  }
+
   return {
-    v2Sdk,
-    sendTokens,
     approveTokens,
+    getChainsSupportedByToken,
+    getFee,
     getNeedsApprovalForSendTokens,
     getTokenAddress,
-    getTokenList
+    getTokenDecimals,
+    getTokenList,
+    getTokenName,
+    sendTokens,
+    v2Sdk,
   }
 }

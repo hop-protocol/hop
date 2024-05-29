@@ -89,7 +89,7 @@ const connectSrc = new Set([
   "https://api.rollbar.com",
   "https://*.coingecko.com",
   "https://*.coinpaprika.com",
-  "https://*.coincodex.com",
+  "https://coincodex.com",
   "http://127.0.0.1:21325",
   "https://api.opensea.io",
   "https://social-auth.hop.exchange",

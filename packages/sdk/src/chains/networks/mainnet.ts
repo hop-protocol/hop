@@ -11,7 +11,8 @@ export const chains: Chains = {
       'https://rpc.ankr.com/eth'
     ],
     explorerUrls: ['https://etherscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/99487c5cbef9975e23a0ba6bacf5ef15/subgraphs/id/E9ars1Dv5NR4n7h6zj1NE9HNKcN6PCFYc38duwXfruCN',
     etherscanApiUrl: 'https://api.etherscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -26,7 +27,8 @@ export const chains: Chains = {
       'https://rpc.ankr.com/arbitrum'
     ],
     explorerUrls: ['https://arbiscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
+    // This is a placeholder subgraph URL. The API key will be removed
+    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/db2f8ed6991204cb18efb068454552d7/subgraphs/id/FBJtdRbCYDeQKbth5KTpqN3RXCRhGSg3bdiZVGUv7Vx4',
     etherscanApiUrl: 'https://api.arbiscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}

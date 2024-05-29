@@ -1,6 +1,6 @@
 # V2 Hop Node
 
-TODO
+Coming soon. Development in progress under private repo.
 
 ## License
 

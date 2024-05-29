@@ -136,7 +136,8 @@ export class Hop extends Base {
   get populateTransaction() {
     return {
       sendTokens: async (input: SendTokensInput): Promise<providers.TransactionRequest> => {
-        const { fromChainId, toChainId, fromToken, toToken, to, amount, minAmountOut } = input
+        const { fromChainId, toChainId, fromToken, toToken, amount, minAmountOut } = input
+        let { to } = input
 
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
@@ -154,12 +155,16 @@ export class Hop extends Base {
           throw new InputError(`Invalid toToken "${toToken}"`)
         }
 
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to "${to}"`)
-        }
-
         if (!this.utils.isValidNumericValue(minAmountOut)) {
           throw new InputError(`Invalid minAmountOut "${minAmountOut}"`)
+        }
+
+        if (!to) {
+          to = (await this.getSignerAddress()) as string
+        }
+
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid "to" address "${to}"`)
         }
 
         const pathId = await this.railsGateway.getPathId({

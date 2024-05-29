@@ -305,6 +305,10 @@ export class Base {
 
   get utils() {
     return {
+      isValidObject: (obj: any): boolean => {
+        return obj instanceof Object && !Array.isArray(obj)
+      },
+
       isValidChainId: (chainId: BigNumberish): boolean => {
         return this.contractAddresses[chainId?.toString()] != null
       },

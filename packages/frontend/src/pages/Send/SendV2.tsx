@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers'
 import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import Box from '@mui/material/Box'
 import CustomRecipientDropdown from './CustomRecipientDropdown.js'
@@ -18,105 +19,193 @@ import { FeeRefund } from './FeeRefund.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
-import { useSend } from '#pages/Send/useSend.js'
 import { useSendStyles } from './useSendStyles.js'
+import { useV2Send } from '#hooks/useV2Send.js'
+import RaisedSelect from '#components/selects/RaisedSelect.js'
+import MenuItem from '@mui/material/MenuItem'
+import Link from '@mui/material/Link'
+import SelectOption from '#components/selects/SelectOption.js'
+import {
+  GnosisSafeWarning,
+  useApprove,
+  useAssets,
+  useAsyncMemo,
+  useBalance,
+  useDisableTxs,
+  useEstimateTxCost,
+  useFeeConversions,
+  useGnosisSafeTransaction,
+  useNeedsTokenForFee,
+  useQueryParams,
+  useSufficientBalance,
+  useTxResult
+} from '#hooks/index.js'
 
-const Send: FC = () => {
+export const SendV2: FC = () => {
   const styles = useSendStyles()
   const { theme } = useApp()
   const {
     accountAddress,
-    amountOutMinDisplay,
-    amountOutMinUsdDisplay,
-    bonderFeeDisplay,
-    bonderFeeUsdDisplay,
-    bridges,
-    customRecipient,
-    deadline,
-    destinationTxFeeDisplay,
-    destinationTxFeeUsdDisplay,
-    disabledTx,
-    error,
-    estimatedReceivedDisplay,
-    estimatedReceivedUsdDisplay,
-    feeRefundDisplay,
-    feeRefundTokenSymbol,
-    fromAmountInputChangeHandler,
-    fromBalance,
-    fromNetwork,
-    fromToken,
-    fromTokenAmount,
-    gnosisSafeWarning,
-    handleApprove,
-    handleBridgeChange,
-    handleCustomRecipientInput,
-    handleFromNetworkChange,
-    handleSwitchDirection,
-    handleToNetworkChange,
-    info,
-    isApproveButtonActive,
-    isApproving,
-    isDestinationChainPaused,
-    isLoadingFromBalance,
-    isLoadingSendData,
-    isLoadingToBalance,
-    isSendButtonActive,
-    isSmartContractWallet,
-    isSpecificRouteDeprecated,
-    manualError,
-    manualWarning,
-    maxButtonFixedAmountToSubtract,
+    tokenList,
     needsApproval,
-    networks,
-    placeholderToken,
-    priceImpact,
-    rate,
-    relayFeeEthDisplay,
-    relayFeeUsdDisplay,
-    selectedBridge,
-    send,
-    setError,
-    setInfo,
-    setTx,
-    setWarning,
-    showFeeRefund,
-    slippageTolerance,
-    toBalance,
-    toNetwork,
-    toToken,
-    toTokenAmount,
-    totalFeeDisplay,
-    totalFeeUsdDisplay,
-    transferTimeDisplay,
+    approveTokens,
+    sendTokens,
+    sendReady,
+    tokenSymbol,
+    setTokenSymbol,
+    setAmountIn,
+    fromChainId,
+    setFromChainId,
+    toChainId,
+    setToChainId,
     tx,
+    setTx,
+    amountIn: fromTokenAmount,
+    error,
+    setError,
     warning,
-  } = useSend()
+    setWarning,
+    recipient: customRecipient,
+    setRecipient: setCustomRecipient,
+    info,
+    setInfo,
+    isApproving,
+    fromTokenBalance,
+    isLoadingFromTokenBalance,
+    toTokenBalance,
+    isLoadingToTokenBalance
+  } = useV2Send()
+  const {
+    networks,
+    settings,
+    txConfirm,
+    txHistory
+  } = useApp()
+  const { slippageTolerance } = settings
+
+  useEffect(() => {
+    // TODO
+    setTokenSymbol(tokenList[0])
+    setFromChainId('11155111')
+    setToChainId('11155420')
+  }, [tokenList])
+
+  // TODO
+  const isSmartContractWallet = false
+  const maxButtonFixedAmountToSubtract = BigNumber.from(0)
+  const isSpecificRouteDeprecated = false // TODO
+  const toTokenAmount = null
+  const isLoadingSendData = false
+  const gnosisSafeWarning = null
+  const isDestinationChainPaused = false
+  const disabledTx = null
+  const bonderFeeDisplay = ''
+  const bonderFeeUsdDisplay = ''
+  const destinationTxFeeDisplay = ''
+  const destinationTxFeeUsdDisplay = ''
+  const relayFeeEthDisplay = ''
+  const relayFeeUsdDisplay = ''
+  const totalFeeUsdDisplay = ''
+  const totalFeeDisplay = ''
+  const rate = null
+  const priceImpact = null
+  const amountOutMinDisplay = ''
+  const amountOutMinUsdDisplay = ''
+  const transferTimeDisplay = null
+  const estimatedReceivedUsdDisplay = ''
+  const estimatedReceivedDisplay = ''
+  const showFeeRefund = false
+  const feeRefundTokenSymbol = ''
+  const feeRefundDisplay = ''
+  const isApproveButtonActive = needsApproval
+  function handleBridgeChange(event: any) {
+    setTokenSymbol(event.target.value)
+  }
+  function handleFromNetworkChange(network: any) {
+    if (network.networkId?.toString() === toChainId) {
+      handleSwitchDirection()
+    } else {
+      setFromChainId(network.networkId.toString())
+    }
+  }
+  function handleToNetworkChange(network: any) {
+    if (network.networkId?.toString() === fromChainId) {
+      handleSwitchDirection()
+    } else {
+      setToChainId(network.networkId.toString())
+    }
+  }
+  function handleSwitchDirection() {
+    setAmountIn('')
+    setFromChainId(toChainId)
+    setToChainId(fromChainId)
+  }
+  function handleCustomRecipientInput(event: any) {
+    setCustomRecipient(event.target.value)
+  }
+  function handleApprove() {
+    approveTokens()
+  }
+
+  const fromNetwork = networks.find(network => network.networkId?.toString() === fromChainId)
+  const toNetwork = networks.find(network => network.networkId?.toString() === toChainId)
+
+  const placeholderToken = {
+    symbol: '',
+  }
+
+  // TODO
+  const fromToken = {
+    symbol: tokenSymbol,
+    decimals: 18,
+  }
+
+  const toToken = {
+    symbol: tokenSymbol,
+    decimals: 18,
+  }
+
+  function newToken(_tokenSymbol: string) {
+    return {
+      tokenSymbol: _tokenSymbol,
+      tokenImage: ''
+    }
+  }
+
+  const tokens = tokenList.map(newToken)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <SendHeader
-        styles={styles}
-        bridges={bridges}
-        selectedBridge={selectedBridge}
-        handleBridgeChange={handleBridgeChange}
-      />
+      <div>Send V2</div>
+
+      <RaisedSelect value={tokenSymbol} onChange={handleBridgeChange}>
+        {tokens.map(token => (
+          <MenuItem value={token.tokenSymbol} key={token.tokenSymbol}>
+            <SelectOption
+              value={token.tokenSymbol}
+              icon={token.tokenImage}
+              label={token.tokenSymbol}
+            />
+          </MenuItem>
+        ))}
+      </RaisedSelect>
 
       <SendAmountSelectorCard
         value={fromTokenAmount}
         token={fromToken ?? placeholderToken}
         label={'From'}
-        onChange={fromAmountInputChangeHandler}
+        onChange={setAmountIn}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
         onNetworkChange={handleFromNetworkChange}
-        balance={fromBalance}
-        loadingBalance={isLoadingFromBalance}
-        deadline={deadline}
+        balance={fromTokenBalance}
+        loadingBalance={isLoadingFromTokenBalance}
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
         setWarning={setWarning}
         maxButtonFixedAmountToSubtract={maxButtonFixedAmountToSubtract}
         disableInput={isSpecificRouteDeprecated}
+        deadline={0} // required for max button
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -132,8 +221,8 @@ const Send: FC = () => {
         selectedNetwork={toNetwork}
         networkOptions={networks}
         onNetworkChange={handleToNetworkChange}
-        balance={toBalance}
-        loadingBalance={isLoadingToBalance}
+        balance={toTokenBalance}
+        loadingBalance={isLoadingToTokenBalance}
         loadingValue={isLoadingSendData}
         disableInput
       />
@@ -145,7 +234,7 @@ const Send: FC = () => {
         isOpen={customRecipient || isSmartContractWallet}
       />
 
-      {!!gnosisSafeWarning.text && (
+      {!!gnosisSafeWarning?.text && (
         <div className={styles.smartContractWalletWarning}>
           <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
         </div>
@@ -238,21 +327,15 @@ const Send: FC = () => {
       )}
 
       {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="warning">{manualWarning}</Alert>
-      {!!manualError && (
-        <Box mt={2}>
-          <Alert severity="error">{manualError}</Alert>
-        </Box>
-      )}
 
       { accountAddress
       ? <ButtonsWrapper>
-          {!isSendButtonActive && (
+          {!sendReady && (
             <Box mb={3} width={isApproveButtonActive ? '100%' : 'auto'}>
               <Button
                 className={styles.button}
                 large
-                highlighted={!!needsApproval}
+                highlighted={needsApproval}
                 disabled={!isApproveButtonActive}
                 onClick={handleApprove}
                 loading={isApproving}
@@ -262,12 +345,12 @@ const Send: FC = () => {
               </Button>
             </Box>
           )}
-          <Box mb={3} width={isSendButtonActive ? '100%' : 'auto'}>
+          <Box mb={3} width={sendReady ? '100%' : 'auto'}>
             <Button
               className={styles.button}
-              startIcon={isSendButtonActive && <SendIcon />}
-              onClick={send}
-              disabled={!isSendButtonActive}
+              startIcon={sendReady && <SendIcon />}
+              onClick={sendTokens}
+              disabled={!sendReady}
               large
               fullWidth
               highlighted
@@ -284,10 +367,8 @@ const Send: FC = () => {
       }
 
       <Box mt={1}>
-        {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
+        {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx as any} />}
       </Box>
     </Box>
   )
 }
-
-export default Send

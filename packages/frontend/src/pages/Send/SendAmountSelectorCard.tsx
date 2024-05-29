@@ -66,7 +66,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
   }
 
   const handleMaxClick = async () => {
-    if (!(onChange && balance && token && fromNetwork && deadline)) {
+    if (!(onChange && balance && token && fromNetwork && deadline != null)) {
       return
     }
 

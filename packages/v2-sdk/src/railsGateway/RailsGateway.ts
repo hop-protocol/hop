@@ -439,7 +439,8 @@ export class RailsGateway extends StakingRegistry {
   get populateTransaction() {
     return {
       send: async (input: SendInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, to, amount, minAmountOut, attestedCheckpoint } = input
+        const { chainId, pathId, amount, minAmountOut, attestedCheckpoint } = input
+        let { to } = input
 
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -449,16 +450,20 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to address "${to}"`)
-        }
-
         if (!this.utils.isValidNumericValue(minAmountOut)) {
           throw new InputError(`Invalid minAmountOut "${to}"`)
         }
 
         if (!this.utils.isValidBytes32(attestedCheckpoint)) {
           throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+        }
+
+        if (!to) {
+          to = (await this.getSignerAddress()) as string
+        }
+
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid "to" address "${to}"`)
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
@@ -1418,7 +1423,20 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getTokenContract (input: GetTokenContractInput): Contract {
+    if (!this.utils.isValidObject(input)) {
+      throw new InputError('Invalid input, expected object')
+    }
+
     const { chainId, address } = input
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidAddress(address)) {
+      throw new InputError(`Invalid address "${address}"`)
+    }
+
     const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(address, provider)
     return tokenContract

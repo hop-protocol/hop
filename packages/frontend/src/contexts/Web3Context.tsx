@@ -342,7 +342,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       // Note: Trust Wallet hangs indefinteily on wallet_switchEthereumChain, see issues on discord.
       // Therefore if provider is already connected to correct network,
       // then there's no need to attempt to call network switcher.
-      if (haveChainId === wantChainId) {
+      if (haveChainId === wantChainId && haveChainId === connectedNetworkId) {
         return true
       }
 

@@ -126,7 +126,7 @@ export const SendV2: FC = () => {
 
       <SendAmountSelectorCard
         value={fromTokenAmount}
-        token={fromToken ?? placeholderToken}
+        token={fromToken as any ?? placeholderToken}
         label={'From'}
         onChange={setAmountIn}
         selectedNetwork={fromChain}
@@ -149,7 +149,7 @@ export const SendV2: FC = () => {
 
       <SendAmountSelectorCard
         value={toTokenAmount}
-        token={toToken ?? placeholderToken}
+        token={toToken as any ?? placeholderToken}
         label={'To (estimated)'}
         selectedNetwork={toChain}
         networkOptions={chains}

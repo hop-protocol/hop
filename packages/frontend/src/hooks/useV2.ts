@@ -36,7 +36,7 @@ type V2Hook = {
   getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
   getTokenAddress: (chainId: string, tokenSymbol: string) => string
   getTokenDecimals: (chainId: string, tokenSymbol: string) => number
-  getTokenList: (fromChainId: string) => string[]
+  getTokenList: (fromChainId?: string) => string[]
   getTokenName: (chainId: string, tokenSymbol: string) => string
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   v2Sdk: Hop | null

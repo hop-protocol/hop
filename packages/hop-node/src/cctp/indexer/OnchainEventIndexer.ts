@@ -4,7 +4,12 @@ import type { LogWithChainId, RequiredFilter } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
 import { utils } from 'ethers'
-import { DATA_INDEXED_EVENT } from './constants.js'
+import { getChain } from '@hop-protocol/sdk'
+import {
+  DATA_INDEXED_EVENT,
+  MAX_BLOCK_RANGE_PER_INDEX,
+  POLL_INTERVAL_MS
+} from './constants.js'
 
 
 export interface IndexerData<T extends string[] = string[]> {
@@ -18,11 +23,7 @@ export abstract class OnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexerDatas: IndexerData[] = []
-
-  // TODO: config option
-  // TODO: Timing, slow this down
-  readonly #maxBlockRange: number = 2000
-  readonly #pollIntervalMs: number = 10_000
+  readonly #pollIntervalMs: number = POLL_INTERVAL_MS
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
@@ -97,13 +98,7 @@ export abstract class OnchainEventIndexer {
     const { chainId, eventSig, eventContractAddress, indexNames } = indexerData
     const filterId = this.#getUniqueFilterId(indexerData)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
-    const { endBlockNumber, logs } = await this.#getEventsInRange(
-      chainId,
-      eventSig,
-      eventContractAddress,
-      lastBlockSynced,
-      this.#maxBlockRange
-    )
+    const { endBlockNumber, logs } = await this.#getEventsInRange(chainId, eventSig, eventContractAddress, lastBlockSynced)
 
     // Atomically write new DB state and logs to avoid out of sync state
     await this.#db.updateIndexedData(filterId, endBlockNumber, logs, indexNames)
@@ -118,8 +113,7 @@ export abstract class OnchainEventIndexer {
     chainId: string,
     eventSig: string,
     eventContractAddress: string,
-    syncStartBlock: number,
-    maxBlockRange: number = 2_000
+    syncStartBlock: number
   ): Promise<{
     endBlockNumber: number,
     logs: LogWithChainId[]
@@ -137,7 +131,8 @@ export abstract class OnchainEventIndexer {
       }
     }
 
-  // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
+    // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
+    const maxBlockRange = this.#getMaxBlockRangePerIndex(chainId)
     const logsWithChainId: LogWithChainId[] = []
     let currentEnd: number = 0
     while (currentStart < headBlockNumber) {
@@ -166,8 +161,18 @@ export abstract class OnchainEventIndexer {
     }
   }
 
+  /**
+   * Internal
+   */
+
   #getUniqueFilterId = (indexerData: IndexerData): string => {
     const { chainId, eventSig, eventContractAddress } = indexerData
     return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
+  }
+
+
+  #getMaxBlockRangePerIndex(chainId: string): number {
+    const chainSlug = getChain(chainId).slug
+    return MAX_BLOCK_RANGE_PER_INDEX[chainSlug]
   }
 }

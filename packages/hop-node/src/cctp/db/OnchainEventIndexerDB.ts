@@ -1,4 +1,4 @@
-import { type ChainedBatch, DB } from './DB.js'
+import { DB } from './DB.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { LogWithChainId } from '../types.js'
 
@@ -32,7 +32,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   }
 
   /**
-   * Sync data
+   * Getters
    */
 
   // @dev The value is guaranteed to exist because it is set in the init function
@@ -45,17 +45,17 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
   }
 
-  /**
-   * Index data
-   */
-
   async getIndexedItem(key: string, indexValues: string[]): Promise<LogWithChainId> {
     const indexedValue = key + indexValues.join('!')
     return (await this.get(indexedValue)) as LogWithChainId
   }
 
+  /**
+   * Setters
+   */
+
   async updateIndexedData(key: string, syncedBlockNumber: number, logs: LogWithChainId[], indexNames: string[]): Promise<void> {
-    const batch: ChainedBatch<this, string, DBValue> = this.batch()
+    const batch = this.batch()
     for (const log of logs) {
       // The indexed key grows with each index
       let indexedKey: string = ''

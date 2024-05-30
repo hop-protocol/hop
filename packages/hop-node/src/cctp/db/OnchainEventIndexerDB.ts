@@ -22,6 +22,10 @@ type DBValue = LogWithChainId | number
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
+  constructor (dbName: string) {
+    super(dbName + 'OnchainEventIndexerDB')
+  }
+
   // TODO: Clean these up
   async *getLogsByTopic(topic: string): AsyncIterable<LogWithChainId> {
      // Tilde is intentional for lexicographical sorting

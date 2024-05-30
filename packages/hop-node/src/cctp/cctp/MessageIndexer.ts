@@ -25,9 +25,7 @@ export class MessageIndexer extends OnchainEventIndexer {
   constructor (db: IDB, states: MessageState[], chainIds: string[]) {
     super(db)
 
-    // TODO: Get from SDK
     this.#initialEventTopic = MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG
-
     for (const state of states) {
       for (const chainId of chainIds) {
         const { filter, indexNames } = this.#getIndexerData(chainId, state)

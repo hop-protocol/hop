@@ -2,12 +2,12 @@ import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChain } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
-import type { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
+import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import type { LogWithChainId } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
-import { IDB } from '#cctp/db/DB.js'
 
+// TODO: Rename these
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
@@ -22,17 +22,14 @@ export abstract class OnchainEventIndexer {
   #indexNames: string[]
 
   // TODO: config option
+  // TODO: Timing, slow this down
   readonly #maxBlockRange: number = 2000
-  // TODO: Timing
-  // TODO: SLow down
   readonly #pollIntervalMs: number = 10_000
 
-  // TODO
-  protected abstract handleEvent?(topic: string, data: any): any
+  protected abstract handleEvent?(topic: string, log: LogWithChainId): void
 
-  constructor (db: IDB) {
-    // TODO: This class shouldn't care about sublevels
-    this.#db = db.sublevel('onchain-event-indexer')
+  constructor (dbName: string) {
+    this.#db = new OnchainEventIndexerDB(dbName)
   }
 
   protected initIndexer (
@@ -67,12 +64,6 @@ export abstract class OnchainEventIndexer {
   protected getItem(eventSig: string, chainId: string, indexes: string[]): Promise<any> {
     // TODO: Concat indexes
     return this.#db.getItem(eventSig, chainId, index)
-  }
-
-  async getIndexedDataBySecondIndex(firstIndex: string, secondIndex: string): Promise<LogWithChainId | undefined> {
-    for await (const log of this.#db.getLogsByTopicAndSecondaryIndex(firstIndex, secondIndex)) {
-      return log
-    }
   }
 
   /**

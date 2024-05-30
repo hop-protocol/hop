@@ -14,6 +14,10 @@ import { DB } from './DB'
 
 export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
 
+  constructor (dbName: string) {
+    super(dbName + 'StateMachineDB')
+  }
+
   async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
     const existingValue = await this.get(key)
     if (!existingValue) {

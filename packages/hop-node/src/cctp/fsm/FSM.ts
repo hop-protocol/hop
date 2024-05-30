@@ -1,7 +1,6 @@
 import { DataStore } from '../data-store/DataStore.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
-import { IDB } from '../db/DB.js'
 
 /**
  * FSM that is strictly concerned with the creation, transition, and termination of states. This
@@ -23,12 +22,11 @@ export abstract class FSM<State extends string, StateData>{
   protected abstract isTransitionReady(state: State, value: StateData): boolean
 
   constructor (
-    db: IDB,
+    dbName: string,
     states: State[],
     dataStore: DataStore<State, StateData>
   ) {
-    // TODO: This class shouldn't care about sublevels
-    this.#stateDB = db.sublevel('state-machine')
+    this.#stateDB = new StateMachineDB(dbName)
     this.#states = states
     this.#dataStore = dataStore
   }

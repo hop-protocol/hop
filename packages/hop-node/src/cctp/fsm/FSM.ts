@@ -33,6 +33,7 @@ export abstract class FSM<State extends string, StateData>{
 
   async init(): Promise<void> {
     await this.#init()
+    await this.#dataStore.init()
   }
     
   start (): void {
@@ -54,23 +55,6 @@ export abstract class FSM<State extends string, StateData>{
    */
 
   async #init(): Promise<void> {
-
-    // TODO: I think the syncMarker no longer matters. Think through this.
-
-    // ITEM INITIALIZATION is handled by emitting an event from the data store
-    // If the server goes offline, the data store will still catch up on the missed events
-    // and will still emit an event for each new one seen, so there is no need to loop through `getSyncItem`
-
-
-    // Handle unsynced item initialization
-    // const syncMarker = await this.#stateDB.getSyncMarker()
-    // for await (const [key, value, newSyncMarker] of this.#dataStore.getSyncItems(syncMarker)) {
-    //   await this.#initializeItem(key, value)
-    //   // SyncMarker should be updated atomically, however, this requires deep drilling. This likely means
-    //   // there is a better way. Instead, inefficiently update the sync marker after each item is processed.
-    //   await this.#stateDB.updateSyncMarker(newSyncMarker)
-    // }
-
     // Handle pending state transitions
     for (const state of this.#states) {
       await this.#checkStateTransition(state)

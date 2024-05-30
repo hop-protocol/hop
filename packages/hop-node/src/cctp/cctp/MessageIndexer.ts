@@ -1,15 +1,9 @@
-import { EventEmitter } from 'node:events'
 import { MessageSDK } from './MessageSDK.js'
-import { OnchainEventIndexer, type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer, type IndexerData } from '../indexer/OnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
-import { DataStore } from '../data-store/DataStore.js'
 import { MessageState, IMessage } from './types.js'
-import { IDB } from '../db/DB.js'
 
-interface IndexerData {
-  filter: RequiredEventFilter
-  indexNames: (keyof IMessage)[]
-}
+type IndexNames = (keyof IMessage)[]
 
 /**
  * This class is responsible for abstracting away indexing logic
@@ -19,17 +13,14 @@ interface IndexerData {
  */
 
 export class MessageIndexer extends OnchainEventIndexer {
-  readonly #eventEmitter: EventEmitter = new EventEmitter()
-  readonly #initialEventTopic: string
 
-  constructor (db: IDB, states: MessageState[], chainIds: string[]) {
-    super(db)
+  constructor (dbName: string, states: MessageState[], chainIds: string[]) {
+    super(dbName)
 
-    this.#initialEventTopic = MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG
     for (const state of states) {
       for (const chainId of chainIds) {
-        const { filter, indexNames } = this.#getIndexerData(chainId, state)
-        this.initIndexer(chainId, filter, indexNames)
+        const indexerData = this.#getIndexerData(chainId, state)
+        this.initIndexer(indexerData)
       }
     }
   }
@@ -40,52 +31,32 @@ export class MessageIndexer extends OnchainEventIndexer {
 
   async getData(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
-    const eventSig = this.#getEventSigForState(chainId, state)
-    const indexValues: string[] = this.#getIndexValues(state, value, chainId)
-    return this.getItem(eventSig, chainId, indexValues)
-  }
-
-  /**
-   * Event handler
-   */
-
-  on (event: string, listener: (...args: any[]) => void): void {
-    this.#eventEmitter.on(event, listener)
-  }
-
-  handleEvent(topic: string, log: LogWithChainId): void {
-    if (topic === this.#initialEventTopic) {
-      this.#handleInitialEvent(log)
-    }
-  }
-
-  #handleInitialEvent (log: LogWithChainId): void {
-    this.#eventEmitter.emit(DataStore.ITEM_CREATED, log)
+    const indexerData = this.#getIndexerData(chainId, state)
+    const indexValues: string[] = this.#getIndexFromMessageData(state, value, chainId)
+    return this.getItem(indexerData, indexValues)
   }
 
   /**
    * Internal
    */
 
-  #getIndexerData(chainId: string, state: IMessage): IndexerData {
+  #getIndexerData(chainId: string, state: IMessage): IndexerData<IndexNames> {
     if (MessageState.Sent === state) {
       return {
-        filter: MessageSDK.getCCTPTransferSentEventFilter(chainId),
-        // TODO: Correct index. This might be it.
+        chainId,
+        eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
+        eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
         indexNames: ['nonce', 'sourceChainId']
       }
     } else if (MessageState.Attested === state) {
       return {
-        filter: MessageSDK.getMessageReceivedEventFilter(chainId),
-        // TODO: Correct index. This might be it.
+        chainId,
+        eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
+        eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
         indexNames: ['nonce', 'sourceChainId']
       }
     }
     throw new Error('Invalid state')
-  }
-
-  #getEventSigForState (chainId: string, state: IMessage): string {
-    return this.#getIndexerData(chainId, state).filter.topics[0] as string
   }
 
   #getChainIdForItem (state: IMessage, value: IMessage): string {
@@ -104,7 +75,7 @@ export class MessageIndexer extends OnchainEventIndexer {
     return chainId
   }
 
-  #getIndexValues (state: IMessage, value: IMessage, chainId: string): string[] {
+  #getIndexFromMessageData (state: IMessage, value: IMessage, chainId: string): string[] {
     const indexNames = this.#getIndexerData(chainId, state).indexNames
     return indexNames.map(indexName => value[indexName as keyof IMessage] as string)
   }

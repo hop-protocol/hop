@@ -8,6 +8,7 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataStore } from '../data-store/DataStore.js'
 import { MessageState } from './types.js'
 import type { IMessage } from './types.js'
+import { DATA_INDEXED_EVENT } from '../indexer/constants.js'
 
 // Since the messages are unique by chainId, his MessageDataStore should be the
 // class that abstracts this away.
@@ -23,7 +24,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
     super()
 
     this.#indexer = indexer
-    this.#indexer.on(DataStore.ITEM_CREATED, this.#handleInitialEvent)
+    this.#indexer.on(DATA_INDEXED_EVENT, this.#handleDataIndexedEvent)
   }
 
   start(): void {

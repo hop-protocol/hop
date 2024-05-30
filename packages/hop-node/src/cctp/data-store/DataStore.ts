@@ -4,6 +4,7 @@ export abstract class DataStore<T, U> {
   abstract on(event: string, listener: (...args: any[]) => void): void
 
   // Init
+  abstract init (): Promise<void>
   abstract start (): void
 
   // TODO: Diff U

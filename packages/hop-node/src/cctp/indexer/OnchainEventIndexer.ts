@@ -1,155 +1,173 @@
-import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChain } from '@hop-protocol/sdk'
-import type { EventFilter, providers} from 'ethers'
-import { utils } from 'ethers'
+import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
-import type { LogWithChainId } from '../types.js'
+import type { LogWithChainId, RequiredFilter } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
+import { utils } from 'ethers'
+import { DATA_INDEXED_EVENT } from './constants.js'
 
-// TODO: Rename these
-export type RequiredEventFilter = Required<EventFilter>
-export type RequiredFilter = Required<providers.Filter>
 
-/**
- * Returns data in the form of LogWithChainId. 
- */
+export interface IndexerData<T extends string[] = string[]> {
+  chainId: string
+  eventSig: string
+  eventContractAddress: string
+  indexNames: T
+}
 
 export abstract class OnchainEventIndexer {
-  #db: OnchainEventIndexerDB
-  #eventFilter: RequiredEventFilter
-  #chain: ChainSlug
-  #indexNames: string[]
+  readonly #eventEmitter: EventEmitter = new EventEmitter()
+  readonly #db: OnchainEventIndexerDB
+  readonly #indexerDatas: IndexerData[] = []
 
   // TODO: config option
   // TODO: Timing, slow this down
   readonly #maxBlockRange: number = 2000
   readonly #pollIntervalMs: number = 10_000
 
-  protected abstract handleEvent?(topic: string, log: LogWithChainId): void
-
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
   }
 
-  protected initIndexer (
-    chain: ChainSlug,
-    eventFilter: RequiredEventFilter,
-    indexNames: string[]
-  ) {
-    this.#chain = chain
-    this.#eventFilter = eventFilter
-    this.#indexNames = indexNames
+  protected initIndexer (indexerData: IndexerData): void {
+    const filterId = this.#getUniqueFilterId(indexerData)
+    this.#db.newIndexerDB(filterId)
+    this.#indexerDatas.push(indexerData)
+  }
+
+  async init(): Promise<void> {
+    for (const indexerData of this.#indexerDatas) {
+      const { chainId } = indexerData
+      const filterId = this.#getUniqueFilterId(indexerData)
+      await this.#db.init(filterId, chainId)
+    }
   }
 
   start(): void {
     this.#startListeners()
-    this.#startPoller()
+    for (const indexerData of this.#indexerDatas) {
+      this.#startPoller(indexerData)
+    }
   }
+
+  /**
+   *  Event Handling
+   */
 
   #startListeners = () => {
     // https://github.com/Level/abstract-level?tab=readme-ov-file#write
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
         if (op.type !== 'put') continue
-        this.handleEvent?.(op.key, op.value)
+        this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
       }
     })
+  }
+
+  on (event: string, listener: (...args: any[]) => void): void {
+    this.#eventEmitter.on(event, listener)
   }
 
   /**
    * Public methods
    */
 
-  protected getItem(eventSig: string, chainId: string, indexes: string[]): Promise<any> {
-    // TODO: Concat indexes
-    return this.#db.getItem(eventSig, chainId, index)
+  protected getItem(indexerData: IndexerData, indexValues: string[]): Promise<LogWithChainId> {
+    const filterId = this.#getUniqueFilterId(indexerData)
+    return this.#db.getIndexedItem(filterId, indexValues)
   }
 
   /**
    * Poller
    */
 
-  #startPoller = async (): Promise<never> => {
-    try {
-      while (true) {
-        await this.#syncEvents(this.#chain)
-
+  #startPoller = async (indexerData: IndexerData): Promise<never> => {
+    while (true) {
+      try {
+        await this.#syncEvents(indexerData)
         await wait(this.#pollIntervalMs)
+      } catch (err) {
+        const filterId = this.#getUniqueFilterId(indexerData)
+        console.error(`OnchainEventIndexer poll err for filterId: ${filterId}: ${err}`)
+        process.exit(1)
       }
-    } catch (err) {
-      console.error('OnchainEventIndexer poll err', err)
-      process.exit(1)
     }
   }
 
-  #syncEvents = async (chain: ChainSlug): Promise<void> => {
-    const chainId = getChain(chain).chainId
-    const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
-    const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
-    const { endBlockNumber, logs } = await getEventsInRange(chain, this.#eventFilter, lastBlockSynced, this.#maxBlockRange)
+  #syncEvents = async (indexerData: IndexerData): Promise<void> => {
+    const { chainId, eventSig, eventContractAddress, indexNames } = indexerData
+    const filterId = this.#getUniqueFilterId(indexerData)
+    const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
+    const { endBlockNumber, logs } = await this.#getEventsInRange(
+      chainId,
+      eventSig,
+      eventContractAddress,
+      lastBlockSynced,
+      this.#maxBlockRange
+    )
 
     // Atomically write new DB state and logs to avoid out of sync state
-    await this.#db.updateSyncAndEvents(filterId, endBlockNumber, logs)
+    await this.#db.updateIndexedData(filterId, endBlockNumber, logs, indexNames)
   }
 
-  // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
-  #getUniqueFilterId = (chainId: string, eventFilter: RequiredEventFilter): string => {
-    const chainSlug = getChain(chainId).slug
-    const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
-    return utils.keccak256(bytesId)
-  }
-}
 
-// TODO: organize, don't love that anyone can consume. should be tightly controlled
-// TODO: getEvents? or getLogs? better name?
-// TODO: Max block range not constant
-export async function getEventsInRange (
-  chain: ChainSlug,
-  eventFilter: RequiredEventFilter,
-  syncStartBlock: number,
-  maxBlockRange: number = 2_000
-): Promise<{
-  endBlockNumber: number,
-  logs: LogWithChainId[]
-}> {
-  const chainId = getChain(chain).chainId
-  const provider = getRpcProvider(chain)
+  /**
+   * Indexer
+   */
 
-  const lastBlockSynced = syncStartBlock
-  const headBlockNumber = await provider.getBlockNumber()
+  #getEventsInRange = async (
+    chainId: string,
+    eventSig: string,
+    eventContractAddress: string,
+    syncStartBlock: number,
+    maxBlockRange: number = 2_000
+  ): Promise<{
+    endBlockNumber: number,
+    logs: LogWithChainId[]
+  }> => {
+    const provider = getRpcProvider(chainId)
+    const lastBlockSynced = syncStartBlock
+    const headBlockNumber = await provider.getBlockNumber()
 
-  // Avoid double counting the edges
-  let currentStart = lastBlockSynced + 1
-  if (currentStart >= headBlockNumber) {
-    return {
-      endBlockNumber: lastBlockSynced,
-      logs: []
+    // Avoid double counting the edges
+    let currentStart = lastBlockSynced + 1
+    if (currentStart >= headBlockNumber) {
+      return {
+        endBlockNumber: lastBlockSynced,
+        logs: []
+      }
     }
-  }
 
   // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
-  const logsWithChainId: LogWithChainId[] = []
-  let currentEnd: number = 0
-  while (currentStart < headBlockNumber) {
-    currentEnd = Math.min(currentStart + maxBlockRange, headBlockNumber)
+    const logsWithChainId: LogWithChainId[] = []
+    let currentEnd: number = 0
+    while (currentStart < headBlockNumber) {
+      currentEnd = Math.min(currentStart + maxBlockRange, headBlockNumber)
 
-    const filter: RequiredFilter = {
-      ...eventFilter,
-      fromBlock: currentStart,
-      toBlock: currentEnd
-    }
-    const logs = await provider.getLogs(filter)
-    for (const log of logs) {
-      const logWithChainId = { ...log, chainId }
-      logsWithChainId.push(logWithChainId)
+      const filter: RequiredFilter = {
+        topics: [eventSig],
+        address: eventContractAddress,
+        fromBlock: currentStart,
+        toBlock: currentEnd
+      }
+
+      // TODO: Get decoded log from SDK
+      const logs = await provider.getLogs(filter)
+      for (const log of logs) {
+        const logWithChainId = { ...log, chainId }
+        logsWithChainId.push(logWithChainId)
+      }
+
+      currentStart = currentEnd
     }
 
-    currentStart = currentEnd
+    return {
+      endBlockNumber: currentEnd,
+      logs: logsWithChainId
+    }
   }
 
-  return {
-    endBlockNumber: currentEnd,
-    logs: logsWithChainId
+  #getUniqueFilterId = (indexerData: IndexerData): string => {
+    const { chainId, eventSig, eventContractAddress } = indexerData
+    return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
   }
 }

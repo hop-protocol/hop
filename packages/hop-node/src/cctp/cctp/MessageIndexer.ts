@@ -19,8 +19,8 @@ export class MessageIndexer extends OnchainEventIndexer {
 
     for (const state of states) {
       for (const chainId of chainIds) {
-        const indexerData = this.#getIndexerData(chainId, state)
-        this.initIndexer(indexerData)
+        const indexerData = this.getIndexerData(chainId, state)
+        this.addIndexer(indexerData)
       }
     }
   }
@@ -31,42 +31,54 @@ export class MessageIndexer extends OnchainEventIndexer {
 
   async getData(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
-    const indexerData = this.#getIndexerData(chainId, state)
+    const indexerData = this.getIndexerData(chainId, state)
     const indexValues: string[] = this.#getIndexFromMessageData(state, value, chainId)
     return this.getItem(indexerData, indexValues)
+  }
+
+  /**
+   * Overrides
+   */
+
+  override getIndexerData(chainId: string, state: IMessage): IndexerData<IndexNames> {
+    switch (state) {
+      case MessageState.Sent:
+        return {
+          chainId,
+          eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
+          eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
+          // TODO: Correct index. This might be it.
+          indexNames: ['nonce', 'sourceChainId']
+        }
+      case MessageState.Attested:
+        return {
+          chainId,
+          eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
+          // TODO: Correct index. This might be it.
+          eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
+          indexNames: ['nonce', 'sourceChainId']
+        }
+      default:
+        throw new Error('Invalid state')
+    }
   }
 
   /**
    * Internal
    */
 
-  #getIndexerData(chainId: string, state: IMessage): IndexerData<IndexNames> {
-    if (MessageState.Sent === state) {
-      return {
-        chainId,
-        eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
-        eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
-        indexNames: ['nonce', 'sourceChainId']
-      }
-    } else if (MessageState.Attested === state) {
-      return {
-        chainId,
-        eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
-        eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
-        indexNames: ['nonce', 'sourceChainId']
-      }
-    }
-    throw new Error('Invalid state')
-  }
-
+  // TODO: Using diff chainIds as index for same message doesn't feel right
   #getChainIdForItem (state: IMessage, value: IMessage): string {
     let chainId: string
-    if (MessageState.Sent === state) {
-      chainId = value?.sourceChainId
-    } else if (MessageState.Attested === state) {
-      chainId = value?.destinationChainId
-    } else {
-      throw new Error('Invalid state')
+    switch (state) {
+      case MessageState.Sent:
+        chainId = value?.sourceChainId
+        break
+      case MessageState.Attested:
+        chainId = value?.destinationChainId
+        break
+      default:
+        throw new Error('Invalid state')
     }
 
     if (!chainId) {
@@ -76,7 +88,7 @@ export class MessageIndexer extends OnchainEventIndexer {
   }
 
   #getIndexFromMessageData (state: IMessage, value: IMessage, chainId: string): string[] {
-    const indexNames = this.#getIndexerData(chainId, state).indexNames
+    const indexNames = this.getIndexerData(chainId, state).indexNames
     return indexNames.map(indexName => value[indexName as keyof IMessage] as string)
   }
 }

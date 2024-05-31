@@ -11,6 +11,18 @@ import {
   POLL_INTERVAL_MS
 } from './constants.js'
 
+/**
+ * Onchain event indexer. A single instance of this class is responsible for
+ * indexing as many events as needed.
+ *
+ * Formats data into a filterId for use by the DB. The filterId is a unique
+ * identifier for the event and is used to store and retrieve indexed data.
+ *
+ * The DB is not concerned with the specifics of the event, only the filterId.
+ *
+ * @dev The consumer should call addIndexer() for all indexers they want
+ * to use before calling init() and start().
+ */
 
 export interface IndexerData<T extends string[] = string[]> {
   chainId: string
@@ -24,12 +36,18 @@ export abstract class OnchainEventIndexer {
   readonly #db: OnchainEventIndexerDB
   readonly #indexerDatas: IndexerData[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
+  #started: boolean = false
+
+  protected abstract getIndexerData(chainId: string, opts: any): IndexerData
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
   }
 
-  protected initIndexer (indexerData: IndexerData): void {
+  protected addIndexer (indexerData: IndexerData): void {
+    if (this.#started) {
+      throw new Error('Cannot add indexer after starting')
+    }
     const filterId = this.#getUniqueFilterId(indexerData)
     this.#db.newIndexerDB(filterId)
     this.#indexerDatas.push(indexerData)
@@ -48,6 +66,7 @@ export abstract class OnchainEventIndexer {
     for (const indexerData of this.#indexerDatas) {
       this.#startPoller(indexerData)
     }
+    this.#started = true
   }
 
   /**

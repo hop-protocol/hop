@@ -1,7 +1,7 @@
 import wallets from '#wallets/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChain } from '@hop-protocol/sdk'
-import { FSM } from '../fsm/FSM.js'
+import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
@@ -9,7 +9,7 @@ import { MessageState } from './types.js'
 import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
 
 // TODO: Handle inflight transactions on restart
-export class MessageFSM extends FSM<MessageState, IMessage> {
+export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   // TODO: Turn into DB and persist
   readonly #inFlightTxCache: Set<string> = new Set()
   readonly #pollIntervalMs: number = 60_000

@@ -3,19 +3,19 @@ import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
 
 /**
- * FSM that is strictly concerned with the creation, transition, and termination of states. This
+ * State machine that is strictly concerned with the creation, transition, and termination of states. This
  * class is not concerned with performing any actions on the states or any implementation details.
  * 
  * Data used is retrieved from an external data stores.
  * 
- * Upon startup, the FSM will sync back to the latest known state.
+ * Upon startup, the state machine will sync back to the latest known state.
  * 
  * @dev The initial and terminal states are null
  */
 
-export abstract class FSM<State extends string, StateData>{
+export abstract class StateMachine<State extends string, StateData>{
   readonly #states: State[]
-  readonly #stateDB: StateMachineDB<State, string, StateData>
+  readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataStore: DataStore<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
@@ -27,7 +27,7 @@ export abstract class FSM<State extends string, StateData>{
     states: State[],
     dataStore: DataStore<State, StateData>
   ) {
-    this.#stateDB = new StateMachineDB(dbName)
+    this.#db = new StateMachineDB(dbName)
     this.#states = states
     this.#dataStore = dataStore
   }
@@ -48,7 +48,7 @@ export abstract class FSM<State extends string, StateData>{
    */
 
   protected async *getItemsInState(state: State): AsyncIterable<[string, StateData]> {
-    yield* this.#stateDB.getItemsInState(state)
+    yield* this.#db.getItemsInState(state)
   }
 
   /**
@@ -75,7 +75,7 @@ export abstract class FSM<State extends string, StateData>{
   }
 
   #checkStateTransition = async (state: State): Promise<void> => {
-    for await (const [key, value] of this.#stateDB.getItemsInState(state)) {
+    for await (const [key, value] of this.#db.getItemsInState(state)) {
       const canTransition = this.isTransitionReady(state, value)
       if (!canTransition) return
 
@@ -90,14 +90,14 @@ export abstract class FSM<State extends string, StateData>{
   async #initializeItem (value: StateData): Promise<void> {
     const firstState = this.#getFirstState()
     const key = this.getItemId(value)
-    return this.#stateDB.createItemIfNotExist(firstState, key, value)
+    return this.#db.createItemIfNotExist(firstState, key, value)
   }
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const nextState = this.#getNextState(state)
     if (nextState === null) {
       // This is the final state state
-      return this.#stateDB.updateState(state, nextState, key, value)
+      return this.#db.updateState(state, nextState, key, value)
     }
 
     const stateTransitionData = await this.#dataStore.getItem(nextState, value)
@@ -105,7 +105,7 @@ export abstract class FSM<State extends string, StateData>{
       return
     }
     const nextValue = { ...stateTransitionData, ...value }
-    return this.#stateDB.updateState(state, nextState, key, nextValue)
+    return this.#db.updateState(state, nextState, key, nextValue)
   }
 
   /**

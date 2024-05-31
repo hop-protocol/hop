@@ -1,7 +1,7 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
 import { MessageDataStore } from './MessageDataStore.js'
 import { MessageIndexer } from './MessageIndexer.js'
-import { MessageFSM } from './MessageFSM.js'
+import { MessageStateMachine } from './MessageStateMachine.js'
 
 // TODO: I should be able to not need the string after, but that is what is used for db index so maybe i do?
 export enum MessageState {
@@ -10,7 +10,7 @@ export enum MessageState {
 }
 
 export class Message {
-  readonly #FSM: MessageFSM
+  readonly #stateMachine: MessageStateMachine
   #started: boolean = false
 
   constructor (chains: ChainSlug[]) {
@@ -25,7 +25,7 @@ export class Message {
     const dataStore = new MessageDataStore(indexer)
 
     // State handler
-    this.#FSM = new MessageFSM(dbName, states, dataStore)
+    this.#stateMachine = new MessageStateMachine(dbName, states, dataStore)
   }
 
   async start (): Promise<void> {
@@ -33,8 +33,8 @@ export class Message {
       throw new Error('Already started')
     }
 
-    await this.#FSM.init()
-    this.#FSM.start()
+    await this.#stateMachine.init()
+    this.#stateMachine.start()
     this.#started = true
   }
 }

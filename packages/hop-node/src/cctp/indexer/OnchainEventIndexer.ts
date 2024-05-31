@@ -31,6 +31,14 @@ export interface IndexerData<T extends string[] = string[]> {
   indexNames: T
 }
 
+interface EventLogsForRange {
+  chainId: string
+  eventSig: string
+  eventContractAddress: string
+  startBlockNumber: number
+  endBlockNumber: number
+}
+
 export abstract class OnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
@@ -117,10 +125,28 @@ export abstract class OnchainEventIndexer {
     const { chainId, eventSig, eventContractAddress, indexNames } = indexerData
     const filterId = this.#getUniqueFilterId(indexerData)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
-    const { endBlockNumber, logs } = await this.#getEventsInRange(chainId, eventSig, eventContractAddress, lastBlockSynced)
+    const provider = getRpcProvider(chainId)
 
-    // Atomically write new DB state and logs to avoid out of sync state
-    await this.#db.updateIndexedData(filterId, endBlockNumber, logs, indexNames)
+    // Add 1 to currentEnd to avoid fetching the same block twice
+    const startBlockNumber = lastBlockSynced + 1
+    const endBlockNumber = await provider.getBlockNumber()
+    const getEventLogsInput: EventLogsForRange = {
+      chainId,
+      eventSig,
+      eventContractAddress,
+      startBlockNumber,
+      endBlockNumber
+    }
+
+    // If the indexer is synced, do nothing
+    if (startBlockNumber >= endBlockNumber) return
+
+    for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
+      // Atomically write new DB state and logs to avoid out of sync state
+      // Note: There can be an updated lastBlockSynced if the logs are empty, so don't skip the update
+      const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
+      await this.#db.updateIndexedData(filterId, endBlockNumber, logsWithChainId, indexNames)
+    }
   }
 
 
@@ -128,55 +154,38 @@ export abstract class OnchainEventIndexer {
    * Indexer
    */
 
-  #getEventsInRange = async (
-    chainId: string,
-    eventSig: string,
-    eventContractAddress: string,
-    syncStartBlock: number
-  ): Promise<{
+  // TODO: General logs, not any. I add chainId at a later time
+  async *#getEventLogsForRange (input: EventLogsForRange): AsyncIterable<{
     endBlockNumber: number,
-    logs: LogWithChainId[]
-  }> => {
-    const provider = getRpcProvider(chainId)
-    const lastBlockSynced = syncStartBlock
-    const headBlockNumber = await provider.getBlockNumber()
-
-    // Avoid double counting the edges
-    let currentStart = lastBlockSynced + 1
-    if (currentStart >= headBlockNumber) {
-      return {
-        endBlockNumber: lastBlockSynced,
-        logs: []
-      }
+    logs: any[]
+  }> {
+    const { chainId, eventSig, eventContractAddress, startBlockNumber, endBlockNumber } = input
+    if (startBlockNumber > endBlockNumber) {
+      throw new Error('startBlockNumber must be less than or equal to endBlockNumber')
     }
 
-    // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
+    // Config
+    const provider = getRpcProvider(chainId)
     const maxBlockRange = this.#getMaxBlockRangePerIndex(chainId)
-    const logsWithChainId: LogWithChainId[] = []
-    let currentEnd: number = 0
-    while (currentStart < headBlockNumber) {
-      currentEnd = Math.min(currentStart + maxBlockRange, headBlockNumber)
+
+    // Fetch logs in chunks
+    let currentStartBlockNumber: number = startBlockNumber
+    while (currentStartBlockNumber <= endBlockNumber) {
+      const currentEndBlockNumber = Math.min(currentStartBlockNumber + maxBlockRange, endBlockNumber)
 
       const filter: RequiredFilter = {
         topics: [eventSig],
         address: eventContractAddress,
-        fromBlock: currentStart,
-        toBlock: currentEnd
+        fromBlock: currentStartBlockNumber,
+        toBlock: currentEndBlockNumber 
       }
 
-      // TODO: Get decoded log from SDK
-      const logs = await provider.getLogs(filter)
-      for (const log of logs) {
-        const logWithChainId = { ...log, chainId }
-        logsWithChainId.push(logWithChainId)
+      yield  {
+        endBlockNumber: currentEndBlockNumber,
+        logs: await provider.getLogs(filter)
       }
 
-      currentStart = currentEnd
-    }
-
-    return {
-      endBlockNumber: currentEnd,
-      logs: logsWithChainId
+      currentStartBlockNumber = currentEndBlockNumber + 1
     }
   }
 

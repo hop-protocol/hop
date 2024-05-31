@@ -19,6 +19,7 @@ export abstract class FSM<State extends string, StateData>{
   readonly #dataStore: DataStore<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
+  protected abstract getItemId(value: StateData): string
   protected abstract isTransitionReady(state: State, value: StateData): boolean
 
   constructor (
@@ -62,7 +63,8 @@ export abstract class FSM<State extends string, StateData>{
   }
 
   #startListeners (): void {
-    this.#dataStore.on(DataStore.ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
+    const initialState = this.#getFirstState()
+    this.#dataStore.on(initialState, this.#initializeItem)
     this.#dataStore.on('error', () => { throw new Error('Data store error') })
   }
 
@@ -85,8 +87,9 @@ export abstract class FSM<State extends string, StateData>{
    * State transitions
    */
 
-  async #initializeItem(key: string, value: StateData): Promise<void> {
+  async #initializeItem (value: StateData): Promise<void> {
     const firstState = this.#getFirstState()
+    const key = this.getItemId(value)
     return this.#stateDB.createItemIfNotExist(firstState, key, value)
   }
 

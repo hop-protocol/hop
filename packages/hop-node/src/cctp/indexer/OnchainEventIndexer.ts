@@ -3,7 +3,7 @@ import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import type { LogWithChainId, RequiredFilter } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
-import { utils } from 'ethers'
+import { providers, utils } from 'ethers'
 import { getChain } from '@hop-protocol/sdk'
 import {
   DATA_INDEXED_EVENT,
@@ -81,7 +81,7 @@ export abstract class OnchainEventIndexer {
    *  Event Handling
    */
 
-  #startListeners = () => {
+  #startListeners = (): void => {
     // https://github.com/Level/abstract-level?tab=readme-ov-file#write
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
@@ -143,12 +143,10 @@ export abstract class OnchainEventIndexer {
 
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       // Atomically write new DB state and logs to avoid out of sync state
-      // Note: There can be an updated lastBlockSynced if the logs are empty, so don't skip the update
-      const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
-      await this.#db.updateIndexedData(filterId, endBlockNumber, logsWithChainId, indexNames)
+      // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
+      await this.#db.updateIndexedData(filterId, endBlockNumber, logs, indexNames)
     }
   }
-
 
   /**
    * Indexer
@@ -157,7 +155,7 @@ export abstract class OnchainEventIndexer {
   // TODO: General logs, not any. I add chainId at a later time
   async *#getEventLogsForRange (input: EventLogsForRange): AsyncIterable<{
     endBlockNumber: number,
-    logs: any[]
+    logs: LogWithChainId[]
   }> {
     const { chainId, eventSig, eventContractAddress, startBlockNumber, endBlockNumber } = input
     if (startBlockNumber > endBlockNumber) {
@@ -180,9 +178,11 @@ export abstract class OnchainEventIndexer {
         toBlock: currentEndBlockNumber 
       }
 
+      const logs: providers.Log[] = await provider.getLogs(filter)
+      const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
       yield  {
         endBlockNumber: currentEndBlockNumber,
-        logs: await provider.getLogs(filter)
+        logs: logsWithChainId
       }
 
       currentStartBlockNumber = currentEndBlockNumber + 1
@@ -197,7 +197,6 @@ export abstract class OnchainEventIndexer {
     const { chainId, eventSig, eventContractAddress } = indexerData
     return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
   }
-
 
   #getMaxBlockRangePerIndex(chainId: string): number {
     const chainSlug = getChain(chainId).slug

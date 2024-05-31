@@ -23,6 +23,18 @@ export class MessageFSM extends FSM<MessageState, IMessage> {
     poll(this.#checkRelay, this.#pollIntervalMs)
   }
 
+  /**
+   * Abstract Implementation
+   */
+
+  getItemId(value: IMessage): string {
+    return MessageSDK.getMessageHashFromMessage(value.message)
+  }
+
+  /**
+   * TODO: ???
+   */
+
   #checkRelay = async (): Promise<void> => {
     for await (const value of this.#getRelayableMessages()) {
       const { message, destinationChainId } = value as IMessage

@@ -16,18 +16,27 @@ import { DATA_INDEXED_EVENT } from '../indexer/constants.js'
 // TODO: This seems like the only implementation that doesn't have an abstract
 // class. Is that reasonable?
 
+/**
+ * This class is responsible for providing formatted data to the
+ * consumer.
+ * 
+ * It formats log data into a format that is desired by the consumer
+ * of the data store.
+ * 
+ * This class also emits an event upon receipt of 
+ */
+
 export class MessageDataStore extends DataStore<MessageState, IMessage> {
   readonly #indexer: MessageIndexer
   readonly #eventEmitter: EventEmitter = new EventEmitter()
 
   constructor (indexer: MessageIndexer) {
     super()
-
     this.#indexer = indexer
-    this.#indexer.on(DATA_INDEXED_EVENT, this.#handleDataIndexedEvent)
   }
 
   start(): void {
+    this.#startListeners()
     this.#indexer.start()
   }
 
@@ -37,36 +46,49 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
 
   // TODO: Value and resp are different IMessage
   async getItem(state: MessageState, value: IMessage): Promise<IMessage> {
-    const eventData: LogWithChainId = await this.#indexer.getData(state, value)
-    return this.#parseEventData(state, eventData)
+    const eventLog: LogWithChainId = await this.#indexer.getData(state, value)
+    return this.#formatEventLog(state, eventLog)
   }
 
   /**
    * Event handler
    */
 
+  #startListeners = (): void => {
+    this.#indexer.on(DATA_INDEXED_EVENT, this.#handleDataIndexedEvent)
+  }
+
   on (event: string, listener: (...args: any[]) => void): void {
     this.#eventEmitter.on(event, listener)
   }
 
-  #handleInitialEvent (log: LogWithChainId): void {
-    const parsedLog = this.#parseInitializationLog(log)
-    this.#eventEmitter.emit(DataStore.ITEM_CREATED, parsedLog)
+  #handleDataIndexedEvent = async (log: LogWithChainId): Promise<void> => {
+    const state: MessageState = this.#getStateFromLog(log)
+    const formattedEventLog = await this.#formatEventLog(state, log)
+    this.#eventEmitter.emit(state, formattedEventLog)
   }
 
   /**
-   * Parsing
+   * Formatting
    */
 
-  async #parseInitializationLog (transferSentLog: LogWithChainId): Promise<IMessage> {
-    // TODO: Is this chainId string or number
-    const { transactionHash, chainId, blockNumber } = transferSentLog
-    const timestampMs = await this.#getTimestampFromBlockNumberMs(chainId, blockNumber)
-    const {
-      message,
-      cctpNonce,
-      chainId: destinationChainId
-    } = await MessageSDK.parseHopCCTPTransferSentLog(transferSentLog)
+  async #formatEventLog(state: MessageState, log: LogWithChainId): Promise<IMessage> {
+    switch (state) {
+      case MessageState.Sent:
+        return this.#formatTransferSentLog(log)
+      case MessageState.Relayed:
+        return this.#formatRelayedLog(log)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  async #formatTransferSentLog (log: LogWithChainId): Promise<IMessage> {
+    const { transactionHash, chainId, blockNumber /*, parsedData */ } = log
+    // TODO: fix
+    const parsedData: any = {}
+    const { message, cctpNonce, chainId: destinationChainId } = parsedData
+    const timestampMs = await this.#getBlockTimestampFromLogMs(log)
 
     return {
       message,
@@ -78,55 +100,13 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
     } as IMessage
   }
 
-  async #parseEventData (state: MessageState, data: IGetStoreDataRes): Promise<IMessage> {
-    if (MessageState.Sent === state) {
-      // TODO
-      const res = data as IAPIEventStoreRes
-      return this.#parseApiEventData(res)
-    } else if (MessageState.Attested === state) {
-      const res = data as IOnchainEventStoreRes
-      return this.#parseOnchainEventData(state, res)
-    } else if (MessageState. Relayed === state) {
-      // TODO
-    }
-    throw new Error('Invalid state')
-  }
-
-  async #parseOnchainEventData (state: MessageState, log: IOnchainEventStoreRes): Promise<IMessage> {
-    const logState = this.#getLogState(log.topics[0])
-    if (!logState) {
-     throw new Error('Invalid log')
-    }
-    return this.#parseLogForState(logState, log)
-  }
-
-  #getLogState(eventSig: string): MessageState | undefined {
-    if (eventSig === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
-      return MessageState.Relayed
-    }
-  }
-
-  async #parseLogForState (state: MessageState, log: LogWithChainId): Promise<IMessage> {
-    switch (state) {
-      case MessageState.Relayed:
-        return this.#parseRelayedLog(log)
-    }
-    throw new Error('Invalid state')
-  }
-
-  async #parseRelayedLog (log: LogWithChainId): Promise<IMessage> {
-    // TODO: Is this chainId string or number
-    const { transactionHash, chainId, blockNumber } = log
-    const timestampMs = await this.#getTimestampFromBlockNumberMs(chainId, blockNumber)
+  async #formatRelayedLog (log: LogWithChainId): Promise<IMessage> {
+    const { transactionHash } = log
+    // TODO: Is this the right chainId? Src vs dest?
+    const timestampMs = await this.#getBlockTimestampFromLogMs(log)
     return {
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
-    } as IMessage
-  }
-
-  #parseApiEventData (attestation: IAPIEventStoreRes): IMessage {
-    return {
-      attestation
     } as IMessage
   }
 
@@ -134,10 +114,23 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
    * Utils
    */
 
-  async #getTimestampFromBlockNumberMs (chainId: string, blockNumber: number): Promise<number> {
+  async #getBlockTimestampFromLogMs (log: LogWithChainId): Promise<number> {
+    const { chainId, blockNumber } = log
     const chainSlug = getChain(chainId).slug
     const provider = getRpcProvider(chainSlug as ChainSlug)
     const block = await provider.getBlock(blockNumber)
     return block.timestamp * 1000
+  }
+
+  #getStateFromLog (log: LogWithChainId): MessageState {
+    const eventSig = log.topics[0]
+    switch (eventSig) {
+      case (MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG):
+       return MessageState.TransferSent
+      case (MessageSDK.MESSAGE_RECEIVED_EVENT_SIG):
+        return MessageState.Relayed
+      default:
+        throw new Error('Invalid log')
+    }
   }
 }

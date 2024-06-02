@@ -89,20 +89,4 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
     return true
   }
-
-  /**
-   * Metadata
-   */
-
-  async getSyncMarker (): Promise<string> {
-    const metadata = await this.getMetadata()
-    if (metadata?.syncMarker === undefined) {
-      throw new Error('Sync marker not found')
-    }
-    return metadata.syncMarker
-  }
-
-  async updateSyncMarker(syncMarker: string): Promise<void> {
-    return this.updateMetadata({ syncMarker })
-  }
 }

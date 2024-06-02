@@ -84,7 +84,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
   }
 
   async #formatTransferSentLog (log: LogWithChainId): Promise<IMessage> {
-    const { transactionHash, chainId, blockNumber /*, parsedData */ } = log
+    const { transactionHash, chainId /*, parsedData */ } = log
     // TODO: fix
     const parsedData: any = {}
     const { message, cctpNonce, chainId: destinationChainId } = parsedData

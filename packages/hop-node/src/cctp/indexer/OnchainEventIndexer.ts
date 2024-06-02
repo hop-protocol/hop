@@ -82,6 +82,7 @@ export abstract class OnchainEventIndexer {
    */
 
   #startListeners = (): void => {
+    // Emit event when data is written to the DB
     // https://github.com/Level/abstract-level?tab=readme-ov-file#write
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {

@@ -88,6 +88,8 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
         return this.#isSent(value as ISentMessage)
       case MessageState.Relayed:
         return this.#isRelayed(value as IRelayedMessage)
+      default:
+        throw new Error('Invalid state')
     }
   }
 

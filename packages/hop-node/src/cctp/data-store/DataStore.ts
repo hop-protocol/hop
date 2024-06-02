@@ -1,6 +1,5 @@
 export abstract class DataStore<T, U> {
   // Events
-  static readonly ITEM_CREATED: string = 'itemCreated'
   abstract on(event: string, listener: (...args: any[]) => void): void
 
   // Init

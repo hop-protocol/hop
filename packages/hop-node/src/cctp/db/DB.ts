@@ -36,16 +36,4 @@ export abstract class DB<K, V> extends Level<K, V> {
   protected async has(key: K): Promise<boolean> {
     return (await this.getIfExists(key)) !== null
   }
-
-  /**
-   * Metadata
-   */
-
-  protected async getMetadata(): Promise<Metadata> {
-    return this.get<string, Metadata>(this.#metadataKey, KEY_ENCODING_OPTIONS)
-  }
-
-  protected async updateMetadata(value: Metadata): Promise<void> {
-    return this.put<string, Metadata>(this.#metadataKey, value, KEY_ENCODING_OPTIONS)
-  }
 }

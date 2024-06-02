@@ -1,4 +1,4 @@
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 export const DATA_INDEXED_EVENT = 'DATA_INDEXED_EVENT'
 

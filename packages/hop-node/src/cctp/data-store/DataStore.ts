@@ -8,5 +8,5 @@ export abstract class DataStore<T, U> {
 
   // TODO: Diff U
   // Getters
-  abstract getItem(primaryIndex: T, secondaryIndex: U): Promise<U | undefined>
+  abstract fetchItem(primaryIndex: T, secondaryIndex: U): Promise<U | undefined>
 }

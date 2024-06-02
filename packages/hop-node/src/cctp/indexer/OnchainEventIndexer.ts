@@ -100,7 +100,7 @@ export abstract class OnchainEventIndexer {
    * Public methods
    */
 
-  protected getItem(indexerData: IndexerData, indexValues: string[]): Promise<LogWithChainId> {
+  protected retrieveItem(indexerData: IndexerData, indexValues: string[]): Promise<LogWithChainId> {
     const filterId = this.#getUniqueFilterId(indexerData)
     return this.#db.getIndexedItem(filterId, indexValues)
   }
@@ -131,6 +131,9 @@ export abstract class OnchainEventIndexer {
     // Add 1 to currentEnd to avoid fetching the same block twice
     const startBlockNumber = lastBlockSynced + 1
     const endBlockNumber = await provider.getBlockNumber()
+    const isSynced = startBlockNumber > endBlockNumber
+    if (isSynced) return
+
     const getEventLogsInput: EventLogsForRange = {
       chainId,
       eventSig,
@@ -139,13 +142,10 @@ export abstract class OnchainEventIndexer {
       endBlockNumber
     }
 
-    // If the indexer is synced, do nothing
-    if (startBlockNumber >= endBlockNumber) return
-
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       // Atomically write new DB state and logs to avoid out of sync state
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
-      await this.#db.updateIndexedData(filterId, endBlockNumber, logs, indexNames)
+      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexNames)
     }
   }
 
@@ -163,7 +163,6 @@ export abstract class OnchainEventIndexer {
       throw new Error('startBlockNumber must be less than or equal to endBlockNumber')
     }
 
-    // Config
     const provider = getRpcProvider(chainId)
     const maxBlockRange = this.#getMaxBlockRangePerIndex(chainId)
 

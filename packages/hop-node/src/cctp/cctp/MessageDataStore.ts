@@ -45,8 +45,8 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
   ///////////////////// but then that means every single step needs a chainId. is that ok? if so, add to nots for our v2 contract emissiosn
 
   // TODO: Value and resp are different IMessage
-  async getItem(state: MessageState, value: IMessage): Promise<IMessage> {
-    const eventLog: LogWithChainId = await this.#indexer.getData(state, value)
+  async fetchItem(state: MessageState, value: IMessage): Promise<IMessage> {
+    const eventLog: LogWithChainId = await this.#indexer.fetchItem(state, value)
     return this.#formatEventLog(state, eventLog)
   }
 

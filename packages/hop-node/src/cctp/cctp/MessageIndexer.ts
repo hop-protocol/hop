@@ -29,11 +29,11 @@ export class MessageIndexer extends OnchainEventIndexer {
    * Public API
    */
 
-  async getData(state: MessageState, value: IMessage): Promise<LogWithChainId> {
+  async fetchItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
     const indexerData = this.getIndexerData(chainId, state)
     const indexValues: string[] = this.#getIndexFromMessageData(state, value, chainId)
-    return this.getItem(indexerData, indexValues)
+    return this.retrieveItem(indexerData, indexValues)
   }
 
   /**

@@ -100,7 +100,7 @@ export abstract class StateMachine<State extends string, StateData>{
       return this.#db.updateState(state, nextState, key, value)
     }
 
-    const stateTransitionData = await this.#dataStore.getItem(nextState, value)
+    const stateTransitionData = await this.#dataStore.fetchItem(nextState, value)
     if (!stateTransitionData) {
       return
     }

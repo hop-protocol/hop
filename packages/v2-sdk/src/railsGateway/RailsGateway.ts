@@ -126,6 +126,12 @@ export type WithdrawBalanceInput = {
   timeWindow: number
 }
 
+export type GetHasSufficientBalanceInput = {
+  chainId: BigNumberish
+  tokenAddress: string
+  amount: BigNumberish
+}
+
 export type GetNeedsApprovalForSendInput = {
   chainId: BigNumberish
   pathId: string
@@ -232,6 +238,17 @@ export type GetTokenInfoInput = {
 export type GetTokenContractInput = {
   chainId: BigNumberish
   address: string
+}
+
+export type GetTransferStatusInput = {
+  chainId: BigNumberish
+  checkpoint: string
+}
+
+export enum TransferStatus {
+  PendingBond = 'PendingBond',
+  Bonded = 'Bonded',
+  NotFound = 'NotFound'
 }
 
 export type Token = {
@@ -1440,5 +1457,63 @@ export class RailsGateway extends StakingRegistry {
     const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(address, provider)
     return tokenContract
+  }
+
+  async getHasSufficientBalance (input: GetHasSufficientBalanceInput): Promise<boolean> {
+    const { chainId, tokenAddress, amount } = input
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidAddress(tokenAddress)) {
+      throw new InputError(`Invalid tokenAddress "${tokenAddress}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(amount)) {
+      throw new InputError(`Invalid amount "${amount}"`)
+    }
+
+    const provider = this.getRpcProviderForChainId(chainId)
+    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+    const spender = this.getRailsGatewayContractAddress(chainId)
+    const account = await this.getSignerAddress()
+    if (!account) {
+      throw new InputError('signer not set')
+    }
+    const balance = await tokenContract.balanceOf(account)
+    return balance.lt(amount)
+  }
+
+  async getTransferStatus(input: GetTransferStatusInput): Promise<TransferStatus> {
+    const { chainId, checkpoint } = input
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(checkpoint)) {
+      throw new InputError(`Invalid checkpoint "${checkpoint}"`)
+    }
+
+    const transferSentEvent = await this.getTransferSentEventFromCheckpoint({
+      fromChainId: chainId,
+      checkpoint
+    })
+
+    const transferBondedEvent = await this.getTransferBondedEventFromCheckpoint({
+      fromChainId: chainId,
+      checkpoint
+    })
+
+    if (transferSentEvent && !transferBondedEvent) {
+      return TransferStatus.PendingBond
+    }
+
+    if (transferSentEvent && transferBondedEvent) {
+      return TransferStatus.Bonded
+    }
+
+    return TransferStatus.NotFound
   }
 }

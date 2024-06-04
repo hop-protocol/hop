@@ -4,7 +4,7 @@ import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
-import { MessageState } from './types.js'
+import { MessageState } from './Message.js'
 import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
 import { TxRelayDB } from '../db/TxRelayDB.js'
 

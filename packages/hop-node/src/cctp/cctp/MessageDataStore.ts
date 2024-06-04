@@ -3,7 +3,7 @@ import { MessageSDK } from './MessageSDK.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataStore } from '../data-store/DataStore.js'
-import { MessageState } from './types.js'
+import { MessageState } from './Message.js'
 import type { IMessage } from './types.js'
 
 // Since the messages are unique by chainId, his MessageDataStore should be the

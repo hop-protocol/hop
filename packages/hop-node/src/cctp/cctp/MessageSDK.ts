@@ -13,6 +13,7 @@ import { getRpcProvider } from '#utils/index.js'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
 import { wait } from '#utils/wait.js'
+import { MIN_POLYGON_GAS_PRICE } from '#constants/index.js'
 
 // Temp to handle API rate limit
 const mutex = new Mutex()
@@ -103,7 +104,7 @@ export class MessageSDK {
     // Remove this in favor of the contract instance from the SDK when available
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
     // TODO: Config overrides
-    const txOverrides = await Message.getTxOverrides(chainId)
+    const txOverrides = await MessageSDK.getTxOverrides(chainId)
     return MessageTransmitterContract.connect(signer).receiveMessage(message, attestation, txOverrides)
   }
 
@@ -115,33 +116,27 @@ export class MessageSDK {
    */
   static async fetchAttestation (message: string): Promise<string> {
     return await mutex.runExclusive(async () => {
-    const messageHash = Message.getMessageHashFromMessage(message)
+    const messageHash = MessageSDK.getMessageHashFromMessage(message)
       const url = getAttestationUrl(messageHash)
-      console.log('temp000', messageHash)
       const res = await fetch(url)
-      console.log('temp111', messageHash, res)
       if (res.status === 429) {
         // Temp to handle API rate limit
         await wait(2_000)
       }
       const json: IAttestationResponse = await res.json()
-      console.log('temp222', messageHash, json)
 
       if (!json) {
         throw new Error('Message hash not found')
       }
 
-      console.log('temp333', messageHash)
       if ('error' in json) {
         throw new Error(json.error)
       }
 
-      console.log('temp444', messageHash)
       if (json.status !== 'complete') {
         throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
       }
 
-      console.log('temp555', messageHash, json)
       return json.attestation
     })
   }
@@ -180,8 +175,8 @@ export class MessageSDK {
       bonderFee
     } = parsed.args
 
-    const messages = await Message.getCCTPMessagesByTxHash(chainId, log.transactionHash)
-    const message = Message.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
+    const messages = await MessageSDK.getCCTPMessagesByTxHash(chainId, log.transactionHash)
+    const message = MessageSDK.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
 
     return {
       cctpNonce,
@@ -199,7 +194,7 @@ export class MessageSDK {
     const txReceipt = await provider.getTransactionReceipt(txHash)
     const blockNumber = txReceipt.blockNumber
 
-    const eventFilter = Message.getMessageSentEventFilter(chainId)
+    const eventFilter = MessageSDK.getMessageSentEventFilter(chainId)
     const filter: RequiredFilter = {
       ...eventFilter,
       fromBlock: blockNumber,
@@ -213,7 +208,7 @@ export class MessageSDK {
     const messages: string[] = []
     for (const log of logs) {
       if (log.transactionHash === txHash) {
-        messages.push(Message.decodeMessageFromEvent(log.data))
+        messages.push(MessageSDK.decodeMessageFromEvent(log.data))
       }
     }
 

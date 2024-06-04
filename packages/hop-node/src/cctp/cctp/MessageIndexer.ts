@@ -1,7 +1,8 @@
 import { MessageSDK } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
-import { MessageState, IMessage } from './types.js'
+import { MessageState } from './Message.js'
+import { IMessage } from './types.js'
 
 type IndexNames = (keyof IMessage)[]
 

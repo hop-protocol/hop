@@ -1,4 +1,4 @@
-import { DB } from './DB'
+import { DB } from './DB.js'
 
 /**
  * Uses state-indexed subDBs with the state to allow for efficient querying.

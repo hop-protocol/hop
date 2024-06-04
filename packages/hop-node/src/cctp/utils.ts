@@ -1,4 +1,4 @@
-import { wait } from 'src/utils/wait'
+import { wait } from '#utils/wait.js'
 
 // TODO: Don't do this
 

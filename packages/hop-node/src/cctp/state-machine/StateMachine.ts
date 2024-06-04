@@ -32,15 +32,31 @@ export abstract class StateMachine<State extends string, StateData>{
     this.#dataStore = dataStore
   }
 
-  async init(): Promise<void> {
-    await this.#init()
-    await this.#dataStore.init()
+  /**
+   * Initialization
+   */
+
+  async init (): Promise<void> {
+    // Handle pending state transitions
+    for (const state of this.#states) {
+      await this.#checkStateTransition(state)
+    }
   }
     
   start (): void {
     this.#startListeners()
     this.#startPollers()
     this.#dataStore.start()
+  }
+
+  /**
+   * Node events
+   */
+
+  #startListeners (): void {
+    const initialState = this.#getFirstState()
+    this.#dataStore.on(initialState, this.#initializeItem)
+    this.#dataStore.on('error', () => { throw new Error('State machine error') })
   }
 
   /**
@@ -54,19 +70,6 @@ export abstract class StateMachine<State extends string, StateData>{
   /**
    * Internal Processing
    */
-
-  async #init(): Promise<void> {
-    // Handle pending state transitions
-    for (const state of this.#states) {
-      await this.#checkStateTransition(state)
-    }
-  }
-
-  #startListeners (): void {
-    const initialState = this.#getFirstState()
-    this.#dataStore.on(initialState, this.#initializeItem)
-    this.#dataStore.on('error', () => { throw new Error('Data store error') })
-  }
 
   #startPollers (): void {
     for (const state of this.#states) {

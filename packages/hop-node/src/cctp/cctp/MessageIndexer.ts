@@ -1,5 +1,6 @@
 import { MessageSDK } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
+import { type IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
 import { MessageState, IMessage } from './types.js'
 
@@ -12,7 +13,7 @@ type IndexNames = (keyof IMessage)[]
  * the details of the indexing.
  */
 
-export class MessageIndexer extends OnchainEventIndexer {
+export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> implements IOnchainEventIndexer<MessageState, IMessage> {
 
   constructor (dbName: string, states: MessageState[], chainIds: string[]) {
     super(dbName)
@@ -40,7 +41,7 @@ export class MessageIndexer extends OnchainEventIndexer {
    * Overrides
    */
 
-  override getIndexerEventFilter(chainId: string, state: IMessage): IndexerEventFilter<IndexNames> {
+  protected override getIndexerEventFilter(chainId: string, state: IMessage): IndexerEventFilter<IndexNames> {
     switch (state) {
       case MessageState.Sent:
         return {
@@ -88,7 +89,7 @@ export class MessageIndexer extends OnchainEventIndexer {
   }
 
   #getIndexValues (state: IMessage, value: IMessage, chainId: string): string[] {
-    const indexNames = this.getIndexerEventFilter(chainId, state).indexNames
-    return indexNames.map(indexName => value[indexName as keyof IMessage] as string)
+    const indexTopics = this.getIndexerEventFilter(chainId, state).indexTopics
+    return indexTopics.map(indexTopic => value[indexTopic as keyof IMessage] as string)
   }
 }

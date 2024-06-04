@@ -28,7 +28,7 @@ export interface IndexerEventFilter<T extends string[] = string[]> {
   chainId: string
   eventSig: string
   eventContractAddress: string
-  indexNames: T
+  indexTopics: T
 }
 
 interface EventLogsForRange {
@@ -61,15 +61,19 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
     this.#indexerEventFilters.push(indexerEventFilter)
   }
 
-  async init(): Promise<void> {
+  /**
+   * Initialization
+   */
+
+  async init (): Promise<void> {
     for (const indexerEventFilter of this.#indexerEventFilters) {
       const { chainId } =indexerEventFilter 
       const filterId = this.#getUniqueFilterId(indexerEventFilter)
-      await this.#db.init(filterId, chainId)
+      await this.#db.initializeIndexer(filterId, chainId)
     }
   }
 
-  start(): void {
+  start (): void {
     this.#startListeners()
     for (const indexerEventFilter of this.#indexerEventFilters) {
       this.#startPoller(indexerEventFilter)
@@ -78,7 +82,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
   }
 
   /**
-   *  Event Handling
+   * Node events
    */
 
   #startListeners = (): void => {
@@ -90,6 +94,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
         this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
       }
     })
+    this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
@@ -97,7 +102,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
   }
 
   /**
-   * Public methods
+   * Getters
    */
 
   protected retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<LogWithChainId> {

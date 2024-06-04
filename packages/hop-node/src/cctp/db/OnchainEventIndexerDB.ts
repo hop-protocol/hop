@@ -20,7 +20,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     this.sublevel(key)
   }
 
-  async init (key: string, chainId: string): Promise<void> {
+  async initializeIndexer (key: string, chainId: string): Promise<void> {
     const syncKey = this.#getLastBlockSyncedKey(key)
     const doesKeyExist = await this.has(syncKey)
     if (doesKeyExist) {

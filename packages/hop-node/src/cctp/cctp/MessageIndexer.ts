@@ -1,6 +1,5 @@
 import { MessageSDK } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
-import { type IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
 import { MessageState, IMessage } from './types.js'
 
@@ -13,7 +12,7 @@ type IndexNames = (keyof IMessage)[]
  * the details of the indexing.
  */
 
-export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> implements IOnchainEventIndexer<MessageState, IMessage> {
+export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> {
 
   constructor (dbName: string, states: MessageState[], chainIds: string[]) {
     super(dbName)

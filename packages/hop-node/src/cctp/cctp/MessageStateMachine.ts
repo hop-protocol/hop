@@ -1,7 +1,6 @@
 import wallets from '#wallets/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '../state-machine/StateMachine.js'
-import { type IStateMachine } from '../state-machine/IStateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
@@ -10,7 +9,7 @@ import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
 import { TxRelayDB } from '../db/TxRelayDB.js'
 
 // TODO: Handle inflight transactions on restart
-export class MessageStateMachine extends StateMachine<MessageState, IMessage> implements IStateMachine {
+export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   readonly #sentTxCache: TxRelayDB = new TxRelayDB()
   readonly #pollIntervalMs: number = 60_000
 

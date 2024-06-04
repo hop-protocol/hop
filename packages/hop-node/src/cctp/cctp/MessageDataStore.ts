@@ -3,14 +3,13 @@ import { MessageSDK } from './MessageSDK.js'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataStore } from '../data-store/DataStore.js'
-import { type IDataStore } from '../data-store/IDataStore.js'
 import { MessageState } from './types.js'
 import type { IMessage } from './types.js'
 
 // Since the messages are unique by chainId, his MessageDataStore should be the
 // class that abstracts this away.
 
-export class MessageDataStore extends DataStore<MessageState, IMessage> implements IDataStore<MessageState, IMessage> {
+export class MessageDataStore extends DataStore<MessageState, IMessage> {
 
   // TODO: I'm starting to think this `value` doesn't need to encompass all the data
   ///////////////////// but maybe it does.......how else would i get message (hash) everywehre for the index
@@ -21,11 +20,16 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> implemen
    * Implementation
    */
 
+  async fetchItem (state: MessageState, value: IMessage): Promise<IMessage> {
+    const eventLog: LogWithChainId = await this.fetchStoredItem(state, value)
+    return this.formatItem(state, eventLog)
+  }
+
   protected override getKeyFromLog (log: LogWithChainId): MessageState {
     return this.#getStateFromLog(log)
   }
 
-  protected override async formatItem(state: MessageState, log: LogWithChainId): Promise<IMessage> {
+  protected override async formatItem (state: MessageState, log: LogWithChainId): Promise<IMessage> {
     switch (state) {
       case MessageState.Sent:
         return this.#formatTransferSentLog(log)

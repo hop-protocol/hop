@@ -1,6 +1,8 @@
-import { DataStore } from '../data-store/DataStore.js'
+import { IDataStore } from '../data-store/IDataStore.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
+import { getFirstState, getNextState } from './utils.js'
+import { IStateMachine } from './IStateMachine.js'
 
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
@@ -13,10 +15,10 @@ import { poll } from '../utils.js'
  * @dev The initial and terminal states are null
  */
 
-export abstract class StateMachine<State extends string, StateData>{
+export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
-  readonly #dataStore: DataStore<State, StateData>
+  readonly #dataStore: IDataStore<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
   protected abstract getItemId(value: StateData): string
@@ -25,7 +27,7 @@ export abstract class StateMachine<State extends string, StateData>{
   constructor (
     dbName: string,
     states: State[],
-    dataStore: DataStore<State, StateData>
+    dataStore: IDataStore<State, StateData>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states
@@ -54,13 +56,13 @@ export abstract class StateMachine<State extends string, StateData>{
    */
 
   #startListeners (): void {
-    const initialState = this.#getFirstState()
+    const initialState = getFirstState(this.#states)
     this.#dataStore.on(initialState, this.#initializeItem)
     this.#dataStore.on('error', () => { throw new Error('State machine error') })
   }
 
   /**
-   * Public API
+   * Getters
    */
 
   protected async *getItemsInState(state: State): AsyncIterable<[string, StateData]> {
@@ -68,7 +70,7 @@ export abstract class StateMachine<State extends string, StateData>{
   }
 
   /**
-   * Internal Processing
+   * Poller
    */
 
   #startPollers (): void {
@@ -91,13 +93,13 @@ export abstract class StateMachine<State extends string, StateData>{
    */
 
   async #initializeItem (value: StateData): Promise<void> {
-    const firstState = this.#getFirstState()
+    const firstState = getFirstState(this.#states)
     const key = this.getItemId(value)
     return this.#db.createItemIfNotExist(firstState, key, value)
   }
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
-    const nextState = this.#getNextState(state)
+    const nextState = getNextState(this.#states, state)
     if (nextState === null) {
       // This is the final state state
       return this.#db.updateState(state, nextState, key, value)
@@ -109,29 +111,5 @@ export abstract class StateMachine<State extends string, StateData>{
     }
     const nextValue = { ...stateTransitionData, ...value }
     return this.#db.updateState(state, nextState, key, nextValue)
-  }
-
-  /**
-   * State utils
-   */
-
-  #getFirstState(): State {
-    return this.#states[0]
-  }
-
-  #getNextState(state: State): State | null {
-    const index = this.#states.indexOf(state)
-
-    // If the state is unknown, the index will be -1
-    if (index === -1) {
-      throw new Error('Invalid state')
-    }
-
-    // If this is the last state, the next state is null
-    if (index + 1 === this.#states.length) {
-      return null
-    }
-
-    return this.#states[index + 1]
   }
 }

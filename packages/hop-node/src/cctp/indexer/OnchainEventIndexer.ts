@@ -3,13 +3,13 @@ import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import type { LogWithChainId, RequiredFilter } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { wait } from '#utils/wait.js'
-import { providers, utils } from 'ethers'
-import { getChain } from '@hop-protocol/sdk'
+import { providers } from 'ethers'
 import {
   DATA_INDEXED_EVENT,
-  MAX_BLOCK_RANGE_PER_INDEX,
   POLL_INTERVAL_MS
 } from './constants.js'
+import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
+import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -39,13 +39,14 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-export abstract class OnchainEventIndexer<State extends string, StateData> {
+export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<T, U> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexerEventFilters: IndexerEventFilter[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
+  abstract retrieveItem(key: T, value: U): Promise<LogWithChainId>
   protected abstract getIndexerEventFilter(chainId: string, opts: any): IndexerEventFilter
 
   constructor (dbName: string) {
@@ -56,7 +57,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
     if (this.#started) {
       throw new Error('Cannot add indexer after starting')
     }
-    const filterId = this.#getUniqueFilterId(indexerEventFilter)
+    const filterId = getUniqueFilterId(indexerEventFilter)
     this.#db.newIndexerDB(filterId)
     this.#indexerEventFilters.push(indexerEventFilter)
   }
@@ -68,7 +69,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
   async init (): Promise<void> {
     for (const indexerEventFilter of this.#indexerEventFilters) {
       const { chainId } =indexerEventFilter 
-      const filterId = this.#getUniqueFilterId(indexerEventFilter)
+      const filterId = getUniqueFilterId(indexerEventFilter)
       await this.#db.initializeIndexer(filterId, chainId)
     }
   }
@@ -106,7 +107,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
    */
 
   protected retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<LogWithChainId> {
-    const filterId = this.#getUniqueFilterId(indexerEventFilter)
+    const filterId = getUniqueFilterId(indexerEventFilter)
     return this.#db.getIndexedItem(filterId, indexValues)
   }
 
@@ -120,7 +121,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
         await this.#syncEvents(indexerEventFilter)
         await wait(this.#pollIntervalMs)
       } catch (err) {
-        const filterId = this.#getUniqueFilterId(indexerEventFilter)
+        const filterId = getUniqueFilterId(indexerEventFilter)
         console.error(`OnchainEventIndexer poll err for filterId: ${filterId}: ${err}`)
         process.exit(1)
       }
@@ -129,7 +130,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
     const { chainId, eventSig, eventContractAddress, indexNames } = indexerEventFilter
-    const filterId = this.#getUniqueFilterId(indexerEventFilter)
+    const filterId = getUniqueFilterId(indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
     const provider = getRpcProvider(chainId)
 
@@ -169,7 +170,7 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
     }
 
     const provider = getRpcProvider(chainId)
-    const maxBlockRange = this.#getMaxBlockRangePerIndex(chainId)
+    const maxBlockRange = getMaxBlockRangePerIndex(chainId)
 
     // Fetch logs in chunks
     let currentStartBlockNumber: number = startBlockNumber
@@ -192,19 +193,5 @@ export abstract class OnchainEventIndexer<State extends string, StateData> {
 
       currentStartBlockNumber = currentEndBlockNumber + 1
     }
-  }
-
-  /**
-   * Internal
-   */
-
-  #getUniqueFilterId = (indexerEventFilter: IndexerEventFilter): string => {
-    const { chainId, eventSig, eventContractAddress } =indexerEventFilter 
-    return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
-  }
-
-  #getMaxBlockRangePerIndex(chainId: string): number {
-    const chainSlug = getChain(chainId).slug
-    return MAX_BLOCK_RANGE_PER_INDEX[chainSlug]
   }
 }

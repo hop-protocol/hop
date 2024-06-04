@@ -24,7 +24,7 @@ import {
  * to use before calling init() and start().
  */
 
-export interface IndexerData<T extends string[] = string[]> {
+export interface IndexerEventFilter<T extends string[] = string[]> {
   chainId: string
   eventSig: string
   eventContractAddress: string
@@ -39,40 +39,40 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-export abstract class OnchainEventIndexer {
+export abstract class OnchainEventIndexer<State extends string, StateData> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
-  readonly #indexerDatas: IndexerData[] = []
+  readonly #indexerEventFilters: IndexerEventFilter[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
-  protected abstract getIndexerData(chainId: string, opts: any): IndexerData
+  protected abstract getIndexerEventFilter(chainId: string, opts: any): IndexerEventFilter
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
   }
 
-  protected addIndexer (indexerData: IndexerData): void {
+  protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter): void {
     if (this.#started) {
       throw new Error('Cannot add indexer after starting')
     }
-    const filterId = this.#getUniqueFilterId(indexerData)
+    const filterId = this.#getUniqueFilterId(indexerEventFilter)
     this.#db.newIndexerDB(filterId)
-    this.#indexerDatas.push(indexerData)
+    this.#indexerEventFilters.push(indexerEventFilter)
   }
 
   async init(): Promise<void> {
-    for (const indexerData of this.#indexerDatas) {
-      const { chainId } = indexerData
-      const filterId = this.#getUniqueFilterId(indexerData)
+    for (const indexerEventFilter of this.#indexerEventFilters) {
+      const { chainId } =indexerEventFilter 
+      const filterId = this.#getUniqueFilterId(indexerEventFilter)
       await this.#db.init(filterId, chainId)
     }
   }
 
   start(): void {
     this.#startListeners()
-    for (const indexerData of this.#indexerDatas) {
-      this.#startPoller(indexerData)
+    for (const indexerEventFilter of this.#indexerEventFilters) {
+      this.#startPoller(indexerEventFilter)
     }
     this.#started = true
   }
@@ -100,8 +100,8 @@ export abstract class OnchainEventIndexer {
    * Public methods
    */
 
-  protected retrieveItem(indexerData: IndexerData, indexValues: string[]): Promise<LogWithChainId> {
-    const filterId = this.#getUniqueFilterId(indexerData)
+  protected retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<LogWithChainId> {
+    const filterId = this.#getUniqueFilterId(indexerEventFilter)
     return this.#db.getIndexedItem(filterId, indexValues)
   }
 
@@ -109,22 +109,22 @@ export abstract class OnchainEventIndexer {
    * Poller
    */
 
-  #startPoller = async (indexerData: IndexerData): Promise<never> => {
+  #startPoller = async (indexerEventFilter: IndexerEventFilter): Promise<never> => {
     while (true) {
       try {
-        await this.#syncEvents(indexerData)
+        await this.#syncEvents(indexerEventFilter)
         await wait(this.#pollIntervalMs)
       } catch (err) {
-        const filterId = this.#getUniqueFilterId(indexerData)
+        const filterId = this.#getUniqueFilterId(indexerEventFilter)
         console.error(`OnchainEventIndexer poll err for filterId: ${filterId}: ${err}`)
         process.exit(1)
       }
     }
   }
 
-  #syncEvents = async (indexerData: IndexerData): Promise<void> => {
-    const { chainId, eventSig, eventContractAddress, indexNames } = indexerData
-    const filterId = this.#getUniqueFilterId(indexerData)
+  #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
+    const { chainId, eventSig, eventContractAddress, indexNames } = indexerEventFilter
+    const filterId = this.#getUniqueFilterId(indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
     const provider = getRpcProvider(chainId)
 
@@ -193,8 +193,8 @@ export abstract class OnchainEventIndexer {
    * Internal
    */
 
-  #getUniqueFilterId = (indexerData: IndexerData): string => {
-    const { chainId, eventSig, eventContractAddress } = indexerData
+  #getUniqueFilterId = (indexerEventFilter: IndexerEventFilter): string => {
+    const { chainId, eventSig, eventContractAddress } =indexerEventFilter 
     return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
   }
 

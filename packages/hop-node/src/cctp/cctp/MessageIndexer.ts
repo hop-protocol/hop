@@ -1,5 +1,5 @@
 import { MessageSDK } from './MessageSDK.js'
-import { OnchainEventIndexer, type IndexerData } from '../indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { LogWithChainId } from '../types.js'
 import { MessageState, IMessage } from './types.js'
 
@@ -19,8 +19,8 @@ export class MessageIndexer extends OnchainEventIndexer {
 
     for (const state of states) {
       for (const chainId of chainIds) {
-        const indexerData = this.getIndexerData(chainId, state)
-        this.addIndexer(indexerData)
+        const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
+        this.addIndexerEventFilter(indexerEventFilter)
       }
     }
   }
@@ -29,18 +29,18 @@ export class MessageIndexer extends OnchainEventIndexer {
    * Public API
    */
 
-  async fetchItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
+  async retrieveItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
-    const indexerData = this.getIndexerData(chainId, state)
-    const indexValues: string[] = this.#getIndexFromMessageData(state, value, chainId)
-    return this.retrieveItem(indexerData, indexValues)
+    const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
+    const indexValues: string[] = this.#getIndexValues(state, value, chainId)
+    return this.retrieveIndexedItem(indexerEventFilter, indexValues)
   }
 
   /**
    * Overrides
    */
 
-  override getIndexerData(chainId: string, state: IMessage): IndexerData<IndexNames> {
+  override getIndexerEventFilter(chainId: string, state: IMessage): IndexerEventFilter<IndexNames> {
     switch (state) {
       case MessageState.Sent:
         return {
@@ -48,7 +48,7 @@ export class MessageIndexer extends OnchainEventIndexer {
           eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
           eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
           // TODO: Correct index. This might be it.
-          indexNames: ['nonce', 'sourceChainId']
+          indexTopics: ['nonce', 'sourceChainId']
         }
       case MessageState.Attested:
         return {
@@ -56,7 +56,7 @@ export class MessageIndexer extends OnchainEventIndexer {
           eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
           // TODO: Correct index. This might be it.
           eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
-          indexNames: ['nonce', 'sourceChainId']
+          indexTopics: ['nonce', 'sourceChainId']
         }
       default:
         throw new Error('Invalid state')
@@ -87,8 +87,8 @@ export class MessageIndexer extends OnchainEventIndexer {
     return chainId
   }
 
-  #getIndexFromMessageData (state: IMessage, value: IMessage, chainId: string): string[] {
-    const indexNames = this.getIndexerData(chainId, state).indexNames
+  #getIndexValues (state: IMessage, value: IMessage, chainId: string): string[] {
+    const indexNames = this.getIndexerEventFilter(chainId, state).indexNames
     return indexNames.map(indexName => value[indexName as keyof IMessage] as string)
   }
 }

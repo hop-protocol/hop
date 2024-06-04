@@ -1,5 +1,4 @@
 import wallets from '#wallets/index.js'
-import type { ChainSlug } from '@hop-protocol/sdk'
 import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
@@ -7,11 +6,11 @@ import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
 import { MessageState } from './types.js'
 import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
+import { TxRelayDB } from '../db/TxRelayDB.js'
 
 // TODO: Handle inflight transactions on restart
 export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
-  // TODO: Turn into DB and persist
-  readonly #inFlightTxCache: Set<string> = new Set()
+  readonly #sentTxCache: TxRelayDB = new TxRelayDB()
   readonly #pollIntervalMs: number = 60_000
 
   override start(): void {
@@ -65,15 +64,20 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     const chainSlug = getChain(destinationChainId).slug
     const wallet = wallets.get(chainSlug)
 
+    const messageHash = MessageSDK.getMessageHashFromMessage(message)
+    if (await this.#sentTxCache.doesTxHashExist(messageHash)) return
+
     try {
       const attestation = await MessageSDK.fetchAttestation(message)
 
-      this.#inFlightTxCache.add(attestation)
+      await this.#sentTxCache.addTxHash(messageHash)
       await MessageSDK.relayMessage(wallet, message, attestation)
     } catch (err) {
       // TODO: better err handling
       // error={"reason":"execution reverted: Nonce already used"
       // Also handle attestation failure
+      // Also handle relay failure and un-do sentTxCache
+      // Also handle cache add failure
       console.log('Relay failed', err)
     }
   }

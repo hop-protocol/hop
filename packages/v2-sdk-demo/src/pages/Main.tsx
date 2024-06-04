@@ -29,6 +29,7 @@ import { RailsGatewayGetTransferBondedEventFromTxHash } from '../components/rail
 import { RailsGatewayGetTransferBondedEventFromCheckpoint } from '../components/railsGateway/RailsGatewayGetTransferBondedEventFromCheckpoint'
 import { RailsGatewayGetTransferSentEvents } from '../components/railsGateway/RailsGatewayGetTransferSentEvents'
 import { RailsGatewayGetTransferBondedEvents } from '../components/railsGateway/RailsGatewayGetTransferBondedEvents'
+import { RailsGatewayCalcAmountOutMin } from '../components/railsGateway/RailsGatewayCalcAmountOutMin'
 import { SendMessage } from '../components/messenger/SendMessage'
 import { RelayMessage } from '../components/messenger/RelayMessage'
 import { Execute } from '../components/messenger/Execute'
@@ -115,6 +116,7 @@ export function Main () {
     <RailsGatewayGetTransferBondedEventFromCheckpoint sdk={sdk} />,
     <RailsGatewayGetTransferSentEvents sdk={sdk} />,
     <RailsGatewayGetTransferBondedEvents sdk={sdk} />,
+    <RailsGatewayCalcAmountOutMin sdk={sdk} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,

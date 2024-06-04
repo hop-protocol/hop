@@ -117,7 +117,11 @@ export const Withdraw: FC = () => {
                     siblings,
                     totalLeaves,
                   } = wp.getTxPayload()
-                  const bridge = sdk.bridge(wp.transfer.token)
+                  let token = wp.transfer.token
+                  if (token === 'USDC') {
+                    token = 'USDC.e'
+                  }
+                  const bridge = sdk.bridge(token)
                   const tx = await bridge.withdraw(
                     wp.transfer.destinationChain,
                     recipient,

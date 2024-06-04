@@ -241,14 +241,23 @@ export type GetTokenContractInput = {
 }
 
 export type GetTransferStatusInput = {
-  chainId: BigNumberish
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   checkpoint: string
 }
 
-export enum TransferStatus {
+export enum TransferState {
   PendingBond = 'PendingBond',
   Bonded = 'Bonded',
   NotFound = 'NotFound'
+}
+
+export type TransferStatus = {
+  state: TransferState
+  transferId: string
+  checkpoint: string
+  transferSentEvent: TransferSent
+  transferBondedEvent: TransferBonded
 }
 
 export type Token = {
@@ -1486,10 +1495,14 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferStatus(input: GetTransferStatusInput): Promise<TransferStatus> {
-    const { chainId, checkpoint } = input
+    const { fromChainId, toChainId, checkpoint } = input
 
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
+    }
+
+    if (!this.utils.isValidChainId(toChainId)) {
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
 
     if (!this.utils.isValidBytes32(checkpoint)) {
@@ -1497,23 +1510,31 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const transferSentEvent = await this.getTransferSentEventFromCheckpoint({
-      fromChainId: chainId,
+      fromChainId,
       checkpoint
     })
 
     const transferBondedEvent = await this.getTransferBondedEventFromCheckpoint({
-      fromChainId: chainId,
+      fromChainId: toChainId,
       checkpoint
     })
 
+    let transferState = TransferState.NotFound
+
     if (transferSentEvent && !transferBondedEvent) {
-      return TransferStatus.PendingBond
+      transferState = TransferState.PendingBond
     }
 
     if (transferSentEvent && transferBondedEvent) {
-      return TransferStatus.Bonded
+      transferState = TransferState.Bonded
     }
 
-    return TransferStatus.NotFound
+    return {
+      state: transferState,
+      transferId: transferSentEvent?.transferId ?? '',
+      checkpoint,
+      transferSentEvent,
+      transferBondedEvent
+    }
   }
 }

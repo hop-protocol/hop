@@ -16,7 +16,7 @@ import { ExternalLink } from '#components/Link/index.js'
 import { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'
 import { FeeRefund } from './FeeRefund.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
-import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
+import { V2TxStatusModal } from '#components/Modal/V2TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useSendStyles } from './useSendStyles.js'
 import { useV2Send } from '#hooks/useV2Send.js'
@@ -72,6 +72,7 @@ export const SendV2: FC = () => {
     totalFeeUsdDisplay,
     tx,
     warning,
+    v2Sdk
   } = useV2Send()
 
   useEffect(() => {
@@ -291,7 +292,12 @@ export const SendV2: FC = () => {
       }
 
       <Box mt={1}>
-        {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx as any} />}
+        {tx && <V2TxStatusModal
+          v2Sdk={v2Sdk}
+          token={fromToken}
+          fromChain={fromChain}
+          toChain={toChain}
+          onClose={() => setTx(null)} tx={tx as any} />}
       </Box>
     </Box>
   )

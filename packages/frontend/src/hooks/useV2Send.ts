@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { BigNumber, providers, utils, Contract } from 'ethers'
 import { useV2 } from './useV2.js'
+import { Hop } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
 import {
   useBalance,
@@ -12,6 +13,7 @@ import {
 const { formatUnits, parseUnits } = utils
 
 type V2SendHook = {
+  v2Sdk: Hop
   accountAddress: string | null
   amountIn: string | null
   approveReady: boolean
@@ -379,5 +381,6 @@ export function useV2Send(): V2SendHook {
     totalFeeUsdDisplay,
     tx,
     warning,
+    v2Sdk
   }
 }

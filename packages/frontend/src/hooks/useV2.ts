@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
@@ -85,7 +85,7 @@ export function useV2(): V2Hook {
   }, [address, provider])
 
   function getTokenList (fromChainId?: string) {
-    let list : Set<string> = new Set<string>([])
+    const list : Set<string> = new Set<string>([])
 
     if (!fromChainId) {
       for (const chainId in tokenListByChain[reactAppNetwork]) {
@@ -115,7 +115,7 @@ export function useV2(): V2Hook {
   }
 
   function getChainsSupportedByToken (tokenSymbol: string): string[] {
-    const chains = Object.keys(tokenListByChain[reactAppNetwork])
+    const chains = Object.keys(tokenListByChain[reactAppNetwork] ?? {})
     const supportedChains = chains.filter(chainId => {
       return tokenListByChain[reactAppNetwork][chainId][tokenSymbol]
     })

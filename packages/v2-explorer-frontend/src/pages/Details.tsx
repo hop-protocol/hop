@@ -100,6 +100,14 @@ export function Details () {
     update().catch(console.error)
   }, [event])
 
+  const transferAmount = event?.amount
+  const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, event?.token?.decimals) : null
+  const transferAmountDisplay = transferAmount ? `${transferAmount} (${transferAmountFormatted} ${event?.token?.symbol})` : null
+
+  const totalSent = event?.totalSent
+  const totalSentFormatted = totalSent ? utils.formatUnits(totalSent, event?.token?.decimals) : null
+  const totalSentDisplay = totalSent ? `${totalSent} (${totalSentFormatted} ${event?.token?.symbol})` : null
+
   return (
     <SiteWrapper>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
@@ -354,7 +362,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.amount
+                  transferAmountDisplay
                 )}
               </TableCell>
             </TableRow>
@@ -391,7 +399,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.totalSent
+                  totalSentDisplay
                 )}
               </TableCell>
             </TableRow>

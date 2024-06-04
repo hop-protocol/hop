@@ -11,6 +11,7 @@ import { Table } from './Table'
 import { useEvents } from '../hooks/useEvents'
 import { useNavigate } from 'react-router-dom'
 import { useQueryParams } from '../hooks/useQueryParams'
+import { utils } from 'ethers'
 
 export function ExplorerEvents () {
   const { queryParams, updateQueryParams } = useQueryParams()
@@ -36,6 +37,10 @@ export function ExplorerEvents () {
     {
       key: 'token',
       value: 'Token',
+    },
+    {
+      key: 'amount',
+      value: 'Amount',
     },
     {
       key: 'transferId',
@@ -73,6 +78,11 @@ export function ExplorerEvents () {
         <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
       )
     }
+
+    const transferAmount = event?.amount
+    const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, event?.token?.decimals) : null
+    const transferAmountDisplay = transferAmount ? `${transferAmountFormatted} ${event?.token?.symbol}` : null
+
     return [
       {
         key: 'status',
@@ -87,6 +97,10 @@ export function ExplorerEvents () {
         key: 'token',
         value: `${event?.token?.name} (${event?.token?.symbol})`,
         valueUrl: event.token?.tokenExplorerUrl,
+      },
+      {
+        key: 'amount',
+        value: transferAmountDisplay
       },
       {
         key: 'transferId',

@@ -26,19 +26,15 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
   }
 
   /**
-   * Public API
+   * Implementation
    */
 
-  async retrieveItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
+  override async retrieveItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
     const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
     const indexValues: string[] = this.#getIndexValues(state, value, chainId)
     return this.retrieveIndexedItem(indexerEventFilter, indexValues)
   }
-
-  /**
-   * Overrides
-   */
 
   protected override getIndexerEventFilter(chainId: string, state: IMessage): IndexerEventFilter<IndexNames> {
     switch (state) {

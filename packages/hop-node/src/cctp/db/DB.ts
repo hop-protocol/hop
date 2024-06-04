@@ -1,11 +1,5 @@
 import { Level }  from 'level'
-import { getDBPath } from './utils'
-
-// Introduce updatedAt here if desired
-interface Metadata {
-  updatedAt?: string
-  syncMarker?: string
-}
+import { getDBPath } from './utils.js'
 
 interface DatabaseOptions {
   keyEncoding: string
@@ -19,8 +13,6 @@ const KEY_ENCODING_OPTIONS: DatabaseOptions = {
 }
 
 export abstract class DB<K, V> extends Level<K, V> {
-  #metadataKey: string = 'metadata'
-
   constructor (name: string) {
     super(getDBPath(name), KEY_ENCODING_OPTIONS)
   }

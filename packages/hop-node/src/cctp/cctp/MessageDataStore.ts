@@ -20,7 +20,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
    * Implementation
    */
 
-  async fetchItem (state: MessageState, value: IMessage): Promise<IMessage> {
+  override async fetchItem (state: MessageState, value: IMessage): Promise<IMessage> {
     const eventLog: LogWithChainId = await this.fetchStoredItem(state, value)
     return this.formatItem(state, eventLog)
   }

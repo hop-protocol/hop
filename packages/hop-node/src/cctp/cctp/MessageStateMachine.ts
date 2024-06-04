@@ -23,15 +23,26 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   /**
-   * Abstract Implementation
+   * Implementation
    */
 
   protected override getItemId(value: IMessage): string {
     return MessageSDK.getMessageHashFromMessage(value.message)
   }
 
+  protected override isTransitionReady (state: MessageState, value: IMessage): boolean {
+    switch (state) {
+      case MessageState.Sent:
+        return this.#isSent(value as ISentMessage)
+      case MessageState.Relayed:
+        return this.#isRelayed(value as IRelayedMessage)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   /**
-   * TODO: ???
+   * Internal
    */
 
   #checkRelay = async (): Promise<void> => {
@@ -83,19 +94,8 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   /**
-   * State transition
+   * Utils
    */
-
-  protected override isTransitionReady (state: MessageState, value: IMessage): boolean {
-    switch (state) {
-      case MessageState.Sent:
-        return this.#isSent(value as ISentMessage)
-      case MessageState.Relayed:
-        return this.#isRelayed(value as IRelayedMessage)
-      default:
-        throw new Error('Invalid state')
-    }
-  }
 
   #isSent (value: ISentMessage): boolean {
     return true

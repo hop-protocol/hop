@@ -28,7 +28,7 @@ import { Transaction } from '#models/Transaction.js'
 import { amountToBN, formatError } from '#utils/format.js'
 import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from '#utils/index.js'
 import { getTransferTimeString } from '#utils/getTransferTimeString.js'
-import { isGoerli, showRewards } from '#config/index.js'
+import { isMainnet, showRewards } from '#config/index.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
 import { useSendTransaction } from './useSendTransaction'
@@ -437,7 +437,7 @@ export function useSend(): SendResponseProps {
     const b = Number(toTokenAmount) || 0
     const threshold = 0.3
     let isLow = false
-    if (a && b && isGoerli) {
+    if (a && b && !isMainnet) {
       const diff =  (a - b) / ((a + b) / 2)
       if (diff > threshold) {
         isLow = diff > (Number(slippageTolerance) / 100)
@@ -603,17 +603,23 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
+        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug))) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return
         }
 
         let gasCost = estimatedGasCost?.toString()
-        if (fromNetwork?.isL1 && toNetwork.slug === ChainSlug.Optimism) {
-          // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
-          // this can be removed once the sdk txOverrides is fixed.
-          gasCost = BigNumber.from(gasCost).div(2).toString()
+
+        // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
+        // this can be removed once the sdk txOverrides is fixed.
+        if (fromNetwork?.isL1) {
+          if (toNetwork.slug === ChainSlug.Optimism) {
+            gasCost = BigNumber.from(gasCost).div(2).toString()
+          }
+          if (toNetwork.slug === ChainSlug.Arbitrum) {
+            gasCost = BigNumber.from(gasCost).div(6).toString()
+          }
         }
 
         let tokenSymbol = fromToken?.symbol
@@ -629,7 +635,7 @@ export function useSend(): SendResponseProps {
         }
 
         const query = new URLSearchParams(payload).toString()
-        const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+        const apiBaseUrl = `https://${toNetwork.slug}-fee-refund-api.hop.exchange`
         // const apiBaseUrl = 'http://localhost:8000'
         const url = `${apiBaseUrl}/v1/refund-amount?${query}`
         const res = await fetch(url)
@@ -865,7 +871,7 @@ export function useSend(): SendResponseProps {
     toTokenAmount,
   ])
 
-  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
+  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
   const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 

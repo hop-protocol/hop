@@ -137,7 +137,7 @@ export async function fetchTransferSents (chain: string, startTime: number, endT
 
     return transfers
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferSents error', chain, err)
     return []
   }
 }
@@ -262,7 +262,7 @@ export async function fetchTransferSentsForTransferId (chain: string, transferId
 
     return transfers
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferSentsForTransferId error', chain, err)
     return []
   }
 }
@@ -321,9 +321,8 @@ export async function fetchBondTransferIdEvents (chain: string, startTime: numbe
 
     return bonds
   } catch (err) {
-    console.error(err)
+    console.error('fetchBondTransferIdEvents error', chain, err)
     return []
-
   }
 }
 
@@ -384,7 +383,7 @@ export async function fetchTransferBonds (chain: string, transferIds: string[]) 
 
     return bonds
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferBonds error', chain, err)
     return []
   }
 }
@@ -430,7 +429,7 @@ export async function fetchWithdrews (chain: string, transferIds: string[]) {
 
     return withdrawals
   } catch (err) {
-    console.error(err)
+    console.error('fetchWithdrews error', chain, err)
     return []
   }
 }
@@ -486,7 +485,7 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
 
     return events
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferFromL1Completeds error', chain, err)
     return []
   }
 }
@@ -528,7 +527,7 @@ export async function fetchTransferFromL1CompletedsByRecipient (chain: string, r
 
     return events
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferFromL1CompletedsByRecipient error', chain, err)
     return []
   }
 }
@@ -587,7 +586,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
 
     return transferSents.filter((x: any) => x)
   } catch (err) {
-    console.error(err)
+    console.error('fetchTransferEventsByTransferIds error', chain, err)
     return []
   }
 }
@@ -675,7 +674,7 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
 
     return transfers
   } catch (err) {
-    console.error(err)
+    console.error('fetchCctpTransferSents error', chain, err)
     return []
   }
 }
@@ -745,7 +744,7 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
 
     return transfers
   } catch (err) {
-    console.error(err)
+    console.error('fetchCctpTransferSentsForTxHash error', chain, err)
     return []
   }
 }
@@ -817,7 +816,7 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
 
     return transfers
   } catch (err) {
-    console.error(err)
+    console.error('fetchCctpTransferSentsForTransferId error', chain, err)
     return []
   }
 }
@@ -888,7 +887,7 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
       return x
     })
   } catch (err) {
-    console.error(err)
+    console.error('fetchCctpTransferSentsByTransferIds error', chain, err)
     return []
   }
 }
@@ -961,7 +960,7 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
 
     return bonds
   } catch(err) {
-    console.error(err)
+    console.error('fetchCctpMessageReceivedsByTxHashes error', chain, err)
     return []
   }
 }
@@ -1032,7 +1031,7 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
 
     return bonds
   } catch(err) {
-    console.error(err)
+    console.error('fetchCctpMessageReceivedsByTransferIds error', chain, err)
     return []
   }
 }
@@ -1118,7 +1117,7 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
 
     return bonds
   } catch(err) {
-    console.error(err)
+    console.error('fetchMessageReceivedEvents error', chain, err)
     return []
   }
 }

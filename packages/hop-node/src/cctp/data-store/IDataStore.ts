@@ -1,6 +1,7 @@
 export interface IDataStore<T, U> {
   // Initialization
   start (): void
+  init (): Promise<void>
 
   // Node events
   on (event: string, listener: (...args: any[]) => void): void

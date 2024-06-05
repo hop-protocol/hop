@@ -14,7 +14,7 @@ export async function poll(
       await wait(pollIntervalMs)
     }
   } catch (err) {
-    console.error('poll err', err)
+    console.trace('poll err', err)
     process.exit(1)
   }
 }

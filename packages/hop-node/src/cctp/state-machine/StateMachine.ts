@@ -19,7 +19,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataStore: IDataStore<State, StateData>
-  readonly #pollIntervalMs: number = 60_000
+  readonly #pollIntervalMs: number = 10_000
 
   protected abstract getItemId(value: StateData): string
   protected abstract isTransitionReady(state: State, value: StateData): boolean
@@ -43,12 +43,15 @@ export abstract class StateMachine<State extends string, StateData> implements I
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
+    await this.#dataStore.init()
+    console.log('State machine initialized')
   }
     
   start (): void {
     this.#startListeners()
     this.#startPollers()
     this.#dataStore.start()
+    console.log('State machine started')
   }
 
   /**

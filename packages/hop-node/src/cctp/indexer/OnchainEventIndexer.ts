@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import type { LogWithChainId, RequiredFilter } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { wait } from '#utils/wait.js'
+import { poll } from '../utils.js'
 import { providers } from 'ethers'
 import {
   DATA_INDEXED_EVENT,
@@ -73,6 +73,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       const filterId = getUniqueFilterId(indexerEventFilter)
       await this.#db.initializeIndexer(filterId, chainId)
     }
+    console.log('OnchainEventIndexer initialized')
   }
 
   start (): void {
@@ -81,6 +82,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       this.#startPoller(indexerEventFilter)
     }
     this.#started = true
+    console.log('OnchainEventIndexer started')
   }
 
   /**
@@ -115,18 +117,8 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   /**
    * Poller
    */
-
-  #startPoller = async (indexerEventFilter: IndexerEventFilter): Promise<never> => {
-    while (true) {
-      try {
-        await this.#syncEvents(indexerEventFilter)
-        await wait(this.#pollIntervalMs)
-      } catch (err) {
-        const filterId = getUniqueFilterId(indexerEventFilter)
-        console.error(`OnchainEventIndexer poll err for filterId: ${filterId}: ${err}`)
-        process.exit(1)
-      }
-    }
+  #startPoller (indexerEventFilter: IndexerEventFilter): void {
+    poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs)
   }
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
@@ -190,9 +182,15 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       // TODO: From SDK with typedData
       const logs: providers.Log[] = await provider.getLogs(filter)
       const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
+      let logsWithParsedData = []
+      for (const log of logsWithChainId) {
+        const typedData = await MessageSDK.getTypedLog(log)
+        logsWithParsedData.push({ ...log, typedData })
+      }
+
       yield  {
         endBlockNumber: currentEndBlockNumber,
-        logs: logsWithChainId
+        logs: logsWithParsedData
       }
 
       currentStartBlockNumber = currentEndBlockNumber + 1

@@ -33,8 +33,15 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
    * Initialization
    */
 
+  async init (): Promise<void> {
+    await this.#indexer.init()
+    console.log('Data store initialized')
+  }
+
   start (): void {
     this.#startListeners()
+    this.#indexer.start()
+    console.log('Data store started')
   }
 
   /**

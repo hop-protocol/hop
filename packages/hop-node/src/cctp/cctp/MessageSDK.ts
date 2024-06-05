@@ -5,6 +5,7 @@ import {
   getAttestationUrl,
   getHopCCTPContract,
   getHopCCTPInterface,
+  getCCTPMessageTransmitterContractInterface,
   getMessageTransmitterContract,
 } from './utils.js'
 import type { LogWithChainId, RequiredEventFilter, RequiredFilter } from '../types.js'
@@ -45,6 +46,14 @@ export type HopCCTPTransferSentDecoded = {
 
 export type HopCCTPTransferSentDecodedWithMessage = HopCCTPTransferSentDecoded & {
   message: string
+}
+
+export type HopCCTPTransferReceivedDecoded = {
+  caller: string
+  sourceDomain: string
+  nonce: BigNumber
+  sender: string
+  messageBody: string
 }
 
 
@@ -162,6 +171,15 @@ export class MessageSDK {
     return txOptions
   }
 
+  static async getTypedLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded> {
+    if (log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG) {
+      return MessageSDK.parseHopCCTPTransferSentLog(log)
+    } else if (log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
+      return MessageSDK.parseHopCCTPTransferReceivedLog(log)
+    }
+
+    throw new Error('Unknown typed log')
+  }
   // Returns the CCTP message as well as the Hop-specific data
   static async parseHopCCTPTransferSentLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage> {
     const iface = getHopCCTPInterface()
@@ -175,7 +193,7 @@ export class MessageSDK {
       bonderFee
     } = parsed.args
 
-    const messages = await MessageSDK.getCCTPMessagesByTxHash(chainId, log.transactionHash)
+    const messages = await MessageSDK.getCCTPMessagesByTxHash(log.chainId, log.transactionHash)
     const message = MessageSDK.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
 
     return {
@@ -185,6 +203,28 @@ export class MessageSDK {
       amount,
       bonderFee,
       message
+    }
+  }
+
+  // Returns the CCTP message as well as the Hop-specific data
+  static async parseHopCCTPTransferReceivedLog (log: LogWithChainId): Promise<HopCCTPTransferReceivedDecoded> {
+    const iface = getCCTPMessageTransmitterContractInterface()
+    const parsed = iface.parseLog(log)
+
+    const {
+      caller,
+      sourceDomain,
+      nonce,
+      sender,
+      messageBody
+    } = parsed.args
+
+    return {
+      caller,
+      sourceDomain,
+      nonce,
+      sender,
+      messageBody
     }
   }
 
@@ -228,8 +268,8 @@ export class MessageSDK {
     cctpNonce: BigNumber,
     recipient: string
   ): string {
-    const recipientHex = recipient.substring(2)
-    const cctpNonceHex = cctpNonce.toHexString().substring(2)
+    const recipientHex = recipient.substring(2).toLowerCase()
+    const cctpNonceHex = cctpNonce.toHexString().substring(2).toLowerCase()
 
     for (const message of messages) {
       if (

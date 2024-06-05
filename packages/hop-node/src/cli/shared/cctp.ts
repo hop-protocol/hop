@@ -1,4 +1,4 @@
-import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Message } from '#cctp/cctp/Message.js'
 import { config as globalConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
@@ -21,8 +21,10 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
 }
 export async function main () {
   const chains: ChainSlug[] = CHAINS[globalConfig.network as NetworkSlug]!
+  const chainIds: string[] = chains.map(chainSlug => getChain(globalConfig.network as NetworkSlug, chainSlug).chainId)
+
   try {
-    const messageManager = new Message(chains)
+    const messageManager = new Message(chainIds)
     messageManager.start()
     console.log('CCTP Manager started')
 

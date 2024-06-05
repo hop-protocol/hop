@@ -28,7 +28,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
 
     const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
-    await this.sublevel(key).put(syncKey, defaultStartBlockNumber.toString())
+    await this.put(syncKey, defaultStartBlockNumber)
   }
 
   /**

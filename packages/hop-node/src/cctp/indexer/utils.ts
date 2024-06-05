@@ -5,7 +5,8 @@ import { IndexerEventFilter } from './OnchainEventIndexer.js'
 
 export function getUniqueFilterId (indexerEventFilter: IndexerEventFilter): string {
   const { chainId, eventSig, eventContractAddress } = indexerEventFilter 
-  return utils.keccak256(`${chainId}${eventSig}${eventContractAddress}`)
+  const id = chainId + eventSig + eventContractAddress
+  return utils.keccak256(utils.toUtf8Bytes(id))
 }
 
 export function getMaxBlockRangePerIndex (chainId: string): number {

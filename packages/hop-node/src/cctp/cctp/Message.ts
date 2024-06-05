@@ -1,7 +1,7 @@
-import type { ChainSlug } from '@hop-protocol/sdk'
 import { MessageDataStore } from './MessageDataStore.js'
 import { MessageIndexer } from './MessageIndexer.js'
 import { MessageStateMachine } from './MessageStateMachine.js'
+import { config as globalConfig } from '#config/index.js'
 
 // TODO: I should be able to not need the string after, but that is what is used for db index so maybe i do?
 export enum MessageState {
@@ -13,7 +13,7 @@ export class Message {
   readonly #stateMachine: MessageStateMachine
   #started: boolean = false
 
-  constructor (chains: ChainSlug[]) {
+  constructor (chainIds: string[]) {
     const dbName = 'Message'
     const states = [
       MessageState.Sent,
@@ -21,7 +21,7 @@ export class Message {
     ]
 
     // Data handler
-    const indexer = new MessageIndexer(dbName, states, chains)
+    const indexer = new MessageIndexer(dbName, states, chainIds)
     const dataStore = new MessageDataStore(indexer)
 
     // State handler

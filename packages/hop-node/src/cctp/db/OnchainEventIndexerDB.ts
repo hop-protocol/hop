@@ -54,13 +54,18 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
    * Setters
    */
 
-  async putItemWithIndex(key: string, syncedBlockNumber: number, logs: LogWithChainId[], indexNames: string[]): Promise<void> {
+  async putItemWithIndex(
+    key: string,
+    syncedBlockNumber: number,
+    logs: LogWithChainId[],
+    indexTopicNames: string[]
+  ): Promise<void> {
     const batch = this.batch()
     for (const log of logs) {
       // The indexed key grows with each index
       let indexedKey: string = ''
-      for (const indexName of indexNames) {
-        indexedKey = indexedKey + '!' + log[indexName]
+      for (const indexTopicName of indexTopicNames) {
+        indexedKey = indexedKey + '!' + log.typedData[indexTopicName]
         batch.put(indexedKey, log)
       }
     }

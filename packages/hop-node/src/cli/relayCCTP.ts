@@ -1,8 +1,7 @@
-import { BigNumber } from 'ethers'
-import { Message } from '#cctp/cctp/Message.js'
+import { BigNumber, providers } from 'ethers'
+import { MessageSDK } from '#cctp/cctp/MessageSDK.js'
 import { wallets } from '#wallets/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 
@@ -30,8 +29,8 @@ async function main (source: any) {
     const destinationChain = await getDestinationChainFromTxHash(chain, txHash)
 
     const wallet = wallets.get(destinationChain)
-    const attestation = await Message.fetchAttestation(message)
-    const tx = await Message.relayMessage(wallet , message, attestation)
+    const attestation = await MessageSDK.fetchAttestation(message)
+    const tx = await MessageSDK.relayMessage(wallet , message, attestation)
     console.log(`Relayed message to ${destinationChain} with tx ${tx.transactionHash}`)
   }
 }
@@ -44,9 +43,9 @@ async function getDestinationChainFromTxHash (chain: string, txHash: string): Pr
     throw new Error('Tx not found')
   }
 
-  const chainId = chainSlugToId(chain)
-  const eventFilter = Message.getCCTPTransferSentEventFilter(chainId)
-  const filter: RequiredFilter = {
+  const chainId = chainSlugToId(chain).toString()
+  const eventFilter = MessageSDK.getCCTPTransferSentEventFilter(chainId)
+  const filter: providers.Filter = {
     ...eventFilter,
     fromBlock: tx.blockNumber!,
     toBlock: tx.blockNumber!
@@ -79,9 +78,9 @@ async function getMessageFromTxHash (chain: string, txHash: string): Promise<str
     throw new Error('Tx not found')
   }
 
-  const chainId = chainSlugToId(chain)
-  const eventFilter = Message.getMessageSentEventFilter(chainId)
-  const filter: RequiredFilter = {
+  const chainId = chainSlugToId(chain).toString()
+  const eventFilter = MessageSDK.getMessageSentEventFilter(chainId)
+  const filter: providers.Filter = {
     ...eventFilter,
     fromBlock: tx.blockNumber!,
     toBlock: tx.blockNumber!
@@ -93,7 +92,7 @@ async function getMessageFromTxHash (chain: string, txHash: string): Promise<str
 
   for (const onchainLog of onchainLogs) {
     if (onchainLog.transactionHash === txHash) {
-      return Message.decodeMessageFromEvent(onchainLog.data)
+      return MessageSDK.decodeMessageFromEvent(onchainLog.data)
     }
   }
 

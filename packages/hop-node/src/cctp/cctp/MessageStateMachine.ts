@@ -1,4 +1,4 @@
-import wallets from '#wallets/index.js'
+import { wallets } from '#wallets/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'

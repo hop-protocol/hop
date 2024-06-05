@@ -37,7 +37,7 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
     return this.retrieveIndexedItem(indexerEventFilter, indexValues)
   }
 
-  protected override getIndexerEventFilter(chainId: string, state: IMessage): IndexerEventFilter<IndexNames> {
+  protected override getIndexerEventFilter(chainId: string, state: MessageState): IndexerEventFilter<IndexNames> {
     switch (state) {
       case MessageState.Sent:
         return {
@@ -45,15 +45,15 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
           eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
           eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
           // TODO: Correct index. This might be it.
-          indexTopics: ['nonce', 'sourceChainId']
+          indexTopicNames: ['nonce', 'sourceChainId']
         }
-      case MessageState.Attested:
+      case MessageState.Relayed:
         return {
           chainId,
           eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
           // TODO: Correct index. This might be it.
           eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
-          indexTopics: ['nonce', 'sourceChainId']
+          indexTopicNames: ['nonce', 'sourceChainId']
         }
       default:
         throw new Error('Invalid state')
@@ -65,13 +65,13 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    */
 
   // TODO: Using diff chainIds as index for same message doesn't feel right
-  #getChainIdForItem (state: IMessage, value: IMessage): string {
+  #getChainIdForItem (state: MessageState, value: IMessage): string {
     let chainId: string
     switch (state) {
       case MessageState.Sent:
         chainId = value?.sourceChainId
         break
-      case MessageState.Attested:
+      case MessageState.Relayed:
         chainId = value?.destinationChainId
         break
       default:
@@ -84,8 +84,8 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
     return chainId
   }
 
-  #getIndexValues (state: IMessage, value: IMessage, chainId: string): string[] {
-    const indexTopics = this.getIndexerEventFilter(chainId, state).indexTopics
-    return indexTopics.map(indexTopic => value[indexTopic as keyof IMessage] as string)
+  #getIndexValues (state: MessageState, value: IMessage, chainId: string): string[] {
+    const indexTopicNames = this.getIndexerEventFilter(chainId, state).indexTopicNames
+    return indexTopicNames.map(indexTopicName => value[indexTopicName as keyof IMessage] as string)
   }
 }

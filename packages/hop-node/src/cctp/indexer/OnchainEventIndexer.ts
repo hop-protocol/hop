@@ -10,6 +10,7 @@ import {
 } from './constants.js'
 import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
+import { getChain } from '@hop-protocol/sdk'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -28,7 +29,7 @@ export interface IndexerEventFilter<T extends string[] = string[]> {
   chainId: string
   eventSig: string
   eventContractAddress: string
-  indexTopics: T
+  indexTopicNames: T
 }
 
 interface EventLogsForRange {
@@ -47,7 +48,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   #started: boolean = false
 
   abstract retrieveItem(key: T, value: U): Promise<LogWithChainId>
-  protected abstract getIndexerEventFilter(chainId: string, opts: any): IndexerEventFilter
+  protected abstract getIndexerEventFilter(chainId: string, key: T): IndexerEventFilter
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
@@ -129,10 +130,11 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   }
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
-    const { chainId, eventSig, eventContractAddress, indexNames } = indexerEventFilter
+    const { chainId, eventSig, eventContractAddress, indexTopicNames } = indexerEventFilter
     const filterId = getUniqueFilterId(indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
-    const provider = getRpcProvider(chainId)
+    const chainSlug = getChain(chainId).slug
+    const provider = getRpcProvider(chainSlug)
 
     // Add 1 to currentEnd to avoid fetching the same block twice
     const startBlockNumber = lastBlockSynced + 1
@@ -151,7 +153,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       // Atomically write new DB state and logs to avoid out of sync state
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
-      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexNames)
+      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexTopicNames)
     }
   }
 
@@ -169,7 +171,8 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       throw new Error('startBlockNumber must be less than or equal to endBlockNumber')
     }
 
-    const provider = getRpcProvider(chainId)
+    const chainSlug = getChain(chainId).slug
+    const provider = getRpcProvider(chainSlug)
     const maxBlockRange = getMaxBlockRangePerIndex(chainId)
 
     // Fetch logs in chunks
@@ -184,6 +187,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
         toBlock: currentEndBlockNumber 
       }
 
+      // TODO: From SDK with typedData
       const logs: providers.Log[] = await provider.getLogs(filter)
       const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
       yield  {

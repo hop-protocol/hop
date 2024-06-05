@@ -78,7 +78,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
   async #getBlockTimestampFromLogMs (log: LogWithChainId): Promise<number> {
     const { chainId, blockNumber } = log
     const chainSlug = getChain(chainId).slug
-    const provider = getRpcProvider(chainSlug as ChainSlug)
+    const provider = getRpcProvider(chainSlug)
     const block = await provider.getBlock(blockNumber)
     return block.timestamp * 1000
   }
@@ -87,7 +87,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
     const eventSig = log.topics[0]
     switch (eventSig) {
       case (MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG):
-       return MessageState.TransferSent
+       return MessageState.Sent
       case (MessageSDK.MESSAGE_RECEIVED_EVENT_SIG):
         return MessageState.Relayed
       default:

@@ -1,6 +1,7 @@
 import type { EventFilter, providers } from 'ethers'
 
-export type LogWithChainId = providers.Log & { chainId: string }
+// TODO: From SDK (not the name typedData though)
+export type LogWithChainId = providers.Log & { chainId: string } & { typedData?: any }
 
 // Override ethers types with required fields
 export type RequiredEventFilter = Required<EventFilter>

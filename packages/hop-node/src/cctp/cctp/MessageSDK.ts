@@ -6,10 +6,10 @@ import {
   getHopCCTPContract,
   getHopCCTPInterface,
   getMessageTransmitterContract,
-} from './utils'
+} from './utils.js'
 import type { LogWithChainId, RequiredEventFilter, RequiredFilter } from '../types.js'
-import { type NetworkSlug, ChainSlug, getChainSlug } from '@hop-protocol/sdk'
-import { getRpcProvider } from '#utils/index.js'
+import { type NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
 import { wait } from '#utils/wait.js'
@@ -143,12 +143,12 @@ export class MessageSDK {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: string): Promise<any>{
-    const provider = getRpcProvider(chainId)
+    const chainSlug = getChain(chainId).slug
+    const provider = getRpcProvider(chainSlug)
     const txOptions: any = {}
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    const chainSlug = getChainSlug(chainId).slug
     if (chainSlug === ChainSlug.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
@@ -190,7 +190,8 @@ export class MessageSDK {
 
   // TODO: This shouldn't be public, but everything else is static...
   static async getCCTPMessagesByTxHash (chainId: string, txHash: string): Promise<string[]> {
-    const provider = getRpcProvider(chainId)
+    const chainSlug = getChain(chainId).slug
+    const provider = getRpcProvider(chainSlug)
     const txReceipt = await provider.getTransactionReceipt(txHash)
     const blockNumber = txReceipt.blockNumber
 

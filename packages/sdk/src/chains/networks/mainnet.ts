@@ -6,9 +6,10 @@ export const chains: Chains = {
     ...sharedChain.ethereum,
     chainId: '1',
     parentChainId: NO_PARENT_CHAIN_ID,
-    publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    publicRpcUrl: 'https://1rpc.io/eth',
     fallbackPublicRpcUrls: [
-      'https://rpc.ankr.com/eth'
+      'https://rpc.ankr.com/eth',
+      'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     ],
     explorerUrls: ['https://etherscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/ethereum',
@@ -22,8 +23,8 @@ export const chains: Chains = {
     parentChainId: '1',
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [
+      'https://rpc.ankr.com/arbitrum',
       'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
-      'https://rpc.ankr.com/arbitrum'
     ],
     explorerUrls: ['https://arbiscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/arbitrum',
@@ -35,9 +36,10 @@ export const chains: Chains = {
     ...sharedChain.optimism,
     chainId: '10',
     parentChainId: '1',
-    publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    publicRpcUrl: 'https://1rpc.io/op',
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/optimism',
+      'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
       'https://mainnet.optimism.io'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],

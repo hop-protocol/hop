@@ -7,14 +7,13 @@ import { getSupportedCctpChains } from './utils/getSupportedCctpChains'
 import { padHex } from './utils/padHex'
 import { promiseTimeout } from './utils/promiseTimeout'
 
-// TODO: remove this temp url once the mainnet subgraph is fully synced
-const cctpMainnetSubgraphUrl = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet-cctp'
+type QueryFetchVariables = any
 
-export async function queryFetch (url: string, query: string, variables?: any) {
+export async function queryFetch (url: string, query: string, variables?: QueryFetchVariables) {
   return promiseTimeout(_queryFetch(url, query, variables), 60 * 1000)
 }
 
-export async function _queryFetch (url: string, query: string, variables?: any) {
+export async function _queryFetch (url: string, query: string, variables?: QueryFetchVariables) {
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -31,6 +30,13 @@ export async function _queryFetch (url: string, query: string, variables?: any) 
     console.log('error query:', query, variables, url)
     throw new Error(jsonRes.errors[0].message)
   }
+
+  // console.log("----THEGRAPHLOG----", url, query.replace(/\n/gi, '').substr(0, 50), JSON.stringify(variables ?? {}).substring(0, 50))
+
+  if (!jsonRes.data) {
+    console.log(jsonRes)
+  }
+
   return jsonRes.data
 }
 
@@ -145,7 +151,7 @@ export async function fetchTransferSents (chain: string, startTime: number, endT
 export async function fetchTransferSentsForTransferId (chain: string, transferId: string) {
   try {
     const queryL1TransferId = `
-      query TransferSentToL2($transferId: String) {
+      query TransferSentToL2ForTransferId($transferId: String) {
         transferSents: transferSentToL2S(
           where: {
             id: $transferId
@@ -169,7 +175,7 @@ export async function fetchTransferSentsForTransferId (chain: string, transferId
       }
     `
     const queryL1TxHash = `
-      query TransferSentToL2($transferId: String) {
+      query TransferSentToL2ForTransferId($transferId: String) {
         transferSents: transferSentToL2S(
           where: {
             transactionHash: $transferId
@@ -193,7 +199,7 @@ export async function fetchTransferSentsForTransferId (chain: string, transferId
       }
     `
     const queryL2 = `
-      query TransferSents($transferId: String) {
+      query TransferSentsForTransferId($transferId: String) {
         transferSents: transferSents(
           where: {
             transferId: $transferId
@@ -270,7 +276,7 @@ export async function fetchTransferSentsForTransferId (chain: string, transferId
 export async function fetchBondTransferIdEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
   try {
     const query = `
-      query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+      query WithdrawalBondedsTransferIdEvents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
         withdrawalBondeds: withdrawalBondeds(
           where: {
             timestamp_gte: $startTime,
@@ -388,6 +394,66 @@ export async function fetchTransferBonds (chain: string, transferIds: string[]) 
   }
 }
 
+export async function fetchWithdrewTransferIdEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
+  try {
+    const query = `
+      query WithdrewTransferIdEvents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+        withdrews: withdrews(
+          where: {
+            timestamp_gte: $startTime,
+            timestamp_lte: $endTime,
+            id_gt: $lastId
+          },
+          first: $perPage,
+          orderBy: id,
+          orderDirection: asc
+        ) {
+          id
+          transferId
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+
+    let url :string
+    try {
+      url = getSubgraphUrl(chain)
+    } catch (err) {
+      return []
+    }
+    if (!lastId) {
+      lastId = '0'
+    }
+    const data = await queryFetch(url, query, {
+      perPage: 1000,
+      startTime,
+      endTime,
+      lastId
+    })
+
+    let bonds = data.withdrews.filter((x: any) => x)
+
+    if (bonds.length === 1000) {
+      lastId = bonds[bonds.length - 1].id
+      bonds = bonds.concat(...(await fetchWithdrewTransferIdEvents(
+        chain,
+        startTime,
+        endTime,
+        lastId
+      )))
+    }
+
+    return bonds
+  } catch (err) {
+    console.error(err)
+    return []
+
+  }
+}
+
 export async function fetchWithdrews (chain: string, transferIds: string[]) {
   try {
     const query = `
@@ -493,7 +559,7 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
 export async function fetchTransferFromL1CompletedsByRecipient (chain: string, recipient: string) {
   try {
     const query = `
-      query TransferFromL1Completed($recipient: String) {
+      query TransferFromL1CompletedByRecipient($recipient: String) {
         events: transferFromL1Completeds(
           where: {
             recipient: $recipient
@@ -538,7 +604,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
       return []
     }
     const query = `
-      query TransferSents($transferIds: [String]) {
+      query TransferSentsByTransferIds($transferIds: [String]) {
         transferSents: transferSents(
           where: {
             transferId_in: $transferIds
@@ -632,9 +698,6 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
       console.log(chain, url)
     } catch (err) {
       return []
@@ -719,9 +782,6 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -791,9 +851,6 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -829,7 +886,7 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
     }
 
     const query = `
-      query CctpTransferSents($transferIds: [String]) {
+      query CctpTransferSentsByTransferIds($transferIds: [String]) {
         cctptransferSents: cctptransferSents(
           where: {
             cctpNonce_in: $transferIds
@@ -859,9 +916,6 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -900,7 +954,7 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
     }
 
     const query = `
-      query CctpMessageReceiveds($txHashes: [String]) {
+      query CctpMessageReceivedsByTxHashes($txHashes: [String]) {
         cctpmessageReceiveds: cctpmessageReceiveds(
           where: {
             transaction_: {
@@ -932,9 +986,6 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -973,7 +1024,7 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
     }
 
     const query = `
-      query CctpMessageReceiveds($transferIds: [String]) {
+      query CctpMessageReceivedsByTransferIds($transferIds: [String]) {
         cctpmessageReceiveds: cctpmessageReceiveds(
           where: {
             nonce_in: $transferIds
@@ -1003,9 +1054,6 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -1036,7 +1084,7 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
   }
 }
 
-export async function fetchMessageReceivedEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
+export async function fetchCctpMessageReceivedEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
   try {
     const supportedChains = getSupportedCctpChains()
     if (!supportedChains.includes(chain)) {
@@ -1044,7 +1092,7 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
     }
 
     const query = `
-      query MessageReceiveds($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+      query CctpMessageReceivedsEvents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
         cctpmessageReceiveds: cctpmessageReceiveds(
           where: {
             block_: {
@@ -1078,9 +1126,6 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
     let url :string
     try {
       url = getSubgraphUrl(chain)
-      if (chain === 'ethereum') {
-        url = cctpMainnetSubgraphUrl
-      }
     } catch (err) {
       return []
     }
@@ -1098,7 +1143,7 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
 
     if (bonds.length === 1000) {
       lastId = bonds[bonds.length - 1].id
-      bonds = bonds.concat(...(await fetchMessageReceivedEvents(
+      bonds = bonds.concat(...(await fetchCctpMessageReceivedEvents(
         chain,
         startTime,
         endTime,

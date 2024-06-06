@@ -126,6 +126,12 @@ const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnec
         chains: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.chainId),
         optionalChains: getWeb3Chains().filter((chain) => !chain.isL1).map((chain) => chain.chainId),
         showQrModal: true,
+        metadata: {
+          name: 'Hop Protocol',
+          description: 'Cross-chain bridge',
+          url: 'https://app.hop.exchange',
+          icons: ['https://app.hop.exchange/favicon.ico'],
+        }
       },
     })
 )

@@ -44,7 +44,15 @@ if (process.env.ENABLED_CHAINS) {
   enabledChains = process.env.ENABLED_CHAINS.split(',').map((chain: string) => chain.trim()).filter(Boolean)
 }
 
-export { enabledTokens, enabledChains }
+const customSubgraphUrls : Record<string, string> = {}
+for (const chain of enabledChains) {
+  const url = process.env[`${chain.toUpperCase()}_SUBGRAPH_URL`]
+  if (url) {
+    customSubgraphUrls[chain] = url
+  }
+}
+
+export { enabledTokens, enabledChains, customSubgraphUrls }
 
 export const rpcUrls : Record<string, string> = {}
 

@@ -871,7 +871,7 @@ export function useSend(): SendResponseProps {
     toTokenAmount,
   ])
 
-  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
+  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
   const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 

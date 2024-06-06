@@ -61,12 +61,14 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     indexes: string[][]
   ): Promise<void> {
     const batch = this.batch()
-    for (const log of logs) {
+
+    for (const [i, log] of logs.entries()) {
+
       // The indexed key grows with each index
-      let indexedKey: string = ''
-      for (const index of indexes) {
-        let indexedKeyTemp = indexedKey
-        indexedKey = indexedKey + '!' + index
+      // The indexed key is the key plus the index values joined by '!'
+      let indexedKey = ''
+      for (const index of indexes[i]) {
+        indexedKey += indexedKey ? '!' + index : index
         batch.put(indexedKey, log)
       }
     }

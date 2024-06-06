@@ -186,12 +186,12 @@ export async function swap (config: SwapInput) {
   logger.debug('dryMode:', !!dryMode)
 
   if (!addresses[chain]) {
-    throw new Error(`chain "${chain}" currently not supported at at this time`)
+    throw new Error(`chain "${chain}" currently not supported at this time`)
   }
   const { swapRouter, pools } = addresses[chain]
   const wallet = wallets.get(chain)
   if (!pools[toToken]) {
-    throw new Error(`"${toToken}" currently not supported at at this time`)
+    throw new Error(`"${toToken}" currently not supported at this time`)
   }
   const poolAddress = pools[toToken][fromToken]
   if (!poolAddress) {

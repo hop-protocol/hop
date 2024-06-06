@@ -796,7 +796,7 @@ export default class Bridge extends ContractBase {
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {
     // Do not check if the asset uses an AMM. This function only cares about the amountOutMin and deadline
-    // so that it knows what function to call on-chain. This function is unconcerned with wether or not
+    // so that it knows what function to call on-chain. This function is unconcerned with whether or not
     // an asset uses an AMM, since a non-AMM asset can still provide amountOutMin and deadline values.
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }

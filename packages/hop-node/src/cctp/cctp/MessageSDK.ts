@@ -35,7 +35,6 @@ interface IAttestationResponseSuccess {
 
 type IAttestationResponse = IAttestationResponseError | IAttestationResponseSuccess
 
-// TODO: Get from SDK
 export type HopCCTPTransferSentDecoded = {
   cctpNonce: BigNumber
   chainId: string
@@ -76,13 +75,11 @@ export class MessageSDK {
     return contract.filters.CCTPTransferSent() as RequiredEventFilter
   }
 
-  // TODO: Get from SDK
   static getMessageSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getMessageTransmitterContract(chainId)
     return contract.filters.MessageSent() as RequiredEventFilter
   }
 
-  // TODO: Get from SDK
   static getMessageReceivedEventFilter(chainId: string): RequiredEventFilter {
     const contract = getMessageTransmitterContract(chainId)
     return contract.filters.MessageReceived() as RequiredEventFilter
@@ -98,7 +95,6 @@ export class MessageSDK {
     return utils.keccak256(message)
   }
 
-  // TODO: Get from SDK
   static convertDomainToChainId (domainId: BigNumber): BigNumber {
     const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as NetworkSlug]
     if (!domainMap) {
@@ -110,7 +106,6 @@ export class MessageSDK {
 
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
     const chainId: string = (await signer.getChainId()).toString()
-    // Remove this in favor of the contract instance from the SDK when available
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
     // TODO: Config overrides
     const txOverrides = await MessageSDK.getTxOverrides(chainId)
@@ -169,6 +164,13 @@ export class MessageSDK {
     }
 
     return txOptions
+  }
+
+  static isTypedLog (log: LogWithChainId): boolean {
+    return (
+      log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG ||
+      log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG
+    )
   }
 
   static async getTypedLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded> {

@@ -1,10 +1,10 @@
-import { MessageSDK } from './MessageSDK.js'
+import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
-import type { LogWithChainId } from '../types.js'
+import type { TypedLogWithChainId } from '../types.js'
 import { MessageState } from './Message.js'
 import { IMessage } from './types.js'
 
-type IndexNames = (keyof IMessage)[]
+type IndexNames = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)[]
 
 /**
  * This class is responsible for abstracting away indexing logic
@@ -30,7 +30,7 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    * Implementation
    */
 
-  override async retrieveItem(state: MessageState, value: IMessage): Promise<LogWithChainId> {
+  override async retrieveItem(state: MessageState, value: IMessage): Promise<TypedLogWithChainId> {
     const chainId: string = this.#getChainIdForItem(state, value)
     const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
     const indexValues: string[] = this.#getIndexValues(state, value, chainId)
@@ -44,16 +44,14 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
           chainId,
           eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
           eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
-          // TODO: Correct index. This might be it.
-          indexTopicNames: ['nonce', 'sourceChainId']
+          indexTopicNames: ['cctpNonce', 'chainId']
         }
       case MessageState.Relayed:
         return {
           chainId,
           eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
-          // TODO: Correct index. This might be it.
           eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
-          indexTopicNames: ['nonce', 'sourceChainId']
+          indexTopicNames: ['nonce', 'sourceDomain']
         }
       default:
         throw new Error('Invalid state')
@@ -64,24 +62,16 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    * Internal
    */
 
-  // TODO: Using diff chainIds as index for same message doesn't feel right
   #getChainIdForItem (state: MessageState, value: IMessage): string {
     let chainId: string
     switch (state) {
       case MessageState.Sent:
-        chainId = value?.sourceChainId
-        break
+        return value.sourceChainId
       case MessageState.Relayed:
-        chainId = value?.destinationChainId
-        break
+        return value.destinationChainId
       default:
         throw new Error('Invalid state')
     }
-
-    if (!chainId) {
-      throw new Error('Invalid chainId')
-    }
-    return chainId
   }
 
   #getIndexValues (state: MessageState, value: IMessage, chainId: string): string[] {

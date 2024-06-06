@@ -1,6 +1,6 @@
 import { DB } from './DB.js'
 import { getDefaultStartBlockNumber } from './utils.js'
-import type { LogWithChainId } from '../types.js'
+import type { LogWithChainId, TypedLogWithChainId } from '../types.js'
 
 type DBValue = LogWithChainId | number
 
@@ -45,9 +45,9 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
   }
 
-  async getIndexedItem(key: string, indexValues: string[]): Promise<LogWithChainId> {
+  async getIndexedItem(key: string, indexValues: string[]): Promise<TypedLogWithChainId> {
     const indexedValue = key + indexValues.join('!')
-    return (await this.get(indexedValue)) as LogWithChainId
+    return (await this.get(indexedValue)) as TypedLogWithChainId
   }
 
   /**
@@ -58,14 +58,15 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     key: string,
     syncedBlockNumber: number,
     logs: LogWithChainId[],
-    indexTopicNames: string[]
+    indexes: string[][]
   ): Promise<void> {
     const batch = this.batch()
     for (const log of logs) {
       // The indexed key grows with each index
       let indexedKey: string = ''
-      for (const indexTopicName of indexTopicNames) {
-        indexedKey = indexedKey + '!' + log.typedData[indexTopicName]
+      for (const index of indexes) {
+        let indexedKeyTemp = indexedKey
+        indexedKey = indexedKey + '!' + index
         batch.put(indexedKey, log)
       }
     }

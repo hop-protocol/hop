@@ -39,7 +39,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
    */
 
   async init (): Promise<void> {
-    // Handle pending state transitions
+    // This handles any pending state transitions upon startup
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
@@ -104,7 +104,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const nextState = getNextState(this.#states, state)
     if (nextState === null) {
-      // This is the final state state
+      // This is the final state
       return this.#db.updateState(state, nextState, key, value)
     }
 

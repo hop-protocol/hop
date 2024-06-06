@@ -1,6 +1,6 @@
-import type { LogWithChainId } from '../types.js'
+import type { TypedLogWithChainId } from '../types.js'
 import { MessageSDK } from './MessageSDK.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataStore } from '../data-store/DataStore.js'
 import { MessageState } from './Message.js'
@@ -21,15 +21,15 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
    */
 
   override async fetchItem (state: MessageState, value: IMessage): Promise<IMessage> {
-    const eventLog: LogWithChainId = await this.fetchStoredItem(state, value)
+    const eventLog: TypedLogWithChainId = await this.fetchStoredItem(state, value)
     return this.formatItem(state, eventLog)
   }
 
-  protected override getKeyFromLog (log: LogWithChainId): MessageState {
+  protected override getKeyFromLog (log: TypedLogWithChainId): MessageState {
     return this.#getStateFromLog(log)
   }
 
-  protected override async formatItem (state: MessageState, log: LogWithChainId): Promise<IMessage> {
+  protected override async formatItem (state: MessageState, log: TypedLogWithChainId): Promise<IMessage> {
     switch (state) {
       case MessageState.Sent:
         return this.#formatTransferSentLog(log)
@@ -44,11 +44,9 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
    * Internal
    */
 
-  async #formatTransferSentLog (log: LogWithChainId): Promise<IMessage> {
-    const { transactionHash, chainId /*, parsedData */ } = log
-    // TODO: fix
-    const parsedData: any = {}
-    const { message, cctpNonce, chainId: destinationChainId } = parsedData
+  async #formatTransferSentLog (log: TypedLogWithChainId): Promise<IMessage> {
+    const { transactionHash, chainId, typedData } = log
+    const { message, cctpNonce, chainId: destinationChainId } = typedData
     const timestampMs = await this.#getBlockTimestampFromLogMs(log)
 
     return {
@@ -61,9 +59,8 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
     } as IMessage
   }
 
-  async #formatRelayedLog (log: LogWithChainId): Promise<IMessage> {
+  async #formatRelayedLog (log: TypedLogWithChainId): Promise<IMessage> {
     const { transactionHash } = log
-    // TODO: Is this the right chainId? Src vs dest?
     const timestampMs = await this.#getBlockTimestampFromLogMs(log)
     return {
       relayTransactionHash: transactionHash,
@@ -75,7 +72,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
    * Utils
    */
 
-  async #getBlockTimestampFromLogMs (log: LogWithChainId): Promise<number> {
+  async #getBlockTimestampFromLogMs (log: TypedLogWithChainId): Promise<number> {
     const { chainId, blockNumber } = log
     const chainSlug = getChain(chainId).slug
     const provider = getRpcProvider(chainSlug)
@@ -83,7 +80,7 @@ export class MessageDataStore extends DataStore<MessageState, IMessage> {
     return block.timestamp * 1000
   }
 
-  #getStateFromLog (log: LogWithChainId): MessageState {
+  #getStateFromLog (log: TypedLogWithChainId): MessageState {
     const eventSig = log.topics[0]
     switch (eventSig) {
       case (MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG):

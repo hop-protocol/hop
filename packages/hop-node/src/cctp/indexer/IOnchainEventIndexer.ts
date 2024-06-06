@@ -1,4 +1,4 @@
-import { LogWithChainId } from "#cctp/types.js"
+import { TypedLogWithChainId } from "#cctp/types.js"
 
 export interface IOnchainEventIndexer<T, U> {
   // Initialization
@@ -9,5 +9,5 @@ export interface IOnchainEventIndexer<T, U> {
   on (event: string, listener: (...args: any[]) => void): void
 
   // Public methods
-  retrieveItem(key: T, value: U): Promise<LogWithChainId>
+  retrieveItem(key: T, value: U): Promise<TypedLogWithChainId>
 }

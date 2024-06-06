@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
-import type { LogWithChainId, RequiredFilter } from '../types.js'
+import type { LogWithChainId, RequiredFilter, TypedLogWithChainId } from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
@@ -47,7 +47,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
-  abstract retrieveItem(key: T, value: U): Promise<LogWithChainId>
+  abstract retrieveItem(key: T, value: U): Promise<TypedLogWithChainId>
   protected abstract getIndexerEventFilter(chainId: string, key: T): IndexerEventFilter
 
   constructor (dbName: string) {
@@ -95,7 +95,14 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
         if (op.type !== 'put') continue
-        this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
+        // TODO: This should be cleaned up.
+        const isTypedLog = MessageSDK.isTypedLog(op.value)
+        if (!isTypedLog) continue
+
+        // TODO: Parsing should not be async. If it is, this should be handled better.
+        MessageSDK.getTypedLog(op.value).then((parsedLog: any) => {
+          this.#eventEmitter.emit(DATA_INDEXED_EVENT, parsedLog)
+        })
       }
     })
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
@@ -109,14 +116,18 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
    * Getters
    */
 
-  protected retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<LogWithChainId> {
+  protected async retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<TypedLogWithChainId> {
     const filterId = getUniqueFilterId(indexerEventFilter)
-    return this.#db.getIndexedItem(filterId, indexValues)
+    const dbLog = await this.#db.getIndexedItem(filterId, indexValues)
+    // TODO: Not any
+    const parsedLog: any = await MessageSDK.getTypedLog(dbLog)
+    return { ...dbLog, typedData: parsedLog }
   }
 
   /**
    * Poller
    */
+
   #startPoller (indexerEventFilter: IndexerEventFilter): void {
     poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs)
   }
@@ -143,9 +154,18 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
     }
 
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
+      // Storing the parsed values would be redundant since their raw form is already in the log.
+      // Since the parsed values are needed as an index, we pass those in explicitly.
+      const indexValues: string[][] = []
+      for (const log of logs) {
+        const parsedLog: any = await MessageSDK.getTypedLog(log)
+        const values = indexTopicNames.map(indexTopicName => parsedLog[indexTopicName])
+        indexValues.push(values)
+      }
+
       // Atomically write new DB state and logs to avoid out of sync state
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
-      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexTopicNames)
+      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexValues)
     }
   }
 
@@ -182,15 +202,10 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       // TODO: From SDK with typedData
       const logs: providers.Log[] = await provider.getLogs(filter)
       const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
-      let logsWithParsedData = []
-      for (const log of logsWithChainId) {
-        const typedData = await MessageSDK.getTypedLog(log)
-        logsWithParsedData.push({ ...log, typedData })
-      }
 
       yield  {
         endBlockNumber: currentEndBlockNumber,
-        logs: logsWithParsedData
+        logs: logsWithChainId
       }
 
       currentStartBlockNumber = currentEndBlockNumber + 1

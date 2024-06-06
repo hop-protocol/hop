@@ -10,7 +10,6 @@ export interface ISentMessage {
 export interface IRelayedMessage {
   relayTransactionHash: string
   relayTimestampMs: number
-  nonce: number
 }
 
 export type IMessage = ISentMessage & IRelayedMessage

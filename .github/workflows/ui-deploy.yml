@@ -67,6 +67,7 @@ jobs:
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ vars.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ vars.REACT_APP_BLOCKLIST_ENABLED }}
           REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
+          REACT_APP_GIT_SHA: ${{ github.sha }}
         run: pnpm --filter frontend... build
 
       - name: Write commit file

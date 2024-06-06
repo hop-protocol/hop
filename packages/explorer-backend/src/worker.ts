@@ -29,7 +29,7 @@ class Worker {
   async start () {
     console.log('worker started')
     console.log(`polling every ${this.pollIntervalMs}ms`)
-    const promises: Promise<any>[] = []
+    const promises: Promise<void>[] = []
     if (this.transferStats) {
       promises.push(this.transferStatsPoll())
     }

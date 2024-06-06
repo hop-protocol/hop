@@ -134,6 +134,8 @@ export const Relay: FC = () => {
           console.log('tx', tx)
           const receipt = await tx.wait()
           console.log('receipt', receipt)
+          setLoading(false)
+          resolve(null)
         }
         run().catch(reject)
       })

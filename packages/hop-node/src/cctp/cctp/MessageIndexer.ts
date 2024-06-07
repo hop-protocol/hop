@@ -1,8 +1,7 @@
 import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { TypedLogWithChainId } from '../types.js'
-import { MessageState } from './Message.js'
-import { IMessage } from './types.js'
+import { type IMessage, MessageState } from './types.js'
 
 type IndexNames = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)[]
 

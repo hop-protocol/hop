@@ -1,12 +1,8 @@
 import { MessageDataStore } from './MessageDataStore.js'
 import { MessageIndexer } from './MessageIndexer.js'
 import { MessageStateMachine } from './MessageStateMachine.js'
+import { MessageState } from './types.js'
 
-// TODO: I should be able to not need the string after, but that is what is used for db index so maybe i do?
-export enum MessageState {
-  Sent = 'sent',
-  Relayed = 'relayed'
-}
 
 export class Message {
   readonly #stateMachine: MessageStateMachine

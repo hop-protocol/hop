@@ -1,3 +1,8 @@
+export enum MessageState {
+  Sent = 'sent',
+  Relayed = 'relayed'
+}
+
 export interface ISentMessage {
   messageNonce: number
   message: string

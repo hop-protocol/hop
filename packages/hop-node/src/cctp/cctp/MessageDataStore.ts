@@ -3,8 +3,7 @@ import { MessageSDK } from './MessageSDK.js'
 import { getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataStore } from '../data-store/DataStore.js'
-import { MessageState } from './Message.js'
-import type { IMessage } from './types.js'
+import { type IMessage, MessageState } from './types.js'
 
 // Since the messages are unique by chainId, his MessageDataStore should be the
 // class that abstracts this away.

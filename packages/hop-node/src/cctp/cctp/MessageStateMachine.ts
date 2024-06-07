@@ -4,8 +4,12 @@ import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 import { poll } from '../utils.js'
-import { MessageState } from './Message.js'
-import type { ISentMessage, IRelayedMessage, IMessage } from './types.js'
+import {
+  type ISentMessage,
+  type IRelayedMessage,
+  type IMessage,
+  MessageState
+} from './types.js'
 import { TxRelayDB } from '../db/TxRelayDB.js'
 
 // TODO: Handle inflight transactions on restart

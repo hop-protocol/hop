@@ -1,7 +1,8 @@
 import { EventFetcher } from '#events/index.js'
-import { getAddress } from 'ethers/lib/utils.js'
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
 import dotenv from 'dotenv'
+
+const { getAddress: checksumAddress } = utils
 
 dotenv.config()
 
@@ -77,7 +78,7 @@ describe.skip('EventFetcher', () => {
     const seen : Record<string, boolean> = {}
     for (const filter of filters) {
       for (const event of events) {
-        const filterKey = `${getAddress(filter.address)}-${filter.topics[0]}`
+        const filterKey = `${checksumAddress(filter.address)}-${filter.topics[0]}`
         const eventKey = `${event.address}-${event.topics[0]}`
         if (filterKey === eventKey) {
           seen[filterKey] = true

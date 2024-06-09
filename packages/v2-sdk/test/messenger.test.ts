@@ -1,13 +1,16 @@
 import { Messenger } from '#messenger/index.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
+import { randomBytes } from 'crypto'
 
 dotenv.config()
+
+export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe.skip('Messenger', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-  const signer = new Wallet(process.env.PRIVATE_KEY!)
+  const signer = new Wallet(privateKey)
   const address = '0xTODO'
   const messenger = new Messenger({ network: 'sepolia' })
   it.skip('TODO should get spokeMessageBridge contract address', async () => {
@@ -170,7 +173,6 @@ describe.skip('Messenger', () => {
       fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash,
-      signer
     })
     expect(tx.hash).toBeDefined()
   })
@@ -413,7 +415,7 @@ describe.skip('Messenger', () => {
   it.skip('TODO should get message calldata', async () => {
     const fromChainId = 1
     const messageId = '0xTODO'
-    const calldata = await messenger.getMessageCalldata({
+    const calldata = await messenger.getMessageCalldataFromMessageId({
       fromChainId,
       messageId
     })

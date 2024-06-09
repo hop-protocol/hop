@@ -1,8 +1,11 @@
 import { Base } from '#common/Base.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
+import { randomBytes } from 'crypto'
 
 dotenv.config()
+
+export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe.skip('Base', () => {
   const base = new Base({
@@ -16,7 +19,7 @@ describe.skip('Base', () => {
   it('should set contract addresses', () => {
     let addresses = base.getContractAddresses()
     addresses['99999'] = {
-      chainId: 99999,
+      chainId: '99999',
       startBlock: 0,
       spokeCoreMessenger: '',
       connector: '',
@@ -40,21 +43,20 @@ describe.skip('Base', () => {
   })
   it('should connect signer', () => {
     expect(base.signer).toBeUndefined()
-    const privateKey = process.env.PRIVATE_KEY!
     const signer = new Wallet(privateKey)
     const baseWithSigner = base.connect(signer)
     expect(baseWithSigner.signer).toBeDefined()
   })
   it('should return boolean if chain id valid', () => {
-    expect(base.isValidChainId(1)).toBe(true)
-    expect(base.isValidChainId(222222)).toBe(false)
+    expect(base.utils.isValidChainId(1)).toBe(true)
+    expect(base.utils.isValidChainId(222222)).toBe(false)
   })
   it('should return boolean if tx hash is valid', () => {
-    expect(base.isValidTxHash('0x'+'1'.repeat(64))).toBe(true)
-    expect(base.isValidTxHash('0x')).toBe(false)
+    expect(base.utils.isValidTxHash('0x'+'1'.repeat(64))).toBe(true)
+    expect(base.utils.isValidTxHash('0x')).toBe(false)
   })
   it('should get chain slug from chain id', () => {
-    expect(base.getChainSlug(1)).toBe('ethereum')
+    expect(base.utils.getChainSlug(1)).toBe('ethereum')
   })
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
@@ -96,18 +98,16 @@ describe.skip('Base', () => {
     const chainId = 1
     const provider = base.getDefaultChainRpcProvider(chainId)
     const percent = 0.20
-    const gasPrice = await base.getBumpedGasPrice(provider, percent)
+    const gasPrice = await base.utils.getBumpedGasPrice(provider, percent)
     console.log(gasPrice)
     expect(gasPrice).toBeDefined()
   })
   it('should get signer', async () => {
-    const privateKey = process.env.PRIVATE_KEY!
     const signer = base.connect(new Wallet(privateKey)).getSigner()
     console.log(signer)
     expect(signer).toBeDefined()
   })
   it('should get signer address', async () => {
-    const privateKey = process.env.PRIVATE_KEY!
     const signer = new Wallet(privateKey)
     const address = base.connect(signer).getSignerAddress()
     console.log(address)
@@ -133,16 +133,16 @@ describe.skip('Base', () => {
     }
     const chainId = 1
     const provider = base.getDefaultChainRpcProvider(1)
-    const gas = await base.estimateGas(provider, tx)
+    const gas = await base.utils.estimateGas(provider, tx)
     console.log(gas)
     expect(gas).toBeDefined()
   })
-  it('should get gas price', async () => {
+  it.skip('should get gas price', async () => {
     const provider = await base.getSignerOrProvider(1)
-    const gasPrice = await base.getGasPrice(provider)
+    const gasPrice = await base.utils.getGasPrice(provider)
     console.log(gasPrice)
     expect(gasPrice).toBeDefined()
-  })
+  }, 60 * 1000)
   it.skip('should send transaction', async () => {
     const txRequest = {
       to: '0x'+ '1'.repeat(40),

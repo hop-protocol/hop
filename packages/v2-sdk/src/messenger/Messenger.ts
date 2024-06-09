@@ -66,7 +66,6 @@ export type ExitBundleInput = {
   fromChainId: BigNumberish
   bundleCommittedEvent?: BundleCommitted
   bundleCommittedTransactionHash?: string
-  signer: Signer
 }
 
 export type RouteData = {
@@ -103,7 +102,7 @@ export type GetMessageFeeInput = {
 
 export type GetMaxBundleMessageCountInput = {
   fromChainId: BigNumberish
-  toChainId: BigNumber
+  toChainId: BigNumberish
 }
 
 export type GetIsBundleSetInput = {
@@ -636,7 +635,7 @@ export class Messenger extends Base {
   }
 
   async exitBundle (input: ExitBundleInput): Promise<providers.TransactionResponse> {
-    let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash, signer } = input
+    let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId: ${fromChainId}`)
     }
@@ -662,7 +661,7 @@ export class Messenger extends Base {
     let exitRelayer : ExitRelayer | undefined = undefined
     if (['420', '10'].includes(fromChainId?.toString())) {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
-      exitRelayer = new OptimismRelayer(this.network, signer, l2Provider)
+      exitRelayer = new OptimismRelayer(this.network, this.signer, l2Provider)
     } else if (['421613', '42161', '42170'].includes(fromChainId?.toString())) {
       // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
       // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)

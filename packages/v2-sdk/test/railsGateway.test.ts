@@ -1,14 +1,18 @@
 import { RailsGateway } from '#railsGateway/index.js'
-import { parseUnits } from 'ethers/lib/utils.js'
-import { providers, Wallet } from 'ethers'
+import { providers, Wallet, utils } from 'ethers'
+import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
 
+const { parseUnits } = utils
+
 dotenv.config()
+
+export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-  const signer = new Wallet(process.env.PRIVATE_KEY!)
+  const signer = new Wallet(privateKey)
   const address = '0xTODO'
   const railsGateway = new RailsGateway({
     network: 'mainnet'
@@ -19,24 +23,24 @@ describe.skip('RailsGateway', () => {
   })
   it.skip('TODO should fetch TransferSent events', async () => {
     const chainId = 1
-    const startBlock = 0
-    const endBlock = 1000
+    const fromBlock = 0
+    const toBlock = 1000
     const events = await railsGateway.getTransferSentEvents({
       chainId,
-      startBlock,
-      endBlock
+      fromBlock,
+      toBlock
     })
 
     expect(events.length).toBe(1)
   })
   it.skip('TODO should fetch TransferBonded events', async () => {
     const chainId = 1
-    const startBlock = 0
-    const endBlock = 1000
+    const fromBlock = 0
+    const toBlock = 1000
     const events = await railsGateway.getTransferBondedEvents({
       chainId,
-      startBlock,
-      endBlock
+      fromBlock,
+      toBlock
     })
 
     expect(events.length).toBe(1)
@@ -93,7 +97,6 @@ describe.skip('RailsGateway', () => {
   it.skip('TODO should initiate a bond', async () => {
     const chainId = 1
     const pathId = '0xTODO'
-    const checkpoint = '0xTODO'
     const to = '0xTODO'
     const amount = parseUnits('1', 18)
     const checkpoint = '0xTODO'
@@ -103,7 +106,6 @@ describe.skip('RailsGateway', () => {
     const tx = await railsGateway.bond({
       chainId,
       pathId,
-      checkpoint,
       to,
       amount,
       checkpoint,

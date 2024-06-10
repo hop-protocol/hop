@@ -10,8 +10,6 @@ import { IStateMachine } from './IStateMachine.js'
  * 
  * Data used is retrieved from an external data stores.
  * 
- * Upon startup, the state machine will sync back to the latest known state.
- * 
  * @dev The initial and terminal states are null
  */
 

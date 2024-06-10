@@ -62,7 +62,6 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    */
 
   #getChainIdForItem (state: MessageState, value: IMessage): string {
-    let chainId: string
     switch (state) {
       case MessageState.Sent:
         return value.sourceChainId

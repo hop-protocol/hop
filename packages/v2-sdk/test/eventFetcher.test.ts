@@ -7,7 +7,7 @@ const { getAddress: checksumAddress } = utils
 dotenv.config()
 
 describe.skip('EventFetcher', () => {
-  const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER
+  const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://1rpc.io/eth'
   console.log('rpcUrl:', rpcUrl)
 
   it('should fetch all events from multiple filters and aggregate filter topics', async () => {

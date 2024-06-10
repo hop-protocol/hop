@@ -3,7 +3,7 @@ import { Event, EventBase } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 
 // event from RailsGateway
-export interface TransferSent extends EventBase {
+export interface TransferSent {
   pathId: string
   transferId: string
   checkpoint: string
@@ -58,8 +58,6 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const attestedCheckpoint = decoded.args.attestedCheckpoint.toString()
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       pathId,
       transferId,
       checkpoint,

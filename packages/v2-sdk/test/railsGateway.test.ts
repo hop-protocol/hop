@@ -9,30 +9,82 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
-  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
+describe.only('RailsGateway', () => {
+  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org	'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const address = '0xTODO'
   const railsGateway = new RailsGateway({
-    network: 'mainnet'
+    network: 'sepolia'
   })
   it.skip('TODO should get signer address', async () => {
     const address = await railsGateway.getSignerAddress()
     expect(address).toBeDefined()
   })
-  it.skip('TODO should fetch TransferSent events', async () => {
-    const chainId = 1
-    const fromBlock = 0
-    const toBlock = 1000
-    const events = await railsGateway.getTransferSentEvents({
+  it('should fetch TransferSent event filter', async () => {
+    const chainId = 11155111
+    const filter = railsGateway.getTransferSentEventFilter({
+      chainId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(1)
+  })
+  it('should fetch TransferSent transferId event filter', async () => {
+    const chainId = 11155111
+    const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const filter = railsGateway.getTransferSentEventFilter({
+      chainId,
+      transferId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(2)
+  })
+  it('should fetch TransferSent events', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+    const eventsGenerator = railsGateway.getTransferSentEventsInBatches({
       chainId,
       fromBlock,
       toBlock
     })
 
+    let size = 0
+    for await (const events of eventsGenerator) {
+      console.log(events)
+      size += events.length
+    }
+
+    expect(size).toBe(1)
+  }, 60 * 1000)
+  it('should add typedEvent to TransferSent events', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    const events = railsGateway.addDecodedTypesToTransferSentEvents(ethersEvents)
+    console.log(events)
+
     expect(events.length).toBe(1)
-  })
+    expect(events[0].decoded).toBeTruthy()
+  }, 60 * 1000)
   it.skip('TODO should fetch TransferBonded events', async () => {
     const chainId = 1
     const fromBlock = 0

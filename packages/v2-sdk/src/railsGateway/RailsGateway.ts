@@ -1,11 +1,12 @@
 import { BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils, EventFilter, Event as EthersEvent } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
+import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -260,6 +261,13 @@ export type TransferStatus = {
   transferBondedEvent: TransferBonded
 }
 
+type GetTransferSentEventFilterInput = {
+  chainId: BigNumberish
+  transferId?: string
+  checkpoint?: string
+  pathId?: string
+}
+
 export type Token = {
   chainId: BigNumber
   address: string
@@ -284,6 +292,25 @@ export class RailsGateway extends StakingRegistry {
 
   override connect (signer: Signer) {
     return new RailsGateway({ network: this.network, signer, contractAddresses: this.contractAddresses })
+  }
+
+  getTransferSentEventFilter(input: GetTransferSentEventFilterInput) {
+    const { chainId, transferId, checkpoint, pathId } = input
+    const address = this.getRailsGatewayContractAddress(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
+    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
+    let filter: EventFilter
+    if (transferId) {
+      filter = eventFetcher.getTransferIdFilter(transferId)
+    } else if (checkpoint) {
+      filter = eventFetcher.getCheckpointFilter(checkpoint)
+    } else if (pathId) {
+      filter = eventFetcher.getPathIdFilter(pathId)
+    } else {
+      filter = eventFetcher.getFilter()
+    }
+
+    return filter
   }
 
   async getTransferSentEvents (input: TransferSentEventInput) {
@@ -324,6 +351,54 @@ export class RailsGateway extends StakingRegistry {
     const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
     const events = await eventFetcher.getEvents(fromBlock, toBlock)
     return events
+  }
+
+  async *getTransferSentEventsInBatches (input: TransferSentEventInput) {
+    let { chainId, fromBlock, toBlock } = input
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidFilterBlock(fromBlock)) {
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
+    }
+
+    if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
+      throw new InputError(`Invalid fromBlock "${toBlock}"`)
+    }
+
+    const provider = this.getRpcProviderForChainId(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const latestBlock = await provider.getBlockNumber()
+    if (latestBlock) {
+      if (!toBlock) {
+        toBlock = latestBlock
+      }
+      if (!fromBlock) {
+        const start = latestBlock - 1000
+        fromBlock = start
+      }
+      if (toBlock && fromBlock < 0) {
+        fromBlock = toBlock + fromBlock
+      }
+    }
+
+    const address = this.getRailsGatewayContractAddress(chainId)
+    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
+    const eventsGenerator = eventFetcher.getEventsAsGenerator(fromBlock, toBlock)
+
+    for await (const events of eventsGenerator) {
+      yield events
+    }
+  }
+
+  addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
+    const eventFetcher = new TransferSentEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
   }
 
   async getTransferBondedEvents (input: TransferBondEventInput) {

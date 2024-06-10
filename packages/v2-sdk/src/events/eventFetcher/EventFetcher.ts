@@ -55,6 +55,26 @@ export class EventFetcher {
     return this.normalizeEvents(events)
   }
 
+async *fetchEventsAsGenerator (filters: InputFilter[], options: FetchOptions) {
+  const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock);
+
+  for (const [batchStart, batchEnd] of blockRanges) {
+    const batchOptions = {
+      fromBlock: batchStart,
+      toBlock: batchEnd
+    };
+
+    const aggregatedFilters = this.aggregateFilters(filters, batchOptions);
+    const batchedEvents = await this.fetchEventsWithAggregatedFilters(aggregatedFilters);
+
+    // Normalize the events if needed
+    const normalizedEvents = this.normalizeEvents(batchedEvents);
+
+    // Yield the normalized events
+    yield normalizedEvents;
+  }
+}
+
   getChunkedBlockRanges (fromBlock: number, toBlock: number) {
     fromBlock = Math.min(fromBlock, toBlock)
     let batchStart = fromBlock

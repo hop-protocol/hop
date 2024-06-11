@@ -4,21 +4,17 @@ import { BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.j
 import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
 import { BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
-import { ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { MessageBundledEventFetcher } from '#messenger/events/MessageBundled.js'
 import { MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
 import { MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
-import { TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
-import { TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { Messenger } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
-import { Nft } from '#nft/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError } from '#error/index.js'
 
@@ -69,7 +65,6 @@ export class Hop extends Base {
   gasPriceOracle: GasPriceOracle
   messenger: Messenger
   railsGateway: RailsGateway
-  nft: Nft
   hubConnector: HubConnector
 
   constructor (options?: HopConstructorInput) {
@@ -93,7 +88,6 @@ export class Hop extends Base {
     this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.hubConnector = new HubConnector({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.railsGateway = new RailsGateway({ network, signer: this.signer, contractAddresses: this.contractAddresses })
-    this.nft = new Nft({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
 
   override connect (signer: Signer) {
@@ -123,14 +117,6 @@ export class Hop extends Base {
     }
 
     return this.railsGateway.getRailsGatewayContractAddress(chainId)
-  }
-
-  getNftBridgeContractAddress (chainId: BigNumberish): string {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId: ${chainId}`)
-    }
-
-    return this.nft.getNftBridgeContractAddress(chainId)
   }
 
   get populateTransaction() {
@@ -369,24 +355,6 @@ export class Hop extends Base {
       } else if (eventName === 'MessageSent') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'ConfirmationSent') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
-        const eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'TokenConfirmed') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
-        const eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'TokenSent') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
-        const eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks, address)
         const filter = eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = eventFetcher

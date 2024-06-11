@@ -396,6 +396,18 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
+  addDecodedTypesToEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+    for (const event of events) {
+      const topic0 = event.topics[0]
+      if (TransferSentEventFetcher.getEventNameFromTopic(topic0)) {
+        return this.addDecodedTypesToTransferSentEvents(events)
+      // } else if (TransferBondedEventFetcher.getEventNameFromTopic(topic0)) {
+      //   return this.addDecodedTypesToTransferBondedEvents(events)
+      }
+    }
+    return events
+  }
+
   addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
     const eventFetcher = new TransferSentEventFetcher()
     return events.map(event => eventFetcher.addTypedEvent(event))

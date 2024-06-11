@@ -11,22 +11,17 @@ export interface BundleForwarded extends EventBase {
 }
 
 export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
-  override eventName = 'BundleForwarded'
-
-  override getFilter (): EventFilter {
-    const hubMessageBridge = HubMessageBridge__factory.connect(this.address, this.provider)
-    const filter = hubMessageBridge.filters.BundleForwarded()
-    return filter
-  }
+  static override eventName = 'BundleForwarded'
+  static override abi = HubMessageBridge__factory.abi
+  static override factory = HubMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleForwarded {
-    const iface = new ethers.utils.Interface(HubMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<BundleForwarded>(ethersEvent)
 
-    const bundleId = decoded.args.bundleId.toString()
-    const bundleRoot = decoded.args.bundleRoot.toString()
-    const fromChainId = decoded.args.fromChainId.toString()
-    const toChainId = decoded.args.toChainId.toString()
+    const bundleId = parsed.args.bundleId.toString()
+    const bundleRoot = parsed.args.bundleRoot.toString()
+    const fromChainId = parsed.args.fromChainId.toString()
+    const toChainId = parsed.args.toChainId.toString()
 
     return {
       eventName: this.eventName,

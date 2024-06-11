@@ -12,23 +12,18 @@ export interface ConnectorDeployed extends EventBase {
 }
 
 export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
-  override eventName = 'ConnectorDeployed'
-
-  override getFilter (): EventFilter {
-    const contract = HubERC5164ConnectorFactory__factory.connect(this.address, this.provider)
-    const filter = contract.filters.ConnectorDeployed()
-    return filter
-  }
+  static override eventName = 'ConnectorDeployed'
+  static override abi = HubERC5164ConnectorFactory__factory.abi
+  static override factory = HubERC5164ConnectorFactory__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): ConnectorDeployed {
-    const iface = new ethers.utils.Interface(HubERC5164ConnectorFactory__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<ConnectorDeployed>(ethersEvent)
 
-    const connector = decoded.args.connector.toString()
-    const target = decoded.args.target.toString()
-    const counterpartChainId = decoded.args.counterpartChainId.toString()
-    const counterpartConnector = decoded.args.counterpartConnector.toString()
-    const counterpartTarget = decoded.args.counterpartTarget.toString()
+    const connector = parsed.args.connector.toString()
+    const target = parsed.args.target.toString()
+    const counterpartChainId = parsed.args.counterpartChainId.toString()
+    const counterpartConnector = parsed.args.counterpartConnector.toString()
+    const counterpartTarget = parsed.args.counterpartTarget.toString()
 
     return {
       eventName: this.eventName,

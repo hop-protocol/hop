@@ -9,16 +9,12 @@ export interface MessageExecuted extends EventBase {
 }
 
 export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
-  override eventName = 'MessageExecuted'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.MessageExecuted()
-    return filter
-  }
+  static override eventName = 'MessageExecuted'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   getMessageIdFilter (messageId: string): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
+    const spokeMessageBridge = this.getContract()
     // TODO: after it's indexed in contract
     // const filter = spokeMessageBridge.filters.MessageExecuted(messageId)
     const filter = spokeMessageBridge.filters.MessageExecuted()
@@ -26,11 +22,10 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageExecuted {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<MessageExecuted>(ethersEvent)
 
-    const messageId = decoded.args.messageId.toString()
-    const fromChainId = decoded.args.fromChainId.toString()
+    const messageId = parsed.args.messageId.toString()
+    const fromChainId = parsed.args.fromChainId.toString()
 
     return {
       eventName: this.eventName,

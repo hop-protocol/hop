@@ -10,21 +10,16 @@ export interface BundleSet extends EventBase {
 }
 
 export class BundleSetEventFetcher extends Event<BundleSet> {
-  override eventName = 'BundleSet'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.BundleSet()
-    return filter
-  }
+  static override eventName = 'BundleSet'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleSet {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<BundleSet>(ethersEvent)
 
-    const bundleId = decoded.args.bundleId.toString()
-    const bundleRoot = decoded.args.bundleRoot.toString()
-    const fromChainId = decoded.args.fromChainId.toString()
+    const bundleId = parsed.args.bundleId.toString()
+    const bundleRoot = parsed.args.bundleRoot.toString()
+    const fromChainId = parsed.args.fromChainId.toString()
 
     return {
       eventName: this.eventName,

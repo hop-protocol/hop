@@ -13,43 +13,38 @@ export interface TransferBonded extends EventBase {
 }
 
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
-  override eventName = 'TransferBonded'
-
-  override getFilter (): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
-    const filter = railsGateway.filters.TransferBonded()
-    return filter
-  }
+  static override eventName = 'TransferBonded'
+  static override abi = RailsGateway__factory.abi
+  static override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     const filter = railsGateway.filters.TransferBonded(pathId)
     return filter
   }
 
   getTransferIdFilter (transferId: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     // TODO: currently transferId is not indexed by contract, so this doesn't work
     const filter = railsGateway.filters.TransferBonded(transferId)
     return filter
   }
 
   getCheckpointFilter (checkpoint: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     const filter = railsGateway.filters.TransferBonded(null, null, checkpoint)
     return filter
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): TransferBonded {
-    const iface = new ethers.utils.Interface(RailsGateway__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<TransferBonded>(ethersEvent)
 
-    const pathId = decoded.args.pathId.toString()
-    const transferId = decoded.args.transferId.toString()
-    const checkpoint = decoded.args.checkpoint.toString()
-    const to = decoded.args.to
-    const amountOut = decoded.args.amountOut
-    const totalSent = decoded.args.totalSent
+    const pathId = parsed.args.pathId.toString()
+    const transferId = parsed.args.transferId.toString()
+    const checkpoint = parsed.args.checkpoint.toString()
+    const to = parsed.args.to
+    const amountOut = parsed.args.amountOut
+    const totalSent = parsed.args.totalSent
 
     return {
       eventName: this.eventName,

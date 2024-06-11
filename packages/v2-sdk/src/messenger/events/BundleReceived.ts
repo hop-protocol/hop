@@ -14,25 +14,20 @@ export interface BundleReceived extends EventBase {
 }
 
 export class BundleReceivedEventFetcher extends Event<BundleReceived> {
-  override eventName = 'BundleReceived'
-
-  override getFilter (): EventFilter {
-    const hubMessageBridge = HubMessageBridge__factory.connect(this.address, this.provider)
-    const filter = hubMessageBridge.filters.BundleReceived()
-    return filter
-  }
+  static override eventName = 'BundleReceived'
+  static override abi = HubMessageBridge__factory.abi
+  static override factory = HubMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleReceived {
-    const iface = new ethers.utils.Interface(HubMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<BundleReceived>(ethersEvent)
 
-    const bundleId = decoded.args.bundleId.toString()
-    const bundleRoot = decoded.args.bundleRoot.toString()
-    const bundleFees = decoded.args.bundleFees
-    const fromChainId = decoded.args.fromChainId.toString()
-    const toChainId = decoded.args.toChainId.toString()
-    const relayWindowStart = Number(decoded.args.relayWindowStart.toString())
-    const relayer = decoded.args.relayer.toString()
+    const bundleId = parsed.args.bundleId.toString()
+    const bundleRoot = parsed.args.bundleRoot.toString()
+    const bundleFees = parsed.args.bundleFees
+    const fromChainId = parsed.args.fromChainId.toString()
+    const toChainId = parsed.args.toChainId.toString()
+    const relayWindowStart = Number(parsed.args.relayWindowStart.toString())
+    const relayer = parsed.args.relayer.toString()
 
     return {
       eventName: this.eventName,

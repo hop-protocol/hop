@@ -16,46 +16,41 @@ export interface TransferSent {
 }
 
 export class TransferSentEventFetcher extends Event<TransferSent> {
-  override eventName = 'TransferSent'
-
-  override getFilter (): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
-    const filter = railsGateway.filters.TransferSent()
-    return filter
-  }
+  static override eventName = 'TransferSent'
+  static override abi = RailsGateway__factory.abi
+  static override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     const filter = railsGateway.filters.TransferSent(pathId)
     return filter
   }
 
   getTransferIdFilter (transferId: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     // TODO: currently transferId is not indexed by contract, so this doesn't work
     const filter = railsGateway.filters.TransferSent(transferId)
     return filter
   }
 
   getCheckpointFilter (checkpoint: string): EventFilter {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const railsGateway = this.getContract()
     const filter = railsGateway.filters.TransferSent(null, null, checkpoint)
     return filter
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): TransferSent {
-    const iface = new ethers.utils.Interface(RailsGateway__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<TransferSent>(ethersEvent)
 
-    const pathId = decoded.args.pathId.toString()
-    const transferId = decoded.args.transferId.toString()
-    const checkpoint = decoded.args.checkpoint.toString()
-    const to = decoded.args.to
-    const amount = decoded.args.amount
-    const attestationFee = decoded.args.attestationFee
-    const totalSent = decoded.args.totalSent
-    const nonce = decoded.args.nonce
-    const attestedCheckpoint = decoded.args.attestedCheckpoint.toString()
+    const pathId = parsed.args.pathId.toString()
+    const transferId = parsed.args.transferId.toString()
+    const checkpoint = parsed.args.checkpoint.toString()
+    const to = parsed.args.to
+    const amount = parsed.args.amount
+    const attestationFee = parsed.args.attestationFee
+    const totalSent = parsed.args.totalSent
+    const nonce = parsed.args.nonce
+    const attestedCheckpoint = parsed.args.attestedCheckpoint.toString()
 
     return {
       pathId,

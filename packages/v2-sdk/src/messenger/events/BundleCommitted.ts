@@ -12,23 +12,18 @@ export interface BundleCommitted extends EventBase {
 }
 
 export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
-  override eventName = 'BundleCommitted'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.BundleCommitted()
-    return filter
-  }
+  static override eventName = 'BundleCommitted'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleCommitted {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<BundleForwarded>(ethersEvent)
 
-    const bundleId = decoded.args.bundleId.toString()
-    const bundleRoot = decoded.args.bundleRoot.toString()
-    const bundleFees = decoded.args.bundleFees
-    const toChainId = decoded.args.toChainId.toString()
-    const commitTime = Number(decoded.args.commitTime.toString())
+    const bundleId = parsed.args.bundleId.toString()
+    const bundleRoot = parsed.args.bundleRoot.toString()
+    const bundleFees = parsed.args.bundleFees
+    const toChainId = parsed.args.toChainId.toString()
+    const commitTime = Number(parsed.args.commitTime.toString())
 
     return {
       eventName: this.eventName,

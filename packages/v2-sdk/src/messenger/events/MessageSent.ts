@@ -12,29 +12,24 @@ export interface MessageSent extends EventBase {
 }
 
 export class MessageSentEventFetcher extends Event<MessageSent> {
-  override eventName = 'MessageSent'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.MessageSent()
-    return filter
-  }
+  static override eventName = 'MessageSent'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   getMessageIdFilter (messageId: string): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
+    const spokeMessageBridge = this.getContract()
     const filter = spokeMessageBridge.filters.MessageSent(messageId)
     return filter
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageSent {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<MessageSent>(ethersEvent)
 
-    const messageId = decoded.args.messageId.toString()
-    const from = decoded.args.from
-    const toChainId = decoded.args.toChainId.toString()
-    const to = decoded.args.to
-    const data = decoded.args.data
+    const messageId = parsed.args.messageId.toString()
+    const from = parsed.args.from
+    const toChainId = parsed.args.toChainId.toString()
+    const to = parsed.args.to
+    const data = parsed.args.data
 
     return {
       eventName: this.eventName,

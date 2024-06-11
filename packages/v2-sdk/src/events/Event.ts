@@ -2,14 +2,16 @@ import { EventContext, EventBase, Filter, EthersEventWithDecodedTypes } from './
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk'
-import { providers, BigNumberish, Event as EthersEvent } from 'ethers'
+import { providers, BigNumberish, Event as EthersEvent, utils, Contract } from 'ethers'
 
 export class Event<T> {
   provider: providers.Provider
   chainId: BigNumberish
   batchBlocks: number
   address: string
-  eventName: string
+  static eventName: string
+  static abi: any
+  static factory: any
 
   constructor (provider?: providers.Provider, chainId?: BigNumberish, batchBlocks?: number, address?: string) {
     if (provider) {
@@ -29,8 +31,49 @@ export class Event<T> {
     }
   }
 
+  get eventName() {
+    return Event.eventName
+  }
+
+  get abi () {
+    return Event.abi
+  }
+
+  get factory () {
+    return Event.factory
+  }
+
+  getContract(): Contract {
+    const contract = this.factory.connect(this.address, this.provider)
+    return contract
+  }
+
+  static get topic0(): string {
+    const iface = new utils.Interface(this.abi)
+    const topic0 = iface.getEventTopic(this.eventName)
+    return topic0
+  }
+
+  static getEventNameFromTopic (topic0: string): string | null {
+    const iface = new utils.Interface(Event.abi)
+    for (let eventFragment of Object.values(iface.events)) {
+      if (iface.getEventTopic(eventFragment) === topic0) {
+        return eventFragment.name
+      }
+    }
+    return null
+  }
+
+  parseEthersEventLog <T>(ethersEvent: EthersEvent): T {
+    const iface = new utils.Interface(this.abi)
+    const decoded = iface.parseLog(ethersEvent)
+    return decoded as T
+  }
+
   getFilter (): Filter {
-    throw new Error('Not implemented. This should be implemented by child class.')
+    const contract = this.getContract()
+    const filter = contract.filters[this.eventName]()
+    return filter
   }
 
   getTopic0 (): string | string[] | null {

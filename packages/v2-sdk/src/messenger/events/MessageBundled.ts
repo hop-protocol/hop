@@ -10,33 +10,28 @@ export interface MessageBundled extends EventBase {
 }
 
 export class MessageBundledEventFetcher extends Event<MessageBundled> {
-  override eventName = 'MessageBundled'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.MessageBundled()
-    return filter
-  }
+  static override eventName = 'MessageBundled'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   getBundleIdFilter (bundleId: string): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
+    const spokeMessageBridge = this.getContract()
     const filter = spokeMessageBridge.filters.MessageBundled(bundleId)
     return filter
   }
 
   getMessageIdFilter (messageId: string): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
+    const spokeMessageBridge = this.getContract()
     const filter = spokeMessageBridge.filters.MessageBundled(null, null, messageId)
     return filter
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageBundled {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<MessageBundled>(ethersEvent)
 
-    const bundleId = decoded.args.bundleId.toString()
-    const treeIndex = Number(decoded.args.treeIndex.toString())
-    const messageId = decoded.args.messageId.toString()
+    const bundleId = parsed.args.bundleId.toString()
+    const treeIndex = Number(parsed.args.treeIndex.toString())
+    const messageId = parsed.args.messageId.toString()
 
     return {
       eventName: this.eventName,

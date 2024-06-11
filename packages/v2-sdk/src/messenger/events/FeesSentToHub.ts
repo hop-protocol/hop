@@ -8,19 +8,14 @@ export interface FeesSentToHub extends EventBase {
 }
 
 export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
-  override eventName = 'FeesSentToHub'
-
-  override getFilter (): EventFilter {
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.FeesSentToHub()
-    return filter
-  }
+  static override eventName = 'FeesSentToHub'
+  static override abi = SpokeMessageBridge__factory.abi
+  static override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): FeesSentToHub {
-    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
-    const decoded = iface.parseLog(ethersEvent)
+    const parsed = this.parseEthersEventLog<FeesSentToHub>(ethersEvent)
 
-    const amount = decoded.args.amount
+    const amount = parsed.args.amount
 
     return {
       eventName: this.eventName,

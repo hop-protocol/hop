@@ -40,7 +40,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): TransferSent {
-    const parsed = this.parseEthersEventLog<TransferSent>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()

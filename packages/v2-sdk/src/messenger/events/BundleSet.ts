@@ -15,7 +15,7 @@ export class BundleSetEventFetcher extends Event<BundleSet> {
   static override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleSet {
-    const parsed = this.parseEthersEventLog<BundleSet>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const bundleId = parsed.args.bundleId.toString()
     const bundleRoot = parsed.args.bundleRoot.toString()

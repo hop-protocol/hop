@@ -22,7 +22,7 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageExecuted {
-    const parsed = this.parseEthersEventLog<MessageExecuted>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const messageId = parsed.args.messageId.toString()
     const fromChainId = parsed.args.fromChainId.toString()

@@ -2,7 +2,7 @@ import { EventContext, EventBase, Filter, EthersEventWithDecodedTypes } from './
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk'
-import { providers, BigNumberish, Event as EthersEvent, utils, Contract } from 'ethers'
+import { providers, BigNumberish, Event as EthersEvent, utils, Contract, EventFilter } from 'ethers'
 
 export class Event<T> {
   provider: providers.Provider
@@ -64,13 +64,13 @@ export class Event<T> {
     return null
   }
 
-  parseEthersEventLog <T>(ethersEvent: EthersEvent): T {
+  parseEthersEventLog (ethersEvent: EthersEvent): any {
     const iface = new utils.Interface(this.abi)
     const decoded = iface.parseLog(ethersEvent)
-    return decoded as T
+    return decoded
   }
 
-  getFilter (): Filter {
+  getFilter (): EventFilter {
     const contract = this.getContract()
     const filter = contract.filters[this.eventName]()
     return filter

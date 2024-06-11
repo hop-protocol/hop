@@ -23,7 +23,7 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageSent {
-    const parsed = this.parseEthersEventLog<MessageSent>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const messageId = parsed.args.messageId.toString()
     const from = parsed.args.from

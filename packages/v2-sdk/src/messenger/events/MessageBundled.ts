@@ -27,7 +27,7 @@ export class MessageBundledEventFetcher extends Event<MessageBundled> {
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): MessageBundled {
-    const parsed = this.parseEthersEventLog<MessageBundled>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const bundleId = parsed.args.bundleId.toString()
     const treeIndex = Number(parsed.args.treeIndex.toString())

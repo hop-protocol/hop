@@ -13,7 +13,7 @@ export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
   static override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): FeesSentToHub {
-    const parsed = this.parseEthersEventLog<FeesSentToHub>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const amount = parsed.args.amount
 

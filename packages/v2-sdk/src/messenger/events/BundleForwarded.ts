@@ -16,7 +16,7 @@ export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
   static override factory = HubMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleForwarded {
-    const parsed = this.parseEthersEventLog<BundleForwarded>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const bundleId = parsed.args.bundleId.toString()
     const bundleRoot = parsed.args.bundleRoot.toString()

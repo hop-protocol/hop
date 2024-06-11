@@ -17,7 +17,7 @@ export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
   static override factory = HubERC5164ConnectorFactory__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): ConnectorDeployed {
-    const parsed = this.parseEthersEventLog<ConnectorDeployed>(ethersEvent)
+    const parsed = this.parseEthersEventLog(ethersEvent)
 
     const connector = parsed.args.connector.toString()
     const target = parsed.args.target.toString()

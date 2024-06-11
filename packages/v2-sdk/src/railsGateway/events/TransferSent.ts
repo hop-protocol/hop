@@ -16,9 +16,9 @@ export interface TransferSent {
 }
 
 export class TransferSentEventFetcher extends Event<TransferSent> {
-  static override eventName = 'TransferSent'
-  static override abi = RailsGateway__factory.abi
-  static override factory = RailsGateway__factory
+  override eventName = 'TransferSent'
+  override abi = RailsGateway__factory.abi
+  override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
     const railsGateway = this.getContract()

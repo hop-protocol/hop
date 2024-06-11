@@ -1,6 +1,6 @@
 export {
   TransferSentEventInput,
-  TransferBondEventInput,
+  TransferBondedEventInput,
   Path,
   GetPathIdInput,
   GetPathInfoInput,

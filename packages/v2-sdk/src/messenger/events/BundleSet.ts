@@ -10,9 +10,9 @@ export interface BundleSet extends EventBase {
 }
 
 export class BundleSetEventFetcher extends Event<BundleSet> {
-  static override eventName = 'BundleSet'
-  static override abi = SpokeMessageBridge__factory.abi
-  static override factory = SpokeMessageBridge__factory
+  override eventName = 'BundleSet'
+  override abi = SpokeMessageBridge__factory.abi
+  override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleSet {
     const parsed = this.parseEthersEventLog(ethersEvent)

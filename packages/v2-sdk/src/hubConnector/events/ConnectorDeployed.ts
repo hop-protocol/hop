@@ -12,9 +12,9 @@ export interface ConnectorDeployed extends EventBase {
 }
 
 export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
-  static override eventName = 'ConnectorDeployed'
-  static override abi = HubERC5164ConnectorFactory__factory.abi
-  static override factory = HubERC5164ConnectorFactory__factory
+  override eventName = 'ConnectorDeployed'
+  override abi = HubERC5164ConnectorFactory__factory.abi
+  override factory = HubERC5164ConnectorFactory__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): ConnectorDeployed {
     const parsed = this.parseEthersEventLog(ethersEvent)

@@ -14,9 +14,9 @@ export interface BundleReceived extends EventBase {
 }
 
 export class BundleReceivedEventFetcher extends Event<BundleReceived> {
-  static override eventName = 'BundleReceived'
-  static override abi = HubMessageBridge__factory.abi
-  static override factory = HubMessageBridge__factory
+  override eventName = 'BundleReceived'
+  override abi = HubMessageBridge__factory.abi
+  override factory = HubMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleReceived {
     const parsed = this.parseEthersEventLog(ethersEvent)

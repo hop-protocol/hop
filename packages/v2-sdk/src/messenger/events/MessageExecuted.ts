@@ -9,9 +9,9 @@ export interface MessageExecuted extends EventBase {
 }
 
 export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
-  static override eventName = 'MessageExecuted'
-  static override abi = SpokeMessageBridge__factory.abi
-  static override factory = SpokeMessageBridge__factory
+  override eventName = 'MessageExecuted'
+  override abi = SpokeMessageBridge__factory.abi
+  override factory = SpokeMessageBridge__factory
 
   getMessageIdFilter (messageId: string): EventFilter {
     const spokeMessageBridge = this.getContract()

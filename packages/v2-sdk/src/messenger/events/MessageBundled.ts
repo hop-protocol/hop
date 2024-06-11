@@ -10,9 +10,9 @@ export interface MessageBundled extends EventBase {
 }
 
 export class MessageBundledEventFetcher extends Event<MessageBundled> {
-  static override eventName = 'MessageBundled'
-  static override abi = SpokeMessageBridge__factory.abi
-  static override factory = SpokeMessageBridge__factory
+  override eventName = 'MessageBundled'
+  override abi = SpokeMessageBridge__factory.abi
+  override factory = SpokeMessageBridge__factory
 
   getBundleIdFilter (bundleId: string): EventFilter {
     const spokeMessageBridge = this.getContract()

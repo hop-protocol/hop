@@ -10,13 +10,22 @@ import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 const { getAddress: checksumAddress } = utils
 
+type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
+
+export type GetEventsInput = {
+  chainId: BigNumberish
+  fromBlock: number
+  toBlock: number
+  Fetcher: any
+}
+
 export type TransferSentEventInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
 }
 
-export type TransferBondEventInput = {
+export type TransferBondedEventInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
@@ -313,8 +322,20 @@ export class RailsGateway extends StakingRegistry {
     return filter
   }
 
-  async getTransferSentEvents (input: TransferSentEventInput) {
-    let { chainId, fromBlock, toBlock } = input
+  addDecodedTypesToEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+    for (const event of events) {
+      const topic0 = event.topics[0]
+      if (new TransferSentEventFetcher().getEventNameFromTopic(topic0)) {
+        return this.addDecodedTypesToTransferSentEvents(events)
+      } else if (new TransferBondedEventFetcher().getEventNameFromTopic(topic0)) {
+        return this.addDecodedTypesToTransferBondedEvents(events)
+      }
+    }
+    return events
+  }
+
+  async #getEvents (input: GetEventsInput) {
+    let { chainId, fromBlock, toBlock, Fetcher } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -348,9 +369,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
+    const eventFetcher = new Fetcher(provider, chainId, 0, address)
     const events = await eventFetcher.getEvents(fromBlock, toBlock)
     return events
+  }
+
+  async getTransferSentEvents (input: TransferSentEventInput) {
+    this.#getEvents({ ...input, Fetcher: TransferSentEventFetcher })
   }
 
   async *getTransferSentEventsInBatches (input: TransferSentEventInput) {
@@ -396,61 +421,21 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
-  addDecodedTypesToEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
-    for (const event of events) {
-      const topic0 = event.topics[0]
-      if (TransferSentEventFetcher.getEventNameFromTopic(topic0)) {
-        return this.addDecodedTypesToTransferSentEvents(events)
-      // } else if (TransferBondedEventFetcher.getEventNameFromTopic(topic0)) {
-      //   return this.addDecodedTypesToTransferBondedEvents(events)
-      }
-    }
-    return events
-  }
-
-  addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
-    const eventFetcher = new TransferSentEventFetcher()
+  #addDecodedTypesToEvents <T>(events: any[], Fetcher: any): EthersEventWithDecodedTypes<T>[] {
+    const eventFetcher = new Fetcher()
     return events.map(event => eventFetcher.addTypedEvent(event))
   }
 
-  async getTransferBondedEvents (input: TransferBondEventInput) {
-    let { chainId, fromBlock, toBlock } = input
+  addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
+    return this.#addDecodedTypesToEvents<TransferSent>(events, TransferSentEventFetcher)
+  }
 
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
+  addDecodedTypesToTransferBondedEvents (events: any[]): EthersEventWithDecodedTypes<TransferBonded>[] {
+    return this.#addDecodedTypesToEvents<TransferBonded>(events, TransferBondedEventFetcher)
+  }
 
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid fromBlock "${toBlock}"`)
-    }
-
-    const provider = this.getRpcProviderForChainId(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const latestBlock = await provider.getBlockNumber()
-    if (latestBlock) {
-      if (!toBlock) {
-        toBlock = latestBlock
-      }
-      if (!fromBlock) {
-        const start = latestBlock - 1000
-        fromBlock = start
-      }
-      if (toBlock && fromBlock < 0) {
-        fromBlock = toBlock + fromBlock
-      }
-    }
-
-    const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new TransferBondedEventFetcher(provider, chainId, 0, address)
-    const events = await eventFetcher.getEvents(fromBlock, toBlock)
-    return events
+  async getTransferBondedEvents (input: TransferBondedEventInput) {
+    this.#getEvents({ ...input, Fetcher: TransferBondedEventFetcher })
   }
 
   getRailsGatewayContractAddress (chainId: BigNumberish): string {

@@ -13,9 +13,9 @@ export interface TransferBonded extends EventBase {
 }
 
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
-  static override eventName = 'TransferBonded'
-  static override abi = RailsGateway__factory.abi
-  static override factory = RailsGateway__factory
+  override eventName = 'TransferBonded'
+  override abi = RailsGateway__factory.abi
+  override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
     const railsGateway = this.getContract()

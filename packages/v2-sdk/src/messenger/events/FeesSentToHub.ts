@@ -8,9 +8,9 @@ export interface FeesSentToHub extends EventBase {
 }
 
 export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
-  static override eventName = 'FeesSentToHub'
-  static override abi = SpokeMessageBridge__factory.abi
-  static override factory = SpokeMessageBridge__factory
+  override eventName = 'FeesSentToHub'
+  override abi = SpokeMessageBridge__factory.abi
+  override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): FeesSentToHub {
     const parsed = this.parseEthersEventLog(ethersEvent)

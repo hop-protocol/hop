@@ -85,7 +85,7 @@ describe.only('RailsGateway', () => {
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeTruthy()
   }, 60 * 1000)
-  it.only('should add typedEvent to events', async () => {
+  it('should add typedEvent to events', async () => {
     const chainId = 11155111
     const fromBlock = 5816945
     const toBlock = 5816945

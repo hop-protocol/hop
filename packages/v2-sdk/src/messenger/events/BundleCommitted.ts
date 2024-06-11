@@ -12,9 +12,9 @@ export interface BundleCommitted extends EventBase {
 }
 
 export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
-  static override eventName = 'BundleCommitted'
-  static override abi = SpokeMessageBridge__factory.abi
-  static override factory = SpokeMessageBridge__factory
+  override eventName = 'BundleCommitted'
+  override abi = SpokeMessageBridge__factory.abi
+  override factory = SpokeMessageBridge__factory
 
   override toTypedEvent (ethersEvent: EthersEvent): BundleCommitted {
     const parsed = this.parseEthersEventLog(ethersEvent)

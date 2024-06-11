@@ -9,9 +9,9 @@ export class Event<T> {
   chainId: BigNumberish
   batchBlocks: number
   address: string
-  static eventName: string
-  static abi: any
-  static factory: any
+  eventName: string
+  abi: any
+  factory: any
 
   constructor (provider?: providers.Provider, chainId?: BigNumberish, batchBlocks?: number, address?: string) {
     if (provider) {
@@ -31,31 +31,19 @@ export class Event<T> {
     }
   }
 
-  get eventName() {
-    return Event.eventName
-  }
-
-  get abi () {
-    return Event.abi
-  }
-
-  get factory () {
-    return Event.factory
-  }
-
   getContract(): Contract {
     const contract = this.factory.connect(this.address, this.provider)
     return contract
   }
 
-  static get topic0(): string {
+  get topic0(): string {
     const iface = new utils.Interface(this.abi)
     const topic0 = iface.getEventTopic(this.eventName)
     return topic0
   }
 
-  static getEventNameFromTopic (topic0: string): string | null {
-    const iface = new utils.Interface(Event.abi)
+  getEventNameFromTopic(topic0: string): string | null {
+    const iface = new utils.Interface(this.abi)
     for (let eventFragment of Object.values(iface.events)) {
       if (iface.getEventTopic(eventFragment) === topic0) {
         return eventFragment.name

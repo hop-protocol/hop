@@ -5,6 +5,7 @@ import { BigNumber, Contract, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { ShardedMerkleTree } from './merkle'
 import { ERC20__factory } from '@hop-protocol/sdk/contracts'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { findNetworkBySlug, networkIdToSlug } from '#utils/networks.js'
 import { formatError } from '#utils/format.js'
 import { getProviderByNetworkName } from '#utils/getProvider.js'
@@ -391,7 +392,12 @@ export const useRewards = (props: Props) => {
   }
 
   const hasRewards = !!(address && claimableAmount?.gt(0))
-  let txHistoryLink = `https://${isGoerli ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
+  // TODO: read from api
+  let startDate = '2022-09-23' // OP
+  if (chainSlug === ChainSlug.Arbitrum) {
+    startDate = '2024-06-12' // ARB
+  }
+  let txHistoryLink = `https://${isGoerli ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=${startDate}`
   if (address) {
    txHistoryLink += `&account=${address}`
   }

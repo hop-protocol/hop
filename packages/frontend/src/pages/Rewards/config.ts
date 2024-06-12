@@ -14,11 +14,11 @@ if (isGoerli) {
     chainId: 10,
     rewardsContractAddress: '0x45269F59aA76bB491D0Fc4c26F468D8E1EE26b73',
     merkleBaseUrl: getQueryParam('merkleBaseUrl') ?? 'https://raw.githubusercontent.com/hop-protocol/optimism-refund-merkle-rewards/master'
-  }/*, {
+  }, {
     chainId: 42161,
     rewardsContractAddress: '',
     merkleBaseUrl: 'https://raw.githubusercontent.com/hop-protocol/arbitrum-refund-merkle-rewards/master'
-  }*/]
+  }]
 }
 
 export { configs }

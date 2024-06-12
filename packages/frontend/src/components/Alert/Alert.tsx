@@ -16,15 +16,17 @@ const useStyles = makeStyles(theme => ({
 type AlertProps = {
   text?: string | null | undefined
   maxWidth?: boolean
+  severity?: 'error' | 'warning' | 'info' | 'success'
+  onClose?: () => void
 }
 
 export const Alert: FC<AlertProps & MuiAlertProps> = props => {
-  const { text, className, children, maxWidth } = props
+  const { text, className, children, severity, onClose, maxWidth } = props
   const styles = useStyles({ maxWidth })
   const show = text ?? children
 
   return show ? (
-    <MuiAlert {...props} className={clsx(styles.root, className)}>
+    <MuiAlert severity={severity} onClose={onClose} className={clsx(styles.root, className)}>
       {children ?? prettifyErrorMessage(text ?? '')}
     </MuiAlert>
   ) : null

@@ -95,6 +95,7 @@ const connectSrc = new Set([
   "https://social-auth.hop.exchange",
   "https://hopprotocol.cloudflareaccess.com",
   "https://optimism-fee-refund-api.hop.exchange",
+  "https://arbitrum-fee-refund-api.hop.exchange",
   "https://hop-merkle-rewards-backend.hop.exchange",
   "https://meebits.larvalabs.com",
   "https://meebits.app",

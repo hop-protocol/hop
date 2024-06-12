@@ -9,7 +9,7 @@ const colorsMap: Record<string, string> = {
 // Colors are the same for each network so just default to Mainnet
 for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
   for (const chain of Object.values(chains)) {
-    colorsMap[chain.slug] = chain.color
+    colorsMap[chain.slug] = chain.primaryColor
   }
 }
 

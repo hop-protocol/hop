@@ -20012,7 +20012,7 @@ snapshots:
 
   '@types/prompts@2.4.9':
     dependencies:
-      '@types/node': 20.12.7
+      '@types/node': 16.18.97
       kleur: 3.0.3
 
   '@types/prop-types@15.7.12': {}

@@ -9,7 +9,7 @@ import { findNetworkBySlug, networkIdToSlug } from '#utils/networks.js'
 import { formatError } from '#utils/format.js'
 import { getProviderByNetworkName } from '#utils/getProvider.js'
 import { getTokenImage } from '#utils/tokens.js'
-import { isGoerli, isMainnet, reactAppNetwork } from '#config/index.js'
+import { isGoerli, reactAppNetwork } from '#config/index.js'
 import { useEffect, useMemo, useState } from 'react'
 import { useInterval } from 'usehooks-ts'
 import { useWeb3Context } from '#contexts/Web3Context.js'
@@ -42,7 +42,8 @@ export const useRewards = (props: Props) => {
   const [countdown, setCountdown] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [withdrawn, setWithdrawn] = useState(BigNumber.from(0))
-  const apiBaseUrl = isMainnet ? 'https://optimism-fee-refund-api.hop.exchange' : (isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : '')
+  const chainSlug = networkIdToSlug(requiredChainId)
+  const apiBaseUrl = `https://${chainSlug}-fee-refund-api.hop.exchange`
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -395,7 +396,7 @@ export const useRewards = (props: Props) => {
    txHistoryLink += `&account=${address}`
   }
   if (claimChain) {
-   txHistoryLink += `&destination=optimism`
+   txHistoryLink += `&destination=${chainSlug}`
   }
 
   const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')

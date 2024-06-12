@@ -10,7 +10,7 @@ set -o pipefail
 payload=$(</dev/stdin)
 
 # Define Github Constants
-GITHUB_WORKFLOW_JOB_NAME="publish-docker ($DOCKER_IMAGE_NAME)"
+GITHUB_WORKFLOW_JOB_NAME="Publish Docker ($DOCKER_IMAGE_NAME)"
 GITHUB_WORKFLOW_JOB_STEP_NAME="Publish Docker Image (latest)"
 
 # Extract branch and build status from payload

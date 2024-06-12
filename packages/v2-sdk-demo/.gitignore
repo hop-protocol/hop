@@ -28,3 +28,4 @@ yarn-error.log*
 *.txt
 
 *.tsbuildinfo
+*.env

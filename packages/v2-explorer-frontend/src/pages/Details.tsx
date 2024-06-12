@@ -441,7 +441,7 @@ Destination Transaction Hash:
                     <Link href={event?.transferBondedEvent?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
                       {event?.transferBondedEvent?.context?.transactionHash}
                     </Link>
-                  ) : <Box>- <small><em>(Destination tx hash will be availabe once transfer is bonded)</em></small></Box>)
+                  ) : <Box>- <small><em>(Destination tx hash wil be available once message is bonded)</em></small></Box>)
                 }
               </TableCell>
             </TableRow>

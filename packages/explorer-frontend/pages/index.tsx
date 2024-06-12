@@ -157,7 +157,7 @@ const colorsMap: any = {
 
 for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
   for (const chain of Object.values(chains)) {
-    colorsMap[chain.slug] = chain.color
+    colorsMap[chain.slug] = chain.primaryColor
   }
 }
 
@@ -1143,7 +1143,11 @@ const Index: NextPage = (props: any) => {
           </summary>
           <div>
           {!!accountCumulativeVolumeUsd && (
-            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Account Cumulative Volume: {accountCumulativeVolumeUsd}</div>
+            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">
+              <Typography variant="body1" color="secondary" component="div">
+                Account Cumulative Volume: {accountCumulativeVolumeUsd}
+              </Typography>
+            </div>
           )}
           </div>
           <Box display="flex" justifyContent="space-between">

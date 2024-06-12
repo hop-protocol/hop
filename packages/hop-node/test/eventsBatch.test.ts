@@ -121,7 +121,7 @@ describe.skip('eventsBatch', () => {
 
       await bridge.eventsBatch(
         async (start: number, end: number, i: number | undefined) => {
-          // eventsBatch resets when it enounters an error in process
+          // eventsBatch resets when it encounters an error in process
           if (iterations === halfway) {
             expect(start).toBeGreaterThanOrEqual(firstStart)
             expect(end).toBeGreaterThanOrEqual(firstEnd)

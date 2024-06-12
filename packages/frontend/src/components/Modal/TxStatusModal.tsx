@@ -29,7 +29,7 @@ export function TxStatusModal(props: Props) {
     }
   }
 
-  const { fixedTimeEstimate, medianTimeEstimate, percentileTimeEstimate } = useTransferTimeEstimate(
+  const { fixedTimeEstimate: fixedTimeEstimateSeconds, medianTimeEstimate: medianTimeEstimateSeconds, percentileTimeEstimate: percentileTimeEstimateSeconds } = useTransferTimeEstimate(
     tx.networkName,
     tx.destNetworkName,
     tx?.token?._symbol
@@ -42,9 +42,9 @@ export function TxStatusModal(props: Props) {
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
 
   function InfoContent(props: any) {
-    const { tx, medianTimeEstimate, percentileTimeEstimate, fixedTimeEstimate } = props
+    const { tx, medianTimeEstimateSeconds, fixedTimeEstimateSeconds } = props
 
-    if (tx && tx.token && medianTimeEstimate) {
+    if (tx && tx.token && medianTimeEstimateSeconds) {
       return (
         <>
           <Typography variant="body2" color="textSecondary">
@@ -56,11 +56,11 @@ export function TxStatusModal(props: Props) {
               : "at the destination"
             }
             <strong>{' '}
-              { transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate) }
+              { transferTimeDisplay(medianTimeEstimateSeconds, fixedTimeEstimateSeconds) }
             </strong>{' '}
             after the transaction is confirmed.
           </Typography>
-          { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
+          { medianTimeEstimateSeconds > fixedTimeEstimateSeconds * 1.5 &&
             <>
               <br />
               <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
@@ -70,9 +70,9 @@ export function TxStatusModal(props: Props) {
           }
         </>
       )
-    } else if (tx && fixedTimeEstimate) {
+    } else if (tx && fixedTimeEstimateSeconds) {
       return (
-        <Typography variant="body1"><em>{`Your ${tx.token._symbol ?? 'transfer'} will arrive ${tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} ~${fixedTimeEstimate} minutes after your transaction is confirmed.`}</em></Typography>
+        <Typography variant="body1"><em>{`Your ${tx.token._symbol ?? 'transfer'} will arrive ${tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} ~${Math.round(fixedTimeEstimateSeconds/60)} minutes after your transaction is confirmed.`}</em></Typography>
       )
     } else {
       return (
@@ -93,7 +93,7 @@ export function TxStatusModal(props: Props) {
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
         <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
-          <InfoContent tx={tx} medianTimeEstimate={medianTimeEstimate} percentileTimeEstimate={percentileTimeEstimate} fixedTimeEstimate={fixedTimeEstimate} />
+          <InfoContent tx={tx} medianTimeEstimateSeconds={medianTimeEstimateSeconds} percentileTimeEstimateSeconds={percentileTimeEstimateSeconds} fixedTimeEstimateSeconds={fixedTimeEstimateSeconds} />
           <br />
         </Box>
 

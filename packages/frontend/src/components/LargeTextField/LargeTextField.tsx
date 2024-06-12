@@ -125,7 +125,6 @@ export const LargeTextField: FC<LargeTextFieldProps> = props => {
       className={styles.root}
       InputProps={{
         classes: inputStyles,
-        disableUnderline: true,
         endAdornment: units ? (
           <InputAdornment position="end">
             <Typography variant="h4" color="textPrimary" className={styles.adornment}>

@@ -246,8 +246,8 @@ importers:
         specifier: 11.11.0
         version: 11.11.0(@emotion/react@11.10.5(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0)
       '@eth-optimism/sdk':
-        specifier: 3.1.4
-        version: 3.1.4(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+        specifier: 3.3.2
+        version: 3.3.2(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
       '@ethersproject/abi':
         specifier: 5.7.0
         version: 5.7.0
@@ -1932,6 +1932,9 @@ packages:
   '@eth-optimism/core-utils@0.13.1':
     resolution: {integrity: sha512-1FvzbUmCEy9zSKPG1QWg2VfA2Cy90xBA9Wkp11lXXrz91zUPCNCNSRTujXWYIC86ketNsZp7p4njSf6lTycHCw==}
 
+  '@eth-optimism/core-utils@0.13.2':
+    resolution: {integrity: sha512-u7TOKm1RxH1V5zw7dHmfy91bOuEAZU68LT/9vJPkuWEjaTl+BgvPDRDTurjzclHzN0GbWdcpOqPZg4ftjkJGaw==}
+
   '@eth-optimism/core-utils@0.7.7':
     resolution: {integrity: sha512-JO3UvrlnOpeCKzDd/9mCd47n1FFjTOJtfG1JxUx24OfC/0yjZv6sKXDoMlZoDJArTQtCyyZ9QB7vulSFjOC6rA==}
 
@@ -1946,6 +1949,11 @@ packages:
 
   '@eth-optimism/sdk@3.1.4':
     resolution: {integrity: sha512-gqbw/7KAwXSiFF7KN57oe3iz0kcOuSUTfnkAf0aZImmSbegPY5AWszxYvnQCIXcWRY0kaDf3LpXrHKur4TdgGA==}
+    peerDependencies:
+      ethers: ^5
+
+  '@eth-optimism/sdk@3.3.2':
+    resolution: {integrity: sha512-+zhxT0YkBIEzHsuIayQGjr8g9NawZo6/HYfzg1NSEFsE2Yt0NyCWqVDFTuuak0T6AvIa2kNcl3r0Z8drdb2QmQ==}
     peerDependencies:
       ethers: ^5
 
@@ -12060,6 +12068,27 @@ snapshots:
       - encoding
       - utf-8-validate
 
+  '@eth-optimism/core-utils@0.13.2(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@ethersproject/abi': 5.7.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/bytes': 5.7.0
+      '@ethersproject/constants': 5.7.0
+      '@ethersproject/contracts': 5.7.0
+      '@ethersproject/keccak256': 5.7.0
+      '@ethersproject/properties': 5.7.0
+      '@ethersproject/rlp': 5.7.0
+      '@ethersproject/web': 5.7.1
+      chai: 4.4.1
+      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      node-fetch: 2.7.0(encoding@0.1.13)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+
   '@eth-optimism/core-utils@0.7.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
       '@ethersproject/abstract-provider': 5.7.0
@@ -12115,6 +12144,20 @@ snapshots:
       lodash: 4.17.21
       merkletreejs: 0.3.11
       rlp: 2.2.7
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+
+  '@eth-optimism/sdk@3.3.2(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
+    dependencies:
+      '@eth-optimism/contracts': 0.6.0(bufferutil@4.0.8)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@eth-optimism/core-utils': 0.13.2(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      lodash: 4.17.21
+      merkletreejs: 0.3.11
+      rlp: 2.2.7
+      semver: 7.6.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -12265,7 +12308,7 @@ snapshots:
 
   '@ethersproject/abstract-signer@5.5.0':
     dependencies:
-      '@ethersproject/abstract-provider': 5.5.1
+      '@ethersproject/abstract-provider': 5.7.0
       '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0
       '@ethersproject/logger': 5.5.0
@@ -12418,8 +12461,8 @@ snapshots:
   '@ethersproject/contracts@5.5.0':
     dependencies:
       '@ethersproject/abi': 5.7.0
-      '@ethersproject/abstract-provider': 5.5.1
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0
@@ -12481,7 +12524,7 @@ snapshots:
 
   '@ethersproject/hash@5.5.0':
     dependencies:
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0
@@ -12541,7 +12584,7 @@ snapshots:
 
   '@ethersproject/hdnode@5.5.0':
     dependencies:
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/basex': 5.5.0
       '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0
@@ -12601,7 +12644,7 @@ snapshots:
 
   '@ethersproject/json-wallets@5.5.0':
     dependencies:
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/bytes': 5.5.0
       '@ethersproject/hdnode': 5.5.0
@@ -12739,8 +12782,8 @@ snapshots:
 
   '@ethersproject/providers@5.5.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@ethersproject/abstract-provider': 5.5.1
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/basex': 5.5.0
       '@ethersproject/bignumber': 5.5.0
@@ -12764,8 +12807,8 @@ snapshots:
 
   '@ethersproject/providers@5.5.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@ethersproject/abstract-provider': 5.5.1
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/basex': 5.5.0
       '@ethersproject/bignumber': 5.5.0
@@ -13124,8 +13167,8 @@ snapshots:
 
   '@ethersproject/wallet@5.5.0':
     dependencies:
-      '@ethersproject/abstract-provider': 5.5.1
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.5.0
       '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0

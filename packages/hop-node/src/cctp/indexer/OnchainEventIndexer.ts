@@ -1,6 +1,10 @@
 import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
-import type { LogWithChainId, RequiredFilter, TypedLogWithChainId } from '../types.js'
+import type {
+  DecodedLogWithContext,
+  RequiredEventFilter,
+  RequiredFilter
+} from '../types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
@@ -11,6 +15,8 @@ import {
 import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { getChain } from '@hop-protocol/sdk'
+// TODO: Get rid of this
+import { MessageSDK } from '../cctp/MessageSDK.js'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -25,17 +31,15 @@ import { getChain } from '@hop-protocol/sdk'
  * to use before calling init() and start().
  */
 
-export interface IndexerEventFilter<T extends string[] = string[]> {
+export interface IndexerEventFilter<T extends string = string>{
   chainId: string
-  eventSig: string
-  eventContractAddress: string
-  indexTopicNames: T
+  filter: RequiredEventFilter
+  lookupKeys: T[]
 }
 
 interface EventLogsForRange {
   chainId: string
-  eventSig: string
-  eventContractAddress: string
+  filter: RequiredEventFilter
   startBlockNumber: number
   endBlockNumber: number
 }
@@ -47,8 +51,9 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
-  abstract retrieveItem(key: T, value: U): Promise<TypedLogWithChainId>
+  abstract retrieveItem(key: T, value: U): Promise<DecodedLogWithContext>
   protected abstract getIndexerEventFilter(chainId: string, key: T): IndexerEventFilter
+  protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
@@ -59,7 +64,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       throw new Error('Cannot add indexer after starting')
     }
     const filterId = getUniqueFilterId(indexerEventFilter)
-    this.#db.newIndexerDB(filterId)
+    this.#db.newIndexerDB(filterId, indexerEventFilter.lookupKeys)
     this.#indexerEventFilters.push(indexerEventFilter)
   }
 
@@ -69,7 +74,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
 
   async init (): Promise<void> {
     for (const indexerEventFilter of this.#indexerEventFilters) {
-      const { chainId } =indexerEventFilter 
+      const { chainId } = indexerEventFilter 
       const filterId = getUniqueFilterId(indexerEventFilter)
       await this.#db.initializeIndexer(filterId, chainId)
     }
@@ -99,10 +104,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
         const isTypedLog = MessageSDK.isTypedLog(op.value)
         if (!isTypedLog) continue
 
-        // TODO: Parsing should not be async. If it is, this should be handled better.
-        MessageSDK.getTypedLog(op.value).then((parsedLog: any) => {
-          this.#eventEmitter.emit(DATA_INDEXED_EVENT, parsedLog)
-        })
+        return this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
       }
     })
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
@@ -116,12 +118,9 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
    * Getters
    */
 
-  protected async retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, indexValues: string[]): Promise<TypedLogWithChainId> {
+  protected async retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, lookupKeyValues: string[]): Promise<DecodedLogWithContext> {
     const filterId = getUniqueFilterId(indexerEventFilter)
-    const dbLog = await this.#db.getIndexedItem(filterId, indexValues)
-    // TODO: Not any
-    const parsedLog: any = await MessageSDK.getTypedLog(dbLog)
-    return { ...dbLog, typedData: parsedLog }
+    return this.#db.getIndexedItem(filterId, lookupKeyValues)
   }
 
   /**
@@ -133,7 +132,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   }
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
-    const { chainId, eventSig, eventContractAddress, indexTopicNames } = indexerEventFilter
+    const { chainId, filter } = indexerEventFilter
     const filterId = getUniqueFilterId(indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
     const chainSlug = getChain(chainId).slug
@@ -147,25 +146,14 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
 
     const getEventLogsInput: EventLogsForRange = {
       chainId,
-      eventSig,
-      eventContractAddress,
+      filter,
       startBlockNumber,
       endBlockNumber
     }
 
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
-      // Storing the parsed values would be redundant since their raw form is already in the log.
-      // Since the parsed values are needed as an index, we pass those in explicitly.
-      const indexValues: string[][] = []
-      for (const log of logs) {
-        const parsedLog: any = await MessageSDK.getTypedLog(log)
-        const values = indexTopicNames.map(indexTopicName => parsedLog[indexTopicName])
-        indexValues.push(values)
-      }
-
-      // Atomically write new DB state and logs to avoid out of sync state
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
-      await this.#db.putItemWithIndex(filterId, endBlockNumber, logs, indexValues)
+      await this.#db.putItemIndexedItem(filterId, endBlockNumber, logs)
     }
   }
 
@@ -173,12 +161,11 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
    * Indexer
    */
 
-  // TODO: General logs, not any. I add chainId at a later time
   async *#getEventLogsForRange (input: EventLogsForRange): AsyncIterable<{
     endBlockNumber: number,
-    logs: LogWithChainId[]
+    logs: DecodedLogWithContext[]
   }> {
-    const { chainId, eventSig, eventContractAddress, startBlockNumber, endBlockNumber } = input
+    const { chainId, filter: eventFilter, startBlockNumber, endBlockNumber } = input
     if (startBlockNumber > endBlockNumber) {
       throw new Error('startBlockNumber must be less than or equal to endBlockNumber')
     }
@@ -193,19 +180,17 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
       const currentEndBlockNumber = Math.min(currentStartBlockNumber + maxBlockRange, endBlockNumber)
 
       const filter: RequiredFilter = {
-        topics: [eventSig],
-        address: eventContractAddress,
+        ...eventFilter,
         fromBlock: currentStartBlockNumber,
         toBlock: currentEndBlockNumber 
       }
 
-      // TODO: From SDK with typedData
       const logs: providers.Log[] = await provider.getLogs(filter)
-      const logsWithChainId: LogWithChainId[] = logs.map(log => ({ ...log, chainId }))
+      const typedLogsWithChainId: DecodedLogWithContext[] = logs.map(log => this.addDecodedTypesAndContextToEvent(log, chainId))
 
-      yield  {
+      yield {
         endBlockNumber: currentEndBlockNumber,
-        logs: logsWithChainId
+        logs: typedLogsWithChainId
       }
 
       currentStartBlockNumber = currentEndBlockNumber + 1

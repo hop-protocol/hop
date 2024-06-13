@@ -1,9 +1,10 @@
 import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
-import type { TypedLogWithChainId } from '../types.js'
+import type { DecodedLogWithContext } from '../types.js'
 import { type IMessage, MessageState } from './types.js'
+import { providers } from 'ethers'
 
-type IndexNames = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)[]
+type LookupKeys = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
 
 /**
  * This class is responsible for abstracting away indexing logic
@@ -29,28 +30,30 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    * Implementation
    */
 
-  override async retrieveItem(state: MessageState, value: IMessage): Promise<TypedLogWithChainId> {
+  override async retrieveItem(state: MessageState, value: IMessage): Promise<DecodedLogWithContext> {
     const chainId: string = this.#getChainIdForItem(state, value)
     const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
-    const indexValues: string[] = this.#getIndexValues(state, value, chainId)
-    return this.retrieveIndexedItem(indexerEventFilter, indexValues)
+    const lookupKeyValues: string[] = this.#getLookupKeyValues(state, value, chainId)
+    return this.retrieveIndexedItem(indexerEventFilter, lookupKeyValues)
   }
 
-  protected override getIndexerEventFilter(chainId: string, state: MessageState): IndexerEventFilter<IndexNames> {
+  protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
+    return MessageSDK.addDecodedTypesAndContextToEvent(log, chainId)
+  }
+
+  protected override getIndexerEventFilter(chainId: string, state: MessageState): IndexerEventFilter<LookupKeys> {
     switch (state) {
       case MessageState.Sent:
         return {
           chainId,
-          eventSig: MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG,
-          eventContractAddress: MessageSDK.getCCTPTransferSentEventFilter(chainId).address,
-          indexTopicNames: ['cctpNonce', 'chainId']
+          filter: MessageSDK.getCCTPTransferSentEventFilter(chainId),
+          lookupKeys: ['cctpNonce', 'chainId']
         }
       case MessageState.Relayed:
         return {
           chainId,
-          eventSig: MessageSDK.MESSAGE_RECEIVED_EVENT_SIG,
-          eventContractAddress: MessageSDK.getMessageReceivedEventFilter(chainId).address,
-          indexTopicNames: ['nonce', 'sourceDomain']
+          filter: MessageSDK.getMessageReceivedEventFilter(chainId),
+          lookupKeys: ['nonce', 'sourceDomain']
         }
       default:
         throw new Error('Invalid state')
@@ -72,8 +75,8 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
     }
   }
 
-  #getIndexValues (state: MessageState, value: IMessage, chainId: string): string[] {
-    const indexTopicNames = this.getIndexerEventFilter(chainId, state).indexTopicNames
-    return indexTopicNames.map(indexTopicName => value[indexTopicName as keyof IMessage] as string)
+  #getLookupKeyValues (state: MessageState, value: IMessage, chainId: string): string[] {
+    const lookupKeys = this.getIndexerEventFilter(chainId, state).lookupKeys
+    return lookupKeys.map((lookupKey: string) => value[lookupKey as keyof IMessage] as string)
   }
 }

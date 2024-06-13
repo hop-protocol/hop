@@ -1,11 +1,11 @@
 import { EventEmitter } from 'node:events'
-import type { TypedLogWithChainId } from '../types.js'
+import type { DecodedLogWithContext } from '../types.js'
 import { DATA_INDEXED_EVENT } from '../indexer/constants.js'
 import { IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
 import { IDataStore } from './IDataStore.js'
 
 /**
- * @notice This class is not fully abstracted. Indexer and TypedLogWithChainId are
+ * @notice This class is not fully abstracted. Indexer and DecodedLogWithContext are
  * implementation details. Make this class more abstract when additional
  * implementations are added.
  */
@@ -22,8 +22,8 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
   readonly #indexer: IOnchainEventIndexer<T, U>
 
   abstract fetchItem(key: T, value: U): Promise<U>
-  protected abstract getKeyFromLog(log: TypedLogWithChainId): T
-  protected abstract formatItem(key: T, log: TypedLogWithChainId): Promise<U>
+  protected abstract getKeyFromLog(log: DecodedLogWithContext): T
+  protected abstract formatItem(key: T, log: DecodedLogWithContext): Promise<U>
 
   constructor (indexer: IOnchainEventIndexer<T, U>) {
     this.#indexer = indexer
@@ -57,7 +57,7 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
     this.#eventEmitter.on(event, listener)
   }
 
-  #emitIndexedData = async (eventLog: TypedLogWithChainId): Promise<void> => {
+  #emitIndexedData = async (eventLog: DecodedLogWithContext): Promise<void> => {
     const key: T = this.getKeyFromLog(eventLog)
     const formattedEventLog = await this.formatItem(key,eventLog)
     this.#eventEmitter.emit(key, formattedEventLog)
@@ -69,7 +69,7 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
 
   // TODO: Diff U
   // TODO: Value and resp are different IMessage
-  protected async fetchStoredItem(key: T, value: U): Promise<TypedLogWithChainId> {
+  protected async fetchStoredItem<V extends U>(key: T, value: V): Promise<DecodedLogWithContext> {
     return this.#indexer.retrieveItem(key, value)
   }
 }

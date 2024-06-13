@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import type { DecodedLogWithContext } from '../types.js'
 import { DATA_INDEXED_EVENT } from '../indexer/constants.js'
 import { IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
-import { IDataStore } from './IDataStore.js'
+import { IDataProvider } from './IDataProvider.js'
 
 /**
  * @notice This class is not fully abstracted. Indexer and DecodedLogWithContext are
@@ -17,7 +17,7 @@ import { IDataStore } from './IDataStore.js'
  * This class also emits an event upon receipt of indexed data
  */
 
-export abstract class DataStore<T extends string, U> implements IDataStore<T, U> {
+export abstract class DataProvider<T extends string, U> implements IDataProvider<T, U> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #indexer: IOnchainEventIndexer<T, U>
 
@@ -35,13 +35,13 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
 
   async init (): Promise<void> {
     await this.#indexer.init()
-    console.log('Data store initialized')
+    console.log('Data provider initialized')
   }
 
   start (): void {
     this.#startListeners()
     this.#indexer.start()
-    console.log('Data store started')
+    console.log('Data provider started')
   }
 
   /**
@@ -50,7 +50,7 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
 
   #startListeners = (): void => {
     this.#indexer.on(DATA_INDEXED_EVENT, this.#emitIndexedData)
-    this.#indexer.on('error', () => { throw new Error('Data store error') })
+    this.#indexer.on('error', () => { throw new Error('Data provider error') })
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
@@ -69,7 +69,7 @@ export abstract class DataStore<T extends string, U> implements IDataStore<T, U>
 
   // TODO: Diff U
   // TODO: Value and resp are different IMessage
-  protected async fetchStoredItem<V extends U>(key: T, value: V): Promise<DecodedLogWithContext> {
+  protected async retrieveItem<V extends U>(key: T, value: V): Promise<DecodedLogWithContext> {
     return this.#indexer.retrieveItem(key, value)
   }
 }

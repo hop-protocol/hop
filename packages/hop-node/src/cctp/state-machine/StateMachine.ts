@@ -1,4 +1,4 @@
-import { IDataStore } from '../data-store/IDataStore.js'
+import { IDataProvider } from '../data-provider/IDataProvider.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
 import { getFirstState, getNextState } from './utils.js'
@@ -16,7 +16,7 @@ import { IStateMachine } from './IStateMachine.js'
 export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
-  readonly #dataStore: IDataStore<State, StateData>
+  readonly #dataProvider: IDataProvider<State, StateData>
   readonly #pollIntervalMs: number = 10_000
 
   protected abstract getItemId(value: StateData): string
@@ -25,11 +25,11 @@ export abstract class StateMachine<State extends string, StateData> implements I
   constructor (
     dbName: string,
     states: State[],
-    dataStore: IDataStore<State, StateData>
+    dataProvider: IDataProvider<State, StateData>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states
-    this.#dataStore = dataStore
+    this.#dataProvider = dataProvider
   }
 
   /**
@@ -41,14 +41,14 @@ export abstract class StateMachine<State extends string, StateData> implements I
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
-    await this.#dataStore.init()
+    await this.#dataProvider.init()
     console.log('State machine initialized')
   }
     
   start (): void {
     this.#startListeners()
     this.#startPollers()
-    this.#dataStore.start()
+    this.#dataProvider.start()
     console.log('State machine started')
   }
 
@@ -58,8 +58,8 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   #startListeners (): void {
     const initialState = getFirstState(this.#states)
-    this.#dataStore.on(initialState, this.#initializeItem)
-    this.#dataStore.on('error', () => { throw new Error('State machine error') })
+    this.#dataProvider.on(initialState, this.#initializeItem)
+    this.#dataProvider.on('error', () => { throw new Error('State machine error') })
   }
 
   /**
@@ -106,7 +106,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
       return this.#db.updateState(state, nextState, key, value)
     }
 
-    const stateTransitionData = await this.#dataStore.fetchItem(nextState, value)
+    const stateTransitionData = await this.#dataProvider.fetchItem(nextState, value)
     if (!stateTransitionData) {
       return
     }

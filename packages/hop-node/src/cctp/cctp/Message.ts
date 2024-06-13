@@ -1,4 +1,4 @@
-import { MessageDataStore } from './MessageDataStore.js'
+import { MessageDataProvider } from './MessageDataProvider.js'
 import { MessageIndexer } from './MessageIndexer.js'
 import { MessageStateMachine } from './MessageStateMachine.js'
 import { MessageState } from './types.js'
@@ -17,10 +17,10 @@ export class Message {
 
     // Data handler
     const indexer = new MessageIndexer(dbName, states, chainIds)
-    const dataStore = new MessageDataStore(indexer)
+    const dataProvider = new MessageDataProvider(indexer)
 
     // State handler
-    this.#stateMachine = new MessageStateMachine(dbName, states, dataStore)
+    this.#stateMachine = new MessageStateMachine(dbName, states, dataProvider)
   }
 
   async start (): Promise<void> {

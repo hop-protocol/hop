@@ -13,60 +13,41 @@ export class Event<T> {
   abi: any
   factory: any
 
-  constructor (provider?: providers.Provider, chainId?: BigNumberish, batchBlocks?: number, address?: string) {
-    if (provider) {
-      this.provider = provider
-    }
-    if (chainId) {
-      this.chainId = chainId
-    }
-    if (batchBlocks) {
-      this.batchBlocks = batchBlocks
-    }
-    if (this.batchBlocks === 0) {
-      this.batchBlocks = 1_000_000
-    }
-    if (address) {
-      this.address = address
-    }
+  constructor(
+    provider?: providers.Provider,
+    chainId?: BigNumberish,
+    batchBlocks?: number,
+    address?: string
+  ) {
+    this.provider = provider ?? this.provider
+    this.chainId = chainId ?? this.chainId
+    this.batchBlocks = batchBlocks || 1_000_000
+    this.address = address ?? this.address
   }
 
   getContract(): Contract {
-    const contract = this.factory.connect(this.address, this.provider)
-    return contract
-  }
-
-  get topic0(): string {
-    const iface = new utils.Interface(this.abi)
-    const topic0 = iface.getEventTopic(this.eventName)
-    return topic0
+    return this.factory.connect(this.address, this.provider)
   }
 
   getEventNameFromTopic(topic0: string): string | null {
     const iface = new utils.Interface(this.abi)
-    for (let eventFragment of Object.values(iface.events)) {
-      if (iface.getEventTopic(eventFragment) === topic0) {
-        return eventFragment.name
-      }
-    }
-    return null
+    const eventFragment = Object.values(iface.events).find(eventFragment => iface.getEventTopic(eventFragment) === topic0)
+    return eventFragment ? eventFragment.name : null
   }
 
   parseEthersEventLog (ethersEvent: EthersEvent): any {
     const iface = new utils.Interface(this.abi)
-    const decoded = iface.parseLog(ethersEvent)
-    return decoded
+    return iface.parseLog(ethersEvent)
   }
 
   getFilter (): EventFilter {
     const contract = this.getContract()
-    const filter = contract.filters[this.eventName]()
-    return filter
+    return contract.filters[this.eventName]()
   }
 
-  getTopic0 (): string | string[] | null {
-    const filter = this.getFilter()
-    return filter.topics?.[0] ?? null
+  getTopic0 (): string | null {
+    const iface = new utils.Interface(this.abi)
+    return iface.getEventTopic(this.eventName)
   }
 
   async getEventsWithFilter(filter: Filter, fromBlock: number, toBlock?: number): Promise<T[]> {
@@ -74,10 +55,10 @@ export class Event<T> {
       provider: this.provider,
       batchBlocks: this.batchBlocks
     })
-    if (!toBlock) {
-      toBlock = await this.provider.getBlockNumber()
-    }
-    const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock })
+
+    const endBlock = toBlock ?? await this.provider.getBlockNumber()
+    const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock })
+
     console.log(`populating events. count: ${events.length}`)
     return this.populateEvents(events)
   }
@@ -86,53 +67,48 @@ export class Event<T> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
-    });
+    })
 
-    if (!toBlock) {
-      toBlock = await this.provider.getBlockNumber();
-    }
-
-    const eventGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock });
+    const endBlock = toBlock ?? await this.provider.getBlockNumber()
+    const eventGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock: endBlock })
 
     for await (const events of eventGenerator) {
-      console.log(`populating events. count: ${events.length}`);
-      const populatedEvents = await this.populateEvents<T>(events);
-      yield populatedEvents
+      console.log(`populating events. count: ${events.length}`)
+      yield await this.populateEvents(events)
     }
   }
 
   async getEvents (fromBlock: number, toBlock?: number): Promise<T[]> {
     const filter = this.getFilter()
-    const events = await this.getEventsWithFilter(filter, fromBlock, toBlock)
-    return events
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   async *getEventsAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
-    const filter = this.getFilter();
-    const eventsGenerator = this.getEventsWithFilterAsGenerator(filter, fromBlock, toBlock);
+    const eventsGenerator = this.getEventsWithFilterAsGenerator(this.getFilter(), fromBlock, toBlock)
 
     for await (const events of eventsGenerator) {
-      yield events;
+      yield events
     }
   }
 
   async populateEvents<T>(inputEvents: EthersEvent[]): Promise<T[]> {
-    const events = inputEvents.map(x => this.addTypedEvent(x))
+    const events = inputEvents.map(this.addTypedEvent.bind(this))
     const promiseFns = events.map(event => () => this.addContextToEvent(event, this.chainId))
 
-    const populatedEvents : Event<T>[] = []
-    await promiseQueue(promiseFns, async (fn: () => any) => { // TODO: type
-      populatedEvents.push(await fn())
+    const populatedEvents: Event<T>[] = []
+
+    await promiseQueue(promiseFns, async (fn: () => Promise<Event<T>>) => {
+      const result = await fn()
+      populatedEvents.push(result)
     }, { concurrency: 20 })
 
-    return populatedEvents.map((event) => event as T)
+    return populatedEvents as T[]
   }
 
-  addTypedEvent (ethersEvent: EthersEvent): EthersEventWithDecodedTypes<T> {
-    const decoded = this.toTypedEvent(ethersEvent)
+  addTypedEvent(ethersEvent: EthersEvent): EthersEventWithDecodedTypes<T> {
     return {
       ...ethersEvent,
-      decoded
+      decoded: this.toTypedEvent(ethersEvent)
     }
   }
 
@@ -140,31 +116,27 @@ export class Event<T> {
     throw new Error('Not implemented')
   }
 
-  async addContextToEvent (event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData: boolean = false): Promise<T> {
-    const context = await this.getEventContext(event, chainId, fetchTxData)
-    event.context = context
+  async addContextToEvent(event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData = false): Promise<T> {
+    event.context = await this.getEventContext(event, chainId, fetchTxData)
     return event as T
   }
 
-  async getEventContext (event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData: boolean = false): Promise<EventContext> {
+  async getEventContext(event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData = false): Promise<EventContext> {
     try {
       const chainSlug = this.getChainSlug(chainId)
-      const transactionHash = event.transactionHash
-      const transactionIndex = event.transactionIndex
-      const logIndex = event.logIndex
-      const blockNumber = event.blockNumber
+      const { transactionHash, transactionIndex, logIndex, blockNumber } = event
 
       let fetchedTxData = {}
       if (fetchTxData) {
-        const [
-          { timestamp: blockTimestamp },
-          { value, nonce, gasLimit, gasPrice, data },
-          { from, to, gasUsed }
-        ] = await Promise.all([
+        const [block, transaction, receipt] = await Promise.all([
           this.provider.getBlock(blockNumber),
           this.provider.getTransaction(transactionHash),
           this.provider.getTransactionReceipt(transactionHash)
         ])
+
+        const { timestamp: blockTimestamp } = block
+        const { value, nonce, gasLimit, gasPrice, data } = transaction
+        const { from, to, gasUsed } = receipt
 
         fetchedTxData = {
           blockTimestamp,
@@ -172,9 +144,9 @@ export class Event<T> {
           to,
           value: value.toString(),
           nonce: Number(nonce.toString()),
-          gasLimit: Number(gasLimit?.toString()),
-          gasUsed: Number(gasUsed?.toString()),
-          gasPrice: gasPrice?.toString() as string,
+          gasLimit: Number(gasLimit.toString()),
+          gasUsed: Number(gasUsed.toString()),
+          gasPrice: gasPrice?.toString(),
           data
         }
       }
@@ -182,7 +154,7 @@ export class Event<T> {
       return {
         eventName: this.eventName,
         chainSlug,
-        chainId: chainId?.toString(),
+        chainId: chainId.toString(),
         transactionHash,
         transactionIndex,
         logIndex,
@@ -190,28 +162,23 @@ export class Event<T> {
         ...fetchedTxData
       }
     } catch (err) {
-      console.log('getEventContext error:', err, chainId, event)
+      console.error('getEventContext error:', err, chainId, event)
       throw err
     }
   }
 
-  getChainSlug (chainId: BigNumberish): string {
-    const chainSlug = chainSlugMap[chainId?.toString()]
+  getChainSlug(chainId: BigNumberish): string {
+    const chainSlug = chainSlugMap[chainId.toString()];
     if (!chainSlug) {
-      throw new Error(`Invalid chain "${chainId?.toString()}", slug not found`)
+      throw new Error(`Invalid chain "${chainId}", slug not found`)
     }
     return chainSlug
   }
 
-  decodeEventsFromTransactionReceipt (receipt: providers.TransactionReceipt): T[] {
-    const decodedEvents: T[] = []
+  decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): T[] {
     const topic = this.getTopic0()
-    for (const log of receipt.logs) {
-      if (log.topics[0] === topic) {
-        const decoded = this.toTypedEvent(log as EthersEvent)
-        decodedEvents.push(decoded)
-      }
-    }
-    return decodedEvents
+    return receipt.logs
+      .filter(log => log.topics[0] === topic)
+      .map(log => this.toTypedEvent(log as EthersEvent))
   }
 }

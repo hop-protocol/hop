@@ -7,7 +7,7 @@ const { getAddress: checksumAddress } = utils
 const DefaultBatchBlocks = 2000
 
 export type Options = {
-  provider: providers.Provider
+  provider?: providers.Provider
   batchBlocks?: number
 }
 
@@ -26,11 +26,8 @@ export class EventFetcher {
   batchBlocks: number = DefaultBatchBlocks
 
   constructor (options: Options) {
-    if (!options.provider) {
-      throw new Error('provider is required')
-    }
-    this.provider = options.provider
-    this.batchBlocks = options.batchBlocks ?? this.batchBlocks
+    this.provider = options?.provider ?? this.provider
+    this.batchBlocks = options?.batchBlocks ?? this.batchBlocks
   }
 
   async fetchEvents(filters: InputFilter[], options: FetchOptions) {

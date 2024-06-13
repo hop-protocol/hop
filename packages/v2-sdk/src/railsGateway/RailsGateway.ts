@@ -374,8 +374,8 @@ export class RailsGateway extends StakingRegistry {
     return events
   }
 
-  async getTransferSentEvents (input: TransferSentEventInput) {
-    this.#getEvents({ ...input, Fetcher: TransferSentEventFetcher })
+  async getTransferSentEvents (input: TransferSentEventInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
+    return this.#getEvents({ ...input, Fetcher: TransferSentEventFetcher })
   }
 
   async *getTransferSentEventsInBatches (input: TransferSentEventInput) {
@@ -434,8 +434,8 @@ export class RailsGateway extends StakingRegistry {
     return this.#addDecodedTypesToEvents<TransferBonded>(events, TransferBondedEventFetcher)
   }
 
-  async getTransferBondedEvents (input: TransferBondedEventInput) {
-    this.#getEvents({ ...input, Fetcher: TransferBondedEventFetcher })
+  async getTransferBondedEvents (input: TransferBondedEventInput): Promise<EthersEventWithDecodedTypes<TransferBonded>[]> {
+    return this.#getEvents({ ...input, Fetcher: TransferBondedEventFetcher })
   }
 
   getRailsGatewayContractAddress (chainId: BigNumberish): string {

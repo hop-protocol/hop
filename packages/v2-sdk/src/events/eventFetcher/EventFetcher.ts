@@ -30,164 +30,124 @@ export class EventFetcher {
       throw new Error('provider is required')
     }
     this.provider = options.provider
-
-    if (options.batchBlocks) {
-      this.batchBlocks = options.batchBlocks
-    }
+    this.batchBlocks = options.batchBlocks ?? this.batchBlocks
   }
 
-  async fetchEvents (filters: InputFilter[], options: FetchOptions) {
+  async fetchEvents(filters: InputFilter[], options: FetchOptions) {
     const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock)
 
-    const promiseFns : any[] = [] // TODO: type
-    for (const [batchStart, batchEnd] of blockRanges) {
-      const batchOptions = {
-        fromBlock: batchStart,
-        toBlock: batchEnd
-      }
-
+    const promiseFns = blockRanges.map(([batchStart, batchEnd]) => {
+      const batchOptions = { fromBlock: batchStart, toBlock: batchEnd }
       const aggregatedFilters = this.aggregateFilters(filters, batchOptions)
-      const batchedEventsFn = () => this.fetchEventsWithAggregatedFilters(aggregatedFilters)
-      promiseFns.push(batchedEventsFn)
-    }
+      return () => this.fetchEventsWithAggregatedFilters(aggregatedFilters)
+    })
 
     const events = await this.parallelFetch(promiseFns)
     return this.normalizeEvents(events)
   }
 
-async *fetchEventsAsGenerator (filters: InputFilter[], options: FetchOptions) {
-  const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock);
+  async *fetchEventsAsGenerator(filters: InputFilter[], options: FetchOptions) {
+    const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock)
 
-  for (const [batchStart, batchEnd] of blockRanges) {
-    const batchOptions = {
-      fromBlock: batchStart,
-      toBlock: batchEnd
-    };
-
-    const aggregatedFilters = this.aggregateFilters(filters, batchOptions);
-    const batchedEvents = await this.fetchEventsWithAggregatedFilters(aggregatedFilters);
-
-    // Normalize the events if needed
-    const normalizedEvents = this.normalizeEvents(batchedEvents);
-
-    // Yield the normalized events
-    yield normalizedEvents;
+    for (const [fromBlock, toBlock] of blockRanges) {
+      const aggregatedFilters = this.aggregateFilters(filters, { fromBlock, toBlock })
+      const batchedEvents = await this.fetchEventsWithAggregatedFilters(aggregatedFilters)
+      yield this.normalizeEvents(batchedEvents)
+    }
   }
-}
 
-  getChunkedBlockRanges (fromBlock: number, toBlock: number) {
-    fromBlock = Math.min(fromBlock, toBlock)
-    let batchStart = fromBlock
-    let batchEnd = Math.min(batchStart + this.batchBlocks, toBlock)
-
+  getChunkedBlockRanges(fromBlock: number, toBlock: number): number[][] {
     const blockRanges: number[][] = []
-    while (batchEnd <= toBlock) {
-      blockRanges.push([batchStart, batchEnd])
 
-      if (batchEnd === toBlock) {
-        break
-      }
+    if (fromBlock > toBlock) {
+      blockRanges.push([toBlock, toBlock])
+      return blockRanges
+    }
 
-      batchStart = batchEnd
-      batchEnd = Math.min(batchStart + this.batchBlocks, toBlock)
+    while (fromBlock < toBlock) {
+      const batchEnd = Math.min(fromBlock + this.batchBlocks, toBlock)
+      blockRanges.push([fromBlock, batchEnd])
+      fromBlock = batchEnd
+    }
+
+    // Ensure at least one range is returned if fromBlock equals toBlock
+    if (blockRanges.length === 0) {
+      blockRanges.push([fromBlock, toBlock])
     }
 
     return blockRanges
   }
 
-  aggregateFilters (filters: InputFilter[], options: FetchOptions): Filter[] {
-    const fromBlock = options.fromBlock
-    const toBlock = options.toBlock
-    const filtersByAddress :Record<string, Partial<Filter>> = {}
+  aggregateFilters(filters: InputFilter[], options: FetchOptions): Filter[] {
+    const { fromBlock, toBlock } = options
+    const filtersByAddress: Record<string, Partial<Filter>> = {}
 
-    if (filters.length === 1) {
-      const filter = filters[0]
-      const address = checksumAddress(filter.address)
-      filter.address = address
-      filtersByAddress[address] = filter
-    } else if (filters.length > 1) {
-      for (const filter of filters) {
-        if (filter.address) {
-          const address = checksumAddress(filter.address)
-          if (!filtersByAddress[address]) {
-            filtersByAddress[address] = {}
-          }
-          const obj = filtersByAddress[address]
-          if (!obj.address) {
-            obj.address = address
-          }
-          const topics: (string | string[])[] = (obj.topics ?? []) as string[]
-          if (filter.topics) {
-            for (let i = 0; i < filter.topics.length; i++) {
-              const topic : string[] | string = filter.topics[i]
-              if (!topics[i]) {
-                topics[i] = []
-              }
-              if (!topics[i].includes(topic as string)) {
-                (topics[i] as string[]).push(topic as string)
-              }
+    filters.forEach(filter => {
+      if (filter.address) {
+        const address = checksumAddress(filter.address)
+        const existingFilter = filtersByAddress[address] || { address, topics: [] }
+
+        if (filter.topics) {
+          filter.topics.forEach((topic, i) => {
+            if (!existingFilter.topics![i]) {
+              existingFilter.topics![i] = []
             }
-          }
-          obj.topics = topics
-          filtersByAddress[address] = obj
+            if (!existingFilter.topics![i]!.includes(topic as string)) {
+              (existingFilter.topics![i] as string[]).push(topic as string)
+            }
+          })
         }
+
+        filtersByAddress[address] = existingFilter
       }
-    }
+    })
 
-    const aggregatedFilters: Filter[] = []
-    for (const address in filtersByAddress) {
-      const filter = filtersByAddress[address]
-      aggregatedFilters.push({ ...filter, fromBlock, toBlock })
-    }
-
-    return aggregatedFilters
+    return Object.values(filtersByAddress).map(filter => ({
+      ...filter,
+      fromBlock,
+      toBlock
+    }))
   }
 
-  private async fetchEventsWithAggregatedFilters (aggregatedFilters: Filter[]) {
-    const promises = []
-    for (const filter of aggregatedFilters) {
-      promises.push(this.provider.getLogs({ ...filter }))
-    }
 
+  private async fetchEventsWithAggregatedFilters(aggregatedFilters: Filter[]): Promise<EthersEvent[]> {
+    const promises = aggregatedFilters.map(filter => this.provider.getLogs({ ...filter }))
     const promiseResults = await Promise.all(promises)
-    const result : EthersEvent[] = []
-    for (const events of promiseResults) {
-      result.push(...events as EthersEvent[])
-    }
-    return result
+    return promiseResults.flat() as EthersEvent[]
   }
 
-  private normalizeEvents (events: EthersEvent[]) {
-    const filteredEvents : EthersEvent[] = []
-    const seen :Record<string, boolean> = {}
-    for (const event of events) {
+  private normalizeEvents(events: EthersEvent[]): EthersEvent[] {
+    const seen = new Set<string>()
+    const filteredEvents = events.filter(event => {
       const key = `${event.transactionHash}-${event.logIndex}`
-      if (!seen[key]) {
-        seen[key] = true
-        filteredEvents.push(event)
+      if (!seen.has(key)) {
+        seen.add(key)
+        return true
       }
-    }
-    return filteredEvents.sort((a, b) => this.sortByBlockNumber(a, b))
+      return false
+    })
+
+    return filteredEvents.sort(this.sortByBlockNumber)
   }
 
-  private async parallelFetch (promiseFns: any[]) { // TODO: type
+  private async parallelFetch(promiseFns: (() => Promise<EthersEvent[]>)[]): Promise<EthersEvent[]> {
     const events: EthersEvent[] = []
     let i = 1
-    await promiseQueue(promiseFns, async (fn: any) => { // TODO: type
-      const batchedEvents = await fn()
-      console.log(`got batch ${i++}/${promiseFns.length}`)
-      events.push(...batchedEvents)
-    }, { concurrency: 20 })
+
+    await promiseQueue(
+      promiseFns,
+      async (fn: () => Promise<EthersEvent[]>) => {
+        const batchedEvents = await fn()
+        console.log(`got batch ${i++}/${promiseFns.length}`)
+        events.push(...batchedEvents)
+      },
+      { concurrency: 20 }
+    )
+
     return events
   }
 
-  private sortByBlockNumber (a: EthersEvent, b: EthersEvent): number {
-    if (a.blockNumber > b.blockNumber) return 1
-    if (a.blockNumber < b.blockNumber) return -1
-
-    if (a.logIndex > b.logIndex) return 1
-    if (a.logIndex < b.logIndex) return -1
-
-    return 0
+  private sortByBlockNumber(a: EthersEvent, b: EthersEvent): number {
+    return a.blockNumber - b.blockNumber || a.logIndex - b.logIndex
   }
 }

@@ -68,16 +68,15 @@ export class Base {
   }
 
   getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
-    chainId = chainId.toString()
-    const chains = getNetwork(this.network as NetworkSlug).chains
-    for (const chainSlug in chains) {
-      const item = (chains as any)[chainSlug] // TODO: type
-      if (item.chainId?.toString() === chainId) {
-        return getProviderFromUrl(item.publicRpcUrl)
-      }
+    const network = getNetwork(this.network as NetworkSlug)
+    const chainIdStr = chainId.toString()
+    const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
+
+    if (chain) {
+      return getProviderFromUrl(chain.publicRpcUrl)
     }
 
-    throw new Error(`no default provider found for chainId "${chainId}"`)
+    throw new Error(`No default provider found for chainId "${chainIdStr}"`);
   }
 
   getDefaultChainRpcProviders (): ChainProviders {

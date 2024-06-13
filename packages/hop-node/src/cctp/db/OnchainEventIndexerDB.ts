@@ -2,13 +2,23 @@ import { DB } from './DB.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext } from '../types.js'
 
-type DBValue = DecodedLogWithContext | number
-
 /**
  * This DB should only be used to get individual items. There should never be a
  * need to iterate over all items in the DB. This is because the indexing is
  * done such that each entry is guaranteed to be unique.
+ * 
+ * The primary key is the filterId and the secondary keys are the values that
+ * are indexed by the consumer.
+ * 
+ * The DB stores and maintains the last block synced for each filterId.
  */
+
+
+type IndexDBValue = DecodedLogWithContext
+type SyncDBValue = {
+  defaultStartBlockNumber: number
+}
+type DBValue = IndexDBValue | SyncDBValue
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
   readonly #secondaryKeys: Record<string, string[]> = {}
@@ -33,7 +43,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
 
     const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
-    await this.put(syncKey, defaultStartBlockNumber)
+    await this.put(syncKey, { defaultStartBlockNumber })
   }
 
   /**

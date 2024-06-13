@@ -100,9 +100,10 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
     this.#db.on('write', (operations: any) => {
       for (const op of operations) {
         if (op.type !== 'put') continue
-        // TODO: This should be cleaned up.
-        const isTypedLog = MessageSDK.isTypedLog(op.value)
-        if (!isTypedLog) continue
+
+        // The DB emits sync state values which should be ignored
+        const isDecodedLog = !!op.value?.decoded
+        if (!isDecodedLog) continue
 
         return this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
       }

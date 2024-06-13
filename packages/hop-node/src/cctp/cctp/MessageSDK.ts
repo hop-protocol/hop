@@ -8,7 +8,7 @@ import {
   getCCTPMessageTransmitterContractInterface,
   getMessageTransmitterContract,
 } from './utils.js'
-import type { LogWithChainId, RequiredEventFilter, RequiredFilter } from '../types.js'
+import type { DecodedLogWithContext, RequiredEventFilter, RequiredFilter } from '../types.js'
 import { type NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
@@ -55,6 +55,7 @@ export type HopCCTPTransferReceivedDecoded = {
   messageBody: string
 }
 
+export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded
 
 /**
  * CCTP Message utility class. This class exposes all required chain interactions with CCTP
@@ -166,41 +167,54 @@ export class MessageSDK {
     return txOptions
   }
 
-  static isTypedLog (log: LogWithChainId): boolean {
+  static isTypedLog (log: DecodedLogWithContext): boolean {
     return (
       log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG ||
       log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG
     )
   }
 
-  static async getTypedLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded> {
+  static async addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): Promise<DecodedLogWithContext> {
+    let eventName: string = ''
+    let decoded: DecodedEventLogs
     if (log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG) {
-      return MessageSDK.parseHopCCTPTransferSentLog(log)
+      eventName = 'CCTPTransferSent'
+      decoded = await MessageSDK.parseHopCCTPTransferSentLog(log, chainId)
     } else if (log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
-      return MessageSDK.parseHopCCTPTransferReceivedLog(log)
+      eventName = 'CCTPMessageReceived'
+      decoded = await MessageSDK.parseHopCCTPTransferReceivedLog(log)
+    } else {
+      throw new Error('Unknown typed log')
     }
 
-    throw new Error('Unknown typed log')
+    return {
+      ...log,
+      context: {
+        eventName,
+        chainId
+      },
+      decoded
+    }
   }
   // Returns the CCTP message as well as the Hop-specific data
-  static async parseHopCCTPTransferSentLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage> {
+  static async parseHopCCTPTransferSentLog (log: providers.Log, chainId: string): Promise<HopCCTPTransferSentDecodedWithMessage> {
     const iface = getHopCCTPInterface()
     const parsed = iface.parseLog(log)
 
     const {
       cctpNonce,
-      chainId,
+      chainId: cctpChainId,
       recipient,
       amount,
       bonderFee
     } = parsed.args
 
-    const messages = await MessageSDK.getCCTPMessagesByTxHash(log.chainId, log.transactionHash)
+    const messages = await MessageSDK.getCCTPMessagesByTxHash(chainId, log.transactionHash)
     const message = MessageSDK.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
 
     return {
       cctpNonce,
-      chainId,
+      chainId: cctpChainId,
       recipient,
       amount,
       bonderFee,
@@ -209,7 +223,7 @@ export class MessageSDK {
   }
 
   // Returns the CCTP message as well as the Hop-specific data
-  static async parseHopCCTPTransferReceivedLog (log: LogWithChainId): Promise<HopCCTPTransferReceivedDecoded> {
+  static async parseHopCCTPTransferReceivedLog (log: providers.Log): Promise<HopCCTPTransferReceivedDecoded> {
     const iface = getCCTPMessageTransmitterContractInterface()
     const parsed = iface.parseLog(log)
 

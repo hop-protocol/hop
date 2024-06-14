@@ -658,25 +658,14 @@ export class Messenger extends Base {
 
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
     const l2Provider = this.getRpcProviderForChainId(fromChainId)
+    // TODO
     let exitRelayer : ExitRelayer | undefined = undefined
-    if (['420', '10'].includes(fromChainId?.toString())) {
-      const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
-      exitRelayer = new OptimismRelayer(this.network, this.signer, l2Provider)
-    } else if (['421613', '42161', '42170'].includes(fromChainId?.toString())) {
-      // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
-      // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
-    } else if (['80001', '137'].includes(fromChainId?.toString())) {
-      // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
-      // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
-    } else if (['100'].includes(fromChainId?.toString())) {
-      // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
-      // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
-    }
     if (!exitRelayer) {
       throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
     }
-    const tx = await exitRelayer.exitTx(bundleCommittedTransactionHash)
-    return tx
+    // const tx = await exitRelayer.exitTx(bundleCommittedTransactionHash)
+    // return tx
+    return null as any
   }
 
   async getIsL2TxHashExited (input: GetIsL2TxHashExitedInput): Promise<boolean> {
@@ -690,15 +679,13 @@ export class Messenger extends Base {
 
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
     const l2Provider = this.getRpcProviderForChainId(fromChainId)
-    let exitRelayer : ExitRelayer
-    if (['420', '10'].includes(fromChainId?.toString())) {
-      const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
-      exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
-    } else {
+    let exitRelayer : ExitRelayer | undefined = undefined
+    if (!exitRelayer) {
       throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
     }
 
-    return exitRelayer.getIsL2TxHashExited(transactionHash)
+    // return exitRelayer.getIsL2TxHashExited(transactionHash)
+    return null as any
   }
 
   get populateTransaction() {
@@ -821,26 +808,13 @@ export class Messenger extends Base {
         const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
         const l2Provider = this.getRpcProviderForChainId(fromChainId)
         let exitRelayer : ExitRelayer | undefined = undefined
-        if (['420', '10'].includes(fromChainId?.toString())) {
-          const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
-          exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
-        } else if (['421613', '42161', '42170'].includes(fromChainId?.toString())) {
-          // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
-          // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
-        } else if (['80001', '137'].includes(fromChainId?.toString())) {
-          // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
-          // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
-        } else if (['100'].includes(fromChainId?.toString())) {
-          // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
-          // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
-        }
         if (!exitRelayer) {
           throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
         }
-        const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash) as providers.TransactionRequest
+        // const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash) as providers.TransactionRequest
 
         return {
-          ...txData,
+          // ...txData,
           chainId: Number(fromChainId)
         }
       },

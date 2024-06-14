@@ -34,7 +34,7 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
     return this.formatItem(state, eventLog)
   }
 
-  protected override getKeyFromLog (log: DecodedLogWithContext): MessageState {
+  protected override getKeyFromDataSourceItem (log: DecodedLogWithContext): MessageState {
     return this.#getStateFromLog(log)
   }
 

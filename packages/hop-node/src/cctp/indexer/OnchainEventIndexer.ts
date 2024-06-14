@@ -9,14 +9,12 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
 import {
-  DATA_INDEXED_EVENT,
+  DATA_STORED_EVENT,
   POLL_INTERVAL_MS
 } from './constants.js'
 import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { getChain } from '@hop-protocol/sdk'
-// TODO: Get rid of this
-import { MessageSDK } from '../cctp/MessageSDK.js'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -105,7 +103,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
         const isDecodedLog = !!op.value?.decoded
         if (!isDecodedLog) continue
 
-        return this.#eventEmitter.emit(DATA_INDEXED_EVENT, op.value)
+        return this.#eventEmitter.emit(DATA_STORED_EVENT, op.value)
       }
     })
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })

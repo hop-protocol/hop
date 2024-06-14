@@ -167,13 +167,6 @@ export class MessageSDK {
     return txOptions
   }
 
-  static isTypedLog (log: DecodedLogWithContext): boolean {
-    return (
-      log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG ||
-      log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG
-    )
-  }
-
   static async addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): Promise<DecodedLogWithContext> {
     let eventName: string = ''
     let decoded: DecodedEventLogs

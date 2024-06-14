@@ -26,8 +26,6 @@ type TransactionReceiptWithEvents = providers.TransactionReceipt & {
 export type HubConnectorConfig = BaseConfig
 
 export class HubConnector extends Base {
-  batchBlocks: number = 1000
-
   constructor (config: HubConnectorConfig) {
     super(config)
   }
@@ -38,8 +36,7 @@ export class HubConnector extends Base {
 
   get populateTransaction() {
     return {
-      connectTargets: async (input: ConnectTargetsInput): Promise<providers.TransactionRequest> => {
-        const { hubChainId, spokeChainId, target1, target2 } = input
+      connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput): Promise<providers.TransactionRequest> => {
         const provider = this.getRpcProviderForChainId(hubChainId)
         if (!provider) {
           throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
@@ -60,8 +57,7 @@ export class HubConnector extends Base {
   // used by connector demo
   async connectTargets (input: ConnectTargetsInput): Promise<providers.TransactionResponse> {
     const txData = await this.populateTransaction.connectTargets(input)
-    const tx = await this.sendTransaction(txData)
-    return tx
+    return this.sendTransaction(txData)
   }
 
   async getConnectorAddressFromTx (tx: providers.TransactionResponse): Promise<string> {
@@ -70,37 +66,38 @@ export class HubConnector extends Base {
   }
 
   async getConnectorAddressFromReceipt (receipt: TransactionReceiptWithEvents): Promise<string> {
-    const event = receipt.events?.find(
-      (event: EthersEvent) => event.event === 'ConnectorDeployed'
-    )
-    const connectorAddress = checksumAddress(event?.args?.connector)
-    return connectorAddress
+    const event = receipt.events?.find(event => event.event === 'ConnectorDeployed')
+    return checksumAddress(event?.args?.connector)
   }
 
   getHubConnectorContractAddress (chainId: BigNumberish): string {
     return this.getConfigAddress(chainId, 'hubConnectorFactory')
   }
 
-  async getConnectorDeployedEvents (input: GetEventsInput): Promise<ConnectorDeployed[]> {
-    const { chainId, fromBlock, toBlock } = input
+  async getConnectorDeployedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<ConnectorDeployed[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
+
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId: ${chainId}`)
     }
+
     if (!fromBlock) {
       throw new InputError('fromBlock is required')
     }
+
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
+
     const address = this.getHubConnectorContractAddress(chainId)
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
+
     const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks, address)
-    return eventFetcher.getEvents(fromBlock, toBlock)
+    return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 }

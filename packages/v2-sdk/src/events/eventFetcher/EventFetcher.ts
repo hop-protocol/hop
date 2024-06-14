@@ -124,7 +124,7 @@ export class EventFetcher {
       return false
     })
 
-    return filteredEvents.sort(this.sortByBlockNumber)
+    return filteredEvents.sort((a, b) => this.#sortByBlockNumber(a, b))
   }
 
   private async parallelFetch(promiseFns: (() => Promise<EthersEvent[]>)[]): Promise<EthersEvent[]> {
@@ -144,7 +144,7 @@ export class EventFetcher {
     return events
   }
 
-  private sortByBlockNumber(a: EthersEvent, b: EthersEvent): number {
+  #sortByBlockNumber(a: EthersEvent, b: EthersEvent): number {
     return a.blockNumber - b.blockNumber || a.logIndex - b.logIndex
   }
 }

@@ -1,4 +1,4 @@
-import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
+import { Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 

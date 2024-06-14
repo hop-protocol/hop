@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Event as EthersEvent, EventFilter } from 'ethers'
+import { BigNumber, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 

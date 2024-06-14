@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers, Event as EthersEvent, EventFilter } from 'ethers'
+import { Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from SpokeMessageBridge (MessageExecutor.sol)
 export interface MessageExecuted extends EventBase {

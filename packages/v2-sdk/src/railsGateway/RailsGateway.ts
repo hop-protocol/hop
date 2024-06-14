@@ -1,5 +1,5 @@
 import { BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils, EventFilter, Event as EthersEvent } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils, EventFilter } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
@@ -288,8 +288,6 @@ export type Token = {
 export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
-  batchBlocks: number = 1000
-
   constructor (input: RailsGatewayConstructorInput) {
     const { network, signer, contractAddresses } = input
     super({
@@ -370,7 +368,7 @@ export class RailsGateway extends StakingRegistry {
 
     const address = this.getRailsGatewayContractAddress(chainId)
     const eventFetcher = new Fetcher(provider, chainId, 0, address)
-    const events = await eventFetcher.getEvents(fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRange(fromBlock, toBlock)
     return events
   }
 
@@ -414,7 +412,7 @@ export class RailsGateway extends StakingRegistry {
 
     const address = this.getRailsGatewayContractAddress(chainId)
     const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
-    const eventsGenerator = eventFetcher.getEventsAsGenerator(fromBlock, toBlock)
+    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(fromBlock, toBlock)
 
     for await (const events of eventsGenerator) {
       yield events
@@ -1371,7 +1369,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -1397,7 +1395,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -1468,7 +1466,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -1494,7 +1492,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 

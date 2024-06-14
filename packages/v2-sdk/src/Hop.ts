@@ -59,8 +59,6 @@ export type ApproveSendTokensInput = {
 
 export class Hop extends Base {
   eventFetcher: EventFetcher
-  batchBlocks: number = 1000
-
   providers: Record<string, providers.Provider> = {}
   gasPriceOracle: GasPriceOracle
   messenger: Messenger

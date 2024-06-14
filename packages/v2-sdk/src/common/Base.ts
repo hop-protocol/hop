@@ -33,6 +33,7 @@ export class Base {
   gasPriceMultiplier: number = 0
   contractAddresses: Addresses
   l1ChainId: number
+  batchBlocks: number = 1000
 
   chainProviders: ChainProviders = {}
 
@@ -76,7 +77,7 @@ export class Base {
       return getProviderFromUrl(chain.publicRpcUrl)
     }
 
-    throw new Error(`No default provider found for chainId "${chainIdStr}"`);
+    throw new Error(`No default provider found for chainId "${chainIdStr}"`)
   }
 
   getDefaultChainRpcProviders (): ChainProviders {

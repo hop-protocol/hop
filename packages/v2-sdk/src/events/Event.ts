@@ -1,4 +1,4 @@
-import { EventContext, EventBase, Filter, EthersEventWithDecodedTypes } from './types.js'
+import { EventContext, Filter, EthersEventWithDecodedTypes } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk'
@@ -50,7 +50,7 @@ export class Event<T> {
     return iface.getEventTopic(this.eventName)
   }
 
-  async getEventsWithFilter(filter: Filter, fromBlock: number, toBlock?: number): Promise<T[]> {
+  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number): Promise<T[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
@@ -63,7 +63,7 @@ export class Event<T> {
     return this.populateEvents(events)
   }
 
-  async *getEventsWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
+  async *getEventsForRangeWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
@@ -78,13 +78,13 @@ export class Event<T> {
     }
   }
 
-  async getEvents (fromBlock: number, toBlock?: number): Promise<T[]> {
+  async getEventsForRange (fromBlock: number, toBlock?: number): Promise<T[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
+    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
   }
 
-  async *getEventsAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
-    const eventsGenerator = this.getEventsWithFilterAsGenerator(this.getFilter(), fromBlock, toBlock)
+  async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
+    const eventsGenerator = this.getEventsForRangeWithFilterAsGenerator(this.getFilter(), fromBlock, toBlock)
 
     for await (const events of eventsGenerator) {
       yield events
@@ -168,7 +168,7 @@ export class Event<T> {
   }
 
   getChainSlug(chainId: BigNumberish): string {
-    const chainSlug = chainSlugMap[chainId.toString()];
+    const chainSlug = chainSlugMap[chainId.toString()]
     if (!chainSlug) {
       throw new Error(`Invalid chain "${chainId}", slug not found`)
     }

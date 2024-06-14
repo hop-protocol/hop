@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Event as EthersEvent, EventFilter } from 'ethers'
+import { BigNumber, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 

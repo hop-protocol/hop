@@ -226,6 +226,18 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, [unsupportedAsset, canonicalToken])
 
+
+  const tvlUsd = useAsyncMemo(async () => {
+    try {
+      const bridge = sdk.bridge(tokenSymbol)
+      const tvlUsd = await bridge.getTvlUsd(chainSlug)
+
+      return `$${commafy(tvlUsd, 2)}`
+    } catch (err) {
+      console.error(err)
+    }
+  }, [sdk, tokenSymbol, chainSlug])
+
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
@@ -935,7 +947,6 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   const poolStats = getPoolStats(chainSlug, tokenSymbol)
-  const tvlFormatted = poolStats ? poolStats?.tvlUsdFormatted ?? '' : '-'
   const totalUserBalance = BigNumber.from(userPoolBalance ?? 0).add(stakedBalance || 0)
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
@@ -1015,6 +1026,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
   const hasStakeContract = !!(stakingContract ?? hopStakingContract)
+  const tvlFormatted = tvlUsd ?? '-'
 
   const token0BalanceBn = canonicalBalance ?? BigNumber.from(0)
   const token1BalanceBn = hopBalance ?? BigNumber.from(0)

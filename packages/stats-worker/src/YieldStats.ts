@@ -449,7 +449,7 @@ class YieldStats {
     const amm = bridge.getAmm(chain)
     const etherscanApiKey = etherscanApiKeys[chain]
     const days = 1
-    console.log(token)
+    console.log(`fetching ${token} yield data`)
     const { apr, apy, volumeFormatted } = await amm.getYieldData(days, etherscanApiKey)
     const tvl = await bridge.getTvlUsd(chain)
     return {

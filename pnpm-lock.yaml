@@ -481,8 +481,8 @@ importers:
         specifier: 0.1.6
         version: 0.1.6(bufferutil@4.0.8)(sqlite3@5.1.7)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))(utf-8-validate@5.0.10)
       '@eth-optimism/sdk':
-        specifier: 3.1.4
-        version: 3.1.4(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+        specifier: 3.3.2
+        version: 3.3.2(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
       '@ethereumjs/rlp':
         specifier: 5.0.2
         version: 5.0.2
@@ -1908,9 +1908,6 @@ packages:
   '@eth-optimism/contracts-bedrock@0.12.1':
     resolution: {integrity: sha512-ttyaefzmQv9cDF+IZUCHAcClQt3+Qq18jvmSs0UNuzOjLgBG5msaBgBY/OSzr8eiYmym+kgYz2D46/AwsZVmSA==}
 
-  '@eth-optimism/contracts-bedrock@0.16.2':
-    resolution: {integrity: sha512-a2+f7soDbrd6jV74U02EpyMwQt2iZeDZ4c2ZwgkObcxXUZLZQ2ELt/VRFBf8TIL3wYcBOGpUa1aXAE2oHQ7oRA==}
-
   '@eth-optimism/contracts@0.5.14':
     resolution: {integrity: sha512-Uan2Ldk7r7K6DiAH2hb/1f7zkY5Lh0ppF2KCfOwEZTItfo3gBQa3SG+XfdrB5wBdIt+QDTVjinD/Cg3WfbxenQ==}
     peerDependencies:
@@ -1929,9 +1926,6 @@ packages:
   '@eth-optimism/core-utils@0.12.0':
     resolution: {integrity: sha512-qW+7LZYCz7i8dRa7SRlUKIo1VBU8lvN0HeXCxJR+z+xtMzMQpPds20XJNCMclszxYQHkXY00fOT6GvFw9ZL6nw==}
 
-  '@eth-optimism/core-utils@0.13.1':
-    resolution: {integrity: sha512-1FvzbUmCEy9zSKPG1QWg2VfA2Cy90xBA9Wkp11lXXrz91zUPCNCNSRTujXWYIC86ketNsZp7p4njSf6lTycHCw==}
-
   '@eth-optimism/core-utils@0.13.2':
     resolution: {integrity: sha512-u7TOKm1RxH1V5zw7dHmfy91bOuEAZU68LT/9vJPkuWEjaTl+BgvPDRDTurjzclHzN0GbWdcpOqPZg4ftjkJGaw==}
 
@@ -1944,11 +1938,6 @@ packages:
 
   '@eth-optimism/sdk@1.10.4':
     resolution: {integrity: sha512-mFbC6PI+N0zh97a9gbQxvbG6YJdoPkqZdLgXmt4Rddc/ilCoh2YGk0nEt1CB1EAYswj32A0W1lSsFzkAUbuHFQ==}
-    peerDependencies:
-      ethers: ^5
-
-  '@eth-optimism/sdk@3.1.4':
-    resolution: {integrity: sha512-gqbw/7KAwXSiFF7KN57oe3iz0kcOuSUTfnkAf0aZImmSbegPY5AWszxYvnQCIXcWRY0kaDf3LpXrHKur4TdgGA==}
     peerDependencies:
       ethers: ^5
 
@@ -11992,8 +11981,6 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@eth-optimism/contracts-bedrock@0.16.2': {}
-
   '@eth-optimism/contracts@0.5.14(bufferutil@4.0.8)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
     dependencies:
       '@eth-optimism/core-utils': 0.7.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -12045,27 +12032,6 @@ snapshots:
       chai: 4.4.1
     transitivePeerDependencies:
       - bufferutil
-      - utf-8-validate
-
-  '@eth-optimism/core-utils@0.13.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@ethersproject/abi': 5.7.0
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/contracts': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/rlp': 5.7.0
-      '@ethersproject/web': 5.7.1
-      chai: 4.4.1
-      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      node-fetch: 2.7.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
       - utf-8-validate
 
   '@eth-optimism/core-utils@0.13.2(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)':
@@ -12133,20 +12099,6 @@ snapshots:
       - supports-color
       - ts-node
       - typescript
-      - utf-8-validate
-
-  '@eth-optimism/sdk@3.1.4(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
-    dependencies:
-      '@eth-optimism/contracts': 0.6.0(bufferutil@4.0.8)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
-      '@eth-optimism/contracts-bedrock': 0.16.2
-      '@eth-optimism/core-utils': 0.13.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      lodash: 4.17.21
-      merkletreejs: 0.3.11
-      rlp: 2.2.7
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
       - utf-8-validate
 
   '@eth-optimism/sdk@3.3.2(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':

@@ -376,7 +376,7 @@ export class AMM extends Base {
 
     const endTimestamp = unixTimestamp
     const provider = this.getChainProvider(this.chain)
-    let endBlockNumber = await getBlockNumberFromDate(provider, endTimestamp)
+    let endBlockNumber = await getBlockNumberFromDate(provider, endTimestamp, etherscanApiKey)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {

@@ -104,6 +104,9 @@ const stakingRewardsContracts = {
     },
     arbitrum: {
       rETH: '0x3D4cAD734B464Ed6EdCF6254C2A3e5fA5D449b32', // RPL rewards
+      ETH: '0x00001fcf29c5fd7846e4332afbfaa48701d727f5', // ARB rewards
+      USDT: '0xb8f90e115499082747ba5da94732863b12cb1f25', // ARB rewards
+      DAI: '0xbb9d66f7a7744c11550079045a177090e0015364', // ARB rewards
     },
     linea: {
       ETH: '0xa50395bdEaca7062255109fedE012eFE63d6D402', // WETH rewards
@@ -133,7 +136,10 @@ export const stakingRewardTokens = {
       '0x266e2dc3c4c59e42aa07afee5b09e964cffe6778': 'RPL',
     },
     arbitrum: {
-      '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'RPL'
+      '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'RPL',
+      '0x00001fcf29c5fd7846e4332afbfaa48701d727f5': 'ARB',
+      '0xb8f90e115499082747ba5da94732863b12cb1f25': 'ARB',
+      '0xbb9d66f7a7744c11550079045a177090e0015364': 'ARB',
     },
     linea: {
       '0xa50395bdeaca7062255109fede012efe63d6d402': 'WETH'

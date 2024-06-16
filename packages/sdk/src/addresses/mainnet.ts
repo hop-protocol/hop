@@ -412,7 +412,10 @@ export const addresses: Addresses = {
       base: ['0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6'] // HOP
     },
     USDT: {
-      arbitrum: ['0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8'], // HOP
+      arbitrum: [
+        '0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8', // HOP
+        '0xb8f90e115499082747ba5da94732863b12cb1f25' // ARB
+      ],
       optimism: ['0xAeB1b49921E0D2D96FcDBe0D486190B2907B3e0B'], // HOP
       polygon: [
         '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', // WMATIC
@@ -424,7 +427,10 @@ export const addresses: Addresses = {
       ]
     },
     DAI: {
-      arbitrum: ['0xd4D28588ac1D9EF272aa29d4424e3E2A03789D1E'], // HOP
+      arbitrum: [
+        '0xd4D28588ac1D9EF272aa29d4424e3E2A03789D1E', // HOP
+        '0xbb9d66f7a7744c11550079045a177090e0015364' // ARB
+      ],
       optimism: ['0x392B9780cFD362bD6951edFA9eBc31e68748b190'], // HOP
       polygon: [
         '0x4Aeb0B5B1F3e74314A7Fa934dB090af603E8289b', // WMATIC
@@ -439,7 +445,10 @@ export const addresses: Addresses = {
       polygon: ['0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f'] // WMATIC
     },
     ETH: {
-      arbitrum: ['0x755569159598f3702bdD7DFF6233A317C156d3Dd'], // HOP
+      arbitrum: [
+        '0x755569159598f3702bdD7DFF6233A317C156d3Dd', // HOP
+        '0x00001fcf29c5fd7846e4332afbfaa48701d727f5' // ARB
+      ],
       optimism: ['0x95d6A95BECfd98a7032Ed0c7d950ff6e0Fa8d697'], // HOP
       polygon: [
         '0x7bCeDA1Db99D64F25eFA279BB11CE48E15Fda427', // WMATIC

@@ -7,12 +7,12 @@ import { getChainName } from '#utils/getChainName.js'
 export function Rewards() {
   return (
     <Box>
-      {configs.map((config: any, i) => {
+      {configs.map((config: any) => {
         const chainName = getChainName(config.chainId)
 
         return (
           <RewardsWidget
-            key={i}
+            key={config.chainId}
             requiredChainId={config.chainId}
             rewardsContractAddress={config.rewardsContractAddress}
             merkleBaseUrl={config.merkleBaseUrl}

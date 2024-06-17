@@ -16,7 +16,7 @@ import type { DecodedLogWithContext } from '../types.js'
 
 type IndexDBValue = DecodedLogWithContext
 type SyncDBValue = {
-  defaultStartBlockNumber: number
+  syncedBlockNumber: number
 }
 type DBValue = IndexDBValue | SyncDBValue
 
@@ -43,7 +43,9 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
 
     const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
-    await this.put(syncKey, { defaultStartBlockNumber })
+    await this.put(syncKey, { 
+      syncedBlockNumber: defaultStartBlockNumber
+    })
   }
 
   /**
@@ -54,7 +56,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   async getLastBlockSynced(primaryKey: string): Promise<number> {
     try {
       const syncKey = this.#getLastBlockSyncedKey(primaryKey)
-      return await this.get(syncKey) as number
+      const res = await this.get(syncKey) as SyncDBValue
+      return res.syncedBlockNumber
     } catch (err) {
       throw new Error(`No last block synced found for primaryKey ${primaryKey}. error: ${err}`)
     }
@@ -76,7 +79,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       // The index grows with each primaryKey, joined by '!'
       let indexedKey = ''
       for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
-        const indexValue = log.decoded[secondaryKey]
+        // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
+        const indexValue = log.decoded[secondaryKey as keyof typeof log.decoded]
         indexedKey += indexedKey ? '!' + indexValue : indexValue 
         batch.put(indexedKey, log)
       }
@@ -84,7 +88,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     // Update the last block synced
     const syncKey = this.#getLastBlockSyncedKey(primaryKey)
-    batch.put(syncKey, syncedBlockNumber)
+    batch.put(syncKey, { syncedBlockNumber })
 
     return batch.write()
   }

@@ -65,7 +65,7 @@ export const HopCCTPAddresses : Record<string, Partial<Record<ChainSlug, string>
 }
 
 // TODO: Get from SDK
-export const CCTP_DOMAIN_MAP: Partial<Record<NetworkSlug, Record<number, number>>> = {
+export const CCTP_DOMAIN_TO_CHAIN_ID_MAP: Partial<Record<NetworkSlug, Record<number, number>>> = {
   [NetworkSlug.Mainnet]: {
     0: 1, // Ethereum
     2: 10, // Optimism
@@ -78,6 +78,22 @@ export const CCTP_DOMAIN_MAP: Partial<Record<NetworkSlug, Record<number, number>
     2: 11155420, // Optimism
     3: 421614, // Arbitrum
     6: 84532, // Base
+  }
+}
+
+export const CCTP_CHAIN_ID_TO_DOMAIN_MAP: Partial<Record<NetworkSlug, Record<number, number>>> = {
+  [NetworkSlug.Mainnet]: {
+    1: 0, // Ethereum
+    10: 2, // Optimism
+    42161: 3, // Arbitrum
+    8453: 6, // Base
+    137: 7, // Polygon PoS
+  },
+  [NetworkSlug.Sepolia]: {
+    11155111: 0, // Ethereum
+    11155420: 2, // Optimism
+    421614: 3, // Arbitrum
+    84532: 6, // Base
   }
 }
 

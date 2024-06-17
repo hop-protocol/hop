@@ -1,7 +1,8 @@
 import type { Signer, providers} from 'ethers'
 import { BigNumber, utils } from 'ethers'
 import {
-  CCTP_DOMAIN_MAP,
+  CCTP_CHAIN_ID_TO_DOMAIN_MAP,
+  CCTP_DOMAIN_TO_CHAIN_ID_MAP,
   getAttestationUrl,
   getHopCCTPContract,
   getHopCCTPInterface,
@@ -88,7 +89,7 @@ export class MessageSDK {
   }
 
   static convertDomainToChainId (domainId: BigNumber): BigNumber {
-    const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as NetworkSlug]
+    const domainMap = CCTP_DOMAIN_TO_CHAIN_ID_MAP[globalConfig.network as NetworkSlug]
     if (!domainMap) {
       throw new Error('Domain map not found')
     }
@@ -158,15 +159,15 @@ export class MessageSDK {
     return txOptions
   }
 
-  static async addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): Promise<DecodedLogWithContext> {
+  static addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): DecodedLogWithContext {
     let eventName: string = ''
     let decoded: DecodedEventLogs
     if (log.topics[0] === MessageSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {
       eventName = 'CCTPTransferSent'
-      decoded = await MessageSDK.parseHopCCTPTransferSentLog(log, chainId)
+      decoded = MessageSDK.parseHopCCTPTransferSentLog(log, chainId)
     } else if (log.topics[0] === MessageSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
       eventName = 'CCTPMessageReceived'
-      decoded = await MessageSDK.parseHopCCTPTransferReceivedLog(log)
+      decoded = MessageSDK.parseHopCCTPTransferReceivedLog(log)
     } else {
       throw new Error('Unknown typed log')
     }
@@ -182,7 +183,7 @@ export class MessageSDK {
   }
 
   // Returns the CCTP message as well as the Hop-specific data
-  static async parseHopCCTPTransferSentLog (log: providers.Log, chainId: string): Promise<HopCCTPTransferSentDecodedWithMessage> {
+  static parseHopCCTPTransferSentLog (log: providers.Log, chainId: string): HopCCTPTransferSentDecodedWithMessage {
     const iface = getHopCCTPInterface()
     const parsed = iface.parseLog(log)
 
@@ -194,8 +195,26 @@ export class MessageSDK {
       bonderFee
     } = parsed.args
 
-    const messages = await MessageSDK.getCCTPMessagesByTxHash(chainId, log.transactionHash)
-    const message = MessageSDK.getMatchingMessageFromMessages(messages, Number(cctpNonce), recipient)
+    // Ideally we get this from onchain but it should not change for the lifetime of this codebase
+    const messageVersion = 0
+    const sourceDomain = CCTP_CHAIN_ID_TO_DOMAIN_MAP[chainId]
+    const messageSender = getHopCCTPContract(chainId).address
+    const destinationDomain = cctpChainId
+    const destinationCaller = '0x0000000000000000000000000000000000000000'
+    const messageBody = MessageSDK.decodeMessageFromEvent(log.data)
+    const messageTypes = ['uint8', 'uint32', 'uint32', 'uint256', 'address', 'address', 'address', 'bytes']
+    const message = utils.solidityPack(messageTypes,
+      [
+        messageVersion,
+        sourceDomain,
+        destinationDomain,
+        cctpNonce,
+        messageSender,
+        recipient,
+        destinationCaller,
+        messageBody
+      ]
+    )
 
     return {
       cctpNonce: Number(cctpNonce),
@@ -208,7 +227,7 @@ export class MessageSDK {
   }
 
   // Returns the CCTP message as well as the Hop-specific data
-  static async parseHopCCTPTransferReceivedLog (log: providers.Log): Promise<HopCCTPTransferReceivedDecoded> {
+  static parseHopCCTPTransferReceivedLog (log: providers.Log): HopCCTPTransferReceivedDecoded {
     const iface = getCCTPMessageTransmitterContractInterface()
     const parsed = iface.parseLog(log)
 
@@ -229,55 +248,8 @@ export class MessageSDK {
     }
   }
 
-  static async getCCTPMessagesByTxHash (chainId: string, txHash: string): Promise<string[]> {
-    const chainSlug = getChain(chainId).slug
-    const provider = getRpcProvider(chainSlug)
-    const txReceipt = await provider.getTransactionReceipt(txHash)
-    const blockNumber = txReceipt.blockNumber
-
-    const eventFilter = MessageSDK.getMessageSentEventFilter(chainId)
-    const filter: RequiredFilter = {
-      ...eventFilter,
-      fromBlock: blockNumber,
-      toBlock: blockNumber
-    }
-    const logs = await provider.getLogs(filter)
-    if (logs.length === 0) {
-      throw new Error('No logs found')
-    }
-
-    const messages: string[] = []
-    for (const log of logs) {
-      if (log.transactionHash === txHash) {
-        messages.push(MessageSDK.decodeMessageFromEvent(log.data))
-      }
-    }
-
-    if (messages.length === 0) {
-      throw new Error('No messages found')
-    }
-
-    return messages
-  }
-
-  // Find the correct message if there are multiple messages in a tx hash. This does not work if there
-  // are multiple messages with the same recipient and a matching hex nonce in the string, which should be rare.
-  static getMatchingMessageFromMessages (
-    messages: string[],
-    cctpNonce: number,
-    recipient: string
-  ): string {
-    const recipientHex = recipient.substring(2).toLowerCase()
-    const cctpNonceHex = cctpNonce.toString(16).substring(2).toLowerCase()
-
-    for (const message of messages) {
-      if (
-        message.includes(cctpNonceHex) &&
-        message.includes(recipientHex)
-      ) {
-        return message
-      }
-    }
-    throw new Error('No matching message found')
+  static decodeMessageBodyFromTransferSentInputParams (data: string): string {
+    const types = ['uint32', 'bytes32', 'bytes']
+    return utils.defaultAbiCoder.decode(types, data.slice(10))[2]
   }
 }

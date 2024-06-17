@@ -138,8 +138,7 @@ export class StakingRegistry extends Base {
   getStakingRegistryContract (chainId: BigNumberish): Contract {
     const address = this.getStakingRegistryAddress(chainId)
     const provider = this.getRpcProviderForChainId(chainId)
-    const contract = StakingRegistry__factory.connect(address, provider)
-    return contract
+    return StakingRegistry__factory.connect(address, provider)
   }
 
   async getChallengePeriod (chainId: BigNumberish) {
@@ -190,15 +189,13 @@ export class StakingRegistry extends Base {
   async registryUnstakeHopPopulatedTx (input: RegistryUnstakeHopInput) {
     const { chainId, role, amount } = input
     const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.unstakeHop(role, amount)
-    return txData
+    return contract.populateTransaction.unstakeHop(role, amount)
   }
 
   async registryWithdrawPopulatedTx (input: RegistryWithdrawInput) {
     const { chainId, role, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.withdraw(role, staker)
-    return txData
+    return contract.populateTransaction.withdraw(role, staker)
   }
 
   async registryStakeHop (input: RegistryStakeHopInput) {

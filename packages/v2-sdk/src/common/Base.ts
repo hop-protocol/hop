@@ -147,7 +147,7 @@ export class Base {
     return address
   }
 
-  getConfigStartBlock (chainId: BigNumberish): number {
+  #getConfigStartBlock (chainId: BigNumberish): number {
     if (!chainId) {
       throw new Error('chainId is required')
     }

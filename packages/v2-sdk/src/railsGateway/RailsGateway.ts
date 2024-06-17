@@ -12,11 +12,16 @@ const { getAddress: checksumAddress } = utils
 
 type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
 
+export enum EventName {
+  TransferSent = 'TransferSent',
+  TransferBonded = 'TransferBonded',
+}
+
 export type GetEventsInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
-  Fetcher: any
+  eventName: EventName
 }
 
 export type TransferSentEventInput = {
@@ -288,8 +293,7 @@ export type Token = {
 export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
-  constructor (input: RailsGatewayConstructorInput) {
-    const { network, signer, contractAddresses } = input
+  constructor ({ network, signer, contractAddresses }: RailsGatewayConstructorInput) {
     super({
       network,
       signer,
@@ -301,40 +305,68 @@ export class RailsGateway extends StakingRegistry {
     return new RailsGateway({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
-  getTransferSentEventFilter(input: GetTransferSentEventFilterInput) {
-    const { chainId, transferId, checkpoint, pathId } = input
-    const address = this.getRailsGatewayContractAddress(chainId)
-    const provider = this.getRpcProviderForChainId(chainId)
-    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
-    let filter: EventFilter
-    if (transferId) {
-      filter = eventFetcher.getTransferIdFilter(transferId)
-    } else if (checkpoint) {
-      filter = eventFetcher.getCheckpointFilter(checkpoint)
-    } else if (pathId) {
-      filter = eventFetcher.getPathIdFilter(pathId)
-    } else {
-      filter = eventFetcher.getFilter()
-    }
-
-    return filter
+  getEventNames (): string[] {
+    return Object.keys(EventName)
   }
 
-  addDecodedTypesToEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
-    for (const event of events) {
-      const topic0 = event.topics[0]
-      if (new TransferSentEventFetcher().getEventNameFromTopic(topic0)) {
-        return this.addDecodedTypesToTransferSentEvents(events)
-      } else if (new TransferBondedEventFetcher().getEventNameFromTopic(topic0)) {
-        return this.addDecodedTypesToTransferBondedEvents(events)
-      }
+  #getEventFetcher(eventName: EventName, chainId: BigNumberish) {
+    const provider = this.getRpcProviderForChainId(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
+
+    const address = this.getRailsGatewayContractAddress(chainId)
+    if (!address) {
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
+    }
+
+    const eventFetcher: Record<EventName, any> = {
+      [EventName.TransferSent]: TransferSentEventFetcher,
+      [EventName.TransferBonded]: TransferBondedEventFetcher,
+    }
+
+    const EventFetcherClass = eventFetcher[eventName]
+    if (!EventFetcherClass) {
+      throw new Error(`Event fetcher not found for event name: ${eventName}`)
+    }
+
+    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
+  }
+
+  getTransferSentEventFilter({ chainId, transferId, checkpoint, pathId }: GetTransferSentEventFilterInput): EventFilter {
+    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, chainId)
+
+    if (transferId) {
+      return eventFetcher.getTransferIdFilter(transferId)
+    }
+
+    if (checkpoint) {
+      return eventFetcher.getCheckpointFilter(checkpoint)
+    }
+
+    if (pathId) {
+      return eventFetcher.getPathIdFilter(pathId)
+    }
+
+    return eventFetcher.getFilter()
+  }
+
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+    const transferSentEventFetcher = new TransferSentEventFetcher()
+    const transferBondedEventFetcher = new TransferBondedEventFetcher()
+
+    if (events.some(event => transferSentEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return this.addDecodedTypesToTransferSentEvents(events)
+    }
+
+    if (events.some(event => transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return this.addDecodedTypesToTransferBondedEvents(events)
+    }
+
     return events
   }
 
-  async #getEvents (input: GetEventsInput) {
-    let { chainId, fromBlock, toBlock, Fetcher } = input
-
+  async #getEvents ({ chainId, fromBlock, toBlock, eventName }: GetEventsInput) {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -366,56 +398,45 @@ export class RailsGateway extends StakingRegistry {
       }
     }
 
-    const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new Fetcher(provider, chainId, 0, address)
-    const events = await eventFetcher.getEventsForRange(fromBlock, toBlock)
-    return events
+    const eventFetcher = this.#getEventFetcher(eventName, chainId)
+    return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
   async getTransferSentEvents (input: TransferSentEventInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
-    return this.#getEvents({ ...input, Fetcher: TransferSentEventFetcher })
+    return this.#getEvents({ ...input, eventName: EventName.TransferSent })
   }
 
-  async *getTransferSentEventsInBatches (input: TransferSentEventInput) {
-    let { chainId, fromBlock, toBlock } = input
-
+  async *getTransferSentEventsInBatches({ chainId, fromBlock, toBlock }: TransferSentEventInput) {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`);
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`);
     }
 
     if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid fromBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`);
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId);
     if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`);
     }
 
-    const latestBlock = await provider.getBlockNumber()
-    if (latestBlock) {
-      if (!toBlock) {
-        toBlock = latestBlock
-      }
-      if (!fromBlock) {
-        const start = latestBlock - 1000
-        fromBlock = start
-      }
-      if (toBlock && fromBlock < 0) {
-        fromBlock = toBlock + fromBlock
-      }
+    const latestBlock = await provider.getBlockNumber();
+    const resolvedToBlock = toBlock ?? latestBlock;
+    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000);
+
+    if (resolvedFromBlock < 0) {
+      resolvedFromBlock = resolvedToBlock + resolvedFromBlock;
     }
 
-    const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
-    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(fromBlock, toBlock)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, chainId);
+    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock);
 
     for await (const events of eventsGenerator) {
-      yield events
+      yield events;
     }
   }
 
@@ -433,7 +454,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferBondedEvents (input: TransferBondedEventInput): Promise<EthersEventWithDecodedTypes<TransferBonded>[]> {
-    return this.#getEvents({ ...input, Fetcher: TransferBondedEventFetcher })
+    return this.#getEvents({ ...input, eventName: EventName.TransferBonded })
   }
 
   getRailsGatewayContractAddress (chainId: BigNumberish): string {
@@ -451,13 +472,10 @@ export class RailsGateway extends StakingRegistry {
 
     const address = this.getRailsGatewayContractAddress(chainId)
     const provider = this.getRpcProviderForChainId(chainId)
-    const contract = RailsGateway__factory.connect(address, provider)
-    return contract
+    return RailsGateway__factory.connect(address, provider)
   }
 
-  async getPathId (input: GetPathIdInput): Promise<string> {
-    const { chainId0, token0, chainId1, token1 } = input
-
+  async getPathId ({ chainId0, token0, chainId1, token1 }: GetPathIdInput): Promise<string> {
     if (!this.utils.isValidChainId(chainId0)) {
       throw new InputError(`Invalid chainId0 "${chainId0}"`)
     }
@@ -475,14 +493,10 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId0)
-    const pathId = await contract.getPathId(chainId0, token0, chainId1, token1)
-    console.log('getPathId', pathId, {chainId0, token0, chainId1, token1})
-    return pathId
+    return contract.getPathId(chainId0, token0, chainId1, token1)
   }
 
-  async getPathInfo (input: GetPathInfoInput): Promise<Path> {
-    const { chainId, pathId } = input
-
+  async getPathInfo ({ chainId, pathId }: GetPathInfoInput): Promise<Path> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -517,9 +531,7 @@ export class RailsGateway extends StakingRegistry {
     return pathInfo
   }
 
-  async getFee (input: GetFeeInput): Promise<BigNumber> {
-    const { chainId, pathId } = input
-
+  async getFee ({ chainId, pathId }: GetFeeInput): Promise<BigNumber> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -534,10 +546,7 @@ export class RailsGateway extends StakingRegistry {
 
   get populateTransaction() {
     return {
-      send: async (input: SendInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, amount, minAmountOut, attestedCheckpoint } = input
-        let { to } = input
-
+      send: async ({ chainId, pathId, amount, to, minAmountOut, attestedCheckpoint }: SendInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -575,9 +584,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      approveSend: async (input: ApproveSendInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, amount } = input
-
+      approveSend: async ({ chainId, pathId, amount }: ApproveSendInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -603,9 +610,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      bond: async (input: BondInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint } = input
-
+      bond: async ({ chainId, pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint }: BondInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -643,9 +648,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      approveBond: async (input: ApproveBondInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, amount } = input
-
+      approveBond: async ({ chainId, pathId, amount }: ApproveBondInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -671,9 +674,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      postClaim: async (input: PostClaimInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, transferId, head, totalSent } = input
-
+      postClaim: async ({ chainId, pathId, transferId, head, totalSent }: PostClaimInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -703,9 +704,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      removeClaim: async (input: RemoveClaimInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, checkpoint, nonce } = input
-
+      removeClaim: async ({ chainId, pathId, checkpoint, nonce }: RemoveClaimInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -731,9 +730,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      withdrawClaim: async (input: WithdrawInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, amount, timeWindow } = input
-
+      withdrawClaim: async ({ chainId, pathId, amount, timeWindow }: WithdrawInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -759,9 +756,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      withdrawAllClaims: async (input: WithdrawAllInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, timeWindow } = input
-
+      withdrawAllClaims: async ({ chainId, pathId, timeWindow }: WithdrawAllInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -783,9 +778,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      confirmCheckpoint: async (input: ConfirmCheckpointInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, checkpoint } = input
-
+      confirmCheckpoint: async ({ chainId, pathId, checkpoint }: ConfirmCheckpointInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -807,9 +800,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      approveStakeHop: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
-        let { chainId, role, staker, amount } = input
-
+      approveStakeHop: async ({ chainId, role, staker, amount }: StakeHopInput): Promise<providers.TransactionRequest> => {
         if (!staker) {
           staker = (await this.getSignerAddress()) as string
         }
@@ -843,9 +834,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      stakeHop: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
-        let { chainId, role, staker, amount } = input
-
+      stakeHop: async ({ chainId, role, staker, amount }: StakeHopInput): Promise<providers.TransactionRequest> => {
         if (!staker) {
           staker = (await this.getSignerAddress()) as string
         }
@@ -877,7 +866,6 @@ export class RailsGateway extends StakingRegistry {
           throw new InsufficientBalanceError(`Insufficient balance to stake ${amount.toString()} HOP`)
         }
 
-        const hopTokenContract = await this.getHopTokenContract(chainId)
         if (balance.lt(minRequired)) {
           throw new InsufficientBalanceError(`Insufficient balance to stake ${minRequired.toString()} HOP`)
         }
@@ -890,9 +878,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      unstakeHop: async (input: UnstakeHopInput): Promise<providers.TransactionRequest> => {
-        const { chainId, role, amount } = input
-
+      unstakeHop: async ({ chainId, role, amount }: UnstakeHopInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -923,9 +909,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      withdrawHop: async (input: WithdrawHopInput): Promise<providers.TransactionRequest> => {
-        const { chainId, role } = input
-
+      withdrawHop: async ({ chainId, role }: WithdrawHopInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -980,8 +964,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const populatedTx = await this.populateTransaction.send(input)
-    const tx = await this.sendTransaction(populatedTx)
-    return tx
+    return this.sendTransaction(populatedTx)
   }
 
   async approveSend (input: ApproveSendInput): Promise<providers.TransactionResponse> {
@@ -1081,9 +1064,7 @@ export class RailsGateway extends StakingRegistry {
     return approved.lt(amount)
   }
 
-  async getNeedsApprovalForBond (input: GetNeedsApprovalForBondInput): Promise<boolean> {
-    const { chainId, pathId, amount } = input
-
+  async getNeedsApprovalForBond ({ chainId, pathId, amount }: GetNeedsApprovalForBondInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1105,9 +1086,7 @@ export class RailsGateway extends StakingRegistry {
     return approved.lt(amount)
   }
 
-  async getLatestClaim (input: GetLatestClaimInput): Promise<string> {
-    const { chainId, pathId } = input
-
+  async getLatestClaim ({ chainId, pathId }: GetLatestClaimInput): Promise<string> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1120,9 +1099,7 @@ export class RailsGateway extends StakingRegistry {
     return contract.getLatestClaim(pathId)
   }
 
-  async getIsCheckpointValid (input: GetIsCheckpointValidInput): Promise<boolean> {
-    const { chainId, pathId, checkpoint } = input
-
+  async getIsCheckpointValid ({ chainId, pathId, checkpoint }: GetIsCheckpointValidInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1152,9 +1129,7 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
-    const { chainId, pathId, recipient, timeWindow } = input
-
+  async getWithdrawableBalance ({ chainId, pathId, recipient, timeWindow }: WithdrawBalanceInput): Promise<BigNumber> {
     if (!pathId) {
       throw new InputError('pathId is required')
     }
@@ -1179,9 +1154,7 @@ export class RailsGateway extends StakingRegistry {
     return this.#getWithdrawableBalance({ chainId, path, recipient, timeWindow })
   }
 
-  async #getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
-    const { chainId, path, recipient, timeWindow } = input
-
+  async #getWithdrawableBalance ({ chainId, path, recipient, timeWindow }: WithdrawBalanceInput): Promise<BigNumber> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1202,9 +1175,7 @@ export class RailsGateway extends StakingRegistry {
     return contract.getWithdrawableBalance(path, recipient, timeWindow)
   }
 
-  async getTransferId (input: GetTransferIdInput): Promise<string> {
-    const { chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-
+  async getTransferId ({ chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint }: GetTransferIdInput): Promise<string> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1285,9 +1256,7 @@ export class RailsGateway extends StakingRegistry {
     return contract
   }
 
-  calcAmountOutMin (input: CalcAmountOutMinInput): BigNumber {
-    let { amountOut, slippageTolerance } = input
-
+  calcAmountOutMin ({ amountOut, slippageTolerance }: CalcAmountOutMinInput): BigNumber {
     if (!this.utils.isValidNumericValue(amountOut)) {
       throw new InputError(`Invalid amountOut "${amountOut}"`)
     }
@@ -1302,8 +1271,7 @@ export class RailsGateway extends StakingRegistry {
     return amountOut.mul(minBps).div(10000)
   }
 
-  async getTransferSentEventFromTransactionReceipt (input: GetTransferSentEventFromTransactionReceiptInput): Promise<TransferSent | null> {
-    const { fromChainId, receipt } = input
+  async getTransferSentEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<TransferSent | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1318,13 +1286,12 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, this.batchBlocks, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
 
-  async getTransferSentEventFromTransactionHash (input: GetTransferSentEventFromTransactionHashInput): Promise<TransferSent | null> {
-    const { fromChainId, transactionHash } = input
+  async getTransferSentEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<TransferSent | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1347,8 +1314,7 @@ export class RailsGateway extends StakingRegistry {
     return this.getTransferSentEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getTransferSentEventFromTransferId (input: GetTransferSentEventFromTransferIdInput): Promise<TransferSent> {
-    const { fromChainId, transferId } = input
+  async getTransferSentEventFromTransferId ({ fromChainId, transferId }: GetTransferSentEventFromTransferIdInput): Promise<TransferSent> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1365,16 +1331,15 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 0, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
     const filter = eventFetcher.getTransferIdFilter(transferId)
+    const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const fromBlock = 0 // endBlock - 100_000
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
-  async getTransferSentEventFromCheckpoint (input: GetTransferSentEventFromCheckpointInput): Promise<TransferSent> {
-    const { fromChainId, checkpoint } = input
+  async getTransferSentEventFromCheckpoint ({ fromChainId, checkpoint }: GetTransferSentEventFromCheckpointInput): Promise<TransferSent> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1391,16 +1356,15 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 0, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
+    const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const fromBlock = 0 // endBlock - 100_000
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromTransactionReceipt (input: GetTransferBondedEventFromTransactionReceiptInput): Promise<TransferBonded | null> {
-    const { fromChainId, receipt } = input
+  async getTransferBondedEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<TransferBonded | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1415,13 +1379,12 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, this.batchBlocks, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromTransactionHash (input: GetTransferBondedEventFromTransactionHashInput): Promise<TransferBonded | null> {
-    const { fromChainId, transactionHash } = input
+  async getTransferBondedEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<TransferBonded | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1444,8 +1407,7 @@ export class RailsGateway extends StakingRegistry {
     return this.getTransferBondedEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getTransferBondedEventFromTransferId (input: GetTransferBondedEventFromTransferIdInput): Promise<TransferBonded> {
-    const { fromChainId, transferId } = input
+  async getTransferBondedEventFromTransferId ({ fromChainId, transferId }: GetTransferBondedEventFromTransferIdInput): Promise<TransferBonded> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1462,16 +1424,15 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 0, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
     const filter = eventFetcher.getTransferIdFilter(transferId)
+    const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const fromBlock = 0 // endBlock - 100_000
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromCheckpoint (input: GetTransferBondedEventFromCheckpointInput): Promise<TransferBonded> {
-    const { fromChainId, checkpoint } = input
+  async getTransferBondedEventFromCheckpoint ({ fromChainId, checkpoint }: GetTransferBondedEventFromCheckpointInput): Promise<TransferBonded> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1488,17 +1449,15 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 0, address)
+    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
+    const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const fromBlock = 0 // endBlock - 100_000
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
-  async getTokenInfo (input: GetTokenInfoInput): Promise<Token> {
-    const { chainId, address } = input
-
+  async getTokenInfo ({ chainId, address }: GetTokenInfoInput): Promise<Token> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1518,13 +1477,7 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
-  getTokenContract (input: GetTokenContractInput): Contract {
-    if (!this.utils.isValidObject(input)) {
-      throw new InputError('Invalid input, expected object')
-    }
-
-    const { chainId, address } = input
-
+  getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1538,9 +1491,7 @@ export class RailsGateway extends StakingRegistry {
     return tokenContract
   }
 
-  async getHasSufficientBalance (input: GetHasSufficientBalanceInput): Promise<boolean> {
-    const { chainId, tokenAddress, amount } = input
-
+  async getHasSufficientBalance ({ chainId, tokenAddress, amount }: GetHasSufficientBalanceInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1555,7 +1506,6 @@ export class RailsGateway extends StakingRegistry {
 
     const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const spender = this.getRailsGatewayContractAddress(chainId)
     const account = await this.getSignerAddress()
     if (!account) {
       throw new InputError('signer not set')
@@ -1564,9 +1514,7 @@ export class RailsGateway extends StakingRegistry {
     return balance.lt(amount)
   }
 
-  async getTransferStatus(input: GetTransferStatusInput): Promise<TransferStatus> {
-    const { fromChainId, toChainId, checkpoint } = input
-
+  async getTransferStatus({ fromChainId, toChainId, checkpoint }: GetTransferStatusInput): Promise<TransferStatus> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }

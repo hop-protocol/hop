@@ -51,14 +51,14 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
   #checkRelay = async (): Promise<void> => {
     for await (const value of this.#getRelayableMessages()) {
-      const { message, destinationChainId } = value as IMessage
+      const { message, destinationChainId } = value
       await this.#relayMessage(message, destinationChainId)
     }
   }
 
   async *#getRelayableMessages (): AsyncIterable<ISentMessage> {
     for await (const [, value] of this.getItemsInState(MessageState.Sent)) {
-      const canRelay = await this.#canRelayMessage(value as IMessage)
+      const canRelay = await this.#canRelayMessage(value as ISentMessage)
       if (!canRelay) continue
 
       yield value as ISentMessage
@@ -66,7 +66,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   async #canRelayMessage (value: ISentMessage): Promise<boolean> {
-    const { sourceChainId, sentTimestampMs } = value as IMessage
+    const { sourceChainId, sentTimestampMs } = value
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
     const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
 
@@ -106,7 +106,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   #isRelayed (value: IRelayedMessage): boolean {
-    const { relayTimestampMs, destinationChainId } = value as IMessage
+    const { relayTimestampMs, destinationChainId } = value
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
     const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
 

@@ -1,32 +1,33 @@
 import { EventEmitter } from 'node:events'
-import type { DecodedLogWithContext } from '../types.js'
-import { DATA_INDEXED_EVENT } from '../indexer/constants.js'
-import { IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
 import { IDataProvider } from './IDataProvider.js'
-
-/**
- * @notice This class is not fully abstracted. Indexer and DecodedLogWithContext are
- * implementation details. Make this class more abstract when additional
- * implementations are added.
- */
+// TODO: Imports below here should be abstracted away into a generalized
+// data-source module. Do that when there are multiple implementations.
+import { DATA_STORED_EVENT } from '../indexer/constants.js'
+import { IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
+import type { DecodedLogWithContext } from '../types.js'
 
 /**
  * This class is responsible for providing formatted data to the
  * consumer.
  * 
- * This class also emits an event upon receipt of indexed data
+ * This class also emits an event upon receipt of data from the source.
  */
+
+
+// TODO: Abstract away these types into a generalized data-source module
+// when there are multiple implementations.
+type IDataSource<T, U> = IOnchainEventIndexer<T, U>
+type IDataSourceItem = DecodedLogWithContext
 
 export abstract class DataProvider<T extends string, U> implements IDataProvider<T, U> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
-  readonly #indexer: IOnchainEventIndexer<T, U>
+  readonly #dataSource: IDataSource<T, U>
 
-  abstract fetchItem(key: T, value: U): Promise<U>
-  protected abstract getKeyFromLog(log: DecodedLogWithContext): T
-  protected abstract formatItem(key: T, log: DecodedLogWithContext): Promise<U>
+  protected abstract getKeyFromDataSourceItem(item: IDataSourceItem): T
+  protected abstract formatDataSourceItem(key: T, unformattedItem: IDataSourceItem): Promise<U>
 
-  constructor (indexer: IOnchainEventIndexer<T, U>) {
-    this.#indexer = indexer
+  constructor (dataSource: IDataSource<T, U>) {
+    this.#dataSource = dataSource
   }
 
   /**
@@ -34,13 +35,13 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   async init (): Promise<void> {
-    await this.#indexer.init()
+    await this.#dataSource.init()
     console.log('Data provider initialized')
   }
 
   start (): void {
     this.#startListeners()
-    this.#indexer.start()
+    this.#dataSource.start()
     console.log('Data provider started')
   }
 
@@ -49,17 +50,17 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   #startListeners = (): void => {
-    this.#indexer.on(DATA_INDEXED_EVENT, this.#emitIndexedData)
-    this.#indexer.on('error', () => { throw new Error('Data provider error') })
+    this.#dataSource.on(DATA_STORED_EVENT, this.#emitStoredData)
+    this.#dataSource.on('error', () => { throw new Error('Data provider error') })
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
     this.#eventEmitter.on(event, listener)
   }
 
-  #emitIndexedData = async (eventLog: DecodedLogWithContext): Promise<void> => {
-    const key: T = this.getKeyFromLog(eventLog)
-    const formattedEventLog = await this.formatItem(key,eventLog)
+  #emitStoredData = async (dataSourceItem: IDataSourceItem): Promise<void> => {
+    const key: T = this.getKeyFromDataSourceItem(dataSourceItem)
+    const formattedEventLog = await this.formatDataSourceItem(key, dataSourceItem)
     this.#eventEmitter.emit(key, formattedEventLog)
   }
 
@@ -68,8 +69,8 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   // TODO: Diff U
-  // TODO: Value and resp are different IMessage
-  protected async retrieveItem<V extends U>(key: T, value: V): Promise<DecodedLogWithContext> {
-    return this.#indexer.retrieveItem(key, value)
+  async fetchItem(key: T, value: U): Promise<U> {
+    const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
+    return this.formatDataSourceItem(key, item)
   }
 }

@@ -49,8 +49,8 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
-  abstract retrieveItem(key: T, value: U): Promise<DecodedLogWithContext>
-  protected abstract getIndexerEventFilter(chainId: string, key: T): IndexerEventFilter
+  protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter
+  protected abstract getLookupKeyValues(state: T, value: U): string[]
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
 
   constructor (dbName: string) {
@@ -117,7 +117,9 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
    * Getters
    */
 
-  protected async retrieveIndexedItem(indexerEventFilter: IndexerEventFilter, lookupKeyValues: string[]): Promise<DecodedLogWithContext> {
+  async retrieveItem(key: T, value: U): Promise<DecodedLogWithContext> {
+    const indexerEventFilter = this.getIndexerEventFilter(key, value)
+    const lookupKeyValues: string[] = this.getLookupKeyValues(key, value)
     const filterId = getUniqueFilterId(indexerEventFilter)
     return this.#db.getIndexedItem(filterId, lookupKeyValues)
   }

@@ -1,6 +1,6 @@
 import { ChainSlug } from '@hop-protocol/sdk'
 
-export const DATA_INDEXED_EVENT = 'DATA_INDEXED_EVENT'
+export const DATA_STORED_EVENT = 'DATA_STORED_EVENT'
 
 export const POLL_INTERVAL_MS = 60_000
 

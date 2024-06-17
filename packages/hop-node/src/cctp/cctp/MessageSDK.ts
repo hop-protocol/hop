@@ -36,7 +36,7 @@ interface IAttestationResponseSuccess {
 type IAttestationResponse = IAttestationResponseError | IAttestationResponseSuccess
 
 export type HopCCTPTransferSentDecoded = {
-  cctpNonce: BigNumber
+  cctpNonce: number
   chainId: string
   recipient: string
   amount: BigNumber
@@ -50,7 +50,7 @@ export type HopCCTPTransferSentDecodedWithMessage = HopCCTPTransferSentDecoded &
 export type HopCCTPTransferReceivedDecoded = {
   caller: string
   sourceDomain: string
-  nonce: BigNumber
+  nonce: number
   sender: string
   messageBody: string
 }
@@ -203,10 +203,10 @@ export class MessageSDK {
     } = parsed.args
 
     const messages = await MessageSDK.getCCTPMessagesByTxHash(chainId, log.transactionHash)
-    const message = MessageSDK.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
+    const message = MessageSDK.getMatchingMessageFromMessages(messages, Number(cctpNonce), recipient)
 
     return {
-      cctpNonce,
+      cctpNonce: Number(cctpNonce),
       chainId: cctpChainId,
       recipient,
       amount,
@@ -231,7 +231,7 @@ export class MessageSDK {
     return {
       caller,
       sourceDomain,
-      nonce,
+      nonce: Number(nonce),
       sender,
       messageBody
     }
@@ -274,11 +274,11 @@ export class MessageSDK {
   // are multiple messages with the same recipient and a matching hex nonce in the string, which should be rare.
   static getMatchingMessageFromMessages (
     messages: string[],
-    cctpNonce: BigNumber,
+    cctpNonce: number,
     recipient: string
   ): string {
     const recipientHex = recipient.substring(2).toLowerCase()
-    const cctpNonceHex = cctpNonce.toHexString().substring(2).toLowerCase()
+    const cctpNonceHex = cctpNonce.toString(16).substring(2).toLowerCase()
 
     for (const message of messages) {
       if (

@@ -7,7 +7,7 @@ import {
 import { getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataProvider } from '../data-provider/DataProvider.js'
-import { type IMessage, MessageState, isSentMessage, isRelayedMessage, type ISentMessage, type IRelayedMessage } from './types.js'
+import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } from './types.js'
 
 // Since the messages are unique by chainId, his MessageDataProvider should be the
 // class that abstracts this away.
@@ -22,23 +22,11 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
    * Implementation
    */
 
-  override async fetchItem (state: MessageState, value: IMessage): Promise<IMessage> {
-    let typedValue
-    if (isSentMessage(value)) {
-      typedValue = value as ISentMessage
-    } else if (isRelayedMessage(value)) {
-      typedValue = value as IRelayedMessage
-    }
-
-    const eventLog: DecodedLogWithContext = await this.retrieveItem(state, value)
-    return this.formatItem(state, eventLog)
-  }
-
   protected override getKeyFromDataSourceItem (log: DecodedLogWithContext): MessageState {
     return this.#getStateFromLog(log)
   }
 
-  protected override async formatItem (state: MessageState, log: DecodedLogWithContext): Promise<IMessage> {
+  protected override async formatDataSourceItem (state: MessageState, log: DecodedLogWithContext): Promise<IMessage> {
     switch (state) {
       case MessageState.Sent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>)
@@ -59,24 +47,26 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
     const { message, cctpNonce, chainId: destinationChainId } = decoded
     const timestampMs = await this.#getBlockTimestampFromLogMs(log)
 
-    // TODO: messageNonce should be bignum or num?
     return {
       message,
-      messageNonce: Number(cctpNonce),
+      messageNonce: cctpNonce,
       sourceChainId: chainId,
       destinationChainId,
       sentTxHash: transactionHash,
       sentTimestampMs: timestampMs
-    } as ISentMessage
+    }
   }
 
   async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedMessage> {
-    const { transactionHash } = log
+    const { transactionHash, decoded } = log
+    const { messageBody, sourceDomain } = decoded
     const timestampMs = await this.#getBlockTimestampFromLogMs(log)
     return {
+      message: messageBody,
+      destinationChainId: sourceDomain,
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
-    } as IRelayedMessage
+    }
   }
 
   /**

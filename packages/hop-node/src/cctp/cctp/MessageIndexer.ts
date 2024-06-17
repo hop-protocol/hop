@@ -1,7 +1,7 @@
 import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { DecodedLogWithContext } from '../types.js'
-import { type IMessage, MessageState } from './types.js'
+import { type IMessage, type ISentMessage, type IRelayedMessage, MessageState } from './types.js'
 import { providers } from 'ethers'
 
 type LookupKeys = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
@@ -20,7 +20,7 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
 
     for (const state of states) {
       for (const chainId of chainIds) {
-        const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
+        const indexerEventFilter = this.#getIndexerEventFilterByChainId(chainId, state)
         this.addIndexerEventFilter(indexerEventFilter)
       }
     }
@@ -30,18 +30,27 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
    * Implementation
    */
 
-  override async retrieveItem(state: MessageState, value: IMessage): Promise<DecodedLogWithContext> {
-    const chainId: string = this.#getChainIdForItem(state, value)
-    const indexerEventFilter = this.getIndexerEventFilter(chainId, state)
-    const lookupKeyValues: string[] = this.#getLookupKeyValues(state, value, chainId)
-    return this.retrieveIndexedItem(indexerEventFilter, lookupKeyValues)
+  protected override getIndexerEventFilter(state: MessageState, value: IMessage): IndexerEventFilter<LookupKeys> {
+    const chainId: string = this.#getChainIdForContext(state, value)
+    return this.#getIndexerEventFilterByChainId(chainId, state)
+  }
+
+  protected override getLookupKeyValues (state: MessageState, value: IMessage): string[] {
+    const lookupKeys = this.getIndexerEventFilter(state, value).lookupKeys
+    return lookupKeys.map(
+      (lookupKey: string) => value[lookupKey as keyof IMessage] as string
+    )
   }
 
   protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
     return MessageSDK.addDecodedTypesAndContextToEvent(log, chainId)
   }
 
-  protected override getIndexerEventFilter(chainId: string, state: MessageState): IndexerEventFilter<LookupKeys> {
+  /**
+   * Internal
+   */
+
+  #getIndexerEventFilterByChainId(chainId: string, state: MessageState): IndexerEventFilter<LookupKeys> {
     switch (state) {
       case MessageState.Sent:
         return {
@@ -60,23 +69,14 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage> 
     }
   }
 
-  /**
-   * Internal
-   */
-
-  #getChainIdForItem (state: MessageState, value: IMessage): string {
+  #getChainIdForContext (state: MessageState, value: IMessage): string {
     switch (state) {
       case MessageState.Sent:
-        return value.sourceChainId
+        return (value as ISentMessage).sourceChainId
       case MessageState.Relayed:
-        return value.destinationChainId
+        return (value as IRelayedMessage).destinationChainId
       default:
         throw new Error('Invalid state')
     }
-  }
-
-  #getLookupKeyValues (state: MessageState, value: IMessage, chainId: string): string[] {
-    const lookupKeys = this.getIndexerEventFilter(chainId, state).lookupKeys
-    return lookupKeys.map((lookupKey: string) => value[lookupKey as keyof IMessage] as string)
   }
 }

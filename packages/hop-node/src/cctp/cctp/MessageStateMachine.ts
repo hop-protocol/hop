@@ -12,7 +12,6 @@ import {
 } from './types.js'
 import { TxRelayDB } from '../db/TxRelayDB.js'
 
-// TODO: Handle inflight transactions on restart
 export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   readonly #sentTxCache: TxRelayDB = new TxRelayDB()
   readonly #pollIntervalMs: number = 60_000

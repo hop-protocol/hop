@@ -1,7 +1,6 @@
 import { wait } from '#utils/wait.js'
 
-// TODO: Don't do this
-
+// TODO: Is there a built-in way or better way to do this? I need the exit(1)
 export async function poll(
   cb: () => Promise<void>,
   pollIntervalMs: number

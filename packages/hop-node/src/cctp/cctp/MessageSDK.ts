@@ -62,15 +62,7 @@ export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTr
  * contracts while being chain agnostic and stateless.
  */
 
-// TODO: Sigs are redundant with the filters
-
 export class MessageSDK {
-  // TODO: Do this better and get from SDK
-  static HOP_CCTP_TRANSFER_SENT_SIG = '0x10bf4019e09db5876a05d237bfcc676cd84eee2c23f820284906dd7cfa70d2c4'
-  static MESSAGE_SENT_EVENT_SIG = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-  static MESSAGE_RECEIVED_EVENT_SIG = '0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d'
-
-  // TODO: Get from SDK
   static getCCTPTransferSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getHopCCTPContract(chainId)
     return contract.filters.CCTPTransferSent() as RequiredEventFilter
@@ -86,7 +78,6 @@ export class MessageSDK {
     return contract.filters.MessageReceived() as RequiredEventFilter
   }
 
-  // TODO: better name, not just "event"
   static decodeMessageFromEvent (encodedMessage: string): string {
     const decoded = utils.defaultAbiCoder.decode(['bytes'], encodedMessage)
     return decoded[0]
@@ -170,10 +161,10 @@ export class MessageSDK {
   static async addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): Promise<DecodedLogWithContext> {
     let eventName: string = ''
     let decoded: DecodedEventLogs
-    if (log.topics[0] === MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG) {
+    if (log.topics[0] === MessageSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {
       eventName = 'CCTPTransferSent'
       decoded = await MessageSDK.parseHopCCTPTransferSentLog(log, chainId)
-    } else if (log.topics[0] === MessageSDK.MESSAGE_RECEIVED_EVENT_SIG) {
+    } else if (log.topics[0] === MessageSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
       eventName = 'CCTPMessageReceived'
       decoded = await MessageSDK.parseHopCCTPTransferReceivedLog(log)
     } else {
@@ -189,6 +180,7 @@ export class MessageSDK {
       decoded
     }
   }
+
   // Returns the CCTP message as well as the Hop-specific data
   static async parseHopCCTPTransferSentLog (log: providers.Log, chainId: string): Promise<HopCCTPTransferSentDecodedWithMessage> {
     const iface = getHopCCTPInterface()
@@ -237,7 +229,6 @@ export class MessageSDK {
     }
   }
 
-  // TODO: This shouldn't be public, but everything else is static...
   static async getCCTPMessagesByTxHash (chainId: string, txHash: string): Promise<string[]> {
     const chainSlug = getChain(chainId).slug
     const provider = getRpcProvider(chainSlug)
@@ -269,7 +260,6 @@ export class MessageSDK {
     return messages
   }
 
-  // TODO: Not static
   // Find the correct message if there are multiple messages in a tx hash. This does not work if there
   // are multiple messages with the same recipient and a matching hex nonce in the string, which should be rare.
   static getMatchingMessageFromMessages (

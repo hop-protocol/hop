@@ -12,10 +12,6 @@ import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } 
 // Since the messages are unique by chainId, his MessageDataProvider should be the
 // class that abstracts this away.
 
-// TODO: Somewhere the data returned from the indexer needs to be validated against historical
-// data to ensure, for example, the message didn't change.
-
-
 export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
 
   /**
@@ -83,10 +79,11 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
 
   #getStateFromLog (log: DecodedLogWithContext): MessageState {
     const eventSig = log.topics[0]
+    const chainId = log.context.chainId
     switch (eventSig) {
-      case (MessageSDK.HOP_CCTP_TRANSFER_SENT_SIG):
+      case (MessageSDK.getCCTPTransferSentEventFilter(chainId).topics[0]):
        return MessageState.Sent
-      case (MessageSDK.MESSAGE_RECEIVED_EVENT_SIG):
+      case (MessageSDK.getMessageReceivedEventFilter(chainId).topics[0]):
         return MessageState.Relayed
       default:
         throw new Error('Invalid log')

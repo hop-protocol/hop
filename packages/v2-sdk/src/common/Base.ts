@@ -454,4 +454,8 @@ export class Base {
       }
     }
   }
+
+  getSupportedChainIds(): number[] {
+    return Object.keys(this.contractAddresses[this.network]).map(Number)
+  }
 }

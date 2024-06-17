@@ -235,16 +235,11 @@ export function useV2(): V2Hook {
       toToken,
     } = input
 
-    const pathId = await v2Sdk.railsGateway.getPathId({
-      chainId0: fromChainId,
-      token0: fromToken,
-      chainId1: toChainId,
-      token1: toToken
-    })
-
-    const fee = await v2Sdk.railsGateway.getFee({
-      chainId: fromChainId,
-      pathId
+    const fee = await v2Sdk.getSendFee({
+      fromChainId,
+      fromToken,
+      toChainId,
+      toToken
     })
 
     return fee

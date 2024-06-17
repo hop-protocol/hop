@@ -295,7 +295,7 @@ export class Messenger extends Base {
     return Object.keys(EventName)
   }
 
-  #getEventFetcher(eventName: EventName, chainId: BigNumberish) {
+  getEventFetcher(eventName: EventName, chainId: BigNumberish) {
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
@@ -349,7 +349,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.BundleCommitted, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.BundleCommitted, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -374,7 +374,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.BundleForwarded, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.BundleForwarded, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -399,7 +399,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.BundleReceived, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.BundleReceived, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -424,7 +424,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.BundleSet, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.BundleSet, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -449,7 +449,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.FeesSentToHub, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.FeesSentToHub, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -474,7 +474,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageBundled, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageBundled, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -499,7 +499,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageExecuted, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageExecuted, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -524,7 +524,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageSent, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageSent, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -981,7 +981,7 @@ export class Messenger extends Base {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageSent, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageSent, chainId)
     return eventFetcher.decodeEventsFromTransactionReceipt(receipt)
   }
 
@@ -1026,7 +1026,7 @@ export class Messenger extends Base {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageBundled, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageBundled, chainId)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1056,7 +1056,7 @@ export class Messenger extends Base {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageSent, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageSent, chainId)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1083,7 +1083,7 @@ export class Messenger extends Base {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageExecuted, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageExecuted, chainId)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1110,7 +1110,7 @@ export class Messenger extends Base {
     }
 
     const receipt = await provider.getTransactionReceipt(transactionHash)
-    const eventFetcher = this.#getEventFetcher(EventName.MessageBundled, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageBundled, chainId)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1222,7 +1222,7 @@ export class Messenger extends Base {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.MessageBundled, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.MessageBundled, chainId)
     const filter = eventFetcher.getBundleIdFilter(bundleId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()

@@ -309,7 +309,7 @@ export class RailsGateway extends StakingRegistry {
     return Object.keys(EventName)
   }
 
-  #getEventFetcher(eventName: EventName, chainId: BigNumberish) {
+  getEventFetcher(eventName: EventName, chainId: BigNumberish) {
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
@@ -334,7 +334,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getTransferSentEventFilter({ chainId, transferId, checkpoint, pathId }: GetTransferSentEventFilterInput): EventFilter {
-    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, chainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
 
     if (transferId) {
       return eventFetcher.getTransferIdFilter(transferId)
@@ -398,7 +398,7 @@ export class RailsGateway extends StakingRegistry {
       }
     }
 
-    const eventFetcher = this.#getEventFetcher(eventName, chainId)
+    const eventFetcher = this.getEventFetcher(eventName, chainId)
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
@@ -432,7 +432,7 @@ export class RailsGateway extends StakingRegistry {
       resolvedFromBlock = resolvedToBlock + resolvedFromBlock;
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, chainId);
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId);
     const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock);
 
     for await (const events of eventsGenerator) {
@@ -1286,7 +1286,7 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, fromChainId)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1331,7 +1331,7 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, fromChainId)
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1356,7 +1356,7 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.TransferSent, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, fromChainId)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1379,7 +1379,7 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferBonded, fromChainId)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1424,7 +1424,7 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferBonded, fromChainId)
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
@@ -1449,7 +1449,7 @@ export class RailsGateway extends StakingRegistry {
       throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = this.#getEventFetcher(EventName.TransferBonded, fromChainId)
+    const eventFetcher = this.getEventFetcher(EventName.TransferBonded, fromChainId)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()

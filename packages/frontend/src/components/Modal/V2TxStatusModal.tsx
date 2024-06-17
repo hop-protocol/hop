@@ -15,6 +15,7 @@ type Token = {
 
 type Chain = {
   name: string
+  chainId: number
 }
 
 type Props = {
@@ -90,7 +91,7 @@ export function V2TxStatusModal(props: Props) {
           transactionHash: tx.hash
         })
         const { checkpoint } = event
-        const transferStatus = await v2Sdk.railsGateway.getTransferStatus({
+        const transferStatus = await v2Sdk.getTransferStatus({
           fromChainId,
           toChainId,
           checkpoint

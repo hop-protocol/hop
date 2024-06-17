@@ -238,7 +238,7 @@ export function useV2Send(): V2SendHook {
     if (!(fromChainId && fromTokenAddress)) {
       return null
     }
-    const contract = v2Sdk?.railsGateway.getTokenContract({ chainId: fromChainId, address: fromTokenAddress })
+    const contract = v2Sdk?.getTokenContract({ chainId: fromChainId, address: fromTokenAddress })
     return new Token(contract)
   }, [fromChainId, fromTokenAddress])
 
@@ -246,7 +246,7 @@ export function useV2Send(): V2SendHook {
     if (!(toChainId && toTokenAddress)) {
       return null
     }
-    const contract = v2Sdk?.railsGateway.getTokenContract({ chainId: toChainId, address: toTokenAddress })
+    const contract = v2Sdk?.getTokenContract({ chainId: toChainId, address: toTokenAddress })
     return new Token(contract)
   }, [toChainId, toTokenAddress])
 

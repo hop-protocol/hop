@@ -1,5 +1,5 @@
 import { Base } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent } from 'ethers'
+import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
 import { BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -14,7 +14,7 @@ import { TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.
 import { TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { Messenger } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError } from '#error/index.js'
 
@@ -57,35 +57,39 @@ export type ApproveSendTokensInput = {
   amount: BigNumberish
 }
 
-export class Hop extends Base {
-  eventFetcher: EventFetcher
-  providers: Record<string, providers.Provider> = {}
-  gasPriceOracle: GasPriceOracle
-  messenger: Messenger
-  railsGateway: RailsGateway
-  hubConnector: HubConnector
+export type GetSendFeeInput = {
+  fromChainId: BigNumberish
+  fromToken: string
+  toChainId: BigNumberish
+  toToken: string
+}
 
-  constructor (options?: HopConstructorInput) {
+export class Hop extends Base {
+  private readonly eventFetcher: EventFetcher
+  private readonly providers: Record<string, providers.Provider> = {}
+  private readonly gasPriceOracle: GasPriceOracle
+  readonly messenger: Messenger
+  readonly railsGateway: RailsGateway
+  readonly hubConnector: HubConnector
+
+  constructor(options?: HopConstructorInput) {
     if (!options) {
       throw new ConfigError('options is required')
     }
-    const { network } = options
-    super({ network, signer: options?.signer })
+
+    const { network, signer } = options
+    super({ network, signer })
+
     if (!['mainnet', 'sepolia'].includes(network)) {
       throw new ConfigError(`Invalid network: ${network}`)
     }
 
+    const sharedConfig = { network, signer: this.signer, contractAddresses: this.contractAddresses }
+    this.messenger = new Messenger(sharedConfig)
+    this.hubConnector = new HubConnector(sharedConfig)
+    this.railsGateway = new RailsGateway(sharedConfig)
+    this.gasPriceOracle = new GasPriceOracle(network)
     this.network = network
-
-    if (options?.batchBlocks) {
-      this.batchBlocks = options.batchBlocks
-    }
-
-    this.gasPriceOracle = new GasPriceOracle(this.network)
-
-    this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
-    this.hubConnector = new HubConnector({ network, signer: this.signer, contractAddresses: this.contractAddresses })
-    this.railsGateway = new RailsGateway({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
 
   override connect (signer: Signer) {
@@ -96,33 +100,25 @@ export class Hop extends Base {
     return '' // TODO
   }
 
-  getSupportedChainIds (): number[] {
-    const keys = Object.keys(this.contractAddresses[this.network])
-    return keys.map((chainId: string) => Number(chainId))
+  getRailsGateway() {
+    return this.railsGateway
+  }
+
+  getMessenger() {
+    return this.messenger
   }
 
   getHubConnectorContractAddress (chainId: BigNumberish): string {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId: ${chainId}`)
-    }
-
     return this.hubConnector.getHubConnectorContractAddress(chainId)
   }
 
   getRailsGatewayContractAddress (chainId: BigNumberish): string {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId: ${chainId}`)
-    }
-
     return this.railsGateway.getRailsGatewayContractAddress(chainId)
   }
 
   get populateTransaction() {
     return {
-      sendTokens: async (input: SendTokensInput): Promise<providers.TransactionRequest> => {
-        const { fromChainId, toChainId, fromToken, toToken, amount, minAmountOut } = input
-        let { to } = input
-
+      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to }: SendTokensInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -196,9 +192,7 @@ export class Hop extends Base {
         return populatedTx
       },
 
-      approveSendTokens: async (input: ApproveSendTokensInput): Promise<providers.TransactionRequest> => {
-        const { fromChainId, toChainId, fromToken, toToken, amount } = input
-
+      approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput): Promise<providers.TransactionRequest> => {
         const pathId = await this.railsGateway.getPathId({
           chainId0: fromChainId,
           token0: fromToken,
@@ -265,32 +259,53 @@ export class Hop extends Base {
     await this.utils.switchChain(chainId, this.signer.provider)
   }
 
-  // used by v2-explorer backend
-  async getEvents (input: GetGeneralEventsInput): Promise<EthersEvent[]> {
-    let { eventName, eventNames, chainId, fromBlock, toBlock } = input
+  async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
+    const pathId = await this.railsGateway.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken
+    })
+
+    return this.railsGateway.getFee({
+      chainId: fromChainId,
+      pathId
+    })
+  }
+
+  getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {
+    return this.railsGateway.getTokenContract({ chainId, address })
+  }
+
+  async getTransferStatus(input: GetTransferStatusInput): Promise<TransferStatus> {
+    return this.railsGateway.getTransferStatus(input)
+  }
+
+  async getEvents({
+    eventName,
+    eventNames,
+    chainId,
+    fromBlock,
+    toBlock,
+  }: GetGeneralEventsInput): Promise<EthersEvent[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
     if (!fromBlock) {
       throw new InputError('fromBlock is required')
     }
+
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
 
     const latestBlock = await provider.getBlockNumber()
-    if (latestBlock) {
-      if (!toBlock) {
-        toBlock = latestBlock
-      }
-      if (!fromBlock) {
-        const start = latestBlock - 1000
-        fromBlock = start
-      }
-      if (toBlock && fromBlock < 0) {
-        fromBlock = toBlock + fromBlock
-      }
+    toBlock = toBlock ?? latestBlock
+    fromBlock = fromBlock ?? (latestBlock - 1000)
+
+    if (fromBlock < 0) {
+      fromBlock = toBlock + fromBlock
     }
 
     if (eventName) {
@@ -301,90 +316,40 @@ export class Hop extends Base {
       throw new InputError('expected eventName or eventNames')
     }
 
-    const filters : Filter[] = []
-    const eventFetcher = new EventFetcher({
-      provider,
-      batchBlocks: this.batchBlocks
-    })
-    const map : Record<string, Event<any>> = {} // TODO: type
-    for (const eventName of eventNames) {
-      if (eventName === 'BundleCommitted') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
+    const filters: Filter[] = []
+    const eventFetcher = new EventFetcher({ provider, batchBlocks: this.batchBlocks })
+    const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
+
+    const allEventNames = [
+      ...this.messenger.getEventNames(),
+      ...this.railsGateway.getEventNames()
+    ]
+
+    for (const name of eventNames) {
+      let subclass: any = null
+      if (this.messenger.getEventNames().includes(name)) {
+        subclass = this.messenger
+      } else if (this.railsGateway.getEventNames().includes(name)) {
+        subclass = this.railsGateway
+      }
+
+      if (subclass) {
+        const fetcher = subclass.getEventFetcher(name, chainId)
+        const filter = fetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'BundleForwared') {
-        const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
-        const eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'BundleReceived') {
-        const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
-        const eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'BundleSet') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'FeesSentToHub') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'MessageBundled') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'MessageExecuted') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'MessageSent') {
-        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'TransferSent') { // RailsGateway
-        const address = this.getRailsGatewayContractAddress(chainId)
-        const eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
-      } else if (eventName === 'TransferBonded') { // RailsGateway
-        const address = this.getRailsGatewayContractAddress(chainId)
-        const eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks, address)
-        const filter = eventFetcher.getFilter()
-        filters.push(filter)
-        map[filter?.topics?.[0] as string] = eventFetcher
+        eventFetcherMap[filter.topics?.[0] as string] = fetcher
       }
     }
-    const options = {
-      fromBlock: fromBlock as number,
-      toBlock: toBlock as number
-    }
+
+    const options = { fromBlock: fromBlock as number, toBlock: toBlock as number }
     const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
-    const decoded : EthersEvent[] = []
+
+    const decoded: EthersEvent[] = []
     for (const event of events) {
-      const res = await map[event.topics[0] as string].populateEvents([event]) as EthersEvent[]
+      const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event]) as EthersEvent[]
       decoded.push(...res)
     }
-    return decoded
-  }
 
-  // used by v2-explorer backend
-  getEventNames (): string[] {
-    return this.messenger.getEventNames()
+    return decoded
   }
 }

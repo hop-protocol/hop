@@ -51,7 +51,7 @@ export class Base {
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
     this.chainProviders = config.chainProviders || this.getDefaultChainRpcProviders()
 
-    this.contractAddresses = addresses[this.network]
+    this.contractAddresses = addresses[this.network] ?? {}
 
     if (config.contractAddresses) {
       this.contractAddresses = config.contractAddresses
@@ -303,6 +303,10 @@ export class Base {
     return signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
   }
 
+  getSupportedChainIds(): string[] {
+    return Object.keys(this.contractAddresses)
+  }
+
   get utils() {
     return {
       isValidObject: (obj: any): boolean => {
@@ -318,7 +322,8 @@ export class Base {
           return false
         }
 
-        return hash.slice(0, 2) === '0x' && hash.length === 66
+        const hexPattern = /^0x[0-9a-fA-F]{64}$/
+        return hexPattern.test(hash)
       },
 
       isValidTxHash: (txHash: string): boolean => {
@@ -326,7 +331,12 @@ export class Base {
       },
 
       isValidBytes: (bytes: string): boolean => {
-        return bytes.slice(0, 2) === '0x'
+        if (typeof bytes !== 'string') {
+          return false
+        }
+
+        const hexPattern = /^0x[0-9a-fA-F]*$/
+        return hexPattern.test(bytes)
       },
 
       isValidAddress: (address: string): boolean => {
@@ -384,6 +394,36 @@ export class Base {
         return BigNumber.from(network.chainId)
       },
 
+      getTransactionHashExplorerUrl: (txHash: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidTxHash(txHash)) {
+          throw new Error(`invalid transaction hash "${txHash}"`)
+        }
+        return getTxHashExplorerUrl(this.network, chainId?.toString(), txHash)
+      },
+
+      getAddressExplorerUrl: (address: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidAddress(address)) {
+          throw new Error(`invalid address "${address}"`)
+        }
+        return getAddressExplorerUrl(this.network, chainId?.toString(), address)
+      },
+
+      getTokenExplorerUrl: (address: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidAddress(address)) {
+          throw new Error(`invalid address "${address}"`)
+        }
+        return getTokenExplorerUrl(this.network, chainId?.toString(), address)
+      },
+
       switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {
         chainId = BigNumber.from(chainId)
         try {
@@ -421,41 +461,7 @@ export class Base {
             throw err
           }
         }
-      },
-
-      getTransactionHashExplorerUrl: (txHash: string, chainId: BigNumberish): string => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
-        }
-        if (!this.utils.isValidTxHash(txHash)) {
-          throw new Error(`invalid transaction hash "${txHash}"`)
-        }
-        return getTxHashExplorerUrl(this.network, chainId?.toString(), txHash)
-      },
-
-      getAddressExplorerUrl: (address: string, chainId: BigNumberish): string => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
-        }
-        if (!this.utils.isValidAddress(address)) {
-          throw new Error(`invalid address "${address}"`)
-        }
-        return getAddressExplorerUrl(this.network, chainId?.toString(), address)
-      },
-
-      getTokenExplorerUrl: (address: string, chainId: BigNumberish): string => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
-        }
-        if (!this.utils.isValidAddress(address)) {
-          throw new Error(`invalid address "${address}"`)
-        }
-        return getTokenExplorerUrl(this.network, chainId?.toString(), address)
       }
     }
-  }
-
-  getSupportedChainIds(): number[] {
-    return Object.keys(this.contractAddresses[this.network]).map(Number)
   }
 }

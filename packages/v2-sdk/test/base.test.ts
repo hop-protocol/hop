@@ -47,9 +47,39 @@ describe.skip('Base', () => {
     const baseWithSigner = base.connect(signer)
     expect(baseWithSigner.signer).toBeDefined()
   })
+  it('should return boolean if option is object', () => {
+    expect(base.utils.isValidObject({})).toBe(true)
+    expect(base.utils.isValidObject(222222)).toBe(false)
+  })
   it('should return boolean if chain id valid', () => {
     expect(base.utils.isValidChainId(1)).toBe(true)
     expect(base.utils.isValidChainId(222222)).toBe(false)
+  })
+  it('should return boolean if string is bytes32', () => {
+    expect(base.utils.isValidBytes32('0x'+'1'.repeat(64))).toBe(true)
+    expect(base.utils.isValidBytes32('0x123')).toBe(false)
+    expect(base.utils.isValidBytes32('0xYZ')).toBe(false)
+  })
+  it('should return boolean if string is bytes', () => {
+    expect(base.utils.isValidBytes('0x')).toBe(true)
+    expect(base.utils.isValidBytes('0x123')).toBe(true)
+    expect(base.utils.isValidBytes('abc')).toBe(false)
+  })
+  it('should return boolean if address is valid', () => {
+    expect(base.utils.isValidAddress('0x'+'1'.repeat(40))).toBe(true)
+    expect(base.utils.isValidAddress('0x123')).toBe(false)
+  })
+  it('should return boolean if filter block is valid', () => {
+    expect(base.utils.isValidFilterBlock('latest')).toBe(true)
+    expect(base.utils.isValidFilterBlock('pending')).toBe(true)
+    expect(base.utils.isValidFilterBlock('earliest')).toBe(true)
+    expect(base.utils.isValidFilterBlock('foo')).toBe(false)
+    expect(base.utils.isValidFilterBlock('123')).toBe(true)
+  })
+  it.only('should return boolean if is numeric value', () => {
+    expect(base.utils.isValidNumericValue(1)).toBe(true)
+    expect(base.utils.isValidNumericValue('100')).toBe(true)
+    expect(base.utils.isValidNumericValue('abc')).toBe(false)
   })
   it('should return boolean if tx hash is valid', () => {
     expect(base.utils.isValidTxHash('0x'+'1'.repeat(64))).toBe(true)
@@ -58,6 +88,58 @@ describe.skip('Base', () => {
   it('should get chain slug from chain id', () => {
     expect(base.utils.getChainSlug(1)).toBe('ethereum')
   })
+  it('should get bumped gas price', async () => {
+    const chainId = 1
+    const provider = base.getDefaultChainRpcProvider(chainId)
+    const percent = 0.20
+    const gasPrice = await base.utils.getBumpedGasPrice(provider, percent)
+    console.log(gasPrice)
+    expect(gasPrice).toBeDefined()
+  })
+  it('should estimate gas', async () => {
+    const tx = {
+      to: '0x'+ '1'.repeat(40),
+      value: 0,
+    }
+    const chainId = 1
+    const provider = base.getDefaultChainRpcProvider(1)
+    const gas = await base.utils.estimateGas(provider, tx)
+    console.log(gas)
+    expect(gas).toBeDefined()
+  })
+  it('should get gas price', async () => {
+    const provider = await base.getSignerOrProvider(1)
+    const gasPrice = await base.utils.getGasPrice(provider)
+    console.log(gasPrice)
+    expect(gasPrice).toBeDefined()
+  }, 60 * 1000)
+  it('should get connected chain id', async () => {
+    const provider = await base.getSignerOrProvider(1)
+    const connectedChainId = await base.utils.getConnectedChainId(provider as providers.Provider)
+    console.log(connectedChainId)
+    expect(connectedChainId).toBeDefined()
+  }, 60 * 1000)
+  it('should get transaction explorer url', async () => {
+    const txHash = '0x' + '1'.repeat(64)
+    const chainId = 1
+    const explorerUrl = base.utils.getTransactionHashExplorerUrl(txHash, chainId)
+    console.log(explorerUrl)
+    expect(explorerUrl).toBeDefined()
+  }, 60 * 1000)
+  it('should get address explorer url', async () => {
+    const txHash = '0x' + '1'.repeat(40)
+    const chainId = 1
+    const explorerUrl = base.utils.getAddressExplorerUrl(txHash, chainId)
+    console.log(explorerUrl)
+    expect(explorerUrl).toBeDefined()
+  }, 60 * 1000)
+  it('should get token explorer url', async () => {
+    const txHash = '0x' + '1'.repeat(40)
+    const chainId = 1
+    const explorerUrl = base.utils.getTokenExplorerUrl(txHash, chainId)
+    console.log(explorerUrl)
+    expect(explorerUrl).toBeDefined()
+  }, 60 * 1000)
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
     expect(base.getRpcProviderForChainId('1')).toBeDefined()
@@ -94,14 +176,6 @@ describe.skip('Base', () => {
     console.log(exists)
     expect(exists).toBeDefined()
   })
-  it('should get bumped gas price', async () => {
-    const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(chainId)
-    const percent = 0.20
-    const gasPrice = await base.utils.getBumpedGasPrice(provider, percent)
-    console.log(gasPrice)
-    expect(gasPrice).toBeDefined()
-  })
   it('should get signer', async () => {
     const signer = base.connect(new Wallet(privateKey)).getSigner()
     console.log(signer)
@@ -126,22 +200,13 @@ describe.skip('Base', () => {
     console.log(txOverrides)
     expect(txOverrides).toBeDefined()
   })
-  it('should estimate gas', async () => {
-    const tx = {
-      to: '0x'+ '1'.repeat(40),
-      value: 0,
-    }
-    const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(1)
-    const gas = await base.utils.estimateGas(provider, tx)
-    console.log(gas)
-    expect(gas).toBeDefined()
-  })
-  it.skip('should get gas price', async () => {
-    const provider = await base.getSignerOrProvider(1)
-    const gasPrice = await base.utils.getGasPrice(provider)
-    console.log(gasPrice)
-    expect(gasPrice).toBeDefined()
+  it('should get supported chain ids', async () => {
+    const base = new Base({
+      network: 'sepolia'
+    })
+    const supportedChainIds = base.getSupportedChainIds()
+    console.log(supportedChainIds)
+    expect(supportedChainIds.length > 0).toBe(true)
   }, 60 * 1000)
   it.skip('should send transaction', async () => {
     const txRequest = {
@@ -154,4 +219,18 @@ describe.skip('Base', () => {
     const tx = await base.sendTransaction(txRequest)
     expect(tx.hash).toBeDefined()
   })
+  it.skip('should switch provider chain id', async () => {
+    const chainId = 1
+    const newChainId = 10
+    const externalProvider = window.ethereum // TODO
+    const provider = new providers.Web3Provider(externalProvider, 'any')
+    let error = ''
+    try {
+      await base.utils.switchChain(newChainId, provider)
+    } catch (err) {
+      console.error(err)
+      error = err
+    }
+    expect(error).toBe('')
+  }, 60 * 1000)
 })

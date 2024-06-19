@@ -47,6 +47,23 @@ export const MessageTransmitterAddresses: Record<string, Partial<Record<ChainSlu
   }
 }
 
+export const TOKEN_MESSENGER_ADDRESSES: Record<string, Partial<Record<string, string>>> = {
+  [NetworkSlug.Mainnet]: {
+    '1': '0xBd3fa81B58Ba92a82136038B25aDec7066af3155',
+    '10': '0x2B4069517957735bE00ceE0fadAE88a26365528f',
+    '42161': '0x19330d10D9Cc8751218eaf51E8885D058642E08A',
+    '8453': '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962',
+    '137': '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE',
+  },
+  [NetworkSlug.Sepolia]: {
+    '11155111': '',
+    '11155420': '',
+    '421614': '',
+    '84532': '',
+  }
+}
+
+
 // Remove all this in favor of the contract instance from the SDK when available
 export const HopCCTPAddresses : Record<string, Partial<Record<ChainSlug, string>>> = {
   [NetworkSlug.Mainnet]: {

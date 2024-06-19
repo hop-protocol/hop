@@ -4,6 +4,7 @@ import {
   CCTP_DOMAIN_TO_CHAIN_ID_MAP,
   CCTP_CHAIN_ID_TO_DOMAIN_MAP,
   USDC_ADDRESSES,
+  TOKEN_MESSENGER_ADDRESSES,
   getAttestationUrl,
   getHopCCTPContract,
   getHopCCTPInterface,
@@ -187,19 +188,44 @@ export class MessageSDK {
       bonderFee
     } = parsed.args
 
-    const messageVersion = 0
-    const burnToken = USDC_ADDRESSES[globalConfig.network as NetworkSlug]![chainId]
-    const mintRecipient = recipient
-    const messageSender = getHopCCTPContract(chainId).address
+    // Get the message body
+    const messageBodyVersion = 0
+    const burnToken = utils.hexZeroPad(USDC_ADDRESSES[globalConfig.network as NetworkSlug]![chainId], 32)
+    const mintRecipient = utils.hexZeroPad(recipient, 32)
+    const messageAmount = amount.sub(bonderFee)
+    const messageBodySender = utils.hexZeroPad(getHopCCTPContract(chainId).address, 32)
 
-    const messageTypes = ['uint32', 'bytes32', 'bytes32', 'uint256', 'bytes32']
+    const messageBodyTypes = ['uint32', 'bytes32', 'bytes32', 'uint256', 'bytes32']
+    const messageBody = utils.solidityPack(messageBodyTypes,
+      [
+        messageBodyVersion,
+        burnToken,
+        mintRecipient,
+        messageAmount.toString(),
+        messageBodySender,
+      ]
+    )
+
+    // Use the messageBody to get the message
+    const messageVersion = 0
+    const sourceDomain = MessageSDK.getDomainFromChainId(chainId)
+
+    const messageSender = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[globalConfig.network as NetworkSlug]![chainId]!, 32)
+    const messageRecipient = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[globalConfig.network as NetworkSlug]![cctpChainId]!, 32)
+    const destDomain = MessageSDK.getDomainFromChainId(cctpChainId)
+    const destinationCaller = utils.hexZeroPad('0x0000000000000000000000000000000000000000', 32)
+
+    const messageTypes = ['uint32', 'uint32', 'uint32', 'uint64', 'bytes32', 'bytes32', 'bytes32', 'bytes']
     const message = utils.solidityPack(messageTypes,
       [
         messageVersion,
-        utils.hexZeroPad(burnToken, 32),
-        utils.hexZeroPad(mintRecipient, 32),
-        amount,
-        utils.hexZeroPad(messageSender, 32)
+        sourceDomain,
+        destDomain,
+        cctpNonce,
+        messageSender,
+        messageRecipient,
+        destinationCaller,
+        messageBody
       ]
     )
 

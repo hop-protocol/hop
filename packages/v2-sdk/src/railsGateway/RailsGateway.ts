@@ -145,18 +145,21 @@ export type GetHasSufficientBalanceInput = {
   chainId: BigNumberish
   tokenAddress: string
   amount: BigNumberish
+  account?: string
 }
 
 export type GetNeedsApprovalForSendInput = {
   chainId: BigNumberish
   pathId: string
   amount: BigNumberish
+  account?: string
 }
 
 export type GetNeedsApprovalForBondInput = {
   chainId: BigNumberish
   pathId: string
   amount: BigNumberish
+  account?: string
 }
 
 export type GetLatestClaimInput = {
@@ -559,8 +562,13 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid minAmountOut "${to}"`)
         }
 
-        if (!this.utils.isValidBytes32(attestedCheckpoint)) {
-          throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+        // Note: attestedCheckpoint is optional
+        if (attestedCheckpoint) {
+          if (!this.utils.isValidBytes32(attestedCheckpoint)) {
+            throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+          }
+        } else {
+          attestedCheckpoint = '0x' + '0'.repeat(64)
         }
 
         if (!to) {
@@ -635,8 +643,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid amount "${totalSent}"`)
         }
 
-        if (!this.utils.isValidBytes32(attestedCheckpoint)) {
-          throw new InputError(`Invalid attested checkpoint "${attestedCheckpoint}"`)
+        if (attestedCheckpoint) {
+          if (!this.utils.isValidBytes32(attestedCheckpoint)) {
+            throw new InputError(`Invalid attested checkpoint "${attestedCheckpoint}"`)
+          }
+        } else {
+          attestedCheckpoint = '0x' + '0'.repeat(64)
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
@@ -770,7 +782,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.withdrawAll(pathId, timeWindow)
+        const txData = await contract.populateTransaction.withdrawAll(pathId, timeWindow)
 
         return {
           ...txData,
@@ -1037,9 +1049,7 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async getNeedsApprovalForSend (input: GetNeedsApprovalForSendInput): Promise<boolean> {
-    const { chainId, pathId, amount } = input
-
+  async getNeedsApprovalForSend ({ chainId, pathId, amount, account }: GetNeedsApprovalForSendInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1054,7 +1064,7 @@ export class RailsGateway extends StakingRegistry {
     console.log('rails approval token', tokenAddress)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress(chainId)
-    const account = await this.getSignerAddress()
+    account ??= (await this.getSignerAddress())!
     if (!account) {
       throw new InputError('signer not set')
     }
@@ -1064,7 +1074,7 @@ export class RailsGateway extends StakingRegistry {
     return approved.lt(amount)
   }
 
-  async getNeedsApprovalForBond ({ chainId, pathId, amount }: GetNeedsApprovalForBondInput): Promise<boolean> {
+  async getNeedsApprovalForBond ({ chainId, pathId, amount, account }: GetNeedsApprovalForBondInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1078,7 +1088,7 @@ export class RailsGateway extends StakingRegistry {
     const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress(chainId)
-    const account = await this.getSignerAddress()
+    account ??= (await this.getSignerAddress())!
     if (!account) {
       throw new InputError('signer not set')
     }
@@ -1204,8 +1214,12 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid nonce "${nonce}"`)
     }
 
-    if (!this.utils.isValidBytes32(attestedCheckpoint)) {
-      throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+    if (attestedCheckpoint) {
+      if (!this.utils.isValidBytes32(attestedCheckpoint)) {
+        throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+      }
+    } else {
+      attestedCheckpoint = '0x' + '0'.repeat(64)
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
@@ -1491,7 +1505,7 @@ export class RailsGateway extends StakingRegistry {
     return tokenContract
   }
 
-  async getHasSufficientBalance ({ chainId, tokenAddress, amount }: GetHasSufficientBalanceInput): Promise<boolean> {
+  async getHasSufficientBalance ({ chainId, tokenAddress, amount, account }: GetHasSufficientBalanceInput): Promise<boolean> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1506,7 +1520,7 @@ export class RailsGateway extends StakingRegistry {
 
     const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const account = await this.getSignerAddress()
+    account ??= (await this.getSignerAddress())!
     if (!account) {
       throw new InputError('signer not set')
     }

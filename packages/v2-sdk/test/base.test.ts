@@ -222,7 +222,7 @@ describe.skip('Base', () => {
   it.skip('should switch provider chain id', async () => {
     const chainId = 1
     const newChainId = 10
-    const externalProvider = window.ethereum // TODO
+    const externalProvider = {} // window.ethereum // TODO
     const provider = new providers.Web3Provider(externalProvider, 'any')
     let error = ''
     try {

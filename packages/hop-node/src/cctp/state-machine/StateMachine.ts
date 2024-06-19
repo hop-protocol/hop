@@ -93,7 +93,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
    * State transitions
    */
 
-  async #initializeItem (value: StateData): Promise<void> {
+  #initializeItem = (value: StateData): Promise<void> => {
     const firstState = getFirstState(this.#states)
     const key = this.getItemId(value)
     return this.#db.createItemIfNotExist(firstState, key, value)

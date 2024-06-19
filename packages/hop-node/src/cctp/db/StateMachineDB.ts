@@ -1,4 +1,5 @@
 import { DB } from './DB.js'
+import { normalizeDBValue } from './utils.js'
 
 /**
  * Uses state-indexed subDBs with the state to allow for efficient querying.
@@ -19,8 +20,11 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   }
 
   async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
-    const existingValue = await this.get(key)
-    if (!existingValue) {
+    // TODO: Add `get` in DB that handles this I think
+    let existingValue: StateData
+    try {
+      existingValue = await this.get(key)
+    } catch (err) {
       return this.#updateState(null, initialState, key, value)
     }
 
@@ -56,11 +60,11 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     const batch = this.batch()
     // Delete the current state entry if this is not the initial state
     if (state !== null) {
-      batch.del(key, { sublevel: this.sublevel(state) })
+      batch.del(key, { sublevel: this.getSublevel(state) })
     }
 
     // Add the next state entry
-    const opts = nextState === null ? {} : { sublevel: this.sublevel(nextState) }
+    const opts = nextState === null ? {} : { sublevel: this.getSublevel(nextState) }
     batch.put(key, updatedValue, opts)
 
     return batch.write()
@@ -71,8 +75,10 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
    */
 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
-    for await (const [key, value] of this.sublevel(state).iterator()) {
-      yield [key as Key, value as StateData]
+    // TODO: Can I filter in DB so I don't need to filter in each impl?
+    for await (const [key, value] of this.getSublevel(state).iterator()) {
+      const filteredValue = normalizeDBValue(value)
+      yield [key as Key, filteredValue as StateData]
     }
   }
 

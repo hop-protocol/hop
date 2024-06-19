@@ -54,14 +54,14 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
     this.#dataSource.on('error', () => { throw new Error('Data provider error') })
   }
 
-  on (event: string, listener: (...args: any[]) => void): void {
-    this.#eventEmitter.on(event, listener)
-  }
-
   #emitStoredData = async (dataSourceItem: IDataSourceItem): Promise<void> => {
     const key: T = this.getKeyFromDataSourceItem(dataSourceItem)
     const formattedEventLog = await this.formatDataSourceItem(key, dataSourceItem)
     this.#eventEmitter.emit(key, formattedEventLog)
+  }
+
+  on (event: string, listener: (...args: any[]) => void): void {
+    this.#eventEmitter.on(event, listener)
   }
 
   /**

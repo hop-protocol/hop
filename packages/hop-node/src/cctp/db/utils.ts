@@ -3,6 +3,7 @@ import path from 'node:path'
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
+import { BigNumber } from 'ethers'
 
 // Assume that a path is a location if it contains a slash
 export function getDBPath (dbNameOrLocation: string): string {
@@ -34,4 +35,22 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug
 export function getDefaultStartBlockNumber (chainId: string): number {
   const chainSlug = getChain(chainId).slug
   return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network as NetworkSlug][chainSlug]
+}
+
+export function normalizeDBValue<T extends Record<string, { type?: string }>>(value: T): T {
+  for (const prop in value) {
+    if (value[prop]?.type === 'BigNumber') {
+      value = normalizeBigNumber(value, prop)
+    }
+  }
+
+  return value
+}
+
+function normalizeBigNumber (value: any, prop: string): any {
+  if (value?.[prop] && value?.[prop]?.type === 'BigNumber') {
+    value[prop] = BigNumber.from(value[prop]?.hex)
+  }
+
+  return value
 }

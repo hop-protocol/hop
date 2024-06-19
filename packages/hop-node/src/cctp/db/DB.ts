@@ -28,4 +28,15 @@ export abstract class DB<K, V> extends Level<K, V> {
   protected async has(key: K): Promise<boolean> {
     return (await this.getIfExists(key)) !== null
   }
+
+  // TODO: Possibly better way to do this? the reason this exists is to 
+  // return JSON objects when getting from sublevels without needing to
+  // add explicit options throughout the codebase
+  // TODO: Not any
+  protected getSublevel(sublevelName: string): any {
+    return this.sublevel(sublevelName, {
+      keyEncoding: KEY_ENCODING_OPTIONS.keyEncoding,
+      valueEncoding: KEY_ENCODING_OPTIONS.valueEncoding
+    })
+  }
 }

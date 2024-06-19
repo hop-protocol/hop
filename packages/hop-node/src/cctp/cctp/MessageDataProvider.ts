@@ -54,12 +54,13 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
   }
 
   async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedMessage> {
-    const { transactionHash, decoded } = log
-    const { messageBody, sourceDomain } = decoded
+    const { transactionHash, decoded, context } = log
+    const { nonce, sourceDomain } = decoded
     const timestampMs = await this.#getBlockTimestampFromLogMs(log)
     return {
-      message: messageBody,
-      destinationChainId: sourceDomain,
+      messageNonce: nonce,
+      sourceChainId: MessageSDK.getChainIdFromDomain(sourceDomain),
+      destinationChainId: context.chainId,
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
     }

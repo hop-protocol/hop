@@ -8,13 +8,11 @@ import type {
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
-import {
-  DATA_STORED_EVENT,
-  POLL_INTERVAL_MS
-} from './constants.js'
+import { POLL_INTERVAL_MS, DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { getChain } from '@hop-protocol/sdk'
+import { DATA_PUT_EVENT } from '../db/constants.js'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -42,22 +40,22 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<T, U> {
+export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implements IOnchainEventIndexer<T, U> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
-  readonly #indexerEventFilters: IndexerEventFilter[] = []
+  readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
 
-  protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter
-  protected abstract getLookupKeyValues(state: T, value: U): string[]
+  protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter<LookupKey>
+  protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
   }
 
-  protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter): void {
+  protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter<LookupKey>): void {
     if (this.#started) {
       throw new Error('Cannot add indexer after starting')
     }
@@ -80,6 +78,7 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
   }
 
   start (): void {
+    this.#db.start()
     this.#startListeners()
     for (const indexerEventFilter of this.#indexerEventFilters) {
       this.#startPoller(indexerEventFilter)
@@ -92,20 +91,8 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
    * Node events
    */
 
-  #startListeners = (): void => {
-    // Emit event when data is written to the DB
-    // https://github.com/Level/abstract-level?tab=readme-ov-file#write
-    this.#db.on('write', (operations: any) => {
-      for (const op of operations) {
-        if (op.type !== 'put') continue
-
-        // The DB emits sync state values which should be ignored
-        const isDecodedLog = !!op.value?.decoded
-        if (!isDecodedLog) continue
-
-        return this.#eventEmitter.emit(DATA_STORED_EVENT, op.value)
-      }
-    })
+  #startListeners(): void {
+    this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_STORED_EVENT, data))
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 
@@ -119,9 +106,16 @@ export abstract class OnchainEventIndexer<T, U> implements IOnchainEventIndexer<
 
   async retrieveItem(key: T, value: U): Promise<DecodedLogWithContext> {
     const indexerEventFilter = this.getIndexerEventFilter(key, value)
-    const lookupKeyValues: string[] = this.getLookupKeyValues(key, value)
+    const lookupKeyValues: string[] = this.#getLookupKeyValues(key, value)
     const filterId = getUniqueFilterId(indexerEventFilter)
     return this.#db.getIndexedItem(filterId, lookupKeyValues)
+  }
+
+  #getLookupKeyValues (key: T, value: U): string[] {
+    const lookupKeys: LookupKey[] = this.getIndexerEventFilter(key, value).lookupKeys
+    return lookupKeys.map((lookupKey: LookupKey) => {
+      return this.getLookupKeyValue(lookupKey, value)
+    })
   }
 
   /**

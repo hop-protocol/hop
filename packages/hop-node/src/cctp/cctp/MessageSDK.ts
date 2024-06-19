@@ -1,15 +1,16 @@
 import type { Signer, providers} from 'ethers'
 import { BigNumber, utils } from 'ethers'
 import {
-  CCTP_CHAIN_ID_TO_DOMAIN_MAP,
   CCTP_DOMAIN_TO_CHAIN_ID_MAP,
+  CCTP_CHAIN_ID_TO_DOMAIN_MAP,
+  USDC_ADDRESSES,
   getAttestationUrl,
   getHopCCTPContract,
   getHopCCTPInterface,
   getCCTPMessageTransmitterContractInterface,
   getMessageTransmitterContract,
 } from './utils.js'
-import type { DecodedLogWithContext, RequiredEventFilter, RequiredFilter } from '../types.js'
+import type { DecodedLogWithContext, RequiredEventFilter } from '../types.js'
 import { type NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
@@ -86,15 +87,6 @@ export class MessageSDK {
 
   static getMessageHashFromMessage (message: string): string {
     return utils.keccak256(message)
-  }
-
-  static convertDomainToChainId (domainId: BigNumber): BigNumber {
-    const domainMap = CCTP_DOMAIN_TO_CHAIN_ID_MAP[globalConfig.network as NetworkSlug]
-    if (!domainMap) {
-      throw new Error('Domain map not found')
-    }
-
-    return BigNumber.from(domainMap[Number(domainId)])
   }
 
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
@@ -218,7 +210,7 @@ export class MessageSDK {
 
     return {
       cctpNonce: Number(cctpNonce),
-      chainId: cctpChainId,
+      chainId: cctpChainId.toString(),
       recipient,
       amount,
       bonderFee,
@@ -251,5 +243,18 @@ export class MessageSDK {
   static decodeMessageBodyFromTransferSentInputParams (data: string): string {
     const types = ['uint32', 'bytes32', 'bytes']
     return utils.defaultAbiCoder.decode(types, data.slice(10))[2]
+  }
+
+  static getChainIdFromDomain (domain: string): string {
+    return (CCTP_DOMAIN_TO_CHAIN_ID_MAP[globalConfig.network as NetworkSlug]![Number(domain)]).toString()
+  }
+
+  static getDomainFromChainId (chainId: string): string {
+    console.log(chainId)
+    return (CCTP_CHAIN_ID_TO_DOMAIN_MAP[globalConfig.network as NetworkSlug]![Number(chainId)]).toString()
+  }
+
+  static encodeSourceChainIdAndNonce (sourceChainId: string, nonce: number): string {
+    return utils.defaultAbiCoder.encode(['uint32', 'uint32'], [Number(sourceChainId), nonce])
   }
 }

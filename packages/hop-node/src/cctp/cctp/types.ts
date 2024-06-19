@@ -5,14 +5,13 @@ export enum MessageState {
 }
 
 interface IMessageShared {
-  message: string
+  messageNonce: number
+  sourceChainId: string
   destinationChainId: string
 }
 
 export interface ISentMessage extends IMessageShared {
-  messageNonce: number
   message: string
-  sourceChainId: string
   sentTxHash: string
   sentTimestampMs: number
 }

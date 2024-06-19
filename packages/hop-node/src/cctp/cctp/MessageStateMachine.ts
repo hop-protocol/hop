@@ -30,7 +30,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
    */
 
   protected override getItemId(value: IMessage): string {
-    return MessageSDK.getMessageHashFromMessage(value.message)
+    return MessageSDK.encodeSourceChainIdAndNonce(value.sourceChainId, value.messageNonce)
   }
 
   protected override isTransitionReady (state: MessageState, value: IMessage): boolean {

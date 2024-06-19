@@ -1,6 +1,7 @@
 import { DB } from './DB.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext } from '../types.js'
+import { DATA_PUT_EVENT } from './constants.js'
 
 /**
  * This DB should only be used to get individual items. There should never be a
@@ -27,12 +28,16 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     super(dbName + 'OnchainEventIndexerDB')
   }
 
+  /**
+   * Initialization
+   */
+
   async newIndexerDB(primaryKey: string, secondaryKeys: string[]): Promise<void> {
     if (this.#secondaryKeys[primaryKey]) {
       throw new Error(`Indexer DB already exists for primaryKey ${primaryKey}`)
     }
     this.sublevel(primaryKey)
-    this.#secondaryKeys[primaryKey] = { ...secondaryKeys }
+    this.#secondaryKeys[primaryKey] = secondaryKeys
   }
 
   async initializeIndexer (primaryKey: string, chainId: string): Promise<void> {
@@ -47,6 +52,30 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       syncedBlockNumber: defaultStartBlockNumber
     })
   }
+
+  start (): void {
+    this.#startListeners()
+    console.log('Onchain Event Indexer started')
+  }
+
+  /**
+   * Node events
+   */
+
+    #startListeners = (): void => {
+      // https://github.com/Level/levelup?tab=readme-ov-file#events
+      this.on('batch', (operations: any[]) => {
+        for (const op of operations) {
+          if (op.type !== 'put') continue
+
+          // Only emit the event if the value is not a sync value
+          const isSyncPut = !!op.value?.syncedBlockNumber
+          if (isSyncPut) continue
+
+          this.emit(DATA_PUT_EVENT, op.value)
+        }
+      })
+    }
 
   /**
    * Getters

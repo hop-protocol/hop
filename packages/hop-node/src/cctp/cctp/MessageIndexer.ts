@@ -54,6 +54,17 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
     return MessageSDK.addDecodedTypesAndContextToEvent(log, chainId)
   }
 
+  // NOTE: This is not meant to exist outside of the CCTP implementation. See the comment in the abstract class.
+  protected override filterIrrelevantLog(log: DecodedLogWithContext): boolean {
+    const sourceDomain = (log.decoded as any)?.sourceDomain
+    if (!sourceDomain) return true
+
+    const enabledDomains = MessageSDK.getEnabledDomains()
+    if (!enabledDomains.includes(sourceDomain)) return false
+
+    return true
+  }
+
   /**
    * Internal
    */

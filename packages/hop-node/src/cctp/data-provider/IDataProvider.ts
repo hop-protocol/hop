@@ -8,5 +8,5 @@ export interface IDataProvider<T, U> {
 
   // Public methods
   // TODO: Diff U
-  fetchItem(key: T, value: U): Promise<U>
+  fetchItem(key: T, value: U): Promise<U | null>
 }

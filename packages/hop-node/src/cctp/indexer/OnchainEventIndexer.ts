@@ -46,10 +46,14 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
+  #initialSyncComplete: Record<string, boolean> = {}
 
   protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter<LookupKey>
   protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
+  // NOTE: This is not meant to persist after CCTP. All events should either be indexable in the filter for the getLogs
+  // call or the event shouldn't need to be observed.
+  protected abstract filterIrrelevantLog(log: DecodedLogWithContext): boolean
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
@@ -147,8 +151,13 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
     }
 
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
+      const filteredLogs = logs.filter(log => this.filterIrrelevantLog(log))
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
-      await this.#db.putItemIndexedItem(filterId, endBlockNumber, logs)
+      await this.#db.putItemIndexedItem(filterId, endBlockNumber, filteredLogs)
+    }
+
+    if (!this.#initialSyncComplete[filterId]) {
+      this.#handleInitialSyncComplete(filterId)
     }
   }
 
@@ -190,5 +199,23 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
       currentStartBlockNumber = currentEndBlockNumber + 1
     }
+  }
+
+  /**
+   * Utils
+   */
+
+  #handleInitialSyncComplete (filterId: string): void {
+    // Log individual filter completion
+    console.log(`Initial sync complete for filterId: ${filterId}`)
+    this.#initialSyncComplete[filterId] = true
+
+    // Check if all filters have completed initial sync and log if so
+    for (const indexerEventFilter of this.#indexerEventFilters) {
+      const id = getUniqueFilterId(indexerEventFilter)
+      if (!this.#initialSyncComplete[id]) return
+    }
+
+    console.log('Onchain Event Indexer: Initial sync complete')
   }
 }

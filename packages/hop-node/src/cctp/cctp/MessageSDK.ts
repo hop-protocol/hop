@@ -187,24 +187,19 @@ export class MessageSDK {
       bonderFee
     } = parsed.args
 
-    // Ideally we get this from onchain but it should not change for the lifetime of this codebase
     const messageVersion = 0
-    const sourceDomain = CCTP_CHAIN_ID_TO_DOMAIN_MAP[chainId]
+    const burnToken = USDC_ADDRESSES[globalConfig.network as NetworkSlug]![chainId]
+    const mintRecipient = recipient
     const messageSender = getHopCCTPContract(chainId).address
-    const destinationDomain = cctpChainId
-    const destinationCaller = '0x0000000000000000000000000000000000000000'
-    const messageBody = MessageSDK.decodeMessageFromEvent(log.data)
-    const messageTypes = ['uint8', 'uint32', 'uint32', 'uint256', 'address', 'address', 'address', 'bytes']
+
+    const messageTypes = ['uint32', 'bytes32', 'bytes32', 'uint256', 'bytes32']
     const message = utils.solidityPack(messageTypes,
       [
         messageVersion,
-        sourceDomain,
-        destinationDomain,
-        cctpNonce,
-        messageSender,
-        recipient,
-        destinationCaller,
-        messageBody
+        utils.hexZeroPad(burnToken, 32),
+        utils.hexZeroPad(mintRecipient, 32),
+        amount,
+        utils.hexZeroPad(messageSender, 32)
       ]
     )
 
@@ -250,11 +245,14 @@ export class MessageSDK {
   }
 
   static getDomainFromChainId (chainId: string): string {
-    console.log(chainId)
     return (CCTP_CHAIN_ID_TO_DOMAIN_MAP[globalConfig.network as NetworkSlug]![Number(chainId)]).toString()
   }
 
   static encodeSourceChainIdAndNonce (sourceChainId: string, nonce: number): string {
     return utils.defaultAbiCoder.encode(['uint32', 'uint32'], [Number(sourceChainId), nonce])
+  }
+
+  static getEnabledDomains (): number[] {
+    return Object.keys(CCTP_DOMAIN_TO_CHAIN_ID_MAP[globalConfig.network as NetworkSlug]!).map(Number)
   }
 }

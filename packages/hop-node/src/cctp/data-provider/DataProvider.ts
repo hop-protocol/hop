@@ -69,8 +69,13 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   // TODO: Diff U
-  async fetchItem(key: T, value: U): Promise<U> {
-    const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
-    return this.formatDataSourceItem(key, item)
+  async fetchItem(key: T, value: U): Promise<U | null> {
+    try {
+      const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
+      return this.formatDataSourceItem(key, item)
+    } catch (err) {
+      console.log(`Error fetching item with key ${key} from data source`)
+      return null
+    }
   }
 }

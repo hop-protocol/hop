@@ -93,8 +93,17 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   }
 
   async getIndexedItem(primaryKey: string, secondaryKeys: string[]): Promise<DecodedLogWithContext> {
-    const key = primaryKey + secondaryKeys.join('!')
-    return (await this.get(key)) as DecodedLogWithContext
+    let key = primaryKey
+    if (secondaryKeys.length) {
+      key += '!' + secondaryKeys.join('!')
+    }
+
+    // TODO: Possibly move get to base DB so this is DRYer
+    try {
+      return (await this.get(key)) as DecodedLogWithContext
+    } catch (err) {
+      throw new Error(`No item found for key ${key}. error: ${err}`)
+    }
   }
 
   /**
@@ -106,7 +115,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     for (const log of logs) {
       // The index grows with each primaryKey, joined by '!'
-      let indexedKey = ''
+      let indexedKey = primaryKey
       for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
         const indexValue = log.decoded[secondaryKey as keyof typeof log.decoded]

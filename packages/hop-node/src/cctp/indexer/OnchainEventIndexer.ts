@@ -30,6 +30,7 @@ import { DATA_PUT_EVENT } from '../db/constants.js'
 export interface IndexerEventFilter<T extends string = string>{
   chainId: string
   filter: RequiredEventFilter
+  startBlockNumber: number
   lookupKeys: T[]
 }
 
@@ -76,9 +77,9 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
     this.#startListeners()
     this.#db.init()
     for (const indexerEventFilter of this.#indexerEventFilters) {
-      const { chainId } = indexerEventFilter 
+      const { chainId, startBlockNumber } = indexerEventFilter 
       const filterId = getUniqueFilterId(indexerEventFilter)
-      await this.#db.initializeIndexer(filterId, chainId)
+      await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
     }
     console.log('OnchainEventIndexer initialized')
   }

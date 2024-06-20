@@ -1,7 +1,7 @@
 import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { DecodedLogWithContext } from '../types.js'
-import { type IMessage, type ISentMessage, type IRelayedMessage, MessageState } from './types.js'
+import { type IMessage, MessageState } from './types.js'
 import { providers } from 'ethers'
 
 type LookupKey = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
@@ -75,12 +75,14 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
         return {
           chainId,
           filter: MessageSDK.getCCTPTransferSentEventFilter(chainId),
+          startBlockNumber: MessageSDK.getStartBlockNumber(chainId),
           lookupKeys: ['cctpNonce', 'chainId']
         }
       case MessageState.Relayed:
         return {
           chainId,
           filter: MessageSDK.getMessageReceivedEventFilter(chainId),
+          startBlockNumber: MessageSDK.getStartBlockNumber(chainId),
           lookupKeys: ['nonce', 'sourceDomain']
         }
       default:

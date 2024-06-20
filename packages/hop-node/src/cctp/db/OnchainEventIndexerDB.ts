@@ -1,5 +1,4 @@
 import { DB } from './DB.js'
-import { getDefaultStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext } from '../types.js'
 import { DATA_PUT_EVENT } from './constants.js'
 import { normalizeDBValue } from './utils.js'
@@ -41,16 +40,14 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     this.#secondaryKeys[primaryKey] = secondaryKeys
   }
 
-  async initializeIndexer (primaryKey: string, chainId: string): Promise<void> {
+  async initializeIndexer (primaryKey: string, chainId: string, startBlockNumber: number): Promise<void> {
     const syncKey = this.#getLastBlockSyncedKey(primaryKey)
-    const doesKeyExist = await this.has(syncKey)
-    if (doesKeyExist) {
+    if (await this.has(syncKey)) {
       return
     }
 
-    const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
     await this.put(syncKey, { 
-      syncedBlockNumber: defaultStartBlockNumber
+      syncedBlockNumber: startBlockNumber
     })
   }
 
@@ -139,6 +136,5 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   #getLastBlockSyncedKey = (filterId: string): string => {
     return `sync!${filterId}`
-  }
   }
 }

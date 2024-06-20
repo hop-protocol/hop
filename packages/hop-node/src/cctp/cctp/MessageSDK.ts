@@ -12,7 +12,7 @@ import {
   getMessageTransmitterContract,
 } from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '../types.js'
-import { type NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
+import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
@@ -59,6 +59,22 @@ export type HopCCTPTransferReceivedDecoded = {
 }
 
 export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded
+
+export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
+  [NetworkSlug.Mainnet]: {
+    [ChainSlug.Ethereum]: 20136183, // 19786200, //19447854,
+    [ChainSlug.Optimism]: 121663470, // 119550000, //117499078,
+    [ChainSlug.Arbitrum]: 223994580, // 207240000, //190986712,
+    [ChainSlug.Base]: 16068187, // 13956000, //11903793,
+    [ChainSlug.Polygon]: 58407447, // 56513000, //54729294
+  },
+  [NetworkSlug.Sepolia]: {
+    [ChainSlug.Ethereum]: 5498073,
+    [ChainSlug.Optimism]: 9397181,
+    [ChainSlug.Arbitrum]: 23788247,
+    [ChainSlug.Base]: 7414306
+  }
+}
 
 /**
  * CCTP Message utility class. This class exposes all required chain interactions with CCTP
@@ -281,5 +297,10 @@ export class MessageSDK {
 
   static getEnabledDomains (): number[] {
     return Object.keys(CCTP_DOMAIN_TO_CHAIN_ID_MAP[globalConfig.network as NetworkSlug]!).map(Number)
+  }
+
+  static getStartBlockNumber (chainId: string): number {
+    const chainSlug = getChain(chainId).slug
+    return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network as NetworkSlug][chainSlug]
   }
 }

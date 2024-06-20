@@ -16,15 +16,15 @@ const AppWrapper = styled(Box)<any>`
   align-items: stretch;
   background-size: 120%;
   min-height: 100vh;
-  background-image: ${({ isDarkMode }) => (isDarkMode ? `url('/assets/circles-bg-dark.svg')` : `url('/assets/circles-bg.svg')`)};
-  background-color: ${({ theme }) => theme.colors?.background?.default};
+  background-image: ${({ isdarkmode }: any) => (isdarkmode === 'true' ? `url('/assets/circles-bg-dark.svg')` : `url('/assets/circles-bg.svg')`)};
+  background-color: ${({ theme }: any) => theme.colors?.background?.default};
 `
 
 function App() {
   const { isDarkMode } = useThemeMode()
 
   return (
-    <AppWrapper isDarkMode={isDarkMode}>
+    <AppWrapper isdarkmode={`${isDarkMode}`}>
       <Header />
       <AccountDetails />
       <AppRoutes />

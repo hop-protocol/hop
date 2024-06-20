@@ -27,7 +27,7 @@ docker run --rm --name hop-api -p 8000:8000 hop-api
 Example request
 
 ```sh
-curl "http://localhost:8000/v1/quote?amount=1000000&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
+curl "http://localhost:8000/v1/quote?amount=1000000&token=USDC&fromChain=polygon&toChain=optimism&slippage=0.5"
 ```
 
 Example response
@@ -97,7 +97,7 @@ Example response
     "token": "USDC",
     "sourceChain": "ethereum",
     "sourceChainId": 1,
-    "destinationChain": "gnosis",
+    "destinationChain": "optimism",
     "destinationChainId": 100
   },
   {

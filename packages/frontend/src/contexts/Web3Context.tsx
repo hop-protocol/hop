@@ -126,6 +126,12 @@ const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnec
         chains: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.chainId),
         optionalChains: getWeb3Chains().filter((chain) => !chain.isL1).map((chain) => chain.chainId),
         showQrModal: true,
+        metadata: {
+          name: 'Hop Protocol',
+          description: 'Cross-chain bridge',
+          url: 'https://app.hop.exchange',
+          icons: ['https://app.hop.exchange/favicon.ico'],
+        }
       },
     })
 )
@@ -181,6 +187,8 @@ export type Props = {
   web3ModalActive: boolean
   setWeb3ModalActive: (active: boolean) => void
   setWeb3ModalChoice: (choice: string) => void
+  web3ModalChoice: string
+  walletChoiceLoading: boolean
   error: string
 }
 
@@ -193,17 +201,39 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<Address | undefined>()
   const [web3ModalActive, setWeb3ModalActive] = useState<boolean>(false)
   const [web3ModalChoice, setWeb3ModalChoice] = useState<string>('')
+  const [storedWalletChoice, setStoredWalletChoice] = useState<string>(() => {
+    try {
+      const choice = localStorage.getItem('storedWalletChoice')
+      return choice || ''
+    } catch (err) {
+      logger.error(err)
+    }
+    return ''
+  })
+
+  const [walletChoiceLoading, setWalletChoiceLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const { account, chainId: connectedNetworkId, connector } = useWeb3React()
 
   useEffect(() => {
+    try {
+      if (storedWalletChoice) {
+        localStorage.setItem('storedWalletChoice', storedWalletChoice)
+      }
+    } catch (err) {
+      logger.error(err)
+    }
+  }, [storedWalletChoice])
+
+  useEffect(() => {
     const update = async () => {
-      if (connector) {
-        await connector.connectEagerly()
+      const connectorToUse = connectorMap[storedWalletChoice]
+      if (connectorToUse) {
+        await connectorToUse.connectEagerly()
       }
     }
     update().catch(logger.error)
-  }, [connector])
+  }, [storedWalletChoice])
 
   useEffect(() => {
     const update = async () => {
@@ -211,18 +241,6 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const connectorProvider: any = connector.provider // This is the raw injected provider so type has to be "any" since it's not a Web3Provider
         if (connectorProvider) {
           const ethersProvider = new providers.Web3Provider(connectorProvider, 'any')
-          if (connectorProvider.enable && !connectorProvider.isMetaMask) {
-            // Note: This is needed for WalletConnect and some wallets, so call enable() if available
-            await connectorProvider.enable()
-          } else {
-            // Note: This attempts to connect to first available account, needed by some wallets.
-            // This method may not be supported by all wallets.
-            try {
-              await ethersProvider.send('eth_requestAccounts', [])
-            } catch (error) {
-              logger.error(error)
-            }
-          }
           setProvider(ethersProvider)
         } else {
           setProvider(undefined)
@@ -261,20 +279,24 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const update = async () => {
       try {
-        await disconnectWallet()
         setError('')
         if (web3ModalChoice) {
+          await disconnectWallet()
           const connectorToUse = connectorMap[web3ModalChoice]
           if (!connectorToUse) {
             throw new Error(`connector not found "${web3ModalChoice}"`)
           }
+          setWalletChoiceLoading(true)
           await connectorToUse.activate()
         }
         setWeb3ModalActive(false)
+        setStoredWalletChoice(web3ModalChoice)
       } catch (err) {
         setError(formatError(err.message))
         logger.error('web3 react activate error:', err)
       }
+      setWalletChoiceLoading(false)
+      setWeb3ModalChoice('')
     }
 
     update().catch(logger.error)
@@ -288,10 +310,31 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   async function disconnectWallet() {
     try {
-      localStorage.clear()
+      await clearStorage()
       await connector.resetState()
     } catch (error) {
       logger.error(error)
+    }
+  }
+
+  async function clearStorage() {
+    try {
+      localStorage.clear()
+      sessionStorage.clear()
+      if (indexedDB.databases) {
+        const databases = await indexedDB.databases()
+        for (const dbInfo of databases) {
+          const dbName = dbInfo.name
+          if (dbName) {
+            indexedDB.deleteDatabase(dbName)
+          }
+        }
+      }
+
+      // keep this option so we can eagerly connect to the same wallet
+      localStorage.setItem('storedWalletChoice', storedWalletChoice)
+    } catch(err) {
+      logger.error(err)
     }
   }
 
@@ -305,7 +348,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       // Note: Trust Wallet hangs indefinteily on wallet_switchEthereumChain, see issues on discord.
       // Therefore if provider is already connected to correct network,
       // then there's no need to attempt to call network switcher.
-      if (haveChainId === wantChainId) {
+      if (haveChainId === wantChainId && haveChainId === connectedNetworkId) {
         return true
       }
 
@@ -379,6 +422,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         web3ModalActive,
         setWeb3ModalActive,
         setWeb3ModalChoice,
+        web3ModalChoice,
+        walletChoiceLoading,
         error
       }}
     >

@@ -52,7 +52,7 @@ const FlatSelect: FC<SelectProps & { children: any }> = props => {
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
   return (
-    <Select disabled={isSingle} IconComponent={icon} {...props} classes={styles} disableUnderline />
+    <Select disabled={isSingle} IconComponent={icon} {...props} classes={styles} />
   )
 }
 

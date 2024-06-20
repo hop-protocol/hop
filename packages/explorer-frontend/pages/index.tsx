@@ -145,8 +145,8 @@ for (let i = 0; i < enabledChains.length; i++) {
 const networks: any = isGoerli ? getNetwork(NetworkSlug.Goerli) : getNetwork(NetworkSlug.Mainnet)
 const chainSlugToNameMap :any = {}
 
-for (const chain in networks) {
-  chainSlugToNameMap[chain] = networks[chain].name
+for (const chain in networks.chains) {
+  chainSlugToNameMap[chain] = networks.chains[chain].name
 }
 
 const colorsMap: any = {
@@ -157,7 +157,7 @@ const colorsMap: any = {
 
 for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
   for (const chain of Object.values(chains)) {
-    colorsMap[chain.slug] = chain.color
+    colorsMap[chain.slug] = chain.primaryColor
   }
 }
 
@@ -1143,7 +1143,11 @@ const Index: NextPage = (props: any) => {
           </summary>
           <div>
           {!!accountCumulativeVolumeUsd && (
-            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Account Cumulative Volume: {accountCumulativeVolumeUsd}</div>
+            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">
+              <Typography variant="body1" color="secondary" component="div">
+                Account Cumulative Volume: {accountCumulativeVolumeUsd}
+              </Typography>
+            </div>
           )}
           </div>
           <Box display="flex" justifyContent="space-between">

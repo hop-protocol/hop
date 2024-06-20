@@ -6,12 +6,13 @@ export const chains: Chains = {
     ...sharedChain.ethereum,
     chainId: '1',
     parentChainId: NO_PARENT_CHAIN_ID,
-    publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    publicRpcUrl: 'https://1rpc.io/eth',
     fallbackPublicRpcUrls: [
-      'https://rpc.ankr.com/eth'
+      'https://rpc.ankr.com/eth',
+      'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     ],
     explorerUrls: ['https://etherscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet',
+    subgraphUrl: 'https://subgraph.hop.exchange/ethereum',
     etherscanApiUrl: 'https://api.etherscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -22,11 +23,11 @@ export const chains: Chains = {
     parentChainId: '1',
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [
+      'https://rpc.ankr.com/arbitrum',
       'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
-      'https://rpc.ankr.com/arbitrum'
     ],
     explorerUrls: ['https://arbiscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
+    subgraphUrl: 'https://subgraph.hop.exchange/arbitrum',
     etherscanApiUrl: 'https://api.arbiscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -35,14 +36,14 @@ export const chains: Chains = {
     ...sharedChain.optimism,
     chainId: '10',
     parentChainId: '1',
-    publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    publicRpcUrl: 'https://1rpc.io/op',
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/optimism',
+      'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
       'https://mainnet.optimism.io'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
-    // This is a placeholder subgraph URL. The API key will be removed
-    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/7b8d7c8ccda8d3128cb383b5ec8e61a1/subgraphs/id/GUb7jdSZ3qAUxA7q4GSzVQKVLdGuePhh8UvQLLDGpPZK',
+    subgraphUrl: 'https://subgraph.hop.exchange/optimism',
     etherscanApiUrl: 'https://api-optimistic.etherscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -58,7 +59,7 @@ export const chains: Chains = {
     ],
     explorerUrls: ['https://gnosisscan.io'],
     // This is a placeholder subgraph URL. The API key will be removed
-    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/da7eff85b91ed0e2f7c46653068050b3/subgraphs/id/GcYkjMbTYYbarjoY99kQJZEUAv1rxQPJiWPcZhBpYSC1',
+    subgraphUrl: 'https://subgraph.hop.exchange/gnosis',
     etherscanApiUrl: 'https://api.gnosisscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {
@@ -74,8 +75,7 @@ export const chains: Chains = {
       'https://rpc.ankr.com/polygon'
     ],
     explorerUrls: ['https://polygonscan.com'],
-    // This is a placeholder subgraph URL. The API key will be removed
-    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/22e2ed843249e40568457e147dd4eb0b/subgraphs/id/37p7BEvXpZ72URtNZtHHW7pTqzmqyT9XmxvKHj6DGJmy',
+    subgraphUrl: 'https://subgraph.hop.exchange/polygon',
     etherscanApiUrl: 'https://api.polygonscan.com',
     txOverrides: {
       // Not all Polygon nodes follow recommended 30 Gwei gasPrice
@@ -92,7 +92,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://nova.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io'],
-    subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova',
+    subgraphUrl: 'https://subgraph.hop.exchange/nova',
     etherscanApiUrl: 'https://api-nova.arbiscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -104,8 +104,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
-    // This is a placeholder subgraph URL. The API key will be removed
-    subgraphUrl: 'https://gateway-arbitrum.network.thegraph.com/api/a0b705b1b518cb9a649b8eb0fa484d6b/subgraphs/id/Be1kFUUP7S7JTyF2KUqpGVkWfFhhZgq69SpgWYDkD5px',
+    subgraphUrl: 'https://subgraph.hop.exchange/base',
     etherscanApiUrl: 'https://api.basescan.org',
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     txOverrides: {}
@@ -117,7 +116,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://rpc.linea.build',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://lineascan.build/'],
-    subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea',
+    subgraphUrl: 'https://subgraph.hop.exchange/linea',
     etherscanApiUrl: 'https://api.lineascan.build',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
@@ -129,7 +128,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://zkevm-rpc.com',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://zkevm.polygonscan.com/'],
-    subgraphUrl: 'https://polygonzk.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-polygonzk',
+    subgraphUrl: 'https://subgraph.hop.exchange/polygonzk',
     etherscanApiUrl: 'https://api-zkevm.polygonscan.com',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}

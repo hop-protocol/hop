@@ -15,14 +15,15 @@ import {
   fetchCctpTransferSents,
   fetchCctpTransferSentsByTransferIds,
   fetchCctpTransferSentsForTransferId,
-  fetchMessageReceivedEvents,
+  fetchCctpMessageReceivedEvents,
   fetchTransferBonds,
   fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
   fetchTransferFromL1CompletedsByRecipient,
   fetchTransferSents,
   fetchTransferSentsForTransferId,
-  fetchWithdrews
+  fetchWithdrews,
+  fetchWithdrewTransferIdEvents
 } from './theGraph'
 import { getPreRegenesisBondEvent } from './preregenesis'
 import { getPriceHistory } from './price'
@@ -158,11 +159,15 @@ export class TransferStats {
       promises = [
         this.trackReceivedHTokenStatus(),
         this.checkForReorgs(),
+
         // this.trackReceivedAmountStatus(), // needs to be fixed
-        this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 60 * 1000 }),
-        this.trackRecentTransfers({ lookbackMinutes: 4 * 60, pollIntervalMs: 60 * 60 * 1000 }),
-        this.trackRecentTransferBonds({ lookbackMinutes: 30, pollIntervalMs: 60 * 1000 }),
-        this.trackRecentTransferBonds({ lookbackMinutes: 220, pollIntervalMs: 10 * 60 * 1000 }),
+
+        this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 2 * 60 * 1000 }),
+        this.trackRecentTransfers({ lookbackMinutes: 4 * 60, pollIntervalMs: 60 * 60 * 1000, initialDelayMs: 10 * 60 * 1000 }),
+
+        this.trackRecentTransferBonds({ lookbackMinutes: 30, pollIntervalMs: 2 * 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 240, pollIntervalMs: 60 * 60 * 1000, initialDelayMs: 20 * 60 * 1000 }),
+
         this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
       ]
     }
@@ -479,8 +484,11 @@ export class TransferStats {
     }
   }
 
-  async trackRecentTransfers ({ lookbackMinutes, pollIntervalMs }: { lookbackMinutes: number, pollIntervalMs: number }) {
+  async trackRecentTransfers ({ lookbackMinutes, pollIntervalMs, initialDelayMs=0 }: { lookbackMinutes: number, pollIntervalMs: number, initialDelayMs?: number }) {
     await this.tilReady()
+    if (initialDelayMs) {
+      await wait(initialDelayMs)
+    }
     while (true) {
       try {
         console.log('tracking recent transfers, minutes: ', lookbackMinutes)
@@ -514,8 +522,11 @@ export class TransferStats {
     }
   }
 
-  async trackRecentTransferBonds ({ lookbackMinutes, pollIntervalMs }: { lookbackMinutes: number, pollIntervalMs: number }) {
+  async trackRecentTransferBonds ({ lookbackMinutes, pollIntervalMs, initialDelayMs=0 }: { lookbackMinutes: number, pollIntervalMs: number, initialDelayMs?: number }) {
     await this.tilReady()
+    if (initialDelayMs) {
+      await wait(initialDelayMs)
+    }
     while (true) {
       try {
         console.log('tracking recent bonds, minutes: ', lookbackMinutes)
@@ -605,7 +616,7 @@ export class TransferStats {
     }
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
     return events
@@ -618,7 +629,7 @@ export class TransferStats {
 
     console.log('fetching data for transferId', transferId)
     const events = await this.getTransferIdEvents(transferId)
-    const data = await this.normalizeTransferSentEvents(events)
+    const data = this.normalizeTransferSentEvents(events)
     if (!data?.length) {
       console.log('no data for transferId', transferId)
 
@@ -771,7 +782,7 @@ export class TransferStats {
       events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
     return events
@@ -782,23 +793,24 @@ export class TransferStats {
       return fetchBondTransferIdEvents(chain, startTime, endTime)
     }))
 
+    const enabledChainWithdrews = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchWithdrewTransferIdEvents(chain, startTime, endTime)
+    }))
+
     const enabledChainMessageReceivedCctp = await Promise.all(enabledChains.map((chain: string) => {
-      return fetchMessageReceivedEvents(chain, startTime, endTime)
+      return fetchCctpMessageReceivedEvents(chain, startTime, endTime)
     }))
 
     const events :any = {}
-    for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = enabledChainBonds[i]
-    }
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = events[`${chain}Bonds`].concat(enabledChainMessageReceivedCctp[i])
+      events[`${chain}Bonds`] = enabledChainBonds[i].concat(enabledChainWithdrews[i] ?? []).concat(enabledChainMessageReceivedCctp[i] ?? [])
     }
 
     return events
   }
 
-  async normalizeTransferSentEvents (events: any) {
+  normalizeTransferSentEvents (events: any) {
     const data :any[] = []
 
     for (const key in events) {
@@ -902,6 +914,9 @@ export class TransferStats {
 
     const fetchBondedWithdrawalsChains = Object.keys(fetchBondedWithdrawalsMap)
     const enabledChainBondedWithdrawals = await Promise.all(fetchBondedWithdrawalsChains.map((chain: string) => {
+      if (options?.bonds) {
+        return []
+      }
       return fetchTransferBonds(chain, filterTransferIds)
     }))
 
@@ -916,6 +931,9 @@ export class TransferStats {
 
     const fetchWithdrewsChains = Object.keys(fetchWithdrewsMap)
     const enabledChainWithdrews = await Promise.all(fetchWithdrewsChains.map((chain: string) => {
+      if (options?.bonds) {
+        return []
+      }
       return fetchWithdrews(chain, filterTransferIds)
     }))
 
@@ -942,13 +960,20 @@ export class TransferStats {
 
     const bondsMap :any = {}
     for (const key in bondedWithdrawals) {
-      bondsMap[key] = [...bondedWithdrawals[key], ...withdrews[key]]
+      if (options?.bonds) {
+        bondsMap[key] = options?.bonds[`${key}Bonds`]
+      } else {
+        bondsMap[key] = [...bondedWithdrawals[key], ...withdrews[key]]
+      }
     }
 
     console.log('querying fetchMessageReceiveds')
 
     const fetchMessageReceivedsChains = Object.keys(fetchMessageReceivedsMap)
     const enabledMessageReceiveds = await Promise.all(fetchMessageReceivedsChains.map((chain: string) => {
+      if (options?.bonds) {
+        return []
+      }
       return fetchCctpMessageReceivedsByTransferIds(chain, filterTransferIdsCctp)
     }))
 
@@ -956,14 +981,24 @@ export class TransferStats {
 
     const messageReceiveds :any = {}
     for (const [i, chain] of fetchMessageReceivedsChains.entries()) {
-      messageReceiveds[chain] = enabledMessageReceiveds[i]
+      if (options?.bonds) {
+        messageReceiveds[chain] = options?.bonds[`${chain}Bonds`]
+      } else {
+        messageReceiveds[chain] = enabledMessageReceiveds[i]
+      }
     }
 
     for (const x of data) {
+      if (!x) {
+        continue
+      }
       const destChainSlug = getSlugFromChainId(x.destinationChain)
       const bonds = bondsMap[destChainSlug]
       if (bonds) {
         for (const bond of bonds) {
+          if (!bond) {
+            continue
+          }
           if (bond.transferId === x.transferId) {
             x.bonded = true
             x.bondTransactionHash = bond.transactionHash
@@ -982,6 +1017,9 @@ export class TransferStats {
       const messageReceivedsByChain = messageReceiveds[destChainSlug]
       if (messageReceivedsByChain) {
         for (const receivedEvent of messageReceivedsByChain) {
+          if (!receivedEvent.isCctp) {
+            continue
+          }
           if (
             receivedEvent.transferId === x.transferId &&
             x.destinationChain.toString() === receivedEvent.destinationChainId.toString() &&
@@ -1214,7 +1252,7 @@ export class TransferStats {
 
   async getTransfersBetweenDates (startTime: number, endTime: number) {
     const events = await this.getTransferSentEventsBetweenDates(startTime, endTime)
-    let data = await this.normalizeTransferSentEvents(events)
+    let data = this.normalizeTransferSentEvents(events)
     data = await this.getRemainingData(data, { refetch: false })
     console.log('getTransfersBetweenDates done', data.length)
     return data
@@ -1266,12 +1304,15 @@ export class TransferStats {
     }
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
-    const data = await this.normalizeTransferSentEvents(events)
+    const data = this.normalizeTransferSentEvents(events)
     console.log(`getTransferBondsBetweenDates for range ${minutes}, getting getRemainingData`)
-    const allData = await this.getRemainingData(data)
+    const allData = await this.getRemainingData(data, {
+      bonds: bondsObj,
+      events
+    })
     console.log(`getTransferBondsBetweenDates for range ${minutes}, got getRemainingData`)
     return allData
   }

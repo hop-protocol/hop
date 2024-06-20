@@ -36,7 +36,7 @@ const Center = styled.div<any>`
   background-color: ${({ theme }) => theme.palette.background.default};
   ${({ imgSrc }) => imgSrc && `background: no-repeat center/100% url(${imgSrc})`};
 
-  animation: ${({ load }) =>
+  animation: ${({ load }: any) =>
     load
       ? css`
           ${reverseRotation} 0.5s infinite
@@ -61,7 +61,7 @@ const LoadingWrapper: any = styled.div<any>`
       background-color: grey;
     `
   }};
-  animation: ${({ load }) =>
+  animation: ${({ load }: any) =>
     load
       ? css`
           ${rotation} 0.5s infinite
@@ -69,13 +69,13 @@ const LoadingWrapper: any = styled.div<any>`
       : 'none'};
 `
 
-export function Loading({ size = 24, load = true, imgSrc }: any) {
+export function Loading({ size = 24, load = true, imgSrc }: { size?: number; load?: boolean; imgSrc?: string }) {
   const theme = useTheme()
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
-      <LoadingWrapper load={load}>
-        <Center size={size - 6} theme={theme} imgSrc={imgSrc} load={load} />
+      <LoadingWrapper load={load ? `${load}`: false}>
+        <Center size={size - 6} theme={theme} imgSrc={imgSrc} load={load ? `${load}` : false} />
       </LoadingWrapper>
     </Box>
   )

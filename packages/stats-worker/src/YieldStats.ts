@@ -437,10 +437,19 @@ class YieldStats {
   }
 
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
+    if (token === 'USDC' || token === 'USDC.e') {
+      return {
+        apr: 0,
+        apy: 0,
+        tvlUsd: 0,
+        dailyVolume: 0
+      }
+    }
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
     const etherscanApiKey = etherscanApiKeys[chain]
     const days = 1
+    console.log(`fetching ${token} yield data`)
     const { apr, apy, volumeFormatted } = await amm.getYieldData(days, etherscanApiKey)
     const tvl = await bridge.getTvlUsd(chain)
     return {

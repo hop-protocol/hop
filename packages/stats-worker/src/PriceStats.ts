@@ -6,7 +6,7 @@ export class PriceStats {
   priceFeed: PriceFeed
 
   constructor () {
-    this.tokens = Object.keys(getTokens())
+    this.tokens = getTokens().map((token) => token.symbol)
 
     this.priceFeed = new PriceFeed()
   }

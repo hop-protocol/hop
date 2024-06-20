@@ -95,6 +95,7 @@ const connectSrc = new Set([
   "https://social-auth.hop.exchange",
   "https://hopprotocol.cloudflareaccess.com",
   "https://optimism-fee-refund-api.hop.exchange",
+  "https://arbitrum-fee-refund-api.hop.exchange",
   "https://hop-merkle-rewards-backend.hop.exchange",
   "https://meebits.larvalabs.com",
   "https://meebits.app",
@@ -104,7 +105,8 @@ const connectSrc = new Set([
   "https://gateway.ipfs.io",
   "https://media-exp1.licdn.com",
   "https://iris-api.circle.com",
-  "https://iris-api-sandbox.circle.com"
+  "https://iris-api-sandbox.circle.com",
+  "https://*.polygon.technology"
 ])
 
 for (const network of getNetworks()) {
@@ -199,7 +201,7 @@ export default defineConfig({
     "process.env.REACT_APP_BNC_DAPP_ID": process.env.REACT_APP_BNC_DAPP_ID ? `"${process.env.REACT_APP_BNC_DAPP_ID}"` : undefined,
     "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,
     "process.env.REACT_APP_GIT_SHA": process.env.REACT_APP_GIT_SHA ? `"${process.env.REACT_APP_GIT_SHA}"` : undefined,
-    "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined,
+    "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined
   },
 
   resolve: {

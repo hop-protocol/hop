@@ -53,11 +53,16 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
     <script type="module">
       import { Buffer } from "buffer";
       window.Buffer = Buffer;
+
+      // Note: this is needed by some of the L2 sdks on the relay page.
+      if (!window.process) {
+        window.process = {};
+      }
     </script>
+    <script type="module" src="/src/main.tsx"></script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

@@ -1,13 +1,14 @@
 // @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
 import { providers } from 'ethers'
-import { getChain } from '#chains/index.js'
+import { getChain, NetworkSlug, ChainSlug } from '#chains/index.js'
 import { fetchJsonOrThrow } from '#utils/index.js'
 
 export async function getBlockNumberFromDate (provider: providers.Provider, timestamp: number, etherscanApiKey?: string): Promise<number> {
   if (etherscanApiKey) {
     const network = await provider.getNetwork()
-    return getBlockNumberFromDateUsingEtherscan(network.name, timestamp, etherscanApiKey)
+    const chain = getChain(network.chainId?.toString())
+    return getBlockNumberFromDateUsingEtherscan(chain.slug, timestamp, etherscanApiKey)
   }
 
   return getBlockNumberFromDateUsingLib(provider, timestamp)
@@ -56,5 +57,5 @@ export async function getBlockNumberFromDateUsingLib (provider: providers.Provid
 }
 
 function getEtherscanApiUrl (chain: string) {
-  return getChain(chain).etherscanApiUrl
+  return getChain(NetworkSlug.Mainnet, chain as ChainSlug).etherscanApiUrl
 }

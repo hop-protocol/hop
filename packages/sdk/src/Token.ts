@@ -75,7 +75,7 @@ export class Token extends Base {
     chain = this.toChainModel(chain)
 
     if (!address) {
-      throw new Error(`address is required for Token ${symbol} on Chain ${chain?.slug}`)
+      throw new Error(`address is required for token ${symbol} on Chain ${chain?.slug}`)
     }
 
     this.address = utils.getAddress(address)

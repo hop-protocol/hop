@@ -4,7 +4,7 @@ import HopLogoWhite from '#assets/logos/hop-logo-white.svg'
 import IconButton from '@mui/material/IconButton'
 import MoonIcon from '#assets/moon-icon.svg'
 import Network from '#models/Network.js'
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import SunIcon from '#assets/sun-icon.svg'
 import logger from '#logger/index.js'
 import { Banner } from '#components/Banner/index.js'
@@ -106,34 +106,43 @@ const useStyles = makeStyles(theme => ({
 export const Header: FC = () => {
   const { toggleMode, isDarkMode } = useThemeMode()
   const styles = useStyles({ isDarkMode })
-  const { address, provider, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
+  const { address, provider, connectedNetworkId, checkConnectedNetworkId, walletName } = useWeb3Context()
   const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
+  async function updateBalance() {
+    try {
+      if (!(address && provider && connectedNetworkId)) {
+        setDisplayBalance('')
+        return
+      }
+      const balance = await provider.getBalance(address.address)
+      const formattedBalance = toTokenDisplay(balance, 18)
+      const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
+      const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
+      const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
+      setDisplayBalance(_displayBalance)
+      setConnectedNetwork(network)
+    } catch (err) {
+      logger.error(err)
+      setDisplayBalance('')
+    }
+  }
+
+  useEffect(() => {
+    updateBalance().catch(logger.error)
+  }, [address, provider, connectedNetworkId, walletName])
+
   useQuery(
     [
-      `header:displayBalance:${address}:${connectedNetworkId}`,
+      `header:displayBalance:${address}:${connectedNetworkId}:${walletName}`,
       address,
-      connectedNetworkId
+      connectedNetworkId,
+      walletName
     ],
     async () => {
-      try {
-        if (!(address && provider && connectedNetworkId)) {
-          setDisplayBalance('')
-          return
-        }
-        const balance = await provider.getBalance(address.address)
-        const formattedBalance = toTokenDisplay(balance, 18)
-        const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
-        const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
-        const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
-        setDisplayBalance(_displayBalance)
-        setConnectedNetwork(network)
-      } catch (err) {
-        logger.error(err)
-        setDisplayBalance('')
-      }
+      return updateBalance()
     },
     {
       enabled: !!address && !!connectedNetworkId && !!provider,

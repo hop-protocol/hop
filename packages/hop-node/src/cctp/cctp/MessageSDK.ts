@@ -111,11 +111,12 @@ export class MessageSDK {
       const res = await fetch(url)
       if (res.status === 429) {
         // Temp to handle API rate limit
-        await wait(2_000)
+        await wait(1_000)
       }
       const json: IAttestationResponse = await res.json()
 
       if (!json) {
+        // This means something was wrong with the message hash encoding
         throw new Error('Message hash not found')
       }
 

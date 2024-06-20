@@ -37,16 +37,17 @@ export abstract class StateMachine<State extends string, StateData> implements I
    */
 
   async init (): Promise<void> {
+    this.#startListeners()
+    await this.#dataProvider.init()
+
     // This handles any pending state transitions upon startup
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
-    await this.#dataProvider.init()
     console.log('State machine initialized')
   }
     
   start (): void {
-    this.#startListeners()
     this.#startPollers()
     this.#dataProvider.start()
     console.log('State machine started')

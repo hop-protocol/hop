@@ -73,6 +73,8 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    */
 
   async init (): Promise<void> {
+    this.#startListeners()
+    this.#db.init()
     for (const indexerEventFilter of this.#indexerEventFilters) {
       const { chainId } = indexerEventFilter 
       const filterId = getUniqueFilterId(indexerEventFilter)
@@ -82,8 +84,6 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   }
 
   start (): void {
-    this.#db.start()
-    this.#startListeners()
     for (const indexerEventFilter of this.#indexerEventFilters) {
       this.#startPoller(indexerEventFilter)
     }

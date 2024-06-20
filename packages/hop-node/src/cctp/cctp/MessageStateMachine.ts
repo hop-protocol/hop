@@ -87,12 +87,25 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
       await this.#sentTxCache.addTxHash(messageHash)
       await MessageSDK.relayMessage(wallet, message, attestation)
     } catch (err) {
-      // TODO: better err handling
-      // error={"reason":"execution reverted: Nonce already used"
-      // Also handle attestation failure
-      // Also handle relay failure and un-do sentTxCache
-      // Also handle cache add failure
-      console.log('Relay failed', err)
+      // Custom errors
+      if (err.message.includes('Attestation not complete')) {
+        console.log(`Attestation not yet ready for message ${messageHash}. Trying again next poll.`)
+        return
+      } else if ('Message hash not found') {
+        throw new Error(`Message hash not found for message ${messageHash}. There is an issue with the message encoding.`)
+      }
+
+      // Tx errors
+      if ('Nonce already used') {
+        // error={"reason":"execution reverted: Nonce already used"
+        // TODO: How would this happen in the first place? 
+        await this.#sentTxCache.addTxHash(messageHash)
+        console.log(`Nonce already used for message ${messageHash}. Adding to the cache.`)
+        return
+      } else {
+        // TODO: How to handle this? Could be out of funds, etc. Most likely handled by signer
+        console.log('Relay failed', err)
+      }
     }
   }
 

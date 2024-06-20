@@ -35,12 +35,12 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   async init (): Promise<void> {
+    this.#startListeners()
     await this.#dataSource.init()
     console.log('Data provider initialized')
   }
 
   start (): void {
-    this.#startListeners()
     this.#dataSource.start()
     console.log('Data provider started')
   }

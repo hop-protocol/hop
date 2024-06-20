@@ -68,7 +68,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    * Getters
    */
 
-  // TODO: Diff U
+  // Note: the response is a different U than the previous U
   async fetchItem(key: T, value: U): Promise<U | null> {
     try {
       const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)

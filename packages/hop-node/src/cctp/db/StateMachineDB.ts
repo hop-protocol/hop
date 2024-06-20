@@ -20,7 +20,6 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   }
 
   async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
-    // TODO: Add `get` in DB that handles this I think
     let existingValue: StateData
     try {
       existingValue = await this.get(key)
@@ -75,7 +74,6 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
    */
 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
-    // TODO: Can I filter in DB so I don't need to filter in each impl?
     for await (const [key, value] of this.getSublevel(state).iterator()) {
       const filteredValue = normalizeDBValue(value)
       yield [key as Key, filteredValue as StateData]

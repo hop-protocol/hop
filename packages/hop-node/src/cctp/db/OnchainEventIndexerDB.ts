@@ -98,7 +98,6 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       key += '!' + secondaryKeys.join('!')
     }
 
-    // TODO: Possibly move get to base DB so this is DRYer
     try {
       return (await this.get(key)) as DecodedLogWithContext
     } catch (err) {

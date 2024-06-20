@@ -7,6 +7,5 @@ export interface IDataProvider<T, U> {
   on (event: string, listener: (...args: any[]) => void): void
 
   // Public methods
-  // TODO: Diff U
   fetchItem(key: T, value: U): Promise<U | null>
 }

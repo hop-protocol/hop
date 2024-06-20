@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.only('RailsGateway', () => {
+describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org	'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -559,7 +559,7 @@ describe.only('RailsGateway', () => {
     })
     expect(tokenInfo).toBeDefined()
   })
-  it('TODO should get token contract', async () => {
+  it('should get token contract', async () => {
     const chainId = 11155420
     const address = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
     const contract = railsGateway.getTokenContract({

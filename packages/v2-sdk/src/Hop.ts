@@ -12,11 +12,14 @@ import { MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.j
 import { MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
 import { TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
-import { Messenger } from '#messenger/index.js'
+import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus } from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError } from '#error/index.js'
+import { EthersEventWithDecodedTypes } from '#events/index.js'
+
+type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
 
 export type HopConstructorInput = {
   network: string
@@ -44,7 +47,7 @@ export type SendTokensInput = {
   toChainId: BigNumberish
   fromToken: string
   toToken: string
-  to: string
+  to?: string
   amount: BigNumberish
   minAmountOut: BigNumberish
 }
@@ -55,6 +58,15 @@ export type ApproveSendTokensInput = {
   fromToken: string
   toToken: string
   amount: BigNumberish
+}
+
+export type GetNeedsApprovalForSendTokensInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  amount: BigNumberish
+  account?: string
 }
 
 export type GetSendFeeInput = {
@@ -221,8 +233,8 @@ export class Hop extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  async getNeedsApprovalForSendTokens (input: ApproveSendTokensInput): Promise<boolean> {
-    const { fromChainId, fromToken, toChainId, toToken, amount } = input
+  async getNeedsApprovalForSendTokens (input: GetNeedsApprovalForSendTokensInput): Promise<boolean> {
+    const { fromChainId, fromToken, toChainId, toToken, amount, account } = input
     const pathId = await this.railsGateway.getPathId({
       chainId0: fromChainId,
       token0: fromToken,
@@ -230,7 +242,7 @@ export class Hop extends Base {
       token1: toToken
     })
     console.log('getPathId', pathId)
-    return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount })
+    return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount, account })
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
@@ -287,7 +299,7 @@ export class Hop extends Base {
     chainId,
     fromBlock,
     toBlock,
-  }: GetGeneralEventsInput): Promise<EthersEvent[]> {
+  }: GetGeneralEventsInput): Promise<EthersEventWithDecodedTypes<AllEventTypes>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }

@@ -30,7 +30,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
    */
 
   protected override getItemId(value: IMessage): string {
-    return MessageSDK.encodeSourceChainIdAndNonce(value.sourceChainId, value.messageNonce)
+    return `${value.sourceChainId}:${value.messageNonce}`
   }
 
   protected override isTransitionReady (state: MessageState, value: IMessage): boolean {
@@ -114,6 +114,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
    */
 
   #isSent (value: ISentMessage): boolean {
+    // If the message has been observed, it is already sent
     return true
   }
 

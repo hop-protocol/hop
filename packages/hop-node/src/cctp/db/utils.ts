@@ -37,10 +37,18 @@ export function getDefaultStartBlockNumber (chainId: string): number {
   return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network as NetworkSlug][chainSlug]
 }
 
-export function normalizeDBValue<T extends Record<string, { type?: string }>>(value: T): T {
+export function normalizeDBValue<T extends Record<string, any>>(value: T): T {
   for (const prop in value) {
-    if (value[prop]?.type === 'BigNumber') {
+    const isBigNumber = value[prop]?.type === 'BigNumber'
+    if (isBigNumber) {
       value = normalizeBigNumber(value, prop)
+      continue
+    } 
+
+    const isNestedObject = typeof value[prop] === 'object' && value[prop] !== null
+    if (isNestedObject) {
+      value[prop] = normalizeDBValue(value[prop])
+      continue
     }
   }
 

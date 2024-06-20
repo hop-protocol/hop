@@ -24,7 +24,8 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     try {
       existingValue = await this.get(key)
     } catch (err) {
-      return this.#updateState(null, initialState, key, value)
+      const aggregateValue = value
+      return this.#updateState(null, initialState, key, value, aggregateValue)
     }
 
     const doesMatch = this.#compareItems(value, existingValue)
@@ -39,32 +40,37 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     key: Key,
     value: StateData
   ): Promise<void> {
-    return this.#updateState(state, nextState, key, value)
+    const existingValue: StateData = await this.get(key)
+    const aggregateValue = { ...existingValue, ...value }
+    return this.#updateState(state, nextState, key, value, aggregateValue)
   }
 
   async #updateState(
     state: State | null,
     nextState: State | null,
     key: Key,
-    value: StateData
+    value: StateData,
+    aggregateValue: StateData
   ): Promise<void> {
     // Falsy check is intentional to ensure that the state is not undefined
     if (state == null && nextState == null) {
       throw new Error('At least one state must be defined')
     }
 
-    const existingValue: StateData | null = await this.getIfExists(key)
-    const updatedValue = { ...existingValue, ...value }
-
     const batch = this.batch()
+
     // Delete the current state entry if this is not the initial state
     if (state !== null) {
       batch.del(key, { sublevel: this.getSublevel(state) })
     }
 
-    // Add the next state entry
-    const opts = nextState === null ? {} : { sublevel: this.getSublevel(nextState) }
-    batch.put(key, updatedValue, opts)
+    // Write the next state entry if this is not the final state
+    if (nextState === null) {
+      batch.put(key, value)
+    }
+
+    // Always write the aggregate
+    batch.put(key, aggregateValue)
 
     return batch.write()
   }

@@ -41,6 +41,8 @@ export abstract class StateMachine<State extends string, StateData> implements I
     await this.#dataProvider.init()
 
     // This handles any pending state transitions upon startup
+    // NOTE: Do not process in parallel, since this intentionally
+    // processes each state in order.
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
@@ -107,11 +109,11 @@ export abstract class StateMachine<State extends string, StateData> implements I
       return this.#db.updateState(state, nextState, key, value)
     }
 
-    const stateTransitionData = await this.#dataProvider.fetchItem(nextState, value)
-    if (!stateTransitionData) {
+    const nextItem = await this.#dataProvider.fetchItem(nextState, value)
+    if (!nextItem) {
       return
     }
-    const nextValue = { ...stateTransitionData, ...value }
-    return this.#db.updateState(state, nextState, key, nextValue)
+
+    return this.#db.updateState(state, nextState, key, nextItem)
   }
 }

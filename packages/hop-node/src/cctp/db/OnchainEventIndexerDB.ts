@@ -2,6 +2,7 @@ import { DB } from './DB.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext } from '../types.js'
 import { DATA_PUT_EVENT } from './constants.js'
+import { normalizeDBValue } from './utils.js'
 
 /**
  * This DB should only be used to get individual items. There should never be a
@@ -99,7 +100,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
 
     try {
-      return (await this.get(key)) as DecodedLogWithContext
+      const item = await this.get(key) as IndexDBValue
+      return normalizeDBValue(item) as DecodedLogWithContext
     } catch (err) {
       throw new Error(`No item found for key ${key}. error: ${err}`)
     }
@@ -113,7 +115,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     const batch = this.batch()
 
     for (const log of logs) {
-      // The index grows with each primaryKey, joined by '!'
+      batch.put(primaryKey, log)
+
       let indexedKey = primaryKey
       for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
@@ -135,6 +138,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
    */
 
   #getLastBlockSyncedKey = (filterId: string): string => {
-    return 'sync' + filterId
+    return `sync!${filterId}`
+  }
   }
 }

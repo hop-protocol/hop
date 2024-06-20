@@ -616,7 +616,7 @@ export class TransferStats {
     }
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
     return events
@@ -782,7 +782,7 @@ export class TransferStats {
       events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
     return events
@@ -804,7 +804,7 @@ export class TransferStats {
     const events :any = {}
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = enabledChainBonds[i].concat(enabledChainWithdrews[i]).concat(enabledChainMessageReceivedCctp[i])
+      events[`${chain}Bonds`] = enabledChainBonds[i].concat(enabledChainWithdrews[i] ?? []).concat(enabledChainMessageReceivedCctp[i] ?? [])
     }
 
     return events
@@ -989,10 +989,16 @@ export class TransferStats {
     }
 
     for (const x of data) {
+      if (!x) {
+        continue
+      }
       const destChainSlug = getSlugFromChainId(x.destinationChain)
       const bonds = bondsMap[destChainSlug]
       if (bonds) {
         for (const bond of bonds) {
+          if (!bond) {
+            continue
+          }
           if (bond.transferId === x.transferId) {
             x.bonded = true
             x.bondTransactionHash = bond.transactionHash
@@ -1298,7 +1304,7 @@ export class TransferStats {
     }
 
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i] ?? [])
     }
 
     const data = this.normalizeTransferSentEvents(events)

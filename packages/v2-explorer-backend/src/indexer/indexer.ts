@@ -2,9 +2,8 @@ import { wait } from '#utils/wait.js'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { SyncStateDb } from '#db/syncStateDb/index.js'
 import { db } from '#db/index.js'
-import { dbPath } from '#config/index.js'
+import { network, dbPath, rpcUrls } from '#config/index.js'
 import { pgDb } from '#pgDb/index.js'
-import { network } from '#config/index.js'
 
 type StartBlocks = {
   [chainId: string]: number
@@ -46,6 +45,7 @@ export class Indexer {
       batchBlocks: 10_000,
       contractAddresses: options?.sdkContractAddresses
     })
+    this.sdk.setChainRpcProviderUrls(rpcUrls)
     if (options?.startBlocks) {
       this.startBlocks = options.startBlocks
     }
@@ -151,13 +151,17 @@ export class Indexer {
       }
 
       console.log('get', eventNames, chainId, fromBlock, toBlock)
-      const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
+      const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })
       console.log('events', eventNames, events.length)
       for (const event of events) {
         console.log('event', event)
 
-        const _db = this.eventsToSync[event.eventName]
-        await this.pgDb.events[event.eventName].upsertItem({ ...event, context: event.context })
+        const _db = this.eventsToSync[event.context.eventName]
+        if (!this.pgDb.events[event.context.eventName]) {
+          console.error('event db found in pgDb', event.context.eventName)
+          continue
+        }
+        await this.pgDb.events[event.context.eventName].upsertItem({ ...event.decoded, context: event.context })
         await _db.putSyncState(chainId, { fromBlock, toBlock })
         _events.push(event)
       }

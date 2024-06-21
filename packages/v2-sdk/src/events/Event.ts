@@ -50,7 +50,7 @@ export class Event<T> {
     return iface.getEventTopic(this.eventName)
   }
 
-  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number): Promise<T[]> {
+  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<T[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
@@ -60,7 +60,7 @@ export class Event<T> {
     const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock })
 
     console.log(`populating events. count: ${events.length}`)
-    return this.populateEvents(events)
+    return this.populateEvents(events, fetchTxData)
   }
 
   async *getEventsForRangeWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
@@ -78,9 +78,9 @@ export class Event<T> {
     }
   }
 
-  async getEventsForRange (fromBlock: number, toBlock?: number): Promise<T[]> {
+  async getEventsForRange (fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<T[]> {
     const filter = this.getFilter()
-    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
+    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock, fetchTxData)
   }
 
   async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
@@ -91,9 +91,9 @@ export class Event<T> {
     }
   }
 
-  async populateEvents<T>(inputEvents: EthersEvent[]): Promise<T[]> {
+  async populateEvents<T>(inputEvents: EthersEvent[], fetchTxData: boolean = false): Promise<T[]> {
     const events = inputEvents.map(this.addTypedEvent.bind(this))
-    const promiseFns = events.map(event => () => this.addContextToEvent(event, this.chainId))
+    const promiseFns = events.map(event => () => this.addContextToEvent(event, this.chainId, fetchTxData))
 
     const populatedEvents: Event<T>[] = []
 

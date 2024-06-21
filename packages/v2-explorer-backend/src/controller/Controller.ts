@@ -4,7 +4,7 @@ import { db } from '#db/index.js'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
-import { chainNames, network } from '#config/index.js'
+import { chainNames, network, rpcUrls } from '#config/index.js'
 
 type EventsResult = {
   items: any[]
@@ -30,6 +30,7 @@ export class Controller {
     this.sdk = new Hop({
       network
     })
+    this.sdk.setChainRpcProviderUrls(rpcUrls)
   }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {

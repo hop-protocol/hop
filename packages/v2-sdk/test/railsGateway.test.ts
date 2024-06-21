@@ -10,7 +10,7 @@ dotenv.config()
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe.skip('RailsGateway', () => {
-  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org	'
+  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const railsGateway = new RailsGateway({

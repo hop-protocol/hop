@@ -40,6 +40,7 @@ export type GetGeneralEventsInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock?: number
+  fetchTxData?: boolean
 }
 
 export type SendTokensInput = {
@@ -299,6 +300,7 @@ export class Hop extends Base {
     chainId,
     fromBlock,
     toBlock,
+    fetchTxData
   }: GetGeneralEventsInput): Promise<EthersEventWithDecodedTypes<AllEventTypes>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
@@ -358,7 +360,7 @@ export class Hop extends Base {
 
     const decoded: EthersEvent[] = []
     for (const event of events) {
-      const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event]) as EthersEvent[]
+      const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event], fetchTxData) as EthersEvent[]
       decoded.push(...res)
     }
 

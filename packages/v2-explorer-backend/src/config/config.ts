@@ -39,3 +39,10 @@ export const chainNames: any = {
   84532: 'Base (Sepolia)',
   11155420: 'Optimism (Sepolia)'
 }
+
+export const rpcUrls: Record<string, string> = {
+  '11155111': process.env.RPC_URL_11155111 ?? '',
+  '421614': process.env.RPC_URL_421614 ?? '',
+  '11155420': process.env.RPC_URL_11155420 ?? '',
+  '84532': process.env.RPC_URL_84532 ?? ''
+}

@@ -99,9 +99,7 @@ export class Base {
   setChainRpcProvider (chainId: BigNumberish, provider: Provider): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(
-        `unsupported chain "${chainId}" for network ${this.network}`
-      )
+      return
     }
     this.chainProviders[chainId] = provider
   }
@@ -109,9 +107,7 @@ export class Base {
   setChainRpcProviders (chainProviders: ChainProviders): void {
     for (const chainId in chainProviders) {
       if (!this.utils.isValidChainId(chainId)) {
-        throw new Error(
-          `unsupported chain "${chainId}" for network ${this.network}`
-        )
+        continue
       }
       this.chainProviders[chainId?.toString()] = chainProviders[chainId]
     }
@@ -120,21 +116,21 @@ export class Base {
   setChainRpcProviderUrl (chainId: BigNumberish, url: string): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(
-        `unsupported chain "${chainId}" for network ${this.network}`
-      )
+      return
     }
-    this.chainProviders[chainId] = getProviderFromUrl(url)
+    if (url) {
+      this.chainProviders[chainId] = getProviderFromUrl(url)
+    }
   }
 
   setChainRpcProviderUrls (chainProviders: Record<string, string>): void {
     for (const chainId in chainProviders) {
       if (!this.utils.isValidChainId(chainId)) {
-        throw new Error(
-          `unsupported chain "${chainId}" for network ${this.network}`
-        )
+        continue
       }
-      this.chainProviders[chainId?.toString()] = getProviderFromUrl(chainProviders[chainId])
+      if (chainProviders[chainId]) {
+        this.chainProviders[chainId?.toString()] = getProviderFromUrl(chainProviders[chainId])
+      }
     }
   }
 

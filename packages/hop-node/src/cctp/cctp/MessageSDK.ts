@@ -150,12 +150,12 @@ export class MessageSDK {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: string): Promise<any>{
-    const chainSlug = getChain(chainId).slug
-    const provider = getRpcProvider(chainSlug)
+    const provider = getRpcProvider(chainId)
     const txOptions: any = {}
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    const chainSlug = getChain(chainId).slug
     if (chainSlug === ChainSlug.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 

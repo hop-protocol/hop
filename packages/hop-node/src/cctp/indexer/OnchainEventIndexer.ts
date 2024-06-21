@@ -9,9 +9,8 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
 import { POLL_INTERVAL_MS, DATA_STORED_EVENT } from './constants.js'
-import { getMaxBlockRangePerIndex, getUniqueFilterId } from './utils.js'
+import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
-import { getChain } from '@hop-protocol/sdk'
 import { DATA_PUT_EVENT } from '../db/constants.js'
 
 /**
@@ -135,12 +134,11 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
     const { chainId, filter } = indexerEventFilter
     const filterId = getUniqueFilterId(indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
-    const chainSlug = getChain(chainId).slug
-    const provider = getRpcProvider(chainSlug)
+    const provider = getRpcProvider(chainId)
 
     // Add 1 to currentEnd to avoid fetching the same block twice
     const startBlockNumber = lastBlockSynced + 1
-    const endBlockNumber = await provider.getBlockNumber()
+    const endBlockNumber = await getSyncBlockNumber(chainId)
     const isSynced = startBlockNumber > endBlockNumber
     if (isSynced) return
 
@@ -175,8 +173,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       throw new Error('startBlockNumber must be less than or equal to endBlockNumber')
     }
 
-    const chainSlug = getChain(chainId).slug
-    const provider = getRpcProvider(chainSlug)
+    const provider = getRpcProvider(chainId)
     const maxBlockRange = getMaxBlockRangePerIndex(chainId)
 
     // Fetch logs in chunks

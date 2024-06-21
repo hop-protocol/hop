@@ -1,7 +1,7 @@
 import { IDataProvider } from '../data-provider/IDataProvider.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
-import { getFirstState, getNextState, isLastState } from './utils.js'
+import { getFirstState, getNextState, isFirstState, isLastState } from './utils.js'
 import { IStateMachine } from './IStateMachine.js'
 
 /**
@@ -10,7 +10,7 @@ import { IStateMachine } from './IStateMachine.js'
  * 
  * Data used is retrieved from an external data stores.
  * 
- * @dev The initial and terminal states are null
+ * @dev The final state is not polled since there is no transition after it.
  */
 
 export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
@@ -20,8 +20,9 @@ export abstract class StateMachine<State extends string, StateData> implements I
   readonly #pollIntervalMs: number = 10_000
 
   protected abstract getItemId(value: StateData): string
-  // The final state does not need to be handled since there are no more transitions after it
-  protected abstract isTransitionReady(state: State, value: StateData): boolean
+  // Checks if the implementation believes that the data source should have the state transition
+  // NOTE: The final state does not need to be handled since there are no more transitions after it
+  protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
 
   constructor (
     dbName: string,
@@ -61,8 +62,8 @@ export abstract class StateMachine<State extends string, StateData> implements I
    */
 
   #startListeners (): void {
-    const initialState = getFirstState(this.#states)
-    this.#dataProvider.on(initialState, this.#initializeItem)
+    const firstState = getFirstState(this.#states)
+    this.#dataProvider.on(firstState, this.#initializeItem)
     this.#dataProvider.on('error', () => { throw new Error('State machine error') })
   }
 
@@ -85,11 +86,16 @@ export abstract class StateMachine<State extends string, StateData> implements I
   }
 
   #checkStateTransition = async (state: State): Promise<void> => {
-    for await (const [key, value] of this.#db.getItemsInState(state)) {
-      const canTransition = this.isTransitionReady(state, value)
-      if (!canTransition) return
+    // There is no transition for the final state
+    if (isLastState(this.#states, state)) return
 
-      await this.#transitionState(state, key, value)
+    console.log('FSM - check state', state)
+    for await (const [key, value] of this.#db.getItemsInState(state)) {
+      console.log('FSM - process state:', state, key)
+      const shouldAttempt = this.shouldAttemptTransition(state, value)
+      if (!shouldAttempt) return
+
+      return this.#transitionState(state, key, value)
     }
   }
 
@@ -105,15 +111,16 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const nextState = getNextState(this.#states, state)
-    const nextItem = await this.#dataProvider.fetchItem(nextState, value)
-    if (!nextItem) {
+    const nextValue = await this.#dataProvider.fetchItem(nextState, value)
+    if (!nextValue) {
       return
     }
 
-    if (isLastState(this.#states, state)) {
-      return this.#db.updateFinalState(state, key, value)
+    const isLastTransition = isLastState(this.#states, nextState)
+    if (isLastTransition) {
+      return this.#db.updateFinalState(state, key, nextValue)
     }
 
-    return this.#db.updateState(state, nextState, key, nextItem)
+    return this.#db.updateState(state, nextState, key, nextValue)
   }
 }

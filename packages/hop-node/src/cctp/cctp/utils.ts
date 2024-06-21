@@ -9,7 +9,7 @@ export function getAttestationUrl (messageHash: string): string {
 }
 
 // TODO: Use block numbers, not arbitrary time
-export const FinalityTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, number>>> = {
+export const AttestationTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
     [ChainSlug.Ethereum]: 30 * 60 * 1000,
     [ChainSlug.Optimism]: 30 * 60 * 1000,
@@ -25,9 +25,9 @@ export const FinalityTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, 
   }
 }
 
-export function getFinalityTimeFromChainIdMs (chainId: string): number {
+export function getAttestationTimeFromChainIdMs (chainId: string): number {
   const chainSlug = getChain(chainId).slug
-  return (FinalityTimeForChainIdMs as any)[globalConfig.network as NetworkSlug][chainSlug]!
+  return (AttestationTimeForChainIdMs as any)[globalConfig.network as NetworkSlug][chainSlug]!
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
@@ -145,6 +145,7 @@ export function getHopCCTPContract (chainId: string): Contract {
 
 export function getCCTPMessageTransmitterContractInterface (): utils.Interface {
   const abi: string[] = [
+    'function usedNonces(bytes32 nonce) public pure returns (uint256)',
     'function receiveMessage(bytes message, bytes attestation)',
     'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)',
     'event MessageSent(bytes message)'

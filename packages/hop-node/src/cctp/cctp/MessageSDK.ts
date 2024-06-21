@@ -10,6 +10,7 @@ import {
   getHopCCTPInterface,
   getCCTPMessageTransmitterContractInterface,
   getMessageTransmitterContract,
+  getAttestationTimeFromChainIdMs,
 } from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '../types.js'
 import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
@@ -104,6 +105,11 @@ export class MessageSDK {
 
   static getMessageHashFromMessage (message: string): string {
     return utils.keccak256(message)
+  }
+  
+  static getHashedSourceAndNonce (sourceChainId: string, nonce: number): string {
+    const sourceDomain = MessageSDK.getDomainFromChainId(sourceChainId)
+    return utils.solidityKeccak256(['uint32', 'uint64'], [Number(sourceDomain), nonce])
   }
 
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
@@ -302,5 +308,15 @@ export class MessageSDK {
   static getStartBlockNumber (chainId: string): number {
     const chainSlug = getChain(chainId).slug
     return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network as NetworkSlug][chainSlug]
+  }
+
+  static async isNonceUsed (chainId: string, hashedNonce: string): Promise<boolean> {
+    const provider = getRpcProvider(chainId)
+    const MessageTransmitterContract = getMessageTransmitterContract(chainId)
+    return MessageTransmitterContract.connect(provider).usedNonce(hashedNonce)
+  }
+
+  static attestationAvailableTimestampMs (chainId: string): number {
+    return getAttestationTimeFromChainIdMs(chainId)
   }
 }

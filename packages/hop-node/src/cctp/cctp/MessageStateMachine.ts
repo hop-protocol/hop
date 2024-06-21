@@ -2,8 +2,7 @@ import { wallets } from '#wallets/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '../state-machine/StateMachine.js'
 import { MessageSDK } from './MessageSDK.js'
-import { getFinalityTimeFromChainIdMs } from './utils.js'
-import { poll } from '../utils.js'
+import { getFinalityTimeFromChainIdMs, poll } from '../utils.js'
 import {
   type ISentMessage,
   type IRelayedMessage,
@@ -33,12 +32,10 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     return `${value.sourceChainId}:${value.messageNonce}`
   }
 
-  protected override isTransitionReady (state: MessageState, value: IMessage): boolean {
+  protected override shouldAttemptTransition(state: MessageState, value: IMessage): boolean {
     switch (state) {
       case MessageState.Sent:
-        return this.#isSent(value as ISentMessage)
-      case MessageState.Relayed:
-        return this.#isRelayed(value as IRelayedMessage)
+        return this.#shouldRelayBeFinalized(value as ISentMessage)
       default:
         throw new Error('Invalid state')
     }
@@ -48,18 +45,19 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
    * FSM Utils
    */
 
-  #isSent (value: ISentMessage): boolean {
-    // If the message has been observed, it is already sent
-    return true
-  }
+  #shouldRelayBeFinalized(value: ISentMessage): boolean {
+    // A relay can be finalized if enough time has passed for the message attestation to become available
+    // and the destination chain has finalized the relay.
+    const { sourceChainId, destinationChainId, sentTimestampMs } = value
 
-  #isRelayed (value: IRelayedMessage): boolean {
-    const { relayTimestampMs, destinationChainId } = value
-    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
-    const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
+    const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
+    const destChainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
+    const expectedRelayTimeMs = sentTimestampMs + attestationAvailableTimestampMs + destChainFinalityTimeMs
+
+    const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
 
     return (
-      finalityTimestampOk
+      relayFinalizedTimestampOk
     )
   }
 
@@ -76,22 +74,21 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
   async *#getRelayableMessages (): AsyncIterable<ISentMessage> {
     for await (const [, value] of this.getItemsInState(MessageState.Sent)) {
-      const canRelay = await this.#canRelayMessage(value as ISentMessage)
+      const canRelay = this.#canRelayMessage(value as ISentMessage)
       if (!canRelay) continue
 
       yield value as ISentMessage
     }
   }
 
-  async #canRelayMessage (value: ISentMessage): Promise<boolean> {
+  #canRelayMessage (value: ISentMessage): boolean {
     // A message is relayable if the attestation is available.
-    // We know it is available if the finality timestamp has passed.
     const { sourceChainId, sentTimestampMs } = value
-    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
-    const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
+    const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
+    const attestationTimestampOk = sentTimestampMs + attestationAvailableTimestampMs < Date.now()
 
     return (
-      finalityTimestampOk
+      attestationTimestampOk
     )
   }
 
@@ -112,7 +109,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
       if (err.message.includes('Attestation not complete')) {
         console.log(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
         return
-      } else if ('Message hash not found') {
+      } else if (err.message.includes('Message hash not found')) {
         throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
       }
 

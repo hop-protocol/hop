@@ -24,8 +24,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     try {
       existingValue = await this.get(key)
     } catch (err) {
-      const aggregateValue = value
-      return this.#updateState(null, initialState, key, value, aggregateValue)
+      return this.#updateState(null, initialState, key, value)
     }
 
     const doesMatch = this.#compareItems(value, existingValue)
@@ -34,23 +33,28 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
   }
 
-  async updateState(
+  async updateFinalState(
     state: State,
-    nextState: State | null,
     key: Key,
     value: StateData
   ): Promise<void> {
-    const existingValue: StateData = await this.get(key)
-    const aggregateValue = { ...existingValue, ...value }
-    return this.#updateState(state, nextState, key, value, aggregateValue)
+    return this.#updateState(state, null, key, value)
+  }
+
+  async updateState(
+    state: State,
+    nextState: State,
+    key: Key,
+    value: StateData
+  ): Promise<void> {
+    return this.#updateState(state, nextState, key, value)
   }
 
   async #updateState(
     state: State | null,
     nextState: State | null,
     key: Key,
-    value: StateData,
-    aggregateValue: StateData
+    value: StateData
   ): Promise<void> {
     // Falsy check is intentional to ensure that the state is not undefined
     if (state == null && nextState == null) {
@@ -70,6 +74,11 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
 
     // Always write the aggregate
+    let aggregateValue = value
+    if (state !== null) {
+      const existingValue: StateData = await this.get(key)
+      aggregateValue = { ...existingValue, ...value }
+    }
     batch.put(key, aggregateValue)
 
     return batch.write()

@@ -22,7 +22,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   #startPollers (): void {
-    poll(this.#checkRelay, this.#pollIntervalMs)
+    poll(this.#pollRelayer, this.#pollIntervalMs)
   }
 
   /**
@@ -45,10 +45,29 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   /**
-   * Internal
+   * FSM Utils
    */
 
-  #checkRelay = async (): Promise<void> => {
+  #isSent (value: ISentMessage): boolean {
+    // If the message has been observed, it is already sent
+    return true
+  }
+
+  #isRelayed (value: IRelayedMessage): boolean {
+    const { relayTimestampMs, destinationChainId } = value
+    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
+    const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
+
+    return (
+      finalityTimestampOk
+    )
+  }
+
+  /**
+   * Relayer
+   */
+
+  #pollRelayer = async (): Promise<void> => {
     for await (const value of this.#getRelayableMessages()) {
       const { message, destinationChainId } = value
       await this.#relayMessage(message, destinationChainId)
@@ -65,6 +84,8 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   async #canRelayMessage (value: ISentMessage): Promise<boolean> {
+    // A message is relayable if the attestation is available.
+    // We know it is available if the finality timestamp has passed.
     const { sourceChainId, sentTimestampMs } = value
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
     const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
@@ -107,24 +128,5 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
         console.log('Relay failed', err)
       }
     }
-  }
-
-  /**
-   * Utils
-   */
-
-  #isSent (value: ISentMessage): boolean {
-    // If the message has been observed, it is already sent
-    return true
-  }
-
-  #isRelayed (value: IRelayedMessage): boolean {
-    const { relayTimestampMs, destinationChainId } = value
-    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
-    const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
-
-    return (
-      finalityTimestampOk
-    )
   }
 }

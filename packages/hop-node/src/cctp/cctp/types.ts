@@ -1,4 +1,3 @@
-// TODO: Optimize: I should be able to not need the string after, but that is what is used for db index so maybe i do?
 export enum MessageState {
   Sent = 'sent',
   Relayed = 'relayed'

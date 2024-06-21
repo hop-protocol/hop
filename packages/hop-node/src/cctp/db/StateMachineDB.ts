@@ -65,8 +65,8 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
 
     // Write the next state entry if this is not the final state
-    if (nextState === null) {
-      batch.put(key, value)
+    if (nextState !== null) {
+      batch.put(key, value, { sublevel: this.getSublevel(nextState) })
     }
 
     // Always write the aggregate

@@ -1,7 +1,7 @@
 import { IDataProvider } from '../data-provider/IDataProvider.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
-import { getFirstState, getNextState } from './utils.js'
+import { getFirstState, getNextState, isLastState } from './utils.js'
 import { IStateMachine } from './IStateMachine.js'
 
 /**
@@ -20,6 +20,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   readonly #pollIntervalMs: number = 10_000
 
   protected abstract getItemId(value: StateData): string
+  // The final state does not need to be handled since there are no more transitions after it
   protected abstract isTransitionReady(state: State, value: StateData): boolean
 
   constructor (
@@ -104,14 +105,13 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const nextState = getNextState(this.#states, state)
-    if (nextState === null) {
-      // This is the final state
-      return this.#db.updateState(state, nextState, key, value)
-    }
-
     const nextItem = await this.#dataProvider.fetchItem(nextState, value)
     if (!nextItem) {
       return
+    }
+
+    if (isLastState(this.#states, state)) {
+      return this.#db.updateFinalState(state, key, value)
     }
 
     return this.#db.updateState(state, nextState, key, nextItem)

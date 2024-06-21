@@ -91,7 +91,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
 
     return (
-      !finalityTimestampOk
+      finalityTimestampOk
     )
   }
 
@@ -110,10 +110,10 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     } catch (err) {
       // Custom errors
       if (err.message.includes('Attestation not complete')) {
-        console.log(`Attestation not yet ready for message ${messageHash}. Trying again next poll.`)
+        console.log(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
         return
       } else if ('Message hash not found') {
-        throw new Error(`Message hash not found for message ${messageHash}. There is an issue with the message encoding.`)
+        throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
       }
 
       // Tx errors

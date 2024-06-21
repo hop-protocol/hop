@@ -86,7 +86,7 @@ export const USDC_ADDRESSES: Partial<Record<NetworkSlug, Record<string, string>>
     '1': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Ethereum
     '10': '0x0b2c639c533813f4aa9d7837caf62653d097ff85', // Optimism
     '42161': '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // Arbitrum
-    '8453': '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // Base
+    '8453': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base
     '137': '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // Polygon PoS
   }
 }

@@ -100,7 +100,8 @@ export function ExplorerEvents () {
       },
       {
         key: 'amount',
-        value: transferAmountDisplay
+        value: transferAmountDisplay,
+        clipboardValue: transferAmountDisplay
       },
       {
         key: 'transferId',
@@ -114,7 +115,8 @@ export function ExplorerEvents () {
       },
       {
         key: 'sourceChain',
-        value: event.context?.chainLabel
+        value: event.context?.chainLabel,
+        clipboardValue: event.context?.chainLabel
       },
       {
         key: 'sourceTransactionHash',
@@ -124,7 +126,8 @@ export function ExplorerEvents () {
       },
       {
         key: 'destinationChain',
-        value: event.toChainLabel
+        value: event.toChainLabel,
+        clipboardValue: event.toChainLabel
       },
       {
         key: 'destinationTransactionHash',

@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
 import { useEvents } from '../hooks/useEvents'
 import { useLocation } from 'react-router-dom'
+import { CopyToClipboardText } from '../components/CopyToClipboardText'
 
 const useStyles = makeStyles((theme: any) => ({
   tableRow: {
@@ -49,7 +50,9 @@ export function Details () {
   const [nonce, setNonce] = useState('')
   const [sourceTxStatus, setSourceTxStatus] = useState('')
   const [sourceTxFrom, setSourceTxFrom] = useState('')
+  const [sourceTxFromExplorerUrl, setSourceTxFromExplorerUrl] = useState('')
   const [sourceTxTo, setSourceTxTo] = useState('')
+  const [sourceTxToExplorerUrl, setSourceTxToExplorerUrl] = useState('')
 
   const filter = { transferId }
   const { events, loading: isFetching } = useEvents('explorer', filter)
@@ -87,7 +90,9 @@ export function Details () {
             setGasUsed(receipt?.gasUsed?.toString())
             setSourceTxStatus(receipt?.status?.toString() || '1')
             setSourceTxFrom(receipt?.from?.toString())
+            setSourceTxFromExplorerUrl(sdk.utils.getAddressExplorerUrl(receipt?.from?.toString(), event?.context?.chainId))
             setSourceTxTo(receipt?.to?.toString())
+            setSourceTxToExplorerUrl(sdk.utils.getAddressExplorerUrl(receipt?.to?.toString(), event?.context?.chainId))
             if ((tx as any)?.gasPrice) {
               setGasPrice((tx as any)?.gasPrice?.toString())
               setGasPriceFormatted(`${utils.formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
@@ -108,6 +113,35 @@ export function Details () {
   const totalSentFormatted = totalSent ? utils.formatUnits(totalSent, event?.token?.decimals) : null
   const totalSentDisplay = totalSent ? `${totalSent} (${totalSentFormatted} ${event?.token?.symbol})` : null
 
+  const sourceTokenAddress = event?.token?.address
+  const sourceTokenDisplay = event?.token ? `${event?.token?.name} (${event?.token?.symbol})` : null
+  const sourceTokenExplorerUrl = event?.token?.tokenExplorerUrl
+  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus ? 'Success' : 'Failure'})` : null
+  const sourceChainDisplay = event?.context?.chainLabel
+  const sourceTransactionHash = event?.context?.transactionHash
+  const sourceTxValueDisplay = txValue ? `${txValue} (${txValueFormatted})` : null
+  const sourceTxTimestampDisplay = event?.context?.blockTimestamp ? `${event?.context?.blockTimestamp} ${event ? `(${event?.context?.blockTimestampRelative})` : ''}` : null
+  const sourceGasPriceDisplay = gasPrice ? `${gasPrice} (${gasPriceFormatted})` : null
+  const sourceBlockNumber = event?.context?.blockNumber
+
+  const destinationChainDisplay = event?.toChainLabel
+  const transferRecipient = event?.to
+  const transferRecipientExplorerUrl = event?.toExplorerUrl
+  const attestationFeeDisplay = event?.attestationFee ? `${event?.attestationFee} (${utils.formatUnits(event?.attestationFee, 18)} ETH)` : null
+  const checkpoint = event?.checkpoint
+  const transferNonce = event?.nonce
+  const pathId = event?.pathId
+  const destinationTransactionHash = event?.transferBondedEvent?.context?.transactionHash
+  const destinationTransactionExplorerUrl = event?.transferBondedEvent?.context?.transactionHashExplorerUrl
+  const destinationAmountOutDisplay = event?.transferBondedEvent?.amountOut ? `${event?.transferBondedEvent?.amountOut} (${utils.formatUnits(event?.transferBondedEvent?.amountOut, event?.token?.decimals)} ${event?.token?.symbol})` : null
+  const destinationTxFromDisplay = event?.transferBondedEvent?.context?.from
+  const destinationTxFromExplorerUrl = event?.transferBondedEvent?.context?.fromExplorerUrl
+  const destinationTxToDisplay = event?.transferBondedEvent?.context?.to
+  const destinationTxToExplorerUrl = event?.transferBondedEvent?.context?.toExplorerUrl
+  const destinationTokenAddress = event?.counterpartToken?.address
+  const destinationTokenDisplay = event?.counterpartToken ? `${event?.counterpartToken?.name} (${event?.counterpartToken?.symbol})` : null
+  const destinationTokenExplorerUrl = event?.counterpartToken?.tokenExplorerUrl
+
   return (
     <SiteWrapper>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
@@ -124,7 +158,7 @@ export function Details () {
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  transferId
+                  <CopyToClipboardText text={transferId} />
                 )}
               </TableCell>
             </TableRow>
@@ -146,9 +180,11 @@ export function Details () {
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  <Link href={event?.token?.tokenExplorerUrl} target="_blank" rel="noreferrer">
-                    {event?.token?.name} ({event?.token?.symbol})
-                  </Link>
+                  <CopyToClipboardText text={sourceTokenAddress}>
+                    <Link href={sourceTokenExplorerUrl} target="_blank" rel="noreferrer">
+                      {sourceTokenDisplay}
+                    </Link>
+                  </CopyToClipboardText>
                 )}
               </TableCell>
             </TableRow>
@@ -159,7 +195,7 @@ export function Details () {
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  <Box>{event?.context?.blockTimestamp} {event ? <>({event?.context?.blockTimestampRelative})</> : null}</Box>
+                  <CopyToClipboardText text={sourceTxTimestampDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -172,7 +208,7 @@ export function Details () {
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.context?.chainLabel
+                  <CopyToClipboardText text={sourceChainDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -185,9 +221,11 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                <Link href={event?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
-                  {event?.context?.transactionHash}
-                </Link>
+                <CopyToClipboardText text={sourceTransactionHash}>
+                  <Link href={event?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
+                    {sourceTransactionHash}
+                  </Link>
+                </CopyToClipboardText>
                 )}
               </TableCell>
             </TableRow>
@@ -200,7 +238,7 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  sourceTxStatus || <Skeleton variant="rectangular" width={350} height={20} />
+                  sourceTxStatusDisplay ? sourceTxStatusDisplay : <Skeleton variant="rectangular" width={350} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -213,7 +251,13 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  sourceTxFrom || <Skeleton variant="rectangular" width={350} height={20} />
+                  sourceTxFrom ? (
+                    <CopyToClipboardText text={sourceTxFrom}>
+                      <Link href={sourceTxFromExplorerUrl} target="_blank" rel="noreferrer">
+                        {sourceTxFrom}
+                      </Link>
+                    </CopyToClipboardText>
+                  ) : <Skeleton variant="rectangular" width={350} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -226,7 +270,13 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  sourceTxTo || <Skeleton variant="rectangular" width={350} height={20} />
+                  sourceTxTo ? (
+                    <CopyToClipboardText text={sourceTxTo}>
+                      <Link href={sourceTxToExplorerUrl} target="_blank" rel="noreferrer">
+                        {sourceTxTo}
+                      </Link>
+                    </CopyToClipboardText>
+                  ) : <Skeleton variant="rectangular" width={350} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -239,7 +289,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  txValue ? (`${txValue} (${txValueFormatted})`) : <Skeleton variant="rectangular" width={350} height={20} />
+                  sourceTxValueDisplay ? (
+                    <CopyToClipboardText text={sourceTxValueDisplay} />
+                  ) : <Skeleton variant="rectangular" width={350} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -252,7 +304,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  gasLimit || <Skeleton variant="rectangular" width={200} height={20} />
+                  gasLimit ? (
+                    <CopyToClipboardText text={gasLimit} />
+                  ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -265,7 +319,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  gasUsed || <Skeleton variant="rectangular" width={200} height={20} />
+                  gasUsed ? (
+                    <CopyToClipboardText text={gasUsed} />
+                  ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -278,7 +334,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  gasPrice ? `${gasPrice} (${gasPriceFormatted})` : <Skeleton variant="rectangular" width={200} height={20} />
+                  sourceGasPriceDisplay ? (
+                    <CopyToClipboardText text={sourceTxTimestampDisplay} />
+                  ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -291,8 +349,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  nonce || <Skeleton variant="rectangular" width={200}
-                  height={20} />
+                  nonce ? (
+                    <CopyToClipboardText text={nonce} />
+                  ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
             </TableRow>
@@ -305,7 +364,7 @@ Source Transaction Block Number:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  event?.context?.blockNumber
+                  <CopyToClipboardText text={sourceBlockNumber} />
                 )}
               </TableCell>
             </TableRow>
@@ -336,7 +395,22 @@ Destination Chain:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-event?.toChainLabel
+                  <CopyToClipboardText text={destinationChainDisplay} />
+                )}
+              </TableCell>
+            </TableRow>
+            <TableRow className={styles.tableRow}>
+              <TableCell>Destination Token:</TableCell>
+              <TableCell>
+                {loading
+                ? (
+                  <Skeleton variant="rectangular" width={200} height={20} />
+                ) : (
+                  <CopyToClipboardText text={destinationTokenAddress}>
+                    <Link href={destinationTokenExplorerUrl} target="_blank" rel="noreferrer">
+                      {destinationTokenDisplay}
+                    </Link>
+                  </CopyToClipboardText>
                 )}
               </TableCell>
             </TableRow>
@@ -349,7 +423,11 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.to
+                  <CopyToClipboardText text={transferRecipient}>
+                    <Link href={transferRecipientExplorerUrl} target="_blank" rel="noreferrer">
+                      {transferRecipient}
+                    </Link>
+                  </CopyToClipboardText>
                 )}
               </TableCell>
             </TableRow>
@@ -362,7 +440,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  transferAmountDisplay
+                  <CopyToClipboardText text={transferAmountDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -375,7 +453,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.attestationFee
+                  <CopyToClipboardText text={attestationFeeDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -386,7 +464,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.checkpoint
+                  <CopyToClipboardText text={checkpoint} />
                 )}
               </TableCell>
             </TableRow>
@@ -399,7 +477,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  totalSentDisplay
+                  <CopyToClipboardText text={totalSentDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -410,7 +488,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.nonce
+                  <CopyToClipboardText text={transferNonce} />
                 )}
               </TableCell>
             </TableRow>
@@ -423,7 +501,7 @@ event?.toChainLabel
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.pathId
+                  <CopyToClipboardText text={pathId} />
                 )}
               </TableCell>
             </TableRow>
@@ -438,9 +516,11 @@ Destination Transaction Hash:
                 ) : (
                   event?.transferBondedEvent
                   ? (
-                    <Link href={event?.transferBondedEvent?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
-                      {event?.transferBondedEvent?.context?.transactionHash}
-                    </Link>
+                    <CopyToClipboardText text={destinationTransactionHash}>
+                      <Link href={destinationTransactionExplorerUrl} target="_blank" rel="noreferrer">
+                        {destinationTransactionHash}
+                      </Link>
+                    </CopyToClipboardText>
                   ) : <Box>- <small><em>(Destination tx hash wil be available once message is bonded)</em></small></Box>)
                 }
               </TableCell>
@@ -454,9 +534,9 @@ Destination Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.transferBondedEvent?.amountOut
+                  destinationAmountOutDisplay
                   ? (
-                    event?.transferBondedEvent?.amountOut
+                    <CopyToClipboardText text={destinationAmountOutDisplay} />
                   ) : <Box>- <small><em>(Transfer amount out value will be availabe once transfer is bonded)</em></small></Box>
                 )}
               </TableCell>
@@ -470,9 +550,13 @@ Destination Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent?.context?.from
+                  destinationTxFromDisplay
                   ? (
-                    event?.transferBondedEvent?.context?.from
+                    <CopyToClipboardText text={destinationTxFromDisplay}>
+                      <Link href={destinationTxFromExplorerUrl} target="_blank" rel="noreferrer">
+                        {destinationTxFromDisplay}
+                      </Link>
+                    </CopyToClipboardText>
                   ) : <Box>- <small><em>(Destination transaction from address will be availabe once transfer is bonded)</em></small></Box>
                 )}
               </TableCell>
@@ -486,9 +570,13 @@ Destination Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent?.context?.to
+                  destinationTxToDisplay
                   ? (
-                    event?.transferBondedEvent?.context?.to
+                    <CopyToClipboardText text={destinationTxToDisplay}>
+                      <Link href={destinationTxToExplorerUrl} target="_blank" rel="noreferrer">
+                        {destinationTxToDisplay}
+                      </Link>
+                    </CopyToClipboardText>
                   ) : <Box>- <small><em>(Destination transaction to address will be availabe once transfer is bonded)</em></small></Box>
                 )}
               </TableCell>

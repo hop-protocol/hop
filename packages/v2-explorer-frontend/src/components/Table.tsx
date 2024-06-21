@@ -13,7 +13,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import _Table from '@mui/material/Table'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { CopyToClipboard } from './CopyToClipboard'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -67,6 +67,7 @@ export function Table (props: Props) {
   const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick } = props
   const styles = useStyles()
   const [copied, setCopied] = useState('')
+  const [copiedKey, setCopiedKey] = useState('')
   const page = 0
 
   function handleChangePage() {
@@ -75,10 +76,12 @@ export function Table (props: Props) {
   function handleChangeRowsPerPage () {
   }
 
-  function handleCopy (value: string) {
+  function handleCopy (value: string, key: string) {
     setCopied(value)
+    setCopiedKey(key)
     setTimeout(() => {
       setCopied('')
+      setCopiedKey('')
     }, 1000)
   }
 
@@ -128,6 +131,7 @@ export function Table (props: Props) {
                     <TableRow key={i}>
                       {row.map((col: Row, j: number) => {
                         const allowClick = onRowClick && !(col.valueUrl || col.clipboardValue)
+                        const cellKey = `${i}${j}`
                         return (
                           <TableCell key={j} title={col.title || col.clipboardValue || col.value}
                             style={{
@@ -154,9 +158,9 @@ export function Table (props: Props) {
                               {col.clipboardValue != null && (
                                 <Box ml={0.5}>
                                   <CopyToClipboard text={col.clipboardValue}
-                                    onCopy={event => handleCopy(col.clipboardValue!)}>
+                                    onCopy={event => handleCopy(col.clipboardValue!, cellKey)}>
                                     <Typography variant="body2" style={{ cursor: 'pointer' }}>
-                                      {copied === col.clipboardValue ? '✅' : '📋'}
+                                      {copiedKey === cellKey ? '✅' : '📋'}
                                     </Typography>
                                   </CopyToClipboard>
                                 </Box>

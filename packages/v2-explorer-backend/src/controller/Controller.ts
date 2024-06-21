@@ -193,6 +193,42 @@ export class Controller {
       item.token = tokenInfo
     }
 
+    if (!item.counterpartToken && item.pathId) {
+      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      const pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        throw new Error(`Path not found for pathId ${item.pathId}`)
+      }
+
+      let { token: tokenAddress, chainId, counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
+
+      if (item.context.chainId === counterpartChainId) {
+        counterpartTokenAddress = tokenAddress
+        counterpartChainId = chainId
+      }
+
+      let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
+      let tokenInfo = tokenInfos?.[0]
+      if (!tokenInfo) {
+        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId: counterpartChainId, address: counterpartTokenAddress })
+        await this.pgDb.nonEventTables.Token.upsertItem({
+          chainId: tokenInfo.chainId,
+          address: tokenInfo.address,
+          name: tokenInfo.name,
+          symbol: tokenInfo.symbol,
+          decimals: tokenInfo.decimals
+        })
+      }
+
+      tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
+      tokenInfo = tokenInfos?.[0]
+      if (!tokenInfo) {
+        throw new Error(`Token not found for token ${item.token}`)
+      }
+
+      item.counterpartToken = tokenInfo
+    }
+
     return item
   }
 
@@ -220,6 +256,9 @@ export class Controller {
     }
     if (item.to) {
       item.toTruncated = truncateString(item.to, 4)
+      if (item.toChainId) {
+        item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.toChainId)
+      }
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
@@ -246,9 +285,22 @@ export class Controller {
     if (item.token?.address) {
       item.token.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token.address, item.token.chainId)
     }
+    if (item.counterpartToken?.address) {
+      item.counterpartToken.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken.address, item.counterpartToken.chainId)
+    }
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]
       item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
+    }
+    if (item.context?.from) {
+      if (item.context?.chainId) {
+        item.context.fromExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item?.context.from, item.context.chainId)
+      }
+    }
+    if (item.context?.to) {
+      if (item.context?.chainId) {
+        item.context.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item?.context.to, item.context.chainId)
+      }
     }
 
     return item

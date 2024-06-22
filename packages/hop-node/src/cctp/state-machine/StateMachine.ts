@@ -89,13 +89,11 @@ export abstract class StateMachine<State extends string, StateData> implements I
     // There is no transition for the final state
     if (isLastState(this.#states, state)) return
 
-    console.log('FSM - check state', state)
     for await (const [key, value] of this.#db.getItemsInState(state)) {
-      console.log('FSM - process state:', state, key)
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (!shouldAttempt) return
 
-      return this.#transitionState(state, key, value)
+      await this.#transitionState(state, key, value)
     }
   }
 

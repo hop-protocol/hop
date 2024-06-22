@@ -66,18 +66,12 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
    */
 
   #pollRelayer = async (): Promise<void> => {
-    for await (const value of this.#getRelayableMessages()) {
-      const { message, destinationChainId } = value
-      await this.#relayMessage(message, destinationChainId)
-    }
-  }
-
-  async *#getRelayableMessages (): AsyncIterable<ISentMessage> {
     for await (const [, value] of this.getItemsInState(MessageState.Sent)) {
+      const { message, destinationChainId } = value as ISentMessage
       const canRelay = this.#canRelayMessage(value as ISentMessage)
       if (!canRelay) continue
 
-      yield value as ISentMessage
+      await this.#relayMessage(message, destinationChainId)
     }
   }
 
@@ -118,7 +112,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
         // error={"reason":"execution reverted: Nonce already used"
         // TODO: How would this happen in the first place? 
         await this.#sentTxCache.addTxHash(messageHash)
-        console.log(`Nonce already used for message ${messageHash}. Adding to the cache.`)
+        console.log(`Nonce already used for message hash: ${messageHash}. Adding to the cache.`)
         return
       } else {
         // TODO: How to handle this? Could be out of funds, etc. Most likely handled by signer

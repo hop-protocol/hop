@@ -22,17 +22,17 @@ async function main (source: any) {
    */
 
   const dbName = 'Message'
-  switch ('TxRelay') {
+  switch ('StateMachine') {
   // switch (source.dbName) {
-    // case 'StateMachine':
-    //   await dumpStateMachineDB(dbName)
-    //   break
+    case 'StateMachine':
+      await dumpStateMachineDB(dbName)
+      break
     // case 'OnchainEventIndexer':
     //   await dumpOnchainEventIndexerDB(dbName)
     //   break
-    case 'TxRelay':
-      await dumpTxRelayDB()
-      break
+    // case 'TxRelay':
+    //   await dumpTxRelayDB()
+    //   break
     default:
       throw new Error('DB Name not found')
   }

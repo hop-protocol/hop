@@ -53,7 +53,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   init (): void {
     this.#startListeners()
-    console.log('Onchain Event Indexer initialized')
+    console.log('Onchain Event DB initialized')
   }
 
   /**

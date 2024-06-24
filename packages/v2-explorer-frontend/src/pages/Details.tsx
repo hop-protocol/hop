@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { SiteWrapper } from '../components/SiteWrapper'
 import { utils } from 'ethers'
@@ -41,23 +41,11 @@ export function Details () {
   const location = useLocation()
   const parts = location.pathname.split('/')
   const transferId = parts[2]
-  const [txValue, setTxValue] = useState('')
-  const [txValueFormatted, setTxValueFormatted] = useState('')
-  const [gasLimit, setGasLimit] = useState('')
-  const [gasUsed, setGasUsed] = useState('')
-  const [gasPrice, setGasPrice] = useState('')
-  const [gasPriceFormatted, setGasPriceFormatted] = useState('')
-  const [nonce, setNonce] = useState('')
-  const [sourceTxStatus, setSourceTxStatus] = useState('')
-  const [sourceTxFrom, setSourceTxFrom] = useState('')
-  const [sourceTxFromExplorerUrl, setSourceTxFromExplorerUrl] = useState('')
-  const [sourceTxTo, setSourceTxTo] = useState('')
-  const [sourceTxToExplorerUrl, setSourceTxToExplorerUrl] = useState('')
+  const sdk = useMemo(() => new Hop({ network: 'sepolia' }), [])
 
   const filter = { transferId }
   const { events, loading: isFetching } = useEvents('explorer', filter)
   const event: any = events[0]
-  const loading = !(!isFetching && gasLimit && gasUsed)
 
   let status :any = null
   const isBonded = !!event?.transferBondedEvent
@@ -71,40 +59,6 @@ export function Details () {
     )
   }
 
-  useEffect(() => {
-    async function update() {
-      if (event) {
-        const sdk = new Hop({ network: 'sepolia' })
-        const provider = sdk.getRpcProviderForChainId(event?.context?.chainId)
-        const txHash = event?.context?.transactionHash
-        const [tx, receipt] = await Promise.all([
-          provider.getTransaction(txHash),
-          provider.getTransactionReceipt(txHash)
-        ])
-        if (tx) {
-          setTxValue(tx?.value?.toString())
-          setTxValueFormatted(`${utils.formatEther(tx?.value?.toString())} ETH`)
-          setGasLimit(tx?.gasLimit?.toString())
-          setNonce(tx?.nonce?.toString())
-          if (receipt) {
-            setGasUsed(receipt?.gasUsed?.toString())
-            setSourceTxStatus(receipt?.status?.toString() || '1')
-            setSourceTxFrom(receipt?.from?.toString())
-            setSourceTxFromExplorerUrl(sdk.utils.getAddressExplorerUrl(receipt?.from?.toString(), event?.context?.chainId))
-            setSourceTxTo(receipt?.to?.toString())
-            setSourceTxToExplorerUrl(sdk.utils.getAddressExplorerUrl(receipt?.to?.toString(), event?.context?.chainId))
-            if ((tx as any)?.gasPrice) {
-              setGasPrice((tx as any)?.gasPrice?.toString())
-              setGasPriceFormatted(`${utils.formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
-            }
-          }
-        }
-      }
-    }
-
-    update().catch(console.error)
-  }, [event])
-
   const transferAmount = event?.amount
   const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, event?.token?.decimals) : null
   const transferAmountDisplay = transferAmount ? `${transferAmount} (${transferAmountFormatted} ${event?.token?.symbol})` : null
@@ -113,10 +67,25 @@ export function Details () {
   const totalSentFormatted = totalSent ? utils.formatUnits(totalSent, event?.token?.decimals) : null
   const totalSentDisplay = totalSent ? `${totalSent} (${totalSentFormatted} ${event?.token?.symbol})` : null
 
+  const txValue = event?.context?.value?.toString()
+  const txValueFormatted = event ? `${utils.formatEther(event?.context?.value?.toString())} ETH` : ''
+  const gasLimit = event?.context?.gasLimit?.toString()
+  const nonce = event?.context?.nonce?.toString()
+  const gasUsed = event?.context?.gasUsed?.toString()
+  const sourceTxStatus = event?.context?.status?.toString() ?? '-'
+  const sourceTxFrom = event?.context?.from?.toString()
+  const sourceTxFromExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(event?.context?.from?.toString(), event?.context?.chainId) : ''
+  const sourceTxTo = event?.context?.to?.toString()
+  const sourceTxToExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(event?.context?.to?.toString(), event?.context?.chainId) : ''
+  const gasPrice = event?.context?.gasPrice?.toString()
+  const gasPriceFormatted = event ? `${utils.formatUnits(event?.context?.gasPrice?.toString(), 9)} gwei` : ''
+
+  const loading = !(!isFetching && event)
+
   const sourceTokenAddress = event?.token?.address
   const sourceTokenDisplay = event?.token ? `${event?.token?.name} (${event?.token?.symbol})` : null
   const sourceTokenExplorerUrl = event?.token?.tokenExplorerUrl
-  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus ? 'Success' : 'Failure'})` : null
+  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === 1 ? 'Success' : sourceTxStatus === 0 ? 'Failure' : 'Unknown'})` : null
   const sourceChainDisplay = event?.context?.chainLabel
   const sourceTransactionHash = event?.context?.transactionHash
   const sourceTxValueDisplay = txValue ? `${txValue} (${txValueFormatted})` : null

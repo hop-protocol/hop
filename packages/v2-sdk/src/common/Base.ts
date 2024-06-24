@@ -49,7 +49,7 @@ export class Base {
       }
     }
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
-    this.chainProviders = config.chainProviders || this.getDefaultChainRpcProviders()
+    this.chainProviders = config.chainProviders ?? this.getDefaultChainRpcProviders()
 
     this.contractAddresses = addresses[this.network] ?? {}
 

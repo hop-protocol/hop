@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -rf /tmp/tempdb
 # docker create network=mynetwork
 
 docker run --net=host --rm --name pg -p 5432:5432 -e POSTGRES_PASSWORD=password postgres

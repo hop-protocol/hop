@@ -30,7 +30,9 @@ export class Controller {
     this.sdk = new Hop({
       network
     })
+    // console.log('rpcUrls', rpcUrls)
     this.sdk.setChainRpcProviderUrls(rpcUrls)
+    // console.log(this.sdk.chainProviders)
   }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {
@@ -162,19 +164,12 @@ export class Controller {
         throw new Error(`Path not found for pathId ${item.pathId}`)
       }
 
-      const { token: tokenAddress, chainId, counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
+      const { token: tokenAddress, chainId } = pathInfo
 
-      let originTokenAddress = tokenAddress
-      let originChainId = chainId
-      if (item.context.chainId === counterpartChainId) {
-        originTokenAddress = counterpartTokenAddress
-        originChainId = counterpartChainId
-      }
-
-      let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: originChainId, address: originTokenAddress }})
+      let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId: originChainId, address: originTokenAddress })
+        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId, address: tokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -184,7 +179,7 @@ export class Controller {
         })
       }
 
-      tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: originChainId, address: originTokenAddress }})
+      tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
         throw new Error(`Token not found for token ${item.token}`)
@@ -200,12 +195,7 @@ export class Controller {
         throw new Error(`Path not found for pathId ${item.pathId}`)
       }
 
-      let { token: tokenAddress, chainId, counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
-
-      if (item.context.chainId === counterpartChainId) {
-        counterpartTokenAddress = tokenAddress
-        counterpartChainId = chainId
-      }
+      const { counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
 
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
       let tokenInfo = tokenInfos?.[0]

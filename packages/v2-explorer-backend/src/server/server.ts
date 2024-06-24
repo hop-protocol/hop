@@ -47,6 +47,8 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
   }
 })
 
+const controller = new Controller()
+
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {
     let { eventName, page, limit = 10, filter } = req.query
@@ -60,7 +62,6 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     if (limit > 10) {
       throw new Error('limit must be less than 10')
     }
-    const controller = new Controller()
     const { items, hasNextPage } = await controller.getEventsForApi({
       eventName,
       limit,

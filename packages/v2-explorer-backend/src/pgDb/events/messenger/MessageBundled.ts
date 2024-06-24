@@ -91,11 +91,8 @@ export class MessageBundledTable extends EventDb {
     `
 
     await this.db.tx(async (t: any) => {
-      console.log('here0000', contextId)
       await t.none(insertEventContextSql, insertEventContextArgs)
-      console.log('here111', contextId)
       await t.none(sql, args)
-      console.log('here2222', contextId)
     })
   }
 }

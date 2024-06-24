@@ -20,7 +20,7 @@ async function main (source: any) {
   const dbName = 'Message'
   // await dumpStateMachineDB(dbName)
   // await dumpOnchainEventIndexerDB(dbName)
-  await dumpTxRelayDB()
+  await dumpTxRelayDB(dbName)
 }
 
 async function dumpStateMachineDB (dbName: string) {
@@ -34,15 +34,15 @@ async function dumpStateMachineDB (dbName: string) {
 
 async function dumpOnchainEventIndexerDB (dbName: string) {
   const db = new OnchainEventIndexerDB(dbName)
-  for await (const [key, value] of db.iterator()) {
+  for await (const [, value] of db.iterator()) {
     console.log(value)
   }
 } 
 
-async function dumpTxRelayDB () {
-  const db = new TxRelayDB()
-  for await (const [key, value] of db.iterator()) {
-    // The key is a txHash and the value is a boolean indicating if the txHash exists.
+async function dumpTxRelayDB (dbName: string) {
+  const db = new TxRelayDB(dbName)
+  for await (const [key,] of db.iterator()) {
+    // The key is the item itself and the value is simply a boolean indicating existence
     console.log(key)
   }
 }

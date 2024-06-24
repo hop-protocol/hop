@@ -1,7 +1,7 @@
 import { DB } from './DB.js'
 
 /**
- * The key is the txHash and the value is a boolean indicating if the txHash exists.
+ * The key can be any string as long is it is unique to the DB.
  */
 
 type DBKey = string
@@ -9,17 +9,25 @@ type DBValue = boolean
 
 export class TxRelayDB extends DB<DBKey, DBValue> {
 
-  // Tx Hashes are unique across all chains and address so
-  // no per-DB identifier is needed.
-  constructor () {
-    super('TxRelayDB')
+  constructor (dbName: string) {
+    super(dbName + 'TxRelayDB')
   }
 
-  async addTxHash (txHash: string): Promise<void> {
-    return this.put(txHash, true)
+  async addItem (item: string): Promise<void> {
+    if (await this.doesItemExist(item)) {
+      throw new Error('Item already exists')
+    }
+    return this.put(item, true)
   }
 
-  async doesTxHashExist (txHash: string): Promise<boolean> {
-    return this.has(txHash)
+  async removeItem (item: string): Promise<void> {
+    if (await this.doesItemExist(item)) {
+      throw new Error('Item already exists')
+    }
+    return this.put(item, false)
+  }
+
+  async doesItemExist (item: string): Promise<boolean> {
+    return this.has(item)
   }
 }

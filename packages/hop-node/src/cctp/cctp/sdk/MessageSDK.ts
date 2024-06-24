@@ -12,7 +12,7 @@ import {
   getMessageTransmitterContract,
   getAttestationTimeFromChainIdMs,
 } from './utils.js'
-import type { DecodedLogWithContext, RequiredEventFilter } from '../types.js'
+import type { DecodedLogWithContext, RequiredEventFilter } from '../../types.js'
 import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { config as globalConfig } from '#config/index.js'
@@ -115,7 +115,7 @@ export class MessageSDK {
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
     const chainId: string = (await signer.getChainId()).toString()
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
-    // TODO: Config overrides
+    // TODO: SDK: Config overrides
     const txOverrides = await MessageSDK.getTxOverrides(chainId)
     return MessageTransmitterContract.connect(signer).receiveMessage(message, attestation, txOverrides)
   }
@@ -154,7 +154,7 @@ export class MessageSDK {
     })
   }
 
-  // TODO: rm for config
+  // TODO: SDK: rm for config
   static async getTxOverrides (chainId: string): Promise<any>{
     const provider = getRpcProvider(chainId)
     const txOptions: any = {}

@@ -3,7 +3,7 @@ import {
   MessageSDK,
   type HopCCTPTransferSentDecodedWithMessage,
   type HopCCTPTransferReceivedDecoded
-} from './MessageSDK.js'
+} from './sdk/MessageSDK.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataProvider } from '../data-provider/DataProvider.js'
 import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } from './types.js'

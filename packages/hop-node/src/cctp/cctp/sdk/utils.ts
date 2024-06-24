@@ -8,14 +8,15 @@ export function getAttestationUrl (messageHash: string): string {
   return `${baseUrl}/${messageHash}`
 }
 
-// TODO: Use block numbers, not arbitrary time
+// Based on docs with an added buffer as observed in practice
+// https://developers.circle.com/stablecoins/docs/required-block-confirmations
 export const AttestationTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
-    [ChainSlug.Ethereum]: 30 * 60 * 1000,
-    [ChainSlug.Optimism]: 30 * 60 * 1000,
-    [ChainSlug.Arbitrum]: 40 * 60 * 1000,
-    [ChainSlug.Base]: 30 * 60 * 1000,
-    [ChainSlug.Polygon]: 40 * 60 * 1000,
+    [ChainSlug.Ethereum]: 20 * 60 * 1000,
+    [ChainSlug.Optimism]: 20 * 60 * 1000,
+    [ChainSlug.Arbitrum]: 20 * 60 * 1000,
+    [ChainSlug.Base]: 20 * 60 * 1000,
+    [ChainSlug.Polygon]: 30 * 60 * 1000
   },
   [NetworkSlug.Sepolia]: {
     [ChainSlug.Ethereum]: 2 * 60 * 1000,
@@ -90,7 +91,7 @@ export const USDC_ADDRESSES: Partial<Record<NetworkSlug, Record<string, string>>
     '137': '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // Polygon PoS
   }
 }
-// TODO: Get from SDK
+
 export const CCTP_DOMAIN_TO_CHAIN_ID_MAP: Partial<Record<NetworkSlug, Record<number, number>>> = {
   [NetworkSlug.Mainnet]: {
     0: 1, // Ethereum

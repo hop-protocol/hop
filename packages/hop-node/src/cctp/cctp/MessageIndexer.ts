@@ -1,4 +1,4 @@
-import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './MessageSDK.js'
+import { MessageSDK, HopCCTPTransferSentDecoded, HopCCTPTransferReceivedDecoded } from './sdk/MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '../indexer/OnchainEventIndexer.js'
 import type { DecodedLogWithContext } from '../types.js'
 import { type IMessage, MessageState } from './types.js'

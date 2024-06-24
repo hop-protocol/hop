@@ -1,7 +1,7 @@
 import { getUnrelayedMessages } from './utils.js'
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
-import { MessageSDK } from '../../../src/cctp/cctp/MessageSDK.js'
+import { MessageSDK } from '../../../src/cctp/cctp/sdk/MessageSDK.js'
 import { type ISentMessage } from '../../../src/cctp/cctp/types.js'
 import { actionHandler, root } from '../shared/index.js'
 
@@ -23,12 +23,12 @@ async function main (source: any) {
 }
 
 async function relayMessage(item: ISentMessage) {
-  const { message, destinationChainId,  } = item
+  const { message, destinationChainId, sentTxHash } = item
   const chainSlug = getChain(destinationChainId).slug
   const wallet = wallets.get(chainSlug)
 
   try {
-    console.log(`Relaying message ${message.substring(0, 10)}... to ${chainSlug}`)
+    console.log(`Relaying message with txHash ${sentTxHash}... on destination chain: ${chainSlug}`)
     const attestation = await MessageSDK.fetchAttestation(message)
     await MessageSDK.relayMessage(wallet, message, attestation)
   } catch (e) {

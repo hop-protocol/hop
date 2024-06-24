@@ -14,7 +14,6 @@ import { normalizeDBValue } from './utils.js'
  * The DB stores and maintains the last block synced for each filterId.
  */
 
-
 type IndexDBValue = DecodedLogWithContext
 type SyncDBValue = {
   syncedBlockNumber: number

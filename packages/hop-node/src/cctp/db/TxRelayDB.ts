@@ -1,6 +1,13 @@
 import { DB } from './DB.js'
 
-export class TxRelayDB extends DB<string, boolean> {
+/**
+ * The key is the txHash and the value is a boolean indicating if the txHash exists.
+ */
+
+type DBKey = string
+type DBValue = boolean
+
+export class TxRelayDB extends DB<DBKey, DBValue> {
 
   // Tx Hashes are unique across all chains and address so
   // no per-DB identifier is needed.

@@ -19,6 +19,7 @@ export const selectEventContextSql = `
   ec.gas_limit AS "context.gasLimit",
   ec.gas_used AS "context.gasUsed",
   ec.gas_price AS "context.gasPrice",
+  ec.status AS "context.status",
   ec.data AS "context.data"
 `
 
@@ -40,6 +41,7 @@ export function getItemsWithContext (items: any[]) {
         gasLimit: x['context.gasLimit'],
         gasUsed: x['context.gasUsed'],
         gasPrice: x['context.gasPrice'],
+        status: x['context.status'],
         data: x['context.data']
       }
     }
@@ -63,14 +65,15 @@ export function getInsertEventContextSqlData (context: any) {
     gasLimit: context.gasLimit,
     gasUsed: context.gasUsed,
     gasPrice: context.gasPrice,
+    status: context.status,
     data: context.data
   };
 
   const insertEventContextSql = `
     INSERT INTO event_context (
-      id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, data
+      id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, status, data
     )
-    VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${data})'}
+    VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data})'}
     ON CONFLICT (chain_id, transaction_hash, log_index)
     ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}'}
   `;

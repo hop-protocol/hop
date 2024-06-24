@@ -113,7 +113,7 @@ export class Base {
     }
   }
 
-  setChainRpcProviderUrl (chainId: BigNumberish, url: string): void {
+  setChainRpcProviderUrl (chainId: BigNumberish, url: string | string[]): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
@@ -123,7 +123,7 @@ export class Base {
     }
   }
 
-  setChainRpcProviderUrls (chainProviders: Record<string, string>): void {
+  setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {
     for (const chainId in chainProviders) {
       if (!this.utils.isValidChainId(chainId)) {
         continue

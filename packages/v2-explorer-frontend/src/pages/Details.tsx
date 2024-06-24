@@ -85,7 +85,7 @@ export function Details () {
   const sourceTokenAddress = event?.token?.address
   const sourceTokenDisplay = event?.token ? `${event?.token?.name} (${event?.token?.symbol})` : null
   const sourceTokenExplorerUrl = event?.token?.tokenExplorerUrl
-  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === 1 ? 'Success' : sourceTxStatus === 0 ? 'Failure' : 'Unknown'})` : null
+  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
   const sourceChainDisplay = event?.context?.chainLabel
   const sourceTransactionHash = event?.context?.transactionHash
   const sourceTxValueDisplay = txValue ? `${txValue} (${txValueFormatted})` : null

@@ -136,7 +136,7 @@ export class Event<T> {
 
         const { timestamp: blockTimestamp } = block
         const { value, nonce, gasLimit, gasPrice, data } = transaction
-        const { from, to, gasUsed } = receipt
+        const { from, to, gasUsed, status } = receipt
 
         fetchedTxData = {
           blockTimestamp,
@@ -147,7 +147,8 @@ export class Event<T> {
           gasLimit: Number(gasLimit.toString()),
           gasUsed: Number(gasUsed.toString()),
           gasPrice: gasPrice?.toString(),
-          data
+          data,
+          status
         }
       }
 

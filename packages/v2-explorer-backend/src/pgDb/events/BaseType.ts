@@ -12,6 +12,7 @@ export type EventContext = {
   gasLimit: number
   gasUsed: number
   gasPrice: string
+  status: number
   data: string
 }
 

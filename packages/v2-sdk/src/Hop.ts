@@ -367,7 +367,7 @@ export class Hop extends Base {
     return decoded
   }
 
-  override setChainRpcProviderUrls (chainProviders: Record<string, string>): void {
+  override setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {
     super.setChainRpcProviderUrls(chainProviders)
     this.railsGateway.setChainRpcProviderUrls(chainProviders)
     this.messenger.setChainRpcProviderUrls(chainProviders)

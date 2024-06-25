@@ -13,15 +13,17 @@ import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { PathTable } from './paths/paths.js'
 import { TokenTable } from './tokens/tokens.js'
 import { EventContextTable } from './eventContext/eventContext.js'
+import { MigrationTable } from './migrations/migrations.js'
 import { postgresConfig } from '#config/index.js'
 import { Pgp } from './pgDbTypes.js'
-
-const argv = minimist(process.argv.slice(2))
+import { MigrationManager } from './migrations/MigrationManager.js'
 
 export class PgDb {
   db: Pgp
   events: any = {}
   nonEventTables: any = {}
+  migrationTable: any = {}
+  migrationManager: any
 
   constructor () {
     const initOptions: any = {}
@@ -52,6 +54,9 @@ export class PgDb {
       TransferBonded: new TransferBondedTable(this.db)
     }
 
+    this.migrationTable = new MigrationTable(this.db)
+    this.migrationManager = new MigrationManager(this.migrationTable)
+
     this.init().catch((err: any) => {
       console.error('pg db error', err)
       process.exit(1)
@@ -61,17 +66,10 @@ export class PgDb {
   }
 
   async init () {
-    const resetDb = argv.reset
-    if (resetDb) {
-      await this.db.query('DROP TABLE IF EXISTS events')
-    }
+    await this.migrationTable.createTable()
+    await this.migrationTable.createIndexes()
 
-    const migration = argv.migration
-    if (migration) {
-      // await this.db.query(`
-      //   ALTER TABLE events ADD COLUMN IF NOT EXISTS test BOOLEAN
-      // `)
-    }
+    await this.migrationManager.runMigrations(1)
 
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createTable()

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { IDataProvider } from './IDataProvider.js'
+import { Logger } from '#logger/index.js'
 // TODO: V2: Imports below here should be abstracted away into a generalized
 // data-source module. Do that when there are multiple implementations.
 import { DATA_STORED_EVENT } from '../indexer/constants.js'
@@ -22,12 +23,17 @@ type IDataSourceItem = DecodedLogWithContext
 export abstract class DataProvider<T extends string, U> implements IDataProvider<T, U> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #dataSource: IDataSource<T, U>
+  protected readonly logger: Logger
 
   protected abstract getKeyFromDataSourceItem(item: IDataSourceItem): T
   protected abstract formatDataSourceItem(key: T, unformattedItem: IDataSourceItem): Promise<U>
 
   constructor (dataSource: IDataSource<T, U>) {
     this.#dataSource = dataSource
+    this.logger = new Logger({
+      tag: 'DataProvider',
+      color: 'yellow'
+    })
   }
 
   /**
@@ -37,12 +43,12 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
   async init (): Promise<void> {
     this.#initListeners()
     await this.#dataSource.init()
-    console.log('Data provider initialized')
+    this.logger.info('Data provider initialized')
   }
 
   start (): void {
     this.#dataSource.start()
-    console.log('Data provider started')
+    this.logger.info('Data provider started')
   }
 
   /**
@@ -74,7 +80,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
       const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
       return this.formatDataSourceItem(key, item)
     } catch (err) {
-      console.log(`Error fetching item with key ${key} from data source`)
+      this.logger.warn(`Error fetching item with key ${JSON.stringify(key)} from data source, value: ${value}`, key)
       return null
     }
   }

@@ -23,7 +23,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   #startPollers (): void {
-    poll(this.#pollRelayer, this.#pollIntervalMs)
+    poll(this.#pollRelayer, this.#pollIntervalMs, this.logger)
   }
 
   /**
@@ -99,6 +99,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     const messageHash = MessageSDK.getMessageHashFromMessage(message)
     if (await this.#sentTxCache.doesItemExist(messageHash)) return
 
+    this.logger.info(`Relaying messageHash: ${messageHash} to chain: ${destinationChainId}`)
     try {
       const attestation = await MessageSDK.fetchAttestation(message)
       const chainSlug = getChain(destinationChainId).slug
@@ -117,7 +118,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
     // Attestation errors
     if (errMessage.includes('Attestation not complete')) {
-      console.log(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
+      this.logger.debug(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
       return
     } else if (errMessage.includes('Message hash not found')) {
       throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
@@ -127,12 +128,12 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     if (errMessage.includes('Nonce already used')) {
       // This may occur if there are multiple servers running at once.
       // The item has already been added to the cache, so we can safely ignore this error.
-      console.log(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
+      this.logger.debug(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
       return
     } else {
       // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
       // TODO: V2: The reorged message case should be handled differently by the DB and should not be here..
-      console.log(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
+      this.logger.debug(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
       return
     }
   }

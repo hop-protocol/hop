@@ -12,6 +12,7 @@ import { POLL_INTERVAL_MS, DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '../db/constants.js'
+import { Logger } from '#logger/index.js'
 
 /**
  * Onchain event indexer. A single instance of this class is responsible for
@@ -46,6 +47,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
   #started: boolean = false
+  protected readonly logger: Logger
 
   protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter<LookupKey>
   protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
@@ -56,6 +58,10 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
+    this.logger = new Logger({
+      tag: 'OnchainEventIndexer',
+      color: 'blue'
+    })
   }
 
   protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter<LookupKey>): void {
@@ -80,7 +86,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexerEventFilter)
     }
-    console.log('OnchainEventIndexer initialized')
+    this.logger.info('OnchainEventIndexer initialized')
   }
 
   start (): void {
@@ -88,7 +94,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       this.#startPoller(indexerEventFilter)
     }
     this.#started = true
-    console.log('OnchainEventIndexer started')
+    this.logger.info('OnchainEventIndexer started')
   }
 
   /**
@@ -127,7 +133,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    */
 
   #startPoller (indexerEventFilter: IndexerEventFilter): void {
-    poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs)
+    poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs, this.logger)
   }
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
@@ -148,6 +154,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       endBlockNumber
     }
 
+    this.logger.info(`Syncing events for filterId ${filterId} from block ${startBlockNumber} to ${endBlockNumber}`)
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       const filteredLogs = logs.filter(log => this.filterIrrelevantLog(log))
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update

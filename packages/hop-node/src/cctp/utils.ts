@@ -1,10 +1,12 @@
 import { TimeIntervals } from '#constants/constants.js'
 import { wait } from '#utils/wait.js'
+import { Logger } from '#logger/index.js'
 
 // TODO: V2: Is there a built-in way or better way to do this? I need the exit(1)
 export async function poll(
   cb: () => Promise<void>,
-  pollIntervalMs: number
+  pollIntervalMs: number,
+  logger: Logger
 ): Promise<void> {
   try {
     while (true) {
@@ -12,7 +14,7 @@ export async function poll(
       await wait(pollIntervalMs)
     }
   } catch (err) {
-    console.trace('poll err', err)
+    logger.critical('poll err', err)
     process.exit(1)
   }
 }

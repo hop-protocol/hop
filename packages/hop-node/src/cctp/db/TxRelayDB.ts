@@ -17,6 +17,7 @@ export class TxRelayDB extends DB<DBKey, DBValue> {
     if (await this.doesItemExist(item)) {
       throw new Error('Item already exists')
     }
+    this.logger.debug(`Adding item: ${item}`)
     return this.put(item, true)
   }
 

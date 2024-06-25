@@ -52,7 +52,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   init (): void {
     this.#initListeners()
-    console.log('Onchain Event DB initialized')
+    this.logger.info('Onchain Event DB initialized')
   }
 
   /**
@@ -131,6 +131,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     const syncKey = this.#getLastBlockSyncedKey(primaryKey)
     batch.put(syncKey, { syncedBlockNumber })
 
+    this.logger.debug(`Putting ${logs.length} logs with primaryKey ${primaryKey} and syncedBlockNumber ${syncedBlockNumber}. ${logs.length ? JSON.stringify(logs) : ''}`)
     return batch.write()
   }
 

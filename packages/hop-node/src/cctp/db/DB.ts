@@ -1,5 +1,6 @@
 import { Level }  from 'level'
 import { getDBPath } from './utils.js'
+import { Logger } from '#logger/index.js'
 
 interface DatabaseOptions {
   keyEncoding: string
@@ -13,8 +14,14 @@ const KEY_ENCODING_OPTIONS: DatabaseOptions = {
 }
 
 export abstract class DB<K, V> extends Level<K, V> {
+  protected readonly logger: Logger
+
   constructor (name: string) {
     super(getDBPath(name), KEY_ENCODING_OPTIONS)
+    this.logger = new Logger({
+      tag: name,
+      color: 'cyan'
+    })
   }
 
   protected async getIfExists(key: K): Promise<V | null> {

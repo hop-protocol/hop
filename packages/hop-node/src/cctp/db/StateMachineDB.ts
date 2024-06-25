@@ -65,6 +65,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     }
     batch.put(key, aggregateValue)
 
+    this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
     return batch.write()
   }
 
@@ -87,16 +88,10 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   // implementation removes both such that the message will never be handled. This should
   // be handled more gracefully.
   #handlePossibleReorg = async (key: Key, value: StateData): Promise<void> => {
-    console.error('Reorg observed. Deleting all states for key:', key)
 
     const existingValue = await this.get(key)
     const doesMatch = this.#compareItems(value, existingValue)
-    if (!doesMatch) {
-      console.error('Reorged value does not match existing value for key:', key)
-    } else {
-      console.error('Reorged value matches existing value for key:', key)
-    }
-
+    this.logger.warn(`Reorg observed. Deleting all states for key: ${key}. ${doesMatch ? 'The items matched.' : 'The items did not match.'}`)
     await this.del(key)
   }
 

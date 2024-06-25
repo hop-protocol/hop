@@ -3,6 +3,7 @@ import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
 import { getFirstState, getNextState, isFirstState, isLastState } from './utils.js'
 import { IStateMachine } from './IStateMachine.js'
+import { Logger } from '#logger/index.js'
 
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
@@ -18,6 +19,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataProvider: IDataProvider<State, StateData>
   readonly #pollIntervalMs: number = 10_000
+  protected readonly logger: Logger
 
   protected abstract getItemId(value: StateData): string
   // Checks if the implementation believes that the data source should have the state transition
@@ -32,6 +34,10 @@ export abstract class StateMachine<State extends string, StateData> implements I
     this.#db = new StateMachineDB(dbName)
     this.#states = states
     this.#dataProvider = dataProvider
+    this.logger = new Logger({
+      tag: 'StateMachine',
+      color: 'green'
+    })
   }
 
   /**
@@ -48,13 +54,13 @@ export abstract class StateMachine<State extends string, StateData> implements I
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
     }
-    console.log('State machine initialized')
+    this.logger.info('State machine initialized')
   }
     
   start (): void {
     this.#startPollers()
     this.#dataProvider.start()
-    console.log('State machine started')
+    this.logger.info('State machine started')
   }
 
   /**
@@ -81,7 +87,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   #startPollers (): void {
     for (const state of this.#states) {
-      poll(() => this.#checkStateTransition(state), this.#pollIntervalMs)
+      poll(() => this.#checkStateTransition(state), this.#pollIntervalMs, this.logger)
     }
   }
 
@@ -104,6 +110,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   #initializeItem = (value: StateData): Promise<void> => {
     const firstState = getFirstState(this.#states)
     const key = this.getItemId(value)
+    this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
     return this.#db.createItemIfNotExist(firstState, key, value)
   }
 
@@ -114,6 +121,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
       return
     }
 
+    this.logger.info(`Transitioning item with key: ${key} from state: ${state} to state: ${nextState}`)
     const isLastTransition = isLastState(this.#states, nextState)
     if (isLastTransition) {
       return this.#db.updateFinalState(state, key, nextValue)

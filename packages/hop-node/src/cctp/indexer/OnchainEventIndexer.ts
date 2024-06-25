@@ -158,7 +158,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       endBlockNumber
     }
 
-    this.logger.info(`Syncing events for chainId: ${chainId} and filterId ${filterId} from block ${startBlockNumber} to ${endBlockNumber}`)
+    this.logger.info(`Syncing events for chainId ${chainId} and filterId ${filterId} from block ${startBlockNumber} to ${endBlockNumber}`)
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       const filteredLogs = logs.filter(log => this.filterIrrelevantLog(log))
       // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update

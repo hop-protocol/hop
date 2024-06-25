@@ -20,19 +20,19 @@ export async function poll(
 }
 
 // TODO: V2: Get this from config
-// This represents the custom finality time for each chain
+// This represents the custom finality time for each chain. There is a buffer.
 export function getFinalityTimeFromChainIdMs(chainId: string): number {
   switch (chainId) {
     case '1':
-      return 6 * TimeIntervals.ONE_MINUTE_MS
+      return 12 * TimeIntervals.ONE_MINUTE_MS
     case '10':
-      return 6 * TimeIntervals.ONE_MINUTE_MS
+      return 12 * TimeIntervals.ONE_MINUTE_MS
     case '42161':
-      return 6 * TimeIntervals.ONE_MINUTE_MS
+      return 12 * TimeIntervals.ONE_MINUTE_MS
     case '8453':
-      return 6 * TimeIntervals.ONE_MINUTE_MS
+      return 12 * TimeIntervals.ONE_MINUTE_MS
     case '137':
-      return 6 * TimeIntervals.ONE_MINUTE_MS
+      return 12 * TimeIntervals.ONE_MINUTE_MS
     default:
       throw new Error(`Unknown chainId: ${chainId}`)
   }

@@ -25,7 +25,7 @@ export async function main () {
 
   try {
     const messageManager = new Message(chainIds)
-    messageManager.start()
+    await messageManager.start()
     console.log('CCTP Manager started')
 
     // TODO: Better way to run

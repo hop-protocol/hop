@@ -39,7 +39,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
    */
 
   async init (): Promise<void> {
-    this.#startListeners()
+    this.#initListeners()
     await this.#dataProvider.init()
 
     // This handles any pending state transitions upon startup
@@ -61,7 +61,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
    * Node events
    */
 
-  #startListeners (): void {
+  #initListeners (): void {
     const firstState = getFirstState(this.#states)
     this.#dataProvider.on(firstState, this.#initializeItem)
     this.#dataProvider.on('error', () => { throw new Error('State machine error') })

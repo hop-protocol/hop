@@ -20,33 +20,17 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   }
 
   async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
-    let existingValue: StateData
-    try {
-      existingValue = await this.get(key)
-    } catch (err) {
-      return this.#updateState(null, initialState, key, value)
+    if (await this.has(key)) {
+      return this.#handlePossibleReorg(key, value)
     }
-
-    const doesMatch = this.#compareItems(value, existingValue)
-    if (!doesMatch) {
-      throw new Error('Item already exists with different values')
-    }
+    return this.#updateState(null, initialState, key, value)
   }
 
-  async updateFinalState(
-    state: State,
-    key: Key,
-    value: StateData
-  ): Promise<void> {
+  async updateFinalState(state: State, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, null, key, value)
   }
 
-  async updateState(
-    state: State,
-    nextState: State,
-    key: Key,
-    value: StateData
-  ): Promise<void> {
+  async updateState(state: State, nextState: State, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, nextState, key, value)
   }
 
@@ -98,6 +82,23 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   /**
    * Utils
    */
+
+  // TODO: V2: A reorg that changes the state of an item is not currently handled. The current
+  // implementation removes both such that the message will never be handled. This should
+  // be handled more gracefully.
+  #handlePossibleReorg = async (key: Key, value: StateData): Promise<void> => {
+    console.error('Reorg observed. Deleting all states for key:', key)
+
+    const existingValue = await this.get(key)
+    const doesMatch = this.#compareItems(value, existingValue)
+    if (!doesMatch) {
+      console.error('Reorged value does not match existing value for key:', key)
+    } else {
+      console.error('Reorged value matches existing value for key:', key)
+    }
+
+    await this.del(key)
+  }
 
   #compareItems = (value: StateData, dbValue: StateData): boolean => {
     // The dbValue may have more keys than the value being compared

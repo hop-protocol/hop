@@ -114,7 +114,8 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
   async #handleRelayError (message: string, errMessage: string): Promise<void> {
     const messageHash = MessageSDK.getMessageHashFromMessage(message)
-    // Custom errors
+
+    // Attestation errors
     if (errMessage.includes('Attestation not complete')) {
       console.log(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
       return
@@ -125,13 +126,13 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     // Tx errors
     if (errMessage.includes('Nonce already used')) {
       // This may occur if there are multiple servers running at once.
-      await this.#sentTxCache.addItem(messageHash)
-      console.log(`Nonce already used for message hash: ${messageHash}. Adding to the cache.`)
+      // The item has already been added to the cache, so we can safely ignore this error.
+      console.log(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
       return
     } else {
-      // This might occur if the bonder is out of funds or there is an issue with the chain.
-      await this.#sentTxCache.removeItem(messageHash)
-      console.log(`Relay failed for message hash: ${messageHash} (message: ${message}). Removing from cache and trying again next poll.`)
+      // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
+      // TODO: V2: The reorged message case should be handled differently by the DB and should not be here..
+      console.log(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
       return
     }
   }

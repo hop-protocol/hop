@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { IDataProvider } from './IDataProvider.js'
-// TODO: Imports below here should be abstracted away into a generalized
+// TODO: V2: Imports below here should be abstracted away into a generalized
 // data-source module. Do that when there are multiple implementations.
 import { DATA_STORED_EVENT } from '../indexer/constants.js'
 import { IOnchainEventIndexer } from '../indexer/IOnchainEventIndexer.js'
@@ -14,7 +14,7 @@ import type { DecodedLogWithContext } from '../types.js'
  */
 
 
-// TODO: Abstract away these types into a generalized data-source module
+// TODO: V2: Abstract away these types into a generalized data-source module
 // when there are multiple implementations.
 type IDataSource<T, U> = IOnchainEventIndexer<T, U>
 type IDataSourceItem = DecodedLogWithContext
@@ -35,7 +35,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   async init (): Promise<void> {
-    this.#startListeners()
+    this.#initListeners()
     await this.#dataSource.init()
     console.log('Data provider initialized')
   }
@@ -49,7 +49,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    * Node events
    */
 
-  #startListeners = (): void => {
+  #initListeners = (): void => {
     this.#dataSource.on(DATA_STORED_EVENT, this.#emitStoredData)
     this.#dataSource.on('error', () => { throw new Error('Data provider error') })
   }

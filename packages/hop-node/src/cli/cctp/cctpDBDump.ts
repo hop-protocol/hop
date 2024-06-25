@@ -2,31 +2,48 @@ import { StateMachineDB } from '../../cctp/db/StateMachineDB.js'
 import { OnchainEventIndexerDB } from '../../cctp/db/OnchainEventIndexerDB.js'
 import { TxRelayDB } from '../../cctp/db/TxRelayDB.js'
 
-import { actionHandler, root } from '../shared/index.js'
+import { actionHandler, parseString, root } from '../shared/index.js'
+
+enum DBTypes {
+  StateMachine = 'StateMachine',
+  OnchainEventIndexer = 'OnchainEventIndexer',
+  TxRelay = 'TxRelay'
+}
 
 root
   .command('cctp-db-dump')
   .description('Dump CCTP DB')
+  .option('--db-type <type>', 'Name of the DB', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
+  const { dbType } = source
 
   /**
-   *
-   * TODO: For now, manually edit this file to switch between the different DBs
-   *
+   * For now, you must manually update the StateMachineDB state below if you want to dump a different state.
    */
 
+  if (!Object.values(DBTypes).includes(dbType)) {
+    throw new Error(`Invalid db type: ${dbType}. Did you mean one of the following: ${Object.values(DBTypes).join(', ')}?`)
+  }
+
   const dbName = 'Message'
-  // await dumpStateMachineDB(dbName)
-  // await dumpOnchainEventIndexerDB(dbName)
-  await dumpTxRelayDB(dbName)
+  switch (dbType) {
+    case DBTypes.StateMachine:
+      const state = 'relayed'
+      await dumpStateMachineDB(dbName, state)
+      break
+    case DBTypes.OnchainEventIndexer:
+      await dumpOnchainEventIndexerDB(dbName)
+      break
+    case DBTypes.TxRelay:
+      await dumpTxRelayDB(dbName)
+      break
+  }
 }
 
-async function dumpStateMachineDB (dbName: string) {
+async function dumpStateMachineDB (dbName: string, state: string) {
   const db = new StateMachineDB(dbName)
-  const state = 'relayed'
-
   for await (const [key, value] of db.getItemsInState(state)) {
     console.log(key, value)
   }

@@ -72,7 +72,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    */
 
   async init (): Promise<void> {
-    this.#startListeners()
+    this.#initListeners()
     this.#db.init()
     for (const indexerEventFilter of this.#indexerEventFilters) {
       const { chainId, startBlockNumber } = indexerEventFilter 
@@ -95,7 +95,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    * Node events
    */
 
-  #startListeners(): void {
+  #initListeners(): void {
     this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_STORED_EVENT, data))
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }

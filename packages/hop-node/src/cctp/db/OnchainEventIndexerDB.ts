@@ -51,7 +51,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   }
 
   init (): void {
-    this.#startListeners()
+    this.#initListeners()
     console.log('Onchain Event DB initialized')
   }
 
@@ -59,15 +59,20 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
    * Node events
    */
 
-    #startListeners = (): void => {
+    #initListeners = (): void => {
       // https://github.com/Level/levelup?tab=readme-ov-file#events
       this.on('batch', (operations: any[]) => {
         for (const op of operations) {
+          // Only emit put events
           if (op.type !== 'put') continue
 
           // Only emit the event if the value is not a sync value
-          const isSyncPut = !!op.value?.syncedBlockNumber
-          if (isSyncPut) continue
+          if (!!op.value?.syncedBlockNumber) continue
+
+          // Multiple writes of the same data occur if there are multiple indexes
+          // for the item. We only want to emit the event once per item, not
+          // per index, so we ignore a key if it is part of a subDB.
+          if (op.key.includes('!')) continue
 
           this.emit(DATA_PUT_EVENT, op.value)
         }

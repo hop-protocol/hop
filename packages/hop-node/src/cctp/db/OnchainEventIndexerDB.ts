@@ -136,7 +136,10 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     const syncKey = this.#getLastBlockSyncedKey(primaryKey)
     batch.put(syncKey, { syncedBlockNumber })
 
-    this.logger.debug(`Putting ${logs.length} logs with primaryKey ${primaryKey} and syncedBlockNumber ${syncedBlockNumber}. ${logs.length ? JSON.stringify(logs) : ''}`)
+    let message = `Writing syncedBlockNumber ${syncedBlockNumber} for primaryKey ${primaryKey}`
+    if (logs.length) {
+      message += ` on chainId ${logs[0].context.chainId} with ${logs.length} logs. ${JSON.stringify(logs)}`
+    }
     return batch.write()
   }
 

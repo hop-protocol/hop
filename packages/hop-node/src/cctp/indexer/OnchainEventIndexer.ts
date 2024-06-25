@@ -82,12 +82,15 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   async init (): Promise<void> {
     this.#initListeners()
     this.#db.init()
-    for (const indexerEventFilter of this.#indexerEventFilters) {
+
+    // Parallelize initialization and syncing since each filter is independent
+    const promises: Array<Promise<void>> = this.#indexerEventFilters.map(async (indexerEventFilter) => {
       const { chainId, startBlockNumber } = indexerEventFilter 
       const filterId = getUniqueFilterId(indexerEventFilter)
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexerEventFilter)
-    }
+    })
+    await Promise.all(promises)
 
     this.#initialized = true
     this.logger.info('OnchainEventIndexer initialized')

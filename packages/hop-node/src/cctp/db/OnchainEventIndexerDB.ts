@@ -140,6 +140,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     if (logs.length) {
       message += ` on chainId ${logs[0].context.chainId} with ${logs.length} logs. ${JSON.stringify(logs)}`
     }
+    this.logger.debug(message)
     return batch.write()
   }
 

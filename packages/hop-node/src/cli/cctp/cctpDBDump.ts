@@ -26,7 +26,7 @@ async function main (source: any) {
   /**
    * For now, you must manually update the StateMachineDB state below if you want to dump a different state.
    */
-  const state = 'relayed'
+  const state = 'sent'
 
   const dbName = 'Message'
   switch (dbType) {

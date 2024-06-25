@@ -102,7 +102,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
       const shouldAttempt = this.shouldAttemptTransition(state, value)
-      if (!shouldAttempt) return
+      if (!shouldAttempt) continue
 
       await this.#transitionState(state, key, value)
     }

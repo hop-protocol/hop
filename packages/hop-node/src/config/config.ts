@@ -84,6 +84,9 @@ export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
 export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
 
+// Other
+export const LogLevel = process.env.LOG_LEVEL ?? 'debug'
+
 export const etherscanApiKeys: Record<string, string> = {
   [ChainSlug.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
   [ChainSlug.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',

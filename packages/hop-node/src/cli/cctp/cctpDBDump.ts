@@ -1,6 +1,6 @@
-import { StateMachineDB } from '../../cctp/db/StateMachineDB.js'
-import { OnchainEventIndexerDB } from '../../cctp/db/OnchainEventIndexerDB.js'
-import { TxRelayDB } from '../../cctp/db/TxRelayDB.js'
+import { StateMachineDB } from '#cctp/db/StateMachineDB.js'
+import { OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
+import { TxRelayDB } from '#cctp/db/TxRelayDB.js'
 
 import { actionHandler, parseString, root } from '../shared/index.js'
 

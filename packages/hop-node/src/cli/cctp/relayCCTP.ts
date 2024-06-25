@@ -1,8 +1,8 @@
 import { getUnrelayedMessages } from './utils.js'
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
-import { MessageSDK } from '../../../src/cctp/cctp/sdk/MessageSDK.js'
-import { type ISentMessage } from '../../../src/cctp/cctp/types.js'
+import { MessageSDK } from '#cctp/cctp/sdk/MessageSDK.js'
+import { type ISentMessage } from '#cctp/cctp/types.js'
 import { actionHandler, root } from '../shared/index.js'
 
 root

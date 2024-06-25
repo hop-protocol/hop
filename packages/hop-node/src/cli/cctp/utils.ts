@@ -1,6 +1,6 @@
-import { StateMachineDB } from '../../cctp/db/StateMachineDB.js'
-import { MessageSDK } from '../../../src/cctp/cctp/sdk/MessageSDK.js'
-import { MessageState, type ISentMessage } from '../../../src/cctp/cctp/types.js'
+import { StateMachineDB } from '#cctp/db/StateMachineDB.js'
+import { MessageSDK } from '#cctp/cctp/sdk/MessageSDK.js'
+import { MessageState, type ISentMessage } from '#cctp/cctp/types.js'
 
 export async function getUnrelayedMessages (): Promise<ISentMessage[]> {
   const dbName = 'Message'

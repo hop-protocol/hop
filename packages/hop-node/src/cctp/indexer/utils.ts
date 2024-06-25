@@ -9,7 +9,7 @@ import { SyncType } from '#constants/index.js'
 
 export function getUniqueFilterId (indexerEventFilter: IndexerEventFilter): string {
   const { chainId, filter } = indexerEventFilter 
-  const id = chainId + filter.address + filter.topics[0]
+  const id = chainId + filter.address + (filter.topics as string[])[0]
   return utils.keccak256(utils.toUtf8Bytes(id))
 }
 

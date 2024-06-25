@@ -19,18 +19,18 @@ root
 async function main (source: any) {
   const { dbType } = source
 
-  /**
-   * For now, you must manually update the StateMachineDB state below if you want to dump a different state.
-   */
-
   if (!Object.values(DBTypes).includes(dbType)) {
     throw new Error(`Invalid db type: ${dbType}. Did you mean one of the following: ${Object.values(DBTypes).join(', ')}?`)
   }
 
+  /**
+   * For now, you must manually update the StateMachineDB state below if you want to dump a different state.
+   */
+  const state = 'relayed'
+
   const dbName = 'Message'
   switch (dbType) {
     case DBTypes.StateMachine:
-      const state = 'relayed'
       await dumpStateMachineDB(dbName, state)
       break
     case DBTypes.OnchainEventIndexer:

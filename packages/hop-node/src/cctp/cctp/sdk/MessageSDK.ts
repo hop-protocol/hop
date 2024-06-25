@@ -127,7 +127,7 @@ export class MessageSDK {
    * {"attestation":"0x123...","status":"complete"}
    */
   static async fetchAttestation (message: string): Promise<string> {
-    return await mutex.runExclusive(async () => {
+    return mutex.runExclusive(async () => {
     const messageHash = MessageSDK.getMessageHashFromMessage(message)
       const url = getAttestationUrl(messageHash)
       const res = await fetch(url)

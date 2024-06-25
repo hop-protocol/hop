@@ -67,7 +67,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
           if (op.type !== 'put') continue
 
           // Only emit the event if the value is not a sync value
-          if (!!op.value?.syncedBlockNumber) continue
+          if (!op.value?.syncedBlockNumber) continue
 
           // Multiple writes of the same data occur if there are multiple indexes
           // for the item. We only want to emit the event once per item, not
@@ -121,8 +121,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       let indexedKey = primaryKey
       for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
-        const indexValue = log.decoded[secondaryKey as keyof typeof log.decoded]
-        indexedKey += indexedKey ? '!' + indexValue : indexValue 
+        const indexValue = String(log.decoded[secondaryKey as keyof typeof log.decoded])
+        indexedKey += indexedKey ? ('!' + indexValue) : indexValue 
         batch.put(indexedKey, log)
       }
     }

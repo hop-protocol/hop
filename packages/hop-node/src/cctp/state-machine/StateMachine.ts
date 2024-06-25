@@ -1,7 +1,7 @@
 import { IDataProvider } from '../data-provider/IDataProvider.js'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { poll } from '../utils.js'
-import { getFirstState, getNextState, isFirstState, isLastState } from './utils.js'
+import { getFirstState, getNextState, isLastState } from './utils.js'
 import { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 

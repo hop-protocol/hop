@@ -6,7 +6,7 @@ type LogContext = {
 }
 
 type LogWithContext = providers.Log & { context: LogContext }
-export type DecodedLogWithContext<T extends object = {}> = LogWithContext & { decoded: T }
+export type DecodedLogWithContext<T extends object = object> = LogWithContext & { decoded: T }
 
 // Override ethers types with required fields
 export type RequiredEventFilter = Required<EventFilter>

@@ -78,7 +78,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
   async fetchItem(key: T, value: U): Promise<U | null> {
     try {
       const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
-      return this.formatDataSourceItem(key, item)
+      return await this.formatDataSourceItem(key, item)
     } catch (err) {
       this.logger.warn(`Error fetching item with key ${JSON.stringify(key)} from data source, value: ${value}`, key)
       return null

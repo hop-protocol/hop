@@ -1,7 +1,7 @@
 import { DB } from './DB.js'
 
 /**
- * The key can be any string as long is it is unique to the DB.
+ * The key can be any string as long as it is unique to the DB.
  */
 
 type DBKey = string

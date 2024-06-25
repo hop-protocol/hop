@@ -3,15 +3,19 @@ import { normalizeDBValue } from './utils.js'
 import { Mutex } from 'async-mutex'
 
 /**
- * Uses state-indexed subDBs with the state to allow for efficient querying.
- * - Ex: relayed!0x1234
+ * An item always exists in the top-level DB. This entry is the aggregate of all known states
+ * for that item.
  *
- * The value of the item in each state contains the data for that state and all previous states.
+ * An item also exists in a per-state subDB that allows for efficient querying of all items in a state.
+ * An item only exists in one state subDB at a time. Within that subDB, the item only
+ * contains information about that state but no other states.
  * 
- * The final state writes to the top-level DB. It will exist in no other state subDB.
- * - Ex: 0x1234
+ * After transitioning to the final state, the item is deleted from the state subDB and will only
+ * exist in the top-level DB.
  * 
- * An item only exists in one state subDB at a time.
+ * Key format:
+ * - Top-level: key
+ * - Per-state sub-level: state!key
  */
 
 export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {

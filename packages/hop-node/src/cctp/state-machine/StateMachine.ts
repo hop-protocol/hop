@@ -18,6 +18,11 @@ export abstract class StateMachine<State extends string, StateData> implements I
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataProvider: IDataProvider<State, StateData>
+  // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
+  // which is not a heavy load. The rest of the system should be set up such that these polls should not
+  // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
+  // is too slow, users will have to wait longer for state transitions to the point where they
+  // will be have to wait a relatively long time for the relay of their message.
   readonly #pollIntervalMs: number = 10_000
   protected readonly logger: Logger
 

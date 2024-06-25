@@ -8,7 +8,7 @@ import type {
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '../utils.js'
 import { providers } from 'ethers'
-import { POLL_INTERVAL_MS, DATA_STORED_EVENT } from './constants.js'
+import { DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
 import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '../db/constants.js'
@@ -43,7 +43,10 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
-  readonly #pollIntervalMs: number = POLL_INTERVAL_MS
+  // TODO: Optimize: Poll timing, possibly two-tiered polling or per-indexer polling
+  // This poller calls a getLog for each indexed event filter every poll. This can become RPC intensive and the value
+  // should reflect the tradeoff between up-to-date data and RPC usage.
+  readonly #pollIntervalMs: number = 30_000
   #initialized: boolean = false
   #started: boolean = false
   protected readonly logger: Logger

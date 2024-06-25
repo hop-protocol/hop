@@ -8,9 +8,6 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataProvider } from '../data-provider/DataProvider.js'
 import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } from './types.js'
 
-// Since the messages are unique by chainId, his MessageDataProvider should be the
-// class that abstracts this away.
-
 export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
 
   /**

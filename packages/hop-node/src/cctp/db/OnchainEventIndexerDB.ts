@@ -4,14 +4,18 @@ import { DATA_PUT_EVENT } from './constants.js'
 import { normalizeDBValue } from './utils.js'
 
 /**
- * This DB should only be used to get individual items. There should never be a
- * need to iterate over all items in the DB. This is because the indexing is
- * done such that each entry is guaranteed to be unique.
- * 
  * The primary key is the filterId and the secondary keys are the values that
  * are indexed by the consumer.
  * 
  * The DB stores and maintains the last block synced for each filterId.
+ * 
+ * Key Format:
+ * - syncBlock: sync!filterId
+ * - indexer: filterId, (filterId!indexedValue1, filterId!indexedValue1!indexedValue2, ...)
+ * 
+ * @dev This DB should only be used to get individual items. There should never be a
+ * need to iterate over all items in the DB. This is because the indexing is
+ * done such that each entry is guaranteed to be unique.
  */
 
 type IndexDBValue = DecodedLogWithContext

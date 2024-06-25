@@ -10,10 +10,9 @@ import type { DecodedLogWithContext } from '../types.js'
 /**
  * This class is responsible for providing formatted data to the
  * consumer.
- * 
+ *
  * This class also emits an event upon receipt of data from the source.
  */
-
 
 // TODO: V2: Abstract away these types into a generalized data-source module
 // when there are multiple implementations.

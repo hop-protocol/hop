@@ -280,9 +280,11 @@ export type TransferStatus = {
 
 type GetTransferSentEventFilterInput = {
   chainId: BigNumberish
-  transferId?: string
-  checkpoint?: string
-  pathId?: string
+  indexes?: {
+    transferId?: string
+    checkpoint?: string
+    pathId?: string
+  }
 }
 
 export type Token = {
@@ -336,7 +338,8 @@ export class RailsGateway extends StakingRegistry {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  getTransferSentEventFilter({ chainId, transferId, checkpoint, pathId }: GetTransferSentEventFilterInput): EventFilter {
+  getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput): EventFilter {
+    const { transferId, checkpoint, pathId } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
 
     if (transferId) {

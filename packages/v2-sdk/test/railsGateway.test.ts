@@ -36,7 +36,9 @@ describe.skip('RailsGateway', () => {
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferSentEventFilter({
       chainId,
-      transferId
+      indexes: {
+        transferId
+      }
     })
 
     console.log(filter)

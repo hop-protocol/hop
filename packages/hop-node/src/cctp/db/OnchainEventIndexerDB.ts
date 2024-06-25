@@ -22,6 +22,7 @@ type DBValue = IndexDBValue | SyncDBValue
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
   readonly #secondaryKeys: Record<string, string[]> = {}
+  readonly #syncPrefix = 'sync'
 
   constructor (dbName: string) {
     super(dbName + 'OnchainEventIndexerDB')
@@ -67,7 +68,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
           if (op.type !== 'put') continue
 
           // Only emit the event if the value is not a sync value
-          if (!op.value?.syncedBlockNumber) continue
+          if (op.key.substring(0, 4) === this.#syncPrefix) continue
 
           // Multiple writes of the same data occur if there are multiple indexes
           // for the item. We only want to emit the event once per item, not
@@ -140,6 +141,6 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
    */
 
   #getLastBlockSyncedKey = (filterId: string): string => {
-    return `sync!${filterId}`
+    return `${this.#syncPrefix}!${filterId}`
   }
 }

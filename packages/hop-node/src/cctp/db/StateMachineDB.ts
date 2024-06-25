@@ -1,65 +1,120 @@
-import { type ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB.js'
-
-type DBValue<T> = T
+import { DB } from './DB.js'
+import { normalizeDBValue } from './utils.js'
+import { Mutex } from 'async-mutex'
 
 /**
- * Uses state-keyed subDBs with the state to allow for efficient querying.
- * Example of an entry in the DB:
- * 0x123 -> DBValue
- * relayed!0x123 -> DBValue
+ * Uses state-indexed subDBs with the state to allow for efficient querying.
+ * - Ex: relayed!0x1234
  *
- * An ID can only exist in one state subDB at a time.
- *
- * Once an object is in a terminal state, the subDB entry is removed
- * but the object itself is not deleted from the top-level DB and
- * can be queried by its key.
+ * The value of the item in each state contains the data for that state and all previous states.
+ * 
+ * The final state writes to the top-level DB. It will exist in no other state subDB.
+ * - Ex: 0x1234
+ * 
+ * An item only exists in one state subDB at a time.
  */
 
-export class StateMachineDB<T extends string, U> extends DB<T, U> {
+export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
+  #updateMutex: Mutex = new Mutex()
 
-  async createItem(state: T, key: string, value: U): Promise<void> {
-    // TODO -- better init state handlings
-    const uninitializedState = 'uninitializedState' as T
-    return this.updateState(uninitializedState, state, key, value)
+  constructor (dbName: string) {
+    super(dbName + 'StateMachineDB')
   }
 
-  async updateState(oldState: T, newState: T, key: string, value: U): Promise<void> {
-    let existingValue: U = {} as U
-    try {
-      // TODO: Handle better
-      existingValue = await this.get(this.encodeKey(key))
-    } catch {}
-    // TODO: Don't do this as
-    const updatedValue = Object.assign({} as object, value, existingValue)
-
-    const batch: ChainedBatch<this, string, DBValue<U>>  = this.batch()
-
-    // Always update the value to the top level key
-    batch.put(this.encodeKey(key), updatedValue)
-
-    // If this is the initial state, the old state will not exist and this will not be executed
-    // TODO: Handle this at the DB level
-    const oldStateDB = this.sublevel(oldState, KEY_ENCODING_OPTIONS)
-    batch.del(this.encodeKey(key), { sublevel: oldStateDB })
-
-    // If the terminal state is reached, do not write
-    if (newState) {
-      // TODO: Handle this at the DB level
-      const newStateDB = this.sublevel(newState, KEY_ENCODING_OPTIONS)
-      batch.put(this.encodeKey(key), updatedValue, { sublevel: newStateDB })
-      console.log('writing to new state', newState, key, updatedValue)
+  async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
+    if (await this.has(key)) {
+      return this.#handlePossibleReorg(key, value)
     }
-
-    console.log('writing state', oldState, newState, key, updatedValue)
-    return batch.write()
+    return this.#updateState(null, initialState, key, value)
   }
 
-  async *getItemsInState(state: T): AsyncIterable<[string, U]> {
-    // TODO: Don't do <string, U> here, do it at the DB level
-    const sublevel = this.sublevel(state, KEY_ENCODING_OPTIONS)
-    // TODO: Generic feels wrong
-    for await (const [key, value] of sublevel.iterator<string, U>(KEY_ENCODING_OPTIONS)) {
-      yield [key, value]
+  async updateFinalState(state: State, key: Key, value: StateData): Promise<void> {
+    return this.#updateState(state, null, key, value)
+  }
+
+  async updateState(state: State, nextState: State, key: Key, value: StateData): Promise<void> {
+    return this.#updateState(state, nextState, key, value)
+  }
+
+  async #updateState(
+    state: State | null,
+    nextState: State | null,
+    key: Key,
+    value: StateData
+  ): Promise<void> {
+  /**
+   * TODO: V2: Optimize this on a per-key basis instead of locking for every write.
+   * 
+   * Note: This might be built-in to LevelDB. Investigate.
+   * 
+   * In the worst case, consider a package like https://github.com/rogierschouten/async-lock
+   * 
+   * There is no way to natively update with LevelDB so we use a mutex to ensure that writes that occur at the same time
+   * do not overwrite each other by reading stale data.
+   */
+    await this.#updateMutex.runExclusive(async () => {
+      // Falsy check is intentional to ensure that the state is not undefined
+      if (state == null && nextState == null) {
+        throw new Error('At least one state must be defined')
+      }
+
+      const batch = this.batch()
+
+      // Delete the current state entry if this is not the initial state
+      if (state !== null) {
+        batch.del(key, { sublevel: this.getSublevel(state) })
+      }
+
+      // Write the next state entry if this is not the final state
+      if (nextState !== null) {
+        batch.put(key, value, { sublevel: this.getSublevel(nextState) })
+      }
+
+      // Always write the aggregate
+      let aggregateValue = value
+      if (state !== null) {
+        const existingValue: StateData = await this.get(key)
+        aggregateValue = { ...existingValue, ...value }
+      }
+      batch.put(key, aggregateValue)
+
+      this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
+      return batch.write()
+    })
+  }
+
+  /**
+   * Iterators
+   */
+
+  async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
+    for await (const [key, value] of this.getSublevel(state).iterator()) {
+      const filteredValue = normalizeDBValue(value)
+      yield [key as Key, filteredValue as StateData]
     }
+  }
+
+  /**
+   * Utils
+   */
+
+  // TODO: V2: A reorg that changes the state of an item is not currently handled. The current
+  // implementation removes both such that the message will never be handled. This should
+  // be handled more gracefully.
+  #handlePossibleReorg = async (key: Key, value: StateData): Promise<void> => {
+    const existingValue = await this.get(key)
+    const doesMatch = this.#compareItems(value, existingValue)
+    this.logger.warn(`Reorg observed. Deleting all states for key: ${key}. ${doesMatch ? 'The items matched.' : 'The items did not match.'}`)
+    await this.del(key)
+  }
+
+  #compareItems = (value: StateData, dbValue: StateData): boolean => {
+    // The dbValue may have more keys than the value being compared
+    for (const key in value) {
+      if (value[key] !== dbValue?.[key]) {
+        return false
+      }
+    }
+    return true
   }
 }

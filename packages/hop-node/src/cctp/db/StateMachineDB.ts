@@ -1,5 +1,6 @@
 import { DB } from './DB.js'
 import { normalizeDBValue } from './utils.js'
+import { Mutex } from 'async-mutex'
 
 /**
  * Uses state-indexed subDBs with the state to allow for efficient querying.
@@ -14,6 +15,7 @@ import { normalizeDBValue } from './utils.js'
  */
 
 export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
+  #updateMutex: Mutex = new Mutex()
 
   constructor (dbName: string) {
     super(dbName + 'StateMachineDB')
@@ -40,33 +42,45 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     key: Key,
     value: StateData
   ): Promise<void> {
-    // Falsy check is intentional to ensure that the state is not undefined
-    if (state == null && nextState == null) {
-      throw new Error('At least one state must be defined')
-    }
+  /**
+   * TODO: V2: Optimize this on a per-key basis instead of locking for every write.
+   * 
+   * Note: This might be built-in to LevelDB. Investigate.
+   * 
+   * In the worst case, consider a package like https://github.com/rogierschouten/async-lock
+   * 
+   * There is no way to natively update with LevelDB so we use a mutex to ensure that writes that occur at the same time
+   * do not overwrite each other by reading stale data.
+   */
+    await this.#updateMutex.runExclusive(async () => {
+      // Falsy check is intentional to ensure that the state is not undefined
+      if (state == null && nextState == null) {
+        throw new Error('At least one state must be defined')
+      }
 
-    const batch = this.batch()
+      const batch = this.batch()
 
-    // Delete the current state entry if this is not the initial state
-    if (state !== null) {
-      batch.del(key, { sublevel: this.getSublevel(state) })
-    }
+      // Delete the current state entry if this is not the initial state
+      if (state !== null) {
+        batch.del(key, { sublevel: this.getSublevel(state) })
+      }
 
-    // Write the next state entry if this is not the final state
-    if (nextState !== null) {
-      batch.put(key, value, { sublevel: this.getSublevel(nextState) })
-    }
+      // Write the next state entry if this is not the final state
+      if (nextState !== null) {
+        batch.put(key, value, { sublevel: this.getSublevel(nextState) })
+      }
 
-    // Always write the aggregate
-    let aggregateValue = value
-    if (state !== null) {
-      const existingValue: StateData = await this.get(key)
-      aggregateValue = { ...existingValue, ...value }
-    }
-    batch.put(key, aggregateValue)
+      // Always write the aggregate
+      let aggregateValue = value
+      if (state !== null) {
+        const existingValue: StateData = await this.get(key)
+        aggregateValue = { ...existingValue, ...value }
+      }
+      batch.put(key, aggregateValue)
 
-    this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
-    return batch.write()
+      this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
+      return batch.write()
+    })
   }
 
   /**
@@ -88,7 +102,6 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   // implementation removes both such that the message will never be handled. This should
   // be handled more gracefully.
   #handlePossibleReorg = async (key: Key, value: StateData): Promise<void> => {
-
     const existingValue = await this.get(key)
     const doesMatch = this.#compareItems(value, existingValue)
     this.logger.warn(`Reorg observed. Deleting all states for key: ${key}. ${doesMatch ? 'The items matched.' : 'The items did not match.'}`)

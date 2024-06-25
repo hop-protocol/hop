@@ -80,7 +80,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
       const item: IDataSourceItem = await this.#dataSource.retrieveItem(key, value)
       return await this.formatDataSourceItem(key, item)
     } catch (err) {
-      this.logger.warn(`Error fetching item with key ${JSON.stringify(key)} from data source, value: ${value}`, key)
+      this.logger.warn(`Error fetching item with key ${JSON.stringify(key)} from data source, value: ${JSON.stringify(value)}`)
       return null
     }
   }

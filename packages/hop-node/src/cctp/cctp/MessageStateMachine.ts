@@ -107,6 +107,9 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
       // Add the item to the cache at the last possible moment prior to relaying
       await this.#sentTxCache.addItem(messageHash)
+      // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
+      // If it is not guaranteed, then this will not re-do the transaction due to the tx being in the cache. Consider
+      // adding a timing element like v1.
       await MessageSDK.relayMessage(wallet, message, attestation)
     } catch (err) {
       this.#handleRelayError(message, err.message)

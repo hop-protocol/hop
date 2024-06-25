@@ -15,15 +15,13 @@ import { DATA_PUT_EVENT } from '../db/constants.js'
 import { Logger } from '#logger/index.js'
 
 /**
- * Onchain event indexer. A single instance of this class is responsible for
- * indexing as many events as needed.
+ * A single instance of this class is responsible for indexing as many events as needed.
  *
- * Formats data into a filterId for use by the DB. The filterId is a unique
- * identifier for the event and is used to store and retrieve indexed data.
+ * Formats data into a filterId for use by the DB. The filterId is unique per event and chain.
  *
- * The DB is not concerned with the specifics of the event, only the filterId.
+ * The DB is not concerned with the specifics of the event.
  *
- * @dev The consumer should call addIndexer() for all indexers they want
+ * @dev The consumer must call addIndexer() for all indexers they want
  * to use before calling init() and start().
  */
 
@@ -46,6 +44,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   readonly #db: OnchainEventIndexerDB
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
   readonly #pollIntervalMs: number = POLL_INTERVAL_MS
+  #initialized: boolean = false
   #started: boolean = false
   protected readonly logger: Logger
 
@@ -65,8 +64,8 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   }
 
   protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter<LookupKey>): void {
-    if (this.#started) {
-      throw new Error('Cannot add indexer after starting')
+    if (this.#initialized || this.#started) {
+      throw new Error('Cannot add indexer after initializing or starting')
     }
     const filterId = getUniqueFilterId(indexerEventFilter)
     this.#db.newIndexerDB(filterId, indexerEventFilter.lookupKeys)
@@ -86,6 +85,8 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexerEventFilter)
     }
+
+    this.#initialized = true
     this.logger.info('OnchainEventIndexer initialized')
   }
 

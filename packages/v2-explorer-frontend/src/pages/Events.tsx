@@ -1,7 +1,6 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import { SiteWrapper } from '../components/SiteWrapper'
-// import { useQueryParams } from './hooks/useQueryParams'
 import { BundleCommittedEvents } from '../components/events/BundleCommittedEvents'
 import { BundleForwardedEvents } from '../components/events/BundleForwardedEvents'
 import { BundleReceivedEvents } from '../components/events/BundleReceivedEvents'
@@ -11,8 +10,6 @@ import { MessageExecutedEvents } from '../components/events/MessageExecutedEvent
 import { MessageSentEvents } from '../components/events/MessageSentEvents'
 
 export function Events () {
-  // const { queryParams, updateQueryParams } = useQueryParams()
-
   const tables = [
     <BundleCommittedEvents />,
     <BundleForwardedEvents />,

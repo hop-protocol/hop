@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { SiteWrapper } from '../components/SiteWrapper'
 import { utils } from 'ethers'
-// import { ExplorerEvents } from '../components/ExplorerEvents'
 import Box from '@mui/material/Box'
 import CheckIcon from '@mui/icons-material/Check'
 import Chip from '@mui/material/Chip'
@@ -19,6 +18,7 @@ import { makeStyles } from '@mui/styles'
 import { useEvents } from '../hooks/useEvents'
 import { useLocation } from 'react-router-dom'
 import { CopyToClipboardText } from '../components/CopyToClipboardText'
+import { networkSlug } from '../config'
 
 const useStyles = makeStyles((theme: any) => ({
   tableRow: {
@@ -41,80 +41,89 @@ export function Details () {
   const location = useLocation()
   const parts = location.pathname.split('/')
   const transferId = parts[2]
-  const sdk = useMemo(() => new Hop({ network: 'sepolia' }), [])
+  const sdk = useMemo(() => new Hop({ network: networkSlug }), [])
 
   const filter = { transferId }
   const { events, loading: isFetching } = useEvents('explorer', filter)
   const event: any = events[0]
+  const bondedEvent = event?.transferBondedEvent
+  const token = event?.token
+  const tokenDecimals = token?.decimals
+  const tokenSymbol = token?.symbol
+  const tokenName = token?.name
+  const counterpartToken = event?.counterpartToken
+  const context = event?.context
+  const destinationContext = event?.transferBondedEvent?.context
 
   let status :any = null
-  const isBonded = !!event?.transferBondedEvent
+  const isBonded = !!bondedEvent
   if (isBonded) {
     status = (
       <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
     )
-  } else if (event && !event?.transferBondedEvent) {
+  } else if (event && !isBonded) {
     status = (
       <Chip icon={<PendingIcon />} label="Pending" />
     )
   }
 
   const transferAmount = event?.amount
-  const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, event?.token?.decimals) : null
-  const transferAmountDisplay = transferAmount ? `${transferAmount} (${transferAmountFormatted} ${event?.token?.symbol})` : null
-
-  const totalSent = event?.totalSent
-  const totalSentFormatted = totalSent ? utils.formatUnits(totalSent, event?.token?.decimals) : null
-  const totalSentDisplay = totalSent ? `${totalSent} (${totalSentFormatted} ${event?.token?.symbol})` : null
-
-  const txValue = event?.context?.value?.toString()
-  const txValueFormatted = event ? `${utils.formatEther(event?.context?.value?.toString())} ETH` : ''
-  const gasLimit = event?.context?.gasLimit?.toString()
-  const nonce = event?.context?.nonce?.toString()
-  const gasUsed = event?.context?.gasUsed?.toString()
-  const sourceTxStatus = event?.context?.status?.toString() ?? '-'
-  const sourceTxFrom = event?.context?.from?.toString()
-  const sourceTxFromExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(event?.context?.from?.toString(), event?.context?.chainId) : ''
-  const sourceTxTo = event?.context?.to?.toString()
-  const sourceTxToExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(event?.context?.to?.toString(), event?.context?.chainId) : ''
-  const gasPrice = event?.context?.gasPrice?.toString()
-  const gasPriceFormatted = event ? `${utils.formatUnits(event?.context?.gasPrice?.toString(), 9)} gwei` : ''
-
-  const loading = !(!isFetching && event)
-
-  const sourceTokenAddress = event?.token?.address
-  const sourceTokenDisplay = event?.token ? `${event?.token?.name} (${event?.token?.symbol})` : null
-  const sourceTokenExplorerUrl = event?.token?.tokenExplorerUrl
-  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
-  const sourceChainDisplay = event?.context?.chainLabel
-  const sourceTransactionHash = event?.context?.transactionHash
-  const sourceTxValueDisplay = txValue ? `${txValue} (${txValueFormatted})` : null
-  const sourceTxTimestampDisplay = event?.context?.blockTimestamp ? `${event?.context?.blockTimestamp} ${event ? `(${event?.context?.blockTimestampRelative})` : ''}` : null
-  const sourceGasPriceDisplay = gasPrice ? `${gasPrice} (${gasPriceFormatted})` : null
-  const sourceBlockNumber = event?.context?.blockNumber
-
-  const destinationChainDisplay = event?.toChainLabel
+  const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, tokenDecimals) : null
+  const transferAmountDisplay = transferAmount ? `${transferAmount} (${transferAmountFormatted} ${tokenSymbol})` : null
+  const checkpointTotalSent = event?.totalSent
+  const checkpointTotalSentFormatted = checkpointTotalSent ? utils.formatUnits(checkpointTotalSent, tokenDecimals) : null
+  const checkpointTotalSentDisplay = checkpointTotalSent ? `${checkpointTotalSent} (${checkpointTotalSentFormatted} ${tokenSymbol})` : null
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const attestationFeeDisplay = event?.attestationFee ? `${event?.attestationFee} (${utils.formatUnits(event?.attestationFee, 18)} ETH)` : null
   const checkpoint = event?.checkpoint
   const transferNonce = event?.nonce
   const pathId = event?.pathId
-  const destinationTransactionHash = event?.transferBondedEvent?.context?.transactionHash
-  const destinationTransactionExplorerUrl = event?.transferBondedEvent?.context?.transactionHashExplorerUrl
-  const destinationAmountOutDisplay = event?.transferBondedEvent?.amountOut ? `${event?.transferBondedEvent?.amountOut} (${utils.formatUnits(event?.transferBondedEvent?.amountOut, event?.token?.decimals)} ${event?.token?.symbol})` : null
-  const destinationTxFromDisplay = event?.transferBondedEvent?.context?.from
-  const destinationTxFromExplorerUrl = event?.transferBondedEvent?.context?.fromExplorerUrl
-  const destinationTxToDisplay = event?.transferBondedEvent?.context?.to
-  const destinationTxToExplorerUrl = event?.transferBondedEvent?.context?.toExplorerUrl
-  const destinationTokenAddress = event?.counterpartToken?.address
-  const destinationTokenDisplay = event?.counterpartToken ? `${event?.counterpartToken?.name} (${event?.counterpartToken?.symbol})` : null
-  const destinationTokenExplorerUrl = event?.counterpartToken?.tokenExplorerUrl
+  const sourceTxValue = context?.value
+  const sourceTxValueFormatted = event ? `${utils.formatEther(sourceTxValue)} ETH` : ''
+  const sourceTxValueDisplay = sourceTxValue ? `${sourceTxValue} (${sourceTxValueFormatted})` : null
+  const sourceTxTransactionHash = context?.transactionHash
+  const sourceTxTransactionExplorerUrl = context?.transactionHashExplorerUrl
+  const sourceTxGasLimit = context?.gasLimit
+  const sourceTxNonce = context?.nonce
+  const sourceTxGasUsed = context?.gasUsed
+  const sourceTxGasPrice = context?.gasPrice
+  const sourceTxGasPriceFormatted = event ? `${utils.formatUnits(sourceTxGasPrice, 9)} gwei` : ''
+  const sourceTxGasPriceDisplay = sourceTxGasPrice ? `${sourceTxGasPrice} (${sourceTxGasPriceFormatted})` : null
+  const sourceTxStatus = context?.status?.toString() ?? '-'
+  const sourceTxFrom = context?.from
+  const sourceTxChainId = context?.chainId
+  const sourceTxChainDisplay = context?.chainLabel
+  const sourceTxFromExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(sourceTxFrom, sourceTxChainId) : ''
+  const sourceTxTo = context?.to
+  const sourceTxToExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(sourceTxTo, sourceTxChainId) : ''
+  const sourceTokenAddress = token?.address
+  const sourceTokenDisplay = token ? `${tokenName} (${tokenSymbol})` : null
+  const sourceTokenExplorerUrl = token?.tokenExplorerUrl
+  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
+  const sourceTxBlockTimestamp = context?.blockTimestamp
+  const sourceTxBlockTimestampRelative = context?.blockTimestampRelative
+  const sourceTxTimestampDisplay = sourceTxBlockTimestamp ? `${sourceTxBlockTimestamp} ${event ? `(${sourceTxBlockTimestampRelative})` : ''}` : null
+  const sourceTxBlockNumber = context?.blockNumber
+  const sourceTxData = context?.data
+  const destinationChainDisplay = event?.toChainLabel
+  const destinationTransactionHash = destinationContext?.transactionHash
+  const destinationTransactionExplorerUrl = destinationContext?.transactionHashExplorerUrl
+  const destinationAmountOutDisplay = bondedEvent?.amountOut ? `${bondedEvent?.amountOut} (${utils.formatUnits(bondedEvent?.amountOut, tokenDecimals)} ${tokenSymbol})` : null
+  const destinationTxFromDisplay = destinationContext?.from
+  const destinationTxFromExplorerUrl = destinationContext?.fromExplorerUrl
+  const destinationTxToDisplay = destinationContext?.to
+  const destinationTxToExplorerUrl = destinationContext?.toExplorerUrl
+  const destinationTokenAddress = counterpartToken?.address
+  const destinationTokenDisplay = counterpartToken ? `${tokenName} (${tokenSymbol})` : null
+  const destinationTokenExplorerUrl = counterpartToken?.tokenExplorerUrl
+  const destinationTxData = destinationContext?.data
+  const loading = !(!isFetching && event)
 
   return (
     <SiteWrapper>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
-        <Typography variant="h5">Transfer details</Typography>
+        <Typography variant="h5" color="textPrimary">Transfer details</Typography>
       </Box>
 
       <TableContainer>
@@ -177,7 +186,7 @@ export function Details () {
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  <CopyToClipboardText text={sourceChainDisplay} />
+                  <CopyToClipboardText text={sourceTxChainDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -190,9 +199,9 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                <CopyToClipboardText text={sourceTransactionHash}>
-                  <Link href={event?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
-                    {sourceTransactionHash}
+                <CopyToClipboardText text={sourceTxTransactionHash}>
+                  <Link href={sourceTxTransactionExplorerUrl} target="_blank" rel="noreferrer">
+                    {sourceTxTransactionHash}
                   </Link>
                 </CopyToClipboardText>
                 )}
@@ -273,8 +282,8 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  gasLimit ? (
-                    <CopyToClipboardText text={gasLimit} />
+                  sourceTxGasLimit ? (
+                    <CopyToClipboardText text={sourceTxGasLimit} />
                   ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
@@ -288,8 +297,8 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  gasUsed ? (
-                    <CopyToClipboardText text={gasUsed} />
+                  sourceTxGasUsed ? (
+                    <CopyToClipboardText text={sourceTxGasUsed} />
                   ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
@@ -303,8 +312,8 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  sourceGasPriceDisplay ? (
-                    <CopyToClipboardText text={sourceTxTimestampDisplay} />
+                  sourceTxGasPriceDisplay ? (
+                    <CopyToClipboardText text={sourceTxGasPriceDisplay} />
                   ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
@@ -318,8 +327,8 @@ Source Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  nonce ? (
-                    <CopyToClipboardText text={nonce} />
+                  sourceTxNonce ? (
+                    <CopyToClipboardText text={sourceTxNonce} />
                   ) : <Skeleton variant="rectangular" width={200} height={20} />
                 )}
               </TableCell>
@@ -333,7 +342,7 @@ Source Transaction Block Number:
                 ? (
                   <Skeleton variant="rectangular" width={200} height={20} />
                 ) : (
-                  <CopyToClipboardText text={sourceBlockNumber} />
+                  <CopyToClipboardText text={sourceTxBlockNumber} />
                 )}
               </TableCell>
             </TableRow>
@@ -350,7 +359,7 @@ Source Transaction Block Number:
                     whiteSpace: 'break-spaces',
                     wordBreak: 'break-all'
                   }}>
-                    {event?.context?.data}
+                    {sourceTxData}
                   </Box>
                 )}
               </TableCell>
@@ -446,7 +455,7 @@ Destination Chain:
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  <CopyToClipboardText text={totalSentDisplay} />
+                  <CopyToClipboardText text={checkpointTotalSentDisplay} />
                 )}
               </TableCell>
             </TableRow>
@@ -483,7 +492,7 @@ Destination Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent
+                  destinationTransactionHash
                   ? (
                     <CopyToClipboardText text={destinationTransactionHash}>
                       <Link href={destinationTransactionExplorerUrl} target="_blank" rel="noreferrer">
@@ -564,7 +573,7 @@ Destination Transaction Hash:
                     wordBreak: 'break-all'
                   }}>
                     {
-                    event?.transferBondedEvent?.context?.data
+                    destinationTxData
                     ? (
                       event?.transferBondedEvent?.context?.data
                     ) : <Box>- <small><em>(Destination transaction calldata will be availabe once transfer is bonded)</em></small></Box>

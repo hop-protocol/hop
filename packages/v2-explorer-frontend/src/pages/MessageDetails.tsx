@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
 import { useEvents } from '../hooks/useEvents'
 import { useLocation } from 'react-router-dom'
+import { networkSlug } from '../config'
 
 const useStyles = makeStyles((theme: any) => ({
   tableRow: {
@@ -71,7 +72,7 @@ export function Details () {
   useEffect(() => {
     async function update() {
       if (event) {
-        const sdk = new Hop({ network: 'sepolia' })
+        const sdk = new Hop({ network: networkSlug })
         const provider = sdk.getRpcProviderForChainId(event?.context?.chainId)
         const txHash = event?.context?.transactionHash
         const [tx, receipt] = await Promise.all([

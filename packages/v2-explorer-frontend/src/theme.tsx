@@ -95,13 +95,13 @@ const common = {
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: paletteLight.secondary.main, // Default border color
+            borderColor: paletteLight.secondary.main,
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: paletteLight.primary.dark, // Border color on hover
+            borderColor: paletteLight.primary.dark,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: paletteLight.primary.light, // Border color when focused
+            borderColor: paletteLight.primary.light,
           },
         },
       },

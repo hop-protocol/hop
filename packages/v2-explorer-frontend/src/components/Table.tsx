@@ -88,7 +88,7 @@ export function Table (props: Props) {
   return (
     <Box>
       <Box mb={2} display="flex" alignItems="center" justifyContent="space-between" className={styles.titleContainer}>
-        <Typography variant="h5">{title}</Typography>
+        <Typography variant="h5" color="textPrimary">{title}</Typography>
         {props.filters ? props.filters : null}
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between">
@@ -177,28 +177,30 @@ export function Table (props: Props) {
           </TableContainer>
         </Box>
       </Box>
-      <TableFooter style={{ display: 'flex', width: '100%' }}>
-        <TableRow style={{ display: 'flex', width: '100%' }}>
-          <TableCell colSpan={headers.length} style={{ display: 'flex', width: '100%' }}>
-            <Box width="100%" display="flex" justifyContent="flex-end">
-                <IconButton
-                  onClick={previousPage}
-                  disabled={!showPreviousButton}
-                  aria-label="previous page"
-                >
-                <KeyboardArrowLeft />
-              </IconButton>
-                <IconButton
-                  onClick={nextPage}
-                  disabled={!showNextButton}
-                  aria-label="next page"
-                >
-                <KeyboardArrowRight />
-              </IconButton>
-            </Box>
-          </TableCell>
-        </TableRow>
-      </TableFooter>
+      <_Table>
+        <TableFooter style={{ display: 'flex', width: '100%' }}>
+          <TableRow style={{ display: 'flex', width: '100%' }}>
+            <TableCell colSpan={headers.length} style={{ display: 'flex', width: '100%' }}>
+              <Box width="100%" display="flex" justifyContent="flex-end">
+                  <IconButton
+                    onClick={previousPage}
+                    disabled={!showPreviousButton}
+                    aria-label="previous page"
+                  >
+                  <KeyboardArrowLeft />
+                </IconButton>
+                  <IconButton
+                    onClick={nextPage}
+                    disabled={!showNextButton}
+                    aria-label="next page"
+                  >
+                  <KeyboardArrowRight />
+                </IconButton>
+              </Box>
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      </_Table>
     </Box>
   )
 }

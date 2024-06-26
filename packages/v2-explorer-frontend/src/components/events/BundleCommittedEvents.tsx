@@ -104,7 +104,7 @@ export function BundleCommittedEvents () {
       <Table title={`${eventName} Events`} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>
-          <Typography variant="body1">Filter</Typography>
+          <Typography variant="body1" color="secondary">Filter</Typography>
         </Box>
         <Box mr={2}>
           <Select

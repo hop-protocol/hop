@@ -6,6 +6,13 @@ import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { networkName } from '../config'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import IconButton from '@mui/material/IconButton'
+import { useTheme } from '../useTheme'
+
+const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
+const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -27,6 +34,7 @@ export function Header () {
   const styles = useStyles()
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme, dark, toggleTheme } = useTheme()
 
   const currentTab = useMemo(() => {
     const routes: any = {
@@ -50,14 +58,16 @@ export function Header () {
       <Box display="flex" className={styles.container}>
         <Box display="flex" justifyItems="center" alignItems="center" className={styles.container}>
           <Box>
-            <Typography variant="h4">
+            <Typography variant="h4" color="textPrimary">
               <Box display="flex" justifyContent="center" alignItems="center">
-                <Box mr={1}><img width="32px" src="https://assets.hop.exchange/images/hop_logo.png" style={{ borderRadius: '50%' }}/></Box><Box style={{ whiteSpace: 'nowrap' }}>Hop v2 Explorer</Box>
+                <Box mr={1}>
+                <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+                </Box><Box style={{ whiteSpace: 'nowrap' }}>Hop v2 Explorer</Box>
               </Box>
             </Typography>
           </Box>
           <Box ml={2}>
-            <Typography variant="subtitle1">
+            <Typography variant="subtitle1" color="secondary">
               {networkName}
             </Typography>
           </Box>
@@ -68,6 +78,11 @@ export function Header () {
             <Tab label="Events" value="events" />
           </Tabs>
         </Box>
+      </Box>
+      <Box>
+        <IconButton onClick={toggleTheme} title="Toggle theme color mode">
+          { dark ? <LightModeIcon /> : <DarkModeIcon /> }
+        </IconButton>
       </Box>
     </Box>
   )

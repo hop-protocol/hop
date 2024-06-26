@@ -70,7 +70,7 @@ export function ExplorerEvents () {
 
   const rows = events.map((event: any) => {
     let status = (
-      <Chip icon={<PendingIcon />} label="Pending" />
+      <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
     )
     const isBonded = !!event.transferBondedEvent
     if (isBonded) {
@@ -152,7 +152,7 @@ export function ExplorerEvents () {
       <Table title={'Messages'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} filters={
         <Box display="flex" justifyContent="flex-end" alignItems="center">
           <Box mr={2}>
-            <Typography variant="body1">Filter</Typography>
+            <Typography variant="body1" color="secondary">Filter</Typography>
           </Box>
           <Box mr={2}>
             <Select

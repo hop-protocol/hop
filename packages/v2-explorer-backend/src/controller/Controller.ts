@@ -126,7 +126,7 @@ export class Controller {
 
   async upsertPathInfoIfNotExists (item: any) {
     if (!item.toChainId && item.pathId) {
-      let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
         pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.context.chainId, pathId: item.pathId })
@@ -139,16 +139,33 @@ export class Controller {
         })
       }
 
-      pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        throw new Error(`Path not found for pathId ${item.pathId}`)
+        throw new Error(`Path not found for pathId ${item.pathId}, chainId ${item.context.chainId}`)
       }
 
-      if (item.chainId === pathInfo.chainId) {
-        item.toChainId = pathInfo.counterpartChainId
-      } else {
-        item.toChainId = pathInfo.chainId
+      item.toChainId = pathInfo.counterpartChainId
+    }
+
+    if (item.toChainId && item.pathId) {
+      let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
+      let pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.toChainId, pathId: item.pathId })
+        await this.pgDb.nonEventTables.Path.upsertItem({
+          pathId: pathInfo.pathId,
+          chainId: pathInfo.chainId,
+          token: pathInfo.token,
+          counterpartToken: pathInfo.counterpartToken,
+          counterpartChainId: pathInfo.counterpartChainId
+        })
+      }
+
+      pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
+      pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        throw new Error(`Path not found for pathId ${item.pathId}, chainId ${item.context.chainId}`)
       }
     }
 
@@ -157,10 +174,10 @@ export class Controller {
 
   async upsertTokenInfoIfNotExists (item: any) {
     if (!item.token && item.pathId) {
-      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       const pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        throw new Error(`Path not found for pathId ${item.pathId}`)
+        throw new Error(`Path not found for pathId ${item.pathId}, chainId ${item.context.chainId}`)
       }
 
       const { token: tokenAddress, chainId } = pathInfo
@@ -181,17 +198,17 @@ export class Controller {
       tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        throw new Error(`Token not found for token ${item.token}`)
+        throw new Error(`Token not found for token ${item.token}, chainId ${chainId}`)
       }
 
       item.token = tokenInfo
     }
 
     if (!item.counterpartToken && item.pathId) {
-      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
       const pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        throw new Error(`Path not found for pathId ${item.pathId}`)
+        throw new Error(`Path not found for pathId ${item.pathId}, chainId ${item.toChainId}`)
       }
 
       const { counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
@@ -212,7 +229,7 @@ export class Controller {
       tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
       tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        throw new Error(`Token not found for token ${item.token}`)
+        throw new Error(`Token not found for token ${item.token}, chainId ${counterpartChainId}`)
       }
 
       item.counterpartToken = tokenInfo

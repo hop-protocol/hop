@@ -11,7 +11,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     let str = ''
     for (const key in filter) {
       const value = filter[key]
-      if (value) {
+      if (value || (key === 'bonded' || key === 'pending')) {
         str += `&filter[${key}]=${value}`
       }
     }

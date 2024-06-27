@@ -21,25 +21,30 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-const DetailRow = ({ loading, label, value, link, skeletonWidth = 200 }: any) => {
+const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth = 200 }: any) => {
   const styles = useStyles();
   return (
     <TableRow className={styles.tableRow}>
       <TableCell>{label}:</TableCell>
       <TableCell>
-        {loading ? (
-          <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
-        ) : (
-          link ? (
-            <CopyToClipboardText text={value}>
-              <Link href={link} target="_blank" rel="noreferrer">
-                {value}
-              </Link>
-            </CopyToClipboardText>
+        <Box display="flex" alignItems="center">
+          {imageUrl && (
+            <img src={imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} />
+          )}
+          {loading ? (
+            <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
           ) : (
-            <CopyToClipboardText text={value}>{value}</CopyToClipboardText>
-          )
-        )}
+            link ? (
+              <CopyToClipboardText text={value}>
+                <Link href={link} target="_blank" rel="noreferrer">
+                  {value}
+                </Link>
+              </CopyToClipboardText>
+            ) : typeof value === 'string' ? (
+              <CopyToClipboardText text={value}>{value}</CopyToClipboardText>
+            ) : (value ? value : '-')
+          )}
+        </Box>
       </TableCell>
     </TableRow>
   )
@@ -54,11 +59,58 @@ export function Details() {
     destinationContext,
     tokenName,
     tokenSymbol,
+    transferAmountDisplay,
+    checkpointTotalSent,
+    checkpointTotalSentFormatted,
+    checkpointTotalSentDisplay,
+    transferRecipient,
+    transferRecipientExplorerUrl,
+    attestationFeeDisplay,
+    checkpoint,
+    transferNonce,
+    pathId,
+    sourceTxValue,
+    sourceTxValueFormatted,
     sourceTxValueDisplay,
+    sourceTxTransactionHash,
+    sourceTxTransactionExplorerUrl,
+    sourceTxGasLimit,
+    sourceTxNonce,
+    sourceTxGasUsed,
+    sourceTxGasPrice,
+    sourceTxGasPriceFormatted,
     sourceTxGasPriceDisplay,
+    sourceTxStatus,
+    sourceTxFrom,
+    sourceTxChainId,
+    sourceTxChainDisplay,
+    sourceTxChainImageUrl,
+    sourceTxFromExplorerUrl,
+    sourceTxTo,
+    sourceTxToExplorerUrl,
+    sourceTokenAddress,
+    sourceTokenDisplay,
+    sourceTokenExplorerUrl,
+    sourceTxStatusDisplay,
+    sourceTxBlockTimestamp,
+    sourceTxBlockTimestampRelative,
+    sourceTxTimestampDisplay,
+    sourceTxBlockNumber,
+    sourceTxData,
+    destinationChainDisplay,
+    destinationChainImageUrl,
+    destinationTransactionHash,
+    destinationTransactionExplorerUrl,
     destinationAmountOutDisplay,
+    destinationTxFromDisplay,
+    destinationTxFromExplorerUrl,
+    destinationTxToDisplay,
+    destinationTxToExplorerUrl,
+    destinationTokenAddress,
+    destinationTokenDisplay,
+    destinationTokenExplorerUrl,
+    destinationTxData,
     loading,
-    event,
   } = useTransferDetails();
 
   return (
@@ -72,34 +124,34 @@ export function Details() {
           <TableBody>
             <DetailRow loading={loading} label="Transfer ID" value={transferId} />
             <DetailRow loading={loading} label="Status" value={status} />
-            <DetailRow loading={loading} label="Token" value={token ? `${tokenName} (${tokenSymbol})` : null} link={token?.tokenExplorerUrl} />
-            <DetailRow loading={loading} label="Created" value={context?.blockTimestamp} />
-            <DetailRow loading={loading} label="Source Chain" value={context?.chainLabel} />
-            <DetailRow loading={loading} label="Source Transaction Hash" value={context?.transactionHash} link={context?.transactionHashExplorerUrl} />
-            <DetailRow loading={loading} label="Source Transaction Status" value={context?.status?.toString()} />
-            <DetailRow loading={loading} label="Source Transaction From Address" value={context?.from} link={context?.fromExplorerUrl} />
-            <DetailRow loading={loading} label="Source Transaction To Address" value={context?.to} link={context?.toExplorerUrl} />
+            <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} />
+            <DetailRow loading={loading} label="Created" value={sourceTxBlockTimestamp} />
+            <DetailRow loading={loading} label="Source Chain" value={sourceTxChainDisplay} imageUrl={sourceTxChainImageUrl} />
+            <DetailRow loading={loading} label="Source Transaction Hash" value={sourceTxTransactionHash} link={sourceTxTransactionExplorerUrl} />
+            <DetailRow loading={loading} label="Source Transaction Status" value={sourceTxStatusDisplay} />
+            <DetailRow loading={loading} label="Source Transaction From Address" value={sourceTxFrom} link={sourceTxFromExplorerUrl} />
+            <DetailRow loading={loading} label="Source Transaction To Address" value={sourceTxTo} link={sourceTxToExplorerUrl} />
             <DetailRow loading={loading} label="Source Transaction Value" value={sourceTxValueDisplay} />
-            <DetailRow loading={loading} label="Source Transaction Gas Limit" value={context?.gasLimit} />
-            <DetailRow loading={loading} label="Source Transaction Gas Used" value={context?.gasUsed} />
+            <DetailRow loading={loading} label="Source Transaction Gas Limit" value={sourceTxGasLimit} />
+            <DetailRow loading={loading} label="Source Transaction Gas Used" value={sourceTxGasUsed} />
             <DetailRow loading={loading} label="Source Transaction Gas Price" value={sourceTxGasPriceDisplay} />
-            <DetailRow loading={loading} label="Source Transaction Nonce" value={context?.nonce} />
-            <DetailRow loading={loading} label="Source Transaction Block Number" value={context?.blockNumber} />
-            <DetailRow loading={loading} label="Source Transaction Calldata" value={context?.data} />
-            <DetailRow loading={loading} label="Destination Chain" value={event?.toChainLabel} />
-            <DetailRow loading={loading} label="Destination Token" value={token ? `${tokenName} (${tokenSymbol})` : null} link={token?.tokenExplorerUrl} />
-            <DetailRow loading={loading} label="Transfer Recipient" value={event?.to} link={event?.toExplorerUrl} />
+            <DetailRow loading={loading} label="Source Transaction Nonce" value={sourceTxNonce} />
+            <DetailRow loading={loading} label="Source Transaction Block Number" value={sourceTxBlockNumber} />
+            <DetailRow loading={loading} label="Source Transaction Calldata" value={sourceTxData} />
+            <DetailRow loading={loading} label="Destination Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
+            <DetailRow loading={loading} label="Destination Token" value={destinationTokenDisplay} link={destinationTokenExplorerUrl} />
+            <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
             <DetailRow loading={loading} label="Transfer Amount" value={sourceTxValueDisplay} />
-            <DetailRow loading={loading} label="Transfer Attestation Fee" value={context?.attestationFee} />
-            <DetailRow loading={loading} label="Transfer Checkpoint" value={event?.checkpoint} />
-            <DetailRow loading={loading} label="Transfer Checkpoint Total Sent" value={context?.totalSent} />
-            <DetailRow loading={loading} label="Transfer Nonce" value={context?.nonce} />
-            <DetailRow loading={loading} label="Path ID" value={context?.pathId} />
-            <DetailRow loading={loading} label="Destination Transaction Hash" value={destinationContext?.transactionHash} link={destinationContext?.transactionHashExplorerUrl} />
+            <DetailRow loading={loading} label="Transfer Attestation Fee" value={attestationFeeDisplay} />
+            <DetailRow loading={loading} label="Transfer Checkpoint" value={checkpoint} />
+            <DetailRow loading={loading} label="Transfer Checkpoint Total Sent" value={checkpointTotalSentDisplay} />
+            <DetailRow loading={loading} label="Transfer Nonce" value={transferNonce} />
+            <DetailRow loading={loading} label="Path ID" value={pathId} />
+            <DetailRow loading={loading} label="Destination Transaction Hash" value={destinationTransactionHash} link={destinationTransactionExplorerUrl} />
             <DetailRow loading={loading} label="Destination Transfer Amount Out" value={destinationAmountOutDisplay} />
-            <DetailRow loading={loading} label="Destination Transaction From Address (Bonder)" value={destinationContext?.from} link={destinationContext?.fromExplorerUrl} />
-            <DetailRow loading={loading} label="Destination Transaction To Address" value={destinationContext?.to} link={destinationContext?.toExplorerUrl} />
-            <DetailRow loading={loading} label="Destination Transaction Calldata" value={destinationContext?.data} />
+            <DetailRow loading={loading} label="Destination Transaction From Address (Bonder)" value={destinationTxFromDisplay} link={destinationTxFromExplorerUrl} />
+            <DetailRow loading={loading} label="Destination Transaction To Address" value={destinationTxToDisplay} link={destinationTxToExplorerUrl} />
+            <DetailRow loading={loading} label="Destination Transaction Calldata" value={destinationTxData} />
           </TableBody>
         </Table>
       </TableContainer>

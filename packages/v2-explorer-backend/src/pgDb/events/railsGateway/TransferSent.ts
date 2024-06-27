@@ -62,20 +62,22 @@ export class TransferSentTable extends EventDb {
 
     const items = await this.db.any(
       `SELECT
-        path_id AS "pathId",
-        transfer_id AS "transferId",
-        checkpoint,
+        e.path_id AS "pathId",
+        e.transfer_id AS "transferId",
+        e.checkpoint,
         e."to",
-        amount,
-        attestation_fee AS "attestationFee",
-        total_sent AS "totalSent",
+        e.amount,
+        e.attestation_fee AS "attestationFee",
+        e.total_sent AS "totalSent",
         e.nonce,
-        attested_checkpoint AS "attestedCheckpoint",
+        e.attested_checkpoint AS "attestedCheckpoint",
         ${selectEventContextSql}
       FROM
         transfer_sent_events e
       JOIN
         event_context ec ON e.event_context_id = ec.id
+      LEFT OUTER JOIN
+        transfer_bonded_events tbe ON e.transfer_id = tbe.transfer_id
       WHERE
         ec.block_timestamp >= $1
         AND
@@ -86,6 +88,8 @@ export class TransferSentTable extends EventDb {
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
         ${filter?.recipient ? 'AND "to" = $5' : ''}
+        ${filter?.bonded != null ? 'AND tbe.transfer_id IS NOT NULL' : ''}
+        ${filter?.pending != null ? 'AND tbe.transfer_id IS NULL' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

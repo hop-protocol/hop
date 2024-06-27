@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
+describe.only('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -136,14 +136,36 @@ describe.skip('RailsGateway', () => {
     expect(pathId).toBeDefined()
   })
   it('should get pathInfo', async () => {
-    const chainId = 11155111
-    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const pathInfo = await railsGateway.getPathInfo({
-      chainId,
-      pathId
-    })
-    console.log(pathInfo)
-    expect(pathInfo.token).toBeDefined()
+    {
+      const chainId = 11155111
+      const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+      const pathInfo = await railsGateway.getPathInfo({
+        chainId,
+        pathId
+      })
+      console.log(pathInfo)
+      expect(pathInfo.token).toBeDefined()
+      expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
+      expect(pathInfo.chainId.toString()).toBe('11155111')
+      expect(pathInfo.token).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
+      expect(pathInfo.counterpartChainId.toString()).toBe('11155420')
+      expect(pathInfo.counterpartToken).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
+    }
+    {
+      const chainId = 11155420
+      const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+      const pathInfo = await railsGateway.getPathInfo({
+        chainId,
+        pathId
+      })
+      console.log(pathInfo)
+      expect(pathInfo.token).toBeDefined()
+      expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
+      expect(pathInfo.chainId.toString()).toBe('11155420')
+      expect(pathInfo.token).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
+      expect(pathInfo.counterpartChainId.toString()).toBe('11155111')
+      expect(pathInfo.counterpartToken).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
+    }
   }, 60 * 1000)
   it('should get fee for pathId', async () => {
     const chainId = 11155111

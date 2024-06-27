@@ -146,7 +146,11 @@ export function ExplorerEvents () {
   }
 
   function handleFilterByChange (event: any) {
-    setFilterBy(event.target.value)
+    const val = event.target.value
+    setFilterBy(val)
+    if (val === 'bonded' || val === 'pending') {
+      setFilterValue('')
+    }
   }
 
   return (
@@ -165,10 +169,12 @@ export function ExplorerEvents () {
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
                 <MenuItem value={'account'}>Account</MenuItem>
                 <MenuItem value={'recipient'}>Recipient</MenuItem>
+                <MenuItem value={'bonded'}>Bonded</MenuItem>
+                <MenuItem value={'pending'}>Pending</MenuItem>
             </Select>
           </Box>
           <Box>
-            <TextField placeholder="0x" value={filterValue} onChange={(event: any) => setFilterValue(event.target.value)} />
+            {!['bonded', 'pending'].includes(filterBy) ? <TextField placeholder="0x" value={filterValue} onChange={(event: any) => setFilterValue(event.target.value)} /> : null}
           </Box>
         </Box>
       } />

@@ -13,7 +13,7 @@ export class PathTable extends BaseDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS paths (
         id TEXT PRIMARY KEY,
-        path_id VARCHAR NOT NULL UNIQUE,
+        path_id VARCHAR NOT NULL,
         chain_id NUMERIC NOT NULL,
         token VARCHAR NOT NULL,
         counterpart_token VARCHAR NOT NULL,
@@ -22,9 +22,7 @@ export class PathTable extends BaseDb {
   }
 
   override async createIndexes () {
-    await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_paths_path_id ON paths (path_id);'
-    )
+    await this.db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_paths_path_id_chain_id ON paths (path_id, chain_id);')
   }
 
   override async getItems (opts: any = {}) {
@@ -37,6 +35,9 @@ export class PathTable extends BaseDb {
     const args = [limit, offset]
     if (filter?.pathId) {
       args.push(filter.pathId)
+    }
+    if (filter?.chainId) {
+      args.push(filter.chainId?.toString())
     }
 
     const items = await this.db.any(
@@ -51,6 +52,7 @@ export class PathTable extends BaseDb {
       WHERE
         1 = 1
         ${filter?.pathId ? 'AND path_id = $3' : ''}
+        ${filter?.chainId ? 'AND chain_id = $4' : ''}
       ORDER BY
         chain_id
       DESC
@@ -73,7 +75,7 @@ export class PathTable extends BaseDb {
         id, path_id, chain_id, token, counterpart_token, counterpart_chain_id
       )
       VALUES ${'(${id}, ${pathId}, ${chainId}, ${token}, ${counterpartToken}, ${counterpartChainId})'}
-      ON CONFLICT (path_id)
+      ON CONFLICT (path_id, chain_id)
       ${'DO UPDATE SET chain_id = ${chainId}'}`, args
     )
   }

@@ -69,7 +69,7 @@ export class PgDb {
     await this.migrationTable.createTable()
     await this.migrationTable.createIndexes()
 
-    await this.migrationManager.runMigrations(1)
+    await this.migrationManager.runMigrations(0)
 
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createTable()

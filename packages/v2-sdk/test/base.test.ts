@@ -76,7 +76,7 @@ describe.skip('Base', () => {
     expect(base.utils.isValidFilterBlock('foo')).toBe(false)
     expect(base.utils.isValidFilterBlock('123')).toBe(true)
   })
-  it.only('should return boolean if is numeric value', () => {
+  it('should return boolean if is numeric value', () => {
     expect(base.utils.isValidNumericValue(1)).toBe(true)
     expect(base.utils.isValidNumericValue('100')).toBe(true)
     expect(base.utils.isValidNumericValue('abc')).toBe(false)
@@ -125,21 +125,31 @@ describe.skip('Base', () => {
     const explorerUrl = base.utils.getTransactionHashExplorerUrl(txHash, chainId)
     console.log(explorerUrl)
     expect(explorerUrl).toBeDefined()
-  }, 60 * 1000)
+  })
   it('should get address explorer url', async () => {
     const txHash = '0x' + '1'.repeat(40)
     const chainId = 1
     const explorerUrl = base.utils.getAddressExplorerUrl(txHash, chainId)
     console.log(explorerUrl)
     expect(explorerUrl).toBeDefined()
-  }, 60 * 1000)
+  })
   it('should get token explorer url', async () => {
     const txHash = '0x' + '1'.repeat(40)
     const chainId = 1
     const explorerUrl = base.utils.getTokenExplorerUrl(txHash, chainId)
     console.log(explorerUrl)
     expect(explorerUrl).toBeDefined()
-  }, 60 * 1000)
+  })
+  it('should get logo image url for chain id', async () => {
+    const imageUrl = base.utils.getLogoForChainId(11155111)
+    console.log(imageUrl)
+    expect(imageUrl).toBeDefined()
+  })
+  it('should get logo image url for chain slug', async () => {
+    const imageUrl = base.utils.getLogoForChainSlug('arbitrum')
+    console.log(imageUrl)
+    expect(imageUrl).toBeDefined()
+  })
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
     expect(base.getRpcProviderForChainId('1')).toBeDefined()

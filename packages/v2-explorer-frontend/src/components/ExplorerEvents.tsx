@@ -116,6 +116,7 @@ export function ExplorerEvents () {
       {
         key: 'sourceChain',
         value: event.context?.chainLabel,
+        imageUrl: event.context?.chainImageUrl,
         clipboardValue: event.context?.chainLabel
       },
       {
@@ -127,6 +128,7 @@ export function ExplorerEvents () {
       {
         key: 'destinationChain',
         value: event.toChainLabel,
+        imageUrl: event.toChainImageUrl,
         clipboardValue: event.toChainLabel
       },
       {
@@ -161,6 +163,8 @@ export function ExplorerEvents () {
                 <MenuItem value={'transferId'}>TransferId ID</MenuItem>
                 <MenuItem value={'checkpoint'}>Checkpoint</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+                <MenuItem value={'account'}>Account</MenuItem>
+                <MenuItem value={'recipient'}>Recipient</MenuItem>
             </Select>
           </Box>
           <Box>

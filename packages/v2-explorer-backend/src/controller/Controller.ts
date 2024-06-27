@@ -256,10 +256,12 @@ export class Controller {
     if (item.fromChainId) {
       item.fromChainName = chainNames[item.fromChainId]
       item.fromChainLabel = `${item.fromChainId} - ${chainNames[item.fromChainId]}`
+      item.fromChainImageUrl = this.sdk.utils.getLogoForChainId(item.fromChainId)
     }
     if (item.toChainId) {
       item.toChainName = chainNames[item.toChainId]
       item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
+      item.toChainImageUrl = this.sdk.utils.getLogoForChainId(item.toChainId)
     }
     if (item.bundleFees) {
       item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
@@ -280,6 +282,7 @@ export class Controller {
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]
       item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
+      item.context.chainImageUrl = this.sdk.utils.getLogoForChainId(item.context.chainId)
     }
     if (item.context?.from) {
       if (item.context?.chainId) {

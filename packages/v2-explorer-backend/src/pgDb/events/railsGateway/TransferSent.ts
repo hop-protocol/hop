@@ -54,6 +54,10 @@ export class TransferSentTable extends EventDb {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.account) {
+      args.push(filter.account)
+    } else if (filter?.recipient) {
+      args.push(filter.recipient)
     }
 
     const items = await this.db.any(
@@ -80,6 +84,8 @@ export class TransferSentTable extends EventDb {
         ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.account ? 'AND ec.from_address = $5' : ''}
+        ${filter?.recipient ? 'AND "to" = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

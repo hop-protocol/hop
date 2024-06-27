@@ -420,6 +420,15 @@ export class Base {
         return getTokenExplorerUrl(this.network, chainId?.toString(), address)
       },
 
+      getLogoForChainId: (chainId: BigNumberish): string => {
+        const chainSlug = this.utils.getChainSlug(chainId)
+        return this.utils.getLogoForChainSlug(chainSlug)
+      },
+
+      getLogoForChainSlug: (chainSlug: string): string => {
+        return `https://assets.hop.exchange/logos/${chainSlug?.toLowerCase()}.svg`
+      },
+
       switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {
         chainId = BigNumber.from(chainId)
         try {

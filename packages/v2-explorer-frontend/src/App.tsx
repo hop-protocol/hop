@@ -16,7 +16,7 @@ function App () {
   const { theme, dark } = useTheme()
 
   return (
-      <Box
+      <div
       style={{
         alignItems: 'stretch',
         backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
@@ -32,7 +32,7 @@ function App () {
         <Route path="/events" element={<Events />} />
         <Route element={<NotFound />} />
       </Routes>
-    </Box>
+    </div>
   )
 }
 

@@ -144,7 +144,7 @@ describe.skip('RailsGateway', () => {
     })
     console.log(pathInfo)
     expect(pathInfo.token).toBeDefined()
-  })
+  }, 60 * 1000)
   it('should get fee for pathId', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'

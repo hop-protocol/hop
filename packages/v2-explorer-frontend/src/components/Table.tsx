@@ -45,6 +45,7 @@ export type Row = {
   key: string
   value: string | any
   valueUrl?: string
+  imageUrl?: string
   clipboardValue?: string
   title?: string
 }
@@ -144,7 +145,10 @@ export function Table (props: Props) {
                             }}
                           >
                             <Box display="flex" alignItems="center">
-                              <Box>
+                              <Box display="flex" alignItems="center">
+                                {col.imageUrl && (
+                                  <img src={col.imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} />
+                                )}
                                 {col.valueUrl ? (
                                   <Link href={col.valueUrl} target="_blank" rel="noreferrer">
                                     <Typography variant="body2">{col.value}</Typography>

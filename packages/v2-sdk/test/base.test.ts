@@ -218,6 +218,14 @@ describe.skip('Base', () => {
     console.log(supportedChainIds)
     expect(supportedChainIds.length > 0).toBe(true)
   }, 60 * 1000)
+  it('should get supported token symbols', async () => {
+    const base = new Base({
+      network: 'sepolia'
+    })
+    const supportedTokens = base.getSupportedTokenSymbols()
+    console.log(supportedTokens)
+    expect(supportedTokens.length > 0).toBe(true)
+  }, 60 * 1000)
   it.skip('should send transaction', async () => {
     const txRequest = {
       to: '0x'+ '1'.repeat(40),

@@ -204,8 +204,12 @@ export class Indexer {
   async pollPrices () {
     console.log('poll prices start')
 
-    const tokens = ['USDC']
-    for  (const token of tokens) {
+    const tokens = new Set(this.sdk.getSupportedTokenSymbols())
+    tokens.add('ETH')
+    for  (let token of tokens) {
+      if (token === 'MOCK') {
+        token = 'DOGE' // for testing, give fake token MOCK a price
+      }
       const price = await this.priceFeed.getPriceByTokenSymbol(token)
       await this.pgDb.pricesTable.upsertItem({
         token,

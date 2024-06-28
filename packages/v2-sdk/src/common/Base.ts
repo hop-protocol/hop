@@ -303,6 +303,17 @@ export class Base {
     return Object.keys(this.contractAddresses)
   }
 
+  getSupportedTokenSymbols(): string[] {
+    const list : Set<string> = new Set<string>([])
+    for (const chainId in this.contractAddresses) {
+      for (const token in this.contractAddresses[chainId].tokens) {
+        list.add(token)
+      }
+    }
+
+    return Array.from(list)
+  }
+
   get utils() {
     return {
       isValidObject: (obj: any): boolean => {

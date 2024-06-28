@@ -10,6 +10,7 @@ import { MessageExecutedTable } from './events/messenger/MessageExecuted.js'
 import { MessageSentTable } from './events/messenger/MessageSent.js'
 import { TransferSentTable } from './events/railsGateway/TransferSent.js'
 import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
+import { PricesTable } from './prices/prices.js'
 import { PathTable } from './paths/paths.js'
 import { TokenTable } from './tokens/tokens.js'
 import { EventContextTable } from './eventContext/eventContext.js'
@@ -22,8 +23,10 @@ export class PgDb {
   db: Pgp
   events: any = {}
   nonEventTables: any = {}
+  pricesTable: any
   migrationTable: any = {}
   migrationManager: any
+  initiated = false
 
   constructor () {
     const initOptions: any = {}
@@ -57,19 +60,21 @@ export class PgDb {
     this.migrationTable = new MigrationTable(this.db)
     this.migrationManager = new MigrationManager(this.migrationTable)
 
-    this.init().catch((err: any) => {
-      console.error('pg db error', err)
-      process.exit(1)
-    }).then(() => {
-      console.log('pg db init done')
-    })
+    this.pricesTable = new PricesTable(this.db)
   }
 
   async init () {
+    if (this.initiated) {
+      return
+    }
+    this.initiated = true
     await this.migrationTable.createTable()
     await this.migrationTable.createIndexes()
 
     await this.migrationManager.runMigrations(0)
+
+    await this.pricesTable.createTable()
+    await this.pricesTable.createIndexes()
 
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createTable()

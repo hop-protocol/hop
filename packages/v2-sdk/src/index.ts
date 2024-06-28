@@ -20,3 +20,4 @@ export {
   MessageExecuted,
   MessageSent
 } from './messenger/index.js'
+export { PriceFeed } from './priceFeed/index.js'

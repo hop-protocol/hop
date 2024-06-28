@@ -66,3 +66,5 @@ for (const chainId in chainNames) {
 }
 
 console.log('rpcUrls:', rpcUrls)
+
+export const coingeckoApiKey = process.env.COINGECKO_API_KEY

@@ -1,8 +1,8 @@
 import { wait } from '#utils/wait.js'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, PriceFeed } from '@hop-protocol/v2-sdk'
 import { SyncStateDb } from '#db/syncStateDb/index.js'
 import { db } from '#db/index.js'
-import { network, dbPath, rpcUrls } from '#config/index.js'
+import { network, dbPath, rpcUrls, coingeckoApiKey } from '#config/index.js'
 import { pgDb } from '#pgDb/index.js'
 
 type StartBlocks = {
@@ -29,6 +29,7 @@ export class Indexer {
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
   chainIds: Record<string, boolean> = {}
+  priceFeed: PriceFeed
 
   paused: boolean = false
   syncIndex: number = 0
@@ -46,6 +47,9 @@ export class Indexer {
       contractAddresses: options?.sdkContractAddresses
     })
     this.sdk.setChainRpcProviderUrls(rpcUrls)
+    this.priceFeed = new PriceFeed({
+      coingecko: coingeckoApiKey
+    })
     if (options?.startBlocks) {
       this.startBlocks = options.startBlocks
     }
@@ -80,6 +84,7 @@ export class Indexer {
   }
 
   async start () {
+    await this.pgDb.init()
     this.paused = false
     await this.startPoller()
   }
@@ -94,7 +99,10 @@ export class Indexer {
         return
       }
       try {
-        await this.poll()
+        await Promise.all([
+          this.pollPrices(),
+          this.poll()
+        ])
       } catch (err: any) {
         console.error('indexer poll error:', err)
       }
@@ -191,5 +199,21 @@ export class Indexer {
 
   getIsL1 (chainId: number) {
     return chainId === 5 || chainId === 1 || chainId === 11155111
+  }
+
+  async pollPrices () {
+    console.log('poll prices start')
+
+    const tokens = ['USDC']
+    for  (const token of tokens) {
+      const price = await this.priceFeed.getPriceByTokenSymbol(token)
+      await this.pgDb.pricesTable.upsertItem({
+        token,
+        priceUsd: price,
+        timestamp: Math.floor(Date.now() / 1000)
+      })
+    }
+
+    console.log('poll prices done')
   }
 }

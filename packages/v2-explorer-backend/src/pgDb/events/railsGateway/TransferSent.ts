@@ -82,12 +82,12 @@ export class TransferSentTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND transfer_id= $5' : ''}
-        ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
-        ${filter?.pathId ? 'AND path_id = $5' : ''}
+        ${filter?.transferId ? 'AND e.transfer_id= $5' : ''}
+        ${filter?.checkpoint ? 'AND e.checkpoint= $5' : ''}
+        ${filter?.pathId ? 'AND e.path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
-        ${filter?.recipient ? 'AND "to" = $5' : ''}
+        ${filter?.recipient ? 'AND e."to" = $5' : ''}
         ${filter?.bonded != null ? 'AND tbe.transfer_id IS NOT NULL' : ''}
         ${filter?.pending != null ? 'AND tbe.transfer_id IS NULL' : ''}
       ORDER BY

@@ -206,11 +206,12 @@ export class Indexer {
 
     const tokens = new Set(this.sdk.getSupportedTokenSymbols())
     tokens.add('ETH')
-    for  (let token of tokens) {
-      if (token === 'MOCK') {
-        token = 'DOGE' // for testing, give fake token MOCK a price
+    for  (const token of tokens) {
+      let tokenLookup = token
+      if (tokenLookup === 'MOCK') {
+        tokenLookup = 'DOGE' // for testing, give fake token MOCK a price
       }
-      const price = await this.priceFeed.getPriceByTokenSymbol(token)
+      const price = await this.priceFeed.getPriceByTokenSymbol(tokenLookup)
       await this.pgDb.pricesTable.upsertItem({
         token,
         priceUsd: price,

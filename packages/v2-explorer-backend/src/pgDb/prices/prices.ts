@@ -56,7 +56,7 @@ export class PricesTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items)
+    return items
   }
 
   override async upsertItem (item: any) {
@@ -78,5 +78,24 @@ export class PricesTable extends EventDb {
     await this.db.tx(async (t: any) => {
       await t.none(sql, args)
     })
+  }
+
+  async getClosestPrice (tokenSymbol: string, timestamp: number) {
+    const args = [tokenSymbol, timestamp]
+    const items = await this.db.any(
+      `SELECT
+        token,
+        price_usd AS "priceUsd",
+        timestamp
+      FROM
+        prices
+      WHERE
+        token = $1
+      ORDER BY
+        ABS(timestamp - $2)
+      LIMIT 1`,
+      args)
+
+    return items[0] ?? null
   }
 }

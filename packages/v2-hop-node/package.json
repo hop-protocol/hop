@@ -30,6 +30,28 @@
     "version": "pnpm version"
   },
   "dependencies": {
+    "@arbitrum/sdk": "3.4.1",
+    "@consensys/linea-sdk": "0.1.6",
+    "@eth-optimism/sdk": "3.3.2",
+    "@hop-protocol/sdk": "workspace:*",
+    "@maticnetwork/maticjs": "3.5.0",
+    "@maticnetwork/maticjs-ethers": "1.0.3",
+    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
+    "asn1.js": "5.4.1",
+    "async-mutex": "0.4.1",
+    "bip39": "3.1.0",
+    "chalk": "4.1.2",
+    "commander": "6.2.1",
+    "console-clear": "1.1.1",
+    "ethers": "5.7.2",
+    "keythereum": "1.2.0",
+    "level": "8.0.1",
+    "uuid": "9.0.1"
+    // '@ethersproject/web'
+    // @ethersproject/bignumber
+    // @ethersproject/abstract-provider
+    // @ethersproject/propterties
+    // @ethersproject/networks
   },
   "devDependencies": {
   },

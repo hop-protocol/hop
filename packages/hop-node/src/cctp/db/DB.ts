@@ -8,7 +8,7 @@ interface DatabaseOptions {
 }
 
 // TODO: Optimize: Binary
-const KEY_ENCODING_OPTIONS: DatabaseOptions = {
+const DB_OPTS: DatabaseOptions = {
   keyEncoding: 'utf8',
   valueEncoding: 'json'
 }
@@ -17,11 +17,23 @@ export abstract class DB<K, V> extends Level<K, V> {
   protected readonly logger: Logger
 
   constructor (name: string) {
-    super(getDBPath(name), KEY_ENCODING_OPTIONS)
+    super(getDBPath(name), DB_OPTS)
     this.logger = new Logger({
       tag: name,
       color: 'cyan'
     })
+  }
+
+  // TODO: Optimize: I shouldn't have to call getMany. But if I override get()
+  // then I cannot call it...
+  // TODO: Optimize: When this is better understood, add comment that this exists
+  // in order to provide a trace to a failed `get()`.
+  override async get (key: K): Promise<V> {
+    const res = (await super.getMany([key], DB_OPTS))[0]
+    if (!res) {
+      throw new Error(`DB Error: get() for key: ${key}`)
+    }
+    return res
   }
 
   protected async getIfExists(key: K): Promise<V | null> {
@@ -38,9 +50,6 @@ export abstract class DB<K, V> extends Level<K, V> {
 
   // TODO: Optimize: Not any
   protected getSublevel(sublevelName: string): any {
-    return this.sublevel(sublevelName, {
-      keyEncoding: KEY_ENCODING_OPTIONS.keyEncoding,
-      valueEncoding: KEY_ENCODING_OPTIONS.valueEncoding
-    })
+    return this.sublevel(sublevelName, DB_OPTS)
   }
 }

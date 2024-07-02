@@ -15,11 +15,11 @@ export class BundleCommittedTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_committed_events (
         id TEXT PRIMARY KEY,
-        bundle_id VARCHAR NOT NULL UNIQUE,
-        bundle_root VARCHAR NOT NULL UNIQUE,
-        bundle_fees NUMERIC NOT NULL,
-        to_chain_id VARCHAR NOT NULL,
-        commit_time INTEGER NOT NULL,
+        bundle_id CHAR(66) NOT NULL UNIQUE,
+        bundle_root CHAR(66) NOT NULL UNIQUE,
+        bundle_fees NUMERIC NOT NULL CHECK (bundle_fees >= 0),
+        to_chain_id NUMERIC(78, 0) NOT NULL CHECK (to_chain_id >= 0), -- uint256
+        commit_time INTEGER NOT NULL CHECK (commit_time >= 0),
         ${eventContextIdCreationSql}
     )`)
   }

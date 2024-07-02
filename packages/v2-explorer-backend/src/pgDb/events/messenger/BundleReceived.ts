@@ -17,13 +17,13 @@ export class BundleReceivedTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_received_events (
         id TEXT PRIMARY KEY,
-        bundle_id VARCHAR NOT NULL UNIQUE,
-        bundle_root VARCHAR NOT NULL UNIQUE,
-        bundle_fees NUMERIC NOT NULL,
-        from_chain_id VARCHAR NOT NULL,
-        to_chain_id VARCHAR NOT NULL,
-        relay_window_start INTEGER NOT NULL,
-        relayer VARCHAR NOT NULL,
+        bundle_id CHAR(66) NOT NULL UNIQUE,
+        bundle_root CHAR(66) NOT NULL UNIQUE,
+        bundle_fees NUMERIC NOT NULL CHECK (bundle_fees >= 0),
+        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0), -- uint256
+        to_chain_id NUMERIC(78, 0) NOT NULL CHECK (to_chain_id >= 0), -- uint256
+        relay_window_start INTEGER NOT NULL CHECK (relay_window_start >= 0),
+        relayer CHAR(42) NOT NULL, -- Ethereum address
         ${eventContextIdCreationSql}
     )`)
   }

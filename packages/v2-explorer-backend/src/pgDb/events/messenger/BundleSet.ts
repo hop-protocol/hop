@@ -12,9 +12,9 @@ export class BundleSetTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_set_events (
         id TEXT PRIMARY KEY,
-        bundle_id VARCHAR NOT NULL UNIQUE,
-        bundle_root VARCHAR NOT NULL UNIQUE,
-        from_chain_id VARCHAR NOT NULL,
+        bundle_id CHAR(66) NOT NULL UNIQUE,
+        bundle_root CHAR(66) NOT NULL UNIQUE,
+        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0), -- uint256
         ${eventContextIdCreationSql}
     )`)
   }

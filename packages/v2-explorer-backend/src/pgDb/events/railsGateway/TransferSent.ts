@@ -19,15 +19,15 @@ export class TransferSentTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfer_sent_events (
         id TEXT PRIMARY KEY,
-        path_id VARCHAR NOT NULL,
-        transfer_id VARCHAR NOT NULL UNIQUE,
-        checkpoint VARCHAR NOT NULL UNIQUE,
-        "to" VARCHAR NOT NULL,
-        amount NUMERIC NOT NULL,
-        attestation_fee NUMERIC NOT NULL,
-        total_sent NUMERIC NOT NULL,
-        nonce NUMERIC NOT NULL,
-        attested_checkpoint VARCHAR NOT NULL,
+        path_id CHAR(66) NOT NULL,
+        transfer_id CHAR(66) NOT NULL UNIQUE,
+        checkpoint CHAR(66) NOT NULL UNIQUE,
+        "to" CHAR(42) NOT NULL, -- Ethereum address
+        amount NUMERIC NOT NULL CHECK (amount >= 0),
+        attestation_fee NUMERIC NOT NULL CHECK (attestation_fee >= 0),
+        total_sent NUMERIC NOT NULL CHECK (total_sent >= 0),
+        nonce NUMERIC NOT NULL CHECK (nonce >= 0),
+        attested_checkpoint CHAR(66) NOT NULL,
         ${eventContextIdCreationSql}
     )`)
   }

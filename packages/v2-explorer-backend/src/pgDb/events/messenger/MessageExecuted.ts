@@ -11,8 +11,8 @@ export class MessageExecutedTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_executed_events (
         id TEXT PRIMARY KEY,
-        message_id VARCHAR NOT NULL UNIQUE,
-        from_chain_id VARCHAR NOT NULL,
+        message_id CHAR(66) NOT NULL UNIQUE,
+        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0), -- uint256
         ${eventContextIdCreationSql}
     )`)
   }

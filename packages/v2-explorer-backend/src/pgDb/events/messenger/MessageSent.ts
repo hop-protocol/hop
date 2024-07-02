@@ -14,11 +14,11 @@ export class MessageSentTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_sent_events (
         id TEXT PRIMARY KEY,
-        message_id VARCHAR NOT NULL UNIQUE,
-        "from" VARCHAR NOT NULL,
-        to_chain_id VARCHAR NOT NULL,
-        "to" VARCHAR NOT NULL,
-        "data" VARCHAR NOT NULL,
+        message_id CHAR(66) NOT NULL UNIQUE, -- bytes32 hash
+        "from" CHAR(42) NOT NULL, -- Ethereum address
+        to_chain_id NUMERIC(78, 0) NOT NULL CHECK (to_chain_id >= 0), -- uint256
+        "to" CHAR(42) NOT NULL, -- Ethereum address
+        "data" TEXT NOT NULL,
         ${eventContextIdCreationSql}
     )`)
   }

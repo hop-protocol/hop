@@ -11,7 +11,7 @@ export class FeesSentToHubTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS fees_sent_to_hub_events (
         id TEXT PRIMARY KEY,
-        amount NUMERIC NOT NULL,
+        amount NUMERIC NOT NULL CHECK (amount >= 0),
         ${eventContextIdCreationSql}
     )`)
   }

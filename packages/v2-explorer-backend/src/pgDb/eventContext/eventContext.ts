@@ -22,22 +22,22 @@ export interface EventContext {
 export class EventContextTable extends BaseDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS event_context (
-        id TEXT PRIMARY KEY,
-        chain_id VARCHAR,
-        transaction_hash VARCHAR,
-        transaction_index INTEGER,
-        log_index INTEGER,
-        block_number INTEGER,
-        block_timestamp INTEGER,
-        from_address VARCHAR,
-        to_address VARCHAR,
-        value VARCHAR,
-        nonce INTEGER,
-        gas_limit INTEGER,
-        gas_used INTEGER,
-        gas_price NUMERIC,
-        status INTEGER,
-        data VARCHAR
+      id TEXT PRIMARY KEY,
+      chain_id NUMERIC(78, 0) NOT NULL CHECK (chain_id >= 0), -- uint256
+      transaction_hash CHAR(66) NOT NULL,
+      transaction_index INTEGER NOT NULL CHECK (transaction_index >= 0),
+      log_index INTEGER NOT NULL CHECK (log_index >= 0),
+      block_number INTEGER NOT NULL CHECK (block_number >= 0),
+      block_timestamp INTEGER NOT NULL CHECK (block_timestamp >= 0),
+      from_address CHAR(42) NOT NULL,
+      to_address CHAR(42) NOT NULL,
+      value NUMERIC NOT NULL CHECK (value >= 0),
+      nonce INTEGER NOT NULL CHECK (nonce >= 0),
+      gas_limit INTEGER NOT NULL CHECK (gas_limit >= 0),
+      gas_used INTEGER NOT NULL CHECK (gas_used >= 0),
+      gas_price NUMERIC NOT NULL CHECK (gas_price >= 0),
+      status INTEGER NOT NULL CHECK (status >= 0),
+      data TEXT
     )`)
   }
 

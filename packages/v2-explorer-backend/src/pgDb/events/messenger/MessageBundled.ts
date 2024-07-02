@@ -12,9 +12,9 @@ export class MessageBundledTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_bundled_events (
         id TEXT PRIMARY KEY,
-        message_id VARCHAR NOT NULL UNIQUE,
-        bundle_id VARCHAR NOT NULL,
-        tree_index INTEGER NOT NULL,
+        message_id CHAR(66) NOT NULL UNIQUE,
+        bundle_id CHAR(66) NOT NULL,
+        tree_index INTEGER NOT NULL CHECK (tree_index >= 0),
         ${eventContextIdCreationSql}
     )`)
   }

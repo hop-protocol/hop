@@ -71,8 +71,6 @@ export class PgDb {
     await this.migrationTable.createTable()
     await this.migrationTable.createIndexes()
 
-    await this.migrationManager.runMigrations(0)
-
     await this.pricesTable.createTable()
     await this.pricesTable.createIndexes()
 
@@ -85,6 +83,8 @@ export class PgDb {
       await this.events[event].createTable()
       await this.events[event].createIndexes()
     }
+
+    await this.migrationManager.runMigrations(0)
   }
 }
 

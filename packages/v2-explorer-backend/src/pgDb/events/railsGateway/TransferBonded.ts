@@ -16,12 +16,12 @@ export class TransferBondedTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfer_bonded_events (
         id TEXT PRIMARY KEY,
-        path_id VARCHAR NOT NULL,
-        transfer_id VARCHAR NOT NULL UNIQUE,
-        checkpoint VARCHAR NOT NULL,
-        "to" VARCHAR NOT NULL,
-        amount_out NUMERIC NOT NULL,
-        total_sent NUMERIC NOT NULL,
+        path_id CHAR(66) NOT NULL,
+        transfer_id CHAR(66) NOT NULL UNIQUE,
+        checkpoint CHAR(66) NOT NULL,
+        "to" CHAR(42) NOT NULL, -- Ethereum address
+        amount_out NUMERIC NOT NULL CHECK (amount_out >= 0),
+        total_sent NUMERIC NOT NULL CHECK (total_sent >= 0),
         ${eventContextIdCreationSql}
     )`)
   }

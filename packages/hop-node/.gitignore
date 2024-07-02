@@ -17,3 +17,4 @@ prometheus_pass.txt
 *.tsbuildinfo
 cctp_db_data*
 .npmignore
+db_data*

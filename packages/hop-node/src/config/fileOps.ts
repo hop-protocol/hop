@@ -7,6 +7,7 @@ import {
   type CommitTransfersConfig,
   type Fees,
   type Routes,
+  LogLevel,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -113,8 +114,8 @@ export async function setGlobalConfigFromConfigFile (
       setDbPath(dbPath)
     }
   }
-  if (config.logging?.level) {
-    const logLevel = config.logging.level
+  if (config.logging?.level || LogLevel) {
+    const logLevel = config?.logging?.level || LogLevel
     logger.info(`log level: "${logLevel}"`)
     setLogLevel(logLevel)
   }

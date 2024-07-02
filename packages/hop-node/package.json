@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.19",
+  "version": "0.0.22",
   "description": "The V1 Hop Node for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -64,6 +64,7 @@
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "keythereum": "1.2.0",
+    "level": "8.0.1",
     "level-party": "5.1.1",
     "lodash": "4.17.21",
     "luxon": "3.4.4",

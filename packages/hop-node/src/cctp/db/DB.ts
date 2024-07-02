@@ -1,29 +1,46 @@
-import { ClassicLevel } from 'classic-level'
-import { getDbPathForNameOrLocation } from './utils.js'
-export { type ChainedBatch } from 'classic-level'
+import { Level }  from 'level'
+import { getDBPath } from './utils.js'
+import { Logger } from '#logger/index.js'
 
 interface DatabaseOptions {
   keyEncoding: string
   valueEncoding: string
 }
 
-// TODO: Binary?
-// TODO: Not sure I should be exporting this
-export const KEY_ENCODING_OPTIONS: DatabaseOptions = {
+// TODO: Optimize: Binary
+const KEY_ENCODING_OPTIONS: DatabaseOptions = {
   keyEncoding: 'utf8',
   valueEncoding: 'json'
 }
 
-// TODO: Should we cache the DB instance?
-export abstract class DB<T extends string, U> extends ClassicLevel<T, U> {
-  constructor (dbNameOrLocation: string) {
-    super(getDbPathForNameOrLocation(dbNameOrLocation), KEY_ENCODING_OPTIONS)
+export abstract class DB<K, V> extends Level<K, V> {
+  protected readonly logger: Logger
+
+  constructor (name: string) {
+    super(getDBPath(name), KEY_ENCODING_OPTIONS)
+    this.logger = new Logger({
+      tag: name,
+      color: 'cyan'
+    })
   }
 
-  // TODO: Possibly override methods and type instead of this. Gets tricky with batch but
-  // cleaner than encoding every key in each implementation.
-  // TODO: If this is kept, don't use the word encode
-  encodeKey(key: string): T {
-    return key as T
+  protected async getIfExists(key: K): Promise<V | null> {
+    try {
+      return (await this.get(key))
+    } catch (e) {
+      return null
+    }
+  }
+
+  protected async has(key: K): Promise<boolean> {
+    return (await this.getIfExists(key)) !== null
+  }
+
+  // TODO: Optimize: Not any
+  protected getSublevel(sublevelName: string): any {
+    return this.sublevel(sublevelName, {
+      keyEncoding: KEY_ENCODING_OPTIONS.keyEncoding,
+      valueEncoding: KEY_ENCODING_OPTIONS.valueEncoding
+    })
   }
 }

@@ -84,6 +84,9 @@ export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
 export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
 
+// Other
+export const LogLevel = process.env.LOG_LEVEL ?? 'debug'
+
 export const etherscanApiKeys: Record<string, string> = {
   [ChainSlug.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
   [ChainSlug.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
@@ -245,9 +248,20 @@ const getConfigByNetwork = (network: NetworkSlug | string): Pick<Config, 'networ
   const { addresses, bonders, bonderConfig, networks } = networkConfig
   const isMainnet = network === NetworkSlug.Mainnet
 
+  // Temp handle USDC native vs bridge
+  let modifiedAddresses = addresses
+  for (const token in addresses) {
+    if (token === 'USDC.e') {
+      modifiedAddresses = {
+        ...modifiedAddresses,
+        'USDC': addresses?.['USDC.e']
+      }
+    }
+  }
+
   return {
     network,
-    addresses,
+    addresses: modifiedAddresses,
     bonders,
     bonderConfig,
     networks,

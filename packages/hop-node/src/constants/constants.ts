@@ -5,6 +5,7 @@ import { getAverageBlockTimeSeconds } from './utils.js'
 
 // Timing
 export enum TimeIntervals {
+  ONE_MINUTE_MS = 60 * 1000,
   FIVE_MINUTES_MS = 5 * 60 * 1000,
   TEN_MINUTES_MS = 10 * 60 * 1000,
   ONE_HOUR_SECONDS = 60 * 60,

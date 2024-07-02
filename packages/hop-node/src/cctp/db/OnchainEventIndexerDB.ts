@@ -1,91 +1,154 @@
-import { BigNumber } from 'ethers'
-import { type ChainedBatch, DB } from './DB.js'
-import { Message } from '../cctp/Message.js'
-import { getDefaultStartBlockNumber } from './utils.js'
-import type { providers } from 'ethers'
-
-export type LogWithChainId = providers.Log & { chainId: number }
-
-type DBValue = LogWithChainId | number
-
+import { DB } from './DB.js'
+import type { DecodedLogWithContext } from '../types.js'
+import { DATA_PUT_EVENT } from './constants.js'
+import { normalizeDBValue } from './utils.js'
 
 /**
- * First index: topic[0]!chainId!blockNumber!logIndex
- * Second index: topic[0]!messageNonce!!chainId!chainId!blockNumber!logIndex
- * // TODO: Don't use !! in second index, rethink all
+ * The primary key is the filterId and the secondary keys are the values that
+ * are indexed by the consumer.
+ * 
+ * The DB stores and maintains the last block synced for each filterId.
+ * 
+ * Key Format:
+ * - syncBlock: sync!filterId
+ * - indexer: filterId, (filterId!indexedValue1, filterId!indexedValue1!indexedValue2, ...)
+ * 
+ * @dev This DB should only be used to get individual items. There should never be a
+ * need to iterate over all items in the DB. This is because the indexing is
+ * done such that each entry is guaranteed to be unique.
  */
 
-// TODO: Second index has chainId twice. this is because a message nonce is not unique across chains.
-// TODO: This should be hashed or handled differently so that there is not a redundant key
+type IndexDBValue = DecodedLogWithContext
+type SyncDBValue = {
+  syncedBlockNumber: number
+}
+type DBValue = IndexDBValue | SyncDBValue
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
+  readonly #secondaryKeys: Record<string, string[]> = {}
+  readonly #syncPrefix = 'sync'
 
-  // TODO: Clean these up
-  async *getLogsByTopic(topic: string): AsyncIterable<LogWithChainId> {
-     // Tilde is intentional for lexicographical sorting
-    const filter = {
-      gte: `${topic}`,
-      lt: `${topic}~`
-    }
-    yield* this.values(filter)
+  constructor (dbName: string) {
+    super(dbName + 'OnchainEventIndexerDB')
   }
 
-  async *getLogsByTopicAndSecondaryIndex(topic: string, secondaryIndex: string): AsyncIterable<LogWithChainId> {
-     // Tilde is intentional for lexicographical sorting
-    const filter = {
-      gte: `${topic}!${secondaryIndex}`,
-      lt: `${topic}!${secondaryIndex}~`
-    }
+  /**
+   * Initialization
+   */
 
-    yield* this.values(filter)
+  async newIndexerDB(primaryKey: string, secondaryKeys: string[]): Promise<void> {
+    if (this.#secondaryKeys[primaryKey]) {
+      throw new Error(`Indexer DB already exists for primaryKey ${primaryKey}`)
+    }
+    this.sublevel(primaryKey)
+    this.#secondaryKeys[primaryKey] = secondaryKeys
   }
 
-  async getLastBlockSynced(chainId: number, syncDBKey: string): Promise<number> {
-    // TODO: Use decorator for creation
-    let dbValue = 0
+  async initializeIndexer (primaryKey: string, chainId: string, startBlockNumber: number): Promise<void> {
+    const syncKey = this.#getLastBlockSyncedKey(primaryKey)
+    if (await this.has(syncKey)) {
+      return
+    }
+
+    await this.put(syncKey, { 
+      syncedBlockNumber: startBlockNumber
+    })
+  }
+
+  init (): void {
+    this.#initListeners()
+    this.logger.info('Onchain Event DB initialized')
+  }
+
+  /**
+   * Node events
+   */
+
+    #initListeners = (): void => {
+      // https://github.com/Level/levelup?tab=readme-ov-file#events
+      this.on('batch', (operations: any[]) => {
+        for (const op of operations) {
+          // Only emit put events
+          if (op.type !== 'put') continue
+
+          // Only emit the event if the value is not a sync value
+          if (op.key.substring(0, 4) === this.#syncPrefix) continue
+
+          // Multiple writes of the same data occur if there are multiple indexes
+          // for the item. We only want to emit the event once per item, not
+          // per index, so we ignore a key if it is part of a subDB.
+          if (op.key.includes('!')) continue
+
+          this.emit(DATA_PUT_EVENT, op.value)
+        }
+      })
+    }
+
+  /**
+   * Getters
+   */
+
+  // @dev The value is guaranteed to exist because it is set in the init function
+  async getLastBlockSynced(primaryKey: string): Promise<number> {
     try {
-      dbValue = await this.get(this.encodeKey(syncDBKey)) as number
-    } catch (e) {
-      // TODO: Better handling
-      // Noop
+      const syncKey = this.#getLastBlockSyncedKey(primaryKey)
+      const res = await this.get(syncKey) as SyncDBValue
+      return res.syncedBlockNumber
+    } catch (err) {
+      throw new Error(`No last block synced found for primaryKey ${primaryKey}. error: ${err}`)
     }
-    const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
-    // Intentional or instead of nullish coalescing since dbValue can be 0
-    return (dbValue || defaultStartBlockNumber) as number
   }
 
-  async updateSyncAndEvents(syncDBKey: string, syncedBlockNumber: number, logs: LogWithChainId[]): Promise<void> {
-    const batch: ChainedBatch<this, string, DBValue> = this.batch()
+  async getIndexedItem(primaryKey: string, secondaryKeys: string[]): Promise<DecodedLogWithContext> {
+    let key = primaryKey
+    if (secondaryKeys.length) {
+      key += '!' + secondaryKeys.join('!')
+    }
+
+    try {
+      const item = await this.get(key) as IndexDBValue
+      return normalizeDBValue(item) as DecodedLogWithContext
+    } catch (err) {
+      throw new Error(`No item found for key ${key}. error: ${err}`)
+    }
+  }
+
+  /**
+   * Setters
+   */
+
+  async putItemIndexedItem(primaryKey: string, syncedBlockNumber: number, logs: DecodedLogWithContext[]): Promise<void> {
+    const batch = this.batch()
 
     for (const log of logs) {
-      const index = this.#getIndexKey(log)
-      batch.put(index, log)
-      console.log('putting log', syncDBKey, syncedBlockNumber, log)
+      batch.put(primaryKey, log)
 
-      // TODO: Temp second index, pass this in thru constructor
-      if (log.topics[0] === Message.MESSAGE_RECEIVED_EVENT_SIG) {
-        const secondIndex = this.#getIndexKey(log, BigNumber.from(log.topics[2]).toString())
-        batch.put(secondIndex, log)
-        console.log('putting secondary log', syncDBKey, syncedBlockNumber, log)
+      let indexedKey = primaryKey
+      for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
+        // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
+        const indexValue = String(log.decoded[secondaryKey as keyof typeof log.decoded])
+        indexedKey += indexedKey ? ('!' + indexValue) : indexValue 
+        batch.put(indexedKey, log)
       }
     }
 
-    //  These must be performed atomically to keep state in sync
-    batch.put(syncDBKey, syncedBlockNumber)
-    console.log('putting sync log', syncDBKey, syncedBlockNumber)
+    // Update the last block synced
+    const syncKey = this.#getLastBlockSyncedKey(primaryKey)
+    batch.put(syncKey, { syncedBlockNumber })
+
+    let message = `Writing syncedBlockNumber ${syncedBlockNumber} for primaryKey ${primaryKey}`
+    if (logs.length) {
+      message += ` on chainId ${logs[0].context.chainId} with ${logs.length} logs. ${JSON.stringify(logs)}`
+    }
+    this.logger.debug(message)
     return batch.write()
   }
 
-  // TODO: Use sublevels
-  #getIndexKey (log: LogWithChainId, secondIndex?: string): string {
-    // Use ! as separator since it is best choice for lexicographical ordering and follows best practices
-    // https://github.com/Level/subleveldown
-    let index = log.topics[0]
-    if (secondIndex) {
-      index += '!' + secondIndex
-    }
-    // TODO: Be careful with future indexes, there may be multiple nonces on the same chain and the sourceChain is used
-    // as the index in the CCTP contracts but not indexed in events. Ensure that is handled.
-    return index + '!' + log.chainId + '!' + log.blockNumber + '!' + log.logIndex
+  /**
+   * Internal
+   */
+
+  #getLastBlockSyncedKey = (filterId: string): string => {
+    return `${this.#syncPrefix}!${filterId}`
   }
 }

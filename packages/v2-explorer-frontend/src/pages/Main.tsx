@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import { ExplorerEvents } from '../components/ExplorerEvents'
-import { SiteWrapper } from '../components/SiteWrapper'
+import { ExplorerEvents } from '../components/ExplorerEvents.js'
+import { SiteWrapper } from '../components/SiteWrapper.js'
 
 export function Main () {
   return (

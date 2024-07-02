@@ -1,92 +1,85 @@
-import { useMemo } from 'react';
-import { Hop } from '@hop-protocol/v2-sdk';
-import { utils } from 'ethers';
-import { useLocation } from 'react-router-dom';
-import { useEvents } from './useEvents';
-import { networkSlug } from '../config';
+import { useMemo } from 'react'
+import { Hop } from '@hop-protocol/v2-sdk'
+import { utils } from 'ethers'
+import { useLocation } from 'react-router-dom'
+import { useEvents } from './useEvents'
+import { networkSlug } from '../config.js'
 import PendingIcon from '@mui/icons-material/Pending'
 import Chip from '@mui/material/Chip'
 import CheckIcon from '@mui/icons-material/Check'
 
+const { formatUnits, formatEther } = utils
+
 export const useTransferDetails = () => {
-  const location = useLocation();
-  const parts = location.pathname.split('/');
-  const transferId = parts[2];
-  const sdk = useMemo(() => new Hop({ network: networkSlug }), []);
+  const location = useLocation()
+  const parts = location.pathname.split('/')
+  const transferId = parts[2]
+  const sdk = useMemo(() => new Hop({ network: networkSlug }), [])
+  const formatDisplay = (value: string, decimals: number, symbol: string) => {
+    if (value == null) return null
 
-  const filter = { transferId };
-  const { events, loading: isFetching } = useEvents('explorer', filter);
-  const event = events[0];
-  const bondedEvent = event?.transferBondedEvent;
-  const token = event?.token;
-  const context = event?.context;
-  const destinationContext = event?.transferBondedEvent?.context;
+    const unit = decimals === 9 ? 'gwei' : symbol
+    const formattedValue = formatUnits(value, decimals)
+    const weiLabel = decimals === 9 ? ' wei' : ''
 
-  const tokenDecimals = token?.decimals;
-  const tokenSymbol = token?.symbol;
-  const tokenName = token?.name;
+    return `${value}${weiLabel} (${formattedValue} ${unit})`
+  }
 
-  const isBonded = !!bondedEvent;
-  const status = isBonded ? (
-    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
-  ) : (
-    <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
-  );
-
-  const formatValue = (value: string, decimals: number, suffix = '') => value ? `${utils.formatUnits(value, decimals)} ${suffix}` : null;
-  const formatEtherValue = (value: string) => value ? `${utils.formatEther(value)} ETH` : null;
-
-  // const sourceTxValueDisplay = formatEtherValue(context?.value);
-  // const sourceTxGasPriceDisplay = formatValue(context?.gasPrice, 9, 'gwei');
-  // const destinationAmountOutDisplay = formatValue(bondedEvent?.amountOut, tokenDecimals, tokenSymbol);
-
+  const filter = { transferId }
+  const { events, loading: isFetching } = useEvents('explorer', filter)
+  const event = events[0]
+  const bondedEvent = event?.transferBondedEvent
+  const token = event?.token
+  const context = event?.context
+  const destinationContext = event?.transferBondedEvent?.context
+  const tokenDecimals = token?.decimals
+  const tokenSymbol = token?.symbol
+  const tokenName = token?.name
+  const isBonded = !!bondedEvent
   const counterpartToken = event?.counterpartToken
-
   const transferAmount = event?.amount
-  const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, tokenDecimals) : null
-  const transferAmountDisplay = transferAmount ? `${transferAmount} (${transferAmountFormatted} ${tokenSymbol})` : null
+  const transferAmountDisplay = formatDisplay(transferAmount, tokenDecimals, tokenSymbol)
   const checkpointTotalSent = event?.totalSent
-  const checkpointTotalSentFormatted = checkpointTotalSent ? utils.formatUnits(checkpointTotalSent, tokenDecimals) : null
-  const checkpointTotalSentDisplay = checkpointTotalSent ? `${checkpointTotalSent} (${checkpointTotalSentFormatted} ${tokenSymbol})` : null
+  const checkpointTotalSentDisplay = formatDisplay(checkpointTotalSent, tokenDecimals, tokenSymbol)
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
-  const attestationFeeDisplay = event?.attestationFee ? `${event?.attestationFee} (${utils.formatUnits(event?.attestationFee, 18)} ETH)` : null
+  const attestationFee = event?.attestationFee
+  const attestationFeeDisplay = formatDisplay(attestationFee, 18, 'ETH')
   const checkpoint = event?.checkpoint
   const transferNonce = event?.nonce
   const pathId = event?.pathId
   const sourceTxValue = context?.value
-  const sourceTxValueFormatted = event ? `${utils.formatEther(sourceTxValue)} ETH` : ''
-  const sourceTxValueDisplay = sourceTxValue ? `${sourceTxValue} (${sourceTxValueFormatted})` : null
+  const sourceTxValueDisplay = formatDisplay(sourceTxValue, 18 , 'ETH')
   const sourceTxTransactionHash = context?.transactionHash
   const sourceTxTransactionExplorerUrl = context?.transactionHashExplorerUrl
   const sourceTxGasLimit = context?.gasLimit
   const sourceTxNonce = context?.nonce
   const sourceTxGasUsed = context?.gasUsed
   const sourceTxGasPrice = context?.gasPrice
-  const sourceTxGasPriceFormatted = event ? `${utils.formatUnits(sourceTxGasPrice, 9)} gwei` : ''
-  const sourceTxGasPriceDisplay = sourceTxGasPrice ? `${sourceTxGasPrice} (${sourceTxGasPriceFormatted})` : null
+  const sourceTxGasPriceDisplay = formatDisplay(sourceTxGasPrice, 9, 'gwei')
   const sourceTxStatus = context?.status?.toString() ?? '-'
   const sourceTxFrom = context?.from
   const sourceTxChainId = context?.chainId
   const sourceTxChainDisplay = context?.chainLabel
   const sourceTxChainImageUrl = context?.chainImageUrl
-  const sourceTxFromExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(sourceTxFrom, sourceTxChainId) : ''
+  const sourceTxFromExplorerUrl = sourceTxFrom && sourceTxChainId ? sdk.utils.getAddressExplorerUrl(sourceTxFrom, sourceTxChainId) : ''
   const sourceTxTo = context?.to
-  const sourceTxToExplorerUrl = event ? sdk.utils.getAddressExplorerUrl(sourceTxTo, sourceTxChainId) : ''
+  const sourceTxToExplorerUrl = sourceTxTo && sourceTxChainId ? sdk.utils.getAddressExplorerUrl(sourceTxTo, sourceTxChainId) : ''
   const sourceTokenAddress = token?.address
-  const sourceTokenDisplay = token ? `${tokenName} (${tokenSymbol})` : null
+  const sourceTokenDisplay = tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null
   const sourceTokenExplorerUrl = token?.tokenExplorerUrl
-  const sourceTxStatusDisplay = sourceTxStatus ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
+  const sourceTxStatusDisplay = sourceTxStatus != null ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
   const sourceTxBlockTimestamp = context?.blockTimestamp
   const sourceTxBlockTimestampRelative = context?.blockTimestampRelative
-  const sourceTxTimestampDisplay = sourceTxBlockTimestamp ? `${sourceTxBlockTimestamp} ${event ? `(${sourceTxBlockTimestampRelative})` : ''}` : null
+  const sourceTxTimestampDisplay = sourceTxBlockTimestamp ? `${sourceTxBlockTimestamp} ${sourceTxBlockTimestampRelative ? `(${sourceTxBlockTimestampRelative})` : ''}` : null
   const sourceTxBlockNumber = context?.blockNumber
   const sourceTxData = context?.data
   const destinationChainDisplay = event?.toChainLabel
   const destinationChainImageUrl = event?.toChainImageUrl
   const destinationTransactionHash = destinationContext?.transactionHash
   const destinationTransactionExplorerUrl = destinationContext?.transactionHashExplorerUrl
-  const destinationAmountOutDisplay = bondedEvent?.amountOut ? `${bondedEvent?.amountOut} (${utils.formatUnits(bondedEvent?.amountOut, tokenDecimals)} ${tokenSymbol})` : null
+  const destinationAmountOut = bondedEvent?.amountOut
+  const destinationAmountOutDisplay = destinationAmountOut ? `${destinationAmountOut} (${formatUnits(destinationAmountOut, tokenDecimals)} ${tokenSymbol})` : null
   const destinationTxFromDisplay = destinationContext?.from
   const destinationTxFromExplorerUrl = destinationContext?.fromExplorerUrl
   const destinationTxToDisplay = destinationContext?.to
@@ -95,21 +88,38 @@ export const useTransferDetails = () => {
   const destinationTokenDisplay = counterpartToken ? `${tokenName} (${tokenSymbol})` : null
   const destinationTokenExplorerUrl = counterpartToken?.tokenExplorerUrl
   const destinationTxData = destinationContext?.data
+  const destinationTxBlockTimestamp = destinationContext?.blockTimestamp
+  const destinationTxBlockTimestampRelative = destinationContext?.blockTimestampRelative
+  const destinationTxTimestampDisplay = destinationTxBlockTimestamp ? `${destinationTxBlockTimestamp} ${destinationTxBlockTimestampRelative ? `(${destinationTxBlockTimestampRelative})` : ''}` : null
+  const destinationTxStatus = destinationContext?.status?.toString() ?? '-'
+  const destinationTxStatusDisplay = destinationTxStatus != '-' ? `${destinationTxStatus} (${destinationTxStatus === '1' ? 'Success' : destinationTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
+  const destinationTxValue = destinationContext?.value
+  const destinationTxValueDisplay = formatDisplay(destinationTxValue, 18, 'ETH')
+  const destinationTxGasLimit = destinationContext?.gasLimit
+  const destinationTxGasUsed = destinationContext?.gasUsed
+	const destinationTxGasPrice = destinationContext?.gasPrice
+  const destinationTxGasPriceDisplay = formatDisplay(destinationTxGasPrice, 9, 'gwei')
+  const destinationTxNonce = destinationContext?.nonce
+  const destinationTxBlockNumber = destinationContext?.blockNumber
   const loading = !(!isFetching && event)
+
+  const statusDisplay = isBonded ? (
+    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+  ) : (
+    <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
+  )
 
   return {
     transferId,
-    status,
+    statusDisplay,
     token,
     context,
     destinationContext,
     tokenName,
     tokenSymbol,
     transferAmount,
-    transferAmountFormatted,
     transferAmountDisplay,
     checkpointTotalSent,
-    checkpointTotalSentFormatted,
     checkpointTotalSentDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
@@ -118,7 +128,6 @@ export const useTransferDetails = () => {
     transferNonce,
     pathId,
     sourceTxValue,
-    sourceTxValueFormatted,
     sourceTxValueDisplay,
     sourceTxTransactionHash,
     sourceTxTransactionExplorerUrl,
@@ -126,7 +135,6 @@ export const useTransferDetails = () => {
     sourceTxNonce,
     sourceTxGasUsed,
     sourceTxGasPrice,
-    sourceTxGasPriceFormatted,
     sourceTxGasPriceDisplay,
     sourceTxStatus,
     sourceTxFrom,
@@ -158,6 +166,14 @@ export const useTransferDetails = () => {
     destinationTokenDisplay,
     destinationTokenExplorerUrl,
     destinationTxData,
+    destinationTxStatusDisplay,
+    destinationTxValueDisplay,
+    destinationTxGasLimit,
+    destinationTxGasUsed,
+    destinationTxGasPriceDisplay,
+    destinationTxNonce,
+    destinationTxBlockNumber,
+    destinationTxTimestampDisplay,
     loading,
-  };
-};
+  }
+}

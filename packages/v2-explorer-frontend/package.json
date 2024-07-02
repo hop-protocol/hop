@@ -33,6 +33,7 @@
     "web-vitals": "2.1.4"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "6.4.6",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.2",
     "@types/pluralize": "0.0.33",

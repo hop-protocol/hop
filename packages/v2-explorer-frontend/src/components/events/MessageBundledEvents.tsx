@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { Table } from '../Table'
-import { useEvents } from '../../hooks/useEvents'
+import { Table } from '../Table.js'
+import { useEvents } from '../../hooks/useEvents.js'
 
 export function MessageBundledEvents () {
   const eventName = 'MessageBundled'
@@ -72,7 +72,7 @@ export function MessageBundledEvents () {
       {
         key: 'eventChainId',
         value: event.context.chainLabel,
-        clipboardValue: event.context.chainId
+        clipboardValue: event.context.chainLabel
       },
     ]
   })

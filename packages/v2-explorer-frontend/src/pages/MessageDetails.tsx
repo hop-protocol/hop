@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { SiteWrapper } from '../components/SiteWrapper'
+import { SiteWrapper } from '../components/SiteWrapper.js'
 import { utils } from 'ethers'
-// import { ExplorerEvents } from '../components/ExplorerEvents'
 import Box from '@mui/material/Box'
 import CheckIcon from '@mui/icons-material/Check'
 import Chip from '@mui/material/Chip'
@@ -16,9 +15,11 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
-import { useEvents } from '../hooks/useEvents'
+import { useEvents } from '../hooks/useEvents.js'
 import { useLocation } from 'react-router-dom'
-import { networkSlug } from '../config'
+import { networkSlug } from '../config.js'
+
+const { formatEther, formatUnits } = utils
 
 const useStyles = makeStyles((theme: any) => ({
   tableRow: {
@@ -81,7 +82,7 @@ export function Details () {
         ])
         if (tx) {
           setTxValue(tx?.value?.toString())
-          setTxValueFormatted(`${utils.formatEther(tx?.value?.toString())} ETH`)
+          setTxValueFormatted(`${formatEther(tx?.value?.toString())} ETH`)
           setGasLimit(tx?.gasLimit?.toString())
           setNonce(tx?.nonce?.toString())
           if (receipt) {
@@ -91,7 +92,7 @@ export function Details () {
             setSourceTxTo(receipt?.to?.toString())
             if ((tx as any)?.gasPrice) {
               setGasPrice((tx as any)?.gasPrice?.toString())
-              setGasPriceFormatted(`${utils.formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
+              setGasPriceFormatted(`${formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
             }
           }
         }

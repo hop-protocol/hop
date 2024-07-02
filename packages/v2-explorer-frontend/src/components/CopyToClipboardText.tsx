@@ -1,5 +1,5 @@
-import React, { useState, ReactNode } from 'react';
-import { CopyToClipboard } from './CopyToClipboard'
+import React, { useState, ReactNode } from 'react'
+import { CopyToClipboard } from './CopyToClipboard.js'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 

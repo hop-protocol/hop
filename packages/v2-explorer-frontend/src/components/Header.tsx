@@ -9,7 +9,7 @@ import { networkName } from '../config'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
-import { useTheme } from '../useTheme'
+import { useTheme } from '../useTheme.js'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'

@@ -1,4 +1,4 @@
-import { apiUrl } from '../config'
+import { apiUrl } from '../config.js'
 import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
 

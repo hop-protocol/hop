@@ -13,7 +13,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import _Table from '@mui/material/Table'
-import { CopyToClipboard } from './CopyToClipboard'
+import { CopyToClipboard } from './CopyToClipboard.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -47,7 +47,7 @@ export type Row = {
   valueUrl?: string
   imageUrl?: string
   clipboardValue?: string
-  title?: string
+  hoverTitle?: string
 }
 
 type Props = {
@@ -70,12 +70,6 @@ export function Table (props: Props) {
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
   const page = 0
-
-  function handleChangePage() {
-  }
-
-  function handleChangeRowsPerPage () {
-  }
 
   function handleCopy (value: string, key: string) {
     setCopied(value)
@@ -134,7 +128,7 @@ export function Table (props: Props) {
                         const allowClick = onRowClick && !(col.valueUrl || col.clipboardValue)
                         const cellKey = `${i}${j}`
                         return (
-                          <TableCell key={j} title={col.title || col.clipboardValue || col.value}
+                          <TableCell key={j} title={col.hoverTitle || col.clipboardValue || col.value}
                             style={{
                               cursor: allowClick ? 'pointer' : 'default'
                             }}

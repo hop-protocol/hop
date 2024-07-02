@@ -7,10 +7,10 @@ import React, { useState } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { Table } from './Table'
-import { useEvents } from '../hooks/useEvents'
+import { Table } from './Table.js'
+import { useEvents } from '../hooks/useEvents.js'
 import { useNavigate } from 'react-router-dom'
-import { useQueryParams } from '../hooks/useQueryParams'
+import { useQueryParams } from '../hooks/useQueryParams.js'
 
 export function ExplorerEvents () {
   const { queryParams, updateQueryParams } = useQueryParams()
@@ -18,11 +18,11 @@ export function ExplorerEvents () {
   const [filterBy, setFilterBy] = useState('messageId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
+  const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents('explorer', filter, onPagination, queryParams)
   function onPagination (params: any) {
     const { page } = params
     updateQueryParams({ page })
   }
-  const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents('explorer', filter, onPagination, queryParams)
 
   const headers = [
     {
@@ -69,7 +69,7 @@ export function ExplorerEvents () {
       {
         key: 'status',
         value: status,
-        title: `${isRelayed ? 'This message has been relayed to the destination chain' : 'This message has not yet been relayed to the destination chain'}`,
+        hoverTitle: `${isRelayed ? 'This message has been relayed to the destination chain' : 'This message has not yet been relayed to the destination chain'}`,
       },
       {
         key: 'created',

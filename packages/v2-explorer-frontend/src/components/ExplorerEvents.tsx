@@ -7,11 +7,13 @@ import React, { useState } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { Table } from './Table'
-import { useEvents } from '../hooks/useEvents'
+import { Table } from './Table.js'
+import { useEvents } from '../hooks/useEvents.js'
 import { useNavigate } from 'react-router-dom'
-import { useQueryParams } from '../hooks/useQueryParams'
+import { useQueryParams } from '../hooks/useQueryParams.js'
 import { utils } from 'ethers'
+
+const { formatUnits } = utils
 
 export function ExplorerEvents () {
   const { queryParams, updateQueryParams } = useQueryParams()
@@ -19,11 +21,11 @@ export function ExplorerEvents () {
   const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
+  const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents('explorer', filter, onPagination, queryParams)
   function onPagination (params: any) {
     const { page } = params
     updateQueryParams({ page })
   }
-  const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents('explorer', filter, onPagination, queryParams)
 
   const headers = [
     {
@@ -80,14 +82,14 @@ export function ExplorerEvents () {
     }
 
     const transferAmount = event?.amount
-    const transferAmountFormatted = transferAmount ? utils.formatUnits(transferAmount, event?.token?.decimals) : null
+    const transferAmountFormatted = transferAmount ? formatUnits(transferAmount, event?.token?.decimals) : null
     const transferAmountDisplay = transferAmount ? `${transferAmountFormatted} ${event?.token?.symbol}` : null
 
     return [
       {
         key: 'status',
         value: status,
-        title: `${isBonded ? 'This message has been bonded to the destination chain' : 'This message has not yet been bonded to the destination chain'}`,
+        hoverTitle: `${isBonded ? 'This message has been bonded to the destination chain' : 'This message has not yet been bonded to the destination chain'}`,
       },
       {
         key: 'created',

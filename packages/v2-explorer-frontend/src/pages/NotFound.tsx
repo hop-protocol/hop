@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { SiteWrapper } from '../components/SiteWrapper'
+import { SiteWrapper } from '../components/SiteWrapper.js'
 
 export function NotFound () {
   return (

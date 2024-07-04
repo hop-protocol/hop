@@ -4,12 +4,13 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { networkName } from '../config'
+import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
-import { useTheme } from '../useTheme'
+import { useTheme } from '../theme/useTheme'
+import { useRouter } from 'next/navigation'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
@@ -32,8 +33,9 @@ const useStyles = makeStyles((theme: any) => ({
 
 export function Header () {
   const styles = useStyles()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const router = useRouter()
+  const navigate = router.push
+  const pathname = usePathname()
   const { theme, dark, toggleTheme } = useTheme()
 
   const currentTab = useMemo(() => {
@@ -42,7 +44,7 @@ export function Header () {
       '/events': 'events'
     }
 
-    return routes[location.pathname]
+    return routes[pathname]
   }, [])
 
   function handleTabChange (event: any, newValue: number) {

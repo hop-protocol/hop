@@ -9,15 +9,17 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Table } from './Table'
 import { useEvents } from '../hooks/useEvents'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { utils } from 'ethers'
+import Link from 'next/link'
 
 const { formatUnits } = utils
 
 export function ExplorerEvents () {
+  const router = useRouter()
   const { queryParams, updateQueryParams } = useQueryParams()
-  const navigate = useNavigate()
+  const navigate = router.push
   const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }

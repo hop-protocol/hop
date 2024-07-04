@@ -1,10 +1,8 @@
 "use client";
-import './index.css'
 import App from './App'
 import React from 'react'
-import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { ThemeProvider as CustomThemeProvider } from './useTheme'
+import { ThemeProvider as CustomThemeProvider } from './theme/useTheme'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,14 +12,13 @@ const queryClient = new QueryClient({
   }
 })
 
-export function Main(props: any) {
-  console.log('Props', props)
+export function Providers({ children }: any) {
   return (
     <CustomThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <App>
+          {children}
+        </App>
       </QueryClientProvider>
     </CustomThemeProvider>
   )

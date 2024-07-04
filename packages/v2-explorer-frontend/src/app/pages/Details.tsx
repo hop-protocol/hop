@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { Box, Link, Skeleton, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Paper } from '@mui/material'
 import { makeStyles } from '@mui/styles'

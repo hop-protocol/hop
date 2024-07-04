@@ -25,7 +25,6 @@
     "next": "14.2.4",
     "react": "^18",
     "react-dom": "^18",
-    "react-router-dom": "^6.24.1",
     "react-copy-to-clipboard": "5.1.0",
     "react-query": "3.39.1",
     "styled-components": "5.3.6"

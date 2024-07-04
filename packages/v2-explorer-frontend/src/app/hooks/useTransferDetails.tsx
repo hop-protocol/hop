@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { utils } from 'ethers'
-import { useLocation } from 'react-router-dom'
+import { usePathname } from 'next/navigation'
 import { useEvents } from './useEvents'
 import { networkSlug } from '../config'
 import PendingIcon from '@mui/icons-material/Pending'
@@ -11,8 +11,8 @@ import CheckIcon from '@mui/icons-material/Check'
 const { formatUnits, formatEther } = utils
 
 export const useTransferDetails = () => {
-  const location = useLocation()
-  const parts = location.pathname.split('/')
+  const pathname = usePathname()
+  const parts = pathname.split('/')
   const transferId = parts[2]
   const sdk = useMemo(() => new Hop({ network: networkSlug }), [])
   const formatDisplay = (value: string, decimals: number, symbol: string) => {

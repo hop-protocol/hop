@@ -1,6 +1,6 @@
-import { apiUrl } from '../config'
 import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
+import { fetchEvents } from './fetchEvents'
 
 export function useEvents (eventName: string, filter: any = {}, onPagination?: any, queryParams?: any) {
   const [hasNextPage, setHasNextPage] = useState(false)
@@ -20,20 +20,12 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
 
   const { isLoading: loading, data, error } = useQuery([`events:${eventName}-${page}-${filterString}`, page, eventName, filterString], async () => {
     try {
-      let pathname = '/events'
-      if (eventName === 'explorer')  {
-        pathname = '/explorer'
-      }
-      const url = `${apiUrl}/v1${pathname}?limit=${limit}&page=${page || 1}&eventName=${eventName}${filterString}`
-      const res = await fetch(url)
-      const json = await res.json()
-      if (json.error) {
-        throw new Error(json.error)
-      }
-      if (!json.events) {
-        throw new Error('no events')
-      }
-      return json
+      return await fetchEvents({
+        eventName,
+        limit,
+        page,
+        filterString
+      })
     } catch (err: any) {
       console.error(err.message)
     }

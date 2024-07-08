@@ -5,11 +5,11 @@ import { ExplorerEvents } from '../components/ExplorerEvents'
 import { SiteWrapper } from '../components/SiteWrapper'
 
 export function Main (props: any) {
-  console.log('Main', props)
+  const { initialEvents } = props
   return (
     <SiteWrapper>
       <Box width="100%" maxWidth="2000px" m="0 auto">
-        <ExplorerEvents />
+        <ExplorerEvents initialEvents={initialEvents} />
       </Box>
     </SiteWrapper>
   )

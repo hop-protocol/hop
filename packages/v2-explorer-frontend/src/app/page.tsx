@@ -1,15 +1,12 @@
 import Image from "next/image";
 import { Main } from './pages/Main'
+import { fetchEvents } from './hooks/fetchEvents'
 
-export const getServerSidePropsHome = async () => {
-  return {
-    data: 'some data'
-  }
-}
-
-export default async function Index() {
-  const props = await getServerSidePropsHome()
+export default async function IndexPage() {
+  const events = await fetchEvents({
+    eventName: 'explorer'
+  })
   return (
-    <Main props={props} />
-  );
+    <Main initialEvents={events} />
+  )
 }

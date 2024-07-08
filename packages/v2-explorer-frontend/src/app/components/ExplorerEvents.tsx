@@ -3,7 +3,7 @@ import CheckIcon from '@mui/icons-material/Check'
 import Chip from '@mui/material/Chip'
 import MenuItem from '@mui/material/MenuItem'
 import PendingIcon from '@mui/icons-material/Pending'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -12,22 +12,40 @@ import { useEvents } from '../hooks/useEvents'
 import { useRouter } from 'next/navigation'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { utils } from 'ethers'
-import Link from 'next/link'
 
 const { formatUnits } = utils
 
-export function ExplorerEvents () {
+export function ExplorerEvents (props: any) {
+  const { initialEvents } = props
   const router = useRouter()
   const { queryParams, updateQueryParams } = useQueryParams()
   const navigate = router.push
   const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
-  const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents('explorer', filter, onPagination, queryParams)
+  const { events: clientEvents, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading: clientEventsLoading } = useEvents('explorer', filter, onPagination, queryParams)
   function onPagination (params: any) {
     const { page } = params
     updateQueryParams({ page })
   }
+
+  const [loading, setLoading] = useState(() => {
+    return !initialEvents?.events
+  })
+
+  const [events, setEvents] = useState(() => {
+    return initialEvents?.events || []
+  })
+
+  useEffect(() => {
+    if (clientEvents.length) {
+      setEvents(clientEvents)
+    }
+    if (!clientEvents.length && (events.length !== clientEvents.length && !clientEventsLoading)) {
+      setEvents([])
+    }
+    setLoading(false)
+  }, [clientEvents, clientEventsLoading])
 
   const headers = [
     {

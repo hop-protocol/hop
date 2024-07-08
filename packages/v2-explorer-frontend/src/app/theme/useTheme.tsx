@@ -12,9 +12,9 @@ export const ThemeProvider = ({ children }) => {
         return cached === 'true'
       }
     } catch (err) {
-      console.error(err)
+      // console.error(err)
     }
-    return true
+    return false
   })
 
   const toggleTheme = () => {
@@ -25,7 +25,7 @@ export const ThemeProvider = ({ children }) => {
     try {
       localStorage.setItem('darkMode', `${dark}`)
     } catch (err) {
-      console.error(err)
+      // console.error(err)
     }
   }, [dark])
 

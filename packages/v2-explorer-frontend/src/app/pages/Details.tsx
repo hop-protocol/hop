@@ -51,7 +51,8 @@ const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth = 200,
   )
 }
 
-export function Details() {
+export function Details(props: any) {
+  const { initialEventDetails } = props
   const {
     transferId,
     statusDisplay,
@@ -103,7 +104,7 @@ export function Details() {
     destinationTxBlockNumber,
     transferAmountDisplay,
     destinationTxTimestampDisplay
-  } = useTransferDetails()
+  } = useTransferDetails({ initialEventDetails })
 
   return (
     <SiteWrapper>

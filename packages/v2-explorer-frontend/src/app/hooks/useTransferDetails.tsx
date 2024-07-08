@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { utils } from 'ethers'
 import { usePathname } from 'next/navigation'
@@ -10,7 +10,8 @@ import CheckIcon from '@mui/icons-material/Check'
 
 const { formatUnits, formatEther } = utils
 
-export const useTransferDetails = () => {
+export const useTransferDetails = (props: any) => {
+  const { initialEventDetails } = props
   const pathname = usePathname()
   const parts = pathname.split('/')
   const transferId = parts[2]
@@ -26,8 +27,22 @@ export const useTransferDetails = () => {
   }
 
   const filter = { transferId }
-  const { events, loading: isFetching } = useEvents('explorer', filter)
-  const event = events[0]
+  const [isFetching, setIsFetching] = useState(() => {
+    return !initialEventDetails
+  })
+  const { events, loading: eventsFetching } = useEvents('explorer', filter)
+  const [event, setEvent] = useState(() => {
+    return initialEventDetails ?? null
+  })
+
+  const eventDetails = events?.[0]
+  useEffect(() => {
+    if (eventDetails) {
+      setEvent(eventDetails)
+      setIsFetching(false)
+    }
+  }, [eventDetails])
+
   const bondedEvent = event?.transferBondedEvent
   const token = event?.token
   const context = event?.context
@@ -101,7 +116,7 @@ export const useTransferDetails = () => {
   const destinationTxGasPriceDisplay = formatDisplay(destinationTxGasPrice, 9, 'gwei')
   const destinationTxNonce = destinationContext?.nonce
   const destinationTxBlockNumber = destinationContext?.blockNumber
-  const loading = !(!isFetching && event)
+  const loading = false // !(!isFetching && event)
 
   const statusDisplay = isBonded ? (
     <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />

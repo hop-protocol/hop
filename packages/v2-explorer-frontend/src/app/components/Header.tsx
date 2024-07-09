@@ -44,7 +44,7 @@ export function Header () {
       '/events': 'events'
     }
 
-    return routes[pathname]
+    return routes[pathname] ?? 'home'
   }, [])
 
   function handleTabChange (event: any, newValue: number) {
@@ -63,7 +63,7 @@ export function Header () {
             <Typography variant="h4" color="textPrimary">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <Box mr={1}>
-                <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+                <img src={dark ? logoDark : logo} alt="Hop" />
                 </Box><Box style={{ whiteSpace: 'nowrap' }}>Hop v2 Explorer</Box>
               </Box>
             </Typography>

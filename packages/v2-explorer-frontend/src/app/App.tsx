@@ -1,10 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Details } from './pages/Details'
-import { Events } from './pages/Events'
-import { Main } from './pages/Main'
-import { NotFound } from './pages/NotFound'
 import { useTheme } from './theme/useTheme'
 
 const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
@@ -27,13 +23,5 @@ function App ({ children }: any) {
     </div>
   )
 }
-
-// <Routes>
-//   <Route path="/" element={<Main />} />
-//   {/* <Route path="/m/:id" element={<MessageDetails />} /> */}
-//   <Route path="/t/:id" element={<Details />} />
-//   <Route path="/events" element={<Events />} />
-//   <Route element={<NotFound />} />
-// </Routes>
 
 export default App

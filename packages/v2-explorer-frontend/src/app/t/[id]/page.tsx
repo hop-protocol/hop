@@ -14,5 +14,5 @@ export default async function DetailsPage() {
 
   return (
     <Details initialEventDetails={eventDetails} />
-  );
+  )
 }

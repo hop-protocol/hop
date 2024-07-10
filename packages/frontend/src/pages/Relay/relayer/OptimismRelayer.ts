@@ -27,6 +27,10 @@ export class OptimismRelayer extends Relayer<CrossChainMessage, MessageStatus> {
 
   async sendRelayTx (message: CrossChainMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L2_TO_L1) {
+      const messageStatus = await this.getMessageStatus(message)
+      if (messageStatus === MessageStatus.READY_FOR_RELAY) {
+        return this.#csm.finalizeMessage(message)
+      }
       return this.#csm.proveMessage(message)
     }
 

@@ -185,7 +185,7 @@ export const Relay: FC = () => {
             console.log('receipt', receipt)
           } catch (err: any) {
             console.error(err)
-            throw new Error(`Failed to relay commit transfer tx on ${l1Network.slug}. Error: ${err.message}`)
+            throw new Error(`Failed to relay commit transfer tx on ${l1Network.slug}. Error: ${err.message}. You may need to wait a few more hours to relay this transfer.`)
           }
           setLoading(false)
           resolve(null)

@@ -22,6 +22,7 @@ import SelectOption from '#components/selects/SelectOption.js'
 import { l2Networks, l1Network } from '#config/networks.js'
 import Network from '#models/Network.js'
 import { findNetworkBySlug, findMatchingBridge } from '#utils/index.js'
+import { wait } from '#utils/wait.js'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -62,6 +63,7 @@ export const Relay: FC = () => {
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
   const [commitTxHashForTransferId, setCommitTxHashForTransferId] = useState<string>('')
+  const [commitInfoMsg, setCommitInfoMsg] = useState<string>('')
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
 
   useEffect(() => {
@@ -90,10 +92,11 @@ export const Relay: FC = () => {
       setError('')
       setSuccess('')
       setCommitTxHashForTransferId('')
+      setCommitInfoMsg('')
       await new Promise((resolve, reject) => {
         const run = async () => {
           console.log('selectedNetwork', selectedNetwork)
-          const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
+          let isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
           if (!isNetworkConnected) {
             throw new Error('wrong network connected')
           }
@@ -117,23 +120,53 @@ export const Relay: FC = () => {
           if (transferStatus?.[0]?.transferId && transferStatus?.[0]?.transferId !== transferId) {
             transferId = transferStatus?.[0]?.transferId
           }
+          setCommitInfoMsg(`Searching for the commit transaction hash for transfer ID ${transferId}...`)
           let commitTxHash = '' // for debugging
           if (!commitTxHash) {
             const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
             console.log('event', event)
             commitTxHash = event?.transactionHash
+          setCommitInfoMsg('')
           }
           if (!commitTxHash) {
-            throw new Error('The commit transaction hash was not found for this transfer, which is required for the relay. This means the transfer root has not been committed yet and it will just take a little longer. Your funds are safe.')
+            setCommitInfoMsg(`The commit transaction hash was not found for this transfer. Initiating a transaction request to commit the transfers from ${selectedNetwork.slug} to ${l1Network.slug}...`)
+            const bridge = sdk.bridge(token)
+            isNetworkConnected = await checkConnectedNetworkId(selectedNetwork.networkId)
+            if (!isNetworkConnected) {
+              throw new Error('wrong network connected')
+            }
+            const tx = await bridge.commitTransfers(selectedNetwork.slug, l1Network.slug)
+            setCommitInfoMsg(`Commit transfers transaction hash: ${tx.hash}. Waiting for confirmation...`)
+            await tx.wait()
+            await wait(60 * 1000)
+            setCommitInfoMsg(`Searching for the commit transaction hash for transfer ID ${transferId}...`)
+          }
+          if (!commitTxHash) {
+            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
+            console.log('event', event)
+            commitTxHash = event?.transactionHash
+            setCommitInfoMsg(``)
+          }
+          if (!commitTxHash) {
+            throw new Error('The commit transaction hash was not found for this transfer, which is required for the relay. This means the transfer root has not been committed yet and it will just take a little longer until the exit transaction can be initiated. Your funds are safe.')
+          }
+          isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
           }
           console.log('commitTxHash', commitTxHash)
           setCommitTxHashForTransferId(commitTxHash)
           const relayer = getRelayer(reactAppNetwork as NetworkSlug, selectedNetwork.slug as ChainSlug, l1Wallet, l2Wallet)
-          const tx = await relayer.relayL2ToL1Message(commitTxHash)
-          setSuccess(`Transaction hash: ${tx.hash}`)
-          console.log('tx', tx)
-          const receipt = await tx.wait()
-          console.log('receipt', receipt)
+          try {
+            const tx = await relayer.relayL2ToL1Message(commitTxHash)
+            setSuccess(`Transaction hash: ${tx.hash}`)
+            console.log('tx', tx)
+            const receipt = await tx.wait()
+            console.log('receipt', receipt)
+          } catch (err: any) {
+            console.error(err)
+            throw new Error(`Failed to relay commit transfer tx on ${l1Network.slug}. Error: ${err.message}`)
+          }
           setLoading(false)
           resolve(null)
         }
@@ -141,6 +174,7 @@ export const Relay: FC = () => {
       })
     } catch (err: any) {
       console.error(err)
+      setCommitInfoMsg('')
       setError(formatError(err))
     }
     setLoading(false)
@@ -239,6 +273,11 @@ export const Relay: FC = () => {
       {commitTxHashForTransferId && (
         <Box className={styles.notice}>
           <Alert severity="info">Found commit tx hash: {commitTxHashForTransferId}</Alert>
+        </Box>
+      )}
+      {commitInfoMsg && (
+        <Box className={styles.notice}>
+          <Alert severity="info">{commitInfoMsg}</Alert>
         </Box>
       )}
       <Box mt={10} display="flex" justifyContent="center" style={{ opacity: 0.7 }}>

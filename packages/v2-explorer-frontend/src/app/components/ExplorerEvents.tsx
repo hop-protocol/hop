@@ -101,9 +101,7 @@ export function ExplorerEvents (props: any) {
       )
     }
 
-    const transferAmount = event?.amount
-    const transferAmountFormatted = transferAmount ? formatUnits(transferAmount, event?.token?.decimals) : null
-    const transferAmountDisplay = transferAmount ? `${transferAmountFormatted} ${event?.token?.symbol}` : null
+    const transferAmountDisplay = `${event?.amountDisplay} (${event?.amountUsdDisplay})`
 
     return [
       {

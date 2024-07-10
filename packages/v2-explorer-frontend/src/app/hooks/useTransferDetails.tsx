@@ -53,18 +53,18 @@ export const useTransferDetails = (props: any) => {
   const isBonded = !!bondedEvent
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
-  const transferAmountDisplay = formatDisplay(transferAmount, tokenDecimals, tokenSymbol)
+  const transferAmountDisplay = `${event?.amount} (${event?.amountDisplay}) (${event?.amountUsdDisplay})`
   const checkpointTotalSent = event?.totalSent
   const checkpointTotalSentDisplay = formatDisplay(checkpointTotalSent, tokenDecimals, tokenSymbol)
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const attestationFee = event?.attestationFee
-  const attestationFeeDisplay = formatDisplay(attestationFee, 18, 'ETH')
+  const attestationFeeDisplay = `${event?.attestationFee} ${event?.attestationFeeDisplay} (${event?.attestationFeeUsdDisplay})`
   const checkpoint = event?.checkpoint
   const transferNonce = event?.nonce
   const pathId = event?.pathId
   const sourceTxValue = context?.value
-  const sourceTxValueDisplay = formatDisplay(sourceTxValue, 18 , 'ETH')
+  const sourceTxValueDisplay = `${context?.value} (${context?.valueDisplay}) (${context?.valueUsdDisplay})`
   const sourceTxTransactionHash = context?.transactionHash
   const sourceTxTransactionExplorerUrl = context?.transactionHashExplorerUrl
   const sourceTxGasLimit = context?.gasLimit
@@ -94,7 +94,7 @@ export const useTransferDetails = (props: any) => {
   const destinationTransactionHash = destinationContext?.transactionHash
   const destinationTransactionExplorerUrl = destinationContext?.transactionHashExplorerUrl
   const destinationAmountOut = bondedEvent?.amountOut
-  const destinationAmountOutDisplay = destinationAmountOut ? `${destinationAmountOut} (${formatUnits(destinationAmountOut, tokenDecimals)} ${tokenSymbol})` : null
+  const destinationAmountOutDisplay = bondedEvent ? `${bondedEvent?.amountOut} (${bondedEvent?.amountOutDisplay}) (${bondedEvent?.amountOutUsdDisplay})` : null
   const destinationTxFromDisplay = destinationContext?.from
   const destinationTxFromExplorerUrl = destinationContext?.fromExplorerUrl
   const destinationTxToDisplay = destinationContext?.to
@@ -109,7 +109,7 @@ export const useTransferDetails = (props: any) => {
   const destinationTxStatus = destinationContext?.status?.toString() ?? '-'
   const destinationTxStatusDisplay = destinationTxStatus != '-' ? `${destinationTxStatus} (${destinationTxStatus === '1' ? 'Success' : destinationTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
   const destinationTxValue = destinationContext?.value
-  const destinationTxValueDisplay = formatDisplay(destinationTxValue, 18, 'ETH')
+  const destinationTxValueDisplay = destinationContext ? `${destinationContext?.value} (${destinationContext?.valueDisplay}) (${destinationContext?.valueUsdDisplay})` : null
   const destinationTxGasLimit = destinationContext?.gasLimit
   const destinationTxGasUsed = destinationContext?.gasUsed
 	const destinationTxGasPrice = destinationContext?.gasPrice

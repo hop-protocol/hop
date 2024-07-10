@@ -6,6 +6,8 @@ import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
 import { chainNames, network, rpcUrls } from '#config/index.js'
 
+const { formatUnits } = utils
+
 type EventsResult = {
   items: any[]
   hasNextPage?: boolean
@@ -118,7 +120,11 @@ export class Controller {
 
       item.transferBondedEvent = null
       if (bondedEvents.items.length > 0) {
-        item.transferBondedEvent = bondedEvents.items[0]
+        const eventItem = bondedEvents.items[0]
+        eventItem.token = item.counterpartToken
+        eventItem.tokenPriceUsd = item.tokenPriceUsd
+        eventItem.ethPriceUsd = item.ethPriceUsd
+        item.transferBondedEvent = this.normalizeEventForApi(eventItem)
       }
       return item
     })
@@ -288,7 +294,7 @@ export class Controller {
       item.toChainImageUrl = this.sdk.utils.getLogoForChainId(item.toChainId)
     }
     if (item.bundleFees) {
-      item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
+      item.bundleFeesDisplay = formatUnits(item.bundleFees, 18)
     }
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
@@ -302,6 +308,30 @@ export class Controller {
     }
     if (item.counterpartToken?.address) {
       item.counterpartToken.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken.address, item.counterpartToken.chainId)
+    }
+    if (item.amount != null && item.token) {
+      item.amountFormatted = formatUnits(item.amount, item.token.decimals)
+      item.amountDisplay = `${item.amountFormatted} ${item.token.symbol}`
+    }
+    if (item.amount != null && item.amountFormatted && item.tokenPriceUsd) {
+      item.amountUsd = Number(item.amountFormatted) * Number(item.tokenPriceUsd)
+      item.amountUsdDisplay = `$${item.amountUsd.toFixed(2)} USD`
+    }
+    if (item.amountOut != null && item.token) {
+      item.amountOutFormatted = formatUnits(item.amountOut, item.token.decimals)
+      item.amountOutDisplay = `${item.amountOutFormatted} ${item.token.symbol}`
+    }
+    if (item.amountOut != null && item.amountOutFormatted != null && item.tokenPriceUsd != null) {
+      item.amountOutUsd = Number(item.amountOutFormatted) * Number(item.tokenPriceUsd)
+      item.amountOutUsdDisplay = `$${item.amountOutUsd.toFixed(2)} USD`
+    }
+    if (item.attestationFee != null) {
+      item.attestationFeeFormatted = formatUnits(item.attestationFee, 18)
+      item.attestationFeeDisplay = `${item.attestationFeeFormatted} ETH`
+    }
+    if (item.attestationFee != null && item.attestationFeeFormatted != null && item.ethPriceUsd != null) {
+      item.attestationFeeUsd = Number(item.attestationFeeFormatted) * Number(item.ethPriceUsd)
+      item.attestationFeeUsdDisplay = `$${item.attestationFeeUsd.toFixed(2)} USD`
     }
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]
@@ -317,6 +347,14 @@ export class Controller {
       if (item.context?.chainId) {
         item.context.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item?.context.to, item.context.chainId)
       }
+    }
+    if (item.context?.value != null) {
+      item.context.valueFormatted = formatUnits(item.context.value, 18)
+      item.context.valueDisplay = `${item.context.valueFormatted} ETH`
+    }
+    if (item.context?.value != null && item.context?.valueFormatted != null && item.ethPriceUsd != null) {
+      item.context.valueUsd = Number(item.context.valueFormatted) * Number(item.ethPriceUsd)
+      item.context.valueUsdDisplay = `$${item.context.valueUsd.toFixed(2)} USD`
     }
 
     return item

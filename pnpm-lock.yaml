@@ -932,136 +932,6 @@ importers:
       '@web3-onboard/injected-wallets':
         specifier: 2.2.4
         version: 2.2.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      buffer:
-        specifier: 5.7.1
-        version: 5.7.1
-      ethers:
-        specifier: 5.6.8
-        version: 5.6.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      qs:
-        specifier: 6.11.0
-        version: 6.11.0
-      react:
-        specifier: 18.2.0
-        version: 18.2.0
-      react-copy-to-clipboard:
-        specifier: 5.1.0
-        version: 5.1.0(react@18.2.0)
-      react-dom:
-        specifier: 18.2.0
-        version: 18.2.0(react@18.2.0)
-      react-query:
-        specifier: 3.39.1
-        version: 3.39.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      react-router-dom:
-        specifier: 6.21.2
-        version: 6.21.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      react-syntax-highlighter:
-        specifier: 15.5.0
-        version: 15.5.0(react@18.2.0)
-      react-use:
-        specifier: 17.4.0
-        version: 17.4.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      styled-components:
-        specifier: 5.3.6
-        version: 5.3.6(@babel/core@7.24.6)(react-dom@18.2.0(react@18.2.0))(react-is@18.3.1)(react@18.2.0)
-      vite-plugin-svgr:
-        specifier: 4.2.0
-        version: 4.2.0(rollup@4.18.0)(typescript@5.4.3)(vite@5.0.13(@types/node@20.12.7)(terser@5.31.1))
-      wait:
-        specifier: 0.4.2
-        version: 0.4.2
-      web-vitals:
-        specifier: 2.1.4
-        version: 2.1.4
-    devDependencies:
-      '@testing-library/jest-dom':
-        specifier: 6.4.6
-        version: 6.4.6(@jest/globals@29.7.0)(@types/jest@29.5.12)(jest@29.7.0(@types/node@20.12.7)(babel-plugin-macros@3.1.0)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3)))
-      '@types/lodash':
-        specifier: 4.14.202
-        version: 4.14.202
-      '@types/luxon':
-        specifier: 3.4.2
-        version: 3.4.2
-      '@types/pluralize':
-        specifier: 0.0.33
-        version: 0.0.33
-      '@types/qs':
-        specifier: 6.9.11
-        version: 6.9.11
-      '@types/react':
-        specifier: 18.2.73
-        version: 18.2.73
-      '@types/react-copy-to-clipboard':
-        specifier: 5.0.4
-        version: 5.0.4
-      '@types/react-dom':
-        specifier: 18.2.19
-        version: 18.2.19
-      '@types/react-google-recaptcha':
-        specifier: 2.1.8
-        version: 2.1.8
-      '@types/react-table':
-        specifier: 7.7.19
-        version: 7.7.19
-      '@types/styled-components':
-        specifier: 5.1.34
-        version: 5.1.34
-      '@types/styled-system':
-        specifier: 5.1.22
-        version: 5.1.22
-      '@vitejs/plugin-react':
-        specifier: 4.2.1
-        version: 4.2.1(vite@5.0.13(@types/node@20.12.7)(terser@5.31.1))
-      dotenv:
-        specifier: 16.4.5
-        version: 16.4.5
-      eslint-plugin-react:
-        specifier: 7.33.2
-        version: 7.33.2(eslint@9.1.0)
-      eslint-plugin-react-hooks:
-        specifier: 4.6.0
-        version: 4.6.0(eslint@9.1.0)
-      vite:
-        specifier: 5.0.13
-        version: 5.0.13(@types/node@20.12.7)(terser@5.31.1)
-
-  packages/v2-explorer-frontend-nextjs:
-    dependencies:
-      '@emotion/react':
-        specifier: 11.5.0
-        version: 11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0)
-      '@emotion/styled':
-        specifier: 11.11.0
-        version: 11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0)
-      '@hop-protocol/v2-sdk':
-        specifier: workspace:*
-        version: link:../v2-sdk
-      '@mui/icons-material':
-        specifier: 5.15.6
-        version: 5.15.6(@mui/material@5.15.6(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@types/react@18.2.73)(react@18.2.0)
-      '@mui/lab':
-        specifier: 5.0.0-alpha.162
-        version: 5.0.0-alpha.162(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0))(@mui/material@5.15.6(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@types/react@18.2.73)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@mui/material':
-        specifier: 5.15.6
-        version: 5.15.6(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@mui/styled-engine-sc':
-        specifier: 6.0.0-alpha.13
-        version: 6.0.0-alpha.13(styled-components@5.3.6(@babel/core@7.24.6)(react-dom@18.2.0(react@18.2.0))(react-is@18.3.1)(react@18.2.0))
-      '@mui/styles':
-        specifier: 5.15.6
-        version: 5.15.6(@types/react@18.2.73)(react@18.2.0)
-      '@mui/system':
-        specifier: 5.15.6
-        version: 5.15.6(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.5.0(@babel/core@7.24.6)(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0))(@types/react@18.2.73)(react@18.2.0)
-      '@web3-onboard/core':
-        specifier: ^2.8.5
-        version: 2.20.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@web3-onboard/injected-wallets':
-        specifier: 2.2.4
-        version: 2.2.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       ethers:
         specifier: 5.6.8
         version: 5.6.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -1083,9 +953,6 @@ importers:
       react-query:
         specifier: 3.39.1
         version: 3.39.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      react-router-dom:
-        specifier: ^6.24.1
-        version: 6.24.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       styled-components:
         specifier: 5.3.6
         version: 5.3.6(@babel/core@7.24.6)(react-dom@18.2.0(react@18.2.0))(react-is@18.3.1)(react@18.2.0)
@@ -1330,9 +1197,6 @@ packages:
 
   '@adobe/css-tools@4.3.3':
     resolution: {integrity: sha512-rE0Pygv0sEZ4vBWHlAgJLGDU7Pm8xoO6p3wsEceb7GYAjScrOHpEo8KK/eVkAcnSM+slAEtXjA2JpdjLp4fJQQ==}
-
-  '@adobe/css-tools@4.4.0':
-    resolution: {integrity: sha512-Ff9+ksdQQB3rMncgqDK78uLznstjyfIf2Arnh22pW8kBpLs6rpKDwgnZT46hin5Hl1WzazzK64DOrhSwYpS7bQ==}
 
   '@adraffy/ens-normalize@1.10.0':
     resolution: {integrity: sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==}
@@ -3567,6 +3431,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.2.4':
     resolution: {integrity: sha512-Ttl/jHpxfS3st5sxwICYfk4pOH0WrLI1SpW283GgQL7sCWU7EHIOhX4b4fkIxr3tkfzwg8+FNojtzsIEE7Ecgg==}
@@ -4550,10 +4415,6 @@ packages:
     resolution: {integrity: sha512-ACXpdMM9hmKZww21yEqWwiLws/UPLhNKvimN8RrYSqPSvB3ov7sLvAcfvaxePeLvccTQKGdkDIhLYApZVDFuKg==}
     engines: {node: '>=14.0.0'}
 
-  '@remix-run/router@1.17.1':
-    resolution: {integrity: sha512-mCOMec4BKd6BRGBZeSnGiIgwsbLGp3yhVqAD8H+PxiRNEHgDpZb8J1TnrSDlg97t0ySKMQJTHCWBCmBpSmkF6Q==}
-    engines: {node: '>=14.0.0'}
-
   '@rollup/plugin-babel@5.3.1':
     resolution: {integrity: sha512-WFfdLWU/xVWKeRQnKmIAQULUI7Il0gZnBIH/ZFO069wYIfPu+8zrfp/KMW0atmELoRDq8FbiP3VCss9MhCut7Q==}
     engines: {node: '>= 10.0.0'}
@@ -5071,27 +4932,6 @@ packages:
   '@testing-library/jest-dom@5.17.0':
     resolution: {integrity: sha512-ynmNeT7asXyH3aSVv4vvX4Rb+0qjOhdNHnO/3vuZNqPmhDpV/+rCSGwQ7bLcmU2cJ4dvoheIO85LQj0IbJHEtg==}
     engines: {node: '>=8', npm: '>=6', yarn: '>=1'}
-
-  '@testing-library/jest-dom@6.4.6':
-    resolution: {integrity: sha512-8qpnGVincVDLEcQXWaHOf6zmlbwTKc6Us6PPu4CRnPXCzo2OGBS5cwgMMOWdxDpEz1mkbvXHpEy99M5Yvt682w==}
-    engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
-    peerDependencies:
-      '@jest/globals': '>= 28'
-      '@types/bun': latest
-      '@types/jest': '>= 28'
-      jest: '>= 28'
-      vitest: '>= 0.32'
-    peerDependenciesMeta:
-      '@jest/globals':
-        optional: true
-      '@types/bun':
-        optional: true
-      '@types/jest':
-        optional: true
-      jest:
-        optional: true
-      vitest:
-        optional: true
 
   '@testing-library/react@13.4.0':
     resolution: {integrity: sha512-sXOGON+WNTh3MLE9rve97ftaZukN3oNf2KjDy7YTx6hcTO2uuLHuCGynMDhFwGw/jYf4OJ2Qk0i4i79qMNNkyw==}
@@ -7430,9 +7270,6 @@ packages:
 
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
-
-  dom-accessibility-api@0.6.3:
-    resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
   dom-converter@0.2.0:
     resolution: {integrity: sha512-gd3ypIPfOMr9h5jIKq8E3sHOTCjeirnl0WK5ZdS1AW0Odt0b1PaWaHdJ4Qk4klv+YB9aJBS7mESXjFoDQPu6DA==}
@@ -11751,13 +11588,6 @@ packages:
       react: '>=16.8'
       react-dom: '>=16.8'
 
-  react-router-dom@6.24.1:
-    resolution: {integrity: sha512-U19KtXqooqw967Vw0Qcn5cOvrX5Ejo9ORmOtJMzYWtCT4/WOfFLIZGGsVLxcd9UkBO0mSTZtXqhZBsWlHr7+Sg==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      react: '>=16.8'
-      react-dom: '>=16.8'
-
   react-router@5.3.4:
     resolution: {integrity: sha512-Ys9K+ppnJah3QuaRiLxk+jDWOR1MekYQrlytiXxC1RyfbdsZkS5pvKAzCCr031xHixZwpnsYNT5xysdFHQaYsA==}
     peerDependencies:
@@ -11765,12 +11595,6 @@ packages:
 
   react-router@6.21.2:
     resolution: {integrity: sha512-jJcgiwDsnaHIeC+IN7atO0XiSRCrOsQAHHbChtJxmgqG2IaYQXSnhqGb5vk2CU/wBQA12Zt+TkbuJjIn65gzbA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      react: '>=16.8'
-
-  react-router@6.24.1:
-    resolution: {integrity: sha512-PTXFXGK2pyXpHzVo3rR9H7ip4lSPZZc0bHG5CARmj65fTT6qG7sTngmb6lcYu1gf3y/8KxORoy9yn59pGpCnpg==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
@@ -13985,8 +13809,6 @@ packages:
 snapshots:
 
   '@adobe/css-tools@4.3.3': {}
-
-  '@adobe/css-tools@4.4.0': {}
 
   '@adraffy/ens-normalize@1.10.0': {}
 
@@ -18940,8 +18762,6 @@ snapshots:
 
   '@remix-run/router@1.14.2': {}
 
-  '@remix-run/router@1.17.1': {}
-
   '@rollup/plugin-babel@5.3.1(@babel/core@7.24.6)(@types/babel__core@7.20.5)(rollup@2.79.1)':
     dependencies:
       '@babel/core': 7.24.6
@@ -19601,21 +19421,6 @@ snapshots:
       dom-accessibility-api: 0.5.16
       lodash: 4.17.21
       redent: 3.0.0
-
-  '@testing-library/jest-dom@6.4.6(@jest/globals@29.7.0)(@types/jest@29.5.12)(jest@29.7.0(@types/node@20.12.7)(babel-plugin-macros@3.1.0)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3)))':
-    dependencies:
-      '@adobe/css-tools': 4.4.0
-      '@babel/runtime': 7.24.6
-      aria-query: 5.3.0
-      chalk: 3.0.0
-      css.escape: 1.5.1
-      dom-accessibility-api: 0.6.3
-      lodash: 4.17.21
-      redent: 3.0.0
-    optionalDependencies:
-      '@jest/globals': 29.7.0
-      '@types/jest': 29.5.12
-      jest: 29.7.0(@types/node@20.12.7)(babel-plugin-macros@3.1.0)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))
 
   '@testing-library/react@13.4.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
@@ -22734,8 +22539,6 @@ snapshots:
       esutils: 2.0.3
 
   dom-accessibility-api@0.5.16: {}
-
-  dom-accessibility-api@0.6.3: {}
 
   dom-converter@0.2.0:
     dependencies:
@@ -28774,13 +28577,6 @@ snapshots:
       react-dom: 18.2.0(react@18.2.0)
       react-router: 6.21.2(react@18.2.0)
 
-  react-router-dom@6.24.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
-    dependencies:
-      '@remix-run/router': 1.17.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-router: 6.24.1(react@18.2.0)
-
   react-router@5.3.4(react@18.2.0):
     dependencies:
       '@babel/runtime': 7.24.6
@@ -28797,11 +28593,6 @@ snapshots:
   react-router@6.21.2(react@18.2.0):
     dependencies:
       '@remix-run/router': 1.14.2
-      react: 18.2.0
-
-  react-router@6.24.1(react@18.2.0):
-    dependencies:
-      '@remix-run/router': 1.17.1
       react: 18.2.0
 
   react-scripts@5.0.1(@babel/plugin-syntax-flow@7.24.7(@babel/core@7.24.6))(@babel/plugin-transform-react-jsx@7.24.7(@babel/core@7.24.6))(@types/babel__core@7.20.5)(bufferutil@4.0.8)(eslint@9.1.0)(react@18.2.0)(ts-node@10.7.0(@types/node@16.18.98)(typescript@5.4.3))(type-fest@0.21.3)(typescript@5.4.3)(utf-8-validate@5.0.10):

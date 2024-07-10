@@ -64,7 +64,19 @@ export const Relay: FC = () => {
   const [success, setSuccess] = useState<string>('')
   const [commitTxHashForTransferId, setCommitTxHashForTransferId] = useState<string>('')
   const [commitInfoMsg, setCommitInfoMsg] = useState<string>('')
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(() => {
+    try {
+      const selectedNetworkSlug = localStorage.getItem('relay:selectedNetwork')
+      if (selectedNetworkSlug) {
+        const network = findNetworkBySlug(selectedNetworkSlug, l2Networks)
+        if (network) {
+          return network
+        }
+      }
+    } catch (err: any) {
+    }
+    return l2Networks[0]
+  })
 
   useEffect(() => {
     try {
@@ -75,6 +87,14 @@ export const Relay: FC = () => {
       console.error(err)
     }
   }, [transferIdOrTxHash])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('relay:selectedNetwork', selectedNetwork?.slug ?? '')
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [selectedNetwork])
 
   const handleBridgeChange = (event: any) => {
     const tokenSymbol = event.target.value as string

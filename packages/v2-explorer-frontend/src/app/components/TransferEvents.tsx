@@ -1,3 +1,5 @@
+'use client'
+
 import Box from '@mui/material/Box'
 import CheckIcon from '@mui/icons-material/Check'
 import Chip from '@mui/material/Chip'
@@ -174,8 +176,8 @@ export function ExplorerEvents (props: any) {
   }
 
   return (
-    <Box width="100%">
-      <Table title={'Messages'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} filters={
+    <Box width="100%" maxWidth="2000px" m="0 auto">
+      <Table title={'Transfers'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} filters={
         <Box display="flex" justifyContent="flex-end" alignItems="center">
           <Box mr={2}>
             <Typography variant="body1" color="secondary">Filter</Typography>

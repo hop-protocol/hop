@@ -1,6 +1,11 @@
 import { headers } from "next/headers";
-import { Details } from '../../pages/Details'
+import { Details } from './Details'
 import { fetchEventDetails } from '../../hooks/fetchEventDetails'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Transfer Details',
+}
 
 export default async function DetailsPage() {
   const heads = headers()

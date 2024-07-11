@@ -3,6 +3,7 @@ import App from './App'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ThemeProvider as CustomThemeProvider } from './theme/useTheme'
+import { SiteWrapper } from './SiteWrapper'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,9 +17,9 @@ export function Providers({ children }: any) {
   return (
     <CustomThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <App>
+        <SiteWrapper>
           {children}
-        </App>
+        </SiteWrapper>
       </QueryClientProvider>
     </CustomThemeProvider>
   )

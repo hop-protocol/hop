@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
+import { headers } from 'next/headers'
 import { Details } from './Details'
-import { fetchEventDetails } from '../../hooks/fetchEventDetails'
+import { fetchEventDetails } from '@/app/hooks/fetchEventDetails'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {

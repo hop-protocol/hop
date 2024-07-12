@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { Table } from '../Table'
-import { useEvents } from '../../hooks/useEvents'
+import { Table } from '@/app/components/Table'
+import { useEvents } from '@/app/hooks/useEvents'
 
 export function BundleSetEvents () {
   const eventName = 'BundleSet'

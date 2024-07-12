@@ -11,8 +11,8 @@ import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import { makeStyles } from '@mui/styles'
-import { useTransferDetails } from '../../hooks/useTransferDetails'
-import { CopyToClipboardText } from '../../components/CopyToClipboardText'
+import { useTransferDetails } from '@/app/hooks/useTransferDetails'
+import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 
 const useStyles = makeStyles((theme: any) => ({
   tableRow: {

@@ -1,4 +1,4 @@
-import { apiUrl } from '../config'
+import { apiUrl } from '@/app/config'
 
 export async function fetchEvents (options: any = {}) {
   let { eventName, limit, page, filterString, filter } = options

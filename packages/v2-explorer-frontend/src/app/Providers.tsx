@@ -1,5 +1,4 @@
 "use client";
-import App from './App'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ThemeProvider as CustomThemeProvider } from './theme/useTheme'

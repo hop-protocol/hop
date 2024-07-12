@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { Events } from '../components/AllEvents'
+import Image from 'next/image'
+import { Events } from '@/app/components/AllEvents'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {

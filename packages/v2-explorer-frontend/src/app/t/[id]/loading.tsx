@@ -8,7 +8,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import LinearProgress from '@mui/material/LinearProgress';
+import LinearProgress from '@mui/material/LinearProgress'
 
 export default function Loading() {
   return (

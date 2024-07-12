@@ -1,5 +1,4 @@
 'use client'
-
 import React from 'react'
 import { useTheme } from './theme/useTheme'
 import Box from '@mui/material/Box'

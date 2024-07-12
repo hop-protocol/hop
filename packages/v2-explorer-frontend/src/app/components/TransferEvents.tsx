@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography'
 import { Table } from './Table'
 import { useEvents } from '../hooks/useEvents'
 import { useRouter } from 'next/navigation'
-import { useQueryParams } from '../hooks/useQueryParams'
+import { useQueryParams } from '@/app/hooks/useQueryParams'
 import { utils } from 'ethers'
 
 const { formatUnits } = utils

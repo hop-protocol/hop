@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ExplorerEvents } from './components/TransferEvents'
 import { fetchEvents } from './hooks/fetchEvents'
 

@@ -18,7 +18,8 @@ export async function fetchEvents (options: any = {}) {
     filterString = str
   }
 
-  const url = `${apiUrl}/v1${pathname}?limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
+  // const url = `${apiUrl}/v1${pathname}?limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
+  const url = `http://localhost:3000/api/?pathname=${pathname}&limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
   const res = await fetch(url)
   const json = await res.json()
   if (json.error) {

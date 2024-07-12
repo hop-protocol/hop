@@ -83,7 +83,7 @@ export function Table (props: Props) {
   return (
     <Box>
       <Box mb={2} display="flex" alignItems="center" justifyContent="space-between" className={styles.titleContainer}>
-        <Typography variant="h5" color="textPrimary">{title}</Typography>
+        <Typography variant="h4" color="textPrimary">{title}</Typography>
         {props.filters ? props.filters : null}
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between">

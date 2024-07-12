@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles'
 import { darkTheme, lightTheme } from './theme'
+import { useQueryParams } from '@/app/hooks/useQueryParams'
 
 const ThemeContext = createContext(null)
 
 export const ThemeProvider = ({ children }) => {
+  const { queryParams, updateQueryParams } = useQueryParams()
+
   const [dark, setDark] = useState(() => {
     try {
+      if (queryParams.theme) {
+        return queryParams.theme === 'dark'
+      }
       const cached = localStorage.getItem('darkMode')
       if (typeof cached === 'string') {
         return cached === 'true'
@@ -23,6 +29,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      updateQueryParams({ theme: dark ? 'dark' : 'light' })
       localStorage.setItem('darkMode', `${dark}`)
     } catch (err) {
       // console.error(err)
@@ -39,6 +46,7 @@ export const ThemeProvider = ({ children }) => {
     </ThemeContext.Provider>
   )
 }
+
 
 export const useTheme = () => {
   const context = useContext(ThemeContext)

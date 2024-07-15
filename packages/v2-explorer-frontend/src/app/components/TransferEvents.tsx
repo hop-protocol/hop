@@ -80,7 +80,7 @@ export function ExplorerEvents (props: any) {
     },
     {
       key: 'sourceTransactionHash',
-      value: 'Source Transaction Hash'
+      value: 'Source Tx Hash'
     },
     {
       key: 'destinationChain',
@@ -88,7 +88,7 @@ export function ExplorerEvents (props: any) {
     },
     {
       key: 'destinationTransactionHash',
-      value: 'Destination Transaction Hash'
+      value: 'Destination Tx Hash'
     },
     {
       key: 'details',

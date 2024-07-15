@@ -45,7 +45,7 @@ export function Header () {
     }
 
     return routes[pathname] ?? 'home'
-  }, [])
+  }, [pathname])
 
   function handleTabChange (event: any, newValue: number) {
     const routes: any = {

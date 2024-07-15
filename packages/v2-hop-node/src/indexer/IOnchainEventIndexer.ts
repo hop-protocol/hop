@@ -1,4 +1,4 @@
-import { DecodedLogWithContext } from "#types.js"
+import type { DecodedLogWithContext } from "#types.js"
 
 export interface IOnchainEventIndexer<T, U> {
   // Initialization

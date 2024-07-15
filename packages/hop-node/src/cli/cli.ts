@@ -48,11 +48,6 @@ import './verifyCommits.js'
 import './withdraw.js'
 import './withdrawalProof.js'
 
-// CCTP
-import './cctp/relayCCTP.js'
-import './cctp/cctpDBDump.js'
-import './cctp/unrelayedCCTPMessages.js'
-
 // internal metrics
 import './metrics/bonderBalance.js'
 import './metrics/bonderTxCost.js'

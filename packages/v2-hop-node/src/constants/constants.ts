@@ -8,6 +8,7 @@ export enum TimeIntervals {
   ONE_MINUTE_MS = 60 * 1000,
   FIVE_MINUTES_MS = 5 * 60 * 1000,
   TEN_MINUTES_MS = 10 * 60 * 1000,
+  THIRTY_MINUTES_MS = 30 * 60 * 1000,
   ONE_HOUR_SECONDS = 60 * 60,
   ONE_HOUR_MS =  60 * 60 * 1000,
   ONE_DAY_SECONDS = 24 * 60 * 60,
@@ -16,7 +17,7 @@ export enum TimeIntervals {
   ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 }
 
-// // Chain
+// Chain
 export const AVG_BLOCK_TIME_SECONDS: Partial<Record<ChainSlug, number>> = getAverageBlockTimeSeconds()
 export const MIN_POLYGON_GAS_PRICE = 60_000_000_000
 // export const MIN_GNOSIS_GAS_PRICE = 5_000_000_000

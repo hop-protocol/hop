@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
-import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import {
   config as globalConfig,
   parseConfigFile,
@@ -10,7 +9,6 @@ import {
   validateConfigFileStructure,
   validateConfigValues
 } from '#config/index.js'
-import type { BigNumber } from 'ethers'
 
 export const logger = new Logger('config')
 export const program = new Command()
@@ -85,17 +83,4 @@ export function parseInputFileList (value: string) {
     return list
   }
   return null
-}
-
-export function getWithdrawalProofDataForCli (
-  transferId: string,
-  dbTransferRoot: any
-): WithdrawalProofData {
-  const rootTotalAmount: BigNumber = dbTransferRoot.totalAmount
-  const transferIds: string[] = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
-  if (!transferIds?.length) {
-    throw new Error('expected transfer ids for transfer root hash')
-  }
-
-  return getWithdrawalProofData(transferId, rootTotalAmount, transferIds)
 }

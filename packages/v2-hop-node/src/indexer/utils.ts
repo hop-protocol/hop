@@ -1,7 +1,7 @@
 import { getChain } from '@hop-protocol/sdk'
 import { utils } from 'ethers'
 import { MAX_BLOCK_RANGE_PER_INDEX } from './constants.js'
-import { IndexerEventFilter } from './OnchainEventIndexer.js'
+import type { IndexerEventFilter } from './OnchainEventIndexer.js'
 import { FinalityService } from '#finality/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { getNetworkCustomSyncType } from '#config/index.js'

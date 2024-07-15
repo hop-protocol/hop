@@ -10,7 +10,7 @@ import { poll } from '#utils.js'
 import { providers } from 'ethers'
 import { DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
-import { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
+import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '#db/constants.js'
 import { Logger } from '#logger/index.js'
 

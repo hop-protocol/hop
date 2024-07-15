@@ -798,6 +798,13 @@ export class HopBridge extends Base {
     }
   }
 
+  public async commitTransfers (sourceChain: TChain, destinationChain: TChain) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    const l2Bridge = await this.getL2Bridge(sourceChain)
+    return l2Bridge.commitTransfers(destinationChain.chainId)
+  }
+
   public getTokenSymbol (): string {
     return this.tokenSymbol
   }

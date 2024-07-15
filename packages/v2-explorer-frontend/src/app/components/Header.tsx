@@ -64,7 +64,7 @@ export function Header () {
               <Box display="flex" justifyContent="center" alignItems="center">
                 <Box mr={1}>
                 <img src={dark ? logoDark : logo} alt="Hop" />
-                </Box><Box style={{ whiteSpace: 'nowrap' }}>Hop v2 Explorer</Box>
+                </Box><Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
               </Box>
             </Typography>
           </Box>

@@ -14,6 +14,9 @@ import { makeStyles } from '@mui/styles'
 import { useTransferDetails } from '@/app/hooks/useTransferDetails'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 import { DetailRow } from './DetailRow'
+import IconButton from '@mui/material/IconButton'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { useRouter } from 'next/navigation'
 
 export function Details(props: any) {
   const { initialEventDetails } = props
@@ -69,10 +72,17 @@ export function Details(props: any) {
     transferAmountDisplay,
     destinationTxTimestampDisplay
   } = useTransferDetails({ initialEventDetails })
+  const router = useRouter()
+  function navigateBack() {
+    router.push('/')
+  }
 
   return (
     <Box>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
+        <IconButton onClick={navigateBack} aria-label="back">
+          <ArrowBackIcon />
+        </IconButton>
         <Typography variant="h5" color="textPrimary">Transfer Details</Typography>
       </Box>
 

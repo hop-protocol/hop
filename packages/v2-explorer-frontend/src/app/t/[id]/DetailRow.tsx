@@ -49,7 +49,7 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
                   {value}
                 </Link>
               </CopyToClipboardText>
-            ) : typeof value === 'string' ? (
+            ) : (typeof value === 'string' || typeof value === 'number') ? (
               <CopyToClipboardText text={value}>{value}</CopyToClipboardText>
             ) : (value ? value : '-')
           )}

@@ -11,10 +11,12 @@ import TableContainer from '@mui/material/TableContainer'
 import TableFooter from '@mui/material/TableFooter'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
 import { makeStyles } from '@mui/styles'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 
 const useStyles = makeStyles((theme: any) => ({
   titleContainer: {
@@ -48,6 +50,7 @@ export type Row = {
   imageUrl?: string
   clipboardValue?: string
   hoverTitle?: string
+  button?: boolean
 }
 
 type Props = {
@@ -62,10 +65,11 @@ type Props = {
   loading?: boolean
   onRowClick?: any
   filters?: any
+  minWidth?: string
 }
 
 export function Table (props: Props) {
-  const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick } = props
+  const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick, minWidth = '0px' } = props
   const styles = useStyles()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
@@ -89,7 +93,7 @@ export function Table (props: Props) {
       <Box width="100%" display="flex" justifyContent="space-between">
         <Box width="100%" mr={4}>
           <TableContainer>
-            <_Table width="100%">
+            <_Table width="100%" style={{ minWidth }}>
               <TableHead>
                 <TableRow>
                   {headers.map((header: Header, i: number) => {
@@ -144,9 +148,15 @@ export function Table (props: Props) {
                                   <img src={col.imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} />
                                 )}
                                 {col.valueUrl ? (
+                                  col.button ? (
+                                    <Button
+                                      endIcon={<ArrowForwardIcon />}
+                                      href={col.valueUrl}>{col.value}</Button>
+                                  ) : (
                                   <Link href={col.valueUrl} target="_blank" rel="noreferrer">
                                     <Typography variant="body2">{col.value}</Typography>
                                   </Link>
+                                  )
                                 ) : (
                                   typeof col.value === 'string'
                                   ? <Typography variant="body2">{col.value}</Typography>

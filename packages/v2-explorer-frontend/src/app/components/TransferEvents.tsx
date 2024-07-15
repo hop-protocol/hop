@@ -90,6 +90,10 @@ export function ExplorerEvents (props: any) {
       key: 'destinationTransactionHash',
       value: 'Destination Transaction Hash'
     },
+    {
+      key: 'details',
+      value: 'Details'
+    },
   ]
 
   const rows = events.map((event: any) => {
@@ -159,6 +163,12 @@ export function ExplorerEvents (props: any) {
         valueUrl: event.transferBondedEvent?.context?.transactionHashExplorerUrl,
         clipboardValue: event.transferBondedEvent?.context?.transactionHash
       },
+      {
+        key: 'details',
+        value: 'View Details',
+        valueUrl: `/t/${event.transferId}`,
+        button: true
+      },
     ]
   })
 
@@ -177,7 +187,7 @@ export function ExplorerEvents (props: any) {
 
   return (
     <Box width="100%" maxWidth="2000px" m="0 auto">
-      <Table title={'Transfers'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} filters={
+      <Table title={'Transfers'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} minWidth={'2100px'} filters={
         <Box display="flex" justifyContent="flex-end" alignItems="center">
           <Box mr={2}>
             <Typography variant="body1" color="secondary">Filter</Typography>

@@ -1,10 +1,20 @@
 import Box from '@mui/material/Box'
 import React from 'react'
+import IconButton from '@mui/material/IconButton'
+import GitHubIcon from '@mui/icons-material/GitHub'
 
 export function Footer () {
   return (
     <Box mt={8} mb={4}>
-      <a href="https://github.com/hop-protocol/hop" target="_blank" rel="noopener noreferrer" style={{ color: '#c34be4' }}>Github</a>
+      <IconButton
+          aria-label="github"
+          color="inherit"  // Adjust color based on your theme; 'inherit' takes color from parent
+          target="_blank"
+          href="https://github.com/hop-protocol/hop"
+          rel="noopener noreferrer"
+      >
+          <GitHubIcon />
+      </IconButton>
     </Box>
   )
 }

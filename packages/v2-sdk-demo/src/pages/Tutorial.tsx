@@ -525,7 +525,7 @@ export function Tutorial () {
       fromAddress,
       toCalldata,
       toChainId
-    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ fromChainId, transactionHash: greetingTxOnOptimism })
+    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ chainId: fromChainId, transactionHash: greetingTxOnOptimism })
 
     const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof })
     if (!txData) {

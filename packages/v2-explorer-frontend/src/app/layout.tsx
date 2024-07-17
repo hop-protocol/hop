@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react'
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './Providers'
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
-          {children}
-        </Providers>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Providers>
+            {children}
+          </Providers>
+        </Suspense>
       </body>
     </html>
   )

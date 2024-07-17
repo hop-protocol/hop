@@ -1,5 +1,6 @@
 import { ExplorerEvents } from './components/TransferEvents'
 import { fetchEvents } from './hooks/fetchEvents'
+import { Suspense } from 'react'
 
 export default async function IndexPage() {
   const events = await fetchEvents({
@@ -7,6 +8,8 @@ export default async function IndexPage() {
   })
 
   return (
-    <ExplorerEvents initialEvents={events} />
+    <Suspense fallback={<div>Loading...</div>}>
+      <ExplorerEvents initialEvents={events} />
+    </Suspense>
   )
 }

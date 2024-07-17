@@ -22,7 +22,7 @@ const useQueryParams = () => {
     })
 
     const searchString = stringify(newQueryParams)
-    router.push(`${pathname}?${searchString}`, { shallow: true })
+    router.push(`${pathname}?${searchString}`)
   }
 
   return { queryParams, updateQueryParams }

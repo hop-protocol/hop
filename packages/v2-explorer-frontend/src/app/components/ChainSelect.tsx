@@ -26,7 +26,7 @@ export function ChainSelect(props: Props) {
       value={value}
       onChange={handleChange}>
       {chains.map((chainId: string) => (
-        <MenuItem value={chainId}>{chainId} - {labels[chainId]}</MenuItem>
+        <MenuItem value={chainId} key={chainId}>{chainId} - {labels?.[chainId]}</MenuItem>
       ))}
     </Select>
   )

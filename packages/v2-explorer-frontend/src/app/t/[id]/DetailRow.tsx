@@ -50,7 +50,7 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
                 </Link>
               </CopyToClipboardText>
             ) : (typeof value === 'string' || typeof value === 'number') ? (
-              <CopyToClipboardText text={value}>{value}</CopyToClipboardText>
+              <CopyToClipboardText text={value as string}>{value}</CopyToClipboardText>
             ) : (value ? value : '-')
           )}
         </Box>

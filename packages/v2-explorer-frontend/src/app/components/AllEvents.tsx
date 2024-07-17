@@ -12,13 +12,13 @@ import { MessageSentEvents } from './events/MessageSentEvents'
 
 export function Events () {
   const tables = [
-    <BundleCommittedEvents />,
-    <BundleForwardedEvents />,
-    <BundleReceivedEvents />,
-    <BundleSetEvents />,
-    <MessageBundledEvents />,
-    <MessageExecutedEvents />,
-    <MessageSentEvents />
+    <BundleCommittedEvents key="BundleCommittedEvents" />,
+    <BundleForwardedEvents key="BundleForwardedEvents" />,
+    <BundleReceivedEvents key="BundleReceivedEvents" />,
+    <BundleSetEvents key="BundleSetEvents" />,
+    <MessageBundledEvents key="MessageBundledEvents" />,
+    <MessageExecutedEvents key="MessageExecutedEvents" />,
+    <MessageSentEvents key="MessageSentEvents" />
   ]
 
   return (

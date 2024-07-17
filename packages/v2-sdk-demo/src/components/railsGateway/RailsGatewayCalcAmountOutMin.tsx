@@ -65,7 +65,7 @@ export function RailsGatewayCalcAmountOutMin (props: Props) {
       setLoading(true)
       const args = {
         amountOut,
-        slippageTolerance
+        slippageTolerance: Number(slippageTolerance)
       }
 
       console.log('args', args)

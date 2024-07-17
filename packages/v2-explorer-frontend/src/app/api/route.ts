@@ -1,10 +1,12 @@
 import { apiUrl } from '@/app/config'
-import { type Request } from 'next/server'
+// import { type Request } from 'next/server'
 import NodeCache from 'node-cache'
+
+export const dynamic = 'force-dynamic'
 
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 30 })
 
-export async function GET(request: Request) {
+export async function GET(request: any) {
   const u = new URL(request.url)
   const url = `${apiUrl}/v1${u.searchParams.get('pathname')}${u.search}`
   const key = url

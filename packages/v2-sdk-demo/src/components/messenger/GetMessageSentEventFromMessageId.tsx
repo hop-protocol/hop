@@ -66,7 +66,7 @@ export function GetMessageSentEventFromMessageId (props: Props) {
       setLoading(true)
 
       const args = {
-        fromChainId,
+        chainId: fromChainId,
         messageId
       }
 
@@ -84,12 +84,12 @@ export function GetMessageSentEventFromMessageId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = "${fromChainId}"
+  const chainId = "${fromChainId}"
   const messageId = "${messageId}"
 
   const hop = new Hop({ network: '${network}' })
   const event = await hop.messenger.getMessageSentEventFromMessageId({
-    fromChainId,
+    chainId,
     messageId
   })
   console.log(event)

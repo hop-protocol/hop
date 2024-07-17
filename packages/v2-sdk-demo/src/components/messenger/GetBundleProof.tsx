@@ -77,7 +77,7 @@ export function GetBundleProof (props: Props) {
 
   async function getBundleProof() {
     const args = {
-      fromChainId,
+      chainId: fromChainId,
       messageId
     }
     console.log('args', args)
@@ -104,13 +104,12 @@ export function GetBundleProof (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = "${fromChainId}"
-  const toChainId = "${toChainId}"
+  const chainId = "${fromChainId}"
   const messageId = "${messageId}"
 
   const hop = new Hop({ network: '${network}' })
   const bundleProof = await hop.messenger.getBundleProofFromMessageId({
-    fromChainId,
+    chainId,
     messageId
   })
   console.log(bundleProof)

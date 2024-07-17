@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles'
 import { darkTheme, lightTheme } from './theme'
@@ -5,7 +6,7 @@ import { useQueryParams } from '@/app/hooks/useQueryParams'
 
 const ThemeContext = createContext(null)
 
-export const ThemeProvider = ({ children }) => {
+export const ThemeProvider = ({ children }: any) => {
   const { queryParams, updateQueryParams } = useQueryParams()
 
   const [dark, setDark] = useState(() => {
@@ -39,7 +40,7 @@ export const ThemeProvider = ({ children }) => {
   const theme = createTheme(dark ? darkTheme : lightTheme)
 
   return (
-    <ThemeContext.Provider value={{ dark, theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ dark, theme, toggleTheme } as any}>
       <MuiThemeProvider theme={theme}>
         {children}
       </MuiThemeProvider>

@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useTheme } from './theme/useTheme'
 import Box from '@mui/material/Box'
 import { Footer } from './components/Footer'
@@ -12,20 +12,22 @@ export function SiteWrapper ({ children }: any) {
   const { theme, dark } = useTheme()
 
   return (
-    <div
-      style={{
-        alignItems: 'stretch',
-        backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
-        backgroundColor: theme?.palette?.background?.default,
-        backgroundSize: '120%',
-        transition: 'background 0.15s ease-out',
-        minHeight: '100vh'
-      }}>
-      <Box p={4} m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
-        <Header />
-        {children}
-        <Footer />
-      </Box>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div
+        style={{
+          alignItems: 'stretch',
+          backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
+          // backgroundColor: theme?.palette?.background?.default,
+          backgroundSize: '120%',
+          transition: 'background 0.15s ease-out',
+          minHeight: '100vh'
+        }}>
+        <Box p={4} m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+          <Header />
+          {children}
+          <Footer />
+        </Box>
+      </div>
+    </Suspense>
   )
 }

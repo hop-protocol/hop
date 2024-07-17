@@ -205,9 +205,12 @@ export function SendMessage (props: Props) {
         }
         const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
-
         const receipt = await tx.wait()
-        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt({ fromChainId, receipt })
+        const args = {
+          chainId: fromChainId,
+          receipt
+        }
+        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt(args)
         setMessageId(messageId)
       }
     } catch (err: any) {

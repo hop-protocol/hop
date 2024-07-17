@@ -66,7 +66,7 @@ export function GetMessageIdFromTxHash (props: Props) {
       setLoading(true)
 
       const args = {
-        fromChainId,
+        chainId: fromChainId,
         transactionHash: messageSentTransactionHash
       }
 
@@ -84,12 +84,12 @@ export function GetMessageIdFromTxHash (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = "${fromChainId}"
+  const chainId = "${fromChainId}"
   const transactionHash = "${messageSentTransactionHash}"
 
   const hop = new Hop({ network: '${network}' })
   const messageId = await hop.messenger.getMessageIdFromTransactionHash({
-    fromChainId,
+    chainId,
     transactionHash
   })
   console.log(messageId)

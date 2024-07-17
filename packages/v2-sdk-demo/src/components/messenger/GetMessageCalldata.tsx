@@ -66,7 +66,7 @@ export function GetMessageCalldata (props: Props) {
       setLoading(true)
 
       const args = {
-        fromChainId,
+        chainId: fromChainId,
         messageId
       }
 
@@ -84,12 +84,12 @@ export function GetMessageCalldata (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = "${fromChainId}"
+  const chainId = "${fromChainId}"
   const messageId = "${messageId}"
 
   const hop = new Hop({ network: '${network}' })
   const calldata = await hop.messenger.getMessageCalldataFromMessageId({
-    fromChainId,
+    chainId,
     messageId
   })
   console.log(calldata)

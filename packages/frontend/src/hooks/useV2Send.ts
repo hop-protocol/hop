@@ -64,6 +64,9 @@ type V2SendHook = {
   totalFeeUsdDisplay: string
   tx: providers.TransactionResponse | null
   warning: string
+  initialTokenSymbol: string
+  initialFromChainId: string
+  initialToChainId: string
 }
 
 class Token {
@@ -118,6 +121,7 @@ export function useV2Send(): V2SendHook {
   const [isApproving, setIsApproving] = useState<boolean>(false)
   const [isSending, setIsSending] = useState<boolean>(false)
   const [bonderFee, setBonderFee] = useState<BigNumber | null>(null)
+  const [hasEnoughBalance, setHasEnoughBalance] = useState<boolean>(false)
 
   useEffect(() => {
     const list = getTokenList()
@@ -125,10 +129,14 @@ export function useV2Send(): V2SendHook {
   }, [])
 
   useEffect(() => {
-    if (amountIn && fromTokenDecimals) {
-      setParsedAmountIn(parseUnits(amountIn, fromTokenDecimals).toString())
-    } else {
-      setParsedAmountIn('0')
+    try {
+      if (amountIn && fromTokenDecimals) {
+        setParsedAmountIn(parseUnits(amountIn, fromTokenDecimals).toString())
+      } else {
+        setParsedAmountIn('0')
+      }
+    } catch (err) {
+      console.error('setParsedAmountIn error', err)
     }
   }, [amountIn, fromTokenDecimals])
 
@@ -225,12 +233,12 @@ export function useV2Send(): V2SendHook {
   }
 
   useEffect(() => {
-    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0')
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn])
+    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance])
 
   useEffect(() => {
-    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0')
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn])
+    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance])
 
   const accountAddress = address?.toString() ?? null
 
@@ -278,12 +286,29 @@ export function useV2Send(): V2SendHook {
     update().catch(console.error)
   }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress])
 
+  useEffect(() => {
+    async function update() {
+      if (isLoadingFromTokenBalance || parsedAmountIn == null || parsedAmountIn === '0') {
+        setHasEnoughBalance(false)
+        return
+      }
+
+      setHasEnoughBalance(fromTokenBalance?.gte(parsedAmountIn))
+    }
+
+    update().catch(console.error)
+  }, [fromTokenBalance, isLoadingFromTokenBalance, parsedAmountIn])
+
   const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
   const toChain = networks.find(network => network.networkId?.toString() === toChainId)
   const chains = getChainsSupportedByToken(tokenSymbol).map(chainId => networks.find(network => network.networkId?.toString() === chainId))
 
   const amountInBn = BigNumber.from(parsedAmountIn)
   const estimatedReceived = amountInBn
+
+  const initialTokenSymbol = tokenList?.[0]
+  const initialFromChainId = networks?.[0].networkId?.toString()
+  const initialToChainId = networks?.[1].networkId?.toString()
 
   const {
     bonderFeeDisplay,
@@ -381,6 +406,9 @@ export function useV2Send(): V2SendHook {
     totalFeeUsdDisplay,
     tx,
     warning,
-    v2Sdk
+    v2Sdk,
+    initialTokenSymbol,
+    initialFromChainId,
+    initialToChainId,
   }
 }

@@ -72,14 +72,16 @@ export const SendV2: FC = () => {
     totalFeeUsdDisplay,
     tx,
     warning,
-    v2Sdk
+    v2Sdk,
+    initialTokenSymbol,
+    initialFromChainId,
+    initialToChainId
   } = useV2Send()
 
   useEffect(() => {
-    // TODO
-    setTokenSymbol(tokenList[0])
-    setFromChainId('11155111')
-    setToChainId('11155420')
+    setTokenSymbol(initialTokenSymbol)
+    setFromChainId(initialFromChainId)
+    setToChainId(initialToChainId)
   }, [tokenList])
 
   const isSmartContractWallet = false // TODO

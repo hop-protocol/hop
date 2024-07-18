@@ -221,4 +221,24 @@ describe.only('Hop', () => {
     console.log(willFail)
     expect(willFail).toBeDefined()
   }, 60 * 1000)
+
+  it.skip('TODO should get estimated received amount', async () => {
+    const fromChainId = 11155111
+    const toChainId = 11155420
+    const checkpoint = '0xTODO'
+    const fromToken = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const minAmountOut = '0'
+
+    const estimated = await sdk.getEstimatedReceived({
+      fromChainId,
+      toChainId,
+      checkpoint,
+      fromToken,
+      amount,
+      minAmountOut,
+    })
+    console.log(estimated)
+    expect(estimated).toBeDefined()
+  }, 60 * 1000)
 })

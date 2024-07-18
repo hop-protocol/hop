@@ -9,6 +9,7 @@ import {
   useBalance,
   useFeeConversions,
 } from '#hooks/index.js'
+import {parseAst} from 'vite'
 
 const { formatUnits, parseUnits } = utils
 
@@ -92,7 +93,7 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
   const {
     networks
   } = useApp()
@@ -122,6 +123,7 @@ export function useV2Send(): V2SendHook {
   const [isSending, setIsSending] = useState<boolean>(false)
   const [bonderFee, setBonderFee] = useState<BigNumber | null>(null)
   const [hasEnoughBalance, setHasEnoughBalance] = useState<boolean>(false)
+  const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>(BigNumber.from(0))
 
   useEffect(() => {
     const list = getTokenList()
@@ -303,6 +305,26 @@ export function useV2Send(): V2SendHook {
 
   useEffect(() => {
     async function update() {
+      if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
+        const estimated = await getEstimatedReceived({
+          fromChainId,
+          fromToken: fromTokenAddress,
+          toChainId,
+          toToken: toTokenAddress,
+          amount: parsedAmountIn,
+          minAmountOut: parsedMinAmountOut
+        })
+        setEstimatedReceived(estimated)
+      } else {
+        setEstimatedReceived(BigNumber.from(0))
+      }
+    }
+
+    update().catch(console.error)
+  }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress, parsedAmountIn])
+
+  useEffect(() => {
+    async function update() {
       if (isLoadingFromTokenBalance || parsedAmountIn == null || parsedAmountIn === '0') {
         setHasEnoughBalance(false)
         return
@@ -317,9 +339,6 @@ export function useV2Send(): V2SendHook {
   const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
   const toChain = networks.find(network => network.networkId?.toString() === toChainId)
   const chains = getChainsSupportedByToken(tokenSymbol).map(chainId => networks.find(network => network.networkId?.toString() === chainId))
-
-  const amountInBn = BigNumber.from(parsedAmountIn)
-  const estimatedReceived = amountInBn
 
   const initialTokenSymbol = tokenList?.[0]
   const initialFromChainId = networks?.[0].networkId?.toString()

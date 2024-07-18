@@ -336,6 +336,11 @@ export class Hop extends Base {
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
+  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: SendTokensInput) {
+    // TODO: will fill in once we have contract implementation for this
+    return amount
+  }
+
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {
     return this.railsGateway.getTokenContract({ chainId, address })
   }

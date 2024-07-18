@@ -51,6 +51,7 @@ type V2Hook = {
   getTokenName: (chainId: string, tokenSymbol: string) => string
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<providers.TransactionResponse>
+  getEstimatedReceived: (input: SendTokensInput) => Promise<BigNumber>
   v2Sdk: Hop | null
 }
 
@@ -269,6 +270,28 @@ export function useV2(): V2Hook {
     return tx
   }
 
+  async function getEstimatedReceived (input: SendTokensInput) {
+    const {
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      amount,
+      minAmountOut
+    } = input
+
+    const estimated = await v2Sdk.getEstimatedReceived({
+      fromChainId,
+      fromToken,
+      toChainId,
+      toToken,
+      amount,
+      minAmountOut
+    })
+
+    return estimated
+  }
+
   async function getFee (input: GetFeeInput): Promise<BigNumber> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
@@ -302,6 +325,7 @@ export function useV2(): V2Hook {
     getTokenName,
     sendTokens,
     getWillSendTokensFail,
+    getEstimatedReceived,
     v2Sdk,
   }
 }

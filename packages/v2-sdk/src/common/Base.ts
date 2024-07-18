@@ -388,6 +388,16 @@ export class Base {
         return gasLimit
       },
 
+      willTransactionFail: async (provider: Provider, tx: providers.TransactionRequest): Promise<boolean> => {
+        try {
+          await this.utils.estimateGas(provider, tx)
+          return false
+        } catch (err) {
+          console.error('willTransactionFail error', err)
+          return true
+        }
+      },
+
       getGasPrice: rateLimitRetry(async (signerOrProvider: Signer | Provider): Promise<BigNumber> => {
         if (!signerOrProvider) {
           throw new Error('expected signer or provider')

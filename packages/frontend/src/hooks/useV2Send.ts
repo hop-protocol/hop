@@ -92,7 +92,7 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
   const {
     networks
   } = useApp()
@@ -213,6 +213,21 @@ export function useV2Send(): V2SendHook {
       setTx(null)
       setError('')
       setIsSending(true)
+
+      const willFail = await getWillSendTokensFail({
+        fromChainId,
+        toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        to: recipient,
+        amount: parsedAmountIn,
+        minAmountOut: parsedMinAmountOut,
+        from: accountAddress
+      })
+
+      if (willFail) {
+        throw new Error('Transaction will fail. Please the parameters are valid and try again.')
+      }
 
       const tx = await v2SendTokens({
         fromChainId,

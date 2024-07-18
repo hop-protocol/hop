@@ -22,6 +22,17 @@ type SendTokensInput = {
   toToken: string
 }
 
+type GetWillSendTokensFailInput = {
+  amount: string
+  fromChainId: string
+  fromToken: string
+  minAmountOut: string
+  to: string
+  toChainId: string
+  toToken: string
+  from: string
+}
+
 type GetFeeInput = {
   fromChainId: string
   fromToken: string
@@ -39,6 +50,7 @@ type V2Hook = {
   getTokenList: (fromChainId?: string) => string[]
   getTokenName: (chainId: string, tokenSymbol: string) => string
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
+  getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<providers.TransactionResponse>
   v2Sdk: Hop | null
 }
 
@@ -179,6 +191,40 @@ export function useV2(): V2Hook {
     return tx
   }
 
+  async function getWillSendTokensFail (input: GetWillSendTokensFailInput): Promise<boolean> {
+    if (!v2Sdk) {
+      throw new Error('Hop SDK not initialized')
+    }
+
+    if (!address) {
+      throw new Error('Account is not connected')
+    }
+
+    const {
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount,
+      minAmountOut,
+      from
+    } = input
+
+    const willFail = await v2Sdk.getWillSendTokensFail({
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount,
+      minAmountOut,
+      from
+    })
+
+    return willFail
+  }
+
   async function sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
@@ -255,6 +301,7 @@ export function useV2(): V2Hook {
     getTokenList,
     getTokenName,
     sendTokens,
+    getWillSendTokensFail,
     v2Sdk,
   }
 }

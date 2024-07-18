@@ -53,6 +53,17 @@ export type SendTokensInput = {
   minAmountOut: BigNumberish
 }
 
+type WillSendTokensFailInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  to: string
+  amount: BigNumberish
+  minAmountOut: BigNumberish
+  from: string
+}
+
 export type ApproveSendTokensInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
@@ -284,6 +295,45 @@ export class Hop extends Base {
       chainId: fromChainId,
       pathId
     })
+  }
+
+  async getWillSendTokensFail ({
+    fromChainId,
+    toChainId,
+    fromToken,
+    toToken,
+    to,
+    amount,
+    minAmountOut,
+    from
+  }: WillSendTokensFailInput): Promise<boolean> {
+    const pathId = await this.railsGateway.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken
+    })
+
+    const lastCheckpoint = await this.railsGateway.getLatestClaim({
+      chainId: fromChainId,
+      pathId
+    })
+
+    const populatedTx = await this.railsGateway.populateTransaction.send({
+      chainId: fromChainId,
+      pathId,
+      to,
+      amount,
+      minAmountOut,
+      attestedCheckpoint: lastCheckpoint
+    })
+
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${fromChainId}`)
+    }
+
+    return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {

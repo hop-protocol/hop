@@ -197,4 +197,28 @@ describe.only('Hop', () => {
     expect(events.some(event => event.context!.eventName === 'TransferSent')).toBeTruthy()
     expect(events.length > 0).toBeTruthy()
   }, 60 * 1000)
+
+  it.skip('TODO should return true if send tokens transaction will fail', async () => {
+    const fromChainId = 11155111
+    const toChainId = 11155420
+    const checkpoint = '0xTODO'
+    const fromToken = '0xTODO'
+    const to = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const minAmountOut = '0'
+    const from = '0xTODO'
+
+    const willFail = await sdk.getWillSendTokensFail({
+      fromChainId,
+      toChainId,
+      checkpoint,
+      fromToken,
+      to,
+      amount,
+      minAmountOut,
+      from
+    })
+    console.log(willFail)
+    expect(willFail).toBeDefined()
+  }, 60 * 1000)
 })

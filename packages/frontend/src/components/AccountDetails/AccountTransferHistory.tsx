@@ -11,6 +11,8 @@ import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { isMainnet, reactAppNetwork } from '#config/index.js'
 import { useQuery } from 'react-query'
 import { useTheme } from '@mui/material/styles'
+import { NetworkSlug } from '@hop-protocol/sdk'
+import { useV2AccountHistory } from '#hooks/useV2AccountHistory.js'
 
 type Item = {
   transferId: string
@@ -54,6 +56,9 @@ function useData(props: any) {
     [queryKey, address, page, perPage],
     async () => {
       if (!address) {
+        return []
+      }
+      if (reactAppNetwork === NetworkSlug.Sepolia) {
         return []
       }
       const baseUrl = isMainnet ? 'https://explorer-api.hop.exchange' : `https://${reactAppNetwork}-explorer-api.hop.exchange`
@@ -142,6 +147,9 @@ export function AccountTransferHistory (props: Props) {
   const { address } = props
   const theme = useTheme()
   const { isLoading, items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick, volumeUsd } = useData({ address })
+
+  const { data: v2Data, isLoading: v2IsLoading } = useV2AccountHistory({ address })
+  console.log(v2Data, v2IsLoading)
 
   if (!items.length && !isLoading) {
     return (

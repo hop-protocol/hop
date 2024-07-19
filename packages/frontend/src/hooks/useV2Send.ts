@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { useApp } from '#contexts/AppContext/index.js'
-import { BigNumber, providers, utils, Contract } from 'ethers'
+import { BigNumber, providers, utils, Contract, constants } from 'ethers'
 import { useV2 } from './useV2.js'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
@@ -95,10 +95,12 @@ class Token {
 export function useV2Send(): V2SendHook {
   const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
   const {
-    networks
+    networks,
+    txConfirm
   } = useApp()
   const { address, provider } = useWeb3Context()
   const [tx, setTx] = useState<providers.TransactionResponse | null>(null)
+  const [approvalTx, setApprovalTx] = useState<providers.TransactionResponse | null>(null)
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null)
   const [tokenList, setTokenList] = useState<string[]>([])
   const [fromTokenAddress, setFromTokenAddress] = useState<string | null>(null)
@@ -188,26 +190,48 @@ export function useV2Send(): V2SendHook {
     update().catch(console.error)
   }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn])
 
-  async function approveTokens () {
+  async function approveTokens (approveAll: boolean) {
     try {
-      setTx(null)
+      setApprovalTx(null)
       setError('')
       setIsApproving(true)
+      const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
 
-      const tx = await v2ApproveTokens({
-        fromChainId,
-        toChainId,
-        fromToken: fromTokenAddress,
-        toToken: toTokenAddress,
-        amount: parsedAmountIn
+      const tx: any = await txConfirm?.show({
+        kind: 'approval',
+        inputProps: {
+          tagline: `Allow Hop to spend your ${fromToken.symbol} on ${fromChain.name}`,
+          amount: fromToken.symbol === 'USDT' ? undefined : amountIn,
+          token: fromToken,
+          tokenSymbol: fromToken.symbol,
+          source: {
+            network: {
+              slug: fromChain.slug,
+              networkId: fromChain.chainId,
+            },
+          },
+        },
+        onConfirm: async (approveAll: boolean) => {
+          const tx = await v2ApproveTokens({
+            fromChainId,
+            toChainId,
+            fromToken: fromTokenAddress,
+            toToken: toTokenAddress,
+            amount: approveAll ? constants.MaxUint256.toString() : parsedAmountIn
+          })
+
+          setApprovalTx(tx)
+          tx.wait()
+          .then(() => {
+            setIsApproving(false)
+          })
+          return tx
+        },
       })
-
-      setTx(tx)
-    } catch (err) {
+    } catch (err){
       console.error('useV2Send approveTokens', err)
       setError(formatError(err.message))
     }
-    setIsApproving(false)
   }
 
   async function sendTokens () {

@@ -23,6 +23,7 @@ import { useV2Send } from '#hooks/useV2Send.js'
 import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
+import { AmmDetails } from '#components/AmmDetails/index.js'
 
 export const SendV2: FC = () => {
   const styles = useSendStyles()
@@ -94,6 +95,14 @@ export const SendV2: FC = () => {
   const showFeeRefund = false // TODO
   const feeRefundTokenSymbol = '' // TODO
   const feeRefundDisplay = '' // TODO
+
+  const rate = 1
+  const slippageTolerance = 0.1
+  const priceImpact = 0
+  const amountOutMinDisplay = '123'
+  const amountOutMinUsdDisplay = '$1'
+  const transferTimeDisplay = '1 minute'
+
 
   const placeholderToken = {
     symbol: '',
@@ -215,7 +224,14 @@ export const SendV2: FC = () => {
           <DetailRow
             title="Estimated Received"
             tooltip={
-              <Box>Estimated amount that will be received at the destination</Box>
+              <AmmDetails
+                rate={rate}
+                slippageTolerance={slippageTolerance}
+                priceImpact={priceImpact}
+                amountOutMinDisplay={amountOutMinDisplay}
+                amountOutMinUsdDisplay={amountOutMinUsdDisplay}
+                transferTime={transferTimeDisplay}
+              />
             }
             value={<>
               <InfoTooltip title={estimatedReceivedUsdDisplay}>

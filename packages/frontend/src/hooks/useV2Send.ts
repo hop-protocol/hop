@@ -231,6 +231,7 @@ export function useV2Send(): V2SendHook {
     } catch (err){
       console.error('useV2Send approveTokens', err)
       setError(formatError(err.message))
+      setIsApproving(false)
     }
   }
 
@@ -240,32 +241,54 @@ export function useV2Send(): V2SendHook {
       setError('')
       setIsSending(true)
 
-      const willFail = await getWillSendTokensFail({
-        fromChainId,
-        toChainId,
-        fromToken: fromTokenAddress,
-        toToken: toTokenAddress,
-        to: recipient,
-        amount: parsedAmountIn,
-        minAmountOut: parsedMinAmountOut,
-        from: accountAddress
+      const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
+      const toChain = networks.find(network => network.networkId?.toString() === toChainId)
+
+      const tx: any = await txConfirm?.show({
+        kind: 'send',
+        inputProps: {
+          isV2: true,
+          customRecipient: undefined,
+          isGnosisSafeWallet: false,
+          source: {
+            amount: amountIn,
+            token: fromToken,
+            network: fromChain,
+          },
+          dest: {
+            network: toChain
+          },
+          estimatedReceived: formatUnits(estimatedReceived, fromToken.decimals)
+        },
+        onConfirm: async () => {
+          const willFail = await getWillSendTokensFail({
+            fromChainId,
+            toChainId,
+            fromToken: fromTokenAddress,
+            toToken: toTokenAddress,
+            to: recipient,
+            amount: parsedAmountIn,
+            minAmountOut: parsedMinAmountOut,
+            from: accountAddress
+          })
+
+          if (willFail) {
+            throw new Error('Transaction will fail. Please the parameters are valid and try again.')
+          }
+
+          const tx = await v2SendTokens({
+            fromChainId,
+            toChainId,
+            fromToken: fromTokenAddress,
+            toToken: toTokenAddress,
+            to: recipient,
+            amount: parsedAmountIn,
+            minAmountOut: parsedMinAmountOut
+          })
+
+          setTx(tx)
+        },
       })
-
-      if (willFail) {
-        throw new Error('Transaction will fail. Please the parameters are valid and try again.')
-      }
-
-      const tx = await v2SendTokens({
-        fromChainId,
-        toChainId,
-        fromToken: fromTokenAddress,
-        toToken: toTokenAddress,
-        to: recipient,
-        amount: parsedAmountIn,
-        minAmountOut: parsedMinAmountOut
-      })
-
-      setTx(tx)
     } catch (err) {
       console.error('useV2Send sendTokens', err)
       setError(formatError(err.message))

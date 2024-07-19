@@ -33,7 +33,6 @@ const useStyles = makeStyles(() => ({
   sendButton: {},
 }))
 
-
 interface Props {
   customRecipient?: string
   source: NetworkTokenEntity
@@ -41,10 +40,11 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
   estimatedReceived: string
   isGnosisSafeWallet?: boolean
+  isV2?: boolean
 }
 
 const ConfirmSend = (props: Props) => {
-  const { customRecipient, source, dest, onConfirm, estimatedReceived, isGnosisSafeWallet = false } = props
+  const { customRecipient, source, dest, onConfirm, estimatedReceived, isGnosisSafeWallet = false, isV2 } = props
   const styles = useStyles()
 
   const { sending, handleSubmit } = useSendingTransaction({
@@ -55,8 +55,13 @@ const ConfirmSend = (props: Props) => {
   const { fixedTimeEstimate, medianTimeEstimate, isLoading } = useTransferTimeEstimate(
     source?.network?.slug,
     dest?.network?.slug,
-    source?.token?.symbol
+    source?.token?.symbol,
   )
+
+  let transferTimeDisplayString = isLoading ? '' : transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)
+  if (isV2) {
+    transferTimeDisplayString = '20 minutes' // TODO: make this dynamic for v2
+  }
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
@@ -102,7 +107,7 @@ const ConfirmSend = (props: Props) => {
               Estimated Wait
             </Typography>
             <Typography variant="subtitle2" color="textPrimary">
-              {isLoading ? <Skeleton animation="wave" width={'100px'} /> : transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
+              {!transferTimeDisplayString ? <Skeleton animation="wave" width={'100px'} /> : transferTimeDisplayString }
             </Typography>
           </Grid>
         </Grid>

@@ -150,6 +150,11 @@ describe.skip('Base', () => {
     console.log(imageUrl)
     expect(imageUrl).toBeDefined()
   })
+  it('should get logo image url token symbol', async () => {
+    const imageUrl = base.utils.getLogoForTokenSymbol('USDC')
+    console.log(imageUrl)
+    expect(imageUrl).toBeDefined()
+  })
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
     expect(base.getRpcProviderForChainId('1')).toBeDefined()
@@ -251,4 +256,10 @@ describe.skip('Base', () => {
     }
     expect(error).toBe('')
   }, 60 * 1000)
+  it('should get color for chain id', async () => {
+    const chainId = 1
+    const color = await base.getColorForChainId(chainId)
+    console.log(color)
+    expect(color).toBeDefined()
+  })
 })

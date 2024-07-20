@@ -260,6 +260,7 @@ export class Controller {
     }
     if (item.transferId) {
       item.transferIdTruncated = truncateString(item.transferId, 4)
+      item.transferIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.transferId}` // TODO: subdomain env var
     }
     if (item.bundleId) {
       item.bundleIdTruncated = truncateString(item.bundleId, 4)
@@ -292,19 +293,16 @@ export class Controller {
       item.toChainName = chainNames[item.toChainId]
       item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
       item.toChainImageUrl = this.sdk.utils.getLogoForChainId(item.toChainId)
+      item.toChainColor = this.sdk.getColorForChainId(item.toChainId)
     }
     if (item.bundleFees) {
       item.bundleFeesDisplay = formatUnits(item.bundleFees, 18)
     }
-    if (item.context?.blockTimestamp) {
-      item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
-    }
-    if (item.context?.transactionHash) {
-      item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
-      item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
-    }
     if (item.token?.address) {
       item.token.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token.address, item.token.chainId)
+    }
+    if (item.token?.symbol) {
+      item.token.imageUrl = this.sdk.utils.getLogoForTokenSymbol(item.token.symbol)
     }
     if (item.counterpartToken?.address) {
       item.counterpartToken.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken.address, item.counterpartToken.chainId)
@@ -333,10 +331,18 @@ export class Controller {
       item.attestationFeeUsd = Number(item.attestationFeeFormatted) * Number(item.ethPriceUsd)
       item.attestationFeeUsdDisplay = `$${item.attestationFeeUsd.toFixed(2)} USD`
     }
+    if (item.context?.blockTimestamp) {
+      item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
+    }
+    if (item.context?.transactionHash) {
+      item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
+      item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
+    }
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]
       item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
       item.context.chainImageUrl = this.sdk.utils.getLogoForChainId(item.context.chainId)
+      item.context.chainColor = this.sdk.getColorForChainId(item.context.chainId)
     }
     if (item.context?.from) {
       if (item.context?.chainId) {

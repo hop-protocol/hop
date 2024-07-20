@@ -134,6 +134,18 @@ export class Base {
     }
   }
 
+  getColorForChainId (chainId: BigNumberish): string {
+    const network = getNetwork(this.network as NetworkSlug)
+    const chainIdStr = chainId.toString()
+    const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
+
+    if (chain) {
+      return chain.primaryColor
+    }
+
+    return '#aaaaaa'
+  }
+
   getConfigAddress (chainId: BigNumberish, key: string): string {
     if (!chainId) {
       throw new Error('chainId is required')
@@ -448,6 +460,10 @@ export class Base {
 
       getLogoForChainSlug: (chainSlug: string): string => {
         return `https://assets.hop.exchange/logos/${chainSlug?.toLowerCase()}.svg`
+      },
+
+      getLogoForTokenSymbol: (tokenSymbol: string): string => {
+        return `https://assets.hop.exchange/logos/${tokenSymbol?.toLowerCase()}.svg`
       },
 
       switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {

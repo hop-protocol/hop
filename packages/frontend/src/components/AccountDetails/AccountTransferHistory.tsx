@@ -146,12 +146,47 @@ type Props = {
 export function AccountTransferHistory (props: Props) {
   const { address } = props
   const theme = useTheme()
-  const { isLoading, items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick, volumeUsd } = useData({ address })
+  const { isLoading: v1IsLoading, items: v1Items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick, volumeUsd } = useData({ address })
 
   const { data: v2Data, isLoading: v2IsLoading } = useV2AccountHistory({ address })
   console.log(v2Data, v2IsLoading)
 
-  if (!items.length && !isLoading) {
+  const v2Items = v2Data.map((item: any, i: number) => {
+    return {
+      transferId: item.transferId,
+      sourceChainSlug: item.context.chainName.toLowerCase(),
+      sourceChainName: item.context.chainName,
+      sourceChainColor: item.context.chainColor,
+      destinationChainSlug: item.toChainName?.toLowerCase(),
+      destinationChainName: item.toChainName,
+      destinationChainColor: item.toChainColor,
+      transactionHash: item.context.transactionHash,
+      transactionHashExplorerUrl: item.context.transactionHashExplorerUrl,
+      bondTransactionHashExplorerUrl: item.transferBondedEvent?.context.transactionHashExplorerUrl,
+      sourceChainImageUrl: item.context.chainImageUrl,
+      destinationChainImageUrl: item.toChainImageUrl,
+      amountDisplay: item.amountFormatted,
+      token: item.token.symbol,
+      tokenImageUrl: item.token.imageUrl,
+      timestamp: item.context.blockTimestamp,
+      timestampRelative: item.context.blockTimestampRelative,
+      bondTimestampRelative: item.transferBondedEvent?.context.blockTimestampRelative,
+      bondStatusColor: '#81ff81',
+      receivedHTokens: false, // note: not needed for v2
+      convertHTokenUrl: '', // note: not needed for v2
+      bonded: !!item.transferBondedEvent,
+      accountAddress: item.context.from,
+      recipientAddress: item.to,
+      recipientAddressTruncated: item.toTruncated,
+      recipientAddressExplorerUrl: item.toExplorerUrl,
+      hopExplorerUrl: item.transferIdExplorerUrl
+    }
+  })
+
+  const isLoading = v1IsLoading || v2IsLoading
+  const hasItems = v1Items.length || v2Items.length
+
+  if (!hasItems || isLoading) {
     return (
       <></>
     )
@@ -168,7 +203,7 @@ export function AccountTransferHistory (props: Props) {
           <Typography variant="body1">
             Account transfer history
           </Typography>
-          {items?.length > 0 && (
+          {v1Items?.length > 0 && (
             <Typography variant="body2">
               <ExternalLink href={explorerLink}>View in explorer</ExternalLink>
             </Typography>
@@ -185,7 +220,81 @@ export function AccountTransferHistory (props: Props) {
               <Skeleton animation="wave" width={'100%'} />
             </Box>
           )}
-          {items?.map((item: Item, i: number) => {
+          {v2Items?.map((item: Item, i: number) => {
+            if (!item) {
+              return null
+            }
+            const showRecipient = item.recipientAddress && (item.accountAddress?.toLowerCase() !== item.recipientAddress?.toLowerCase())
+            return (
+              <Box key={i} mb={3}>
+                <Box mb={0.2} mr={1} display="flex">
+                  <Typography variant="body2" component="span">
+                    <ExternalLink style={{ color: theme.palette.text.primary }} href={item?.hopExplorerUrl}>{item?.timestampRelative ?? ''}</ExternalLink>
+                  </Typography>
+                  {!!item?.bondTimestampRelative && (
+                    <Box ml={1} display="inline-flex">
+                      <Typography variant="body2" component="span" color="secondary">
+                        (<span style={{ color: '#52c106' }}>{'bonded'}</span> {item.bondTimestampRelative ?? ''})
+                      </Typography>
+                    </Box>
+                  )}
+                  {!item?.bonded && (
+                    <Box ml={1} display="inline-flex">
+                      <Typography variant="body2" component="span" color="secondary">
+                        (<span>pending</span> <InfoTooltip title="This may take up to 30 minutes depending on the route" />)
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+                <Box display="flex" justifyItems="center" alignItems="center">
+                  <Box mr={2} display="flex">
+                    <Typography variant="body1" component="span">
+                      <Box display="flex">{item?.amountDisplay ?? ''}
+                        {!!item?.tokenImageUrl && (
+                          <Box ml={0.5} mr={0.5} display="inline-flex">
+                            <img src={item.tokenImageUrl} width={16} alt="icon" />
+                          </Box>
+                        )}
+                        {' '}{item?.token ?? ''}</Box>
+                    </Typography>
+                  </Box>
+                  {!!item?.sourceChainImageUrl && (
+                    <Box mr={0.5} display="flex">
+                      <img src={item.sourceChainImageUrl} width={16} alt="icon" />
+                    </Box>
+                  )}
+                  <Box display="inline-flex" style={{ color: item?.sourceChainColor }}>
+                    {item?.transactionHashExplorerUrl ? (
+                      <ExternalLink href={item.transactionHashExplorerUrl} style={{ color: item?.sourceChainColor }}>{item?.sourceChainName ?? ''}</ExternalLink>
+                    ) : (
+                      <Box>{item?.sourceChainName ?? ''}</Box>
+                    )}
+                    <Box ml={0.2} mr={1} display="flex">→</Box>
+                  </Box>
+                  {!!item?.destinationChainImageUrl && (
+                    <Box mr={0.5} display="flex">
+                      <img src={item.destinationChainImageUrl} width={16} alt="icon" />
+                    </Box>
+                  )}
+                  <Box display="inline-flex" style={{ color: item?.destinationChainColor }}>
+                    {item?.bondTransactionHashExplorerUrl ? (
+                      <ExternalLink href={item?.bondTransactionHashExplorerUrl} style={{ color: item?.destinationChainColor }}>{item?.destinationChainName}</ExternalLink>
+                    ) : (
+                      <Box>{item?.destinationChainName ?? ''}</Box>
+                    )}
+                  </Box>
+                </Box>
+                {showRecipient && (
+                  <Box>
+                    <Typography variant="body2">
+                      Recipient: <ExternalLink href={item.recipientAddressExplorerUrl}>{item.recipientAddressTruncated}</ExternalLink> <InfoTooltip title={`This transfer had the recipient address set to ${item.recipientAddress}`} />
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )
+          })}
+          {v1Items?.map((item: Item, i: number) => {
             if (!item) {
               return null
             }

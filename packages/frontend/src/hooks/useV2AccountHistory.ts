@@ -52,7 +52,7 @@ export function useV2AccountHistory(props) {
 
   return {
     isLoading,
-    data,
+    data: data || [],
     error,
     page,
     setPage,

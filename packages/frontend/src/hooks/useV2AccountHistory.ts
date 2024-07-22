@@ -22,7 +22,6 @@ export function useV2AccountHistory(props) {
   const address = queryParams.address ?? props.address
   const [perPage] = useState<number>(5)
   const [page, setPage] = useState<number>(1)
-  const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false)
 
   const queryKey = `v2AccountTransfersHistory:${address}:${perPage}:${page}`
   const { isLoading, data, error } = useQuery(
@@ -38,11 +37,15 @@ export function useV2AccountHistory(props) {
       const url = `${baseUrl}/v1/explorer?filter[account]=${address}&limit=${perPage}&page=${page}`
       const res = await fetch(url)
       const json = await res.json()
+      const hasNextPage = json.hasNextPage
       const transfers = json.events
       if (!Array.isArray(transfers)) {
         return []
       }
-      return transfers
+      return {
+        transfers,
+        hasNextPage
+      }
     },
     {
       enabled: !!address,
@@ -50,12 +53,32 @@ export function useV2AccountHistory(props) {
     }
   )
 
+  function handleNextPageClick(event: any) {
+    event.preventDefault()
+    setPage(page + 1)
+  }
+
+  function handlePreviousPageClick(event: any) {
+    event.preventDefault()
+    if (page > 1) {
+      setPage(Math.max(page - 1, 1))
+    }
+  }
+
+  const hasPreviousPage = page > 1
+
+  const events = (data as any)?.transfers ?? []
+  const hasNextPage = (data as any)?.hasNextPage ?? false
+
   return {
     isLoading,
-    data: data || [],
+    data: events,
     error,
     page,
     setPage,
     hasPreviousPage,
+    hasNextPage,
+    handleNextPageClick,
+    handlePreviousPageClick
   }
 }

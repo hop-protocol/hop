@@ -148,8 +148,7 @@ export function AccountTransferHistory (props: Props) {
   const theme = useTheme()
   const { isLoading: v1IsLoading, items: v1Items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick, volumeUsd } = useData({ address })
 
-  const { data: v2Data, isLoading: v2IsLoading } = useV2AccountHistory({ address })
-  console.log(v2Data, v2IsLoading)
+  const { data: v2Data, isLoading: v2IsLoading, hasNextPage: v2HasNextPage, hasPreviousPage: v2HasPreviousPage, handleNextPageClick: v2HandleNextPageClick, handlePreviousPageClick: v2HandlePreviousPageClick } = useV2AccountHistory({ address })
 
   const v2Items = v2Data.map((item: any, i: number) => {
     return {
@@ -204,7 +203,7 @@ export function AccountTransferHistory (props: Props) {
             Account transfer history
           </Typography>
           {v1Items?.length > 0 && (
-            <Typography variant="body2">
+            <Typography variant="body2">literal
               <ExternalLink href={explorerLink}>View in explorer</ExternalLink>
             </Typography>
           )}
@@ -219,6 +218,16 @@ export function AccountTransferHistory (props: Props) {
               <Skeleton animation="wave" width={'20%'} />
               <Skeleton animation="wave" width={'100%'} />
             </Box>
+          )}
+          <Box mb={2} display="flex" justifyContent="flex-start">
+            <Typography variant="body1">
+              V2 Transfers
+            </Typography>
+          </Box>
+          {v2Items?.length === 0 && (
+            <Typography variant="body2" color="secondary">
+              No transfers
+            </Typography>
           )}
           {v2Items?.map((item: Item, i: number) => {
             if (!item) {
@@ -294,6 +303,29 @@ export function AccountTransferHistory (props: Props) {
               </Box>
             )
           })}
+        <Box mb={2} display="flex" justifyContent="center">
+          {v2HasPreviousPage ? (
+            <IconButton onClick={v2HandlePreviousPageClick}><NavigateBeforeIcon fontSize="large" /></IconButton>
+          ) : (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateBeforeIcon fontSize="large" /></IconButton>
+          )}
+          {v2HasNextPage ? (
+            <IconButton onClick={v2HandleNextPageClick}><NavigateNextIcon fontSize="large" /></IconButton>
+          ): (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateNextIcon fontSize="large" /></IconButton>
+          )}
+        </Box>
+        <Box mb={2} display="flex" justifyContent="flex-start">
+          <Typography variant="body1">
+            V1 Transfers
+          </Typography>
+        </Box>
+        </Box>
+          {v1Items?.length === 0 && (
+            <Typography variant="body2" color="secondary">
+              No transfers
+            </Typography>
+          )}
           {v1Items?.map((item: Item, i: number) => {
             if (!item) {
               return null
@@ -391,11 +423,10 @@ export function AccountTransferHistory (props: Props) {
         {!!volumeUsd && (
           <Box mb={2} display="flex" justifyContent="center">
             <Typography variant="body2" component="span" title="Cumulative volume in USD on Hop from connected account">
-              <span aria-label="Medal">🏅</span> Cumulative Volume: {volumeUsd}
+              <span aria-label="Medal">🏅</span> Cumulative V1 Volume: {volumeUsd}
             </Typography>
           </Box>
         )}
       </Box>
-    </Box>
   )
 }

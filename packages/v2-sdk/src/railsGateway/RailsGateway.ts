@@ -5,16 +5,20 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
+import { MultiHopTransferSent, MultiHopTransferSentFetcher } from '#railsGateway/events/MultiHopTransferSent.js'
+import { MultiHopTransferBonded, MultiHopTransferBondedFetcher } from '#railsGateway/events/MultiHopTransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 const { getAddress: checksumAddress } = utils
 
-type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
+type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | MultiHopTransferSentFetcher | MultiHopTransferBondedFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
+  MultiHopTransferSent = 'MultiHopTransferSent',
+  MultiHopTransferBonded= 'MultiHopTransferBonded'
 }
 
 export type GetEventsInput = {
@@ -31,6 +35,18 @@ export type TransferSentEventInput = {
 }
 
 export type TransferBondedEventInput = {
+  chainId: BigNumberish
+  fromBlock: number
+  toBlock: number
+}
+
+export type MultiHopTransferSentEventInput = {
+  chainId: BigNumberish
+  fromBlock: number
+  toBlock: number
+}
+
+export type MultiHopTransferBondedEventInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
@@ -295,6 +311,44 @@ export type Token = {
   decimals: number
 }
 
+export type HopInput = {
+  pathId: string
+  minAmountOut: BigNumberish
+  attestedCheckpoint: string
+}
+
+export type SendMultiHopInput = {
+  chainId: BigNumberish
+  to: string
+  amount: BigNumberish
+  hops: HopInput[]
+}
+
+
+export type PostMultiHopClaimInput = {
+  chainId: BigNumberish
+  pathId: string
+  transferId :string
+  to: string
+  amount: BigNumber
+  totalSent: BigNumberish
+  index: number
+  hops: HopInput[]
+}
+
+export type BondAndForwardInput = {
+  chainId: BigNumberish
+  pathId: string
+  transferId: string
+  previousTransferId: string
+  to: string
+  amount: BigNumberish
+  totalSent: BigNumberish
+  nonce: BigNumberish
+  hops: HopInput[]
+  index: number
+}
+
 export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
@@ -328,6 +382,8 @@ export class RailsGateway extends StakingRegistry {
     const eventFetcher: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
       [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.MultiHopTransferSent]: MultiHopTransferSentFetcher,
+      [EventName.MultiHopTransferBonded]: MultiHopTransferBondedFetcher
     }
 
     const EventFetcherClass = eventFetcher[eventName]
@@ -444,6 +500,14 @@ export class RailsGateway extends StakingRegistry {
     for await (const events of eventsGenerator) {
       yield events;
     }
+  }
+
+  async getMultiHopTransferSentEvents (input: MultiHopTransferSentEventInput): Promise<EthersEventWithDecodedTypes<MultiHopTransferSent>[]> {
+    return this.#getEvents({ ...input, eventName: EventName.MultiHopTransferSent })
+  }
+
+  async getMultiHopTransferBondedEvents (input: MultiHopTransferBondedEventInput): Promise<EthersEventWithDecodedTypes<MultiHopTransferBonded>[]> {
+    return this.#getEvents({ ...input, eventName: EventName.MultiHopTransferBonded })
   }
 
   #addDecodedTypesToEvents <T>(events: any[], Fetcher: any): EthersEventWithDecodedTypes<T>[] {
@@ -930,6 +994,45 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError('Staker address not set')
         }
         const txData = await this.registryWithdrawPopulatedTx({ chainId, role, staker })
+
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
+      sendMultiHop: async ({ chainId, to, amount, hops }: SendMultiHopInput): Promise<providers.TransactionRequest> => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid to address "${to}"`)
+        }
+
+
+        const contract = await this.getRailsGatewayContract(chainId)
+        const txData = await contract.populateTransaction.sendMultiHop(to, amount, hops)
+
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
+      postMultiHopClaim: async ({ chainId, pathId, transferId, to, amount, totalSent, index, hops }: PostMultiHopClaimInput): Promise<providers.TransactionRequest> => {
+        const contract = await this.getRailsGatewayContract(chainId)
+        const txData = await contract.populateTransaction.postMultiHopClaim(pathId, transferId, to, amount, totalSent, index, hops)
+
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
+      bondAndForward: async ({ chainId, pathId, transferId, previousTransferId, to, amount, totalSent, nonce, hops, index }: BondAndForwardInput): Promise<providers.TransactionRequest> => {
+        const contract = await this.getRailsGatewayContract(chainId)
+        const txData = await contract.populateTransaction.bondAndForward(pathId, transferId, previousTransferId, to, amount, totalSent, nonce, hops, index)
 
         return {
           ...txData,
@@ -1563,5 +1666,20 @@ export class RailsGateway extends StakingRegistry {
       transferSentEvent,
       transferBondedEvent
     }
+  }
+
+  async sendMultiHop (input: SendMultiHopInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.sendMultiHop(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async postMultiHopClaim (input: PostMultiHopClaimInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postMultiHopClaim(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async bondAndForward (input: BondAndForwardInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.bondAndForward(input)
+    return this.sendTransaction(populatedTx)
   }
 }

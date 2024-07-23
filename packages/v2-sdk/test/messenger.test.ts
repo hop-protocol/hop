@@ -155,32 +155,32 @@ describe.skip('Messenger', () => {
     expect(attempt).toBeDefined()
   })
   it.skip('TODO should get bundle exit populated tx', async () => {
-    const chainId = 1
+    const fromChainId = 1
     const bundleCommittedEvent: any = {}
     const bundleCommittedTransactionHash = '0xTODO'
     const populatedTx = await messenger.populateTransaction.bundleExit({
-      chainId,
+      fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash
     })
     expect(populatedTx).toBeDefined()
   })
   it.skip('TODO should exit bundle', async () => {
-    const chainId = 1
+    const fromChainId = 1
     const bundleCommittedEvent: any = {}
     const bundleCommittedTransactionHash = ''
     const tx = await messenger.exitBundle({
-      chainId,
+      fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash,
     })
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should get is L2 tx hash exited', async () => {
-    const chainId = 1
+    const fromChainId = 1
     const transactionHash = '0xTODO'
     const exited  = await messenger.getIsL2TxHashExited({
-      chainId,
+      fromChainId,
       transactionHash
     })
     expect(exited).toBeDefined()
@@ -253,7 +253,7 @@ describe.skip('Messenger', () => {
     const chainId = 1
     const transactionHash = '0xTODO'
     const event = await messenger.getMessageSentEventFromTransactionHash({
-      hainId,
+      chainId,
       transactionHash
     })
     expect(event).toBeDefined()
@@ -277,12 +277,10 @@ describe.skip('Messenger', () => {
     expect(event).toBeDefined()
   })
   it.skip('TODO should get MessageExecuted event from messageId', async () => {
-    const fromChainId = 1
-    const toChainId = 2
+    const chainId = 1
     const messageId = '0xTODO'
     const event = await messenger.getMessageExecutedEventFromMessageId({
-      fromChainId,
-      toChainId,
+      chainId,
       messageId
     })
     expect(event).toBeDefined()
@@ -342,19 +340,19 @@ describe.skip('Messenger', () => {
     expect(index).toBeDefined()
   })
   it.skip('TODO should get MessageBundled events for bundleId', async () => {
-    const fromChainId = 1
+    const chainId = 1
     const bundleId = '0xTODO'
     const events = await messenger.getMessageBundledEventsForBundleId({
-      fromChainId,
+      chainId,
       bundleId
     })
     expect(events).toBeDefined()
   })
   it.skip('TODO should get messageIds for bundleId', async () => {
-    const fromChainId = 1
+    const chainId = 1
     const bundleId = '0xTODO'
     const messageIds = await messenger.getMessageIdsForBundleId({
-      fromChainId,
+      chainId,
       bundleId
     })
     expect(messageIds).toBeDefined()
@@ -378,19 +376,19 @@ describe.skip('Messenger', () => {
     expect(event).toBeDefined()
   })
   it.skip('TODO should get bundle proof from transaction hash', async () => {
-    const fromChainId = 1
+    const chainId = 1
     const transactionHash = '0xTODO'
     const proof = await messenger.getBundleProofFromTransactionHash({
-      fromChainId,
+      chainId,
       transactionHash
     })
     expect(proof).toBeDefined()
   })
   it.skip('TODO should get relay message data from transaction hash', async () => {
-    const fromChainId = 1
+    const chainId = 1
     const transactionHash = '0xTODO'
     const data = await messenger.getRelayMessageDataFromTransactionHash({
-      fromChainId,
+      chainId,
       transactionHash
     })
     expect(data).toBeDefined()
@@ -413,10 +411,10 @@ describe.skip('Messenger', () => {
     expect(populatedTx).toBeDefined()
   })
   it.skip('TODO should get message calldata', async () => {
-    const fromChainId = 1
+    const chainId = 1
     const messageId = '0xTODO'
     const calldata = await messenger.getMessageCalldataFromMessageId({
-      fromChainId,
+      chainId,
       messageId
     })
     expect(calldata).toBeDefined()

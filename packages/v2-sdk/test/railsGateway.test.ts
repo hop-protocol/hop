@@ -217,6 +217,80 @@ describe.skip('RailsGateway', () => {
     console.log(txData)
     expect(txData).toBeDefined()
   })
+  it.skip('TODO should get multi hop transfer populated tx', async () => {
+    const chainId = 11155111
+    const to = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const hops = [{
+      pathId: '0xTODO',
+      minAmountOut: parseUnits('1', 18),
+      attestedCheckpoint: '0xTODO'
+    }]
+    const txData = await railsGateway.populateTransaction.sendMultiHop({
+      chainId,
+      to,
+      amount,
+      hops
+    })
+    console.log(txData)
+    expect(txData).toBeDefined()
+  })
+  it.skip('TODO should get post multi hop claim populated tx', async () => {
+    const chainId = 11155111
+    const pathId = '0xTODO'
+    const transferId = '0xTODO'
+    const to = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const totalSent = parseUnits('1', 18)
+    const index = 1
+    const hops = [{
+      pathId: '0xTODO',
+      minAmountOut: parseUnits('1', 18),
+      attestedCheckpoint: '0xTODO'
+    }]
+    const txData = await railsGateway.populateTransaction.postMultiHopClaim({
+      chainId,
+      pathId,
+      transferId,
+      to,
+      amount,
+      totalSent,
+      index,
+      hops
+    })
+    console.log(txData)
+    expect(txData).toBeDefined()
+  })
+  it.skip('TODO should get bond and forward populated tx', async () => {
+    const chainId = 11155111
+    const pathId = '0xTODO'
+    const transferId = '0xTODO'
+    const previousTransferId = '0xTODO'
+    const to = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const totalSent = parseUnits('1', 18)
+    const nonce = '1'
+    const index = 1
+    const hops = [{
+      pathId: '0xTODO',
+      minAmountOut: parseUnits('1', 18),
+      attestedCheckpoint: '0xTODO'
+    }]
+    const txData = await railsGateway.populateTransaction.bondAndForward({
+      chainId,
+      pathId,
+      transferId,
+      previousTransferId,
+      to,
+      amount,
+      totalSent,
+      nonce,
+      hops,
+      index
+    })
+    console.log(txData)
+    expect(txData).toBeDefined()
+  })
   it('should post claim', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
@@ -334,6 +408,28 @@ describe.skip('RailsGateway', () => {
     const fromBlock = 5816945
     const toBlock = 5816945
     const events = await railsGateway.getTransferSentEvents({
+      chainId,
+      fromBlock,
+      toBlock
+    })
+    expect(events.length > 0).toBeTruthy()
+  })
+  it.skip('TODO should get multi hop transfer sent events', async () => {
+    const chainId = 11155111
+    const fromBlock = 0
+    const toBlock = 100
+    const events = await railsGateway.getMultiHopTransferSentEvents({
+      chainId,
+      fromBlock,
+      toBlock
+    })
+    expect(events.length > 0).toBeTruthy()
+  })
+  it.skip('TODO should get multi hop transfer bonded events', async () => {
+    const chainId = 11155111
+    const fromBlock = 0
+    const toBlock = 100
+    const events = await railsGateway.getMultiHopTransferBondedEvents({
       chainId,
       fromBlock,
       toBlock

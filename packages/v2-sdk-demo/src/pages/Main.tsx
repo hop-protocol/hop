@@ -12,6 +12,7 @@ import { HopSendTokens } from '../components/hop/HopSendTokens'
 import { HopApproveSendTokens } from '../components/hop/HopApproveSendTokens'
 import { HopSwitchChain } from '../components/hop/HopSwitchChain'
 import { RailsGatewaySend } from '../components/railsGateway/RailsGatewaySend'
+import { RailsGatewaySendMultiHop } from '../components/railsGateway/RailsGatewaySendMultiHop'
 import { RailsGatewayApproveSend } from '../components/railsGateway/RailsGatewayApproveSend'
 import { RailsGatewayApproveBond } from '../components/railsGateway/RailsGatewayApproveBond'
 import { RailsGatewayBond } from '../components/railsGateway/RailsGatewayBond'
@@ -107,6 +108,7 @@ export function Main () {
     <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
     <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewaySendMultiHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,

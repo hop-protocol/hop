@@ -7,14 +7,14 @@ import { PolygonZkRelayer } from './PolygonZkRelayer.js'
 import { OptimismRelayer } from './OptimismRelayer.js'
 import { ArbitrumRelayer } from './ArbitrumRelayer.js'
 import { GnosisRelayer } from './GnosisRelayer.js'
-import { LineaRelayer } from './LineaRelayer.js'
+// import { LineaRelayer } from './LineaRelayer.js'
 
 export { PolygonRelayer }
 export { PolygonZkRelayer }
 export { OptimismRelayer }
 export { ArbitrumRelayer}
 export { GnosisRelayer }
-export { LineaRelayer }
+// export { LineaRelayer }
 
 type Provider = providers.Provider
 
@@ -29,8 +29,8 @@ export function getRelayer (networkSlug: NetworkSlug, chainSlug: ChainSlug, l1Wa
     return new GnosisRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
   } else if (chainSlug === ChainSlug.Arbitrum || chainSlug === ChainSlug.Nova) {
     return new ArbitrumRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
-  } else if (chainSlug === ChainSlug.Linea) {
-    return new LineaRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
+  // } else if (chainSlug === ChainSlug.Linea) {
+  //   return new LineaRelayer(networkSlug, chainSlug, l1Wallet, l2Wallet)
   }
 
   throw new Error(`unsupported chainSlug: ${chainSlug}`)

@@ -330,7 +330,7 @@ export type PostMultiHopClaimInput = {
   pathId: string
   transferId :string
   to: string
-  amount: BigNumber
+  amount: BigNumberish
   totalSent: BigNumberish
   index: number
   hops: HopInput[]

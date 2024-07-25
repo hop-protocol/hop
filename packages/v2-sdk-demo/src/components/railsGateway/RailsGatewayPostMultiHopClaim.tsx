@@ -24,8 +24,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayBondAndForward(props: Props) {
-  const cacheKey = 'railsGatewayBondAndForward'
+export function RailsGatewayPostMultiHopClaim(props: Props) {
+  const cacheKey = 'railsGatewayPostMultiHopClaim'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -56,15 +56,6 @@ export function RailsGatewayBondAndForward(props: Props) {
     } catch (err: any) {}
     return ''
   })
-  const [previousTransferId, setPreviousTransferId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:prevousTransferId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
   const [amount, setAmount] = useState(() => {
     try {
       const cached = localStorage.getItem(`${cacheKey}:amount`)
@@ -77,15 +68,6 @@ export function RailsGatewayBondAndForward(props: Props) {
   const [totalSent, setTotalSent] = useState(() => {
     try {
       const cached = localStorage.getItem(`${cacheKey}:totalSent`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
-  const [nonce, setNonce] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:nonce`)
       if (cached) {
         return cached
       }
@@ -178,14 +160,6 @@ export function RailsGatewayBondAndForward(props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:prevousTransferId`, previousTransferId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [previousTransferId])
-
-  useEffect(() => {
-    try {
       localStorage.setItem(`${cacheKey}:index`, index)
     } catch (err: any) {
       console.error(err)
@@ -197,16 +171,14 @@ export function RailsGatewayBondAndForward(props: Props) {
       chainId: fromChainId,
       pathId,
       transferId,
-      previousTransferId,
       to: toAddress,
       amount,
       totalSent,
-      nonce,
       index: Number(index),
       hops
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.bondAndForward(args)
+    const txData = await sdk.railsGateway.populateTransaction.postMultiHopClaim(args)
     return txData
   }
 
@@ -244,23 +216,19 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const transferId = "${transferId}"
-  const previousTransferId = "${previousTransferId}"
   const to = "${toAddress}"
   const amount = "${amount}"
   const totalSent = "${totalSent}"
-  const nonce = "${nonce}"
   const index = ${index !== '' ? index : '0'}
   const hops = "${JSON.stringify(hops, null, 2)}"
 
   const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.bondAndForward({
+  const txData = await hop.railsGateway.populateTransaction.postMultiHopClaim({
     pathId,
     transferId,
-    previousTransferId,
     to,
     amount,
     totalSent,
-    nonce,
     index,
     hops
   })
@@ -288,10 +256,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Bond And Forward</Typography>
+        <Typography variant="h5">Rails Gateway - Post Multi Hop Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Bond and forward to next path</Typography>
+        <Typography variant="subtitle1">Post a multi hop claim</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -313,16 +281,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Transfer ID<small><em>(bytes32)</em></small> <small><em>Transfer ID to use</em></small></label>
+                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>Transfer ID to use</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Previous Transfer ID <small><em>(bytes32)</em></small> <small><em>Previous Transfer ID to use</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={previousTransferId} onChange={(event: any) => setPreviousTransferId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -344,13 +305,6 @@ main().catch(console.error)
                   <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={(event: any) => setNonce(event.target.value)} />
               </Box>
 
               <Box mb={2}>

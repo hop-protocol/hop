@@ -6,7 +6,7 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { SiteWrapper } from '../components/SiteWrapper'
 import { providers, Contract, ContractFactory } from 'ethers'
 import { getAddress, formatEther } from 'ethers/lib/utils'
-import { useWeb3 } from '../hooks/useWeb3'
+import { useWeb3Context } from '../contexts/Web3Context'
 import pingPongArtifact from '../abi/PingPong.json'
 import hubConnectorFactoryArtifact from '../abi/HubERC5164ConnectorFactory.json'
 import Alert from '@mui/material/Alert'
@@ -17,7 +17,7 @@ import { useQuery } from 'react-query'
 import '../tutorial.css'
 
 export function PingPongTutorial () {
-  const { provider, address, requestWallet, disconnectWallet, checkConnectedNetworkId } = useWeb3()
+  const { provider, address, requestWallet, disconnectWallet, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
   const [isDeployingTarget1, setIsDeployingTarget1] = useState(false)
   const [isDeployingTarget2, setIsDeployingTarget2] = useState(false)

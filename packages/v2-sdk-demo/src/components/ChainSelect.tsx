@@ -12,6 +12,7 @@ export type Props = {
   onChange: (chainId: string) => void
 }
 
+// TODO: move to config
 const labels: Record<string, string> = {
   1: 'Ethereum (Mainnet)',
   10: 'Optimism (Mainnet)',

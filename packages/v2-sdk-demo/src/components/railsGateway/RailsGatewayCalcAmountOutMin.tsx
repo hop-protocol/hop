@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
@@ -6,9 +6,8 @@ import { CustomTextField } from '../CustomTextField'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { network } from '../../config'
 
 type Props = {
   sdk: Hop

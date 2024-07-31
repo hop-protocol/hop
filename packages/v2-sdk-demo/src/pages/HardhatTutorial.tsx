@@ -7,7 +7,7 @@ import { CustomTextField } from '../components/CustomTextField'
 import { SiteWrapper } from '../components/SiteWrapper'
 import { providers, Contract, ContractFactory } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
-import { useWeb3 } from '../hooks/useWeb3'
+import { useWeb3Context } from '../contexts/Web3Context'
 import bidirectionalGreeterArtifact from '../abi/BidirectionalGreeter.json'
 import Alert from '@mui/material/Alert'
 import { Syntax } from '../components/Syntax'
@@ -18,7 +18,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import '../tutorial.css'
 
 export function HardhatTutorial () {
-  const { address, getSignerOrRequestWallet, requestWallet, disconnectWallet, checkConnectedNetworkIdOrThrow } = useWeb3()
+  const { address, getSignerOrRequestWallet, requestWallet, disconnectWallet, checkConnectedNetworkIdOrThrow } = useWeb3Context()
   const [error, setError] = useState('')
   const [isDeployingGreeterOnGoerli, setIsDeployingGreeterOnGoerli] = useState(false)
   const [isDeployingGreeterOnOptimism, setIsDeployingGreeterOnOptimism] = useState(false)

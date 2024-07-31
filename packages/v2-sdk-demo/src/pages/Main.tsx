@@ -49,12 +49,12 @@ import { GetMessageFee } from '../components/messenger/GetMessageFee'
 import { SetRpcProviders } from '../components/messenger/SetRpcProviders'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { useStyles } from '../components/useStyles'
-import { useWeb3 } from '../hooks/useWeb3'
+import { useWeb3Context } from '../contexts/Web3Context'
 import { network } from '../config'
 
 export function Main () {
   // const { sdk, connected, safe } = useSafeAppsSDK()
-  const { provider, address, requestWallet, disconnectWallet } = useWeb3()
+  const { provider, address, requestWallet, disconnectWallet } = useWeb3Context()
   const styles = useStyles()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [error, setError] = useState('')

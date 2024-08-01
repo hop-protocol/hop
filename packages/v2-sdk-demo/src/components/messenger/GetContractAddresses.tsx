@@ -94,3 +94,5 @@ main().catch(console.error)
     </Box>
   )
 }
+
+export default GetContractAddresses

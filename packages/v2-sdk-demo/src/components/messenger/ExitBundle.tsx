@@ -12,6 +12,7 @@ import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   signer?: Signer
@@ -24,45 +25,20 @@ export function ExitBundle (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [bundleCommittedTxHash, setBundleCommittedTxHash] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:bundleCommittedTxHash`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [bundleCommittedTxHash, setBundleCommittedTxHash] = useLocalStorageState(`${cacheKey}:bundleCommittedTxHash`, {
+    defaultValue: '',
   })
+
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:bundleCommittedTxHash`, bundleCommittedTxHash)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [bundleCommittedTxHash])
 
   async function getSendTxData() {
     const args = {

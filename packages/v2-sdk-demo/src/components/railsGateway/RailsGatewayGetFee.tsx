@@ -9,6 +9,7 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -19,23 +20,12 @@ export function RailsGatewayGetFee (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [pathId, setPathId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
   })
   const [fee, setFee] = useState('')
   const [loading, setLoading] = useState(false)
@@ -45,21 +35,6 @@ export function RailsGatewayGetFee (props: Props) {
     return sdk.getRpcProviderForChainId(fromChainId)
   }, [sdk, fromChainId])
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [pathId])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

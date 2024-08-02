@@ -9,6 +9,7 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -19,77 +20,24 @@ export function RailsGatewayGetPathId (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [toChainId, setToChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.to
+
+  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
+    defaultValue: defaultChainIds.to,
   })
-  const [fromToken, setFromToken] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromToken`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [fromToken, setFromToken] = useLocalStorageState(`${cacheKey}:fromToken`, {
+    defaultValue: '',
   })
-  const [toToken, setToToken] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toToken`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toToken, setToToken] = useLocalStorageState(`${cacheKey}:toToken`, {
+    defaultValue: '',
   })
   const [pathId, setPathId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromToken`, fromToken)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromToken])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toToken`, toToken)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toToken])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

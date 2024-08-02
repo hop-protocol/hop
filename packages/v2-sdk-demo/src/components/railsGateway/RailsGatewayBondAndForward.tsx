@@ -17,6 +17,7 @@ import StepLabel from '@mui/material/StepLabel'
 import StepContent from '@mui/material/StepContent'
 import Button from '@mui/material/Button'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   signer?: Signer
@@ -29,168 +30,50 @@ export function RailsGatewayBondAndForward(props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [pathId, setPathId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
   })
-  const [transferId, setTransferId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:transferId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+    defaultValue: '',
   })
-  const [previousTransferId, setPreviousTransferId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:prevousTransferId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [previousTransferId, setPreviousTransferId] = useLocalStorageState(`${cacheKey}:previousTransferId`, {
+    defaultValue: '',
   })
-  const [amount, setAmount] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:amount`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
+    defaultValue: '',
   })
-  const [totalSent, setTotalSent] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:totalSent`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
+    defaultValue: '',
   })
-  const [nonce, setNonce] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:nonce`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [nonce, setNonce] = useLocalStorageState(`${cacheKey}:nonce`, {
+    defaultValue: '',
   })
-  const [toAddress, setToAddress] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
+    defaultValue: '',
   })
-  const [index, setIndex] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:index`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [index, setIndex] = useLocalStorageState(`${cacheKey}:index`, {
+    defaultValue: '',
   })
-  const [hops, setHops] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:hops`)
-      if (cached) {
-        const parsed = JSON.parse(cached)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
-        }
-      }
-    } catch (err: any) {}
-    return [{ pathId: '', minAmountOut: '', attestedCheckpoint: '' }]
+
+  const [hops, setHops] = useLocalStorageState(`${cacheKey}:hops`, {
+    defaultValue: [{ pathId: '', minAmountOut: '', attestedCheckpoint: '' }],
   })
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:hops`, JSON.stringify(hops))
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [hops])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toAddress])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:amount`, amount)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [amount])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [pathId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:transferId`, transferId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [transferId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:prevousTransferId`, previousTransferId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [previousTransferId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:index`, index)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [index])
 
   async function getSendTxData() {
     const args = {

@@ -16,6 +16,7 @@ import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   signer?: Signer
@@ -28,66 +29,37 @@ export function SendMessage (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [toChainId, setToChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.to
+
+  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
+    defaultValue: defaultChainIds.to,
   })
-  const [toAddress, setToAddress] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
+    defaultValue: '',
   })
-  const [toCalldata, setToCalldata] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toCalldata, setToCalldata] = useLocalStorageState(`${cacheKey}:toCalldata`, {
+    defaultValue: '',
   })
+
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
   const [messageId, setMessageId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [abiString, setAbiString] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:abiString`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [abiString, setAbiString] = useLocalStorageState(`${cacheKey}:abiString`, {
+    defaultValue: '',
   })
+
   const [showAbiHelper, setShowAbiHelper] = useState(false)
-  const [selectedAbiMethod, setSelectedAbiMethod] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:selectedAbiMethod`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [selectedAbiMethod, setSelectedAbiMethod] = useLocalStorageState(`${cacheKey}:selectedAbiMethod`, {
+    defaultValue: '',
   })
 
   const abiJson = useMemo(() => {
@@ -128,54 +100,6 @@ export function SendMessage (props: Props) {
       .filter((x: any) => x.value)
     return options
   }, [abiJson])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toAddress])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toCalldata`, toCalldata)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toCalldata])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:abiString`, abiString)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [abiString])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:selectedAbiMethod`, selectedAbiMethod)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [selectedAbiMethod])
 
   async function getSendTxData() {
     const args = {

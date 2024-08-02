@@ -10,6 +10,7 @@ import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -20,43 +21,16 @@ export function GetMessageIdFromTxHash (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [messageSentTransactionHash, setMessageSentTransactionHash] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:messageSentTransactionHash`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [messageSentTransactionHash, setMessageSentTransactionHash] = useLocalStorageState(`${cacheKey}:messageSentTransactionHash`, {
+    defaultValue: '',
   })
   const [messageId, setMessageId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:messageSentTransactionHash`, messageSentTransactionHash)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [messageSentTransactionHash])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

@@ -39,6 +39,7 @@
     "react-transition-group": "4.4.5",
     "react-use": "^17.4.0",
     "styled-system": "^5.1.5",
+    "use-local-storage-state": "19.3.1",
     "vite-plugin-svgr": "4.2.0",
     "wait": "^0.4.2",
     "web-vitals": "^2.1.4",

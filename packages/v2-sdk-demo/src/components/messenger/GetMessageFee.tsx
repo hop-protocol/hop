@@ -8,6 +8,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { HighlightedButton } from '../HighlightedButton'
 import { ChainSelect } from '../ChainSelect'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -17,42 +18,15 @@ export function GetMessageFee (props: Props) {
   const cacheKey = 'getMessageFee'
   const { sdk } = props
   const styles = useStyles()
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [toChainId, setToChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.to
+
+  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
+    defaultValue: defaultChainIds.to,
   })
   const [copied, setCopied] = useState(false)
   const [output, setOutput] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toChainId])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

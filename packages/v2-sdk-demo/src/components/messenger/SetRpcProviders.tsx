@@ -8,6 +8,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
 import { network } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -18,29 +19,15 @@ export function SetRpcProviders (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [configString, setConfigString] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:configString`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return JSON.stringify({
+  const [configString, setConfigString] = useLocalStorageState(`${cacheKey}:configString`, {
+    defaultValue: JSON.stringify({
       84532: 'https://sepolia.base.org',
       11155111: 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213',
-    }, null, 2)
+    }, null, 2),
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:configString`, configString)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [configString])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

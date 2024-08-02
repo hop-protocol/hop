@@ -8,6 +8,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
 import { network } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -18,43 +19,17 @@ export function RailsGatewayCalcAmountOutMin (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [amountOut, setAmountOut] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:amountOut`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
+    defaultValue: '',
   })
-  const [slippageTolerance, setSlippageTolerance] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:slippageTolerance`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [slippageTolerance, setSlippageTolerance] = useLocalStorageState(`${cacheKey}:slippageTolerance`, {
+    defaultValue: '',
   })
+
   const [amountOutMin, setAmountOutMin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:amountOut`, amountOut)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [amountOut])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:slippageTolerance`, slippageTolerance)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [slippageTolerance])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

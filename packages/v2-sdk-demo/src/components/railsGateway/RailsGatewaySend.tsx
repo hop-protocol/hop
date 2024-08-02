@@ -12,6 +12,7 @@ import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   signer?: Signer
@@ -24,113 +25,34 @@ export function RailsGatewaySend (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [pathId, setPathId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
   })
-  const [toAddress, setToAddress] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
+    defaultValue: '',
   })
-  const [amount, setAmount] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:amount`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
+    defaultValue: '',
   })
-  const [minAmountOut, setMinAmountOut] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:minAmountOut`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [minAmountOut, setMinAmountOut] = useLocalStorageState(`${cacheKey}:minAmountOut`, {
+    defaultValue: '',
   })
-  const [attestedCheckpoint, setAttestedCheckpoint] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:attestedCheckpoint`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [attestedCheckpoint, setAttestedCheckpoint] = useLocalStorageState(`${cacheKey}:attestedCheckpoint`, {
+    defaultValue: '',
   })
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [pathId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toAddress])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:amount`, amount)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [amount])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:minAmountOut`, minAmountOut)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [minAmountOut])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:attestedCheckpoint`, attestedCheckpoint)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [attestedCheckpoint])
 
   async function getSendTxData() {
     const args = {

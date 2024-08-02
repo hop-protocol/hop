@@ -9,6 +9,7 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -19,145 +20,40 @@ export function RailsGatewayGetTransferId (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [pathId, setPathId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
   })
-  const [toAddress, setToAddress] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
+    defaultValue: '',
   })
-  const [adjustedAmount, setAdjustedAmount] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:adjustedAmount`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [adjustedAmount, setAdjustedAmount] = useLocalStorageState(`${cacheKey}:adjustedAmount`, {
+    defaultValue: '',
   })
-  const [minAmountOut, setMinAmountOut] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:minAmountOut`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [minAmountOut, setMinAmountOut] = useLocalStorageState(`${cacheKey}:minAmountOut`, {
+    defaultValue: '',
   })
-  const [totalSent, setTotalSent] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:totalSent`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
+    defaultValue: '',
   })
-  const [nonce, setNonce] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:nonce`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [nonce, setNonce] = useLocalStorageState(`${cacheKey}:nonce`, {
+    defaultValue: '',
   })
-  const [attestedCheckpoint, setAttestedCheckpoint] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:attestedCheckpoint`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [attestedCheckpoint, setAttestedCheckpoint] = useLocalStorageState(`${cacheKey}:attestedCheckpoint`, {
+    defaultValue: '',
   })
   const [transferId, setTransferId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromChainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [pathId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toAddress])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:adjustedAmount`, adjustedAmount)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [adjustedAmount])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:minAmountOut`, minAmountOut)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [minAmountOut])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:totalSent`, totalSent)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [totalSent])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:nonce`, nonce)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [nonce])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:attestedCheckpoint`, attestedCheckpoint)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [attestedCheckpoint])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

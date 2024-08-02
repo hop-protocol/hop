@@ -10,6 +10,7 @@ import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
 type Props = {
   sdk: Hop
@@ -20,60 +21,20 @@ export function RailsGatewayGetTransferBondedEvents (props: Props) {
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [chainId, setChainId] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:chainId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return defaultChainIds.from
+  const [chainId, setChainId] = useLocalStorageState(`${cacheKey}:chainId`, {
+    defaultValue: defaultChainIds.from,
   })
-  const [fromBlock, setFromBlock] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:fromBlock`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [fromBlock, setFromBlock] = useLocalStorageState(`${cacheKey}:fromBlock`, {
+    defaultValue: '',
   })
-  const [toBlock, setToBlock] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toBlock`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
+
+  const [toBlock, setToBlock] = useLocalStorageState(`${cacheKey}:toBlock`, {
+    defaultValue: '',
   })
   const [events, setEvents] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:chainId`, chainId)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [chainId])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:fromBlock`, fromBlock)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [fromBlock])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toBlock`, toBlock)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toBlock])
 
   async function getEvents() {
     let _fromBlock = Number(fromBlock)

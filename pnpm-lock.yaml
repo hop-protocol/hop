@@ -1170,6 +1170,9 @@ importers:
       styled-system:
         specifier: ^5.1.5
         version: 5.1.5
+      use-local-storage-state:
+        specifier: 19.3.1
+        version: 19.3.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       vite-plugin-svgr:
         specifier: 4.2.0
         version: 4.2.0(rollup@2.79.1)(typescript@5.4.3)(vite@5.0.8(@types/node@16.18.98)(terser@5.31.1))
@@ -13165,6 +13168,13 @@ packages:
     resolution: {integrity: sha512-J4RLCD/Gxh3VYRldO6xLLYuqwyOfXhFOqlVNCAAA+kvhE2DNsUB6YLJKvSJ8GCS3aiSiI8jJ/AvI7GYWCa/Djw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0
+
+  use-local-storage-state@19.3.1:
+    resolution: {integrity: sha512-y3Z1dODXvZXZB4qtLDNN8iuXbsYD6TAxz61K58GWB9/yKwrNG9ynI0GzCTHi/Je1rMiyOwMimz0oyFsZn+Kj7Q==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
 
   use-sync-external-store@1.2.0:
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
@@ -30531,6 +30541,11 @@ snapshots:
   use-async-memo@1.2.4(react@18.2.0):
     dependencies:
       react: 18.2.0
+
+  use-local-storage-state@19.3.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
 
   use-sync-external-store@1.2.0(react@18.2.0):
     dependencies:

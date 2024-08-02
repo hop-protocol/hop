@@ -26,3 +26,6 @@ yarn-error.log*
 
 .netlify
 .npmignore
+
+.next
+next-env.d.ts

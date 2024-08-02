@@ -1,6 +1,6 @@
 import { Logger } from '#logger/index.js'
 import type { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
-import { CoreEnvironment } from '#config/index.js'
+import { SharedConfig } from '#config/index.js'
 
 export abstract class AbstractService {
   protected readonly chainSlug: ChainSlug
@@ -9,8 +9,7 @@ export abstract class AbstractService {
 
   constructor (chainSlug: ChainSlug) {
     this.chainSlug = chainSlug
-    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
-    this.networkSlug = coreEnvironmentVariables.envNetwork
+    this.networkSlug = SharedConfig.network
 
     // Set up config
     const prefix = `${this.chainSlug}`

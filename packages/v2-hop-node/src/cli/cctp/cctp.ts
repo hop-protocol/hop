@@ -1,6 +1,6 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Message } from '#cctp/Message.js'
-import { config as globalConfig } from '#config/index.js'
+import { SharedConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 
 // TODO: Automate
@@ -20,8 +20,9 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
   ]
 }
 export async function main () {
-  const chains: ChainSlug[] = CHAINS[globalConfig.network as NetworkSlug]!
-  const chainIds: string[] = chains.map(chainSlug => getChain(globalConfig.network as NetworkSlug, chainSlug).chainId)
+  const network: NetworkSlug = SharedConfig.network
+  const chains: ChainSlug[] = CHAINS[network]!
+  const chainIds: string[] = chains.map(chainSlug => getChain(network, chainSlug).chainId)
 
   try {
     const messageManager = new Message(chainIds)

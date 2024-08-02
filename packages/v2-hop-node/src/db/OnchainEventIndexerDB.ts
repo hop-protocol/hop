@@ -124,7 +124,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       batch.put(primaryKey, log)
 
       let indexedKey = primaryKey
-      for (const secondaryKey of this.#secondaryKeys[primaryKey]) {
+      for (const secondaryKey of this.#secondaryKeys[primaryKey]!) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
         const indexValue = String(log.decoded[secondaryKey as keyof typeof log.decoded])
         indexedKey += indexedKey ? ('!' + indexValue) : indexValue 
@@ -138,7 +138,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     let message = `Writing syncedBlockNumber ${syncedBlockNumber} for primaryKey ${primaryKey}`
     if (logs.length) {
-      message += ` on chainId ${logs[0].context.chainId} with ${logs.length} logs. ${JSON.stringify(logs)}`
+      message += ` on chainId ${logs[0]!.context.chainId} with ${logs.length} logs. ${JSON.stringify(logs)}`
     }
     this.logger.debug(message)
     return batch.write()

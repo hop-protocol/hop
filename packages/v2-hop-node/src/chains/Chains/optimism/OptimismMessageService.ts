@@ -5,7 +5,7 @@ import {
   MessageStatus
 } from '@eth-optimism/sdk'
 import type { providers } from 'ethers'
-import { CoreEnvironment } from '#config/index.js'
+import { SharedConfig } from '#config/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import type { ChainSlug } from '@hop-protocol/sdk'
 
@@ -15,8 +15,8 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
-    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
-    const l2Chain = getChain(coreEnvironmentVariables.envNetwork, chainSlug)
+    const networkSlug = SharedConfig.network
+    const l2Chain = getChain(networkSlug, chainSlug)
     this.#csm = new CrossChainMessenger({
       bedrock: true,
       l1ChainId: Number(l2Chain.parentChainId),

@@ -2,13 +2,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
-import {
-  config as globalConfig,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile,
-  validateConfigFileStructure,
-  validateConfigValues
-} from '#config/index.js'
 
 export const logger = new Logger('config')
 export const program = new Command()
@@ -26,18 +19,12 @@ export function actionHandler (fn: (source: any) => any) {
     try {
       const configFilePath = source.config || source?.parent?.config
       if (configFilePath) {
-        const config = await parseConfigFile(configFilePath)
-        await setGlobalConfigFromConfigFile(config, source.passwordFile)
-        await validateConfigFileStructure(config)
-        source.configFilePath = configFilePath
-        source.config = config
+        // TODO: I believe this is where I do config init
       }
 
       if (source?.dry === undefined && source?.parent?.dry) {
         source.dry = source?.parent?.dry
       }
-
-      await validateConfigValues(globalConfig)
 
       await fn(source)
       process.exit(0)

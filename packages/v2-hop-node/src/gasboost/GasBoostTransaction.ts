@@ -13,7 +13,6 @@ import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
-import { CoreEnvironment } from '#config/index.js'
 import { utils } from 'ethers'
 import { getBumpedBN } from '#utils/getBumpedBN.js'
 import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
@@ -22,6 +21,7 @@ import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { GasBoostConfig, SharedConfig } from '#config/index.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -375,8 +375,10 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
-    const rpcUrl = coreEnvironmentVariables.rpcUrls?.[chainSlug as ChainSlug]
+    const rpcUrl = SharedConfig.chains?.[chainSlug as ChainSlug]?.rpcUrl
+    if (!rpcUrl) {
+      throw new Error(`rpcUrl not found for chainSlug: ${chainSlug}`)
+    }
     const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
@@ -405,7 +407,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     )
     if (isEthereumMainnet) {
       try {
-        const blocknativeApiKey = CoreEnvironment.getInstance().getEnvironment().blocknativeApiKey
+        const blocknativeApiKey = GasBoostConfig.blocknativeApiKey
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
         const res = await fetch(url, {

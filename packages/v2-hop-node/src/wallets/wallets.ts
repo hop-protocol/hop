@@ -1,14 +1,20 @@
 import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
 import { Wallet } from 'ethers'
-import { CoreEnvironment } from '#config/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
 import type { ChainSlug } from '@hop-protocol/sdk'
+import {
+  MAX_PRIORITY_FEE_CONFIDENCE_LEVEL,
+  INITIAL_TX_GAS_PRICE_MULTIPLIER,
+  GAS_PRICE_MULTIPLIER,
+  TIME_TIL_BOOST_MS,
+  PRIORITY_FEE_PER_GAS_CAP
+} from '#gasboost/constants.js'
+import { GasBoostConfig } from '#config/index.js'
 
 const cache: Record<string, Signer> = {}
 
 const constructSigner = (network: string, privateKey?: string): Signer => {
-  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
   const cacheKey = `${network}`
   const cachedValue = cache[cacheKey]
   if (cachedValue) {
@@ -26,14 +32,13 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
 
   const signer = new GasBoostSigner(wallet)
   signer.setOptions({
-    gasPriceMultiplier: coreEnvironmentVariables.gasPriceMultiplier,
-    initialTxGasPriceMultiplier: coreEnvironmentVariables.initialTxGasPriceMultiplier,
-    maxGasPriceGwei: coreEnvironmentVariables.maxGasPriceGwei,
-    priorityFeePerGasCap: coreEnvironmentVariables.priorityFeePerGasCap,
-    timeTilBoostMs: coreEnvironmentVariables.timeTilBoostMs,
-    maxPriorityFeeConfidenceLevel: coreEnvironmentVariables.maxPriorityFeeConfidenceLevel
+    gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
+    initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
+    maxGasPriceGwei: GasBoostConfig.maxGasPriceGwei,
+    priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
+    timeTilBoostMs: TIME_TIL_BOOST_MS,
+    maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL
   })
-
   cache[cacheKey] = signer
   return signer
 }
@@ -41,13 +46,11 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
 // lazy instantiate
 export const wallets = {
   has (network: string): boolean {
-    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
-    const privateKey = coreEnvironmentVariables?.bonderPrivateKey
+    const privateKey = GasBoostConfig.bonderPrivateKey
     return !!constructSigner(network, privateKey)
   },
   get (network: string): Signer {
-    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
-    const privateKey = coreEnvironmentVariables?.bonderPrivateKey
+    const privateKey = GasBoostConfig.bonderPrivateKey
     return constructSigner(network, privateKey)
   }
 }

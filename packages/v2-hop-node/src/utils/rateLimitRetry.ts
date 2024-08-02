@@ -1,7 +1,10 @@
 import { Logger } from '#logger/index.js'
-import { CoreEnvironment } from '#config/index.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { wait } from './wait.js'
+import {
+  RATE_LIMIT_MAX_RETRIES,
+  RPC_TIMEOUT_SECONDS
+} from '#constants/index.js'
 
 const _logger = new Logger('rateLimitRetry')
 
@@ -9,11 +12,10 @@ const _logger = new Logger('rateLimitRetry')
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${process.hrtime.bigint()}`
   const logger = _logger.create({ id })
-  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
   // eslint-disable-next-line max-lines-per-function
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), coreEnvironmentVariables.rpcTimeoutSeconds * 1000)
+    const retry = () => promiseTimeout(fn(...args), RPC_TIMEOUT_SECONDS * 1000)
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.
@@ -58,8 +60,8 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         }
         retries++
         // if it's a rate limit error, then throw error after max retries attempted.
-        if (retries >= coreEnvironmentVariables.rateLimitMaxRetries) {
-          logger.error(`max retries reached (${coreEnvironmentVariables.rateLimitMaxRetries}). Error: ${err}`)
+        if (retries >= RATE_LIMIT_MAX_RETRIES) {
+          logger.error(`max retries reached (${RATE_LIMIT_MAX_RETRIES}). Error: ${err}`)
           // this must be a regular console log to print original function name
           console.error('max retries reached', fn, id, ...args)
           throw err

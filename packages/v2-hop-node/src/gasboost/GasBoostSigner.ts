@@ -4,11 +4,11 @@ import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from '#types/error.js'
 import { Signer, utils } from 'ethers'
-import { CoreEnvironment } from '#config/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Store } from './Store.js'
 import type { providers } from 'ethers'
+import { GasBoostConfig } from '#config/index.js'
 
 export class GasBoostSigner extends Signer {
   store!: Store
@@ -77,7 +77,7 @@ export class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce (): Promise<boolean> {
-    const setLatestNonceOnStart = CoreEnvironment.getInstance().getEnvironment().setLatestNonceOnStart
+    const setLatestNonceOnStart = GasBoostConfig.setLatestNonceOnStart
     if (setLatestNonceOnStart) {
       return true
     }

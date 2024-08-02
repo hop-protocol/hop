@@ -20,6 +20,17 @@ export enum TimeIntervals {
 // Chain
 export const AVG_BLOCK_TIME_SECONDS: Partial<Record<ChainSlug, number>> = getAverageBlockTimeSeconds()
 export const MIN_POLYGON_GAS_PRICE = 60_000_000_000
+
+//Other
+export const RATE_LIMIT_MAX_RETRIES = 5
+export const RPC_TIMEOUT_SECONDS = 60
+
+
+
+
+
+
+
 // export const MIN_GNOSIS_GAS_PRICE = 5_000_000_000
 // export const SettlementGasLimitPerTx: Record<string, number> = {
 //   ethereum: 5141,

@@ -83,7 +83,7 @@ export class GasBoostSigner extends Signer {
     const defaultOptions: Partial<Options> = {
       gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
       initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
-      maxGasPriceGwei: SignerConfig.maxGasPriceGwei[chainSlug as ChainSlug]!.maxGasPriceGwei,
+      maxGasPriceGwei: SignerConfig.maxGasPriceGwei[chainSlug as ChainSlug],
       priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
       timeTilBoostMs: TIME_TIL_BOOST_MS,
       maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL
@@ -99,15 +99,7 @@ export class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce (): Promise<boolean> {
-    const setLatestNonceOnStart = SignerConfig.setLatestNonceOnStart
-    if (setLatestNonceOnStart) {
-      return true
-    }
-    const item = await this.store.getItem('nonce')
-    const timeWindowMs = 5 * 60 * 1000
-    if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {
-      return false
-    }
+    // TODO: V2: This is legacy and should be removed
     return true
   }
 

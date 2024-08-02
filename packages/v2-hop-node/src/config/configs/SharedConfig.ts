@@ -1,8 +1,10 @@
+import fs from 'node:fs'
 import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { ConfigManager } from '../ConfigManager.js'
 import { providers } from 'ethers'
 import { getChain } from '@hop-protocol/sdk'
 import { SyncType } from '#constants/index.js'
+import { mkdirp } from 'mkdirp'
 
 export type ChainInfo = {
   [key in ChainSlug]?: {
@@ -14,7 +16,7 @@ export interface ISharedConfig {
   network: NetworkSlug
   chains: ChainInfo
   dbDir: string
-  syncType: string
+  syncType: SyncType
 }
 
 const defaultConfig: ISharedConfig = {
@@ -32,7 +34,7 @@ export class SharedConfig extends ConfigManager {
   static network: NetworkSlug
   static chains: ChainInfo
   static dbDir: string
-  static syncType: string
+  static syncType: SyncType
 
   protected static override async init(sharedConfig: ISharedConfig): Promise<void> {
     const { network, chains, dbDir } = sharedConfig
@@ -40,9 +42,21 @@ export class SharedConfig extends ConfigManager {
     this.chains = chains ?? defaultConfig.chains
     this.dbDir = dbDir
     this.syncType = SyncType.Bonder
+
+    // Create DB dir if it doesn't exist
+    mkdirp.sync(this.dbDir)
   }
 
   protected static override async validate(): Promise<void> {
+    if (
+      !this.network ||
+      !this.chains ||
+      !this.dbDir ||
+      !this.syncType
+    ) {
+      throw new Error('SharedConfig not yet init')
+    }
+
     if (!Object.values(NetworkSlug).includes(this.network)) {
       throw new Error(`Invalid network value: ${this.network}`)
     }
@@ -57,6 +71,14 @@ export class SharedConfig extends ConfigManager {
       }
 
       await this.#validateRpcUrl(this.network, chain as ChainSlug, chainInfo.rpcUrl)
+    }
+
+    if (!fs.existsSync(this.dbDir)) {
+      throw new Error(`Invalid or missing dbDir: ${this.dbDir}`)
+    }
+
+    if (!Object.values(SyncType).includes(this.syncType)) {
+      throw new Error(`Invalid syncType: ${this.syncType}`)
     }
   }
 

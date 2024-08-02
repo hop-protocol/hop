@@ -1,14 +1,11 @@
-import os from 'node:os'
 import path from 'node:path'
 import { SharedConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 import { BigNumber } from 'ethers'
 
-// Assume that a path is a location if it contains a slash
 export function getDBPath (dbNameOrLocation: string): string {
   const dbPath = SharedConfig.dbDir
-  const pathWithName = dbPath + '_' + dbNameOrLocation
-  const pathname = path.resolve(pathWithName)
+  const pathname = path.resolve(dbPath, dbNameOrLocation)
   mkdirp.sync(pathname.replace(path.basename(pathname), ''))
   return pathname
 }

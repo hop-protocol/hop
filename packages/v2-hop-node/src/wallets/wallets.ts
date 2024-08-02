@@ -3,14 +3,7 @@ import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
 import type { ChainSlug } from '@hop-protocol/sdk'
-import {
-  MAX_PRIORITY_FEE_CONFIDENCE_LEVEL,
-  INITIAL_TX_GAS_PRICE_MULTIPLIER,
-  GAS_PRICE_MULTIPLIER,
-  TIME_TIL_BOOST_MS,
-  PRIORITY_FEE_PER_GAS_CAP
-} from '#gasboost/constants.js'
-import { GasBoostConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
 
 const cache: Record<string, Signer> = {}
 
@@ -28,17 +21,9 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
   if (!privateKey) {
     throw new Error('private key is required to instantiate wallet')
   }
-  wallet = new Wallet(privateKey, provider)
 
+  wallet = new Wallet(privateKey, provider)
   const signer = new GasBoostSigner(wallet)
-  signer.setOptions({
-    gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
-    initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
-    maxGasPriceGwei: GasBoostConfig.maxGasPriceGwei,
-    priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
-    timeTilBoostMs: TIME_TIL_BOOST_MS,
-    maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL
-  })
   cache[cacheKey] = signer
   return signer
 }
@@ -46,11 +31,11 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
 // lazy instantiate
 export const wallets = {
   has (network: string): boolean {
-    const privateKey = GasBoostConfig.bonderPrivateKey
+    const privateKey = SignerConfig.bonderPrivateKey
     return !!constructSigner(network, privateKey)
   },
   get (network: string): Signer {
-    const privateKey = GasBoostConfig.bonderPrivateKey
+    const privateKey = SignerConfig.bonderPrivateKey
     return constructSigner(network, privateKey)
   }
 }

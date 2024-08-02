@@ -3,26 +3,11 @@ import { ChainSlug } from '@hop-protocol/sdk'
 
 export type MaxGasPriceGwei = {
   [key in ChainSlug]?: {
-    maxGasPriceGwei: string
+    maxGasPriceGwei: number
   }
 }
 
-// export interface ISharedConfig {
-//   network: NetworkSlug
-//   chains: ChainInfo
-//   dbDir: string
-//   syncType: string
-// }
-
-// const defaultConfig: ISharedConfig = {
-//   network: NetworkSlug.Sepolia,
-//   chains: {
-//     [ChainSlug.Ethereum]: {
-//       rpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
-//     }
-//   },
-
-export interface IGasBoostConfig {
+export interface ISignerConfig {
   blocknativeApiKey: string
   bonderPrivateKey: string
   maxGasPriceGwei: MaxGasPriceGwei
@@ -30,14 +15,14 @@ export interface IGasBoostConfig {
   setLatestNonceOnStart: boolean
 }
 
-export class GasBoostConfig extends ConfigManager {
+export class SignerConfig extends ConfigManager {
   static blocknativeApiKey: string
   static bonderPrivateKey: string
   static maxGasPriceGwei: MaxGasPriceGwei
   // TODO: Get rid of this
   static setLatestNonceOnStart: boolean
 
-  protected static override async init(config: IGasBoostConfig): Promise<void> {
+  protected static override async init(config: ISignerConfig): Promise<void> {
     const { blocknativeApiKey, bonderPrivateKey, maxGasPriceGwei } = config
     this.blocknativeApiKey = blocknativeApiKey
     this.bonderPrivateKey = bonderPrivateKey
@@ -53,7 +38,7 @@ export class GasBoostConfig extends ConfigManager {
       !this.bonderPrivateKey ||
       !this.maxGasPriceGwei
     ) {
-      throw new Error('GasBoostConfig not yet init')
+      throw new Error('SignerConfig not yet init')
     }
 
     if (this.blocknativeApiKey.length === 0) {

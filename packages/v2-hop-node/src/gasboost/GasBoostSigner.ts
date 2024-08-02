@@ -1,3 +1,4 @@
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { GasBoostTransactionFactory, type Options } from './GasBoostTransactionFactory.js'
 import { Logger } from '#logger/index.js'
 import { MemoryStore } from './MemoryStore.js'
@@ -8,7 +9,14 @@ import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Store } from './Store.js'
 import type { providers } from 'ethers'
-import { GasBoostConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
+import {
+  MAX_PRIORITY_FEE_CONFIDENCE_LEVEL,
+  INITIAL_TX_GAS_PRICE_MULTIPLIER,
+  GAS_PRICE_MULTIPLIER,
+  TIME_TIL_BOOST_MS,
+  PRIORITY_FEE_PER_GAS_CAP
+} from '#gasboost/constants.js'
 
 export class GasBoostSigner extends Signer {
   store!: Store
@@ -34,8 +42,8 @@ export class GasBoostSigner extends Signer {
     this.gTxFactory = new GasBoostTransactionFactory(this.signer)
     const tag = 'GasBoostSigner'
     this.logger = new Logger({ tag })
-    this.setOptions(options)
-    this.init()
+
+    this.init(options)
       .catch((err: Error) => this.logger.error('init error:', err))
       .finally(() => {
         this.getDbNonce()
@@ -68,7 +76,21 @@ export class GasBoostSigner extends Signer {
     return this.signer.signTransaction(transaction)
   }
 
-  private async init (): Promise<void> {
+  private async init (options: Partial<Options>): Promise<void> {
+    // Set options
+    const chainId = await this.signer.getChainId()
+    const chainSlug = getChainSlug(chainId.toString())
+    const defaultOptions: Partial<Options> = {
+      gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
+      initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
+      maxGasPriceGwei: SignerConfig.maxGasPriceGwei[chainSlug as ChainSlug]!.maxGasPriceGwei,
+      priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
+      timeTilBoostMs: TIME_TIL_BOOST_MS,
+      maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL
+    }
+    const opts = { ...defaultOptions, ...options }
+    this.setOptions(opts)
+
     // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
     const shouldUpdate = await this.shouldSetLatestNonce()
     if (shouldUpdate) {
@@ -77,7 +99,7 @@ export class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce (): Promise<boolean> {
-    const setLatestNonceOnStart = GasBoostConfig.setLatestNonceOnStart
+    const setLatestNonceOnStart = SignerConfig.setLatestNonceOnStart
     if (setLatestNonceOnStart) {
       return true
     }

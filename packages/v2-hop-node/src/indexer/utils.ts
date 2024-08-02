@@ -1,6 +1,6 @@
 import { getChain } from '@hop-protocol/sdk'
 import { utils } from 'ethers'
-import { MAX_BLOCK_RANGE_PER_INDEX } from './constants.js'
+import { MAX_BLOCK_RANGE_PER_GET_LOG_CALL } from '#constants/index.js'
 import type { IndexerEventFilter } from './OnchainEventIndexer.js'
 import { FinalityService } from '#finality/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
@@ -14,7 +14,7 @@ export function getUniqueFilterId (indexerEventFilter: IndexerEventFilter): stri
 
 export function getMaxBlockRangePerIndex (chainId: string): number {
   const chainSlug = getChain(chainId).slug
-  return MAX_BLOCK_RANGE_PER_INDEX[chainSlug]
+  return MAX_BLOCK_RANGE_PER_GET_LOG_CALL[chainSlug]
 }
 
 // TODO: V2: Should not be in CCTP module

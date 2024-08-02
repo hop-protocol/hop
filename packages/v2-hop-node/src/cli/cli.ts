@@ -1,7 +1,7 @@
 import { Logger } from '#logger/index.js'
-import { execSync } from 'node:child_process'
 import { program } from './shared/index.js'
 
+// Main
 import './hopNode.js'
 
 // CCTP
@@ -10,8 +10,9 @@ import './cctp/relayCCTP.js'
 import './cctp/cctpDBDump.js'
 import './cctp/unrelayedCCTPMessages.js'
 
-const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
-program.version(`Version: ${gitRev ?? 'unknown'}`)
+// TODO: Reintroduce GitRev
+// program.version(`Version: ${gitRev ?? 'unknown'}`)
+program.version(`Version: ${'unknown'}`)
 program.parse(process.argv)
 
 const logger = new Logger('process')

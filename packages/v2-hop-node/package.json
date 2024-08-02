@@ -22,6 +22,7 @@
     "pnpm": ">=9"
   },
   "scripts": {
+    "start": "tsx ./src/cli/cli.ts",
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
@@ -53,7 +54,8 @@
   },
   "devDependencies": {
     "@types/keythereum": "1.2.4",
-    "@types/uuid": "9.0.8"
+    "@types/uuid": "9.0.8",
+    "tsx": "4.16.5"
   },
   "homepage": "https://hop.exchange",
   "repository": {

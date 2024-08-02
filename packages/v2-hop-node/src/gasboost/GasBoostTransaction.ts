@@ -21,7 +21,7 @@ import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
-import { GasBoostConfig, SharedConfig } from '#config/index.js'
+import { SignerConfig, SharedConfig } from '#config/index.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -407,7 +407,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     )
     if (isEthereumMainnet) {
       try {
-        const blocknativeApiKey = GasBoostConfig.blocknativeApiKey
+        const blocknativeApiKey = SignerConfig.blocknativeApiKey
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
         const res = await fetch(url, {

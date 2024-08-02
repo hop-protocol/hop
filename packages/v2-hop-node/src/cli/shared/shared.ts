@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
+import { initConfigs } from '#config/index.js'
 
 export const logger = new Logger('config')
 export const program = new Command()
@@ -17,15 +18,7 @@ export const root = program
 export function actionHandler (fn: (source: any) => any) {
   return async (source: any = {}) => {
     try {
-      const configFilePath = source.config || source?.parent?.config
-      if (configFilePath) {
-        // TODO: I believe this is where I do config init
-      }
-
-      if (source?.dry === undefined && source?.parent?.dry) {
-        source.dry = source?.parent?.dry
-      }
-
+      await initConfigs()
       await fn(source)
       process.exit(0)
     } catch (err) {

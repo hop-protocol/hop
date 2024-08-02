@@ -9,6 +9,7 @@ import {
   MessageState
 } from './types.js'
 import { TxRelayDB } from '#db/TxRelayDB.js'
+import { FINALITY_TIME_MS } from '#constants/index.js'
 
 export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   readonly #sentTxCache: TxRelayDB = new TxRelayDB('StateMachine')
@@ -53,7 +54,8 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     const { sourceChainId, destinationChainId, sentTimestampMs } = value
 
     const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
-    const destChainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
+    const destinationChainSlug = getChain(destinationChainId).slug
+    const destChainFinalityTimeMs = FINALITY_TIME_MS[destinationChainSlug]
     // Add a buffer to allow the transaction to be processed by the relayer
     const bufferMs = 60_000
 

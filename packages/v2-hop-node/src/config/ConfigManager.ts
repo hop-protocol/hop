@@ -1,20 +1,20 @@
 import type { ISharedConfig } from './configs/SharedConfig.js'
-import type { IGasBoostConfig } from './configs/GasBoostConfig.js'
+import type { ISignerConfig } from './configs/SignerConfig.js'
 
-type Configs = ISharedConfig | IGasBoostConfig
+type Configs = ISharedConfig | ISignerConfig
 
 export abstract class ConfigManager {
-  static #initialized: boolean = false
+  protected static initialized: boolean = false
 
   static async initializeConfig(customConfig: Configs): Promise<void> {
-    if (this.#initialized) {
+    if (this.initialized) {
       throw new Error('ConfigManager already initialized')
     }
 
     await this.init(customConfig)
     await this.validate()
 
-    this.#initialized = true
+    this.initialized = true
   }
 
   protected static async init(specificConfig: Configs): Promise<void> {

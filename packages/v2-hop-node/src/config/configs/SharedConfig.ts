@@ -19,17 +19,6 @@ export interface ISharedConfig {
   syncType: SyncType
 }
 
-const defaultConfig: ISharedConfig = {
-  network: NetworkSlug.Sepolia,
-  chains: {
-    [ChainSlug.Ethereum]: {
-      rpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
-    }
-  },
-  dbDir: './db',
-  syncType: SyncType.Bonder
-}
-
 export class SharedConfig extends ConfigManager {
   static network: NetworkSlug
   static chains: ChainInfo
@@ -38,8 +27,8 @@ export class SharedConfig extends ConfigManager {
 
   protected static override async init(sharedConfig: ISharedConfig): Promise<void> {
     const { network, chains, dbDir } = sharedConfig
-    this.network = network ?? defaultConfig.network
-    this.chains = chains ?? defaultConfig.chains
+    this.network = network
+    this.chains = chains
     this.dbDir = dbDir
     this.syncType = SyncType.Bonder
 

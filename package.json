@@ -10,11 +10,11 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "preinstall": "npx only-allow pnpm && if [ \"$SKIP_HUSKY\" != \"true\" ]; then npm install husky --save-dev; fi",
+    "preinstall": "npx only-allow pnpm",
     "clean": "pnpm recursive run clean && rm -rf tsconfig.buildinfo && rm -rf node_modules",
     "build": "pnpm recursive run build",
     "lint": "pnpm recursive run lint",
-    "prepare": "if [ \"$SKIP_HUSKY\" != \"true\" ]; then husky install; fi"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "9.1.1",

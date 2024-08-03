@@ -2,7 +2,7 @@
 const nextConfig = {
   experimental: {
     esmExternals: 'loose', // Ensure ESM compatibility
-  },
+  }
 };
 
 export default nextConfig;

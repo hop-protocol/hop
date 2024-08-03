@@ -1,6 +1,6 @@
 {
-  "name": "my-app",
-  "version": "0.1.0",
+  "name": "@hop-protocol/v2-explorer-frontend",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",

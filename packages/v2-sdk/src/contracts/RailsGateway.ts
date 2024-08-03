@@ -26,7 +26,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "./common";
+} from "./common.js";
 
 export type HopStruct = {
   pathId: PromiseOrValue<BytesLike>;

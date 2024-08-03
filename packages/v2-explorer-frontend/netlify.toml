@@ -1,16 +1,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  NODE_VERSION = "20"
-  NPM_VERSION = "9.x"
-  PNPM_VERSION = "9.x"
-
-[[redirects]]
-  from = "/mainnet"
-  to = "/"
-  status = 301
-
 [[redirects]]
   from = "/_ipx/*"
   to = "/"

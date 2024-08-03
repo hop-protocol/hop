@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { RailsGateway, RailsGatewayInterface } from "../RailsGateway";
+import type { RailsGateway, RailsGatewayInterface } from "../RailsGateway.js";
 
 const _abi = [
   {

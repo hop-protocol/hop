@@ -20,7 +20,9 @@ export async function fetchEvents (options: any = {}) {
     }
 
     // const url = `${apiUrl}/v1${pathname}?limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
-    const url = `http://localhost:3000/api/?pathname=${pathname}&limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
+    const hostname = window.location.host
+    const protocol = hostname.includes('localhost') ? 'http' : 'https'
+    const url = `${protocol}://${hostname}/api/?pathname=${pathname}&limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
     const res = await fetch(url)
     const json = await res.json()
     if (json.error) {

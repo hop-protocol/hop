@@ -24,7 +24,7 @@ const chainBridgeMap: Record<string, new (chainSlug: ChainSlug) => IChainBridge>
 }
 
 export function createChainBridgeInstance (chainSlug: ChainSlug): IChainBridge {
-  if (!chainBridgeMap[chainSlug]) {
+  if (typeof chainBridgeMap[chainSlug] === 'undefined') {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }
   return new chainBridgeMap[chainSlug]!(chainSlug)

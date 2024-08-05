@@ -4,7 +4,7 @@ import type { Color } from 'chalk'
 type Options = {
   tag?: string
   prefix?: string
-  color: string
+  color: typeof Color
 }
 
 type AdditionalDataLabel = {
@@ -21,7 +21,7 @@ enum LogLevels {
   Debug
 }
 
-const logLevelColors: { [key: string]: string } = {
+const logLevelColors: { [key: string]: typeof Color } = {
   [LogLevels.Critical]: 'red',
   [LogLevels.Error]: 'red',
   [LogLevels.Warn]: 'yellow',
@@ -69,8 +69,8 @@ export class Logger {
     }
     if (tag) {
       if (opts.color) {
-        const color: typeof Color | undefined = opts?.color as any
-        if (!color) {
+        const color: typeof Color | undefined = opts.color
+        if (typeof color === 'undefined') {
           throw new Error(`invalid color: ${opts.color}`)
         }
         this.tag = chalk[color](`[${tag}]`)
@@ -108,9 +108,9 @@ export class Logger {
       throw new Error(`invalid log level: ${logLevelEnum}`)
     }
     const logLevelName = name.toUpperCase()
-    const color: typeof Color | undefined = logLevelColors?.[logLevelEnum] as any
-    if (!color) {
-      throw new Error(`invalid color: ${logLevelColors?.[logLevelEnum]}`)
+    const color: typeof Color | undefined = logLevelColors[logLevelEnum]
+    if (typeof color === 'undefined') {
+      throw new Error(`invalid color: ${logLevelColors[logLevelEnum]}`)
     }
     const coloredLogLevel = chalk[color](
       logLevelName.padEnd(5, ' ')
@@ -163,6 +163,7 @@ export class Logger {
   dbOperation = (...input: any[]) => {
     // Explicitly set to true for debugging
     const isEnabled = false
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!this.enabled || !isEnabled) return
     if (logLevel < LogLevels.Debug) {
       return

@@ -6,13 +6,13 @@ import { normalizeDBValue } from './utils.js'
 /**
  * The primary key is the filterId and the secondary keys are the values that
  * are indexed by the consumer.
- * 
+ *
  * The DB stores and maintains the last block synced for each filterId.
- * 
+ *
  * Key Format:
  * - syncBlock: sync!filterId
  * - indexer: filterId, (filterId!indexedValue1, filterId!indexedValue1!indexedValue2, ...)
- * 
+ *
  * @dev This DB should only be used to get individual items. There should never be a
  * need to iterate over all items in the DB. This is because the indexing is
  * done such that each entry is guaranteed to be unique.
@@ -36,8 +36,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
    * Initialization
    */
 
-  async newIndexerDB(primaryKey: string, secondaryKeys: string[]): Promise<void> {
-    if (this.#secondaryKeys[primaryKey]) {
+  newIndexerDB(primaryKey: string, secondaryKeys: string[]): void {
+    if (typeof this.#secondaryKeys[primaryKey] !== 'undefined') {
       throw new Error(`Indexer DB already exists for primaryKey ${primaryKey}`)
     }
     this.sublevel(primaryKey)
@@ -50,7 +50,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       return
     }
 
-    await this.put(syncKey, { 
+    await this.put(syncKey, {
       syncedBlockNumber: startBlockNumber
     })
   }
@@ -127,7 +127,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       for (const secondaryKey of this.#secondaryKeys[primaryKey]!) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it
         const indexValue = String(log.decoded[secondaryKey as keyof typeof log.decoded])
-        indexedKey += indexedKey ? ('!' + indexValue) : indexValue 
+        indexedKey += indexedKey ? ('!' + indexValue) : indexValue
         batch.put(indexedKey, log)
       }
     }

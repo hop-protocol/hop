@@ -47,17 +47,17 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
 
   async #getL1ToL2Message (txHash: string, messageIndex: number): Promise<Message> {
     const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
-    if (!txReceipt) {
+    if (typeof txReceipt === 'undefined') {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
     const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
     const messages: Message[] = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet) as Message[]
-    if (!messages) {
+    if (messages.length === 0) {
       throw new Error('could not find messages for tx hash')
     }
 
     const message: Message | undefined = messages[messageIndex]
-    if (!message) {
+    if (typeof message === 'undefined') {
       throw new Error(`could not find message at index ${messageIndex}`)
     }
     return message
@@ -65,17 +65,17 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
 
   async #getL2ToL1Message (txHash: string, messageIndex: number): Promise<Message> {
     const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
-    if (!txReceipt) {
+    if (typeof txReceipt === 'undefined') {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
     const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
     const messages: Message[] = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet) as Message[]
-    if (!messages) {
+    if (messages.length === 0) {
       throw new Error('could not find messages for tx hash')
     }
 
     const message: Message | undefined = messages[messageIndex]
-    if (!message) {
+    if (typeof message === 'undefined') {
       throw new Error(`could not find message at index ${messageIndex}`)
     }
     return message

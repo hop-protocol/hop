@@ -35,9 +35,7 @@ export class GasBoostSigner extends Signer {
     super()
     this.signer = signer
     utils.defineReadOnly(this, 'provider', signer.provider)
-    if (store != null) {
-      this.store = store
-    }
+    this.store = store
     this.mutex = new Mutex()
     this.gTxFactory = new GasBoostTransactionFactory(this.signer)
     const tag = 'GasBoostSigner'
@@ -104,6 +102,7 @@ export class GasBoostSigner extends Signer {
   }
 
   protected async tilReady (): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.ready) {
         return true

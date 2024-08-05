@@ -56,11 +56,11 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
 
   // NOTE: This is not meant to exist outside of the CCTP implementation. See the comment in the abstract class.
   protected override filterIrrelevantLog(log: DecodedLogWithContext): boolean {
-    const sourceDomain = (log.decoded as any)?.sourceDomain
+    const sourceDomain: string | undefined = (log.decoded as any)?.sourceDomain
     if (!sourceDomain) return true
 
     const enabledDomains = MessageSDK.getEnabledDomains()
-    if (!enabledDomains.includes(sourceDomain)) return false
+    if (!enabledDomains.includes(Number(sourceDomain))) return false
 
     return true
   }

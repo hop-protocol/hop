@@ -5,8 +5,8 @@ import type { ChainSlug } from '@hop-protocol/sdk'
 const chainBridgeInstances: Record<string, IChainBridge> = {}
 
 export function getChainBridge (chainSlug: ChainSlug): IChainBridge {
-  const instance = chainBridgeInstances?.[chainSlug]
-  if (instance) {
+  const instance = chainBridgeInstances[chainSlug]
+  if (typeof instance !== 'undefined') {
     return instance
   }
 

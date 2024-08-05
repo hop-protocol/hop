@@ -8,6 +8,13 @@ export default tseslint.config(
   {
     rules: {
       /**
+       * Stylistic
+       */
+      // These do not enforce strict style rules, but rather prevent obviously incorrect code.
+      'no-multi-spaces': 'warn',
+      'no-trailing-spaces': 'warn',
+
+      /**
        * Overrides from base
        */
       // General
@@ -21,15 +28,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unnecessary-condition': 'error',
       'n/no-missing-import': ['error'],
       'n/no-extraneous-import': ['error'],
-      'n/no-process-exit': 'error',
 
-      // These allow `any`
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
-      '@typescript-eslint/no-unsafe-argument': 'error',
-      '@typescript-eslint/no-unsafe-call': 'error',
-      '@typescript-eslint/no-unsafe-member-access': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error',
+      // These allow `any`. Reintroduce them over time as code is cleaned up.
+      // Periodically run these commands to find and fix issues to keep the codebase clean.
+      // '@typescript-eslint/no-explicit-any': 'error',
+      // '@typescript-eslint/no-unsafe-assignment': 'error',
+      // '@typescript-eslint/no-unsafe-argument': 'error',
+      // '@typescript-eslint/no-unsafe-call': 'error',
+      // '@typescript-eslint/no-unsafe-member-access': 'error',
+      // '@typescript-eslint/no-unsafe-return': 'error',
 
       /**
        * Strict rules specific to this package
@@ -43,14 +50,18 @@ export default tseslint.config(
       // Complexity rules
       'complexity': 'error',
       'max-depth': 'error',
-      'max-statements-per-line': 'error',
+      // Allow up to 2 statements per line for cleaner code
+      'max-statements-per-line': ['error', { max: 2 }],
       'max-nested-callbacks': 'error',
       'max-lines': 'error',
       'max-lines-per-function': 'error',
-      'max-statements': 'error',
+      // Arbitrary limit. Only used as guidance and dev should add explicit ignore comments if
+      // method is long but logically necessary.
+      'max-statements': ['error', { max: 25 }],
 
       // Other rules
-      '@typescript-eslint/strict-boolean-expressions': 'error',
+      // TODO: Reintroduce this at some point
+      // '@typescript-eslint/strict-boolean-expressions': 'error',
       'no-lonely-if': 'error',
     }
   },

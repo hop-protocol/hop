@@ -54,7 +54,7 @@ async function dumpOnchainEventIndexerDB (dbName: string) {
   for await (const [, value] of db.iterator()) {
     console.log(value)
   }
-} 
+}
 
 async function dumpTxRelayDB (dbName: string) {
   const db = new TxRelayDB(dbName)

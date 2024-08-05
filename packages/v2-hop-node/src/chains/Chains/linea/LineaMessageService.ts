@@ -36,9 +36,15 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
       mode: 'read-only',
       network: lineaNetwork // options are: "linea-mainnet", "linea-goerli"
     }
+
+    const l1RpcUrl = getRpcUrlFromProvider(this.l1Wallet.provider!)
+    const l2RpcUrl = getRpcUrlFromProvider(this.l2Wallet.provider!)
+    if (!l1RpcUrl || !l2RpcUrl) {
+      throw new Error('could not get rpc url from provider')
+    }
     const lineaSdk: LineaSDK = new LineaSDK({
-      l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),
-      l2RpcUrl: getRpcUrlFromProvider(this.l2Wallet.provider!),
+      l1RpcUrl,
+      l2RpcUrl,
       network: sdkOptions.network!,
       mode: sdkOptions.mode!
     })
@@ -79,7 +85,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     }
 
     const message: LineaMessage | undefined = messages[messageIndex]
-    if (!message) {
+    if (typeof message === 'undefined') {
       throw new Error(`could not find message at index ${messageIndex}`)
     }
     return message

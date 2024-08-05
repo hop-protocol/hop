@@ -1,5 +1,5 @@
 import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
-import MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 import MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
 import { BigNumber, utils } from 'ethers'
@@ -101,6 +101,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   async #tilReady (): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.ready) {
         return true
@@ -137,7 +138,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     // TransfersCommitted(uint256,bytes32,uint256,uint256)
     const logEvent = '0xf52ad20d3b4f50d1c40901dfb95a9ce5270b2fc32694e5c668354721cd87aa74'
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    if (!receipt.logs) {
+    if (receipt.logs.length === 0) {
       throw new Error(`no logs found for ${l2TxHash}`)
     }
 
@@ -176,7 +177,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     if (!rootTunnelAddress) {
       throw new Error(`root tunnel address not found for ${l2TxHash}`)
     }
-    return utils.defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
+    return utils.defaultAbiCoder.decode(['address'], rootTunnelAddress)[0] as string
   }
 
   protected async getMessage (txHash: string): Promise<PolygonMessage> {
@@ -193,7 +194,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
     const apiRes: PolygonApiResError = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResError
     return (
-      apiRes?.error &&
+      apiRes.error &&
       apiRes.message === 'No block found'
     )
   }

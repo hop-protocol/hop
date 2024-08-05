@@ -21,7 +21,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     super(chainSlug)
 
     // Get chain contracts
-    const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[ChainSlug.Gnosis]
+    const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses[this.networkSlug as NetworkSlug]?.[ChainSlug.Gnosis]
     if (!gnosisAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }

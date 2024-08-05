@@ -1,3 +1,5 @@
+/* eslint-disable */
+// TODO: remove eslint-disable once this file is cleaned up
 import { BigNumber } from 'ethers'
 import {
   INITIAL_TX_GAS_PRICE_MULTIPLIER,
@@ -266,7 +268,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   start (): void {
-    this.startPoller()
+    void this.startPoller()
   }
 
   async save (): Promise<void> {
@@ -627,7 +629,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, rebroadcastIndex: ${this.rebroadcastIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
-    this.watchForReorg()
+    void this.watchForReorg()
   }
 
   private async handleMaxRebroadcastIndexReached (): Promise<void> {
@@ -747,7 +749,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
-  // eslint-disable-next-line max-lines-per-function
   private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<TransactionRequestWithHash> {
     const maxRetries = 10
     let i = 0
@@ -905,7 +906,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
     this.getReceipt(tx.hash).then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
-      this.handleConfirmation(tx.hash, receipt)
+      void this.handleConfirmation(tx.hash, receipt)
     })
       .catch((err: Error) => {
         const isReplacedError = /TRANSACTION_REPLACED/i.test(err.message)
@@ -913,7 +914,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
           this._emitError(err)
         }
       })
-    this.startPoller()
+    void this.startPoller()
   }
 
   private clearInflightTxs (): void {
@@ -982,7 +983,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
           } else {
             this.logger.debug(`no transaction receipt found after waiting reorgConfirmationBlocks (${this.reorgConfirmationBlocks})`)
             this.emit(State.Reorg, this.hash)
-            this.rebroadcastInitialTx()
+            void this.rebroadcastInitialTx()
           }
           break
         }

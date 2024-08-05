@@ -16,7 +16,7 @@ export function normalizeDBValue<T extends Record<string, any>>(value: T): T {
     if (isBigNumber) {
       value = normalizeBigNumber(value, prop)
       continue
-    } 
+    }
 
     const isNestedObject = typeof value[prop] === 'object' && value[prop] !== null
     if (isNestedObject) {

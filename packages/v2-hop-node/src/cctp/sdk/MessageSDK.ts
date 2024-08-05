@@ -98,18 +98,8 @@ export class MessageSDK {
     return contract.filters.MessageReceived!() as RequiredEventFilter
   }
 
-  static decodeMessageFromEvent (encodedMessage: string): string {
-    const decoded = utils.defaultAbiCoder.decode(['bytes'], encodedMessage)
-    return decoded[0]
-  }
-
   static getMessageHashFromMessage (message: string): string {
     return utils.keccak256(message)
-  }
-  
-  static getHashedSourceAndNonce (sourceChainId: string, nonce: number): string {
-    const sourceDomain = MessageSDK.getDomainFromChainId(sourceChainId)
-    return utils.solidityKeccak256(['uint32', 'uint64'], [Number(sourceDomain), nonce])
   }
 
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
@@ -135,7 +125,7 @@ export class MessageSDK {
         // Temp to handle API rate limit
         await wait(1_000)
       }
-      const json: IAttestationResponse = await res.json()
+      const json: IAttestationResponse | undefined = await res.json()
 
       if (!json) {
         // This means something was wrong with the message hash encoding
@@ -199,17 +189,11 @@ export class MessageSDK {
   }
 
   // Returns the CCTP message as well as the Hop-specific data
+  // eslint-disable-next-line max-lines-per-function
   static parseHopCCTPTransferSentLog (log: providers.Log, chainId: string): HopCCTPTransferSentDecodedWithMessage {
     const iface = getHopCCTPInterface()
     const parsed = iface.parseLog(log)
-
-    const {
-      cctpNonce,
-      chainId: cctpChainId,
-      recipient,
-      amount,
-      bonderFee
-    } = parsed.args
+    const { cctpNonce, chainId: cctpChainId, recipient, amount, bonderFee } = parsed.args
 
     // Get the message body
     const messageBodyVersion = 0
@@ -284,21 +268,12 @@ export class MessageSDK {
     }
   }
 
-  static decodeMessageBodyFromTransferSentInputParams (data: string): string {
-    const types = ['uint32', 'bytes32', 'bytes']
-    return utils.defaultAbiCoder.decode(types, data.slice(10))[2]
-  }
-
   static getChainIdFromDomain (domain: string): string {
     return (CCTP_DOMAIN_TO_CHAIN_ID_MAP[SharedConfig.network as NetworkSlug]![Number(domain)]!).toString()
   }
 
   static getDomainFromChainId (chainId: string): string {
     return (CCTP_CHAIN_ID_TO_DOMAIN_MAP[SharedConfig.network as NetworkSlug]![Number(chainId)]!).toString()
-  }
-
-  static encodeSourceChainIdAndNonce (sourceChainId: string, nonce: number): string {
-    return utils.defaultAbiCoder.encode(['uint32', 'uint32'], [Number(sourceChainId), nonce])
   }
 
   static getEnabledDomains (): number[] {

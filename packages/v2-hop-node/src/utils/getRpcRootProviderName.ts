@@ -21,7 +21,10 @@ const cache: Record<string, RootProviderName> = {}
 export async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
   // Cache by top-level URL
   let url = getUrlFromProviderOrUrl(providerOrUrl)
-  if (cache[url]) {
+  if (url === null) {
+    return
+  }
+  if (typeof cache[url] !== 'undefined') {
     return cache[url]
   }
 
@@ -48,6 +51,9 @@ export async function getRpcRootProviderName (providerOrUrl: providers.Provider 
 
 function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string): RootProviderName | undefined {
   const url = getUrlFromProviderOrUrl(providerOrUrl)
+  if (url === null) {
+    return
+  }
   const entries = Object.entries(RootProviderName)
   for (const [key, value] of entries) {
     if (url.includes(value)) {
@@ -93,7 +99,7 @@ async function getRootProviderNameFromRpcCall (url: string): Promise<RootProvide
   }
 }
 
-function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string {
+function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string | null {
   if (providerOrUrl instanceof providers.Provider) {
     return getRpcUrlFromProvider(providerOrUrl)
   }

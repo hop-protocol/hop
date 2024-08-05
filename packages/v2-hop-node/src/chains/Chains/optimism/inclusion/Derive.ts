@@ -64,7 +64,7 @@ export class Derive {
   }
 
   // This method is meant to mimic the OP implementation
-  // eslint-disable-next-line max-lines-per-function
+  // eslint-disable-next-line max-lines-per-function, max-statements
   async #unmarshalBinary (buf: Buffer): Promise<UnmarshalBinaryRes> {
     let offset: number = 0
 

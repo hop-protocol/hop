@@ -85,7 +85,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
     // Parallelize initialization and syncing since each filter is independent
     const promises: Array<Promise<void>> = this.#indexerEventFilters.map(async (indexerEventFilter) => {
-      const { chainId, startBlockNumber } = indexerEventFilter 
+      const { chainId, startBlockNumber } = indexerEventFilter
       const filterId = getUniqueFilterId(indexerEventFilter)
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexerEventFilter)
@@ -140,7 +140,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    */
 
   #startPoller (indexerEventFilter: IndexerEventFilter): void {
-    poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs, this.logger)
+    void poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs, this.logger)
   }
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
@@ -193,7 +193,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
       const filter: RequiredFilter = {
         ...eventFilter,
         fromBlock: currentStartBlockNumber,
-        toBlock: currentEndBlockNumber 
+        toBlock: currentEndBlockNumber
       }
 
       const logs: providers.Log[] = await provider.getLogs(filter)

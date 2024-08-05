@@ -43,8 +43,8 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
     }
 
     if (
-      !this.#inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
-      !this.#inclusionService?.getLatestL2TxFromL1ChannelTx
+      (typeof this.#inclusionService.getLatestL1InclusionTxBeforeBlockNumber === 'undefined') ||
+      (typeof this.#inclusionService.getLatestL2TxFromL1ChannelTx === 'undefined')
     ) {
       this.logger.error('getCustomSafeBlockNumber: includeService not available')
       return

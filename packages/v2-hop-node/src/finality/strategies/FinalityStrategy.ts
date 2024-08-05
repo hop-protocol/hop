@@ -37,7 +37,7 @@ export abstract class FinalityStrategy implements IFinalityStrategy {
 
   protected async _getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     const chainBridge: IChainBridge = getChainBridge(this.chainSlug)
-    if (!chainBridge) {
+    if (typeof chainBridge === 'undefined') {
       throw new Error(`getCustomBlockNumber not implemented for chain ${this.chainSlug}`)
     }
 

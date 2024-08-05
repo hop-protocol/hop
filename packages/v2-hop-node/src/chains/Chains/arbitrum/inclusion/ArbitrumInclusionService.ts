@@ -16,12 +16,12 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
-    const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainSlugs]
+    const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainSlugs]
     if (!canonicalAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
-    const sequencerInboxAddress = canonicalAddresses?.sequencerInboxAddress
+    const sequencerInboxAddress = canonicalAddresses.sequencerInboxAddress
     if (!sequencerInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
@@ -57,7 +57,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
       throw new Error(`l2TxReceipt l1BlockNumber or blockNumber not found for tx hash ${l2TxHash}. l2TxReceipt: ${JSON.stringify(l2TxReceipt)}`)
     }
 
-    let l1BatchNumber: BigNumber
+    let l1BatchNumber: BigNumber | undefined
     try {
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
       // Note: this should throw a CALL_EXCEPTION error if the block is not yet posted, and the rateLimitRetry provider should not retry.
@@ -94,7 +94,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data
   async #getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
-    const rpcUrl = SharedConfig.chains?.[this.chainSlug as ChainSlug]?.rpcUrl
+    const rpcUrl = SharedConfig.chains[this.chainSlug as ChainSlug]?.rpcUrl
     if (!rpcUrl) {
       throw new Error(`rpcUrl not found for chainSlug: ${this.chainSlug}`)
     }

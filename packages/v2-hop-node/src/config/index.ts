@@ -4,7 +4,7 @@ import { parseUserDefinedConfigFile } from './utils.js'
 
 interface IConfig {
   shared: ISharedConfig
-  gasBoost: ISignerConfig 
+  signer: ISignerConfig
 }
 
 export type {
@@ -14,7 +14,7 @@ export type {
 }
 
 export async function initConfigs (): Promise<void> {
-  const customConfig: any = await parseUserDefinedConfigFile()
+  const customConfig: IConfig = await parseUserDefinedConfigFile()
   await SharedConfig.initializeConfig(customConfig.shared)
   await SignerConfig.initializeConfig(customConfig.signer)
 }

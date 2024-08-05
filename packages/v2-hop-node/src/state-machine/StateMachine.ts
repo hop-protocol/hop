@@ -8,9 +8,9 @@ import { Logger } from '#logger/index.js'
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
  * class is not concerned with performing any actions on the states or any implementation details.
- * 
+ *
  * Data used is retrieved from an external data stores.
- * 
+ *
  * @dev The final state is not polled since there is no transition after it.
  */
 
@@ -61,7 +61,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
     }
     this.logger.info('State machine initialized')
   }
-    
+
   start (): void {
     this.#startPollers()
     this.#dataProvider.start()
@@ -74,6 +74,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   #initListeners (): void {
     const firstState = getFirstState(this.#states)
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.#dataProvider.on(firstState, this.#initializeItem)
     this.#dataProvider.on('error', () => { throw new Error('State machine error') })
   }
@@ -92,7 +93,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   #startPollers (): void {
     for (const state of this.#states) {
-      poll(() => this.#checkStateTransition(state), this.#pollIntervalMs, this.logger)
+      void poll(() => this.#checkStateTransition(state), this.#pollIntervalMs, this.logger)
     }
   }
 
@@ -112,7 +113,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
    * State transitions
    */
 
-  #initializeItem = (value: StateData): Promise<void> => {
+  #initializeItem = async (value: StateData): Promise<void> => {
     const firstState = getFirstState(this.#states)
     const key = this.getItemId(value)
     this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)

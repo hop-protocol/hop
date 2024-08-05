@@ -7,6 +7,6 @@ type Provider = providers.Provider & {
   providers?: Provider[]
 }
 
-export function getRpcUrlFromProvider (provider: Provider): string {
-  return provider?.connection?.url ?? provider.providers?.[0]?.connection?.url ?? ''
+export function getRpcUrlFromProvider (provider: Provider): string | null {
+  return provider.connection?.url ?? provider.providers?.[0]?.connection?.url ?? null
 }

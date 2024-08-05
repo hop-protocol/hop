@@ -18,8 +18,8 @@ export class FinalityService implements IFinalityService {
     chainSlug: ChainSlug,
     finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default
   ) {
-    const strategies: Strategies | undefined = FinalityStrategies[finalityStrategyType]
-    if (!strategies) {
+    const strategies: Strategies = FinalityStrategies[finalityStrategyType]
+    if (typeof strategies === 'undefined') {
       throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)
     }
 

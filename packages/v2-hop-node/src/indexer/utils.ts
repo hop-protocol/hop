@@ -7,7 +7,7 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { SharedConfig } from '#config/index.js'
 
 export function getUniqueFilterId (indexerEventFilter: IndexerEventFilter): string {
-  const { chainId, filter } = indexerEventFilter 
+  const { chainId, filter } = indexerEventFilter
   const id = chainId + filter.address + (filter.topics as string[])[0]
   return utils.keccak256(utils.toUtf8Bytes(id))
 }

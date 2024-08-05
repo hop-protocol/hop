@@ -24,7 +24,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
   }
 
   #startPollers (): void {
-    poll(this.#pollRelayer, this.#pollIntervalMs, this.logger)
+    void poll(this.#pollRelayer, this.#pollIntervalMs, this.logger)
   }
 
   /**
@@ -118,7 +118,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
     }
   }
 
-  async #handleRelayError (message: string, errMessage: string): Promise<void> {
+  #handleRelayError (message: string, errMessage: string): void {
     const messageHash = MessageSDK.getMessageHashFromMessage(message)
 
     // Attestation errors

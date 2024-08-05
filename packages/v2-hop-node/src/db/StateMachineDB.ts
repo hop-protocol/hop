@@ -9,10 +9,10 @@ import { Mutex } from 'async-mutex'
  * An item also exists in a per-state subDB that allows for efficient querying of all items in a state.
  * An item only exists in one state subDB at a time. Within that subDB, the item only
  * contains information about that state but no other states.
- * 
+ *
  * After transitioning to the final state, the item is deleted from the state subDB and will only
  * exist in the top-level DB.
- * 
+ *
  * Key format:
  * - Top-level: key
  * - Per-state sub-level: state!key
@@ -48,11 +48,11 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   ): Promise<void> {
   /**
    * TODO: V2: Optimize this on a per-key basis instead of locking for every write.
-   * 
+   *
    * Note: This might be built-in to LevelDB. Investigate.
-   * 
+   *
    * In the worst case, consider a package like https://github.com/rogierschouten/async-lock
-   * 
+   *
    * There is no way to natively update with LevelDB so we use a mutex to ensure that writes that occur at the same time
    * do not overwrite each other by reading stale data.
    */
@@ -115,7 +115,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   #compareItems = (value: StateData, dbValue: StateData): boolean => {
     // The dbValue may have more keys than the value being compared
     for (const key in value) {
-      if (value[key] !== dbValue?.[key]) {
+      if (value[key] !== dbValue[key]) {
         return false
       }
     }

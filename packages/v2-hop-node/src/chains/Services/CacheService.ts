@@ -25,12 +25,12 @@ export class CacheService {
   }
 
   #doesCacheExist (cacheKey: string): boolean {
-    return !!this.#cache?.[cacheKey]?.value
+    return (typeof this.#cache[cacheKey] !== 'undefined')
   }
 
   #isCacheExpired (cacheKey: string): boolean {
     // If it has not been set, it is considered expired
-    if (!this.#cache?.[cacheKey]?.lastTimestampMs) {
+    if (!this.#doesCacheExist(cacheKey)) {
       return true
     }
 

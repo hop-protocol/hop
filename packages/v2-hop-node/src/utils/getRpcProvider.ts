@@ -11,7 +11,7 @@ export const getRpcProvider = (chainSlugOrId: ChainSlug | string): providers.Pro
     chainSlug = getChain(chainSlugOrId).slug
   }
 
-  const rpcUrl = SharedConfig.chains?.[chainSlug as ChainSlug]?.rpcUrl
+  const rpcUrl = SharedConfig.chains[chainSlug as ChainSlug]?.rpcUrl
   if (!rpcUrl) {
     throw new Error(`rpcUrl not found for chainSlug: ${chainSlug}`)
   }

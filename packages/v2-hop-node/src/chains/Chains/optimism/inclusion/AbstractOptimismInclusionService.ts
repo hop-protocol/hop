@@ -39,12 +39,12 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
   constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
-    const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainSlugs]
+    const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainSlugs]
     if (!canonicalAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
-    this.batcherAddress = canonicalAddresses?.batcherAddress
-    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress
+    this.batcherAddress = canonicalAddresses.batcherAddress
+    this.batchInboxAddress = canonicalAddresses.batchInboxAddress
 
     // Precompiles
     this.l1BlockSetterAddress = OptimismAddresses.precompiles.l1BlockSetterAddress
@@ -119,6 +119,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     let currentL1BlockNumInBatch: number = 0
     let numL1BlocksInBatch: number = 0
     const transactionHashes: string[] = []
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       // Parse decoded data
       const encodedTxs: string = '0x' + Buffer.from(remainingBatches).toString('hex')

@@ -45,12 +45,12 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
 
   protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex: number): Promise<CrossChainMessage> {
     const messages: CrossChainMessage[] = await this.#csm.getMessagesByTransaction(txHash)
-    if (!messages) {
+    if (!messages.length) {
       throw new Error('could not find messages for tx hash')
     }
     console.log(messages)
     const message: CrossChainMessage | undefined = messages[messageIndex]
-    if (!message) {
+    if (typeof message === 'undefined') {
       throw new Error(`could not find message at index ${messageIndex}`)
     }
     return message

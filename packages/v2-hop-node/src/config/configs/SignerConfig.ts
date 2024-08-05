@@ -24,19 +24,15 @@ export class SignerConfig extends ConfigManager {
   }
 
   protected static override async validate(): Promise<void> {
-    if (
-      !this.blocknativeApiKey ||
-      !this.bonderPrivateKey ||
-      !this.maxGasPriceGwei
-    ) {
-      throw new Error('SignerConfig not yet init')
-    }
-
-    if (this.blocknativeApiKey.length === 0) {
+    if (!this.blocknativeApiKey || this.blocknativeApiKey.length === 0) {
       throw new Error('Invalid blocknativeApiKey')
     }
-    
-    if (!this.bonderPrivateKey.startsWith('0x') ||this.bonderPrivateKey.length !== 66) {
+
+    if (
+      !this.bonderPrivateKey ||
+      !this.bonderPrivateKey.startsWith('0x') ||
+      this.bonderPrivateKey.length !== 66
+    ) {
       throw new Error('Invalid bonderPrivateKey')
     }
 

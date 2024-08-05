@@ -55,6 +55,7 @@ export abstract class DataProvider<T extends string, U> implements IDataProvider
    */
 
   #initListeners = (): void => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.#dataSource.on(DATA_STORED_EVENT, this.#emitStoredData)
     this.#dataSource.on('error', () => { throw new Error('Data provider error') })
   }

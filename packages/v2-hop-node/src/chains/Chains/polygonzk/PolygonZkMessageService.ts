@@ -17,7 +17,7 @@ type ZkEvmClientType = MaticJs.ZkEvmClient
  * @notice The Matic SDK has a cacheing issue that blocks a long-standing client from being able to send messages.
  * They have acknowledged this and put a fix in place, but it does not work with other versions of the required
  * ethers Matic package.
- * 
+ *
  * To avoid this, we create a new client for each message sent. This is not ideal, but it is the only way to
  * ensure that messages are sent.
  */
@@ -158,9 +158,9 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   async #isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     const zkEvmClient = await this.#createClient()
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return zkEvmClient.isDepositClaimable(messageStatus)
+      return (await zkEvmClient.isDepositClaimable(messageStatus)) as boolean
     } else {
-      return zkEvmClient.isWithdrawExitable(messageStatus)
+      return (await zkEvmClient.isWithdrawExitable(messageStatus)) as boolean
     }
   }
 

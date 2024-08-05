@@ -8,6 +8,7 @@ export async function poll(
   logger: Logger
 ): Promise<void> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       await cb()
       await wait(pollIntervalMs)

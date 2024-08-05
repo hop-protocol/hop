@@ -33,11 +33,11 @@ export function parseNumber (value: string) {
 }
 
 export function parseString (value: string) {
-  return value ?? ''
+  return value
 }
 
 export function parseStringArray (value: string) {
-  return (value ?? '').trim().split(',').map((v: string) => v.trim())
+  return value.trim().split(',').map((v: string) => v.trim())
 }
 
 export function parseBool (value: string) {

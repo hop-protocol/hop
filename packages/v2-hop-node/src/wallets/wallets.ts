@@ -10,19 +10,16 @@ const cache: Record<string, Signer> = {}
 const constructSigner = (network: string, privateKey?: string): Signer => {
   const cacheKey = `${network}`
   const cachedValue = cache[cacheKey]
-  if (cachedValue) {
+  if (typeof cachedValue !== 'undefined') {
     return cachedValue
   }
-  const provider = getRpcProvider(network as ChainSlug)
-  if (!provider) {
-    throw new Error('expected provider')
-  }
-  let wallet
+
   if (!privateKey) {
     throw new Error('private key is required to instantiate wallet')
   }
 
-  wallet = new Wallet(privateKey, provider)
+  const provider = getRpcProvider(network as ChainSlug)
+  const wallet = new Wallet(privateKey, provider)
   const signer = new GasBoostSigner(wallet)
   cache[cacheKey] = signer
   return signer

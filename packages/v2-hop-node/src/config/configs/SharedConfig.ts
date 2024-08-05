@@ -37,15 +37,6 @@ export class SharedConfig extends ConfigManager {
   }
 
   protected static override async validate(): Promise<void> {
-    if (
-      !this.network ||
-      !this.chains ||
-      !this.dbDir ||
-      !this.syncType
-    ) {
-      throw new Error('SharedConfig not yet init')
-    }
-
     if (!Object.values(NetworkSlug).includes(this.network)) {
       throw new Error(`Invalid network value: ${this.network}`)
     }
@@ -55,14 +46,14 @@ export class SharedConfig extends ConfigManager {
         throw new Error(`Invalid chain slug: ${chain}`)
       }
 
-      if (!chainInfo?.rpcUrl || typeof chainInfo.rpcUrl !== 'string') {
+      if (!chainInfo.rpcUrl || typeof chainInfo.rpcUrl !== 'string') {
         throw new Error(`Invalid or missing RPC_URL for chain: ${chain}`)
       }
 
       await this.#validateRpcUrl(this.network, chain as ChainSlug, chainInfo.rpcUrl)
     }
 
-    if (!fs.existsSync(this.dbDir)) {
+    if (!this.dbDir || !fs.existsSync(this.dbDir)) {
       throw new Error(`Invalid or missing dbDir: ${this.dbDir}`)
     }
 

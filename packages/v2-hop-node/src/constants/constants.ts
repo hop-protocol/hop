@@ -8,7 +8,7 @@ export enum TimeIntervals {
   TEN_MINUTES_MS = 10 * 60 * 1000,
   THIRTY_MINUTES_MS = 30 * 60 * 1000,
   ONE_HOUR_SECONDS = 60 * 60,
-  ONE_HOUR_MS =  60 * 60 * 1000,
+  ONE_HOUR_MS = 60 * 60 * 1000,
   ONE_DAY_SECONDS = 24 * 60 * 60,
   ONE_DAY_MS = 24 * 60 * 60 * 1000,
   ONE_WEEK_SECONDS = 7 * 24 * 60 * 60,

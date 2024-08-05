@@ -17,7 +17,7 @@ interface GetInclusionTxHashes {
 
 export class AlchemyInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   readonly #maxNumL1BlocksWithoutInclusion: number = 50
-  #isInitialized!: boolean
+  #isInitialized: boolean = false
   #ready!: boolean
 
   constructor (chainSlug: ChainSlug) {
@@ -30,7 +30,6 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
         this.logger.debug('AlchemyInclusionService initialized')
       })
       .catch(() => {
-        this.#isInitialized = false
         this.logger.warn('Unable to initialize AlchemyInclusionService')
         process.exit(1)
       })
@@ -54,11 +53,8 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
   }
 
   async #isReadyAndInitialized (): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
-      if (!this.#isInitialized) {
-        return false
-      }
-
       if (this.#ready && this.#isInitialized) {
         return true
       }
@@ -113,7 +109,7 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
     if (!(await this.#isReadyAndInitialized())) return
 
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
-    const latestL2TxHash: string | undefined = transactionHashes?.[transactionHashes.length - 1]
+    const latestL2TxHash: string | undefined = transactionHashes[transactionHashes.length - 1]
     if (!latestL2TxHash) {
       this.logger.error(`no L2 tx found for L1 inclusion tx ${l1InclusionTx}`)
       return
@@ -172,6 +168,9 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
     }
 
     const rpcUrl = getRpcUrlFromProvider(destChainProvider)
+    if (!rpcUrl) {
+      throw new Error('rpc url not found')
+    }
     const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {

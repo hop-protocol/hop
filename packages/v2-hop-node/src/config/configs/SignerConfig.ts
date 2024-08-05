@@ -1,5 +1,5 @@
 import { ConfigManager } from '../ConfigManager.js'
-import { ChainSlug } from '@hop-protocol/sdk'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export type MaxGasPriceGwei = {
   [key in ChainSlug]?: number

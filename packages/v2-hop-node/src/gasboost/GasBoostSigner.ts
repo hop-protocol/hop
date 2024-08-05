@@ -1,4 +1,4 @@
-import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { type ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { GasBoostTransactionFactory, type Options } from './GasBoostTransactionFactory.js'
 import { Logger } from '#logger/index.js'
 import { MemoryStore } from './MemoryStore.js'

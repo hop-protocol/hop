@@ -2,7 +2,7 @@ import { MessageSDK, type HopCCTPTransferSentDecoded, type HopCCTPTransferReceiv
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
 import type { DecodedLogWithContext } from '#types.js'
 import { type IMessage, MessageState } from './types.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 type LookupKey = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
 

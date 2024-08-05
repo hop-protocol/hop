@@ -1,4 +1,4 @@
-import { ChainSlug, NetworkSlug, getChains} from '@hop-protocol/sdk'
+import { type ChainSlug, NetworkSlug, getChains} from '@hop-protocol/sdk'
 
 type AverageBlockTimeSeconds = Partial<Record<ChainSlug, number>>
 

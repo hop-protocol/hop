@@ -7,7 +7,7 @@ import type {
 } from '#types.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '#utils.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 import { DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'

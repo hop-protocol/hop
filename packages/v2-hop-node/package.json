@@ -55,6 +55,7 @@
   "devDependencies": {
     "@types/keythereum": "1.2.4",
     "@types/uuid": "9.0.8",
+    "eslint-plugin-jest": "28.2.0",
     "tsx": "4.16.5"
   },
   "homepage": "https://hop.exchange",

@@ -26,11 +26,11 @@ export class SharedConfig extends ConfigManager {
   static syncType: SyncType
 
   protected static override async init(sharedConfig: ISharedConfig): Promise<void> {
-    const { network, chains, dbDir } = sharedConfig
+    const { network, chains, dbDir, syncType } = sharedConfig
     this.network = network
     this.chains = chains
     this.dbDir = dbDir
-    this.syncType = SyncType.Threshold
+    this.syncType = syncType
 
     // Create DB dir if it doesn't exist
     mkdirp.sync(this.dbDir)

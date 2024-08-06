@@ -277,7 +277,7 @@ export type GetTokenContractInput = {
 export type GetTransferStatusInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
-  checkpoint: string
+  transferId: string
 }
 
 export enum TransferState {
@@ -289,7 +289,6 @@ export enum TransferState {
 export type TransferStatus = {
   state: TransferState
   transferId: string
-  checkpoint: string
   transferSentEvent: TransferSent
   transferBondedEvent: TransferBonded
 }
@@ -298,7 +297,6 @@ type GetTransferSentEventFilterInput = {
   chainId: BigNumberish
   indexes?: {
     transferId?: string
-    checkpoint?: string
     pathId?: string
   }
 }
@@ -395,15 +393,11 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput): EventFilter {
-    const { transferId, checkpoint, pathId } = indexes
+    const { transferId, pathId } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
 
     if (transferId) {
       return eventFetcher.getTransferIdFilter(transferId)
-    }
-
-    if (checkpoint) {
-      return eventFetcher.getCheckpointFilter(checkpoint)
     }
 
     if (pathId) {
@@ -1564,31 +1558,6 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
-  async getTransferSentEventFromCheckpoint ({ fromChainId, checkpoint }: GetTransferSentEventFromCheckpointInput): Promise<TransferSent> {
-    if (!this.utils.isValidChainId(fromChainId)) {
-      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
-    }
-    if (!this.utils.isValidBytes32(checkpoint)) {
-      throw new InputError(`Invalid transferId "${checkpoint}"`)
-    }
-    const provider = this.getRpcProviderForChainId(fromChainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
-    }
-
-    const address = this.getRailsGatewayContractAddress(fromChainId)
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent, fromChainId)
-    const filter = eventFetcher.getCheckpointFilter(checkpoint)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events?.[0] ?? null
-  }
-
   async getTransferBondedEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<TransferBonded | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
@@ -1657,31 +1626,6 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromCheckpoint ({ fromChainId, checkpoint }: GetTransferBondedEventFromCheckpointInput): Promise<TransferBonded> {
-    if (!this.utils.isValidChainId(fromChainId)) {
-      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
-    }
-    if (!this.utils.isValidBytes32(checkpoint)) {
-      throw new InputError(`Invalid transferId "${checkpoint}"`)
-    }
-    const provider = this.getRpcProviderForChainId(fromChainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
-    }
-
-    const address = this.getRailsGatewayContractAddress(fromChainId)
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferBonded, fromChainId)
-    const filter = eventFetcher.getCheckpointFilter(checkpoint)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events?.[0] ?? null
-  }
-
   async getTokenInfo ({ chainId, address }: GetTokenInfoInput): Promise<Token> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1739,7 +1683,7 @@ export class RailsGateway extends StakingRegistry {
     return balance.lt(amount)
   }
 
-  async getTransferStatus({ fromChainId, toChainId, checkpoint }: GetTransferStatusInput): Promise<TransferStatus> {
+  async getTransferStatus({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1748,18 +1692,18 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
 
-    if (!this.utils.isValidBytes32(checkpoint)) {
-      throw new InputError(`Invalid checkpoint "${checkpoint}"`)
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const transferSentEvent = await this.getTransferSentEventFromCheckpoint({
+    const transferSentEvent = await this.getTransferSentEventFromTransferId({
       fromChainId,
-      checkpoint
+      transferId
     })
 
-    const transferBondedEvent = await this.getTransferBondedEventFromCheckpoint({
+    const transferBondedEvent = await this.getTransferBondedEventFromTransferId({
       fromChainId: toChainId,
-      checkpoint
+      transferId
     })
 
     let transferState = TransferState.NotFound
@@ -1775,7 +1719,6 @@ export class RailsGateway extends StakingRegistry {
     return {
       state: transferState,
       transferId: transferSentEvent?.transferId ?? '',
-      checkpoint,
       transferSentEvent,
       transferBondedEvent
     }

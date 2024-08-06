@@ -6,10 +6,8 @@ import { v4 as uuid } from 'uuid'
 export interface TransferBonded extends BaseType {
   pathId: string
   transferId: string
-  checkpoint: string
   to: string
-  amountOut: BigNumber
-  totalSent: BigNumber
+  amount: BigNumber
 }
 
 export class TransferBondedTable extends EventDb {
@@ -18,10 +16,8 @@ export class TransferBondedTable extends EventDb {
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
         transfer_id CHAR(66) NOT NULL UNIQUE,
-        checkpoint CHAR(66) NOT NULL,
         "to" CHAR(42) NOT NULL, -- Ethereum address
-        amount_out NUMERIC NOT NULL CHECK (amount_out >= 0),
-        total_sent NUMERIC NOT NULL CHECK (total_sent >= 0),
+        amount NUMERIC NOT NULL CHECK (amount >= 0),
         ${eventContextIdCreationSql}
     )`)
   }
@@ -42,8 +38,6 @@ export class TransferBondedTable extends EventDb {
     const args = [startTimestamp, endTimestamp, limit, offset]
     if (filter?.transferId) {
       args.push(filter.transferId)
-    } else if (filter?.checkpoint) {
-      args.push(filter.checkpoint)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -54,10 +48,8 @@ export class TransferBondedTable extends EventDb {
       `SELECT
         path_id AS "pathId",
         transfer_id AS "transferId",
-        checkpoint,
         "to",
-        amount_out AS "amountOut",
-        total_sent AS "totalSent",
+        amount,
         ${selectEventContextSql}
       FROM
         transfer_bonded_events e
@@ -68,7 +60,6 @@ export class TransferBondedTable extends EventDb {
         AND
         ec.block_timestamp <= $2
         ${filter?.transferId ? 'AND transfer_id= $5' : ''}
-        ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
@@ -82,22 +73,22 @@ export class TransferBondedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, transferId, checkpoint, to, amountOut, totalSent, context } = this.#normalizeDataForPut(item)
+    const { pathId, transferId, to, amount, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, transferId, checkpoint, to, amountOut, totalSent
+      id: uuid(), contextId, pathId, transferId, to, amount
     }
     const sql = `
       INSERT INTO
         transfer_bonded_events
       (
-        id, event_context_id, path_id, transfer_id, checkpoint, "to", amount_out, total_sent
+        id, event_context_id, path_id, transfer_id, "to", amount
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amountOut}, ${totalSent})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${to}, ${amount})'}
       ON CONFLICT (transfer_id)
       ${'DO UPDATE SET path_id = ${pathId}'}
     `
@@ -113,22 +104,16 @@ export class TransferBondedTable extends EventDb {
       return getData
     }
     const data = Object.assign({}, getData)
-    if (data.amountOut && typeof data.amountOut === 'string') {
-      data.amountOut = BigNumber.from(data.amountOut)
-    }
-    if (data.totalSent && typeof data.totalSent === 'string') {
-      data.totalSent = BigNumber.from(data.totalSent)
+    if (data.amount && typeof data.amount === 'string') {
+      data.amount = BigNumber.from(data.amount)
     }
     return data
   }
 
   #normalizeDataForPut (putData: Partial<TransferBonded>): Partial<TransferBonded> {
     const data = Object.assign({}, putData) as any
-    if (data.amountOut && typeof data.amountOut !== 'string') {
-      data.amountOut = data.amountOut.toString()
-    }
-    if (data.totalSent && typeof data.totalSent !== 'string') {
-      data.totalSent = data.totalSent.toString()
+    if (data.amount && typeof data.amount !== 'string') {
+      data.amount = data.amount.toString()
     }
 
     return data

@@ -184,7 +184,7 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
                 </Box>
-                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
 
               <Box mb={2}>

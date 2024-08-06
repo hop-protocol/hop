@@ -61,5 +61,7 @@ export {
 } from './StakingRegistry.js'
 export {
   TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher
+  TransferSent, TransferSentEventFetcher,
+  MultiHopTransferSent, MultiHopTransferSentFetcher,
+  MultiHopTransferBonded, MultiHopTransferBondedFetcher
 } from './events/index.js'

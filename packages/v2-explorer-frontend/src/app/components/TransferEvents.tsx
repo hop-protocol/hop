@@ -71,10 +71,6 @@ export function ExplorerEvents (props: any) {
       value: 'Transfer ID',
     },
     {
-      key: 'checkpoint',
-      value: 'Checkpoint',
-    },
-    {
       key: 'sourceChain',
       value: 'Source Chain',
     },
@@ -135,11 +131,6 @@ export function ExplorerEvents (props: any) {
         clipboardValue: event.transferId
       },
       {
-        key: 'checkpoint',
-        value: event.checkpointTruncated,
-        clipboardValue: event.checkpoint
-      },
-      {
         key: 'sourceChain',
         value: event.context?.chainLabel,
         imageUrl: event.context?.chainImageUrl,
@@ -197,7 +188,6 @@ export function ExplorerEvents (props: any) {
               value={filterBy}
               onChange={handleFilterByChange}>
                 <MenuItem value={'transferId'}>TransferId ID</MenuItem>
-                <MenuItem value={'checkpoint'}>Checkpoint</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
                 <MenuItem value={'account'}>Account</MenuItem>
                 <MenuItem value={'recipient'}>Recipient</MenuItem>

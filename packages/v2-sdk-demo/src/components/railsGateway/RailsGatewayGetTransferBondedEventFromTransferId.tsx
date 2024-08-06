@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import { HighlightedButton } from '../HighlightedButton'
 import { CustomTextField } from '../CustomTextField'
@@ -16,8 +16,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetTransferSentEventFromCheckpoint (props: Props) {
-  const cacheKey = 'railsGatewayGetTransferSentEventFromCheckpoint'
+export function RailsGatewayGetTransferBondedEventFromTransferId (props: Props) {
+  const cacheKey = 'railsGatewayGetTransferBondedEventFromTransferId'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -25,7 +25,7 @@ export function RailsGatewayGetTransferSentEventFromCheckpoint (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [checkpoint, setCheckpoint] = useLocalStorageState(`${cacheKey}:checkpoint`, {
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
     defaultValue: '',
   })
   const [event, setEvent] = useState('')
@@ -41,11 +41,11 @@ export function RailsGatewayGetTransferSentEventFromCheckpoint (props: Props) {
 
       const args = {
         fromChainId,
-        checkpoint
+        transferId
       }
 
       console.log('args', args)
-      const event = await sdk.railsGateway.getTransferSentEventFromCheckpoint(args)
+      const event = await sdk.railsGateway.getTransferBondedEventFromTransferId(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -59,12 +59,12 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const fromChainId = "${fromChainId}"
-  const checkpoint = "${checkpoint}"
+  const transferId = "${transferId}"
 
   const hop = new Hop({ network: '${network}' })
-  const event = await hop.railsGateway.getTransferSentEventFromCheckpoint({
+  const event = await hop.railsGateway.getTransferBondedEventFromTransferId({
     fromChainId,
-    checkpoint
+    transferId
   })
   console.log(event)
 }
@@ -82,10 +82,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Transfer Sent Event From Checkpoint</Typography>
+        <Typography variant="h5">Rails Gateway - Get Transfer Bonded Event From Transfer ID</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get full event log from checkpoint</Typography>
+        <Typography variant="subtitle1">Get full event log from transfer ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -98,9 +98,9 @@ main().catch(console.error)
             </Box>
             <Box mb={2}>
               <Box mb={1}>
-                <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>This is the checkpoint hash to use</em></small></label>
+                <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>This is the transfer id to use</em></small></label>
               </Box>
-              <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={event => setCheckpoint(event.target.value)} />
+              <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={event => setTransferId(event.target.value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
               <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
@@ -122,7 +122,7 @@ main().catch(console.error)
               }}>
                 {event}
               </pre>
-              <CopyToClipboard text={checkpoint}
+              <CopyToClipboard text={transferId}
                 onCopy={handleCopy}>
                 <Typography variant="body2" style={{ cursor: 'pointer' }}>
                   {copied ? 'Copied!' : 'Copy to clipboard'}
@@ -144,4 +144,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayGetTransferSentEventFromCheckpoint
+export default RailsGatewayGetTransferBondedEventFromTransferId

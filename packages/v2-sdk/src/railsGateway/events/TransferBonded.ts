@@ -6,10 +6,8 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 export interface TransferBonded extends EventBase {
   pathId: string
   transferId: string
-  checkpoint: string
   to: string
-  amountOut: BigNumber
-  totalSent: BigNumber
+  amount: BigNumber
 }
 
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
@@ -30,31 +28,21 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     return filter
   }
 
-  getCheckpointFilter (checkpoint: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(null, null, checkpoint)
-    return filter
-  }
-
   override toTypedEvent (ethersEvent: EthersEvent): TransferBonded {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
-    const checkpoint = parsed.args.checkpoint.toString()
     const to = parsed.args.to
-    const amountOut = parsed.args.amountOut
-    const totalSent = parsed.args.totalSent
+    const amount = parsed.args.amount
 
     return {
       eventName: this.eventName,
       eventLog: ethersEvent,
       pathId,
       transferId,
-      checkpoint,
       to,
-      amountOut,
-      totalSent
+      amount
     }
   }
 }

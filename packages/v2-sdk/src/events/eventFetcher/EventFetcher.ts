@@ -135,7 +135,7 @@ export class EventFetcher {
       promiseFns,
       async (fn: () => Promise<EthersEvent[]>) => {
         const batchedEvents = await fn()
-        console.log(`got batch ${i++}/${promiseFns.length}`)
+        console.log(`got batch ${i++}/${promiseFns.length} with ${batchedEvents.length} events`)
         events.push(...batchedEvents)
       },
       { concurrency: 20 }

@@ -6,12 +6,11 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 export interface TransferSent {
   pathId: string
   transferId: string
-  checkpoint: string
   to: string
   amount: BigNumber
-  attestationFee: BigNumber
   totalSent: BigNumber
   nonce: BigNumber
+  previousTransferId: string
   attestedCheckpoint: string
 }
 
@@ -28,14 +27,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
 
   getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = this.getContract()
-    // TODO: currently transferId is not indexed by contract, so this doesn't work
     const filter = railsGateway.filters.TransferSent(transferId)
-    return filter
-  }
-
-  getCheckpointFilter (checkpoint: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(null, null, checkpoint)
     return filter
   }
 
@@ -44,23 +36,21 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
 
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
-    const checkpoint = parsed.args.checkpoint.toString()
     const to = parsed.args.to
     const amount = parsed.args.amount
-    const attestationFee = parsed.args.attestationFee
     const totalSent = parsed.args.totalSent
     const nonce = parsed.args.nonce
+    const previousTransferId = parsed.args.previousTransferId.toString()
     const attestedCheckpoint = parsed.args.attestedCheckpoint.toString()
 
     return {
       pathId,
       transferId,
-      checkpoint,
       to,
       amount,
-      attestationFee,
       totalSent,
       nonce,
+      previousTransferId,
       attestedCheckpoint
     }
   }

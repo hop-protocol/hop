@@ -33,16 +33,16 @@ export function GetEvents (props: Props) {
     defaultValue: '',
   })
 
-  const [selectedEventNames, setSelectedEventNames] = useLocalStorageState<string[]>(`${cacheKey}:selectedEventNames`, {
-    defaultValue: [eventNames[0]],
-  })
-
   const [events, setEvents] = useState('')
   const [loading, setLoading] = useState(false)
   const eventNames = useMemo(() => {
     return sdk?.messenger.getEventNames() ?? []
   }, [sdk])
   const [error, setError] = useState('')
+
+  const [selectedEventNames, setSelectedEventNames] = useLocalStorageState<string[]>(`${cacheKey}:selectedEventNames`, {
+    defaultValue: [eventNames[0]],
+  })
 
   async function getEvents() {
     let _fromBlock = Number(fromBlock)

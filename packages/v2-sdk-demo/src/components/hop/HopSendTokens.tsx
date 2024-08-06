@@ -57,7 +57,7 @@ export function HopSendTokens (props: Props) {
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [approvalTxHash, setApprovalTxHash] = useState('')
   const [txHash, setTxHash] = useState('')
-  const [checkpoint, setCheckpoint] = useState('')
+  const [transferId, setTransferId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -83,7 +83,7 @@ export function HopSendTokens (props: Props) {
       setTxData('')
       setApprovalTxHash('')
       setTxHash('')
-      setCheckpoint('')
+      setTransferId('')
       setLoading(true)
       if (populateTxDataOnly) {
         const txData = await getSendTxData()
@@ -122,8 +122,8 @@ export function HopSendTokens (props: Props) {
             fromChainId,
             receipt
           })
-          const checkpoint = event?.checkpoint
-          setCheckpoint(checkpoint)
+          const transferId = event?.transferId
+          setTransferId(transferId)
         }
       }
     } catch (err: any) {
@@ -273,9 +273,9 @@ main().catch(console.error)
               <Alert severity="success">Tx hash (Send): {txHash}</Alert>
             </Box>
           )}
-          {!!checkpoint && (
+          {!!transferId && (
             <Box mb={4}>
-              <Alert severity="info">Checkpoint: {checkpoint}</Alert>
+              <Alert severity="info">Transfer ID: {transferId}</Alert>
             </Box>
           )}
           {!!txData && (

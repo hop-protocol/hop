@@ -36,9 +36,9 @@ const RailsGatewayGetLatestClaim = lazy(() => import('../components/railsGateway
 const RailsGatewayGetIsCheckpointValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsCheckpointValid'))
 const RailsGatewayConfirmCheckpoint = lazy(() => import('../components/railsGateway/RailsGatewayConfirmCheckpoint'))
 const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash'))
-const RailsGatewayGetTransferSentEventFromCheckpoint = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromCheckpoint'))
+const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId'))
 const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash'))
-const RailsGatewayGetTransferBondedEventFromCheckpoint = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromCheckpoint'))
+const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTransferId'))
 const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents'))
 const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents'))
 const RailsGatewayCalcAmountOutMin = lazy(() => import('../components/railsGateway/RailsGatewayCalcAmountOutMin'))
@@ -118,9 +118,9 @@ export function Main () {
     ['Rails Gateway - Bond', <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
-    ['Rails Gateway - Get Transfer Sent Event From Checkpoint', <RailsGatewayGetTransferSentEventFromCheckpoint sdk={sdk} />],
+    ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transaction Hash', <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />],
-    ['Rails Gateway - Get Transfer Bonded Event From Checkpoint', <RailsGatewayGetTransferBondedEventFromCheckpoint sdk={sdk} />],
+    ['Rails Gateway - Get Transfer Bonded Event From Transfer ID', <RailsGatewayGetTransferBondedEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Events', <RailsGatewayGetTransferSentEvents sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Events', <RailsGatewayGetTransferBondedEvents sdk={sdk} />],
     ['Rails Gateway - Calculate Amount Out Min', <RailsGatewayCalcAmountOutMin sdk={sdk} />],
@@ -144,7 +144,7 @@ export function Main () {
     const hash = window.location.hash.substring(1)
     const initialExpanded = components.map(() => false)
     if (hash) {
-      const index = components.findIndex(([title]) => title.replace(/\s+/g, '-') === hash)
+      const index = components.findIndex(([title]) => (title as string).replace(/\s+/g, '-') === hash)
       if (index !== -1) {
         initialExpanded[index] = true
       }
@@ -169,7 +169,7 @@ export function Main () {
       const newExpanded = [...prev]
       newExpanded[panel] = isExpanded
       if (isExpanded) {
-        window.location.hash = components[panel][0].replace(/\s+/g, '-')
+        window.location.hash = (components[panel][0] as string).replace(/\s+/g, '-')
       } else {
         window.location.hash = ''
       }
@@ -217,7 +217,7 @@ export function Main () {
         )}
         <Box width="100%" mb={6} display="flex" flexDirection="column" minWidth="1400px">
           {components.map(([title, component], i) => {
-            const id = title.replace(/\s+/g, '-')
+            const id = (title as string).replace(/\s+/g, '-')
             return (
               <Accordion key={i} expanded={expanded[i]} onChange={handleChange(i)} id={id}>
                 <AccordionSummary

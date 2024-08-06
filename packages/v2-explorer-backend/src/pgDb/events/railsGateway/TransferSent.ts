@@ -6,12 +6,12 @@ import { v4 as uuid } from 'uuid'
 export interface TransferSent extends BaseType {
   pathId: string
   transferId: string
-  checkpoint: string
   to: string
   amount: BigNumber
   attestationFee: BigNumber
   totalSent: BigNumber
   nonce: BigNumber
+  previousTransferId: string
   attestedCheckpoint: string
 }
 
@@ -21,12 +21,11 @@ export class TransferSentTable extends EventDb {
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
         transfer_id CHAR(66) NOT NULL UNIQUE,
-        checkpoint CHAR(66) NOT NULL UNIQUE,
         "to" CHAR(42) NOT NULL, -- Ethereum address
         amount NUMERIC NOT NULL CHECK (amount >= 0),
         attestation_fee NUMERIC NOT NULL CHECK (attestation_fee >= 0),
-        total_sent NUMERIC NOT NULL CHECK (total_sent >= 0),
         nonce NUMERIC NOT NULL CHECK (nonce >= 0),
+        previous_transfer_id CHAR(66),
         attested_checkpoint CHAR(66) NOT NULL,
         ${eventContextIdCreationSql}
     )`)
@@ -48,8 +47,6 @@ export class TransferSentTable extends EventDb {
     const args = [startTimestamp, endTimestamp, limit, offset]
     if (filter?.transferId) {
       args.push(filter.transferId)
-    } else if (filter?.checkpoint) {
-      args.push(filter.checkpoint)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -64,12 +61,12 @@ export class TransferSentTable extends EventDb {
       `SELECT
         e.path_id AS "pathId",
         e.transfer_id AS "transferId",
-        e.checkpoint,
         e."to",
         e.amount,
         e.attestation_fee AS "attestationFee",
         e.total_sent AS "totalSent",
         e.nonce,
+        e.prevoius_transfer_id AS "previousTransferId",
         e.attested_checkpoint AS "attestedCheckpoint",
         ${selectEventContextSql}
       FROM
@@ -83,7 +80,6 @@ export class TransferSentTable extends EventDb {
         AND
         ec.block_timestamp <= $2
         ${filter?.transferId ? 'AND e.transfer_id= $5' : ''}
-        ${filter?.checkpoint ? 'AND e.checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND e.path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
@@ -101,22 +97,22 @@ export class TransferSentTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint, context } = this.#normalizeDataForPut(item)
+    const { pathId, transferId, to, amount, attestationFee, totalSent, nonce, previousTransferId, attestedCheckpoint, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint,
+      id: uuid(), contextId, pathId, transferId, to, amount, attestationFee, totalSent, nonce, previousTransferId, attestedCheckpoint,
     }
     const sql = `
       INSERT INTO
         transfer_sent_events
       (
-        id, event_context_id, path_id, transfer_id, checkpoint, "to", amount, attestation_fee, total_sent, nonce, attested_checkpoint
+        id, event_context_id, path_id, transfer_id, "to", amount, attestation_fee, total_sent, nonce, previous_transfer_id, attested_checkpoint
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amount}, ${attestationFee}, ${totalSent}, ${nonce}, ${attestedCheckpoint})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${to}, ${amount}, ${attestationFee}, ${totalSent}, ${nonce}, ${previousTransferId}, ${attestedCheckpoint})'}
       ON CONFLICT (transfer_id)
       ${'DO UPDATE SET path_id = ${pathId}'}
     `

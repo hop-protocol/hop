@@ -4,7 +4,8 @@ import { MAX_BLOCK_RANGE_PER_GET_LOG_CALL } from '#constants/index.js'
 import type { IndexerEventFilter } from './OnchainEventIndexer.js'
 import { FinalityService } from '#finality/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { SharedConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export function getUniqueFilterId (indexerEventFilter: IndexerEventFilter): string {
   const { chainId, filter } = indexerEventFilter
@@ -22,7 +23,7 @@ export async function getSyncBlockNumber (chainId: string): Promise<number> {
   const chainSlug = getChain(chainId).slug
   const provider = getRpcProvider(chainSlug)
 
-  const syncType = SharedConfig.syncType
+  const syncType = SignerConfig.chains[chainSlug as ChainSlug]?.syncType
   const finalityService = new FinalityService(
     provider,
     chainSlug,

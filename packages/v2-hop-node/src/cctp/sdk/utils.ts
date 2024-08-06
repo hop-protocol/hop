@@ -1,9 +1,9 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Contract, utils } from 'ethers'
-import { SharedConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
 
 export function getAttestationUrl (messageHash: string): string {
-  const attestationUrlSubdomain = SharedConfig.network === NetworkSlug.Mainnet ? 'iris-api' : 'iris-api-sandbox'
+  const attestationUrlSubdomain = SignerConfig.network === NetworkSlug.Mainnet ? 'iris-api' : 'iris-api-sandbox'
   const baseUrl = `https://${attestationUrlSubdomain}.circle.com/v1/attestations`
   return `${baseUrl}/${messageHash}`
 }
@@ -28,7 +28,7 @@ export const AttestationTimeForChainIdMs: Record<string, Partial<Record<ChainSlu
 
 export function getAttestationTimeFromChainIdMs (chainId: string): number {
   const chainSlug = getChain(chainId).slug
-  return (AttestationTimeForChainIdMs as any)[SharedConfig.network as NetworkSlug][chainSlug]!
+  return (AttestationTimeForChainIdMs as any)[SignerConfig.network as NetworkSlug][chainSlug]!
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
@@ -129,7 +129,7 @@ export function getMessageTransmitterContract (chainId: string): Contract {
   const iface = getCCTPMessageTransmitterContractInterface()
   const chainSlug = getChain(chainId).slug
   return new Contract(
-    MessageTransmitterAddresses[SharedConfig.network]![chainSlug as ChainSlug]!,
+    MessageTransmitterAddresses[SignerConfig.network]![chainSlug as ChainSlug]!,
     iface
   )
 }
@@ -139,7 +139,7 @@ export function getHopCCTPContract (chainId: string): Contract {
   const iface = getHopCCTPInterface()
   const chainSlug = getChain(chainId).slug
   return new Contract(
-    HopCCTPAddresses[SharedConfig.network]![chainSlug as ChainSlug]!,
+    HopCCTPAddresses[SignerConfig.network]![chainSlug as ChainSlug]!,
     iface
   )
 }

@@ -81,7 +81,7 @@ export class GasBoostSigner extends Signer {
     const defaultOptions: Partial<Options> = {
       gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
       initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
-      maxGasPriceGwei: SignerConfig.maxGasPriceGwei[chainSlug as ChainSlug],
+      maxGasPriceGwei: SignerConfig.chains[chainSlug as ChainSlug]?.maxGasPriceGwei,
       priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
       timeTilBoostMs: TIME_TIL_BOOST_MS,
       maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL

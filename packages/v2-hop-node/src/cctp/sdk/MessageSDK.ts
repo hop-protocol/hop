@@ -15,7 +15,7 @@ import {
 import type { DecodedLogWithContext, RequiredEventFilter } from '../../types.js'
 import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { SharedConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
 import { wait } from '#utils/wait.js'
 import { MIN_POLYGON_GAS_PRICE } from '#constants/index.js'
@@ -197,7 +197,7 @@ export class MessageSDK {
 
     // Get the message body
     const messageBodyVersion = 0
-    const burnToken = utils.hexZeroPad(USDC_ADDRESSES[SharedConfig.network as NetworkSlug]![chainId]!, 32)
+    const burnToken = utils.hexZeroPad(USDC_ADDRESSES[SignerConfig.network as NetworkSlug]![chainId]!, 32)
     const mintRecipient = utils.hexZeroPad(recipient, 32)
     const messageAmount = amount.sub(bonderFee)
     const messageBodySender = utils.hexZeroPad(getHopCCTPContract(chainId).address, 32)
@@ -217,8 +217,8 @@ export class MessageSDK {
     const messageVersion = 0
     const sourceDomain = MessageSDK.getDomainFromChainId(chainId)
 
-    const messageSender = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SharedConfig.network as NetworkSlug]![chainId]!, 32)
-    const messageRecipient = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SharedConfig.network as NetworkSlug]![cctpChainId]!, 32)
+    const messageSender = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SignerConfig.network as NetworkSlug]![chainId]!, 32)
+    const messageRecipient = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SignerConfig.network as NetworkSlug]![cctpChainId]!, 32)
     const destDomain = MessageSDK.getDomainFromChainId(cctpChainId)
     const destinationCaller = utils.hexZeroPad('0x0000000000000000000000000000000000000000', 32)
 
@@ -269,20 +269,20 @@ export class MessageSDK {
   }
 
   static getChainIdFromDomain (domain: string): string {
-    return (CCTP_DOMAIN_TO_CHAIN_ID_MAP[SharedConfig.network as NetworkSlug]![Number(domain)]!).toString()
+    return (CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]![Number(domain)]!).toString()
   }
 
   static getDomainFromChainId (chainId: string): string {
-    return (CCTP_CHAIN_ID_TO_DOMAIN_MAP[SharedConfig.network as NetworkSlug]![Number(chainId)]!).toString()
+    return (CCTP_CHAIN_ID_TO_DOMAIN_MAP[SignerConfig.network as NetworkSlug]![Number(chainId)]!).toString()
   }
 
   static getEnabledDomains (): number[] {
-    return Object.keys(CCTP_DOMAIN_TO_CHAIN_ID_MAP[SharedConfig.network as NetworkSlug]!).map(Number)
+    return Object.keys(CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]!).map(Number)
   }
 
   static getStartBlockNumber (chainId: string): number {
     const chainSlug = getChain(chainId).slug
-    return (DEFAULT_START_BLOCK_NUMBER as any)[SharedConfig.network as NetworkSlug][chainSlug]
+    return (DEFAULT_START_BLOCK_NUMBER as any)[SignerConfig.network as NetworkSlug][chainSlug]
   }
 
   static async isNonceUsed (chainId: string, hashedNonce: string): Promise<boolean> {

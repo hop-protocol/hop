@@ -5,7 +5,7 @@ import {
   MessageStatus
 } from '@eth-optimism/sdk'
 import type { providers } from 'ethers'
-import { SharedConfig } from '#config/index.js'
+import { SignerConfig } from '#config/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import type { ChainSlug } from '@hop-protocol/sdk'
 
@@ -15,7 +15,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
-    const networkSlug = SharedConfig.network
+    const networkSlug = SignerConfig.network
     const l2Chain = getChain(networkSlug, chainSlug)
     this.#csm = new CrossChainMessenger({
       bedrock: true,

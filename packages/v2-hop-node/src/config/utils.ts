@@ -1,7 +1,7 @@
 import path from 'node:path'
 import os from 'node:os'
 import fs from 'node:fs'
-import type { IConfig } from './index.js'
+import type { IConfig } from './types.js'
 import { USER_CONFIG_PATH } from './constants.js'
 
 export async function parseUserDefinedConfigFile (): Promise<IConfig> {

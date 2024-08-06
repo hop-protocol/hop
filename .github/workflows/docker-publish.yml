@@ -10,6 +10,7 @@ on:
       - 'packages/api/**'
       - 'packages/explorer-backend/**'
       - 'packages/stats-worker/**'
+      - 'packages/v2-hop-node/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
@@ -21,7 +22,7 @@ jobs:
     name: Check for package that can be published
     uses: ./.github/workflows/publishable-packages.yml
     with:
-      package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
+      package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker:v2-hop-node'
 
   publish-docker:
     name: Publish Docker

@@ -1,6 +1,6 @@
 # V2 Hop Node
 
-Coming soon. Development in progress under private repo.
+The V2 Hop Node for Hop Protocol.
 
 ## License
 

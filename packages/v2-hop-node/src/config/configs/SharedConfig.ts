@@ -30,7 +30,7 @@ export class SharedConfig extends ConfigManager {
     this.network = network
     this.chains = chains
     this.dbDir = dbDir
-    this.syncType = SyncType.Bonder
+    this.syncType = SyncType.Threshold
 
     // Create DB dir if it doesn't exist
     mkdirp.sync(this.dbDir)

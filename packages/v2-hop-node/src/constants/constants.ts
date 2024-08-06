@@ -18,18 +18,19 @@ export enum TimeIntervals {
 // Chain
 export const AVG_BLOCK_TIME_SECONDS: Partial<Record<ChainSlug, number>> = getAverageBlockTimeSeconds()
 export const MIN_POLYGON_GAS_PRICE = 60_000_000_000
-// This represents the custom finality time for each chain. There is a buffer.
+// This represents the custom finality time for each chain plus the time it takes for chain finality to update. There is a buffer.
+// which means it could take another 10 minutes.
 export const FINALITY_TIME_MS: Record<ChainSlug, number> = {
-  [ChainSlug.Ethereum]: 12 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.Polygon]: 12 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Ethereum]: 25 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Polygon]: 25 * TimeIntervals.ONE_MINUTE_MS,
   [ChainSlug.Gnosis]: 30 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.Optimism]: 12 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.Arbitrum]: 12 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.Nova]: 12 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.ZkSync]: 12 * TimeIntervals.ONE_MINUTE_MS, // TODO
-  [ChainSlug.Linea]: 12 * TimeIntervals.ONE_MINUTE_MS, // TODO
-  [ChainSlug.ScrollZk]: 12 * TimeIntervals.ONE_MINUTE_MS, // TODO
-  [ChainSlug.Base]: 12 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Optimism]: 25 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Arbitrum]: 25 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Nova]: 25 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.ZkSync]: 25 * TimeIntervals.ONE_MINUTE_MS, // TODO
+  [ChainSlug.Linea]: 25 * TimeIntervals.ONE_MINUTE_MS, // TODO
+  [ChainSlug.ScrollZk]: 25 * TimeIntervals.ONE_MINUTE_MS, // TODO
+  [ChainSlug.Base]: 25 * TimeIntervals.ONE_MINUTE_MS,
   [ChainSlug.PolygonZk]: 30 * TimeIntervals.ONE_MINUTE_MS
 }
 

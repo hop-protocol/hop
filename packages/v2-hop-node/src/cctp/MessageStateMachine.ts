@@ -55,6 +55,10 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
     const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
     const destinationChainSlug = getChain(destinationChainId).slug
+    // This value is not terribly useful if threshold finality is enabled (default).
+    // When it is not enabled, the check must wait for finality of the chain.
+    // Since there are no state transitions after this one, there is no need to optimize
+    // this value.
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destinationChainSlug]
     // Add a buffer to allow the transaction to be processed by the relayer
     const bufferMs = 60_000

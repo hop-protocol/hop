@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/v2-hop-node",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The V2 Hop Node pakcage for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "type": "module",

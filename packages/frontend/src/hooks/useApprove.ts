@@ -14,6 +14,10 @@ const useApprove = (token: any) => {
 
   const checkApproval = async (amount: BigNumber, token: Token, spender: string): Promise<boolean> => {
     try {
+      if (!spender) {
+        return false
+      }
+
       const signer = provider?.getSigner()
       if (!signer) {
         throw new Error('Wallet not connected')

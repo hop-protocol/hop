@@ -122,6 +122,11 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
       try {
         const bridge = sdk.bridge(token.symbol)
 
+        const isDeprecatedRoute = fromNetwork && toNetwork && ['USDC', 'USDC.e'].includes(token?.symbol) && !bridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)
+        if (isDeprecatedRoute) {
+          return
+        }
+
         const destinationAmountOutMin = 0
         let destinationDeadline = deadline()
         if (toNetwork.slug === ChainSlug.Ethereum) {

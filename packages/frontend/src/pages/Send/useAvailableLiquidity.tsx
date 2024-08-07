@@ -30,6 +30,12 @@ const useAvailableLiquidity = (
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
       if (sourceChain && destinationChain && tokenSymbol) {
+
+        const isDeprecatedRoute = sourceChain && destinationChain && ['USDC', 'USDC.e'].includes(tokenSymbol) && !bridge?.getIsSupportedCctpRoute(sourceChain, destinationChain)
+        if (isDeprecatedRoute) {
+          return false
+        }
+
         const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
         const shouldDisableNativeAssetTransfers =
           process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS === 'true' &&

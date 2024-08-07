@@ -56,7 +56,7 @@ export function RewardsWidget(props: Props) {
       {!claimRecipient && (
         <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
           <Typography variant="body1">
-            Please connect wallet
+            Please connect wallet to claim {tokenSymbol} rewards
           </Typography>
         </Box>
       )}

@@ -5,7 +5,6 @@ import { MIN_GNOSIS_GAS_PRICE, MIN_POLYGON_GAS_PRICE } from '#constants/index.js
 import { BigNumber } from 'ethers'
 import { getRpcProvider } from './getRpcProvider.js'
 
-
 /**
  * @dev Not all chains require custom tx overrides. If no overrides are required,
  * an empty object is returned.

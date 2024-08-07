@@ -5,7 +5,7 @@ import { Logger } from '#logger/index.js'
 // data-source module. Do that when there are multiple implementations.
 import { DATA_STORED_EVENT } from '#indexer/constants.js'
 import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
-import type { DecodedLogWithContext } from '#types.js'
+import type { DecodedLogWithContext } from '#types/index.js'
 
 /**
  * This class is responsible for providing formatted data to the

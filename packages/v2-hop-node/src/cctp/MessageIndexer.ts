@@ -1,6 +1,6 @@
 import { MessageSDK, type HopCCTPTransferSentDecoded, type HopCCTPTransferReceivedDecoded } from './sdk/MessageSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
-import type { DecodedLogWithContext } from '#types.js'
+import type { DecodedLogWithContext } from '#types/index.js'
 import { type IMessage, MessageState } from './types.js'
 import type { providers } from 'ethers'
 

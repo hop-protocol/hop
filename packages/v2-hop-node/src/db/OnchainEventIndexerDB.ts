@@ -1,5 +1,5 @@
 import { DB } from './DB.js'
-import type { DecodedLogWithContext } from '../types.js'
+import type { DecodedLogWithContext } from '#types/index.js'
 import { DATA_PUT_EVENT } from './constants.js'
 import { normalizeDBValue } from './utils.js'
 

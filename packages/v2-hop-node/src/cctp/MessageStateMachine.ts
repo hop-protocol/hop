@@ -2,7 +2,7 @@ import { wallets } from '#wallets/index.js'
 import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '#state-machine/StateMachine.js'
 import { MessageSDK } from './sdk/MessageSDK.js'
-import { poll } from '#utils.js'
+import { poll } from '#utils/poll.js'
 import {
   type ISentMessage,
   type IMessage,

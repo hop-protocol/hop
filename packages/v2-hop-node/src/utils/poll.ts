@@ -1,4 +1,4 @@
-import { wait } from '#utils/wait.js'
+import { wait } from './wait.js'
 import type { Logger } from '#logger/index.js'
 
 export async function poll(

@@ -1,6 +1,6 @@
 import type { IDataProvider } from '#data-provider/IDataProvider.js'
 import { StateMachineDB } from '#db/StateMachineDB.js'
-import { poll } from '#utils.js'
+import { poll } from '#utils/poll.js'
 import { getFirstState, getNextState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'

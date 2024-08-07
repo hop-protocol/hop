@@ -4,9 +4,9 @@ import type {
   DecodedLogWithContext,
   RequiredEventFilter,
   RequiredFilter
-} from '#types.js'
+} from '#types/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { poll } from '#utils.js'
+import { poll } from '#utils/poll.js'
 import type { providers } from 'ethers'
 import { DATA_STORED_EVENT } from './constants.js'
 import { getMaxBlockRangePerIndex, getIndexerSyncBlockNumber, getUniqueFilterId } from './utils.js'

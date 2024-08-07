@@ -12,7 +12,7 @@ import {
   getMessageTransmitterContract,
   getAttestationTimeFromChainIdMs,
 } from './utils.js'
-import type { DecodedLogWithContext, RequiredEventFilter } from '../../types.js'
+import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { SignerConfig } from '#config/index.js'

@@ -18,8 +18,7 @@ export function getMaxBlockRangePerIndex (chainId: string): number {
   return MAX_BLOCK_RANGE_PER_GET_LOG_CALL[chainSlug]
 }
 
-// TODO: V2: Should not be in CCTP module
-export async function getSyncBlockNumber (chainId: string): Promise<number> {
+export async function getIndexerSyncBlockNumber (chainId: string): Promise<number> {
   const chainSlug = getChain(chainId).slug
   const provider = getRpcProvider(chainSlug)
 

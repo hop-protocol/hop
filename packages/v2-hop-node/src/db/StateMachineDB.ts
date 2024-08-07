@@ -47,7 +47,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     value: StateData
   ): Promise<void> {
   /**
-   * TODO: V2: Optimize this on a per-key basis instead of locking for every write.
+   * TODO: Optimize: Optimize this on a per-key basis instead of locking for every write.
    *
    * Note: This might be built-in to LevelDB. Investigate.
    *

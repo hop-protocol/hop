@@ -9,7 +9,7 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '#utils.js'
 import type { providers } from 'ethers'
 import { DATA_STORED_EVENT } from './constants.js'
-import { getMaxBlockRangePerIndex, getSyncBlockNumber, getUniqueFilterId } from './utils.js'
+import { getMaxBlockRangePerIndex, getIndexerSyncBlockNumber, getUniqueFilterId } from './utils.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '#db/constants.js'
 import { Logger } from '#logger/index.js'
@@ -150,7 +150,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
     // Add 1 to currentEnd to avoid fetching the same block twice
     const startBlockNumber = lastBlockSynced + 1
-    const endBlockNumber = await getSyncBlockNumber(chainId)
+    const endBlockNumber = await getIndexerSyncBlockNumber(chainId)
     const isSynced = startBlockNumber > endBlockNumber
     if (isSynced) return
 

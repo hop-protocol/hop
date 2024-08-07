@@ -97,7 +97,7 @@ export class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce (): Promise<boolean> {
-    // TODO: V2: This is legacy and should be removed
+    // TODO: Optimize: This is legacy and should be removed
     return true
   }
 

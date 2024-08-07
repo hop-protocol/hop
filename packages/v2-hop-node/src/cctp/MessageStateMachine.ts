@@ -141,7 +141,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
       return
     } else {
       // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
-      // TODO: V2: The reorged message case should be handled differently by the DB and should not be here..
+      // TODO: V2: The reorged message case should be handled differently by the DB and should not be here.
       this.logger.debug(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
       return
     }

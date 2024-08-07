@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import type { IDataProvider } from './IDataProvider.js'
 import { Logger } from '#logger/index.js'
-// TODO: V2: Imports below here should be abstracted away into a generalized
+// TODO: Optimize: Imports below here should be abstracted away into a generalized
 // data-source module. Do that when there are multiple implementations.
 import { DATA_STORED_EVENT } from '#indexer/constants.js'
 import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
@@ -14,7 +14,7 @@ import type { DecodedLogWithContext } from '#types.js'
  * This class also emits an event upon receipt of data from the source.
  */
 
-// TODO: V2: Abstract away these types into a generalized data-source module
+// TODO: Optimize: Abstract away these types into a generalized data-source module
 // when there are multiple implementations.
 type IDataSource<T, U> = IOnchainEventIndexer<T, U>
 type IDataSourceItem = DecodedLogWithContext

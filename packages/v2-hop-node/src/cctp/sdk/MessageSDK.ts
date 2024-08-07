@@ -1,5 +1,5 @@
 import type { Signer, providers} from 'ethers'
-import { BigNumber, utils } from 'ethers'
+import { type BigNumber, utils } from 'ethers'
 import {
   CCTP_DOMAIN_TO_CHAIN_ID_MAP,
   CCTP_CHAIN_ID_TO_DOMAIN_MAP,
@@ -18,7 +18,7 @@ import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { SignerConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
 import { wait } from '#utils/wait.js'
-import { MIN_POLYGON_GAS_PRICE } from '#constants/index.js'
+import { getTxOverrides } from '#utils/getTxOverrides.js'
 
 // Temp to handle API rate limit
 const mutex = new Mutex()
@@ -105,8 +105,7 @@ export class MessageSDK {
   static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
     const chainId: string = (await signer.getChainId()).toString()
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
-    // TODO: SDK: Config overrides
-    const txOverrides = await MessageSDK.getTxOverrides(chainId)
+    const txOverrides = await getTxOverrides(chainId)
     return MessageTransmitterContract.connect(signer).receiveMessage(message, attestation, txOverrides)
   }
 
@@ -142,27 +141,6 @@ export class MessageSDK {
 
       return json.attestation
     })
-  }
-
-  // TODO: SDK: rm for config
-  static async getTxOverrides (chainId: string): Promise<any>{
-    const provider = getRpcProvider(chainId)
-    const txOptions: any = {}
-
-    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    const chainSlug = getChain(chainId).slug
-    if (chainSlug === ChainSlug.Polygon) {
-      txOptions.gasPrice = await provider.getGasPrice()
-
-      const minGasPrice = BigNumber.from(MIN_POLYGON_GAS_PRICE).mul(2)
-      const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-      if (gasPriceBn.lt(minGasPrice)) {
-        txOptions.gasPrice = minGasPrice
-      }
-    }
-
-    return txOptions
   }
 
   static addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): DecodedLogWithContext {

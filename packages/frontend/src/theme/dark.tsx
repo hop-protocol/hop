@@ -257,9 +257,26 @@ export const overridesDark = {
   },
   MuiAlert: {
     styleOverrides: {
-      root: {
-        backgroundColor: 'inherit',
-        color: 'inherit'
+      root: {},
+      standardSuccess: {
+        backgroundColor: '#2e7d3212',
+        color: '#a5d6a7',
+        border: '1px solid #a5d6a738',
+      },
+      standardError: {
+        backgroundColor: '#c628281c',
+        color: '#ffcccb',
+        border: '1px solid #ffcccb30',
+      },
+      standardWarning: {
+        backgroundColor: '#ff980012',
+        color: '#fff59d',
+        border: '1px solid #fff59d1a',
+      },
+      standardInfo: {
+        backgroundColor: '#1976d20d',
+        color: '#bbdefb',
+        border: '1px solid #bbdefb0d',
       },
     },
   },

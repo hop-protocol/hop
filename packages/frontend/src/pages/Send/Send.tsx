@@ -228,7 +228,7 @@ const Send: FC = () => {
       )}
 
       {!!info && (
-        <Box className={styles.infoWarning}>
+        <Box className={styles.infoWarning} mt={2}>
           <Alert severity="info" onClose={() => setInfo('')} text={info} />
         </Box>
       )}
@@ -237,8 +237,10 @@ const Send: FC = () => {
         <Alert severity="error" onClose={() => setError('')} text={error} />
       )}
 
-      {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="warning">{manualWarning}</Alert>
+      {!error && <Box mt={2}><Alert severity="warning">{warning}</Alert></Box>}
+
+      {!!manualWarning && <Box mt={2}><Alert severity="warning">{manualWarning}</Alert></Box>}
+
       {!!manualError && (
         <Box mt={2}>
           <Alert severity="error">{manualError}</Alert>

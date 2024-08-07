@@ -33,7 +33,7 @@ const useAvailableLiquidity = (
 
         const isDeprecatedRoute = sourceChain && destinationChain && ['USDC', 'USDC.e'].includes(tokenSymbol) && !bridge?.getIsSupportedCctpRoute(sourceChain, destinationChain)
         if (isDeprecatedRoute) {
-          return false
+          return BigNumber.from(0)
         }
 
         const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)

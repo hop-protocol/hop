@@ -35,14 +35,12 @@ interface ZkEvmBridges {
 }
 
 const polygonSdkNetwork: Record<string, string> = {
-  mainnet: 'mainnet',
-  goerli: 'testnet'
+  mainnet: 'mainnet'
 }
 
 // Reference: https://github.com/maticnetwork/static/blob/0964fe422a5e8e9082edd0298dbe53f5a8799bea/network/networks.json
 const polygonSdkVersion: Record<string, string> = {
-  mainnet: 'cherry',
-  goerli: 'blueberry'
+  mainnet: 'cherry'
 }
 
 type Message = string

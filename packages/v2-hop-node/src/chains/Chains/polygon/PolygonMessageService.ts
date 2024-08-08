@@ -36,18 +36,15 @@ type PolygonApiResSuccess = {
 type PolygonApiRes = PolygonApiResError | PolygonApiResSuccess
 
 const polygonChainSlugs: Record<string, string> = {
-  mainnet: 'matic',
-  goerli: 'mumbai'
+  mainnet: 'matic'
 }
 
 const polygonSdkNetwork: Record<string, string> = {
-  mainnet: 'mainnet',
-  goerli: 'testnet'
+  mainnet: 'mainnet'
 }
 
 const polygonSdkVersion: Record<string, string> = {
-  mainnet: 'v1',
-  goerli: 'mumbai'
+  mainnet: 'v1'
 }
 
 export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus> implements IMessageService {

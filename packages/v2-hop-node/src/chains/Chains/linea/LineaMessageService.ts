@@ -34,7 +34,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     const sdkOptions: Partial<LineaSDKOptions> = {
       mode: 'read-only',
-      network: lineaNetwork // options are: "linea-mainnet", "linea-goerli"
+      network: lineaNetwork // options are: "linea-mainnet", "linea-<testnet>"
     }
 
     const l1RpcUrl = getRpcUrlFromProvider(this.l1Wallet.provider!)

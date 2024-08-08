@@ -403,7 +403,7 @@ describe.skip('RailsGateway', () => {
     const eventNames = railsGateway.getEventNames()
     expect(eventNames.length > 0).toBeTruthy()
   })
-  it('should get transfer sent events', async () => {
+  it.skip('should get transfer sent events', async () => {
     const chainId = 11155111
     const fromBlock = 5816945
     const toBlock = 5816945
@@ -412,6 +412,7 @@ describe.skip('RailsGateway', () => {
       fromBlock,
       toBlock
     })
+    console.log(events)
     expect(events.length > 0).toBeTruthy()
   })
   it.skip('TODO should get multi hop transfer sent events', async () => {
@@ -623,15 +624,6 @@ describe.skip('RailsGateway', () => {
     })
     expect(event).toBeDefined()
   }, 60 * 1000)
-  it.skip('TODO should get transfer sent event from checkpoint', async () => {
-    const fromChainId = 11155111
-    const checkpoint = '0xa4d0565cde09d28138df2d24c94188c628fc09689ea7bce609129abf9a85c96e'
-    const event = await railsGateway.getTransferSentEventFromCheckpoint({
-      fromChainId,
-      checkpoint
-    })
-    expect(event).toBeDefined()
-  }, 60 * 1000)
   it('should get transfer bonded event from transaction receipt', async () => {
     const fromChainId = 11155420
     const txHash = '0x65bdde1040b2623f10c5b70ed31e2f9f7150cb5745055dcbc70a1bb1e65e8888'
@@ -658,15 +650,6 @@ describe.skip('RailsGateway', () => {
     const event = await railsGateway.getTransferBondedEventFromTransferId({
       fromChainId,
       transferId
-    })
-    expect(event).toBeDefined()
-  }, 60 * 1000)
-  it.skip('TODO should get transfer bonded event from checkpoint', async () => {
-    const fromChainId = 11155420
-    const checkpoint = '0x3c7d7dc380724b4a03247d1ece8a6b0b1409de6771682468a4a2034a8b95bfec'
-    const event = await railsGateway.getTransferBondedEventFromCheckpoint({
-      fromChainId,
-      checkpoint
     })
     expect(event).toBeDefined()
   }, 60 * 1000)
@@ -704,11 +687,11 @@ describe.skip('RailsGateway', () => {
   it.skip('TODO should get transfer status for checkpoint', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420
-    const checkpoint = '0x3c7d7dc380724b4a03247d1ece8a6b0b1409de6771682468a4a2034a8b95bfec'
+    const transferId = '0xTODO'
     const transferStatus = await railsGateway.getTransferStatus({
       fromChainId,
       toChainId,
-      checkpoint
+      transferId
     })
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()

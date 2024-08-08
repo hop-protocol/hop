@@ -171,11 +171,11 @@ describe.only('Hop', () => {
   it.skip('TODO should get transfer status for checkpoint', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420
-    const checkpoint = '0x3c7d7dc380724b4a03247d1ece8a6b0b1409de6771682468a4a2034a8b95bfec'
+    const transferId = '0xTODO'
     const transferStatus = await sdk.getTransferStatus({
       fromChainId,
       toChainId,
-      checkpoint
+      transferId
     })
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()

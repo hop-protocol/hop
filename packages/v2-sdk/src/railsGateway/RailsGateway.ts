@@ -26,12 +26,14 @@ export type GetEventsInput = {
   fromBlock: number
   toBlock: number
   eventName: EventName
+  fetchTxData?: boolean
 }
 
 export type TransferSentEventInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
+  fetchTxData?: boolean
 }
 
 export type TransferBondedEventInput = {
@@ -422,7 +424,7 @@ export class RailsGateway extends StakingRegistry {
     return events
   }
 
-  async #getEvents ({ chainId, fromBlock, toBlock, eventName }: GetEventsInput) {
+  async #getEvents ({ chainId, fromBlock, toBlock, eventName, fetchTxData = false }: GetEventsInput) {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -455,7 +457,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const eventFetcher = this.getEventFetcher(eventName, chainId)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
+    return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
   }
 
   async getTransferSentEvents (input: TransferSentEventInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {

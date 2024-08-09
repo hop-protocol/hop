@@ -99,7 +99,7 @@ export function usePools () {
             withdrawLink,
             canClaim: false,
             canStake: false,
-            isPoolDeprecated: false,
+            isPoolDeprecated: tokenModel.symbol === 'USDC.e',
             hasStakingContract: false,
             claimLink,
             stakeLink,
@@ -115,7 +115,15 @@ export function usePools () {
           })
         }
       }
-      return _pools.filter(Boolean)
+      return _pools.filter(Boolean).sort((a: any, b: any) => {
+        if (a.token.symbol === 'ETH') return -1
+        if (b.token.symbol === 'ETH') return 1
+
+        if (a.token.symbol === 'USDC.e') return 1
+        if (b.token.symbol === 'USDC.e') return -1
+
+        return a.token.symbol.localeCompare(b.token.symbol)
+      })
     },
     {
       enabled: true,

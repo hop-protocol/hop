@@ -29,6 +29,8 @@
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
 - [SendTokensInput](modules.md#sendtokensinput)
+- [TransferBondedEventInput](modules.md#transferbondedeventinput)
+- [TransferSentEventInput](modules.md#transfersenteventinput)
 
 ## Type Aliases
 
@@ -109,3 +111,32 @@ ___
 | `to?` | `string` |
 | `toChainId` | `BigNumberish` |
 | `toToken` | `string` |
+
+___
+
+### <a id="transferbondedeventinput" name="transferbondedeventinput"></a> TransferBondedEventInput
+
+Ƭ **TransferBondedEventInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `fromBlock` | `number` |
+| `toBlock` | `number` |
+
+___
+
+### <a id="transfersenteventinput" name="transfersenteventinput"></a> TransferSentEventInput
+
+Ƭ **TransferSentEventInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `fetchTxData?` | `boolean` |
+| `fromBlock` | `number` |
+| `toBlock` | `number` |

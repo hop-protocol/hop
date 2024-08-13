@@ -8,6 +8,8 @@ export {
 } from './Hop.js'
 export {
   RailsGateway,
+  TransferSentEventInput,
+  TransferBondedEventInput,
   TransferSent,
   TransferBonded
 } from './railsGateway/index.js'

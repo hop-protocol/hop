@@ -20,23 +20,23 @@ npm install @hop-protocol/v2-sdk
 
 ## CDN
 
-[https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js](jsDelivr CDN)
+[https://cdn.jsdelivr.net/npm/@hop-protocol/v2-sdk@latest/hop.js](jsDelivr CDN)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/v2-sdk@latest/hop.js"></script>
 ```
 
-[https://unpkg.com/@hop-protocol/sdk@latest/hop.js](unpkg CDN)
+[https://unpkg.com/@hop-protocol/v2-sdk@latest/hop.js](unpkg CDN)
 
 ```html
-<script src="https://unpkg.com/@hop-protocol/sdk@latest/hop.js"></script>
+<script src="https://unpkg.com/@hop-protocol/v2-sdk@latest/hop.js"></script>
 ```
 
 ## Documentation
 
-For getting started and examples, see [docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
+For getting started and examples, see [https://docs.hop.exchange/v/v2/js-sdk/js-sdk](https://docs.hop.exchange/v/v2/js-sdk/js-sdk)
 
-For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netlify.app/)
+For sdk API reference, see [v2-hop-sdk-docs.netlify.app](https://v2-hop-sdk-docs.netlify.app/)
 
 ## Development
 
@@ -67,7 +67,7 @@ npm run docs
 Run github action build locally with [act](https://github.com/nektos/act):
 
 ```sh
-(cd ../../ && act --job publish-sdk --workflows .github/workflows/npm_publish_sdk.yml --secret-file=.secrets --verbose)
+(cd ../../ && act --job publish-sdk --workflows .github/workflows/npm-publish.yml --secret-file=.secrets --verbose)
 ```
 
 ## Test

@@ -19,7 +19,7 @@ import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 
-type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
+export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
 
 export type HopConstructorInput = {
   network: string
@@ -53,7 +53,7 @@ export type SendTokensInput = {
   minAmountOut: BigNumberish
 }
 
-type WillSendTokensFailInput = {
+export type WillSendTokensFailInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
   fromToken: string

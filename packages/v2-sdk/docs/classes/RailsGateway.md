@@ -1350,7 +1350,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `TransferBondedEventInput` |
+| `input` | [`TransferBondedEventInput`](../modules.md#transferbondedeventinput) |
 
 #### Returns
 
@@ -1446,7 +1446,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `TransferSentEventInput` |
+| `input` | [`TransferSentEventInput`](../modules.md#transfersenteventinput) |
 
 #### Returns
 
@@ -1462,7 +1462,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `TransferSentEventInput` |
+| `«destructured»` | [`TransferSentEventInput`](../modules.md#transfersenteventinput) |
 
 #### Returns
 

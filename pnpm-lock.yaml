@@ -1130,6 +1130,9 @@ importers:
       typedoc:
         specifier: 0.25.7
         version: 0.25.7(typescript@5.4.3)
+      typedoc-material-theme:
+        specifier: 1.1.0
+        version: 1.1.0(typedoc@0.25.7(typescript@5.4.3))
       typedoc-plugin-markdown:
         specifier: 3.17.1
         version: 3.17.1(typedoc@0.25.7(typescript@5.4.3))
@@ -3744,6 +3747,9 @@ packages:
 
   '@lit/reactive-element@1.6.3':
     resolution: {integrity: sha512-QuTgnG52Poic7uM1AN5yJ09QMe0O28e10XzSvWDz02TJiiKee4stsiownEIadWm8nYzyDAyT+gKzUoZmiWQtsQ==}
+
+  '@material/material-color-utilities@0.2.7':
+    resolution: {integrity: sha512-0FCeqG6WvK4/Cc06F/xXMd/pv4FeisI0c1tUpBbfhA2n9Y8eZEv4Karjbmf2ZqQCPUWMrGp8A571tCjizxoTiQ==}
 
   '@maticnetwork/maticjs-ethers@1.0.3':
     resolution: {integrity: sha512-paGulmLG62We/pyOVH3Q7mZd/E/SGFKa+rXtyvpoMB8v5oFn/yTtoKvLWyIoZ8zBi4JrjSegKL+/US5+OibYwQ==}
@@ -13005,6 +13011,12 @@ packages:
   typedarray-to-buffer@3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
 
+  typedoc-material-theme@1.1.0:
+    resolution: {integrity: sha512-LLWGVb8w+i+QGnsu/a0JKjcuzndFQt/UeGVOQz0HFFGGocROEHv5QYudIACrj+phL2LDwH05tJx0Ob3pYYH2UA==}
+    engines: {node: '>=18.0.0', npm: '>=8.6.0'}
+    peerDependencies:
+      typedoc: ^0.25.13 || ^0.26.3
+
   typedoc-plugin-markdown@3.17.1:
     resolution: {integrity: sha512-QzdU3fj0Kzw2XSdoL15ExLASt2WPqD7FbLeaqwT70+XjKyTshBnUlQA5nNREO1C2P8Uen0CDjsBLMsCQ+zd0lw==}
     peerDependencies:
@@ -17881,6 +17893,8 @@ snapshots:
   '@lit/reactive-element@1.6.3':
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.2.0
+
+  '@material/material-color-utilities@0.2.7': {}
 
   '@maticnetwork/maticjs-ethers@1.0.3(@maticnetwork/maticjs@3.5.0(encoding@0.1.13))(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
@@ -23074,16 +23088,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.7.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint@9.1.0):
-    dependencies:
-      debug: 3.2.7
-    optionalDependencies:
-      '@typescript-eslint/parser': 7.7.0(eslint@9.1.0)(typescript@5.4.3)
-      eslint: 9.1.0
-      eslint-import-resolver-node: 0.3.9
-    transitivePeerDependencies:
-      - supports-color
-
   eslint-plugin-es-x@7.7.0(eslint@9.1.0):
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@9.1.0)
@@ -23163,7 +23167,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.1.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.7.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint@9.1.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@9.1.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@9.1.0))(eslint@9.1.0)
       hasown: 2.0.2
       is-core-module: 2.14.0
       is-glob: 4.0.3
@@ -30208,6 +30212,11 @@ snapshots:
   typedarray-to-buffer@3.1.5:
     dependencies:
       is-typedarray: 1.0.0
+
+  typedoc-material-theme@1.1.0(typedoc@0.25.7(typescript@5.4.3)):
+    dependencies:
+      '@material/material-color-utilities': 0.2.7
+      typedoc: 0.25.7(typescript@5.4.3)
 
   typedoc-plugin-markdown@3.17.1(typedoc@0.25.7(typescript@5.4.3)):
     dependencies:

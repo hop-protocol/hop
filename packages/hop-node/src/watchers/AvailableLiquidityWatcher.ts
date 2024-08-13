@@ -4,7 +4,6 @@ import {
   BondTransferRootChains
 } from '#constants/index.js'
 import {
-  CCTPEnabled,
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
@@ -390,8 +389,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     if (this.tokenSymbol.toLowerCase() === TokenSymbol.USDC.toLowerCase()) {
       s3JsonData[this.tokenSymbol] = {
-        ...data,
-        cctpEnabled: CCTPEnabled
+        ...data
       }
     }
 

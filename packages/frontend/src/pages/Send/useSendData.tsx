@@ -26,6 +26,12 @@ const useSendData = (
       }
 
       const bridge = sdk.bridge(token?.symbol)
+
+      const isDeprecatedRoute = fromNetwork && toNetwork && ['USDC', 'USDC.e'].includes(token?.symbol) && !bridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)
+      if (isDeprecatedRoute) {
+        return
+      }
+
       return bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
     },
     {

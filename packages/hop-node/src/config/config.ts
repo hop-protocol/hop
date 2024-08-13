@@ -42,8 +42,6 @@ export type BlocklistConfig = {
 }
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
-export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')

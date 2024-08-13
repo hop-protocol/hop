@@ -8,7 +8,18 @@ import Typography from '@mui/material/Typography'
 import { AprDetailsTooltip } from '#components/InfoTooltip/AprDetailsTooltip.js'
 import { Button } from '#components/Button/index.js'
 import { Link, useNavigate } from 'react-router-dom'
+import Badge from '@mui/material/Badge'
 import { makeStyles } from '@mui/styles'
+import { styled } from '@mui/material/styles'
+
+const DeprecatedBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    color: '#fff',
+    fontSize: '0.75rem',
+    top: '50%',
+    right: '-30px'
+  },
+}))
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -116,12 +127,12 @@ export function PoolRow (props: Props) {
             <Box display="flex" flexDirection="column">
               <Box>
                 <Typography variant="body1" title="Pool">
-                  <strong>{poolName}</strong>
+                  {poolName}
                 </Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="secondary" title="Tokens in pool">
-                  {poolSubtitle}
+                  {isPoolDeprecated ? <DeprecatedBadge badgeContent="Deprecated" color="warning" title="This pool is deprecated and only withdrawals are allowed.">{poolSubtitle}</DeprecatedBadge> : poolSubtitle}
                 </Typography>
               </Box>
             </Box>

@@ -7,10 +7,12 @@ export {
   Hop
 } from './Hop.js'
 export {
+  RailsGateway,
   TransferSent,
   TransferBonded
 } from './railsGateway/index.js'
 export {
+  Messenger,
   BundleCommitted,
   BundleForwarded,
   BundleReceived,

@@ -217,7 +217,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     try {
-      if (storedWalletChoice) {
+      if (storedWalletChoice != null) {
         localStorage.setItem('storedWalletChoice', storedWalletChoice)
       }
     } catch (err) {
@@ -236,34 +236,31 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [storedWalletChoice])
 
   useEffect(() => {
-    const update = async () => {
-      try {
-        const connectorProvider: any = connector.provider // This is the raw injected provider so type has to be "any" since it's not a Web3Provider
-        if (connectorProvider) {
-          const ethersProvider = new providers.Web3Provider(connectorProvider, 'any')
-          setProvider(ethersProvider)
-        } else {
-          setProvider(undefined)
-        }
-      } catch(err) {
-        logger.error(err)
+    try {
+      const connectorProvider: any = connector.provider // This is the raw injected provider so type has to be "any" since it's not a Web3Provider
+      if (connectorProvider) {
+        const ethersProvider = new providers.Web3Provider(connectorProvider, 'any')
+        setProvider(ethersProvider)
+      } else {
         setProvider(undefined)
       }
+    } catch(err) {
+      logger.error(err)
+      setProvider(undefined)
     }
-    update().catch(logger.error)
   }, [account, connector])
 
   useEffect(() => {
-      try {
-        if (account) {
-          setAddress(Address.from(account))
-        } else {
-          setAddress(undefined)
-        }
-      } catch(err) {
-        logger.error(err)
+    try {
+      if (account) {
+        setAddress(Address.from(account))
+      } else {
         setAddress(undefined)
       }
+    } catch(err) {
+      logger.error(err)
+      setAddress(undefined)
+    }
   }, [account])
 
   useEffect(() => {

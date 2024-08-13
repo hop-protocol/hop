@@ -257,9 +257,26 @@ export const overridesLight = {
   },
   MuiAlert: {
     styleOverrides: {
-      root: {
-        backgroundColor: 'inherit',
-        color: 'inherit'
+      root: {},
+      standardSuccess: {
+        backgroundColor: '#e0faf2',
+        color: '#0b4d00',
+        border: '1px solid #004d1c2b',
+      },
+      standardError: {
+        backgroundColor: '#ffebee',
+        color: '#9f1919',
+        border: '1px solid #c628283d',
+      },
+      standardWarning: {
+        backgroundColor: '#fff3e0b3',
+        color: '#ef7d00',
+        border: '1px solid #ef6c002e',
+      },
+      standardInfo: {
+        backgroundColor: '#e3f2fd',
+        color: '#0277bd',
+        border: '1px solid #0277bd2e',
       },
     },
   },

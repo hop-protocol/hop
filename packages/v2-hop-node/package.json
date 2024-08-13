@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/v2-hop-node",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "The V2 Hop Node pakcage for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "type": "module",
@@ -22,6 +22,7 @@
     "pnpm": ">=9"
   },
   "scripts": {
+    "start": "tsx ./src/cli/cli.ts",
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
@@ -30,8 +31,32 @@
     "version": "pnpm version"
   },
   "dependencies": {
+    "@arbitrum/sdk": "3.4.1",
+    "@consensys/linea-sdk": "0.1.6",
+    "@eth-optimism/sdk": "3.3.2",
+    "@ethereumjs/rlp": "5.0.2",
+    "@ethereumjs/tx": "5.3.0",
+    "@hop-protocol/sdk": "workspace:*",
+    "@maticnetwork/maticjs": "3.5.0",
+    "@maticnetwork/maticjs-ethers": "1.0.3",
+    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
+    "asn1.js": "5.4.1",
+    "async-mutex": "0.4.1",
+    "bip39": "3.1.0",
+    "chalk": "4.1.2",
+    "commander": "6.2.1",
+    "console-clear": "1.1.1",
+    "ethers": "5.7.2",
+    "keythereum": "1.2.0",
+    "level": "8.0.1",
+    "mkdirp": "3.0.1",
+    "uuid": "9.0.1"
   },
   "devDependencies": {
+    "@types/keythereum": "1.2.4",
+    "@types/uuid": "9.0.8",
+    "eslint-plugin-jest": "28.2.0",
+    "tsx": "4.16.5"
   },
   "homepage": "https://hop.exchange",
   "repository": {

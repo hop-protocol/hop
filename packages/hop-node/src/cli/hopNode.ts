@@ -10,7 +10,6 @@ import {
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 import { utils } from 'ethers'
-import { main as enableCCTP } from './shared/cctp.js'
 import { printHopArt } from './shared/art.js'
 import {
   startWatchers
@@ -38,7 +37,6 @@ root
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
   .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
-  .option('--cctp [boolean]', 'Run CCTP', parseBool)
   .option(
     '--arb-bot-config <path>',
     'Arb bot(s) config JSON file',
@@ -51,7 +49,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig, cctp: runCCTP } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig } = source
 
   if (!config) {
     throw new Error('config file is required')
@@ -137,11 +135,6 @@ async function main (source: any) {
     }
     const bonderPublicAddress = utils.computeAddress(privateKey)
     logger.info('Bonder public address:', bonderPublicAddress)
-  }
-
-  // Don't start watchers if running CCTP
-  if (runCCTP) {
-    return enableCCTP()
   }
 
   const { starts } = await startWatchers({

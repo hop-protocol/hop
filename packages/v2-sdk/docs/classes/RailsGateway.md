@@ -230,22 +230,22 @@ StakingRegistry.signer
 
 | Name | Type |
 | :------ | :------ |
-| `approveBond` | (`__namedParameters`: `ApproveBondInput`) => `Promise`\<`TransactionRequest`\> |
-| `approveSend` | (`__namedParameters`: `ApproveSendInput`) => `Promise`\<`TransactionRequest`\> |
-| `approveStakeHop` | (`__namedParameters`: `StakeHopInput`) => `Promise`\<`TransactionRequest`\> |
-| `bond` | (`__namedParameters`: `BondInput`) => `Promise`\<`TransactionRequest`\> |
-| `bondAndForward` | (`__namedParameters`: `BondAndForwardInput`) => `Promise`\<`TransactionRequest`\> |
-| `confirmCheckpoint` | (`__namedParameters`: `ConfirmCheckpointInput`) => `Promise`\<`TransactionRequest`\> |
-| `postClaim` | (`__namedParameters`: `PostClaimInput`) => `Promise`\<`TransactionRequest`\> |
-| `postMultiHopClaim` | (`__namedParameters`: `PostMultiHopClaimInput`) => `Promise`\<`TransactionRequest`\> |
-| `removeClaim` | (`__namedParameters`: `RemoveClaimInput`) => `Promise`\<`TransactionRequest`\> |
-| `send` | (`__namedParameters`: `SendInput`) => `Promise`\<`TransactionRequest`\> |
-| `sendMultiHop` | (`__namedParameters`: `SendMultiHopInput`) => `Promise`\<`TransactionRequest`\> |
-| `stakeHop` | (`__namedParameters`: `StakeHopInput`) => `Promise`\<`TransactionRequest`\> |
-| `unstakeHop` | (`__namedParameters`: `UnstakeHopInput`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAllClaims` | (`__namedParameters`: `WithdrawAllInput`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawClaim` | (`__namedParameters`: `WithdrawInput`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawHop` | (`__namedParameters`: `WithdrawHopInput`) => `Promise`\<`TransactionRequest`\> |
+| `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput)) => `Promise`\<`TransactionRequest`\> |
+| `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput)) => `Promise`\<`TransactionRequest`\> |
+| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
+| `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput)) => `Promise`\<`TransactionRequest`\> |
+| `bondAndForward` | (`__namedParameters`: [`BondAndForwardInput`](../modules.md#bondandforwardinput)) => `Promise`\<`TransactionRequest`\> |
+| `confirmCheckpoint` | (`__namedParameters`: [`ConfirmCheckpointInput`](../modules.md#confirmcheckpointinput)) => `Promise`\<`TransactionRequest`\> |
+| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput)) => `Promise`\<`TransactionRequest`\> |
+| `postMultiHopClaim` | (`__namedParameters`: [`PostMultiHopClaimInput`](../modules.md#postmultihopclaiminput)) => `Promise`\<`TransactionRequest`\> |
+| `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput)) => `Promise`\<`TransactionRequest`\> |
+| `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput)) => `Promise`\<`TransactionRequest`\> |
+| `sendMultiHop` | (`__namedParameters`: [`SendMultiHopInput`](../modules.md#sendmultihopinput)) => `Promise`\<`TransactionRequest`\> |
+| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
+| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput)) => `Promise`\<`TransactionRequest`\> |
+| `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput)) => `Promise`\<`TransactionRequest`\> |
+| `withdrawClaim` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput)) => `Promise`\<`TransactionRequest`\> |
+| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput)) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -403,7 +403,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ApproveBondInput` |
+| `input` | [`ApproveBondInput`](../modules.md#approvebondinput) |
 
 #### Returns
 
@@ -419,7 +419,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ApproveSendInput` |
+| `input` | [`ApproveSendInput`](../modules.md#approvesendinput) |
 
 #### Returns
 
@@ -435,7 +435,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `BondInput` |
+| `input` | [`BondInput`](../modules.md#bondinput) |
 
 #### Returns
 
@@ -451,7 +451,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `BondAndForwardInput` |
+| `input` | [`BondAndForwardInput`](../modules.md#bondandforwardinput) |
 
 #### Returns
 
@@ -467,7 +467,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `CalcAmountOutMinInput` |
+| `«destructured»` | [`CalcAmountOutMinInput`](../modules.md#calcamountoutmininput) |
 
 #### Returns
 
@@ -483,7 +483,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ConfirmCheckpointInput` |
+| `input` | [`ConfirmCheckpointInput`](../modules.md#confirmcheckpointinput) |
 
 #### Returns
 
@@ -776,7 +776,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetFeeInput` |
+| `«destructured»` | [`GetFeeInput`](../modules.md#getfeeinput) |
 
 #### Returns
 
@@ -812,7 +812,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetHasSufficientBalanceInput` |
+| `«destructured»` | [`GetHasSufficientBalanceInput`](../modules.md#gethassufficientbalanceinput) |
 
 #### Returns
 
@@ -877,7 +877,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetIsCheckpointValidInput` |
+| `«destructured»` | [`GetIsCheckpointValidInput`](../modules.md#getischeckpointvalidinput) |
 
 #### Returns
 
@@ -893,7 +893,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetLatestClaimInput` |
+| `«destructured»` | [`GetLatestClaimInput`](../modules.md#getlatestclaiminput) |
 
 #### Returns
 
@@ -965,7 +965,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `MultiHopTransferBondedEventInput` |
+| `input` | [`MultiHopTransferBondedEventInput`](../modules.md#multihoptransferbondedeventinput) |
 
 #### Returns
 
@@ -981,7 +981,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `MultiHopTransferSentEventInput` |
+| `input` | [`MultiHopTransferSentEventInput`](../modules.md#multihoptransfersenteventinput) |
 
 #### Returns
 
@@ -997,7 +997,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetNeedsApprovalForBondInput` |
+| `«destructured»` | [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput) |
 
 #### Returns
 
@@ -1013,7 +1013,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetNeedsApprovalForSendInput` |
+| `«destructured»` | [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput) |
 
 #### Returns
 
@@ -1029,7 +1029,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetPathIdInput` |
+| `«destructured»` | [`GetPathIdInput`](../modules.md#getpathidinput) |
 
 #### Returns
 
@@ -1039,17 +1039,17 @@ ___
 
 ### <a id="getpathinfo" name="getpathinfo"></a> getPathInfo
 
-▸ **getPathInfo**(`«destructured»`): `Promise`\<`Path`\>
+▸ **getPathInfo**(`«destructured»`): `Promise`\<[`Path`](../modules.md#path)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetPathInfoInput` |
+| `«destructured»` | [`GetPathInfoInput`](../modules.md#getpathinfoinput) |
 
 #### Returns
 
-`Promise`\<`Path`\>
+`Promise`\<[`Path`](../modules.md#path)\>
 
 ___
 
@@ -1270,7 +1270,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTokenContractInput` |
+| `«destructured»` | [`GetTokenContractInput`](../modules.md#gettokencontractinput) |
 
 #### Returns
 
@@ -1280,17 +1280,17 @@ ___
 
 ### <a id="gettokeninfo" name="gettokeninfo"></a> getTokenInfo
 
-▸ **getTokenInfo**(`«destructured»`): `Promise`\<`Token`\>
+▸ **getTokenInfo**(`«destructured»`): `Promise`\<[`Token`](../modules.md#token)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTokenInfoInput` |
+| `«destructured»` | [`GetTokenInfoInput`](../modules.md#gettokeninfoinput) |
 
 #### Returns
 
-`Promise`\<`Token`\>
+`Promise`\<[`Token`](../modules.md#token)\>
 
 ___
 
@@ -1302,7 +1302,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferBondedEventFromTransactionHashInput` |
+| `«destructured»` | [`GetTransferBondedEventFromTransactionHashInput`](../modules.md#gettransferbondedeventfromtransactionhashinput) |
 
 #### Returns
 
@@ -1318,7 +1318,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferBondedEventFromTransactionReceiptInput` |
+| `«destructured»` | [`GetTransferBondedEventFromTransactionReceiptInput`](../modules.md#gettransferbondedeventfromtransactionreceiptinput) |
 
 #### Returns
 
@@ -1334,7 +1334,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferBondedEventFromTransferIdInput` |
+| `«destructured»` | [`GetTransferBondedEventFromTransferIdInput`](../modules.md#gettransferbondedeventfromtransferidinput) |
 
 #### Returns
 
@@ -1366,7 +1366,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferIdInput` |
+| `«destructured»` | [`GetTransferIdInput`](../modules.md#gettransferidinput) |
 
 #### Returns
 
@@ -1382,7 +1382,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferSentEventFilterInput` |
+| `«destructured»` | [`GetTransferSentEventFilterInput`](../modules.md#gettransfersenteventfilterinput) |
 
 #### Returns
 
@@ -1398,7 +1398,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferSentEventFromTransactionHashInput` |
+| `«destructured»` | [`GetTransferSentEventFromTransactionHashInput`](../modules.md#gettransfersenteventfromtransactionhashinput) |
 
 #### Returns
 
@@ -1414,7 +1414,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferSentEventFromTransactionReceiptInput` |
+| `«destructured»` | [`GetTransferSentEventFromTransactionReceiptInput`](../modules.md#gettransfersenteventfromtransactionreceiptinput) |
 
 #### Returns
 
@@ -1430,7 +1430,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferSentEventFromTransferIdInput` |
+| `«destructured»` | [`GetTransferSentEventFromTransferIdInput`](../modules.md#gettransfersenteventfromtransferidinput) |
 
 #### Returns
 
@@ -1472,17 +1472,17 @@ ___
 
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
-▸ **getTransferStatus**(`«destructured»`): `Promise`\<`TransferStatus`\>
+▸ **getTransferStatus**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTransferStatusInput` |
+| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
 
 #### Returns
 
-`Promise`\<`TransferStatus`\>
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 ___
 
@@ -1515,7 +1515,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `WithdrawBalanceInput` |
+| `«destructured»` | [`WithdrawBalanceInput`](../modules.md#withdrawbalanceinput) |
 
 #### Returns
 
@@ -1611,7 +1611,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `PostClaimInput` |
+| `input` | [`PostClaimInput`](../modules.md#postclaiminput) |
 
 #### Returns
 
@@ -1627,7 +1627,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `PostMultiHopClaimInput` |
+| `input` | [`PostMultiHopClaimInput`](../modules.md#postmultihopclaiminput) |
 
 #### Returns
 
@@ -1763,7 +1763,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `RemoveClaimInput` |
+| `input` | [`RemoveClaimInput`](../modules.md#removeclaiminput) |
 
 #### Returns
 
@@ -1779,7 +1779,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `SendInput` |
+| `input` | [`SendInput`](../modules.md#sendinput) |
 
 #### Returns
 
@@ -1795,7 +1795,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `SendMultiHopInput` |
+| `input` | [`SendMultiHopInput`](../modules.md#sendmultihopinput) |
 
 #### Returns
 
@@ -1934,7 +1934,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `StakeHopInput` |
+| `input` | [`StakeHopInput`](../modules.md#stakehopinput) |
 
 #### Returns
 
@@ -1950,7 +1950,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `UnstakeHopInput` |
+| `input` | [`UnstakeHopInput`](../modules.md#unstakehopinput) |
 
 #### Returns
 
@@ -1966,7 +1966,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `WithdrawAllInput` |
+| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
 
 #### Returns
 
@@ -1982,7 +1982,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `WithdrawInput` |
+| `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
 
 #### Returns
 
@@ -1998,7 +1998,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `WithdrawHopInput` |
+| `input` | [`WithdrawHopInput`](../modules.md#withdrawhopinput) |
 
 #### Returns
 

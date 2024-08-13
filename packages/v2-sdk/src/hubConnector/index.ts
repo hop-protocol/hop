@@ -1,1 +1,1 @@
-export { GetEventsInput, ConnectTargetsInput, HubConnectorConfig, HubConnector } from  './HubConnector.js'
+export { GetEventsInput, ConnectTargetsInput, HubConnectorConfig, HubConnector, TransactionReceiptWithEvents } from  './HubConnector.js'

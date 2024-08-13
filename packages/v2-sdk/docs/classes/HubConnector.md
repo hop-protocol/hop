@@ -1,90 +1,75 @@
-# Class: Hop
+# Class: HubConnector
 
 ## Hierarchy
 
 - `Base`
 
-  ↳ **`Hop`**
+  ↳ **`HubConnector`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](Hop.md#constructor)
+- [constructor](HubConnector.md#constructor)
 
 ### Properties
 
-- [batchBlocks](Hop.md#batchblocks)
-- [chainProviders](Hop.md#chainproviders)
-- [contractAddresses](Hop.md#contractaddresses)
-- [gasPriceMultiplier](Hop.md#gaspricemultiplier)
-- [hubConnector](Hop.md#hubconnector)
-- [l1ChainId](Hop.md#l1chainid)
-- [messenger](Hop.md#messenger)
-- [network](Hop.md#network)
-- [railsGateway](Hop.md#railsgateway)
-- [signer](Hop.md#signer)
+- [batchBlocks](HubConnector.md#batchblocks)
+- [chainProviders](HubConnector.md#chainproviders)
+- [contractAddresses](HubConnector.md#contractaddresses)
+- [gasPriceMultiplier](HubConnector.md#gaspricemultiplier)
+- [l1ChainId](HubConnector.md#l1chainid)
+- [network](HubConnector.md#network)
+- [signer](HubConnector.md#signer)
 
 ### Accessors
 
-- [populateTransaction](Hop.md#populatetransaction)
-- [utils](Hop.md#utils)
-- [version](Hop.md#version)
+- [populateTransaction](HubConnector.md#populatetransaction)
+- [utils](HubConnector.md#utils)
 
 ### Methods
 
-- [approveSendTokens](Hop.md#approvesendtokens)
-- [connect](Hop.md#connect)
-- [connectTargets](Hop.md#connecttargets)
-- [getColorForChainId](Hop.md#getcolorforchainid)
-- [getConfigAddress](Hop.md#getconfigaddress)
-- [getContractAddresses](Hop.md#getcontractaddresses)
-- [getContractExists](Hop.md#getcontractexists)
-- [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider)
-- [getDefaultChainRpcProviders](Hop.md#getdefaultchainrpcproviders)
-- [getEstimatedReceived](Hop.md#getestimatedreceived)
-- [getEvents](Hop.md#getevents)
-- [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
-- [getMessenger](Hop.md#getmessenger)
-- [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
-- [getPathInfo](Hop.md#getpathinfo)
-- [getRailsGateway](Hop.md#getrailsgateway)
-- [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
-- [getRpcProviderForChainId](Hop.md#getrpcproviderforchainid)
-- [getSendFee](Hop.md#getsendfee)
-- [getSigner](Hop.md#getsigner)
-- [getSignerAddress](Hop.md#getsigneraddress)
-- [getSignerOrProvider](Hop.md#getsignerorprovider)
-- [getSupportedChainIds](Hop.md#getsupportedchainids)
-- [getSupportedTokenSymbols](Hop.md#getsupportedtokensymbols)
-- [getTokenContract](Hop.md#gettokencontract)
-- [getTransferStatus](Hop.md#gettransferstatus)
-- [getTxOverrides](Hop.md#gettxoverrides)
-- [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
-- [sendTokens](Hop.md#sendtokens)
-- [sendTransaction](Hop.md#sendtransaction)
-- [setChainRpcProvider](Hop.md#setchainrpcprovider)
-- [setChainRpcProviderUrl](Hop.md#setchainrpcproviderurl)
-- [setChainRpcProviderUrls](Hop.md#setchainrpcproviderurls)
-- [setChainRpcProviders](Hop.md#setchainrpcproviders)
-- [setContractAddresses](Hop.md#setcontractaddresses)
-- [switchChain](Hop.md#switchchain)
+- [connect](HubConnector.md#connect)
+- [connectTargets](HubConnector.md#connecttargets)
+- [getColorForChainId](HubConnector.md#getcolorforchainid)
+- [getConfigAddress](HubConnector.md#getconfigaddress)
+- [getConnectorAddressFromReceipt](HubConnector.md#getconnectoraddressfromreceipt)
+- [getConnectorAddressFromTx](HubConnector.md#getconnectoraddressfromtx)
+- [getConnectorDeployedEvents](HubConnector.md#getconnectordeployedevents)
+- [getContractAddresses](HubConnector.md#getcontractaddresses)
+- [getContractExists](HubConnector.md#getcontractexists)
+- [getDefaultChainRpcProvider](HubConnector.md#getdefaultchainrpcprovider)
+- [getDefaultChainRpcProviders](HubConnector.md#getdefaultchainrpcproviders)
+- [getHubConnectorContractAddress](HubConnector.md#gethubconnectorcontractaddress)
+- [getRpcProviderForChainId](HubConnector.md#getrpcproviderforchainid)
+- [getSigner](HubConnector.md#getsigner)
+- [getSignerAddress](HubConnector.md#getsigneraddress)
+- [getSignerOrProvider](HubConnector.md#getsignerorprovider)
+- [getSupportedChainIds](HubConnector.md#getsupportedchainids)
+- [getSupportedTokenSymbols](HubConnector.md#getsupportedtokensymbols)
+- [getTxOverrides](HubConnector.md#gettxoverrides)
+- [sendTransaction](HubConnector.md#sendtransaction)
+- [setChainRpcProvider](HubConnector.md#setchainrpcprovider)
+- [setChainRpcProviderUrl](HubConnector.md#setchainrpcproviderurl)
+- [setChainRpcProviderUrls](HubConnector.md#setchainrpcproviderurls)
+- [setChainRpcProviders](HubConnector.md#setchainrpcproviders)
+- [setContractAddresses](HubConnector.md#setcontractaddresses)
 
 ## Constructors
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new Hop**(`options?`): [`Hop`](Hop.md)
+• **new HubConnector**(`config`): [`HubConnector`](HubConnector.md)
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `options?` | [`HopConstructorInput`](../modules.md#hopconstructorinput) |
+| `config` | `BaseConfig` |
 
 #### Returns
 
-[`Hop`](Hop.md)
+[`HubConnector`](HubConnector.md)
 
 #### Overrides
 
@@ -132,12 +117,6 @@ Base.gasPriceMultiplier
 
 ___
 
-### <a id="hubconnector" name="hubconnector"></a> hubConnector
-
-• `Readonly` **hubConnector**: `HubConnector`
-
-___
-
 ### <a id="l1chainid" name="l1chainid"></a> l1ChainId
 
 • **l1ChainId**: `number`
@@ -148,12 +127,6 @@ Base.l1ChainId
 
 ___
 
-### <a id="messenger" name="messenger"></a> messenger
-
-• `Readonly` **messenger**: `Messenger`
-
-___
-
 ### <a id="network" name="network"></a> network
 
 • **network**: `string`
@@ -161,12 +134,6 @@ ___
 #### Inherited from
 
 Base.network
-
-___
-
-### <a id="railsgateway" name="railsgateway"></a> railsGateway
-
-• `Readonly` **railsGateway**: `RailsGateway`
 
 ___
 
@@ -190,8 +157,7 @@ Base.signer
 
 | Name | Type |
 | :------ | :------ |
-| `approveSendTokens` | (`__namedParameters`: [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput)) => `Promise`\<`TransactionRequest`\> |
-| `sendTokens` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput)) => `Promise`\<`TransactionRequest`\> |
+| `connectTargets` | (`__namedParameters`: [`ConnectTargetsInput`](../modules.md#connecttargetsinput)) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -231,37 +197,11 @@ ___
 
 Base.utils
 
-___
-
-### <a id="version" name="version"></a> version
-
-• `get` **version**(): `string`
-
-#### Returns
-
-`string`
-
 ## Methods
-
-### <a id="approvesendtokens" name="approvesendtokens"></a> approveSendTokens
-
-▸ **approveSendTokens**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
 
 ### <a id="connect" name="connect"></a> connect
 
-▸ **connect**(`signer`): [`Hop`](Hop.md)
+▸ **connect**(`signer`): [`HubConnector`](HubConnector.md)
 
 #### Parameters
 
@@ -271,7 +211,7 @@ ___
 
 #### Returns
 
-[`Hop`](Hop.md)
+[`HubConnector`](HubConnector.md)
 
 #### Overrides
 
@@ -281,17 +221,17 @@ ___
 
 ### <a id="connecttargets" name="connecttargets"></a> connectTargets
 
-▸ **connectTargets**(`input`): `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+▸ **connectTargets**(`input`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ConnectTargetsInput` |
+| `input` | [`ConnectTargetsInput`](../modules.md#connecttargetsinput) |
 
 #### Returns
 
-`Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -333,6 +273,54 @@ ___
 #### Inherited from
 
 Base.getConfigAddress
+
+___
+
+### <a id="getconnectoraddressfromreceipt" name="getconnectoraddressfromreceipt"></a> getConnectorAddressFromReceipt
+
+▸ **getConnectorAddressFromReceipt**(`receipt`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `receipt` | [`TransactionReceiptWithEvents`](../modules.md#transactionreceiptwithevents) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="getconnectoraddressfromtx" name="getconnectoraddressfromtx"></a> getConnectorAddressFromTx
+
+▸ **getConnectorAddressFromTx**(`tx`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tx` | `TransactionResponse` |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="getconnectordeployedevents" name="getconnectordeployedevents"></a> getConnectorDeployedEvents
+
+▸ **getConnectorDeployedEvents**(`«destructured»`): `Promise`\<`ConnectorDeployed`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetEventsInput` |
+
+#### Returns
+
+`Promise`\<`ConnectorDeployed`[]\>
 
 ___
 
@@ -405,109 +393,9 @@ Base.getDefaultChainRpcProviders
 
 ___
 
-### <a id="getestimatedreceived" name="getestimatedreceived"></a> getEstimatedReceived
-
-▸ **getEstimatedReceived**(`«destructured»`): `Promise`\<`BigNumberish`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`SendTokensInput`](../modules.md#sendtokensinput) |
-
-#### Returns
-
-`Promise`\<`BigNumberish`\>
-
-___
-
-### <a id="getevents" name="getevents"></a> getEvents
-
-▸ **getEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetGeneralEventsInput`](../modules.md#getgeneraleventsinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
-
-___
-
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`string`
-
-___
-
-### <a id="getmessenger" name="getmessenger"></a> getMessenger
-
-▸ **getMessenger**(): `Messenger`
-
-#### Returns
-
-`Messenger`
-
-___
-
-### <a id="getneedsapprovalforsendtokens" name="getneedsapprovalforsendtokens"></a> getNeedsApprovalForSendTokens
-
-▸ **getNeedsApprovalForSendTokens**(`input`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`GetNeedsApprovalForSendTokensInput`](../modules.md#getneedsapprovalforsendtokensinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getpathinfo" name="getpathinfo"></a> getPathInfo
-
-▸ **getPathInfo**(`input`): `Promise`\<`Path`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetPathInfoInput` |
-
-#### Returns
-
-`Promise`\<`Path`\>
-
-___
-
-### <a id="getrailsgateway" name="getrailsgateway"></a> getRailsGateway
-
-▸ **getRailsGateway**(): `RailsGateway`
-
-#### Returns
-
-`RailsGateway`
-
-___
-
-### <a id="getrailsgatewaycontractaddress" name="getrailsgatewaycontractaddress"></a> getRailsGatewayContractAddress
-
-▸ **getRailsGatewayContractAddress**(`chainId`): `string`
 
 #### Parameters
 
@@ -538,22 +426,6 @@ ___
 #### Inherited from
 
 Base.getRpcProviderForChainId
-
-___
-
-### <a id="getsendfee" name="getsendfee"></a> getSendFee
-
-▸ **getSendFee**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetSendFeeInput`](../modules.md#getsendfeeinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
 
 ___
 
@@ -634,38 +506,6 @@ Base.getSupportedTokenSymbols
 
 ___
 
-### <a id="gettokencontract" name="gettokencontract"></a> getTokenContract
-
-▸ **getTokenContract**(`«destructured»`): `Contract`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | `GetTokenContractInput` |
-
-#### Returns
-
-`Contract`
-
-___
-
-### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
-
-▸ **getTransferStatus**(`input`): `Promise`\<`TransferStatus`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetTransferStatusInput` |
-
-#### Returns
-
-`Promise`\<`TransferStatus`\>
-
-___
-
 ### <a id="gettxoverrides" name="gettxoverrides"></a> getTxOverrides
 
 ▸ **getTxOverrides**(`fromChainId`, `toChainId`): `Promise`\<`TxOverrides`\>
@@ -684,38 +524,6 @@ ___
 #### Inherited from
 
 Base.getTxOverrides
-
-___
-
-### <a id="getwillsendtokensfail" name="getwillsendtokensfail"></a> getWillSendTokensFail
-
-▸ **getWillSendTokensFail**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`WillSendTokensFailInput`](../modules.md#willsendtokensfailinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="sendtokens" name="sendtokens"></a> sendTokens
-
-▸ **sendTokens**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`SendTokensInput`](../modules.md#sendtokensinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -796,7 +604,7 @@ ___
 
 `void`
 
-#### Overrides
+#### Inherited from
 
 Base.setChainRpcProviderUrls
 
@@ -839,19 +647,3 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
-
-___
-
-### <a id="switchchain" name="switchchain"></a> switchChain
-
-▸ **switchChain**(`chainId`): `Promise`\<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`void`\>

@@ -210,10 +210,10 @@ Base.signer
 
 | Name | Type |
 | :------ | :------ |
-| `bundleExit` | (`__namedParameters`: `GetBundleExitPopulatedTxInput`) => `Promise`\<`TransactionRequest`\> |
-| `execute` | (`__namedParameters`: `ExecuteInput`) => `Promise`\<`TransactionRequest`\> |
-| `relayMessage` | (`__namedParameters`: `GetRelayMessagePopulatedTxInput`) => `Promise`\<`TransactionRequest`\> |
-| `sendMessage` | (`__namedParameters`: `GetSendMessagePopulatedTxInput`) => `Promise`\<`TransactionRequest`\> |
+| `bundleExit` | (`__namedParameters`: [`GetBundleExitPopulatedTxInput`](../modules.md#getbundleexitpopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
+| `execute` | (`__namedParameters`: [`ExecuteInput`](../modules.md#executeinput)) => `Promise`\<`TransactionRequest`\> |
+| `relayMessage` | (`__namedParameters`: [`GetRelayMessagePopulatedTxInput`](../modules.md#getrelaymessagepopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
+| `sendMessage` | (`__namedParameters`: [`GetSendMessagePopulatedTxInput`](../modules.md#getsendmessagepopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -263,7 +263,7 @@ Base.utils
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetBundleExitPopulatedTxInput` |
+| `input` | [`GetBundleExitPopulatedTxInput`](../modules.md#getbundleexitpopulatedtxinput) |
 
 #### Returns
 
@@ -299,7 +299,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ExecuteInput` |
+| `input` | [`ExecuteInput`](../modules.md#executeinput) |
 
 #### Returns
 
@@ -315,7 +315,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `ExitBundleInput` |
+| `«destructured»` | [`ExitBundleInput`](../modules.md#exitbundleinput) |
 
 #### Returns
 
@@ -357,33 +357,33 @@ ___
 
 ### <a id="getbundleprooffrommessageid" name="getbundleprooffrommessageid"></a> getBundleProofFromMessageId
 
-▸ **getBundleProofFromMessageId**(`«destructured»`): `Promise`\<`BundleProof`\>
+▸ **getBundleProofFromMessageId**(`«destructured»`): `Promise`\<[`BundleProof`](../modules.md#bundleproof)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetBundleProofFromMessageIdInput` |
+| `«destructured»` | [`GetBundleProofFromMessageIdInput`](../modules.md#getbundleprooffrommessageidinput) |
 
 #### Returns
 
-`Promise`\<`BundleProof`\>
+`Promise`\<[`BundleProof`](../modules.md#bundleproof)\>
 
 ___
 
 ### <a id="getbundleprooffromtransactionhash" name="getbundleprooffromtransactionhash"></a> getBundleProofFromTransactionHash
 
-▸ **getBundleProofFromTransactionHash**(`«destructured»`): `Promise`\<`BundleProof`\>
+▸ **getBundleProofFromTransactionHash**(`«destructured»`): `Promise`\<[`BundleProof`](../modules.md#bundleproof)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetBundleProofFromTransactionHashInput` |
+| `«destructured»` | [`GetBundleProofFromTransactionHashInput`](../modules.md#getbundleprooffromtransactionhashinput) |
 
 #### Returns
 
-`Promise`\<`BundleProof`\>
+`Promise`\<[`BundleProof`](../modules.md#bundleproof)\>
 
 ___
 
@@ -537,7 +537,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetEstimatedTxCostForForwardMessageInput` |
+| `«destructured»` | [`GetEstimatedTxCostForForwardMessageInput`](../modules.md#getestimatedtxcostforforwardmessageinput) |
 
 #### Returns
 
@@ -612,7 +612,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `HasAuctionStartedInput` |
+| `«destructured»` | [`HasAuctionStartedInput`](../modules.md#hasauctionstartedinput) |
 
 #### Returns
 
@@ -644,7 +644,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetIsBundleSetInput` |
+| `«destructured»` | [`GetIsBundleSetInput`](../modules.md#getisbundlesetinput) |
 
 #### Returns
 
@@ -660,7 +660,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetIsL2TxHashExitedInput` |
+| `«destructured»` | [`GetIsL2TxHashExitedInput`](../modules.md#getisl2txhashexitedinput) |
 
 #### Returns
 
@@ -676,7 +676,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetIsMessageIdRelayedInput` |
+| `«destructured»` | [`GetIsMessageIdRelayedInput`](../modules.md#getismessageidrelayedinput) |
 
 #### Returns
 
@@ -692,7 +692,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMaxBundleMessageCountInput` |
+| `«destructured»` | [`GetMaxBundleMessageCountInput`](../modules.md#getmaxbundlemessagecountinput) |
 
 #### Returns
 
@@ -708,7 +708,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMerkleProofForMessageIdInput` |
+| `«destructured»` | [`GetMerkleProofForMessageIdInput`](../modules.md#getmerkleproofformessageidinput) |
 
 #### Returns
 
@@ -724,7 +724,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageBundleIdFromMessageIdInput` |
+| `«destructured»` | [`GetMessageBundleIdFromMessageIdInput`](../modules.md#getmessagebundleidfrommessageidinput) |
 
 #### Returns
 
@@ -740,7 +740,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageBundleIdFromTransactionHashInput` |
+| `«destructured»` | [`GetMessageBundleIdFromTransactionHashInput`](../modules.md#getmessagebundleidfromtransactionhashinput) |
 
 #### Returns
 
@@ -756,7 +756,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageBundledEventFromMessageIdInput` |
+| `«destructured»` | [`GetMessageBundledEventFromMessageIdInput`](../modules.md#getmessagebundledeventfrommessageidinput) |
 
 #### Returns
 
@@ -772,7 +772,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageBundledEventFromTransactionHashInput` |
+| `«destructured»` | [`GetMessageBundledEventFromTransactionHashInput`](../modules.md#getmessagebundledeventfromtransactionhashinput) |
 
 #### Returns
 
@@ -804,7 +804,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageBundledEventsForBundleIdInput` |
+| `«destructured»` | [`GetMessageBundledEventsForBundleIdInput`](../modules.md#getmessagebundledeventsforbundleidinput) |
 
 #### Returns
 
@@ -820,7 +820,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageCalldataInput` |
+| `«destructured»` | [`GetMessageCalldataInput`](../modules.md#getmessagecalldatainput) |
 
 #### Returns
 
@@ -836,7 +836,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageExecutedEventFromMessageIdInput` |
+| `«destructured»` | [`GetMessageExecutedEventFromMessageIdInput`](../modules.md#getmessageexecutedeventfrommessageidinput) |
 
 #### Returns
 
@@ -868,7 +868,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageFeeInput` |
+| `«destructured»` | [`GetMessageFeeInput`](../modules.md#getmessagefeeinput) |
 
 #### Returns
 
@@ -884,7 +884,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageIdFromTransactionHashInput` |
+| `«destructured»` | [`GetMessageIdFromTransactionHashInput`](../modules.md#getmessageidfromtransactionhashinput) |
 
 #### Returns
 
@@ -900,7 +900,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageIdsForBundleIdInput` |
+| `«destructured»` | [`GetMessageIdsForBundleIdInput`](../modules.md#getmessageidsforbundleidinput) |
 
 #### Returns
 
@@ -916,7 +916,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageSentEventFromMessageIdInput` |
+| `«destructured»` | [`GetMessageSentEventFromMessageIdInput`](../modules.md#getmessagesenteventfrommessageidinput) |
 
 #### Returns
 
@@ -932,7 +932,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageSentEventFromTransactionHashInput` |
+| `«destructured»` | [`GetMessageSentEventFromTransactionHashInput`](../modules.md#getmessagesenteventfromtransactionhashinput) |
 
 #### Returns
 
@@ -948,7 +948,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageSentEventFromTransactionReceiptInput` |
+| `«destructured»` | [`GetMessageSentEventFromTransactionReceiptInput`](../modules.md#getmessagesenteventfromtransactionreceiptinput) |
 
 #### Returns
 
@@ -980,7 +980,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageSentEventFromTransactionReceiptInput` |
+| `«destructured»` | [`GetMessageSentEventFromTransactionReceiptInput`](../modules.md#getmessagesenteventfromtransactionreceiptinput) |
 
 #### Returns
 
@@ -996,7 +996,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageTreeIndexFromMessageIdInput` |
+| `«destructured»` | [`GetMessageTreeIndexFromMessageIdInput`](../modules.md#getmessagetreeindexfrommessageidinput) |
 
 #### Returns
 
@@ -1012,7 +1012,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetMessageTreeIndexFromTransactionHashInput` |
+| `«destructured»` | [`GetMessageTreeIndexFromTransactionHashInput`](../modules.md#getmessagetreeindexfromtransactionhashinput) |
 
 #### Returns
 
@@ -1028,7 +1028,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetRelayFeeInput` |
+| `«destructured»` | [`GetRelayFeeInput`](../modules.md#getrelayfeeinput) |
 
 #### Returns
 
@@ -1038,17 +1038,17 @@ ___
 
 ### <a id="getrelaymessagedatafromtransactionhash" name="getrelaymessagedatafromtransactionhash"></a> getRelayMessageDataFromTransactionHash
 
-▸ **getRelayMessageDataFromTransactionHash**(`«destructured»`): `Promise`\<`RelayMessageData`\>
+▸ **getRelayMessageDataFromTransactionHash**(`«destructured»`): `Promise`\<[`RelayMessageData`](../modules.md#relaymessagedata)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetRelayMessageDataFromTransactionHashInput` |
+| `«destructured»` | [`GetRelayMessageDataFromTransactionHashInput`](../modules.md#getrelaymessagedatafromtransactionhashinput) |
 
 #### Returns
 
-`Promise`\<`RelayMessageData`\>
+`Promise`\<[`RelayMessageData`](../modules.md#relaymessagedata)\>
 
 ___
 
@@ -1060,7 +1060,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetRelayRewardInput` |
+| `«destructured»` | [`GetRelayRewardInput`](../modules.md#getrelayrewardinput) |
 
 #### Returns
 
@@ -1080,17 +1080,17 @@ ___
 
 ### <a id="getroutedata" name="getroutedata"></a> getRouteData
 
-▸ **getRouteData**(`«destructured»`): `Promise`\<`RouteData`\>
+▸ **getRouteData**(`«destructured»`): `Promise`\<[`RouteData`](../modules.md#routedata)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetRouteDataInput` |
+| `«destructured»` | [`GetRouteDataInput`](../modules.md#getroutedatainput) |
 
 #### Returns
 
-`Promise`\<`RouteData`\>
+`Promise`\<[`RouteData`](../modules.md#routedata)\>
 
 ___
 
@@ -1122,7 +1122,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `ShouldAttemptForwardMessageInput` |
+| `«destructured»` | [`ShouldAttemptForwardMessageInput`](../modules.md#shouldattemptforwardmessageinput) |
 
 #### Returns
 
@@ -1187,7 +1187,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetSpokeExitTimeInput` |
+| `«destructured»` | [`GetSpokeExitTimeInput`](../modules.md#getspokeexittimeinput) |
 
 #### Returns
 
@@ -1268,7 +1268,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `bundleProof` | `BundleProof` |
+| `bundleProof` | [`BundleProof`](../modules.md#bundleproof) |
 
 #### Returns
 
@@ -1284,7 +1284,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetRelayMessagePopulatedTxInput` |
+| `input` | [`GetRelayMessagePopulatedTxInput`](../modules.md#getrelaymessagepopulatedtxinput) |
 
 #### Returns
 
@@ -1300,7 +1300,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetSendMessagePopulatedTxInput` |
+| `input` | [`GetSendMessagePopulatedTxInput`](../modules.md#getsendmessagepopulatedtxinput) |
 
 #### Returns
 

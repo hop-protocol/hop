@@ -12,7 +12,7 @@ import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 const { getAddress: checksumAddress } = utils
 
-type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | MultiHopTransferSentFetcher | MultiHopTransferBondedFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | MultiHopTransferSentFetcher | MultiHopTransferBondedFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -295,7 +295,7 @@ export type TransferStatus = {
   transferBondedEvent: TransferBonded
 }
 
-type GetTransferSentEventFilterInput = {
+export type GetTransferSentEventFilterInput = {
   chainId: BigNumberish
   indexes?: {
     transferId?: string
@@ -323,7 +323,6 @@ export type SendMultiHopInput = {
   amount: BigNumberish
   hops: HopInput[]
 }
-
 
 export type PostMultiHopClaimInput = {
   chainId: BigNumberish

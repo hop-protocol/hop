@@ -19,7 +19,7 @@ import { ConfigError, InputError } from '#error/index.js'
 
 const { formatEther, formatUnits, parseEther } = utils
 
-type GetEventsInput = {
+export type GetEventsInput = {
   chainId: number
   fromBlock: number
   toBlock?: number

@@ -19,7 +19,7 @@ export type ConnectTargetsInput = {
   target2: string
 }
 
-type TransactionReceiptWithEvents = providers.TransactionReceipt & {
+export type TransactionReceiptWithEvents = providers.TransactionReceipt & {
   events?: EthersEvent[]
 }
 

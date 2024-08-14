@@ -9,7 +9,6 @@ import {
   useBalance,
   useFeeConversions,
 } from '#hooks/index.js'
-import {parseAst} from 'vite'
 
 const { formatUnits, parseUnits } = utils
 
@@ -68,6 +67,7 @@ type V2SendHook = {
   initialTokenSymbol: string
   initialFromChainId: string
   initialToChainId: string
+  routeChainIds: string[]
 }
 
 class Token {
@@ -190,7 +190,7 @@ export function useV2Send(): V2SendHook {
     update().catch(console.error)
   }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn])
 
-  async function approveTokens (approveAll: boolean) {
+  async function approveTokens () {
     try {
       setApprovalTx(null)
       setError('')
@@ -359,7 +359,8 @@ export function useV2Send(): V2SendHook {
           toChainId,
           toToken: toTokenAddress,
           amount: parsedAmountIn,
-          minAmountOut: parsedMinAmountOut
+          minAmountOut: parsedMinAmountOut,
+          to: recipient
         })
         setEstimatedReceived(estimated)
       } else {
@@ -436,6 +437,8 @@ export function useV2Send(): V2SendHook {
     approveTokens()
   }
 
+  const routeChainIds = [fromChainId, toChainId]?.filter(Boolean)
+
   return {
     accountAddress,
     amountIn,
@@ -491,5 +494,6 @@ export function useV2Send(): V2SendHook {
     initialTokenSymbol,
     initialFromChainId,
     initialToChainId,
+    routeChainIds
   }
 }

@@ -24,6 +24,7 @@ import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
 import { AmmDetails } from '#components/AmmDetails/index.js'
+import { MultiHopStepper } from './MultiHopStepper.js'
 
 export const SendV2: FC = () => {
   const styles = useSendStyles()
@@ -76,7 +77,8 @@ export const SendV2: FC = () => {
     v2Sdk,
     initialTokenSymbol,
     initialFromChainId,
-    initialToChainId
+    initialToChainId,
+    routeChainIds
   } = useV2Send()
 
   useEffect(() => {
@@ -102,7 +104,6 @@ export const SendV2: FC = () => {
   const amountOutMinDisplay = '123'
   const amountOutMinUsdDisplay = '$1'
   const transferTimeDisplay = '1 minute'
-
 
   const placeholderToken = {
     symbol: '',
@@ -200,6 +201,10 @@ export const SendV2: FC = () => {
             postText={disabledTx.message?.postText}
           />
         </Alert>
+      )}
+
+      {routeChainIds?.length > 0 && (
+        <MultiHopStepper steps={routeChainIds} />
       )}
 
       <Box className={styles.details}>

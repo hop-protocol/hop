@@ -155,6 +155,12 @@ describe.skip('Base', () => {
     console.log(imageUrl)
     expect(imageUrl).toBeDefined()
   })
+  it('should get chain info', async () => {
+    const chainId = 1
+    const info = base.utils.getChainInfo(chainId)
+    console.log(info)
+    expect(info).toBeDefined()
+  })
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
     expect(base.getRpcProviderForChainId('1')).toBeDefined()
@@ -256,9 +262,9 @@ describe.skip('Base', () => {
     }
     expect(error).toBe('')
   }, 60 * 1000)
-  it('should get color for chain id', async () => {
+  it('should get color for chain id', () => {
     const chainId = 1
-    const color = await base.getColorForChainId(chainId)
+    const color = base.getColorForChainId(chainId)
     console.log(color)
     expect(color).toBeDefined()
   })

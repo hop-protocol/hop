@@ -1,16 +1,7 @@
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
-import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import React, { useEffect, useState } from 'react'
-import Skeleton from '@mui/material/Skeleton'
-import Typography from '@mui/material/Typography'
+import { useState } from 'react'
 import useQueryParams from '#hooks/useQueryParams.js'
-import { ExternalLink } from '#components/Link/index.js'
-import { InfoTooltip } from '#components/InfoTooltip/index.js'
-import { isMainnet, reactAppNetwork } from '#config/index.js'
+import { reactAppNetwork } from '#config/index.js'
 import { useQuery } from 'react-query'
-import { useTheme } from '@mui/material/styles'
 import { NetworkSlug } from '@hop-protocol/sdk'
 
 type Props = {

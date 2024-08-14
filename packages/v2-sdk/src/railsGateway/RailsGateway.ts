@@ -465,35 +465,35 @@ export class RailsGateway extends StakingRegistry {
 
   async *getTransferSentEventsInBatches({ chainId, fromBlock, toBlock }: TransferSentEventInput) {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`);
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`);
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`);
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(chainId);
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`);
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
-    const latestBlock = await provider.getBlockNumber();
-    const resolvedToBlock = toBlock ?? latestBlock;
-    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000);
+    const latestBlock = await provider.getBlockNumber()
+    const resolvedToBlock = toBlock ?? latestBlock
+    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000)
 
     if (resolvedFromBlock < 0) {
-      resolvedFromBlock = resolvedToBlock + resolvedFromBlock;
+      resolvedFromBlock = resolvedToBlock + resolvedFromBlock
     }
 
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId);
-    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock);
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
+    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock)
 
     for await (const events of eventsGenerator) {
-      yield events;
+      yield events
     }
   }
 

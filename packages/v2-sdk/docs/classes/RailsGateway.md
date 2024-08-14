@@ -262,6 +262,7 @@ ___
 | `estimateGas` | (`provider`: `Provider`, `tx`: `TransactionRequest`) => `Promise`\<`BigNumber`\> |
 | `getAddressExplorerUrl` | (`address`: `string`, `chainId`: `BigNumberish`) => `string` |
 | `getBumpedGasPrice` | (`provider`: `Provider`, `percent`: `number`) => `Promise`\<`BigNumber`\> |
+| `getChainInfo` | (`chainId`: `BigNumberish`) => `any` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
 | `getConnectedChainId` | (`provider`: `Provider`) => `Promise`\<`BigNumber`\> |
 | `getGasPrice` | (`signerOrProvider`: `Provider` \| `Signer`) => `Promise`\<`BigNumber`\> |

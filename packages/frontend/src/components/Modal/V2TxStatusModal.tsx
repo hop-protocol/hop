@@ -90,11 +90,11 @@ export function V2TxStatusModal(props: Props) {
           fromChainId,
           transactionHash: tx.hash
         })
-        const { checkpoint } = event
+        const { transferId } = event
         const transferStatus = await v2Sdk.getTransferStatus({
           fromChainId,
           toChainId,
-          checkpoint
+          transferId
         })
 
         setFromCompleted(!!transferStatus.transferSentEvent)

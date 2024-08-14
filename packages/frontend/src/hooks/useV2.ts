@@ -50,8 +50,8 @@ type V2Hook = {
   getTokenList: (fromChainId?: string) => string[]
   getTokenName: (chainId: string, tokenSymbol: string) => string
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
-  getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<providers.TransactionResponse>
-  getEstimatedReceived: (input: SendTokensInput) => Promise<BigNumber>
+  getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
+  getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   v2Sdk: Hop | null
 }
 
@@ -270,7 +270,7 @@ export function useV2(): V2Hook {
     return tx
   }
 
-  async function getEstimatedReceived (input: SendTokensInput) {
+  async function getEstimatedReceived (input: SendTokensInput): Promise<any> {
     const {
       fromChainId,
       toChainId,

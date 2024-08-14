@@ -3,6 +3,7 @@ import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@ho
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
+import { networks } from '#common/networks.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -155,7 +156,7 @@ export class Base {
     return address
   }
 
-  #getConfigStartBlock (chainId: BigNumberish): number {
+  getConfigStartBlock (chainId: BigNumberish): number {
     if (!chainId) {
       throw new Error('chainId is required')
     }
@@ -456,6 +457,16 @@ export class Base {
       getLogoForChainId: (chainId: BigNumberish): string => {
         const chainSlug = this.utils.getChainSlug(chainId)
         return this.utils.getLogoForChainSlug(chainSlug)
+      },
+
+      getChainInfo: (chainId: BigNumberish): any => {
+        const info = networks[this.network]?.[chainId?.toString()]
+        const imageUrl = this.utils.getLogoForChainId(chainId)
+
+        return {
+          ...info,
+          imageUrl
+        }
       },
 
       getLogoForChainSlug: (chainSlug: string): string => {

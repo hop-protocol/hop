@@ -18,6 +18,7 @@ export function MultiHopStepper(props: Props) {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 600, margin: 'auto', mt: 4 }}>
+      <Box display="flex" justifyContent="center"><Typography variant="body1" color="secondary">Hops</Typography></Box>
       <Stepper alternativeLabel>
         {steps.map((chainId, index) => {
           const info = v2Sdk?.utils?.getChainInfo(chainId)
@@ -30,10 +31,10 @@ export function MultiHopStepper(props: Props) {
                 icon={
                   index === 0 ? (
                     <DotIcon fontSize="large" />
-                  ) : index < steps.length - 1 ? (
-                    <ArrowForwardIcon fontSize="large" />
-                  ) : (
+                  ) : index === steps.length - 1 ? (
                     <PlaceIcon fontSize="large" />
+                  ) : (
+                    <ArrowForwardIcon fontSize="large" />
                   )
                 }
               >

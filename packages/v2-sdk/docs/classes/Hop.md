@@ -38,6 +38,7 @@
 - [connectTargets](Hop.md#connecttargets)
 - [getColorForChainId](Hop.md#getcolorforchainid)
 - [getConfigAddress](Hop.md#getconfigaddress)
+- [getConfigStartBlock](Hop.md#getconfigstartblock)
 - [getContractAddresses](Hop.md#getcontractaddresses)
 - [getContractExists](Hop.md#getcontractexists)
 - [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider)
@@ -51,6 +52,7 @@
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
 - [getRpcProviderForChainId](Hop.md#getrpcproviderforchainid)
+- [getSendData](Hop.md#getsenddata)
 - [getSendFee](Hop.md#getsendfee)
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
@@ -337,6 +339,26 @@ Base.getConfigAddress
 
 ___
 
+### <a id="getconfigstartblock" name="getconfigstartblock"></a> getConfigStartBlock
+
+▸ **getConfigStartBlock**(`chainId`): `number`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`number`
+
+#### Inherited from
+
+Base.getConfigStartBlock
+
+___
+
 ### <a id="getcontractaddresses" name="getcontractaddresses"></a> getContractAddresses
 
 ▸ **getContractAddresses**(): `Addresses`
@@ -408,7 +430,7 @@ ___
 
 ### <a id="getestimatedreceived" name="getestimatedreceived"></a> getEstimatedReceived
 
-▸ **getEstimatedReceived**(`«destructured»`): `Promise`\<`BigNumberish`\>
+▸ **getEstimatedReceived**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
@@ -418,7 +440,7 @@ ___
 
 #### Returns
 
-`Promise`\<`BigNumberish`\>
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -539,6 +561,22 @@ ___
 #### Inherited from
 
 Base.getRpcProviderForChainId
+
+___
+
+### <a id="getsenddata" name="getsenddata"></a> getSendData
+
+▸ **getSendData**(`«destructured»`): `Promise`\<`SendData`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetSendDataInput` |
+
+#### Returns
+
+`Promise`\<`SendData`\>
 
 ___
 

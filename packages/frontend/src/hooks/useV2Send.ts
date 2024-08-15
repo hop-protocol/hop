@@ -68,6 +68,7 @@ type V2SendHook = {
   initialFromChainId: string
   initialToChainId: string
   routeChainIds: string[]
+  fetchingGetSendData: boolean
 }
 
 class Token {
@@ -93,7 +94,7 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
   const {
     networks,
     txConfirm
@@ -126,6 +127,8 @@ export function useV2Send(): V2SendHook {
   const [bonderFee, setBonderFee] = useState<BigNumber | null>(null)
   const [hasEnoughBalance, setHasEnoughBalance] = useState<boolean>(false)
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>(BigNumber.from(0))
+  const [routeChainIds, setRouteChainIds] = useState<string[]>([])
+  const [fetchingGetSendData, setFetchingGetSendData] = useState<boolean>(false)
 
   useEffect(() => {
     const list = getTokenList()
@@ -297,12 +300,12 @@ export function useV2Send(): V2SendHook {
   }
 
   useEffect(() => {
-    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance])
+    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !fetchingGetSendData)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, fetchingGetSendData])
 
   useEffect(() => {
-    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance])
+    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !fetchingGetSendData)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, fetchingGetSendData])
 
   const accountAddress = address?.toString() ?? null
 
@@ -352,19 +355,34 @@ export function useV2Send(): V2SendHook {
 
   useEffect(() => {
     async function update() {
-      if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
-        const estimated = await getEstimatedReceived({
-          fromChainId,
-          fromToken: fromTokenAddress,
-          toChainId,
-          toToken: toTokenAddress,
-          amount: parsedAmountIn,
-          minAmountOut: parsedMinAmountOut,
-          to: recipient
-        })
-        setEstimatedReceived(estimated)
-      } else {
-        setEstimatedReceived(BigNumber.from(0))
+      try {
+        if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
+          setFetchingGetSendData(true)
+          const data = await getSendData({
+            fromChainId,
+            fromToken: fromTokenAddress,
+            toChainId,
+            toToken: toTokenAddress,
+            amount: parsedAmountIn,
+            minAmountOut: parsedMinAmountOut,
+            to: recipient
+          })
+
+          const bonderFee = data.bonderFee
+          const estimated = data.estimatedReceived
+          const routeChainIds = data.routeChainIds
+
+          setEstimatedReceived(estimated)
+          setRouteChainIds(routeChainIds)
+          setBonderFee(bonderFee)
+          setFetchingGetSendData(false)
+        } else {
+          setEstimatedReceived(BigNumber.from(0))
+          setRouteChainIds([])
+          setBonderFee(BigNumber.from(0))
+        }
+      } catch (err) {
+        setFetchingGetSendData(false)
       }
     }
 
@@ -426,7 +444,6 @@ export function useV2Send(): V2SendHook {
     }
   }
   function handleSwitchDirection() {
-    setAmountIn('')
     setFromChainId(toChainId)
     setToChainId(fromChainId)
   }
@@ -436,8 +453,6 @@ export function useV2Send(): V2SendHook {
   function handleApprove() {
     approveTokens()
   }
-
-  const routeChainIds = [fromChainId, toChainId]?.filter(Boolean)
 
   return {
     accountAddress,
@@ -494,6 +509,7 @@ export function useV2Send(): V2SendHook {
     initialTokenSymbol,
     initialFromChainId,
     initialToChainId,
-    routeChainIds
+    routeChainIds,
+    fetchingGetSendData
   }
 }

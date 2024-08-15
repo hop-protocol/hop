@@ -43,6 +43,23 @@ export type SendTokensInput = {
   minAmountOut: BigNumberish
 }
 
+export type GetSendDataInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  to?: string
+  amount: BigNumberish
+  minAmountOut: BigNumberish
+}
+
+export type SendData = {
+  amountIn: BigNumber
+  estimatedReceived: BigNumber
+  bonderFee: BigNumber
+  routeChainIds: string[]
+}
+
 export type WillSendTokensFailInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
@@ -326,9 +343,23 @@ export class Hop extends Base {
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
-  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: SendTokensInput) {
+  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: SendTokensInput): Promise<BigNumber> {
     // TODO: will fill in once we have contract implementation for this
-    return amount
+    return BigNumber.from(amount)
+  }
+
+  async getSendData ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {
+    const amountIn = BigNumber.from(amount)
+    const estimatedReceived = await this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut })
+    const bonderFee = await this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+    const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
+
+    return {
+      amountIn,
+      estimatedReceived,
+      bonderFee,
+      routeChainIds,
+    }
   }
 
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {

@@ -78,7 +78,8 @@ export const SendV2: FC = () => {
     initialTokenSymbol,
     initialFromChainId,
     initialToChainId,
-    routeChainIds
+    routeChainIds,
+    fetchingGetSendData,
   } = useV2Send()
 
   useEffect(() => {
@@ -90,7 +91,6 @@ export const SendV2: FC = () => {
   const isSmartContractWallet = false // TODO
   const maxButtonFixedAmountToSubtract = BigNumber.from(0) // TODO
   const isSpecificRouteDeprecated = false // TODO
-  const isLoadingSendData = false // TODO
   const gnosisSafeWarning = null // TODO
   const isDestinationChainPaused = false // TODO
   const disabledTx = null // TODO
@@ -169,7 +169,7 @@ export const SendV2: FC = () => {
         onNetworkChange={handleToChainChange}
         balance={toTokenBalance}
         loadingBalance={isLoadingToTokenBalance}
-        loadingValue={isLoadingSendData}
+        loadingValue={fetchingGetSendData}
         disableInput
       />
 

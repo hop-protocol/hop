@@ -33,6 +33,7 @@
 - [connectTargets](HubConnector.md#connecttargets)
 - [getColorForChainId](HubConnector.md#getcolorforchainid)
 - [getConfigAddress](HubConnector.md#getconfigaddress)
+- [getConfigStartBlock](HubConnector.md#getconfigstartblock)
 - [getConnectorAddressFromReceipt](HubConnector.md#getconnectoraddressfromreceipt)
 - [getConnectorAddressFromTx](HubConnector.md#getconnectoraddressfromtx)
 - [getConnectorDeployedEvents](HubConnector.md#getconnectordeployedevents)
@@ -274,6 +275,26 @@ ___
 #### Inherited from
 
 Base.getConfigAddress
+
+___
+
+### <a id="getconfigstartblock" name="getconfigstartblock"></a> getConfigStartBlock
+
+▸ **getConfigStartBlock**(`chainId`): `number`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`number`
+
+#### Inherited from
+
+Base.getConfigStartBlock
 
 ___
 

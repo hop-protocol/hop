@@ -241,4 +241,24 @@ describe.skip('Hop', () => {
     console.log(estimated)
     expect(estimated).toBeDefined()
   }, 60 * 1000)
+
+  it.skip('TODO should get send data', async () => {
+    const fromChainId = 11155111
+    const toChainId = 11155420
+    const fromToken = '0xTODO'
+    const toToken = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const minAmountOut = '0'
+
+    const data = await sdk.getSendData({
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      amount,
+      minAmountOut,
+    })
+    console.log(data)
+    expect(data).toBeDefined()
+  }, 60 * 1000)
 })

@@ -50,6 +50,7 @@
 - [getChallenges](RailsGateway.md#getchallenges)
 - [getColorForChainId](RailsGateway.md#getcolorforchainid)
 - [getConfigAddress](RailsGateway.md#getconfigaddress)
+- [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
 - [getContractAddresses](RailsGateway.md#getcontractaddresses)
 - [getContractExists](RailsGateway.md#getcontractexists)
 - [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider)
@@ -310,7 +311,7 @@ ___
 
 ### <a id="adddecodedtypestoevents" name="adddecodedtypestoevents"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferBonded` \| `TransferSent`\>[]
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
 
 #### Parameters
 
@@ -320,7 +321,7 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferBonded` \| `TransferSent`\>[]
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
 
 ___
 
@@ -670,6 +671,26 @@ ___
 #### Inherited from
 
 StakingRegistry.getConfigAddress
+
+___
+
+### <a id="getconfigstartblock" name="getconfigstartblock"></a> getConfigStartBlock
+
+▸ **getConfigStartBlock**(`chainId`): `number`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`number`
+
+#### Inherited from
+
+StakingRegistry.getConfigStartBlock
 
 ___
 

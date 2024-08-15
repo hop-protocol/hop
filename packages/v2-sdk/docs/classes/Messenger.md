@@ -42,6 +42,7 @@
 - [getBundleSetEvents](Messenger.md#getbundlesetevents)
 - [getColorForChainId](Messenger.md#getcolorforchainid)
 - [getConfigAddress](Messenger.md#getconfigaddress)
+- [getConfigStartBlock](Messenger.md#getconfigstartblock)
 - [getContractAddresses](Messenger.md#getcontractaddresses)
 - [getContractExists](Messenger.md#getcontractexists)
 - [getDefaultChainRpcProvider](Messenger.md#getdefaultchainrpcprovider)
@@ -458,6 +459,26 @@ ___
 #### Inherited from
 
 Base.getConfigAddress
+
+___
+
+### <a id="getconfigstartblock" name="getconfigstartblock"></a> getConfigStartBlock
+
+▸ **getConfigStartBlock**(`chainId`): `number`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`number`
+
+#### Inherited from
+
+Base.getConfigStartBlock
 
 ___
 

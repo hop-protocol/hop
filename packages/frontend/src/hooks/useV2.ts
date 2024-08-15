@@ -22,6 +22,16 @@ type SendTokensInput = {
   toToken: string
 }
 
+type GetSendDataInput = {
+  amount: string
+  fromChainId: string
+  fromToken: string
+  minAmountOut: string
+  to: string
+  toChainId: string
+  toToken: string
+}
+
 type GetWillSendTokensFailInput = {
   amount: string
   fromChainId: string
@@ -52,6 +62,7 @@ type V2Hook = {
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
+  getSendData: (input: GetSendDataInput) => Promise<any>
   v2Sdk: Hop | null
 }
 
@@ -292,6 +303,28 @@ export function useV2(): V2Hook {
     return estimated
   }
 
+  async function getSendData (input: GetSendDataInput): Promise<any> {
+    const {
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      amount,
+      minAmountOut
+    } = input
+
+    const data = await v2Sdk.getSendData({
+      fromChainId,
+      fromToken,
+      toChainId,
+      toToken,
+      amount,
+      minAmountOut
+    })
+
+    return data
+  }
+
   async function getFee (input: GetFeeInput): Promise<BigNumber> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
@@ -326,6 +359,7 @@ export function useV2(): V2Hook {
     sendTokens,
     getWillSendTokensFail,
     getEstimatedReceived,
+    getSendData,
     v2Sdk,
   }
 }

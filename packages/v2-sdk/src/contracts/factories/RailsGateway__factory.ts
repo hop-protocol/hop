@@ -146,13 +146,35 @@ const _abi = [
         type: "bytes32",
         internalType: "bytes32",
       },
+      {
+        name: "nextHops",
+        type: "tuple[]",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+        ],
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "bondAndForward",
+    name: "bond",
     inputs: [
       {
         name: "pathId",
@@ -163,58 +185,6 @@ const _abi = [
         name: "transferId",
         type: "bytes32",
         internalType: "bytes32",
-      },
-      {
-        name: "previousTransferId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "totalSent",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "nonce",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "hops",
-        type: "tuple[]",
-        internalType: "struct Hop[]",
-        components: [
-          {
-            name: "pathId",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "minAmountOut",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "attestedCheckpoint",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-      {
-        name: "index",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     outputs: [],
@@ -676,30 +646,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "isCheckpointValid",
-    inputs: [
-      {
-        name: "pathId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "checkpoint",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "isValid",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "isStaked",
     inputs: [
       {
@@ -830,69 +776,19 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "attestedCheckpoint",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "postMultiHopClaim",
-    inputs: [
-      {
-        name: "pathId",
+        name: "attestedClaimId",
         type: "bytes32",
         internalType: "bytes32",
       },
       {
-        name: "transferId",
+        name: "attestedTotalClaims",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "nextHopsHash",
         type: "bytes32",
         internalType: "bytes32",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "totalSent",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "index",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "hops",
-        type: "tuple[]",
-        internalType: "struct Hop[]",
-        components: [
-          {
-            name: "pathId",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "minAmountOut",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "attestedCheckpoint",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
       },
     ],
     outputs: [],
@@ -948,41 +844,12 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "minAmountOut",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "attestedCheckpoint",
+        name: "attestedClaimId",
         type: "bytes32",
         internalType: "bytes32",
       },
-    ],
-    outputs: [
       {
-        name: "checkpoint",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "sendMultiHop",
-    inputs: [
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "hops",
+        name: "nextHops",
         type: "tuple[]",
         internalType: "struct Hop[]",
         components: [
@@ -992,16 +859,21 @@ const _abi = [
             internalType: "bytes32",
           },
           {
-            name: "minAmountOut",
+            name: "maxTotalSent",
             type: "uint256",
             internalType: "uint256",
           },
           {
-            name: "attestedCheckpoint",
+            name: "attestedClaimId",
             type: "bytes32",
             internalType: "bytes32",
           },
         ],
+      },
+      {
+        name: "maxTotalSent",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
@@ -1153,72 +1025,6 @@ const _abi = [
   },
   {
     type: "event",
-    name: "MultiHopTransferSent",
-    inputs: [
-      {
-        name: "transferId",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "to",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "totalSent",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "nonce",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "previousTransferId",
-        type: "bytes32",
-        indexed: false,
-        internalType: "bytes32",
-      },
-      {
-        name: "hops",
-        type: "tuple[]",
-        indexed: false,
-        internalType: "struct Hop[]",
-        components: [
-          {
-            name: "pathId",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "minAmountOut",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "attestedCheckpoint",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       {
@@ -1253,12 +1059,6 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "to",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
         name: "amount",
         type: "uint256",
         indexed: false,
@@ -1271,12 +1071,6 @@ const _abi = [
     type: "event",
     name: "TransferSent",
     inputs: [
-      {
-        name: "pathId",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
       {
         name: "transferId",
         type: "bytes32",
@@ -1302,22 +1096,39 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "nonce",
+        name: "attestedClaimId",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
+      },
+      {
+        name: "attestedTotalClaims",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
       },
       {
-        name: "previousTransferId",
-        type: "bytes32",
+        name: "nextHops",
+        type: "tuple[]",
         indexed: false,
-        internalType: "bytes32",
-      },
-      {
-        name: "attestedCheckpoint",
-        type: "bytes32",
-        indexed: false,
-        internalType: "bytes32",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+        ],
       },
     ],
     anonymous: false,

@@ -186,36 +186,25 @@ export class Hop extends Base {
         })
 
         console.log('pathId', pathId)
-        const lastCheckpoint = await this.railsGateway.getLatestClaim({
+        const attestedClaimId = await this.railsGateway.getLatestClaim({
           chainId: fromChainId,
           pathId
         })
-        console.log('lastCheckpoint', lastCheckpoint)
+        console.log('attestedClaimId', attestedClaimId)
 
-        let isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
-          chainId: toChainId,
+        const nextHops = [{
           pathId,
-          checkpoint: lastCheckpoint
-        })
-
-        console.log('isCheckpointValid', isCheckpointValid)
-
-        // new path without checkpoints will return 0 bytes32
-        if (!isCheckpointValid && BigNumber.from(lastCheckpoint).eq(0)) {
-          isCheckpointValid = true
-        }
-
-        if (!isCheckpointValid) {
-          throw new Error('Latest checkpoint is invalid')
-        }
+          maxTotalSent: amount, // TODO: fetch this
+          attestedClaimId
+        }]
 
         const populatedTx = await this.railsGateway.populateTransaction.send({
           chainId: fromChainId,
           pathId,
           to,
           amount,
-          minAmountOut,
-          attestedCheckpoint: lastCheckpoint
+          attestedClaimId,
+          nextHops
         })
 
         console.log('populatedTx', populatedTx)
@@ -321,18 +310,24 @@ export class Hop extends Base {
       token1: toToken
     })
 
-    const lastCheckpoint = await this.railsGateway.getLatestClaim({
+    const attestedClaimId  = await this.railsGateway.getLatestClaim({
       chainId: fromChainId,
       pathId
     })
+
+    const nextHops = [{
+      pathId,
+      maxTotalSent: amount, // TODO: fetch this
+      attestedClaimId
+    }]
 
     const populatedTx = await this.railsGateway.populateTransaction.send({
       chainId: fromChainId,
       pathId,
       to,
       amount,
-      minAmountOut,
-      attestedCheckpoint: lastCheckpoint
+      attestedClaimId,
+      nextHops
     })
 
     const provider = this.getRpcProviderForChainId(fromChainId)

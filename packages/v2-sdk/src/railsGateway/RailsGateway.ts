@@ -5,20 +5,16 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
-import { MultiHopTransferSent, MultiHopTransferSentFetcher } from '#railsGateway/events/MultiHopTransferSent.js'
-import { MultiHopTransferBonded, MultiHopTransferBondedFetcher } from '#railsGateway/events/MultiHopTransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 const { getAddress: checksumAddress } = utils
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | MultiHopTransferSentFetcher | MultiHopTransferBondedFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
-  MultiHopTransferSent = 'MultiHopTransferSent',
-  MultiHopTransferBonded= 'MultiHopTransferBonded'
 }
 
 export type GetEventsInput = {
@@ -37,18 +33,6 @@ export type TransferSentEventInput = {
 }
 
 export type TransferBondedEventInput = {
-  chainId: BigNumberish
-  fromBlock: number
-  toBlock: number
-}
-
-export type MultiHopTransferSentEventInput = {
-  chainId: BigNumberish
-  fromBlock: number
-  toBlock: number
-}
-
-export type MultiHopTransferBondedEventInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock: number
@@ -79,8 +63,8 @@ export type SendInput = {
   pathId: string
   to: string
   amount: BigNumberish
-  minAmountOut: BigNumberish
-  attestedCheckpoint: string
+  attestedClaimId: string
+  nextHops: HopStruct[]
 }
 
 export type ApproveSendInput = {
@@ -91,13 +75,9 @@ export type ApproveSendInput = {
 
 export type BondInput = {
   chainId: BigNumberish
-  checkpoint: string
   pathId: string
-  to: string
-  amount: BigNumberish
-  totalSent: BigNumberish
-  nonce: BigNumberish
-  attestedCheckpoint: string
+  transferId: string
+  nextHops: HopStruct[]
 }
 
 export type ApproveBondInput = {
@@ -110,8 +90,12 @@ export type PostClaimInput = {
   chainId: BigNumberish
   pathId: string
   transferId: string
-  head: string
+  to: string
+  amount: BigNumber
   totalSent: BigNumberish
+  attestedClaimId: string
+  attestedTotalClaims: BigNumberish
+  nextHopsHash: string
 }
 
 export type RemoveClaimInput = {
@@ -183,12 +167,6 @@ export type GetNeedsApprovalForBondInput = {
 export type GetLatestClaimInput = {
   chainId: BigNumberish
   pathId: string
-}
-
-export type GetIsCheckpointValidInput = {
-  chainId: BigNumberish
-  pathId: string
-  checkpoint: string
 }
 
 export type GetFeeInput = {
@@ -311,41 +289,10 @@ export type Token = {
   decimals: number
 }
 
-export type HopInput = {
+export type HopStruct = {
   pathId: string
-  minAmountOut: BigNumberish
-  attestedCheckpoint: string
-}
-
-export type SendMultiHopInput = {
-  chainId: BigNumberish
-  to: string
-  amount: BigNumberish
-  hops: HopInput[]
-}
-
-export type PostMultiHopClaimInput = {
-  chainId: BigNumberish
-  pathId: string
-  transferId :string
-  to: string
-  amount: BigNumberish
-  totalSent: BigNumberish
-  index: number
-  hops: HopInput[]
-}
-
-export type BondAndForwardInput = {
-  chainId: BigNumberish
-  pathId: string
-  transferId: string
-  previousTransferId: string
-  to: string
-  amount: BigNumberish
-  totalSent: BigNumberish
-  nonce: BigNumberish
-  hops: HopInput[]
-  index: number
+  maxTotalSent: BigNumberish
+  attestedClaimId: string
 }
 
 export type RailsGatewayConstructorInput = BaseConfig
@@ -380,9 +327,7 @@ export class RailsGateway extends StakingRegistry {
 
     const eventFetcher: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.MultiHopTransferSent]: MultiHopTransferSentFetcher,
-      [EventName.MultiHopTransferBonded]: MultiHopTransferBondedFetcher
+      [EventName.TransferBonded]: TransferBondedEventFetcher
     }
 
     const EventFetcherClass = eventFetcher[eventName]
@@ -497,14 +442,6 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
-  async getMultiHopTransferSentEvents (input: MultiHopTransferSentEventInput): Promise<EthersEventWithDecodedTypes<MultiHopTransferSent>[]> {
-    return this.#getEvents({ ...input, eventName: EventName.MultiHopTransferSent })
-  }
-
-  async getMultiHopTransferBondedEvents (input: MultiHopTransferBondedEventInput): Promise<EthersEventWithDecodedTypes<MultiHopTransferBonded>[]> {
-    return this.#getEvents({ ...input, eventName: EventName.MultiHopTransferBonded })
-  }
-
   #addDecodedTypesToEvents <T>(events: any[], Fetcher: any): EthersEventWithDecodedTypes<T>[] {
     const eventFetcher = new Fetcher()
     return events.map(event => eventFetcher.addTypedEvent(event))
@@ -603,7 +540,7 @@ export class RailsGateway extends StakingRegistry {
 
   get populateTransaction() {
     return {
-      send: async ({ chainId, pathId, amount, to, minAmountOut, attestedCheckpoint }: SendInput): Promise<providers.TransactionRequest> => {
+      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops }: SendInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -612,17 +549,34 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidNumericValue(minAmountOut)) {
-          throw new InputError(`Invalid minAmountOut "${to}"`)
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid to "${to}"`)
         }
 
-        // Note: attestedCheckpoint is optional
-        if (attestedCheckpoint) {
-          if (!this.utils.isValidBytes32(attestedCheckpoint)) {
-            throw new InputError(`Invalid attestedCheckpoint  "${attestedCheckpoint}"`)
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
+        }
+
+        if (!this.utils.isValidBytes32(attestedClaimId)) {
+          throw new InputError(`Invalid attestedClaimId "${attestedClaimId}"`)
+        }
+
+        for (const hop of nextHops) {
+          if (!this.utils.isValidBytes32(hop.pathId)) {
+            throw new InputError(`Invalid pathId "${hop.pathId}"`)
           }
-        } else {
-          attestedCheckpoint = '0x' + '0'.repeat(64)
+
+          if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
+            throw new InputError(`Invalid attestedCheckpoint "${hop.maxTotalSent}"`)
+          }
+
+          if (hop.attestedClaimId) {
+            if (!this.utils.isValidBytes32(hop.attestedClaimId)) {
+              throw new InputError(`Invalid minAmountOut "${hop.attestedClaimId}"`)
+            }
+          } else {
+            hop.attestedClaimId = '0x' + '0'.repeat(64)
+          }
         }
 
         if (!to) {
@@ -636,7 +590,7 @@ export class RailsGateway extends StakingRegistry {
         const contract = await this.getRailsGatewayContract(chainId)
 
         const fee = await this.getFee({ chainId, pathId })
-        const txData = await contract.populateTransaction.send(pathId, to, amount, minAmountOut, attestedCheckpoint, {
+        const txData = await contract.populateTransaction.send(pathId, to, amount, attestedClaimId, nextHops, {
           value: fee
         })
 
@@ -672,7 +626,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      bond: async ({ chainId, pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint }: BondInput): Promise<providers.TransactionRequest> => {
+      bond: async ({ chainId, pathId, transferId, nextHops }: BondInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -681,32 +635,34 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidBytes32(checkpoint)) {
-          throw new InputError(`Invalid checkpoint "${checkpoint}"`)
+        if (!this.utils.isValidBytes32(transferId)) {
+          throw new InputError(`Invalid checkpoint "${transferId}"`)
         }
 
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to address "${to}"`)
+        if (!nextHops || !Array.isArray(nextHops) || nextHops.length === 0) {
+          throw new InputError('Invalid nextHops')
         }
 
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid amount "${amount}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(totalSent)) {
-          throw new InputError(`Invalid amount "${totalSent}"`)
-        }
-
-        if (attestedCheckpoint) {
-          if (!this.utils.isValidBytes32(attestedCheckpoint)) {
-            throw new InputError(`Invalid attested checkpoint "${attestedCheckpoint}"`)
+        for (const hop of nextHops) {
+          if (!this.utils.isValidBytes32(hop.pathId)) {
+            throw new InputError(`Invalid pathId "${hop.pathId}"`)
           }
-        } else {
-          attestedCheckpoint = '0x' + '0'.repeat(64)
+
+          if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
+            throw new InputError(`Invalid attestedCheckpoint "${hop.maxTotalSent}"`)
+          }
+
+          if (hop.attestedClaimId) {
+            if (!this.utils.isValidBytes32(hop.attestedClaimId)) {
+              throw new InputError(`Invalid minAmountOut "${hop.attestedClaimId}"`)
+            }
+          } else {
+            hop.attestedClaimId = '0x' + '0'.repeat(64)
+          }
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.bond(pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint)
+        const txData = await contract.populateTransaction.bond(pathId, transferId, nextHops)
 
         return {
           ...txData,
@@ -740,7 +696,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      postClaim: async ({ chainId, pathId, transferId, head, totalSent }: PostClaimInput): Promise<providers.TransactionRequest> => {
+      postClaim: async ({ chainId, pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash }: PostClaimInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -753,16 +709,32 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid transferId "${transferId}"`)
         }
 
-        if (!this.utils.isValidBytes32(head)) {
-          throw new InputError(`Invalid head "${head}"`)
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid address "${to}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
         }
 
         if (!this.utils.isValidNumericValue(totalSent)) {
-          throw new InputError(`Invalid head "${totalSent}"`)
+          throw new InputError(`Invalid totalSent "${totalSent}"`)
+        }
+
+        if (!this.utils.isValidBytes32(attestedClaimId)) {
+          throw new InputError(`Invalid attestedClaimId "${attestedClaimId}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(attestedTotalClaims)) {
+          throw new InputError(`Invalid totalSent "${attestedClaimId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(nextHopsHash)) {
+          throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.postClaim(pathId, transferId, head, totalSent)
+        const txData = await contract.populateTransaction.postClaim(pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash)
 
         return {
           ...txData,
@@ -994,158 +966,6 @@ export class RailsGateway extends StakingRegistry {
           ...txData,
           chainId: Number(chainId)
         }
-      },
-
-      sendMultiHop: async ({ chainId, to, amount, hops }: SendMultiHopInput): Promise<providers.TransactionRequest> => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to address "${to}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid to amount "${amount}"`)
-        }
-
-        if (!hops || !Array.isArray(hops) || hops.length === 0) {
-          throw new InputError('Invalid hops')
-        }
-
-        for (const hop of hops) {
-          if (!this.utils.isValidBytes32(hop.pathId)) {
-            throw new InputError(`Invalid pathId "${hop.pathId}"`)
-          }
-
-          if (!this.utils.isValidBytes32(hop.attestedCheckpoint)) {
-            throw new InputError(`Invalid attestedCheckpoint "${hop.attestedCheckpoint}"`)
-          }
-
-          if (!this.utils.isValidNumericValue(hop.minAmountOut)) {
-            throw new InputError(`Invalid minAmountOut "${hop.minAmountOut}"`)
-          }
-        }
-
-        const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.sendMultiHop(to, amount, hops)
-
-        return {
-          ...txData,
-          chainId: Number(chainId)
-        }
-      },
-
-      postMultiHopClaim: async ({ chainId, pathId, transferId, to, amount, totalSent, index, hops }: PostMultiHopClaimInput): Promise<providers.TransactionRequest> => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to address "${to}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid to amount "${amount}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(totalSent)) {
-          throw new InputError(`Invalid totalSent "${totalSent}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(index)) {
-          throw new InputError(`Invalid index "${index}"`)
-        }
-
-        if (!hops || !Array.isArray(hops) || hops.length === 0) {
-          throw new InputError('Invalid hops')
-        }
-
-        for (const hop of hops) {
-          if (!this.utils.isValidBytes32(hop.pathId)) {
-            throw new InputError(`Invalid pathId "${hop.pathId}"`)
-          }
-
-          if (!this.utils.isValidBytes32(hop.attestedCheckpoint)) {
-            throw new InputError(`Invalid attestedCheckpoint "${hop.attestedCheckpoint}"`)
-          }
-
-          if (!this.utils.isValidNumericValue(hop.minAmountOut)) {
-            throw new InputError(`Invalid minAmountOut "${hop.minAmountOut}"`)
-          }
-        }
-
-        const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.postMultiHopClaim(pathId, transferId, to, amount, totalSent, index, hops)
-
-        return {
-          ...txData,
-          chainId: Number(chainId)
-        }
-      },
-
-      bondAndForward: async ({ chainId, pathId, transferId, previousTransferId, to, amount, totalSent, nonce, hops, index }: BondAndForwardInput): Promise<providers.TransactionRequest> => {
-        if (!this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(previousTransferId)) {
-          throw new InputError(`Invalid previousTransferId "${previousTransferId}"`)
-        }
-
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to address "${to}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid to amount "${amount}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(totalSent)) {
-          throw new InputError(`Invalid totalSent "${totalSent}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(index)) {
-          throw new InputError(`Invalid index "${index}"`)
-        }
-
-        if (!hops || !Array.isArray(hops) || hops.length === 0) {
-          throw new InputError('Invalid hops')
-        }
-
-        for (const hop of hops) {
-          if (!this.utils.isValidBytes32(hop.pathId)) {
-            throw new InputError(`Invalid pathId "${hop.pathId}"`)
-          }
-
-          if (!this.utils.isValidBytes32(hop.attestedCheckpoint)) {
-            throw new InputError(`Invalid attestedCheckpoint "${hop.attestedCheckpoint}"`)
-          }
-
-          if (!this.utils.isValidNumericValue(hop.minAmountOut)) {
-            throw new InputError(`Invalid minAmountOut "${hop.minAmountOut}"`)
-          }
-        }
-
-        const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.bondAndForward(pathId, transferId, previousTransferId, to, amount, totalSent, nonce, hops, index)
-
-        return {
-          ...txData,
-          chainId: Number(chainId)
-        }
       }
     }
   }
@@ -1191,7 +1011,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async bond (input: BondInput): Promise<providers.TransactionResponse> {
-    const { chainId, pathId, amount } = input
+    const { chainId, pathId, transferId, nextHops } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1200,6 +1020,13 @@ export class RailsGateway extends StakingRegistry {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathId "${pathId}"`)
     }
+
+    const event = await this.getTransferSentEventFromTransferId({ fromChainId: chainId, transferId })
+    if (!event) {
+      throw new InputError(`Transfer not found for transferId "${transferId}"`)
+    }
+
+    const amount = event.amount
 
     if (!this.utils.isValidNumericValue(amount)) {
       throw new InputError(`Invalid amount "${amount}"`)
@@ -1312,22 +1139,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getLatestClaim(pathId)
-  }
-
-  async getIsCheckpointValid ({ chainId, pathId, checkpoint }: GetIsCheckpointValidInput): Promise<boolean> {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(checkpoint)) {
-      throw new InputError(`Invalid checkpoint "${checkpoint}"`)
-    }
-
-    const contract = await this.getRailsGatewayContract(chainId)
-    const valid = await contract.isCheckpointValid(pathId, checkpoint)
-
-    return valid
+    return contract.getHeadClaim(pathId)
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
@@ -1723,20 +1535,5 @@ export class RailsGateway extends StakingRegistry {
       transferSentEvent,
       transferBondedEvent
     }
-  }
-
-  async sendMultiHop (input: SendMultiHopInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.sendMultiHop(input)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async postMultiHopClaim (input: PostMultiHopClaimInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.postMultiHopClaim(input)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async bondAndForward (input: BondAndForwardInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.bondAndForward(input)
-    return this.sendTransaction(populatedTx)
   }
 }

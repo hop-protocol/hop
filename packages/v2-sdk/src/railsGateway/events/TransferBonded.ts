@@ -6,7 +6,6 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 export interface TransferBonded extends EventBase {
   pathId: string
   transferId: string
-  to: string
   amount: BigNumber
 }
 
@@ -33,7 +32,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
 
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
-    const to = parsed.args.to
     const amount = parsed.args.amount
 
     return {
@@ -41,7 +39,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
       eventLog: ethersEvent,
       pathId,
       transferId,
-      to,
       amount
     }
   }

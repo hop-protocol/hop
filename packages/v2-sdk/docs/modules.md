@@ -33,7 +33,6 @@
 - [ApproveBondInput](modules.md#approvebondinput)
 - [ApproveSendInput](modules.md#approvesendinput)
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
-- [BondAndForwardInput](modules.md#bondandforwardinput)
 - [BondInput](modules.md#bondinput)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
@@ -52,7 +51,6 @@
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
-- [GetIsCheckpointValidInput](modules.md#getischeckpointvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
 - [GetLatestClaimInput](modules.md#getlatestclaiminput)
@@ -101,20 +99,16 @@
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
-- [HopInput](modules.md#hopinput)
+- [HopStruct](modules.md#hopstruct)
 - [HubConnectorConfig](modules.md#hubconnectorconfig)
 - [MessengerConfig](modules.md#messengerconfig)
-- [MultiHopTransferBondedEventInput](modules.md#multihoptransferbondedeventinput)
-- [MultiHopTransferSentEventInput](modules.md#multihoptransfersenteventinput)
 - [Path](modules.md#path)
 - [PostClaimInput](modules.md#postclaiminput)
-- [PostMultiHopClaimInput](modules.md#postmultihopclaiminput)
 - [RailsGatewayConstructorInput](modules.md#railsgatewayconstructorinput)
 - [RelayMessageData](modules.md#relaymessagedata)
 - [RemoveClaimInput](modules.md#removeclaiminput)
 - [RouteData](modules.md#routedata)
 - [SendInput](modules.md#sendinput)
-- [SendMultiHopInput](modules.md#sendmultihopinput)
 - [SendTokensInput](modules.md#sendtokensinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
 - [StakeHopInput](modules.md#stakehopinput)
@@ -182,27 +176,6 @@ ___
 
 ___
 
-### <a id="bondandforwardinput" name="bondandforwardinput"></a> BondAndForwardInput
-
-Ƭ **BondAndForwardInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
-| `hops` | [`HopInput`](modules.md#hopinput)[] |
-| `index` | `number` |
-| `nonce` | `BigNumberish` |
-| `pathId` | `string` |
-| `previousTransferId` | `string` |
-| `to` | `string` |
-| `totalSent` | `BigNumberish` |
-| `transferId` | `string` |
-
-___
-
 ### <a id="bondinput" name="bondinput"></a> BondInput
 
 Ƭ **BondInput**: `Object`
@@ -211,14 +184,10 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
-| `attestedCheckpoint` | `string` |
 | `chainId` | `BigNumberish` |
-| `checkpoint` | `string` |
-| `nonce` | `BigNumberish` |
+| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
 | `pathId` | `string` |
-| `to` | `string` |
-| `totalSent` | `BigNumberish` |
+| `transferId` | `string` |
 
 ___
 
@@ -460,20 +429,6 @@ ___
 | `bundleId` | `string` |
 | `fromChainId` | `BigNumberish` |
 | `toChainId` | `BigNumberish` |
-
-___
-
-### <a id="getischeckpointvalidinput" name="getischeckpointvalidinput"></a> GetIsCheckpointValidInput
-
-Ƭ **GetIsCheckpointValidInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `checkpoint` | `string` |
-| `pathId` | `string` |
 
 ___
 
@@ -1133,16 +1088,16 @@ ___
 
 ___
 
-### <a id="hopinput" name="hopinput"></a> HopInput
+### <a id="hopstruct" name="hopstruct"></a> HopStruct
 
-Ƭ **HopInput**: `Object`
+Ƭ **HopStruct**: `Object`
 
 #### Type declaration
 
 | Name | Type |
 | :------ | :------ |
-| `attestedCheckpoint` | `string` |
-| `minAmountOut` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `maxTotalSent` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -1156,34 +1111,6 @@ ___
 ### <a id="messengerconfig" name="messengerconfig"></a> MessengerConfig
 
 Ƭ **MessengerConfig**: `BaseConfig`
-
-___
-
-### <a id="multihoptransferbondedeventinput" name="multihoptransferbondedeventinput"></a> MultiHopTransferBondedEventInput
-
-Ƭ **MultiHopTransferBondedEventInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `fromBlock` | `number` |
-| `toBlock` | `number` |
-
-___
-
-### <a id="multihoptransfersenteventinput" name="multihoptransfersenteventinput"></a> MultiHopTransferSentEventInput
-
-Ƭ **MultiHopTransferSentEventInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `fromBlock` | `number` |
-| `toBlock` | `number` |
 
 ___
 
@@ -1211,26 +1138,11 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `amount` | `BigNumber` |
+| `attestedClaimId` | `string` |
+| `attestedTotalClaims` | `BigNumberish` |
 | `chainId` | `BigNumberish` |
-| `head` | `string` |
-| `pathId` | `string` |
-| `totalSent` | `BigNumberish` |
-| `transferId` | `string` |
-
-___
-
-### <a id="postmultihopclaiminput" name="postmultihopclaiminput"></a> PostMultiHopClaimInput
-
-Ƭ **PostMultiHopClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
-| `hops` | [`HopInput`](modules.md#hopinput)[] |
-| `index` | `number` |
+| `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
 | `totalSent` | `BigNumberish` |
@@ -1298,25 +1210,10 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `attestedCheckpoint` | `string` |
+| `attestedClaimId` | `string` |
 | `chainId` | `BigNumberish` |
-| `minAmountOut` | `BigNumberish` |
+| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
 | `pathId` | `string` |
-| `to` | `string` |
-
-___
-
-### <a id="sendmultihopinput" name="sendmultihopinput"></a> SendMultiHopInput
-
-Ƭ **SendMultiHopInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
-| `hops` | [`HopInput`](modules.md#hopinput)[] |
 | `to` | `string` |
 
 ___

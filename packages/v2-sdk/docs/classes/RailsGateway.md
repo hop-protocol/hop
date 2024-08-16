@@ -38,7 +38,6 @@
 - [approveBond](RailsGateway.md#approvebond)
 - [approveSend](RailsGateway.md#approvesend)
 - [bond](RailsGateway.md#bond)
-- [bondAndForward](RailsGateway.md#bondandforward)
 - [calcAmountOutMin](RailsGateway.md#calcamountoutmin)
 - [confirmCheckpoint](RailsGateway.md#confirmcheckpoint)
 - [connect](RailsGateway.md#connect)
@@ -63,13 +62,10 @@
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
-- [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
 - [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
-- [getMultiHopTransferBondedEvents](RailsGateway.md#getmultihoptransferbondedevents)
-- [getMultiHopTransferSentEvents](RailsGateway.md#getmultihoptransfersentevents)
 - [getNeedsApprovalForBond](RailsGateway.md#getneedsapprovalforbond)
 - [getNeedsApprovalForSend](RailsGateway.md#getneedsapprovalforsend)
 - [getPathId](RailsGateway.md#getpathid)
@@ -107,7 +103,6 @@
 - [isStaked](RailsGateway.md#isstaked)
 - [optimisticallySettleChallenge](RailsGateway.md#optimisticallysettlechallenge)
 - [postClaim](RailsGateway.md#postclaim)
-- [postMultiHopClaim](RailsGateway.md#postmultihopclaim)
 - [registryStakeHop](RailsGateway.md#registrystakehop)
 - [registryStakeHopPopulatedTx](RailsGateway.md#registrystakehoppopulatedtx)
 - [registryUnstakeHop](RailsGateway.md#registryunstakehop)
@@ -116,7 +111,6 @@
 - [registryWithdrawPopulatedTx](RailsGateway.md#registrywithdrawpopulatedtx)
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
-- [sendMultiHop](RailsGateway.md#sendmultihop)
 - [sendTransaction](RailsGateway.md#sendtransaction)
 - [setChainRpcProvider](RailsGateway.md#setchainrpcprovider)
 - [setChainRpcProviderUrl](RailsGateway.md#setchainrpcproviderurl)
@@ -235,13 +229,10 @@ StakingRegistry.signer
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput)) => `Promise`\<`TransactionRequest`\> |
 | `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput)) => `Promise`\<`TransactionRequest`\> |
-| `bondAndForward` | (`__namedParameters`: [`BondAndForwardInput`](../modules.md#bondandforwardinput)) => `Promise`\<`TransactionRequest`\> |
 | `confirmCheckpoint` | (`__namedParameters`: [`ConfirmCheckpointInput`](../modules.md#confirmcheckpointinput)) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `postMultiHopClaim` | (`__namedParameters`: [`PostMultiHopClaimInput`](../modules.md#postmultihopclaiminput)) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput)) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput)) => `Promise`\<`TransactionRequest`\> |
-| `sendMultiHop` | (`__namedParameters`: [`SendMultiHopInput`](../modules.md#sendmultihopinput)) => `Promise`\<`TransactionRequest`\> |
 | `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
 | `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput)) => `Promise`\<`TransactionRequest`\> |
 | `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput)) => `Promise`\<`TransactionRequest`\> |
@@ -438,22 +429,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`BondInput`](../modules.md#bondinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="bondandforward" name="bondandforward"></a> bondAndForward
-
-▸ **bondAndForward**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`BondAndForwardInput`](../modules.md#bondandforwardinput) |
 
 #### Returns
 
@@ -891,22 +866,6 @@ ___
 
 ___
 
-### <a id="getischeckpointvalid" name="getischeckpointvalid"></a> getIsCheckpointValid
-
-▸ **getIsCheckpointValid**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsCheckpointValidInput`](../modules.md#getischeckpointvalidinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
 ### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
 
 ▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
@@ -976,38 +935,6 @@ ___
 #### Inherited from
 
 StakingRegistry.getMinHopStakeForRole
-
-___
-
-### <a id="getmultihoptransferbondedevents" name="getmultihoptransferbondedevents"></a> getMultiHopTransferBondedEvents
-
-▸ **getMultiHopTransferBondedEvents**(`input`): `Promise`\<`EthersEventWithDecodedTypes`\<`MultiHopTransferBonded`\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`MultiHopTransferBondedEventInput`](../modules.md#multihoptransferbondedeventinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`MultiHopTransferBonded`\>[]\>
-
-___
-
-### <a id="getmultihoptransfersentevents" name="getmultihoptransfersentevents"></a> getMultiHopTransferSentEvents
-
-▸ **getMultiHopTransferSentEvents**(`input`): `Promise`\<`EthersEventWithDecodedTypes`\<`MultiHopTransferSent`\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`MultiHopTransferSentEventInput`](../modules.md#multihoptransfersenteventinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`MultiHopTransferSent`\>[]\>
 
 ___
 
@@ -1641,22 +1568,6 @@ ___
 
 ___
 
-### <a id="postmultihopclaim" name="postmultihopclaim"></a> postMultiHopClaim
-
-▸ **postMultiHopClaim**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`PostMultiHopClaimInput`](../modules.md#postmultihopclaiminput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
 ### <a id="registrystakehop" name="registrystakehop"></a> registryStakeHop
 
 ▸ **registryStakeHop**(`input`): `Promise`\<`TransactionResponse`\>
@@ -1802,22 +1713,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`SendInput`](../modules.md#sendinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="sendmultihop" name="sendmultihop"></a> sendMultiHop
-
-▸ **sendMultiHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`SendMultiHopInput`](../modules.md#sendmultihopinput) |
 
 #### Returns
 

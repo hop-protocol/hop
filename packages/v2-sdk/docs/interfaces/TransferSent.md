@@ -5,10 +5,9 @@
 ### Properties
 
 - [amount](TransferSent.md#amount)
-- [attestedCheckpoint](TransferSent.md#attestedcheckpoint)
-- [nonce](TransferSent.md#nonce)
-- [pathId](TransferSent.md#pathid)
-- [previousTransferId](TransferSent.md#previoustransferid)
+- [attestedClaimId](TransferSent.md#attestedclaimid)
+- [attestedTotalClaim](TransferSent.md#attestedtotalclaim)
+- [nextHops](TransferSent.md#nexthops)
 - [to](TransferSent.md#to)
 - [totalSent](TransferSent.md#totalsent)
 - [transferId](TransferSent.md#transferid)
@@ -21,27 +20,21 @@
 
 ___
 
-### <a id="attestedcheckpoint" name="attestedcheckpoint"></a> attestedCheckpoint
+### <a id="attestedclaimid" name="attestedclaimid"></a> attestedClaimId
 
-• **attestedCheckpoint**: `string`
-
-___
-
-### <a id="nonce" name="nonce"></a> nonce
-
-• **nonce**: `BigNumber`
+• **attestedClaimId**: `string`
 
 ___
 
-### <a id="pathid" name="pathid"></a> pathId
+### <a id="attestedtotalclaim" name="attestedtotalclaim"></a> attestedTotalClaim
 
-• **pathId**: `string`
+• **attestedTotalClaim**: `BigNumber`
 
 ___
 
-### <a id="previoustransferid" name="previoustransferid"></a> previousTransferId
+### <a id="nexthops" name="nexthops"></a> nextHops
 
-• **previousTransferId**: `string`
+• **nextHops**: `HopStruct`[]
 
 ___
 

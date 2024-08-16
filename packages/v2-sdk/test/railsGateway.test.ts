@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
+describe.only('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -182,15 +182,19 @@ describe.skip('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
     const to = await signer.getAddress()
-    const minAmountOut = '0'
-    const attestedCheckpoint = ''
+    const attestedClaimId = '0xTODO'
+    const nextHops = [{
+      pathId,
+      maxTotalSent: '0',
+      attestedClaimId: '0xTODO'
+    }]
     const txData = await railsGateway.populateTransaction.send({
       chainId,
       pathId,
-      amount,
       to,
-      minAmountOut,
-      attestedCheckpoint
+      amount,
+      attestedClaimId,
+      nextHops
     })
     console.log(txData)
     expect(txData).toBeDefined()
@@ -198,95 +202,17 @@ describe.skip('RailsGateway', () => {
   it('should initiate a bond', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const to = await signer.getAddress()
-    const amount = parseUnits('1', 18)
-    const checkpoint = '0xa4d0565cde09d28138df2d24c94188c628fc09689ea7bce609129abf9a85c96e'
-    const totalSent = '0'
-    const nonce = '1'
-    const attestedCheckpoint = ''
+    const transferId = '0xTODO'
+    const nextHops = [{
+      pathId,
+      maxTotalSent: '0',
+      attestedClaimId: '0xTODO'
+    }]
     const txData = await railsGateway.populateTransaction.bond({
       chainId,
       pathId,
-      to,
-      amount,
-      checkpoint,
-      totalSent,
-      nonce,
-      attestedCheckpoint
-    })
-    console.log(txData)
-    expect(txData).toBeDefined()
-  })
-  it.skip('TODO should get multi hop transfer populated tx', async () => {
-    const chainId = 11155111
-    const to = '0xTODO'
-    const amount = parseUnits('1', 18)
-    const hops = [{
-      pathId: '0xTODO',
-      minAmountOut: parseUnits('1', 18),
-      attestedCheckpoint: '0xTODO'
-    }]
-    const txData = await railsGateway.populateTransaction.sendMultiHop({
-      chainId,
-      to,
-      amount,
-      hops
-    })
-    console.log(txData)
-    expect(txData).toBeDefined()
-  })
-  it.skip('TODO should get post multi hop claim populated tx', async () => {
-    const chainId = 11155111
-    const pathId = '0xTODO'
-    const transferId = '0xTODO'
-    const to = '0xTODO'
-    const amount = parseUnits('1', 18)
-    const totalSent = parseUnits('1', 18)
-    const index = 1
-    const hops = [{
-      pathId: '0xTODO',
-      minAmountOut: parseUnits('1', 18),
-      attestedCheckpoint: '0xTODO'
-    }]
-    const txData = await railsGateway.populateTransaction.postMultiHopClaim({
-      chainId,
-      pathId,
       transferId,
-      to,
-      amount,
-      totalSent,
-      index,
-      hops
-    })
-    console.log(txData)
-    expect(txData).toBeDefined()
-  })
-  it.skip('TODO should get bond and forward populated tx', async () => {
-    const chainId = 11155111
-    const pathId = '0xTODO'
-    const transferId = '0xTODO'
-    const previousTransferId = '0xTODO'
-    const to = '0xTODO'
-    const amount = parseUnits('1', 18)
-    const totalSent = parseUnits('1', 18)
-    const nonce = '1'
-    const index = 1
-    const hops = [{
-      pathId: '0xTODO',
-      minAmountOut: parseUnits('1', 18),
-      attestedCheckpoint: '0xTODO'
-    }]
-    const txData = await railsGateway.populateTransaction.bondAndForward({
-      chainId,
-      pathId,
-      transferId,
-      previousTransferId,
-      to,
-      amount,
-      totalSent,
-      nonce,
-      hops,
-      index
+      nextHops
     })
     console.log(txData)
     expect(txData).toBeDefined()
@@ -295,14 +221,22 @@ describe.skip('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const head = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const to = await signer.getAddress()
+    const amount = parseUnits('1', 18)
     const totalSent = parseUnits('1', 18)
+    const attestedClaimId  = '0xTODO'
+    const attestedTotalClaims = parseUnits('1', 18)
+    const nextHopsHash = '0xTODO'
     const txData = await railsGateway.populateTransaction.postClaim({
       chainId,
       pathId,
       transferId,
-      head,
-      totalSent
+      to,
+      amount,
+      totalSent,
+      attestedClaimId,
+      attestedTotalClaims,
+      nextHopsHash
     })
     console.log(txData)
     expect(txData).toBeDefined()
@@ -413,28 +347,6 @@ describe.skip('RailsGateway', () => {
       toBlock
     })
     console.log(events)
-    expect(events.length > 0).toBeTruthy()
-  })
-  it.skip('TODO should get multi hop transfer sent events', async () => {
-    const chainId = 11155111
-    const fromBlock = 0
-    const toBlock = 100
-    const events = await railsGateway.getMultiHopTransferSentEvents({
-      chainId,
-      fromBlock,
-      toBlock
-    })
-    expect(events.length > 0).toBeTruthy()
-  })
-  it.skip('TODO should get multi hop transfer bonded events', async () => {
-    const chainId = 11155111
-    const fromBlock = 0
-    const toBlock = 100
-    const events = await railsGateway.getMultiHopTransferBondedEvents({
-      chainId,
-      fromBlock,
-      toBlock
-    })
     expect(events.length > 0).toBeTruthy()
   })
   it('should add decoded types to transfer bonded events', async () => {
@@ -561,18 +473,6 @@ describe.skip('RailsGateway', () => {
     })
     console.log(latestClaim)
     expect(latestClaim).toBeDefined()
-  })
-  it('should return boolean for checkpoint validity', async () => {
-    const chainId = 11155111
-    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const checkpoint = '0xa4d0565cde09d28138df2d24c94188c628fc09689ea7bce609129abf9a85c96e'
-    const isValid = await railsGateway.getIsCheckpointValid({
-      chainId,
-      pathId,
-      checkpoint
-    })
-    console.log(isValid)
-    expect(isValid).toBeDefined()
   })
   it.skip('TODO should return computed transfer id', async () => {
     const chainId = 11155111

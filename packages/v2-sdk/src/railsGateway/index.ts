@@ -1,7 +1,6 @@
 export {
   ApproveBondInput,
   ApproveSendInput,
-  BondAndForwardInput,
   BondInput,
   CalcAmountOutMinInput,
   ConfirmCheckpointInput,
@@ -10,7 +9,6 @@ export {
   GetEventsInput,
   GetFeeInput,
   GetHasSufficientBalanceInput,
-  GetIsCheckpointValidInput,
   GetLatestClaimInput,
   GetNeedsApprovalForBondInput,
   GetNeedsApprovalForSendInput,
@@ -29,17 +27,13 @@ export {
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
   GetTransferStatusInput,
-  HopInput,
-  MultiHopTransferBondedEventInput,
-  MultiHopTransferSentEventInput,
+  HopStruct,
   Path,
   PostClaimInput,
-  PostMultiHopClaimInput,
   RailsGateway,
   RailsGatewayConstructorInput,
   RemoveClaimInput,
   SendInput,
-  SendMultiHopInput,
   StakeHopInput,
   Token,
   TransferBondedEventInput,
@@ -74,7 +68,5 @@ export {
 } from './StakingRegistry.js'
 export {
   TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher,
-  MultiHopTransferSent, MultiHopTransferSentFetcher,
-  MultiHopTransferBonded, MultiHopTransferBondedFetcher
+  TransferSent, TransferSentEventFetcher
 } from './events/index.js'

@@ -15,7 +15,6 @@
 - [eventLog](TransferBonded.md#eventlog)
 - [eventName](TransferBonded.md#eventname)
 - [pathId](TransferBonded.md#pathid)
-- [to](TransferBonded.md#to)
 - [transferId](TransferBonded.md#transferid)
 
 ## Properties
@@ -59,12 +58,6 @@ ___
 ### <a id="pathid" name="pathid"></a> pathId
 
 • **pathId**: `string`
-
-___
-
-### <a id="to" name="to"></a> to
-
-• **to**: `string`
 
 ___
 

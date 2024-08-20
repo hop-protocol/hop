@@ -1153,7 +1153,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumber` |
+| `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `attestedTotalClaims` | `BigNumberish` |
 | `chainId` | `BigNumberish` |

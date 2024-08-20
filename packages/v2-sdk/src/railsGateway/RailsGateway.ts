@@ -91,7 +91,7 @@ export type PostClaimInput = {
   pathId: string
   transferId: string
   to: string
-  amount: BigNumber
+  amount: BigNumberish
   totalSent: BigNumberish
   attestedClaimId: string
   attestedTotalClaims: BigNumberish
@@ -1023,7 +1023,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async bond (input: BondInput): Promise<providers.TransactionResponse> {
-    const { chainId, pathId, transferId, nextHops } = input
+    const { chainId, pathId, transferId } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)

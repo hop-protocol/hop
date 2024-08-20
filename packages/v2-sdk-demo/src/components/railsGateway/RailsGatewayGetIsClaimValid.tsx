@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
@@ -15,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetPathId (props: Props) {
-  const cacheKey = 'railsGatewayGetPathId'
+export function RailsGatewayGetIsClaimValid (props: Props) {
+  const cacheKey = 'railsGatewayGetIsClaimValid'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -24,36 +24,37 @@ export function RailsGatewayGetPathId (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
-    defaultValue: defaultChainIds.to,
-  })
-
-  const [fromToken, setFromToken] = useLocalStorageState(`${cacheKey}:fromToken`, {
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
 
-  const [toToken, setToToken] = useLocalStorageState(`${cacheKey}:toToken`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
-  const [pathId, setPathId] = useState('')
+
+  const [isClaimValid, setIsClaimValid] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const provider = useMemo(() => {
+    return sdk.getRpcProviderForChainId(fromChainId)
+  }, [sdk, fromChainId])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
       setError('')
-      setPathId('')
+      setIsClaimValid('')
       setLoading(true)
       const args = {
-        chainId0: fromChainId,
-        token0: fromToken,
-        chainId1: toChainId,
-        token1: toToken,
+        chainId: fromChainId,
+        pathId,
+        claimId
       }
+
       console.log('args', args)
-      const pathId = await sdk.railsGateway.getPathId(args)
-      setPathId(pathId)
+      const isClaimValid = await sdk.railsGateway.getIsClaimIdValid(args)
+      setIsClaimValid(`${isClaimValid}`)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -65,19 +66,17 @@ export function RailsGatewayGetPathId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId0 = "${fromChainId}"
-  const token0 = "${fromToken}"
-  const chainId1 = "${toChainId}"
-  const token1 = "${toToken}"
+  const chainId = "${fromChainId}"
+  const pathId = "${pathId}"
+  const claimId = "${claimId}"
 
   const hop = new Hop({ network: '${network}' })
-  const pathId = await hop.railsGateway.getPathId({
-    chainId0,
-    token0,
-    chainId1,
-    token1
+  const isClaimValid = await hop.railsGateway.getIsClaimIdValid({
+    chainId,
+    pathId,
+    claimId
   })
-  console.log(pathId)
+  console.log(isClaimValid)
 }
 
 main().catch(console.error)
@@ -93,10 +92,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Path ID</Typography>
+        <Typography variant="h5">Rails Gateway - Is Claim Valid</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway Path ID</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Is Claim Valid</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -104,31 +103,25 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Token <small><em>(address)</em></small> <small><em>Origin chain token address</em></small></label>
+                  <label>Path ID<small><em>(bytes32)</em></small> <small><em>The path ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={fromToken} onChange={event => setFromToken(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain</em></small></label>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID</em></small></label>
                 </Box>
-                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>To Token <small><em>(address)</em></small> <small><em>Destination chain token address</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toToken} onChange={event => setToToken(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={event => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Path ID</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Is Claim Valid</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -137,9 +130,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!pathId && (
+          {!!isClaimValid && (
             <Box mb={4}>
-              <Alert severity="info">Path ID: {pathId}</Alert>
+              <Alert severity="info">{isClaimValid}</Alert>
             </Box>
           )}
         </Box>
@@ -156,4 +149,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayGetPathId
+export default RailsGatewayGetIsClaimValid

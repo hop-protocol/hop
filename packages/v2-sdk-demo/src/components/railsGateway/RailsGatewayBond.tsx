@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
@@ -13,6 +13,11 @@ import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import Stepper from '@mui/material/Stepper'
+import Step from '@mui/material/Step'
+import StepLabel from '@mui/material/StepLabel'
+import StepContent from '@mui/material/StepContent'
+import Button from '@mui/material/Button'
 
 type Props = {
   signer?: Signer
@@ -29,33 +34,22 @@ export function RailsGatewayBond (props: Props) {
     defaultValue: defaultChainIds.to,
   })
 
-  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
-    defaultValue: '',
-  })
-
-  const [checkpoint, setCheckpoint] = useLocalStorageState(`${cacheKey}:checkpoint`, {
-    defaultValue: '',
-  })
-
-  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
-    defaultValue: '',
-  })
-
   const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
     defaultValue: '',
   })
 
-  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
 
-  const [nonce, setNonce] = useLocalStorageState(`${cacheKey}:nonce`, {
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
     defaultValue: '',
   })
 
-  const [attestedCheckpoint, setAttestedCheckpoint] = useLocalStorageState(`${cacheKey}:attestedCheckpoint`, {
-    defaultValue: '',
+  const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
+    defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
   })
+
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
@@ -66,12 +60,8 @@ export function RailsGatewayBond (props: Props) {
     const args = {
       chainId: toChainId,
       pathId,
-      checkpoint,
-      to: toAddress,
-      amount,
-      totalSent,
-      nonce,
-      attestedCheckpoint
+      transferId,
+      nextHops
     }
     console.log('args', args)
     const txData = await sdk.railsGateway.populateTransaction.bond(args)
@@ -129,23 +119,15 @@ import { ethers } from 'ethers'
 async function main() {
   const chainId = "${toChainId}"
   const pathId = "${pathId}"
-  const checkpoint = "${checkpoint}"
-  const to = "${toAddress}"
-  const amount = "${amount}"
-  const totalSent = "${totalSent}"
-  const nonce = "${nonce}"
-  const attestedCheckpoint = "${attestedCheckpoint}"
+  const transferId = "${transferId}"
+  const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
   const hop = new Hop({ network: '${network}' )
   const txData = await hop.railsGateway.populateTransaction.bond({
     chainId,
     pathId,
-    checkpoint,
-    to,
-    amount,
-    totalSent,
-    nonce,
-    attestedCheckpoint
+    transferId,
+    nextHops
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -196,16 +178,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>Checkpoint hash</em></small></label>
+                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>Transfer ID to bond</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={(event: any) => setCheckpoint(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -215,26 +190,72 @@ main().catch(console.error)
                 <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
-              </Box>
+              <Stepper orientation="vertical">
+                {nextHops.map((hop: any, index: number) => {
+                  const { pathId, maxTotalSent, attestedClaimId } = hop
 
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={(event: any) => setNonce(event.target.value)} />
-              </Box>
+                  function setHopPathId (value: string) {
+                    const newHops = [...nextHops]
+                    newHops[index].pathId = value
+                    setNextHops(newHops)
+                  }
 
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint to use</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={(event: any) => setAttestedCheckpoint(event.target.value)} />
-              </Box>
+                  function setMaxTotalSent (value: string) {
+                    const newHops = [...nextHops]
+                    newHops[index].maxTotalSent = value
+                    setNextHops(newHops)
+                  }
+
+                  function setAttestedClaimId  (value: string) {
+                    const newHops = [...nextHops]
+                    newHops[index].attestedClaimId = value
+                    setNextHops(newHops)
+                  }
+
+                  return (
+                  <Step key={index} active>
+                    <StepLabel>Hop {'⤵'}</StepLabel>
+                    <StepContent>
+                    <Box>
+                      <Box mb={2}>
+                        <Typography variant="h6">Hop {index + 1}</Typography>
+                      </Box>
+                      <Box mb={2}>
+                        <Box mb={1}>
+                          <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
+                        </Box>
+                        <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setHopPathId(event.target.value)} />
+                      </Box>
+
+                      <Box mb={2}>
+                        <Box mb={1}>
+                          <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
+                        </Box>
+                        <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
+                      </Box>
+
+                      <Box mb={2}>
+                        <Box mb={1}>
+                          <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
+                        </Box>
+                        <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
+                      </Box>
+
+                      {nextHops.length !== 1 && (
+                        <Box mb={2}>
+                          <Button onClick={() => {
+                            const newHops = [...nextHops]
+                            newHops.splice(index, 1)
+                            setNextHops(newHops)
+                          }}>Remove</Button>
+                        </Box>
+                      )}
+                    </Box>
+                    </StepContent>
+                  </Step>
+                  )
+                })}
+              </Stepper>
 
               <Box mb={2}>
                 <Box>

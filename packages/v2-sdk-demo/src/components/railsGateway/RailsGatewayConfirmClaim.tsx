@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
@@ -20,8 +20,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayConfirmCheckpoint (props: Props) {
-  const cacheKey = 'railsGatewayConfirmCheckpoint'
+export function RailsGatewayConfirmClaim (props: Props) {
+  const cacheKey = 'railsGatewayConfirmClaim'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -33,7 +33,7 @@ export function RailsGatewayConfirmCheckpoint (props: Props) {
     defaultValue: '',
   })
 
-  const [checkpoint, setCheckpoint] = useLocalStorageState(`${cacheKey}:checkpoint`, {
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
     defaultValue: '',
   })
 
@@ -47,10 +47,10 @@ export function RailsGatewayConfirmCheckpoint (props: Props) {
     const args = {
       chainId: fromChainId,
       pathId,
-      checkpoint
+      transferId
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.confirmCheckpoint(args)
+    const txData = await sdk.railsGateway.populateTransaction.confirmClaim(args)
     return txData
   }
 
@@ -88,13 +88,13 @@ import { ethers } from 'ethers'
 async function main() {
   const chainId = "${fromChainId}"
   const pathId = "${pathId}"
-  const checkpoint = "${checkpoint}"
+  const transferId = "${transferId}"
 
   const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.confirmCheckpoint({
+  const txData = await hop.railsGateway.populateTransaction.confirmClaim({
     chainId,
     pathId,
-    checkpoint
+    transferId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -120,10 +120,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Confirm Checkpoint</Typography>
+        <Typography variant="h5">Rails Gateway - Confirm Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Confirm a checkpoint</Typography>
+        <Typography variant="subtitle1">Confirm claim ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -131,7 +131,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to confirm checkpoint on</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to confirm claim on</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
@@ -145,9 +145,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>The checkpoint to confirm</em></small></label>
+                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>The transfer ID of the claim</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={(event: any) => setCheckpoint(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -161,7 +161,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Confirm Checkpoint'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Confirm Claim'}</HighlightedButton>
                 )}
               </Box>
             </form>
@@ -209,4 +209,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayConfirmCheckpoint
+export default RailsGatewayConfirmClaim

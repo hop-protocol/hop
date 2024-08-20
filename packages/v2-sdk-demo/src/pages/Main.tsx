@@ -22,19 +22,18 @@ const HopSendTokens = lazy(() => import('../components/hop/HopSendTokens'))
 const HopApproveSendTokens = lazy(() => import('../components/hop/HopApproveSendTokens'))
 const HopSwitchChain = lazy(() => import('../components/hop/HopSwitchChain'))
 const RailsGatewaySend = lazy(() => import('../components/railsGateway/RailsGatewaySend'))
-const RailsGatewaySendMultiHop = lazy(() => import('../components/railsGateway/RailsGatewaySendMultiHop'))
-const RailsGatewayBondAndForward = lazy(() => import('../components/railsGateway/RailsGatewayBondAndForward'))
-const RailsGatewayPostMultiHopClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostMultiHopClaim'))
 const RailsGatewayApproveSend = lazy(() => import('../components/railsGateway/RailsGatewayApproveSend'))
 const RailsGatewayApproveBond = lazy(() => import('../components/railsGateway/RailsGatewayApproveBond'))
+const RailsGatewayGetTotalSent = lazy(() => import('../components/railsGateway/RailsGatewayGetTotalSent'))
 const RailsGatewayBond = lazy(() => import('../components/railsGateway/RailsGatewayBond'))
 const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/RailsGatewayGetPathInfo'))
 const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId'))
 const RailsGatewayGetFee = lazy(() => import('../components/railsGateway/RailsGatewayGetFee'))
 const RailsGatewayGetTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferId'))
 const RailsGatewayGetLatestClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetLatestClaim'))
-const RailsGatewayGetIsCheckpointValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsCheckpointValid'))
-const RailsGatewayConfirmCheckpoint = lazy(() => import('../components/railsGateway/RailsGatewayConfirmCheckpoint'))
+const RailsGatewayGetIsClaimValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsClaimValid'))
+const RailsGatewayPostClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostClaim'))
+const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/RailsGatewayConfirmClaim'))
 const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash'))
 const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId'))
 const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash'))
@@ -108,15 +107,14 @@ export function Main () {
     ['Rails Gateway - Get Fee', <RailsGatewayGetFee sdk={sdk} />],
     ['Rails Gateway - Get Transfer ID', <RailsGatewayGetTransferId sdk={sdk} />],
     ['Rails Gateway - Get Latest Claim', <RailsGatewayGetLatestClaim sdk={sdk} />],
-    ['Rails Gateway - Is Checkpoint Valid', <RailsGatewayGetIsCheckpointValid sdk={sdk} />],
-    ['Rails Gateway - Confirm Checkpoint', <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Is Claim Valid', <RailsGatewayGetIsClaimValid sdk={sdk} />],
+    ['Rails Gateway - Post Claim', <RailsGatewayPostClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Confirm Claim', <RailsGatewayConfirmClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Send', <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Send Multi Hop', <RailsGatewaySendMultiHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Bond And Forward', <RailsGatewayBondAndForward signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Post Multi Hop Claim', <RailsGatewayPostMultiHopClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Send', <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Bond', <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Get Total Sent', <RailsGatewayGetTotalSent sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transaction Hash', <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />],

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
@@ -11,11 +11,6 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import Stepper from '@mui/material/Stepper'
-import Step from '@mui/material/Step'
-import StepLabel from '@mui/material/StepLabel'
-import StepContent from '@mui/material/StepContent'
-import Button from '@mui/material/Button'
 import { network, defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 
@@ -25,8 +20,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayBondAndForward(props: Props) {
-  const cacheKey = 'railsGatewayBondAndForward'
+export function RailsGatewayPostClaim (props: Props) {
+  const cacheKey = 'railsGatewayPostClaim'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -42,7 +37,7 @@ export function RailsGatewayBondAndForward(props: Props) {
     defaultValue: '',
   })
 
-  const [previousTransferId, setPreviousTransferId] = useLocalStorageState(`${cacheKey}:previousTransferId`, {
+  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
     defaultValue: '',
   })
 
@@ -54,21 +49,18 @@ export function RailsGatewayBondAndForward(props: Props) {
     defaultValue: '',
   })
 
-  const [nonce, setNonce] = useLocalStorageState(`${cacheKey}:nonce`, {
+  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
     defaultValue: '',
   })
 
-  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
+  const [attestedTotalClaims, setAttestedTotalClaims] = useLocalStorageState(`${cacheKey}:attestedTotalClaims`, {
     defaultValue: '',
   })
 
-  const [index, setIndex] = useLocalStorageState(`${cacheKey}:index`, {
+  const [nextHopsHash, setNextHopsHash] = useLocalStorageState(`${cacheKey}:nextHopsHash`, {
     defaultValue: '',
   })
 
-  const [hops, setHops] = useLocalStorageState(`${cacheKey}:hops`, {
-    defaultValue: [{ pathId: '', minAmountOut: '', attestedCheckpoint: '' }],
-  })
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
@@ -80,16 +72,15 @@ export function RailsGatewayBondAndForward(props: Props) {
       chainId: fromChainId,
       pathId,
       transferId,
-      previousTransferId,
       to: toAddress,
       amount,
       totalSent,
-      nonce,
-      index: Number(index),
-      hops
+      attestedClaimId,
+      attestedTotalClaims,
+      nextHopsHash
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.bondAndForward(args)
+    const txData = await sdk.railsGateway.populateTransaction.postClaim(args)
     return txData
   }
 
@@ -125,27 +116,27 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
+  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const transferId = "${transferId}"
-  const previousTransferId = "${previousTransferId}"
   const to = "${toAddress}"
   const amount = "${amount}"
   const totalSent = "${totalSent}"
-  const nonce = "${nonce}"
-  const index = ${index !== '' ? index : '0'}
-  const hops = "${JSON.stringify(hops, null, 2)}"
+  const attestedClaimId = "${attestedClaimId}"
+  const attestedTotalClaims = "${attestedTotalClaims}"
+  const nextHopsHash = "${nextHopsHash}"
 
   const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.bondAndForward({
+  const txData = await hop.railsGateway.populateTransaction.postClaim({
+    chainId,
     pathId,
     transferId,
-    previousTransferId,
     to,
     amount,
     totalSent,
-    nonce,
-    index,
-    hops
+    attestedClaimId,
+    attestedTotalClaims,
+    nextHopsHash
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -171,10 +162,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Bond And Forward</Typography>
+        <Typography variant="h5">Rails Gateway - Post Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Bond and forward to next path</Typography>
+        <Typography variant="subtitle1">Post claim</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -182,7 +173,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to post claim on</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
@@ -196,21 +187,14 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Transfer ID<small><em>(bytes32)</em></small> <small><em>Transfer ID to use</em></small></label>
+                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>The transfer ID of the claim</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Previous Transfer ID <small><em>(bytes32)</em></small> <small><em>Previous Transfer ID to use</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={previousTransferId} onChange={(event: any) => setPreviousTransferId(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
+                  <label>To <small><em>(address)</em></small> <small><em>Recipient address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
               </Box>
@@ -224,94 +208,30 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent</em></small></label>
+                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total amount sent</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
+                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={(event: any) => setNonce(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Index <small><em>(uint256)</em></small> <small><em>Index value</em></small></label>
+                  <label>Attested Total Claims <small><em>(uint256)</em></small> <small><em>Attested total claims</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={index} onChange={(event: any) => setIndex(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={attestedTotalClaims} onChange={(event: any) => setAttestedTotalClaims(event.target.value)} />
               </Box>
 
-              <Stepper orientation="vertical">
-                {hops.map((hop: any, index: number) => {
-                  const { pathId, minAmountOut, attestedCheckpoint } = hop
-
-                  function setHopPathId (value: string) {
-                    const newHops = [...hops]
-                    newHops[index].pathId = value
-                    setHops(newHops)
-                  }
-
-                  function setMinAmountOut (value: string) {
-                    const newHops = [...hops]
-                    newHops[index].minAmountOut = value
-                    setHops(newHops)
-                  }
-
-                  function setAttestedCheckpoint (value: string) {
-                    const newHops = [...hops]
-                    newHops[index].attestedCheckpoint = value
-                    setHops(newHops)
-                  }
-
-                  return (
-                  <Step key={index} active>
-                    <StepLabel>Hop {'⤵'}</StepLabel>
-                    <StepContent>
-                    <Box>
-                      <Box mb={2}>
-                        <Typography variant="h6">Hop {index + 1}</Typography>
-                      </Box>
-                      <Box mb={2}>
-                        <Box mb={1}>
-                          <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
-                        </Box>
-                        <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setHopPathId(event.target.value)} />
-                      </Box>
-
-                      <Box mb={2}>
-                        <Box mb={1}>
-                          <label>Min Amount Out <small><em>(uint256)</em></small> <small><em>Min amount out</em></small></label>
-                        </Box>
-                        <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={(event: any) => setMinAmountOut(event.target.value)} />
-                      </Box>
-
-                      <Box mb={2}>
-                        <Box mb={1}>
-                          <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint to use</em></small></label>
-                        </Box>
-                        <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={(event: any) => setAttestedCheckpoint(event.target.value)} />
-                      </Box>
-
-                      {hops.length !== 1 && (
-                        <Box mb={2}>
-                          <Button onClick={() => {
-                            const newHops = [...hops]
-                            newHops.splice(index, 1)
-                            setHops(newHops)
-                          }}>Remove</Button>
-                        </Box>
-                      )}
-                    </Box>
-                    </StepContent>
-                  </Step>
-                  )
-                })}
-              </Stepper>
-
               <Box mb={2}>
-                <HighlightedButton onClick={() => setHops([...hops, { pathId: '', minAmountOut: '', attestedCheckpoint: '' }])} variant="outlined">Add Hop</HighlightedButton>
+                <Box mb={1}>
+                  <label>Next Hops Hash <small><em>(bytes32)</em></small> <small><em>Next hops hash</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={nextHopsHash} onChange={(event: any) => setNextHopsHash(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -325,7 +245,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Send'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Post Claim'}</HighlightedButton>
                 )}
               </Box>
             </form>
@@ -373,4 +293,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayBondAndForward
+export default RailsGatewayPostClaim

@@ -36,7 +36,7 @@
 - [BondInput](modules.md#bondinput)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
-- [ConfirmCheckpointInput](modules.md#confirmcheckpointinput)
+- [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
@@ -51,6 +51,7 @@
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
+- [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
 - [GetLatestClaimInput](modules.md#getlatestclaiminput)
@@ -219,17 +220,17 @@ ___
 
 ___
 
-### <a id="confirmcheckpointinput" name="confirmcheckpointinput"></a> ConfirmCheckpointInput
+### <a id="confirmclaiminput" name="confirmclaiminput"></a> ConfirmClaimInput
 
-Ƭ **ConfirmCheckpointInput**: `Object`
+Ƭ **ConfirmClaimInput**: `Object`
 
 #### Type declaration
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `checkpoint` | `string` |
 | `pathId` | `string` |
+| `transferId` | `string` |
 
 ___
 
@@ -429,6 +430,20 @@ ___
 | `bundleId` | `string` |
 | `fromChainId` | `BigNumberish` |
 | `toChainId` | `BigNumberish` |
+
+___
+
+### <a id="getisclaimidvalidinput" name="getisclaimidvalidinput"></a> GetIsClaimIdValidInput
+
+Ƭ **GetIsClaimIdValidInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `claimId` | `string` |
+| `pathId` | `string` |
 
 ___
 
@@ -1182,9 +1197,8 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `checkpoint` | `string` |
-| `nonce` | `BigNumberish` |
 | `pathId` | `string` |
+| `transferId` | `string` |
 
 ___
 

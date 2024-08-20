@@ -128,7 +128,7 @@ export class Hop extends Base {
   }
 
   get version () {
-    return '' // TODO
+    return '0.0.1' // TODO
   }
 
   getRailsGateway() {
@@ -192,9 +192,28 @@ export class Hop extends Base {
         })
         console.log('attestedClaimId', attestedClaimId)
 
+        let isClaimIdValid = await this.railsGateway.getIsClaimIdValid({
+          chainId: toChainId,
+          pathId,
+          claimId: attestedClaimId
+        })
+
+        console.log('isClaimIdValid', isClaimIdValid)
+
+        // new path without checkpoints will return 0 bytes32
+        if (!isClaimIdValid && BigNumber.from(attestedClaimId).eq(0)) {
+          isClaimIdValid = true
+        }
+
+        if (!isClaimIdValid) {
+          throw new Error('Latest attestedClaimId is invalid')
+        }
+
+        const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
+
         const nextHops = [{
           pathId,
-          maxTotalSent: amount, // TODO: fetch this
+          maxTotalSent,
           attestedClaimId
         }]
 
@@ -315,9 +334,11 @@ export class Hop extends Base {
       pathId
     })
 
+    const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
+
     const nextHops = [{
       pathId,
-      maxTotalSent: amount, // TODO: fetch this
+      maxTotalSent,
       attestedClaimId
     }]
 

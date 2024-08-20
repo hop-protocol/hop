@@ -174,24 +174,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "bond",
-    inputs: [
-      {
-        name: "pathId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "transferId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "challengePeriod",
     inputs: [],
     outputs: [
@@ -277,7 +259,7 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "checkpoint",
+        name: "transferId",
         type: "bytes32",
         internalType: "bytes32",
       },
@@ -459,7 +441,7 @@ const _abi = [
         internalType: "bytes32",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -508,6 +490,25 @@ const _abi = [
         name: "staker",
         type: "address",
         internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getTotalSent",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     outputs: [
@@ -602,17 +603,7 @@ const _abi = [
         internalType: "contract IMessageExecutor",
       },
       {
-        name: "initialSourceReserve",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "initialDestinationReserve",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "attestationFeeRate",
+        name: "initialReserve",
         type: "uint256",
         internalType: "uint256",
       },
@@ -643,6 +634,30 @@ const _abi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "isClaimValid",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "claimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -804,14 +819,9 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "checkpoint",
+        name: "transferId",
         type: "bytes32",
         internalType: "bytes32",
-      },
-      {
-        name: "nonce",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     outputs: [],
@@ -1059,6 +1069,12 @@ const _abi = [
         internalType: "bytes32",
       },
       {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "amount",
         type: "uint256",
         indexed: false,
@@ -1071,6 +1087,12 @@ const _abi = [
     type: "event",
     name: "TransferSent",
     inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
       {
         name: "transferId",
         type: "bytes32",

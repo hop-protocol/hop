@@ -101,14 +101,13 @@ export type PostClaimInput = {
 export type RemoveClaimInput = {
   chainId: BigNumberish
   pathId: string
-  checkpoint: string
-  nonce: BigNumberish
+  transferId: string
 }
 
-export type ConfirmCheckpointInput = {
+export type ConfirmClaimInput = {
   chainId: BigNumberish
   pathId: string
-  checkpoint: string
+  transferId: string
 }
 
 export type GetTransferIdInput = {
@@ -167,6 +166,12 @@ export type GetNeedsApprovalForBondInput = {
 export type GetLatestClaimInput = {
   chainId: BigNumberish
   pathId: string
+}
+
+export type GetIsClaimIdValidInput = {
+  chainId: BigNumberish
+  pathId: string
+  claimId: string
 }
 
 export type GetFeeInput = {
@@ -293,6 +298,17 @@ export type HopStruct = {
   pathId: string
   maxTotalSent: BigNumberish
   attestedClaimId: string
+}
+
+export type GetIsCheckpointValidInput = {
+  chainId: BigNumberish
+  pathId: string
+  checkpoint: string
+}
+
+export type GetTotalSentInput = {
+  chainId: BigNumberish
+  pathId: string
 }
 
 export type RailsGatewayConstructorInput = BaseConfig
@@ -742,7 +758,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      removeClaim: async ({ chainId, pathId, checkpoint, nonce }: RemoveClaimInput): Promise<providers.TransactionRequest> => {
+      removeClaim: async ({ chainId, pathId, transferId }: RemoveClaimInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -751,16 +767,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidBytes32(checkpoint)) {
-          throw new InputError(`Invalid checkpoint "${checkpoint}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(nonce)) {
-          throw new InputError(`Invalid nonce "${nonce}"`)
+        if (!this.utils.isValidBytes32(transferId)) {
+          throw new InputError(`Invalid transferID "${transferId}"`)
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.removeClaim(pathId, checkpoint, nonce)
+        const txData = await contract.populateTransaction.removeClaim(pathId, transferId)
 
         return {
           ...txData,
@@ -816,7 +828,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      confirmCheckpoint: async ({ chainId, pathId, checkpoint }: ConfirmCheckpointInput): Promise<providers.TransactionRequest> => {
+      confirmClaim: async ({ chainId, pathId, transferId }: ConfirmClaimInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -825,12 +837,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidBytes32(checkpoint)) {
-          throw new InputError(`Invalid checkpoint "${checkpoint}"`)
+        if (!this.utils.isValidBytes32(transferId)) {
+          throw new InputError(`Invalid transferId "${transferId}"`)
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.confirmCheckpoint(pathId, checkpoint)
+        const txData = await contract.populateTransaction.confirmClaim(pathId, transferId)
 
         return {
           ...txData,
@@ -1067,8 +1079,8 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async confirmCheckpoint (input: ConfirmCheckpointInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.confirmCheckpoint(input)
+  async confirmClaim (input: ConfirmClaimInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.confirmClaim(input)
     return this.sendTransaction(populatedTx)
   }
 
@@ -1140,6 +1152,21 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract(chainId)
     return contract.getHeadClaim(pathId)
+  }
+
+  async getIsCheckpointValid ({ chainId, pathId, checkpoint }: GetIsCheckpointValidInput): Promise<boolean> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(checkpoint)) {
+      throw new InputError(`Invalid checkpoint "${checkpoint}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract(chainId)
+    const valid = await contract.isCheckpointValid(pathId, checkpoint)
+
+    return valid
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
@@ -1535,5 +1562,33 @@ export class RailsGateway extends StakingRegistry {
       transferSentEvent,
       transferBondedEvent
     }
+  }
+
+  async getIsClaimIdValid ({ chainId, pathId, claimId }: GetIsClaimIdValidInput): Promise<boolean> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(claimId)) {
+      throw new InputError(`Invalid claimId "${claimId}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract(chainId)
+    const valid = await contract.isClaimValid(pathId, claimId)
+
+    return valid
+  }
+
+  async getTotalSent ({ chainId, pathId }: GetTotalSentInput): Promise<BigNumber> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract(chainId)
+    return contract.getTotalSent(pathId)
   }
 }

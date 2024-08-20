@@ -39,7 +39,7 @@
 - [approveSend](RailsGateway.md#approvesend)
 - [bond](RailsGateway.md#bond)
 - [calcAmountOutMin](RailsGateway.md#calcamountoutmin)
-- [confirmCheckpoint](RailsGateway.md#confirmcheckpoint)
+- [confirmClaim](RailsGateway.md#confirmclaim)
 - [connect](RailsGateway.md#connect)
 - [createChallenge](RailsGateway.md#createchallenge)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
@@ -62,6 +62,8 @@
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
+- [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
+- [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
 - [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
@@ -84,6 +86,7 @@
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
+- [getTotalSent](RailsGateway.md#gettotalsent)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
@@ -229,7 +232,7 @@ StakingRegistry.signer
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput)) => `Promise`\<`TransactionRequest`\> |
 | `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput)) => `Promise`\<`TransactionRequest`\> |
-| `confirmCheckpoint` | (`__namedParameters`: [`ConfirmCheckpointInput`](../modules.md#confirmcheckpointinput)) => `Promise`\<`TransactionRequest`\> |
+| `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput)) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput)) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput)) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput)) => `Promise`\<`TransactionRequest`\> |
@@ -452,15 +455,15 @@ ___
 
 ___
 
-### <a id="confirmcheckpoint" name="confirmcheckpoint"></a> confirmCheckpoint
+### <a id="confirmclaim" name="confirmclaim"></a> confirmClaim
 
-▸ **confirmCheckpoint**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **confirmClaim**(`input`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`ConfirmCheckpointInput`](../modules.md#confirmcheckpointinput) |
+| `input` | [`ConfirmClaimInput`](../modules.md#confirmclaiminput) |
 
 #### Returns
 
@@ -866,6 +869,38 @@ ___
 
 ___
 
+### <a id="getischeckpointvalid" name="getischeckpointvalid"></a> getIsCheckpointValid
+
+▸ **getIsCheckpointValid**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetIsCheckpointValidInput` |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="getisclaimidvalid" name="getisclaimidvalid"></a> getIsClaimIdValid
+
+▸ **getIsClaimIdValid**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsClaimIdValidInput`](../modules.md#getisclaimidvalidinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
 ### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
 
 ▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
@@ -1240,6 +1275,22 @@ ___
 #### Returns
 
 `Promise`\<[`Token`](../modules.md#token)\>
+
+___
+
+### <a id="gettotalsent" name="gettotalsent"></a> getTotalSent
+
+▸ **getTotalSent**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetTotalSentInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 

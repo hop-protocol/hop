@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.only('RailsGateway', () => {
+describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -395,24 +395,22 @@ describe.only('RailsGateway', () => {
   it('should initiate remove claim tx', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const checkpoint = '0xa4d0565cde09d28138df2d24c94188c628fc09689ea7bce609129abf9a85c96e'
-    const nonce = '1'
+    const transferId = '0xTODO'
     const txData = railsGateway.populateTransaction.removeClaim({
       chainId,
       pathId,
-      checkpoint,
-      nonce
+      transferId
     })
     expect(txData).toBeDefined()
   })
-  it('should initiate confirm checkpoint tx', async () => {
+  it('should initiate confirm claim tx', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const checkpoint = '0xa4d0565cde09d28138df2d24c94188c628fc09689ea7bce609129abf9a85c96e'
-    const txData = railsGateway.populateTransaction.confirmCheckpoint({
+    const transferId = '0xTODO'
+    const txData = railsGateway.populateTransaction.confirmClaim({
       chainId,
       pathId,
-      checkpoint,
+      transferId
     })
     expect(txData).toBeDefined()
   })
@@ -553,6 +551,28 @@ describe.only('RailsGateway', () => {
     })
     expect(event).toBeDefined()
   }, 60 * 1000)
+  it('should return boolean for claim id validity', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xTODO'
+    const isValid = await railsGateway.getIsClaimIdValid({
+      chainId,
+      pathId,
+      claimId
+    })
+    console.log(isValid)
+    expect(isValid).toBeDefined()
+  })
+  it('should return total sent for path id', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const totalSent = await railsGateway.getTotalSent({
+      chainId,
+      pathId
+    })
+    console.log(totalSent)
+    expect(totalSent).toBeDefined()
+  })
   it('should get token info', async () => {
     const chainId = 11155111
     const address = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'

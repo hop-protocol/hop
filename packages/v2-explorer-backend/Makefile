@@ -11,7 +11,7 @@ docker-image-tag:
 	$(eval REV=$(shell git rev-parse HEAD | cut -c1-7))
 	$(eval BRANCH=$(shell git branch --show-current))
 	docker tag hopprotocol/v2-explorer-backend:latest hopprotocol/v2-explorer-backend:$(REV)
-	docker tag hopprotocol/v2-explorer-backend:latest hopprotocol/v2-explorer-backend:$(BRANCH)
+	#docker tag hopprotocol/v2-explorer-backend:latest hopprotocol/v2-explorer-backend:$(BRANCH)
 
 # Push to registry
 docker-registry-push:
@@ -19,7 +19,7 @@ docker-registry-push:
 	$(eval BRANCH=$(shell git branch --show-current))
 	docker push hopprotocol/v2-explorer-backend:latest
 	docker push hopprotocol/v2-explorer-backend:$(REV)
-	docker push hopprotocol/v2-explorer-backend:$(BRANCH)
+	#docker push hopprotocol/v2-explorer-backend:$(BRANCH)
 
 # Build docker image and push to registry
 docker-build-and-push: docker-build docker-image-tag docker-registry-push
@@ -28,5 +28,5 @@ docker-build-and-push: docker-build docker-image-tag docker-registry-push
 docker-tag-and-push: docker-image-tag docker-registry-push
 
 docker-start:
-	docker run --env-file .env hopprotocol/v2-explorer-backend
+	docker run --env-file .env -v /tmp/docker_tempdb:/tmp/tempdb hopprotocol/v2-explorer-backend worker --api-server
 

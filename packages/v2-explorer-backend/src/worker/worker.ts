@@ -1,6 +1,6 @@
-// import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop } from '@hop-protocol/v2-sdk'
 import { Indexer } from '#indexer/index.js'
-import { goerliAddresses } from '@hop-protocol/v2-core/addresses'
+import { network } from '#config/index.js'
 
 export type Options = {
   indexerPollSeconds?: number
@@ -9,21 +9,21 @@ export type Options = {
 export const defaultPollSeconds = 10
 
 export class Worker {
-  // TODO: fix sdk
-  // sdk: Hop
-  sdk: any
+  sdk: Hop
   pollIntervalMs: number = defaultPollSeconds * 1000
   indexer: Indexer
 
   constructor (options: Options = {}) {
-    // TODO: fix sdk
-    // this.sdk = new Hop('goerli')
+    this.sdk = new Hop({ network })
+
+    const startBlocks: any = {}
+    Object.keys(this.sdk.contractAddresses).forEach((chainId: string) => {
+      startBlocks[chainId] = this.sdk.contractAddresses[chainId].startBlock
+    })
+
     this.indexer = new Indexer({
       pollIntervalSeconds: options.indexerPollSeconds,
-      startBlocks: {
-        5: goerliAddresses['5'].startBlock,
-        420: goerliAddresses['420'].startBlock
-      }
+      startBlocks
     })
   }
 

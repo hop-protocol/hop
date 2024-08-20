@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 import React, { FC, Suspense, lazy, useEffect } from 'react'
 import Send from '#pages/Send/index.js'
+import { SendV2 } from '#pages/Send/SendV2.js'
 import { AirdropPreview } from '#pages/Airdrop/AirdropPreview/index.js'
 import { Claim } from '#pages/Claim/index.js'
 import { Loading } from '#components/Loading/index.js'
@@ -53,6 +54,7 @@ const AppRoutes: FC = () => {
                 <Routes>
                   <Route path="/stats" element={<Stats />} />
                   <Route path="/send" element={<Send />} />
+                  <Route path="/sendv2" element={<SendV2 />} />
                   <Route path="/convert" element={<Convert />} />
                   <Route path="/convert/:via" element={<Convert />} />
                   <Route path="/pools" element={<PoolsOverview />} />

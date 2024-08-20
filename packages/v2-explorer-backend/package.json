@@ -13,12 +13,6 @@
   "imports": {
     "#*": "./dist/*"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/cli/index.js",
-      "default": "./dist/cli/index.js"
-    }
-  },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
@@ -27,17 +21,16 @@
     "start": "tsx ./src/cli/index.ts",
     "watch": "tsc --watch",
     "dev": "pnpm start",
-    "start:worker": "node ./dist/cli worker --server",
+    "start:worker": "node ./dist/cli worker --api-server --env=.env",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && rm -rf dist/pgDb/migrations/sql && cp -r src/pgDb/migrations/sql dist/pgDb/migrations",
     "lint": "eslint . --fix",
     "version": "pnpm version",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf test-db"
   },
   "dependencies": {
-    "@hop-protocol/v2-core": "0.0.0-beta.5",
-    "@hop-protocol/v2-sdk": "0.0.0-beta.21",
+    "@hop-protocol/v2-sdk": "workspace:*",
     "async-mutex": "0.3.2",
     "commander": "6.2.1",
     "cors": "2.8.5",

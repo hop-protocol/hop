@@ -22,23 +22,32 @@ type Props = {
   destinationTxFeeUsd?: string
   relayFee?: string
   relayFeeUsd?: string
+  v2Display?: boolean
 }
 
 export const FeeDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd } = props
+  const { v2Display, bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd } = props
 
   return (
-    <div className={styles.root}>
-      <Typography variant="body1" className={styles.text}>
-        The total fee covers the bonder fee and the destination transaction cost paid by the Bonder.
-      </Typography>
-      <Typography variant="body1" className={styles.text}>
-        On Optimism, Base, Arbitrum, and Nova the destination tx fee fluctuates with L1 gas price.
-      </Typography>
-      <Typography variant="body1" className={styles.text}>
-        LP fees are included in the swap price.
-      </Typography>
+    <Box className={styles.root}>
+      {v2Display ? (
+        <Typography variant="body1" className={styles.text}>
+          The bonder fee is the fee paid to the Bonder for relaying the message.
+        </Typography>
+      ) : (
+        <Box>
+        <Typography variant="body1" className={styles.text}>
+          The total fee covers the bonder fee and the destination transaction cost paid by the Bonder.
+        </Typography>
+        <Typography variant="body1" className={styles.text}>
+          On Optimism, Base, Arbitrum, and Nova the destination tx fee fluctuates with L1 gas price.
+        </Typography>
+        <Typography variant="body1" className={styles.text}>
+          LP fees are included in the swap price.
+        </Typography>
+        </Box>
+      )}
       {!!relayFee && (
         <Typography variant="body1" className={styles.text}>
           The relay fee is set by the L1 bridge.
@@ -52,18 +61,22 @@ export const FeeDetails: FC<Props> = props => {
           <Box display="inline-block">{relayFee}</Box>
         </>} contrastText />
       )}
-      <DetailRow title="Bonder fee" value={<>
-        {!!bonderFeeUsd && (
-          <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{bonderFeeUsd}</small></Box>
-        )}
-        <Box display="inline-block">{bonderFee}</Box>
-      </>} contrastText />
-      <DetailRow title="Destination tx cost" value={<>
-        {!!bonderFeeUsd && (
-          <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{destinationTxFeeUsd}</small></Box>
-        )}
-        <Box display="inline-block">{destinationTxFee}</Box>
-      </>} contrastText />
-    </div>
+      {!!bonderFee && (
+        <DetailRow title="Bonder fee" value={<>
+          {!!bonderFeeUsd && (
+            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{bonderFeeUsd}</small></Box>
+          )}
+          <Box display="inline-block">{bonderFee}</Box>
+        </>} contrastText />
+      )}
+      {!!destinationTxFee && (
+        <DetailRow title="Destination tx cost" value={<>
+          {!!bonderFeeUsd && (
+            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{destinationTxFeeUsd}</small></Box>
+          )}
+          <Box display="inline-block">{destinationTxFee}</Box>
+        </>} contrastText />
+      )}
+    </Box>
   )
 }

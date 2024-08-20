@@ -55,6 +55,11 @@ export class PriceFeed {
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
+    // Testnet mock token
+    if (tokenSymbol === 'MOCK') {
+      return 0.01
+    }
+
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]
     }

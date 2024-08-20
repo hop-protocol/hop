@@ -89,7 +89,7 @@ const connectSrc = new Set([
   "https://api.rollbar.com",
   "https://*.coingecko.com",
   "https://*.coinpaprika.com",
-  "https://*.coincodex.com",
+  "https://coincodex.com",
   "http://127.0.0.1:21325",
   "https://api.opensea.io",
   "https://social-auth.hop.exchange",
@@ -106,7 +106,9 @@ const connectSrc = new Set([
   "https://media-exp1.licdn.com",
   "https://iris-api.circle.com",
   "https://iris-api-sandbox.circle.com",
-  "https://*.polygon.technology"
+  "https://*.polygon.technology",
+  "https://sepolia.drpc.org",
+  "https://rpc2.sepolia.org"
 ])
 
 for (const network of getNetworks()) {

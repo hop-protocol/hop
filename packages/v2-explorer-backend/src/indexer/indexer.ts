@@ -1,8 +1,8 @@
 import { wait } from '#utils/wait.js'
-// import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, PriceFeed } from '@hop-protocol/v2-sdk'
 import { SyncStateDb } from '#db/syncStateDb/index.js'
 import { db } from '#db/index.js'
-import { dbPath } from '#config/index.js'
+import { network, dbPath, rpcUrls, coingeckoApiKey } from '#config/index.js'
 import { pgDb } from '#pgDb/index.js'
 
 type StartBlocks = {
@@ -24,16 +24,12 @@ type Options = {
 export const defaultPollSeconds = 10
 
 export class Indexer {
-  // TODO: fix sdk
-  // sdk: Hop
-  sdk: any
+  sdk: Hop
   pollIntervalMs: number = defaultPollSeconds * 1000
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
-  chainIds: any = {
-    5: true, // goerli
-    420: true // goerli optimism
-  }
+  chainIds: Record<string, boolean> = {}
+  priceFeed: PriceFeed
 
   paused: boolean = false
   syncIndex: number = 0
@@ -45,13 +41,20 @@ export class Indexer {
     if (options?.pollIntervalSeconds) {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
-    // TODO: fix sdk
-    // this.sdk = new Hop('goerli', {
-    //   batchBlocks: 10_000,
-    //   contractAddresses: options?.sdkContractAddresses ?? sdkContractAddresses
-    // })
+    this.sdk = new Hop({
+      network,
+      batchBlocks: 10_000,
+      contractAddresses: options?.sdkContractAddresses
+    })
+    this.sdk.setChainRpcProviderUrls(rpcUrls)
+    this.priceFeed = new PriceFeed({
+      coingecko: coingeckoApiKey
+    })
     if (options?.startBlocks) {
       this.startBlocks = options.startBlocks
+    }
+    for (const chainId in this.startBlocks) {
+      this.chainIds[chainId] = true
     }
     for (const chainId in this.chainIds) {
       this.startBlocks[chainId] = this.startBlocks[chainId] ?? 0
@@ -74,11 +77,14 @@ export class Indexer {
       FeesSentToHub: new SyncStateDb(dbPath, 'FeesSentToHub'),
       MessageBundled: new SyncStateDb(dbPath, 'MessageBundled'),
       MessageExecuted: new SyncStateDb(dbPath, 'MessageExecuted'),
-      MessageSent: new SyncStateDb(dbPath, 'MessageSent')
+      MessageSent: new SyncStateDb(dbPath, 'MessageSent'),
+      TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
+      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded')
     }
   }
 
   async start () {
+    await this.pgDb.init()
     this.paused = false
     await this.startPoller()
   }
@@ -93,7 +99,10 @@ export class Indexer {
         return
       }
       try {
-        await this.poll()
+        await Promise.all([
+          this.pollPrices(),
+          this.poll()
+        ])
       } catch (err: any) {
         console.error('indexer poll error:', err)
       }
@@ -109,7 +118,9 @@ export class Indexer {
       'FeesSentToHub',
       'MessageBundled',
       'MessageExecuted',
-      'MessageSent'
+      'MessageSent',
+      'TransferSent',
+      'TransferBonded'
     ]
 
     const _events: any[] = []
@@ -135,9 +146,7 @@ export class Indexer {
       const syncState = await _db.getSyncState(chainId)
       console.log('syncState', chainId, syncState)
 
-      // TODO: fix sdk
-      // const provider = this.sdk.getRpcProvider(chainId)
-      const provider : any = null
+      const provider = this.sdk.getRpcProviderForChainId(chainId)
       let fromBlock = this.startBlocks[chainId]
       let headBlock = await provider.getBlockNumber()
       if (this.endBlocks[chainId]) {
@@ -149,16 +158,18 @@ export class Indexer {
         toBlock = headBlock
       }
 
-      console.log('get', eventNames, chainId, fromBlock, toBlock)
-      // TODO: fix sdk
-      // const events = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
-      const events : any[] = []
+      console.log('get', eventNames, 'chainId', chainId, 'fromBlock', fromBlock, 'toBlock', toBlock)
+      const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })
       console.log('events', eventNames, events.length)
       for (const event of events) {
         console.log('event', event)
 
-        const _db = this.eventsToSync[event.eventName]
-        await this.pgDb.events[event.eventName].upsertItem({ ...event, context: event.context })
+        const _db = this.eventsToSync[event.context.eventName]
+        if (!this.pgDb.events[event.context.eventName]) {
+          console.error('event db found in pgDb', event.context.eventName)
+          continue
+        }
+        await this.pgDb.events[event.context.eventName].upsertItem({ ...event.decoded, context: event.context })
         await _db.putSyncState(chainId, { fromBlock, toBlock })
         _events.push(event)
       }
@@ -187,6 +198,27 @@ export class Indexer {
   }
 
   getIsL1 (chainId: number) {
-    return chainId === 5 || chainId === 1
+    return chainId === 5 || chainId === 1 || chainId === 11155111
+  }
+
+  async pollPrices () {
+    console.log('poll prices start')
+
+    const tokens = new Set(this.sdk.getSupportedTokenSymbols())
+    tokens.add('ETH')
+    for  (const token of tokens) {
+      let tokenLookup = token
+      if (tokenLookup === 'MOCK') {
+        tokenLookup = 'DOGE' // for testing, give fake token MOCK a price
+      }
+      const price = await this.priceFeed.getPriceByTokenSymbol(tokenLookup)
+      await this.pgDb.pricesTable.upsertItem({
+        token,
+        priceUsd: price,
+        timestamp: Math.floor(Date.now() / 1000)
+      })
+    }
+
+    console.log('poll prices done')
   }
 }

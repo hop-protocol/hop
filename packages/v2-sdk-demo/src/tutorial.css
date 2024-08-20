@@ -1,0 +1,12 @@
+code {
+  background: #ffffff;
+  color: #000;
+  font-family: monospace;
+  padding: 0 0.5rem;
+}
+
+/* TODO: move to Syntax component */
+pre > code span:first-child .linenumber:first-child {
+  float: left;
+  padding-right: 0.5rem !important;
+}

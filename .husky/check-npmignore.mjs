@@ -2,13 +2,13 @@ import { exec } from 'node:child_process'
 
 /**
  * Disallow pushing .npmignore to the repository to prevent accidental publishing of secrets.
- * 
+ *
  * All published files should be included in the `files` object of package.json which
  * takes precedent over both files anyway, so this is just a safety measure.
- * 
+ *
  * Anything that should be ignored by npm should be added to .gitignore since
  * npm uses .gitignore to determine what to ignore when .npmignore is not present.
- * 
+ *
  * .npmignore docs: https://docs.npmjs.com/cli/v9/using-npm/developers#keeping-files-out-of-your-package
  * Explainer: https://medium.com/@jdxcode/for-the-love-of-god-dont-use-npmignore-f93c08909d8d
  */

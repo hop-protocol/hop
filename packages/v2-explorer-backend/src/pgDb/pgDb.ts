@@ -1,20 +1,32 @@
 import minimist from 'minimist'
 import pgp from 'pg-promise'
-import { BundleCommitted } from './events/BundleCommitted.js'
-import { BundleForwarded } from './events/BundleForwarded.js'
-import { BundleReceived } from './events/BundleReceived.js'
-import { BundleSet } from './events/BundleSet.js'
-import { FeesSentToHub } from './events/FeesSentToHub.js'
-import { MessageBundled } from './events/MessageBundled.js'
-import { MessageExecuted } from './events/MessageExecuted.js'
-import { MessageSent } from './events/MessageSent.js'
+import { BundleCommittedTable } from './events/messenger/BundleCommitted.js'
+import { BundleForwardedTable } from './events/messenger/BundleForwarded.js'
+import { BundleReceivedTable } from './events/messenger/BundleReceived.js'
+import { BundleSetTable } from './events/messenger/BundleSet.js'
+import { FeesSentToHubTable } from './events/messenger/FeesSentToHub.js'
+import { MessageBundledTable } from './events/messenger/MessageBundled.js'
+import { MessageExecutedTable } from './events/messenger/MessageExecuted.js'
+import { MessageSentTable } from './events/messenger/MessageSent.js'
+import { TransferSentTable } from './events/railsGateway/TransferSent.js'
+import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
+import { PricesTable } from './prices/prices.js'
+import { PathTable } from './paths/paths.js'
+import { TokenTable } from './tokens/tokens.js'
+import { EventContextTable } from './eventContext/eventContext.js'
+import { MigrationTable } from './migrations/migrations.js'
 import { postgresConfig } from '#config/index.js'
-
-const argv = minimist(process.argv.slice(2))
+import { Pgp } from './pgDbTypes.js'
+import { MigrationManager } from './migrations/MigrationManager.js'
 
 export class PgDb {
-  db: any
+  db: Pgp
   events: any = {}
+  nonEventTables: any = {}
+  pricesTable: any
+  migrationTable: any = {}
+  migrationManager: any
+  initiated = false
 
   constructor () {
     const initOptions: any = {}
@@ -26,42 +38,53 @@ export class PgDb {
     const db = pgp(initOptions)({ ...postgresConfig, ...opts })
     this.db = db
 
-    this.events = {
-      BundleCommitted: new BundleCommitted(this.db),
-      BundleForwarded: new BundleForwarded(this.db),
-      BundleReceived: new BundleReceived(this.db),
-      BundleSet: new BundleSet(this.db),
-      FeesSentToHub: new FeesSentToHub(this.db),
-      MessageBundled: new MessageBundled(this.db),
-      MessageExecuted: new MessageExecuted(this.db),
-      MessageSent: new MessageSent(this.db)
+    this.nonEventTables = {
+      Path: new PathTable(this.db),
+      Token: new TokenTable(this.db),
+      EventContext: new EventContextTable(this.db),
     }
 
-    this.init().catch((err: any) => {
-      console.error('pg db error', err)
-      process.exit(1)
-    }).then(() => {
-      console.log('pg db init done')
-    })
+    this.events = {
+      BundleCommitted: new BundleCommittedTable(this.db),
+      BundleForwarded: new BundleForwardedTable(this.db),
+      BundleReceived: new BundleReceivedTable(this.db),
+      BundleSet: new BundleSetTable(this.db),
+      FeesSentToHub: new FeesSentToHubTable(this.db),
+      MessageBundled: new MessageBundledTable(this.db),
+      MessageExecuted: new MessageExecutedTable(this.db),
+      MessageSent: new MessageSentTable(this.db),
+      TransferSent: new TransferSentTable(this.db),
+      TransferBonded: new TransferBondedTable(this.db)
+    }
+
+    this.migrationTable = new MigrationTable(this.db)
+    this.migrationManager = new MigrationManager(this.migrationTable)
+
+    this.pricesTable = new PricesTable(this.db)
   }
 
   async init () {
-    const resetDb = argv.reset
-    if (resetDb) {
-      await this.db.query('DROP TABLE IF EXISTS events')
+    if (this.initiated) {
+      return
     }
+    this.initiated = true
+    await this.migrationTable.createTable()
+    await this.migrationTable.createIndexes()
 
-    const migration = argv.migration
-    if (migration) {
-      // await this.db.query(`
-      //   ALTER TABLE events ADD COLUMN IF NOT EXISTS test BOOLEAN
-      // `)
+    await this.pricesTable.createTable()
+    await this.pricesTable.createIndexes()
+
+    for (const event in this.nonEventTables) {
+      await this.nonEventTables[event].createTable()
+      await this.nonEventTables[event].createIndexes()
     }
 
     for (const event in this.events) {
       await this.events[event].createTable()
       await this.events[event].createIndexes()
     }
+
+    await this.migrationManager.runMigrations(0)
   }
 }
 

@@ -3,7 +3,7 @@ import { getRpcUrlFromProvider } from './getRpcUrlFromProvider.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { providers } from 'ethers'
 
-// Intentionally force a call to a method that is not supported by all providers.
+// Intentionally force a call to a method that is not supported by all providers
 const unsupportedCallMethod = 'eth_unsupportedCall'
 
 // Full error message for an eth_unsupportedCall

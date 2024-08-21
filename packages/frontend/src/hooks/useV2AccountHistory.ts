@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useQueryParams from '#hooks/useQueryParams.js'
-import { reactAppNetwork } from '#config/index.js'
+import { reactAppNetwork, v2ExplorerBaseUrl } from '#config/index.js'
 import { useQuery } from 'react-query'
 import { NetworkSlug } from '@hop-protocol/sdk'
 
@@ -24,8 +24,7 @@ export function useV2AccountHistory(props) {
       if (reactAppNetwork !== NetworkSlug.Sepolia) {
         return []
       }
-      const baseUrl = `http://localhost:8000` // TODO: move to config
-      const url = `${baseUrl}/v1/explorer?filter[account]=${address}&limit=${perPage}&page=${page}`
+      const url = `${v2ExplorerBaseUrl}/v1/explorer?filter[account]=${address}&limit=${perPage}&page=${page}`
       const res = await fetch(url)
       const json = await res.json()
       const hasNextPage = json.hasNextPage

@@ -1099,6 +1099,9 @@ importers:
       luxon:
         specifier: 3.4.4
         version: 3.4.4
+      memory-cache:
+        specifier: 0.2.0
+        version: 0.2.0
       merkletreejs:
         specifier: 0.3.11
         version: 0.3.11
@@ -1121,6 +1124,9 @@ importers:
       '@types/luxon':
         specifier: 3.4.2
         version: 3.4.2
+      '@types/memory-cache':
+        specifier: 0.2.6
+        version: 0.2.6
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.7)(babel-plugin-macros@3.1.0)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))
@@ -5258,6 +5264,9 @@ packages:
 
   '@types/memory-cache@0.2.5':
     resolution: {integrity: sha512-OIKRDDZUFeKT/rsko7/CGnR5qE8xTU8ogzyaaSDSHGkKwlSB/E6RopSF5fReo89khCAcGIoqSi723tDqUe6gYw==}
+
+  '@types/memory-cache@0.2.6':
+    resolution: {integrity: sha512-G+9tuwWqss2hvX+T/RNY9CY8qSvuCx8uwnl+tXQWwXtBelXUGcn4j6zknDR+2EfdrgBsMZik0jCKNlDEHIBONQ==}
 
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
@@ -19648,6 +19657,8 @@ snapshots:
   '@types/memory-cache@0.2.2': {}
 
   '@types/memory-cache@0.2.5': {}
+
+  '@types/memory-cache@0.2.6': {}
 
   '@types/methods@1.1.4': {}
 

@@ -44,6 +44,7 @@
 - [createChallenge](RailsGateway.md#createchallenge)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
+- [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
 - [getChallengeId](RailsGateway.md#getchallengeid)
 - [getChallengePeriod](RailsGateway.md#getchallengeperiod)
 - [getChallenges](RailsGateway.md#getchallenges)
@@ -84,6 +85,8 @@
 - [getStakingRegistryContract](RailsGateway.md#getstakingregistrycontract)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
+- [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
+- [getTokenAddressByTokenSymbol](RailsGateway.md#gettokenaddressbytokensymbol)
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
 - [getTotalSent](RailsGateway.md#gettotalsent)
@@ -548,6 +551,26 @@ ___
 #### Inherited from
 
 StakingRegistry.getAppealPeriod
+
+___
+
+### <a id="getchainidssupportedbytokensymbol" name="getchainidssupportedbytokensymbol"></a> getChainIdsSupportedByTokenSymbol
+
+▸ **getChainIdsSupportedByTokenSymbol**(`tokenSymbol`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+StakingRegistry.getChainIdsSupportedByTokenSymbol
 
 ___
 
@@ -1243,6 +1266,47 @@ ___
 #### Inherited from
 
 StakingRegistry.getSupportedTokenSymbols
+
+___
+
+### <a id="getsupportedtokensymbolsbychainid" name="getsupportedtokensymbolsbychainid"></a> getSupportedTokenSymbolsByChainId
+
+▸ **getSupportedTokenSymbolsByChainId**(`chainId`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+StakingRegistry.getSupportedTokenSymbolsByChainId
+
+___
+
+### <a id="gettokenaddressbytokensymbol" name="gettokenaddressbytokensymbol"></a> getTokenAddressByTokenSymbol
+
+▸ **getTokenAddressByTokenSymbol**(`chainId`, `tokenSymbol`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+StakingRegistry.getTokenAddressByTokenSymbol
 
 ___
 

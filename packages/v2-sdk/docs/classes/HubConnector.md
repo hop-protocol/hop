@@ -31,6 +31,7 @@
 
 - [connect](HubConnector.md#connect)
 - [connectTargets](HubConnector.md#connecttargets)
+- [getChainIdsSupportedByTokenSymbol](HubConnector.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](HubConnector.md#getcolorforchainid)
 - [getConfigAddress](HubConnector.md#getconfigaddress)
 - [getConfigStartBlock](HubConnector.md#getconfigstartblock)
@@ -48,6 +49,8 @@
 - [getSignerOrProvider](HubConnector.md#getsignerorprovider)
 - [getSupportedChainIds](HubConnector.md#getsupportedchainids)
 - [getSupportedTokenSymbols](HubConnector.md#getsupportedtokensymbols)
+- [getSupportedTokenSymbolsByChainId](HubConnector.md#getsupportedtokensymbolsbychainid)
+- [getTokenAddressByTokenSymbol](HubConnector.md#gettokenaddressbytokensymbol)
 - [getTxOverrides](HubConnector.md#gettxoverrides)
 - [sendTransaction](HubConnector.md#sendtransaction)
 - [setChainRpcProvider](HubConnector.md#setchainrpcprovider)
@@ -234,6 +237,26 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="getchainidssupportedbytokensymbol" name="getchainidssupportedbytokensymbol"></a> getChainIdsSupportedByTokenSymbol
+
+▸ **getChainIdsSupportedByTokenSymbol**(`tokenSymbol`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
@@ -525,6 +548,47 @@ ___
 #### Inherited from
 
 Base.getSupportedTokenSymbols
+
+___
+
+### <a id="getsupportedtokensymbolsbychainid" name="getsupportedtokensymbolsbychainid"></a> getSupportedTokenSymbolsByChainId
+
+▸ **getSupportedTokenSymbolsByChainId**(`chainId`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getSupportedTokenSymbolsByChainId
+
+___
+
+### <a id="gettokenaddressbytokensymbol" name="gettokenaddressbytokensymbol"></a> getTokenAddressByTokenSymbol
+
+▸ **getTokenAddressByTokenSymbol**(`chainId`, `tokenSymbol`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenAddressByTokenSymbol
 
 ___
 

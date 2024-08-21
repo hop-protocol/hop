@@ -1,7 +1,7 @@
 import { BigNumberish } from 'ethers'
 import { Event as EthersEvent } from 'ethers'
 
-export type EventContext = {
+export type BaseEventContext = {
   eventName: string
   chainSlug: string
   chainId: string
@@ -9,22 +9,21 @@ export type EventContext = {
   transactionIndex: number
   logIndex: number
   blockNumber: number
-  blockTimestamp?: number
-  from?: string
-  to?: string
-  value?: string
-  nonce?: number
-  gasLimit?: number
-  gasUsed?: number
-  gasPrice?: string
-  data?: string
 }
 
-export type EventBase = {
-  eventName: string
-  eventLog?: EthersEvent
-  context?: EventContext
-}
+export type ReceiptEventContext = Partial<{
+  blockTimestamp: number
+  from: string
+  to: string
+  value: string
+  nonce: number
+  gasLimit: number
+  gasUsed: number
+  gasPrice: string
+  data: string
+}>
+
+export type EventContext = BaseEventContext & ReceiptEventContext
 
 export interface Filter {
   address?: string | string[];
@@ -33,4 +32,5 @@ export interface Filter {
   topics?: Array<string | string[]>;
 }
 
-export type EthersEventWithDecodedTypes<T> = EthersEvent & { decoded?: T, context?: EventContext }
+export type EthersEventWithDecodedTypes<T> = EthersEvent & { decoded: T }
+export type EthersEventWithDecodedTypesAndContext <T> = EthersEvent & { decoded: T, context: EventContext }

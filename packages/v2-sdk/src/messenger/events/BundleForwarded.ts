@@ -1,9 +1,9 @@
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { Event as EthersEvent } from 'ethers'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 
 // event from HubMessageBridge
-export interface BundleForwarded extends EventBase {
+export interface BundleForwarded {
   bundleId: string
   bundleRoot: string
   fromChainId: string
@@ -24,8 +24,6 @@ export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
     const toChainId = parsed.args.toChainId.toString()
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       bundleId,
       bundleRoot,
       fromChainId,

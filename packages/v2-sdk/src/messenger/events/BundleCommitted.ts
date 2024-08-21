@@ -1,9 +1,9 @@
 import { BigNumber, Event as EthersEvent } from 'ethers'
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 
 // event from SpokeMessageBridge
-export interface BundleCommitted extends EventBase {
+export interface BundleCommitted {
   bundleId: string
   bundleRoot: string
   bundleFees: BigNumber
@@ -26,8 +26,6 @@ export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
     const commitTime = Number(parsed.args.commitTime.toString())
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       bundleId,
       bundleRoot,
       bundleFees,

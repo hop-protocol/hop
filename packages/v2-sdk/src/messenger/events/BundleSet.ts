@@ -1,9 +1,9 @@
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { Event as EthersEvent } from 'ethers'
 
 // event from SpokeMessageBridge
-export interface BundleSet extends EventBase {
+export interface BundleSet {
   bundleId: string
   bundleRoot: string
   fromChainId: string
@@ -22,8 +22,6 @@ export class BundleSetEventFetcher extends Event<BundleSet> {
     const fromChainId = parsed.args.fromChainId.toString()
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       bundleId,
       bundleRoot,
       fromChainId

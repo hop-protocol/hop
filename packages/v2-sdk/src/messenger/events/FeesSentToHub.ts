@@ -1,9 +1,9 @@
 import { BigNumber, Event as EthersEvent } from 'ethers'
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 
 // event from SpokeMessageBridge
-export interface FeesSentToHub extends EventBase {
+export interface FeesSentToHub {
   amount: BigNumber
 }
 
@@ -18,8 +18,6 @@ export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
     const amount = parsed.args.amount
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       amount
     }
   }

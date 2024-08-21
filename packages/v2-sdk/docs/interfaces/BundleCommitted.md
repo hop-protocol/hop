@@ -1,11 +1,5 @@
 # Interface: BundleCommitted
 
-## Hierarchy
-
-- `EventBase`
-
-  ↳ **`BundleCommitted`**
-
 ## Table of contents
 
 ### Properties
@@ -14,9 +8,6 @@
 - [bundleId](BundleCommitted.md#bundleid)
 - [bundleRoot](BundleCommitted.md#bundleroot)
 - [commitTime](BundleCommitted.md#committime)
-- [context](BundleCommitted.md#context)
-- [eventLog](BundleCommitted.md#eventlog)
-- [eventName](BundleCommitted.md#eventname)
 - [toChainId](BundleCommitted.md#tochainid)
 
 ## Properties
@@ -42,36 +33,6 @@ ___
 ### <a id="committime" name="committime"></a> commitTime
 
 • **commitTime**: `number`
-
-___
-
-### <a id="context" name="context"></a> context
-
-• `Optional` **context**: `EventContext`
-
-#### Inherited from
-
-EventBase.context
-
-___
-
-### <a id="eventlog" name="eventlog"></a> eventLog
-
-• `Optional` **eventLog**: `Event`
-
-#### Inherited from
-
-EventBase.eventLog
-
-___
-
-### <a id="eventname" name="eventname"></a> eventName
-
-• **eventName**: `string`
-
-#### Inherited from
-
-EventBase.eventName
 
 ___
 

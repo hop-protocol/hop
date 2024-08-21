@@ -1,9 +1,9 @@
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { Event as EthersEvent, EventFilter } from 'ethers'
 
 // event from SpokeMessageBridge (ICrossChainSource)
-export interface MessageSent extends EventBase {
+export interface MessageSent {
   messageId: string
   from: string
   toChainId: string
@@ -32,8 +32,6 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
     const data = parsed.args.data
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       messageId,
       from,
       toChainId,

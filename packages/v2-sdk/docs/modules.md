@@ -38,6 +38,8 @@
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
+- [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
+- [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
@@ -249,6 +251,30 @@ ___
 
 ___
 
+### <a id="etherseventwithdecodedtypes" name="etherseventwithdecodedtypes"></a> EthersEventWithDecodedTypes
+
+Ƭ **EthersEventWithDecodedTypes**\<`T`\>: `EthersEvent` & \{ `decoded`: `T`  }
+
+#### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+___
+
+### <a id="etherseventwithdecodedtypesandcontext" name="etherseventwithdecodedtypesandcontext"></a> EthersEventWithDecodedTypesAndContext
+
+Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: `EventContext` ; `decoded`: `T`  }
+
+#### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+___
+
 ### <a id="executeinput" name="executeinput"></a> ExecuteInput
 
 Ƭ **ExecuteInput**: `Object`
@@ -274,7 +300,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `bundleCommittedEvent?` | `BundleCommitted` |
+| `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
 | `fromChainId` | `BigNumberish` |
 
@@ -288,7 +314,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `bundleCommittedEvent?` | `BundleCommitted` |
+| `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
 | `fromChainId` | `BigNumberish` |
 

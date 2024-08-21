@@ -1,9 +1,9 @@
 import { Event as EthersEvent } from 'ethers'
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 
 // event from HubERC5164ConnectorFactory
-export interface ConnectorDeployed extends EventBase {
+export interface ConnectorDeployed {
   connector: string
   target: string
   counterpartChainId: string
@@ -26,8 +26,6 @@ export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
     const counterpartTarget = parsed.args.counterpartTarget.toString()
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       connector,
       target,
       counterpartChainId,

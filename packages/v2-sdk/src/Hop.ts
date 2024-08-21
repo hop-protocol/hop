@@ -456,7 +456,7 @@ export class Hop extends Base {
       decoded.push(...res)
     }
 
-    return decoded
+    return decoded as EthersEventWithDecodedTypes<AllEventTypes>[]
   }
 
   override setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {

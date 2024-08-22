@@ -4,9 +4,9 @@ import {
   type HopCCTPTransferSentDecodedWithMessage,
   type HopCCTPTransferReceivedDecoded
 } from './sdk/MessageSDK.js'
-import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { DataProvider } from '#data-provider/DataProvider.js'
 import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } from './types.js'
+import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
 
 export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
 
@@ -37,7 +37,7 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
     const { transactionHash,context, decoded } = log
     const { chainId } = context
     const { message, cctpNonce, chainId: destinationChainId } = decoded
-    const timestampMs = await this.#getBlockTimestampFromLogMs(log)
+    const timestampMs = await getBlockTimestampFromLogMs(log)
 
     return {
       message,
@@ -52,7 +52,7 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
   async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedMessage> {
     const { transactionHash, decoded, context } = log
     const { nonce, sourceDomain } = decoded
-    const timestampMs = await this.#getBlockTimestampFromLogMs(log)
+    const timestampMs = await getBlockTimestampFromLogMs(log)
     return {
       messageNonce: nonce,
       sourceChainId: MessageSDK.getChainIdFromDomain(sourceDomain),
@@ -65,13 +65,6 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
   /**
    * Utils
    */
-
-  async #getBlockTimestampFromLogMs (log: DecodedLogWithContext): Promise<number> {
-    const { context, blockNumber } = log
-    const provider = getRpcProvider(context.chainId)
-    const block = await provider.getBlock(blockNumber)
-    return block.timestamp * 1000
-  }
 
   #getStateFromLog (log: DecodedLogWithContext): MessageState {
     const eventSig = log.topics[0]

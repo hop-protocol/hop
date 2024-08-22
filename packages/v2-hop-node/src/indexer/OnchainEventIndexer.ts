@@ -43,7 +43,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
-  // TODO: Optimize: Poll timing, possibly two-tiered polling or per-indexer polling
+  // TODO: Optimize: Poll timing, possibly two-tiered polling or per-indexer polling. PollPriority can be passed into class.
   // This poller calls a getLog for each indexed event filter every poll. This can become RPC intensive and the value
   // should reflect the tradeoff between up-to-date data and RPC usage.
   readonly #pollIntervalMs: number = 30_000
@@ -54,9 +54,12 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter<LookupKey>
   protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
-  // NOTE: This is not meant to persist after CCTP. All events should either be indexable in the filter for the getLogs
-  // call or the event shouldn't need to be observed.
-  protected abstract filterIrrelevantLog(log: DecodedLogWithContext): boolean
+  // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
+  // This exists for systems that are required to observe all events but only index some, like CCTP. This should be overridden
+  // by those systems, but nearly all other systems should return true, which is why it's not abstract.
+  protected filterIrrelevantLog(log: DecodedLogWithContext): boolean {
+    return true
+  }
 
   constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)

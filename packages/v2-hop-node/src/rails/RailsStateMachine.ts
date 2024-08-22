@@ -108,7 +108,6 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
 
   #pollRelayer = async (state: RailsTransferState): Promise<void> => {
     for await (const [, value] of this.getItemsInState(state)) {
-      const { transferId, pathId } = value
       const canRelay = await this.#canRelayTransfer(state, value)
       if (!canRelay) continue
 
@@ -158,7 +157,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
       // adding a timing element like v1.
       await this.#sendRelay(state, value)
     } catch (err) {
-      this.#handleRelayError(message, err.message)
+      this.#handleRelayError(value, err.message)
     }
   }
 
@@ -171,8 +170,9 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
 
     switch (state) {
       case RailsTransferState.Sent: {
-        const { transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHops } = value as ISentRailsTransfer
+        const { pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHops } = value as ISentRailsTransfer
         return RailsSDK.connect(wallet).post({
+          pathId,
           transferId,
           to,
           amount,
@@ -184,11 +184,10 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
       }
 
       case RailsTransferState.Posted: {
-        const { /* paths, */ transferId } = value as IPostedRailsTransfer
-
+        const { pathId, transferId } = value as IPostedRailsTransfer
         const nextHops: RailsHop[] = await this.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
         return RailsSDK.connect(wallet).bond({
-          paths,
+          pathId,
           transferId,
           nextHops
         })
@@ -198,29 +197,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     }
   }
 
-  #handleRelayError (message: string, errMessage: string): void {
+  #handleRelayError (value: IRailsTransfer, errMessage: string): void {
     // TODO: Fill this in
-    // const messageHash = MessageSDK.getMessageHashFromMessage(message)
-
-    // // Attestation errors
-    // if (errMessage.includes('Attestation not complete')) {
-    //   this.logger.debug(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
-    //   return
-    // } else if (errMessage.includes('Message hash not found')) {
-    //   throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
-    // }
-
-    // // Tx errors
-    // if (errMessage.includes('Nonce already used')) {
-    //   // This may occur if there are multiple servers running at once.
-    //   // The item has already been added to the cache, so we can safely ignore this error.
-    //   this.logger.debug(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
-    //   return
-    // } else {
-    //   // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
-    //   // TODO: V2: The reorged message case should be handled differently by the DB and should not be here.
-    //   this.logger.debug(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
-    //   return
-    // }
   }
 }

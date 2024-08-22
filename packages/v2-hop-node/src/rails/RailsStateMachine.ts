@@ -1,149 +1,226 @@
-// import { wallets } from '#wallets/index.js'
-// import { getChain } from '@hop-protocol/sdk'
-// import { StateMachine } from '#state-machine/StateMachine.js'
-// import { MessageSDK } from './sdk/MessageSDK.js'
-// import { poll } from '#utils/poll.js'
-// import {
-//   type ISentMessage,
-//   type IMessage,
-//   MessageState
-// } from './types.js'
-// import { TxRelayDB } from '#db/TxRelayDB.js'
-// import { FINALITY_TIME_MS } from '#constants/index.js'
+import { wallets } from '#wallets/index.js'
+import { getChain, RailsSDK } from '@hop-protocol/sdk'
+import { StateMachine } from '#state-machine/StateMachine.js'
+import { poll } from '#utils/poll.js'
+import {
+  type ISentRailsTransfer,
+  type IPostedRailsTransfer,
+  type IRailsTransfer,
+  type RailsHop,
+  RailsTransferState
+} from './types.js'
+import { TxRelayDB } from '#db/TxRelayDB.js'
+import { FINALITY_TIME_MS } from '#constants/index.js'
+import type { Signer, providers } from 'ethers'
+import { getChainsFromPathId } from './utils.js'
 
-// export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
-//   readonly #sentTxCache: TxRelayDB = new TxRelayDB('StateMachine')
-//   // If timing checks pass, a relay is attempted every poll. This value should be small enough
-//   // where users are not waiting a relatively long time but short enough where resources (RPC calls,
-//   // attestation API calls) are not abused.
-//   readonly #pollIntervalMs: number = 60_000
+export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
+  readonly #relayedTxCache: TxRelayDB = new TxRelayDB('StateMachine')
+  // If timing checks pass, a relay is attempted every poll. This value should be small enough
+  // where users are not waiting a relatively long time but short enough where resources (RPC calls,
+  // attestation API calls) are not abused.
+  readonly #pollIntervalMs: number = 60_000
 
-//   override start(): void {
-//     super.start()
-//     this.#startPollers()
-//   }
+  override start(): void {
+    super.start()
+    this.#startPollers()
+  }
 
-//   #startPollers (): void {
-//     void poll(this.#pollRelayer, this.#pollIntervalMs, this.logger)
-//   }
+  #startPollers (): void {
+    void poll(() => this.#pollRelayer(RailsTransferState.Sent), this.#pollIntervalMs, this.logger)
+    void poll(() => this.#pollRelayer(RailsTransferState.Posted), this.#pollIntervalMs, this.logger)
+  }
 
-//   /**
-//    * Implementation
-//    */
+  /**
+   * Implementation
+   */
 
-//   protected override getItemId(value: IMessage): string {
-//     return `${value.sourceChainId}:${value.messageNonce}`
-//   }
+  protected override getItemId(value: IRailsTransfer): string {
+    return value.transferId
+  }
 
-//   protected override shouldAttemptTransition(state: MessageState, value: IMessage): boolean {
-//     switch (state) {
-//       case MessageState.Sent:
-//         return this.#shouldRelayBeFinalized(value as ISentMessage)
-//       default:
-//         throw new Error('Invalid state')
-//     }
-//   }
+  protected override shouldAttemptTransition(state: RailsTransferState, value: IRailsTransfer): boolean {
+    switch (state) {
+      case RailsTransferState.Sent:
+        return this.#isPostFinalized(value as ISentRailsTransfer)
+      case RailsTransferState.Posted:
+        return this.#shouldBondBeFinalized(value as IPostedRailsTransfer)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
 
-//   /**
-//    * FSM Utils
-//    */
+  /**
+   * FSM Utils
+   */
 
-//   #shouldRelayBeFinalized(value: ISentMessage): boolean {
-//     // A relay can be finalized if enough time has passed for the message attestation to become available
-//     // and the destination chain has finalized the relay.
-//     const { sourceChainId, destinationChainId, sentTimestampMs } = value
+  #isPostFinalized(value: ISentRailsTransfer): boolean {
+    // A post can be finalized if enough time has passed for the send to
+    // be finalized on the source chain, for the bonder to post the claim,
+    // and for the post to be finalized on the destination chain.
+    const { pathId, sentTimestampMs } = value
 
-//     const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
-//     const destinationChainSlug = getChain(destinationChainId).slug
-//     // This value is not terribly useful if threshold finality is enabled (default).
-//     // When it is not enabled, the check must wait for finality of the chain.
-//     // Since there are no state transitions after this one, there is no need to optimize
-//     // this value.
-//     const destChainFinalityTimeMs = FINALITY_TIME_MS[destinationChainSlug]
-//     // Add a buffer to allow the transaction to be processed by the relayer
-//     const bufferMs = 60_000
+    const { srcChainId, destChainId } = getChainsFromPathId(pathId)
+    const srcChainSlug = getChain(srcChainId).slug
+    const srcChainFinalityTimeMs = FINALITY_TIME_MS[srcChainSlug]
+    const destChainSlug = getChain(destChainId).slug
+    const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 
-//     const expectedRelayTimeMs =
-//       sentTimestampMs +
-//       attestationAvailableTimestampMs +
-//       destChainFinalityTimeMs +
-//       bufferMs
+    const expectedRelayTimeMs =
+      sentTimestampMs +
+      srcChainFinalityTimeMs +
+      destChainFinalityTimeMs
 
-//     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
+    const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
 
-//     return (
-//       relayFinalizedTimestampOk
-//     )
-//   }
+    return (
+      relayFinalizedTimestampOk
+    )
+  }
 
-//   /**
-//    * Relayer
-//    */
+  #shouldBondBeFinalized(value: IPostedRailsTransfer): boolean {
+    // A bond can be finalized if enough time has passed for the post to
+    // be finalized on its own chain, for the bonder to bond the claim,
+    // and for the bond to be finalized on its own chain.
+    const { pathId, postedTimestampMs } = value
 
-//   #pollRelayer = async (): Promise<void> => {
-//     for await (const [, value] of this.getItemsInState(MessageState.Sent)) {
-//       const { message, destinationChainId } = value as ISentMessage
-//       const canRelay = this.#canRelayMessage(value as ISentMessage)
-//       if (!canRelay) continue
+    const { destChainId } = getChainsFromPathId(pathId)
+    const destChainSlug = getChain(destChainId).slug
+    const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 
-//       await this.#relayMessage(message, destinationChainId)
-//     }
-//   }
+    // We add the finality time twice because both the post and the claim
+    // must be finalized and they exist on the same chain.
+    const expectedRelayTimeMs =
+      postedTimestampMs +
+      destChainFinalityTimeMs +
+      destChainFinalityTimeMs
 
-//   #canRelayMessage (value: ISentMessage): boolean {
-//     // A message is relayable if the attestation is available.
-//     const { sourceChainId, sentTimestampMs } = value
-//     const attestationAvailableTimestampMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
-//     const attestationTimestampOk = sentTimestampMs + attestationAvailableTimestampMs < Date.now()
+    const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
 
-//     return (
-//       attestationTimestampOk
-//     )
-//   }
+    return (
+      relayFinalizedTimestampOk
+    )
+  }
 
-//   async #relayMessage (message: string, destinationChainId: string): Promise<void> {
-//     const messageHash = MessageSDK.getMessageHashFromMessage(message)
-//     if (await this.#sentTxCache.doesItemExist(messageHash)) return
+  /**
+   * Relayer
+   */
 
-//     this.logger.info(`Relaying messageHash: ${messageHash} to chain: ${destinationChainId}`)
-//     try {
-//       const attestation = await MessageSDK.fetchAttestation(message)
-//       const chainSlug = getChain(destinationChainId).slug
-//       const wallet = wallets.get(chainSlug)
+  #pollRelayer = async (state: RailsTransferState): Promise<void> => {
+    for await (const [, value] of this.getItemsInState(state)) {
+      const { transferId, pathId } = value
+      const canRelay = await this.#canRelayTransfer(state, value)
+      if (!canRelay) continue
 
-//       // Add the item to the cache at the last possible moment prior to relaying
-//       await this.#sentTxCache.addItem(messageHash)
-//       // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
-//       // If it is not guaranteed, then this will not re-do the transaction due to the tx being in the cache. Consider
-//       // adding a timing element like v1.
-//       await MessageSDK.relayMessage(wallet, message, attestation)
-//     } catch (err) {
-//       this.#handleRelayError(message, err.message)
-//     }
-//   }
+      await this.#relayTransfer(state, value)
+    }
+  }
 
-//   #handleRelayError (message: string, errMessage: string): void {
-//     const messageHash = MessageSDK.getMessageHashFromMessage(message)
+  #canRelayTransfer (state: RailsTransferState, value: IRailsTransfer): Promise<boolean> {
+    switch (state) {
+      case RailsTransferState.Sent:
+        return this.#canRelaySentTransfer(value as ISentRailsTransfer)
+      case RailsTransferState.Posted:
+        return this.#canRelayPostedTransfer(value as IPostedRailsTransfer)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
 
-//     // Attestation errors
-//     if (errMessage.includes('Attestation not complete')) {
-//       this.logger.debug(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
-//       return
-//     } else if (errMessage.includes('Message hash not found')) {
-//       throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
-//     }
+  #canRelaySentTransfer (value: ISentRailsTransfer): Promise<boolean> {
+    // A transfer is postable if the bonder is chosen by the BCR
+    // TODO: Fill in BCR logic
+    return true
+  }
 
-//     // Tx errors
-//     if (errMessage.includes('Nonce already used')) {
-//       // This may occur if there are multiple servers running at once.
-//       // The item has already been added to the cache, so we can safely ignore this error.
-//       this.logger.debug(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
-//       return
-//     } else {
-//       // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
-//       // TODO: V2: The reorged message case should be handled differently by the DB and should not be here.
-//       this.logger.debug(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
-//       return
-//     }
-//   }
-// }
+  #canRelayPostedTransfer (value: IPostedRailsTransfer): Promise<boolean> {
+    // A transfer is bondable if the transfer has been posted
+    // TODO: Fill in onchain state (path.claims[transferId])
+    return true
+  }
+
+  async #relayTransfer (state: RailsTransferState, value: IRailsTransfer,): Promise<void> {
+    // TODO: Fill this in
+    // Both the state and transferId are required as a unique key for the cache
+    const { transferId, pathId } = value
+    const cacheKey = state + transferId
+    if (await this.#relayedTxCache.doesItemExist(cacheKey)) return
+
+    const { destChainId } = getChainsFromPathId(pathId)
+    this.logger.info(`Relaying transferId: ${transferId} to chain: ${destChainId}, state: ${state}`)
+
+    try {
+
+      // Add the item to the cache at the last possible moment prior to relaying
+      await this.#relayedTxCache.addItem(cacheKey)
+      // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
+      // If it is not guaranteed, then this will not re-do the transaction due to the tx being in the cache. Consider
+      // adding a timing element like v1.
+      await this.#sendRelay(state, value)
+    } catch (err) {
+      this.#handleRelayError(message, err.message)
+    }
+  }
+
+  async #sendRelay (state: RailsTransferState, value: IRailsTransfer): Promise<providers.TransactionRequest> {
+    const { pathId } = value
+    const { destChainId } = getChainsFromPathId(pathId)
+
+    const chainSlug = getChain(destChainId).slug
+    const wallet = wallets.get(chainSlug)
+
+    switch (state) {
+      case RailsTransferState.Sent: {
+        const { transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHops } = value as ISentRailsTransfer
+        return RailsSDK.connect(wallet).post({
+          transferId,
+          to,
+          amount,
+          totalSent,
+          attestedClaimId,
+          attestedTotalClaims,
+          nextHopsHash: RailsSDK.getNextHopsHash(nextHops)
+        })
+      }
+
+      case RailsTransferState.Posted: {
+        const { /* paths, */ transferId } = value as IPostedRailsTransfer
+
+        const nextHops: RailsHop[] = await this.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
+        return RailsSDK.connect(wallet).bond({
+          paths,
+          transferId,
+          nextHops
+        })
+      }
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  #handleRelayError (message: string, errMessage: string): void {
+    // TODO: Fill this in
+    // const messageHash = MessageSDK.getMessageHashFromMessage(message)
+
+    // // Attestation errors
+    // if (errMessage.includes('Attestation not complete')) {
+    //   this.logger.debug(`Attestation not yet ready for message hash: ${messageHash} (message: ${message}). Trying again next poll.`)
+    //   return
+    // } else if (errMessage.includes('Message hash not found')) {
+    //   throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
+    // }
+
+    // // Tx errors
+    // if (errMessage.includes('Nonce already used')) {
+    //   // This may occur if there are multiple servers running at once.
+    //   // The item has already been added to the cache, so we can safely ignore this error.
+    //   this.logger.debug(`Nonce already used for message hash: ${messageHash}. The item will no longer be attempted.`)
+    //   return
+    // } else {
+    //   // This might occur if the bonder is out of funds, there is an issue with the chain, or the message is an old, reorged message.
+    //   // TODO: V2: The reorged message case should be handled differently by the DB and should not be here.
+    //   this.logger.debug(`Relay failed for message hash: ${messageHash} (message: ${message}). This item will no longer be attempted.`)
+    //   return
+    // }
+  }
+}

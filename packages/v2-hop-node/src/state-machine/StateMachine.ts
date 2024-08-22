@@ -87,6 +87,14 @@ export abstract class StateMachine<State extends string, StateData> implements I
     yield* this.#db.getItemsInState(state)
   }
 
+  protected async getItemAttribute<PreviousState, Attribute extends keyof PreviousState>(
+    value: StateData,
+    attribute: Attribute
+  ): Promise<PreviousState[Attribute]> {
+    const key = this.getItemId(value)
+    return this.#db.getItemAttribute(key, attribute)
+  }
+
   /**
    * Poller
    */

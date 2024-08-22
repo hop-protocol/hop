@@ -88,7 +88,7 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
   }
 
   /**
-   * Iterators
+   * Getters
    */
 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
@@ -96,6 +96,17 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
       const filteredValue = normalizeDBValue(value)
       yield [key as Key, filteredValue as StateData]
     }
+  }
+
+  async getItemAttribute<PreviousState, Attribute extends keyof PreviousState>(
+    key: Key,
+    attribute: Attribute
+  ): Promise<PreviousState[Attribute]> {
+    const res = (await this.get(key)) as PreviousState
+    if (!res[attribute]) {
+      throw new Error(`Attribute ${JSON.stringify(attribute)} not found for key: ${key}`)
+    }
+    return res[attribute]
   }
 
   /**

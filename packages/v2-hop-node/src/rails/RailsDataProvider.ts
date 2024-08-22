@@ -1,4 +1,3 @@
-import type { EthersEventWithDecodedTypes } from '#types/index.js'
 import {
   type EthersEventWithDecodedTypes,
   type TransferBonded,

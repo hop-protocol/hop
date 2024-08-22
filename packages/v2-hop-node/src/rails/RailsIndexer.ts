@@ -11,10 +11,9 @@ import {
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { providers } from 'ethers'
-import { getRailsStartBlockNumber } from './utils.js'
+import { getChainsFromPathId, getRailsStartBlockNumber } from './utils.js'
 
 // TODO: Update with correct types
-// type LookupKey = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
 type LookupKey = (
   keyof EthersEventWithDecodedTypes<TransferSent> |
   keyof EthersEventWithDecodedTypes<TransferPosted> |
@@ -46,29 +45,18 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
    */
 
   protected override getIndexerEventFilter(state: RailsTransferState, value: IRailsTransfer): IndexerEventFilter<LookupKey> {
-    const chainId: string = this.#getChainIdForContext(state, value)
+    const path = getChainsFromPathId(value.pathId)
+    const chainId: string = state === RailsTransferState.Sent ? path.srcChainId : path.destChainId
     return this.#getIndexerEventFilterByChainId(chainId, state)
   }
 
   protected override getLookupKeyValue (lookupKey: LookupKey, value: IRailsTransfer): string {
-    switch (lookupKey) {
-      // TODO: Fill this in
-      // case 'transferId':
-      //   return value.transferId.toString()
-      // TODO: I did above, now do below
-      // case 'chainId':
-      //   return value.sourceChainId
-      // case 'nonce':
-      //   return value.messageNonce.toString()
-      // case 'sourceDomain':
-      //   return MessageSDK.getDomainFromChainId(value.sourceChainId)
-      default:
-        throw new Error('Invalid lookup key')
-    }
+    // The transferId is unique across all chains and transfers, so we can use it for all states
+    return value.transferId
   }
 
   protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): EthersEventWithDecodedTypes {
-    // TODO: Ensure this method is exposed from SDK && that it accepts a providers.Log
+    // TODO: V2: Ensure this method is exposed from SDK && that it accepts a providers.Log
     return addTypedEvent(log, chainId)
   }
 
@@ -77,45 +65,22 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
    */
 
   #getIndexerEventFilterByChainId(chainId: string, state: RailsTransferState): IndexerEventFilter<LookupKey> {
-    switch (state) {
-      case RailsTransferState.Sent:
-        return {
-          chainId,
-          filter: getTransferSentEventFilter(chainId),
-          startBlockNumber: getRailsStartBlockNumber(chainId),
-          // TODO: Fill this in
-          lookupKeys: ['TODO']
-        }
-      case RailsTransferState.Posted:
-        return {
-          chainId,
-          filter: getTransferPostedEventFilter(chainId),
-          startBlockNumber: getRailsStartBlockNumber(chainId),
-          // TODO: Fill this in
-          lookupKeys: ['TODO']
-        }
-      case RailsTransferState.Bonded:
-        return {
-          chainId,
-          filter: getTransferBondedEventFilter(chainId),
-          startBlockNumber: getRailsStartBlockNumber(chainId),
-          // TODO: Fill this in
-          lookupKeys: ['TODO']
-        }
-      default:
-        throw new Error('Invalid state')
+    return {
+      chainId,
+      filter: this.#getFilterByState(state, chainId),
+      startBlockNumber: getRailsStartBlockNumber(chainId),
+      lookupKeys: ['transferId']
     }
   }
 
-  #getChainIdForContext (state: RailsTransferState, value: IRailsTransfer): string {
+  #getFilterByState (state: RailsTransferState, chainId: string): IndexerEventFilter<LookupKey> {
     switch (state) {
-      // TODO: Fill this in
       case RailsTransferState.Sent:
-        // return value.sourceChainId
+        return getTransferSentEventFilter(chainId)
       case RailsTransferState.Posted:
-        // return value.sourceChainId
+        return getTransferPostedEventFilter(chainId)
       case RailsTransferState.Bonded:
-        // return value.destinationChainId
+        return getTransferBondedEventFilter(chainId)
       default:
         throw new Error('Invalid state')
     }

@@ -9,7 +9,6 @@ import {
   getTransferBondedEventFilter
 } from '@hop-protocol/sdk'
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
-import type { EthersEventWithDecodedTypes } from '#types/index.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { providers } from 'ethers'
 import { getRailsStartBlockNumber } from './utils.js'

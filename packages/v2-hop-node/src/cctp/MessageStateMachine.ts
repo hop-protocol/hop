@@ -12,7 +12,7 @@ import { TxRelayDB } from '#db/TxRelayDB.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
 
 export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
-  readonly #sentTxCache: TxRelayDB = new TxRelayDB('StateMachine')
+  readonly #relayedTxCache: TxRelayDB = new TxRelayDB('StateMachine')
   // If timing checks pass, a relay is attempted every poll. This value should be small enough
   // where users are not waiting a relatively long time but short enough where resources (RPC calls,
   // attestation API calls) are not abused.
@@ -103,7 +103,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
 
   async #relayMessage (message: string, destinationChainId: string): Promise<void> {
     const messageHash = MessageSDK.getMessageHashFromMessage(message)
-    if (await this.#sentTxCache.doesItemExist(messageHash)) return
+    if (await this.#relayedTxCache.doesItemExist(messageHash)) return
 
     this.logger.info(`Relaying messageHash: ${messageHash} to chain: ${destinationChainId}`)
     try {
@@ -112,7 +112,7 @@ export class MessageStateMachine extends StateMachine<MessageState, IMessage> {
       const wallet = wallets.get(chainSlug)
 
       // Add the item to the cache at the last possible moment prior to relaying
-      await this.#sentTxCache.addItem(messageHash)
+      await this.#relayedTxCache.addItem(messageHash)
       // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
       // If it is not guaranteed, then this will not re-do the transaction due to the tx being in the cache. Consider
       // adding a timing element like v1.

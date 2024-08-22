@@ -1,5 +1,6 @@
 import { wallets } from '#wallets/index.js'
-import { getChain, RailsSDK } from '@hop-protocol/sdk'
+import { getChain, RailsSDK, BCR } from '@hop-protocol/sdk'
+// import { BCR } from '#bcr/BCR.js'
 import { StateMachine } from '#state-machine/StateMachine.js'
 import { poll } from '#utils/poll.js'
 import {
@@ -11,7 +12,7 @@ import {
 } from './types.js'
 import { TxRelayDB } from '#db/TxRelayDB.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import type { Signer, providers } from 'ethers'
+import type { providers } from 'ethers'
 import { getChainsFromPathId } from './utils.js'
 
 export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
@@ -116,6 +117,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
   }
 
   #canRelayTransfer (state: RailsTransferState, value: IRailsTransfer): Promise<boolean> {
+    // TODO: Consider checking for gas here. Might be better handled in gasboost
     switch (state) {
       case RailsTransferState.Sent:
         return this.#canRelaySentTransfer(value as ISentRailsTransfer)
@@ -126,16 +128,20 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     }
   }
 
-  #canRelaySentTransfer (value: ISentRailsTransfer): Promise<boolean> {
+  async #canRelaySentTransfer (value: ISentRailsTransfer): Promise<boolean> {
     // A transfer is postable if the bonder is chosen by the BCR
-    // TODO: Fill in BCR logic
-    return true
+    // TODO: V2: When relayer is ripped out, create #wallet class var that is used throughout
+    const { pathId, transferId } = value
+    const { destChainId } = getChainsFromPathId(pathId)
+    const chainSlug = getChain(destChainId).slug
+    const wallet = wallets.get(chainSlug)
+    return BCR.isBonder(transferId, pathId, wallet.getAddress())
   }
 
-  #canRelayPostedTransfer (value: IPostedRailsTransfer): Promise<boolean> {
-    // A transfer is bondable if the transfer has been posted
-    // TODO: Fill in onchain state (path.claims[transferId])
-    return true
+  async #canRelayPostedTransfer (value: IPostedRailsTransfer): Promise<boolean> {
+    const isClaimed = await RailsSDK.isClaimed(value.transferId)
+    const isBonded = await RailsSDK.isBonded(value.transferId)
+    return isClaimed && !isBonded
   }
 
   async #relayTransfer (state: RailsTransferState, value: IRailsTransfer,): Promise<void> {
@@ -149,7 +155,6 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     this.logger.info(`Relaying transferId: ${transferId} to chain: ${destChainId}, state: ${state}`)
 
     try {
-
       // Add the item to the cache at the last possible moment prior to relaying
       await this.#relayedTxCache.addItem(cacheKey)
       // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
@@ -198,6 +203,6 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
   }
 
   #handleRelayError (value: IRailsTransfer, errMessage: string): void {
-    // TODO: Fill this in
+    // TODO: Fill this in when contract errors are finalized
   }
 }

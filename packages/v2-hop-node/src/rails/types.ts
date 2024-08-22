@@ -42,7 +42,8 @@ export interface IPostedRailsTransfer extends IRailsTransferShared {
 }
 
 export interface IBondedRailsTransfer extends IRailsTransferShared {
-  // TODO: Add
+  to: string
+  amountOut: BigNumber
   bondedTxHash: string
   bondedTimestampMs: number
 }

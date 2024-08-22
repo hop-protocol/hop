@@ -1,20 +1,11 @@
 import {
   type EthersEventWithDecodedTypes,
-  type TransferBonded,
-  type TransferPosted,
-  type TransferSent
   transferSentEventFilter,
   transferPostedEventFilter,
   transferBondedEventFilter
 } from '@hop-protocol/sdk'
 import { DataProvider } from '#data-provider/DataProvider.js'
-import {
-  type IRailsTransfer,
-  type ISentRailsTransfer,
-  type IPostedRailsTransfer,
-  type IBondedRailsTransfer,
-  RailsTransferState
-} from './types.js'
+import { type IRailsTransfer, RailsTransferState } from './types.js'
 import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
 
 export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTransfer> {
@@ -28,55 +19,31 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
   }
 
   protected override async formatDataSourceItem (state: RailsTransferState, log: EthersEventWithDecodedTypes): Promise<IRailsTransfer> {
+    const { transactionHash, decoded } = log
+    const timestampMs = await getBlockTimestampFromLogMs(log)
+
     switch (state) {
       case RailsTransferState.Sent:
-        return this.#formatSentRailsTransferLog(log as EthersEventWithDecodedTypes<TransferSent>)
+        return {
+          ...decoded,
+          sentTxHash: transactionHash,
+          sentTimestampMs: timestampMs
+        }
       case RailsTransferState.Posted:
-        return this.#formatPostedRailsTransferLog(log as EthersEventWithDecodedTypes<TransferPosted>)
+        return {
+          ...decoded,
+          postedTxHash: transactionHash,
+          postedTimestampMs: timestampMs
+        }
       case RailsTransferState.Bonded:
-        return this.#formatBondedRailsTransferLog(log as EthersEventWithDecodedTypes<TransferBonded>)
+        return {
+          ...decoded,
+          bondedTxHash: transactionHash,
+          bondedTimestampMs: timestampMs
+        }
       default:
         throw new Error('Invalid state')
     }
-  }
-
-  /**
-   * Internal
-   */
-
-  async #formatSentRailsTransferLog (log: EthersEventWithDecodedTypes<TransferSent>): Promise<ISentRailsTransfer> {
-    // TODO: Fill in
-    // const { transactionHash, context, decoded } = log
-    // const { chainId } = context
-    // const { message, cctpNonce, chainId: destinationChainId } = decoded
-    // const timestampMs = await getBlockTimestampFromLogMs(log)
-
-    // return {
-    //   message,
-    //   messageNonce: cctpNonce,
-    //   sourceChainId: chainId,
-    //   destinationChainId,
-    //   sentTxHash: transactionHash,
-    //   sentTimestampMs: timestampMs
-    // }
-  }
-
-  async #formatPostedRailsTransferLog (log: EthersEventWithDecodedTypes<TransferPosted>): Promise<IPostedRailsTransfer> {
-    // TODO: Fill in
-  }
-
-  async #formatBondedRailsTransferLog (log: EthersEventWithDecodedTypes<TransferBonded>): Promise<IBondedRailsTransfer> {
-    // TODO: Fill in
-    // const { transactionHash, decoded, context } = log
-    // const { nonce, sourceDomain } = decoded
-    // const timestampMs = await getBlockTimestampFromLogMs(log)
-    // return {
-    //   messageNonce: nonce,
-    //   sourceChainId: MessageSDK.getChainIdFromDomain(sourceDomain),
-    //   destinationChainId: context.chainId,
-    //   relayTransactionHash: transactionHash,
-    //   relayTimestampMs: timestampMs
-    // }
   }
 
   /**
@@ -87,13 +54,12 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
     const eventSig = log.topics[0]
     const chainId = log.context.chainId
     switch (eventSig) {
-      // TODO: Fill this in
-      case transferSentEventFilter(chainId).topics[0]):
-      //  return MessageState.Sent
-      case transferPostedEventFilter(chainId).topics[0]):
-        // return MessageState.Relayed
-      case transferBondedEventFilter(chainId).topics[0]):
-        // return MessageState.Relayed
+      case transferSentEventFilter(chainId).topics[0]:
+       return RailsTransferState.Sent
+      case transferPostedEventFilter(chainId).topics[0]:
+        return RailsTransferState.Posted
+      case transferBondedEventFilter(chainId).topics[0]:
+        return RailsTransferState.Bonded
       default:
         throw new Error('Invalid log')
     }

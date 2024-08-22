@@ -6,7 +6,6 @@ import { v4 as uuid } from 'uuid'
 export interface TransferBonded extends BaseType {
   pathId: string
   transferId: string
-  to: string
   amount: BigNumber
 }
 
@@ -16,7 +15,6 @@ export class TransferBondedTable extends EventDb {
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
         transfer_id CHAR(66) NOT NULL UNIQUE,
-        "to" CHAR(42) NOT NULL, -- Ethereum address
         amount NUMERIC NOT NULL CHECK (amount >= 0),
         ${eventContextIdCreationSql}
     )`)
@@ -48,7 +46,6 @@ export class TransferBondedTable extends EventDb {
       `SELECT
         path_id AS "pathId",
         transfer_id AS "transferId",
-        "to",
         amount,
         ${selectEventContextSql}
       FROM
@@ -73,24 +70,24 @@ export class TransferBondedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, transferId, to, amount, context } = this.#normalizeDataForPut(item)
+    const { pathId, transferId, amount, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, transferId, to, amount
+      id: uuid(), contextId, pathId, transferId, amount
     }
     const sql = `
       INSERT INTO
         transfer_bonded_events
       (
-        id, event_context_id, path_id, transfer_id, "to", amount
+        id, event_context_id, path_id, transfer_id, amount
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${to}, ${amount})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${amount})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET path_id = ${pathId}'}
+      ${'DO UPDATE SET transfer_id = ${transferId}'}
     `
 
     await this.db.tx(async (t: any) => {

@@ -2,6 +2,9 @@ import os from 'node:os'
 import { TextEncoder } from 'node:util'
 import { getEnvFilePath } from '#utils/getEnvFilePath.js'
 import { loadEnvFile } from 'node:process'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 global.TextEncoder = TextEncoder
 const envFilePath = getEnvFilePath()

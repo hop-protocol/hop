@@ -1,2 +1,2 @@
-import baseConfig from '../../jest.config.base.mjs'
-export default baseConfig
+import baseESMConfig from '../../jest.config.esm.mjs'
+export default baseESMConfig

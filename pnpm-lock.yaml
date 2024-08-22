@@ -832,6 +832,9 @@ importers:
       cors:
         specifier: 2.8.5
         version: 2.8.5
+      dotenv:
+        specifier: 16.4.5
+        version: 16.4.5
       ethers:
         specifier: 5.7.1
         version: 5.7.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -7464,6 +7467,10 @@ packages:
 
   dotenv@16.4.1:
     resolution: {integrity: sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==}
+    engines: {node: '>=12'}
+
+  dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
 
   duplexer@0.1.2:
@@ -22586,6 +22593,8 @@ snapshots:
   dotenv@16.0.0: {}
 
   dotenv@16.4.1: {}
+
+  dotenv@16.4.5: {}
 
   duplexer@0.1.2: {}
 

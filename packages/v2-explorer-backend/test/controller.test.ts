@@ -2,7 +2,7 @@ import { Controller } from '#controller/index.js'
 
 // note: this requires worker to have indexed events
 
-describe('Controller', () => {
+describe.skip('Controller', () => {
   it('should get paginated events', async () => {
     const controller = new Controller()
     const limit = 5

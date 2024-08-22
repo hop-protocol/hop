@@ -16,8 +16,18 @@ type EventsResult = {
 type EventsApiInput = {
   eventName: string
   limit?: number
-  lastKey?: string | null
-  firstKey?: string | null
+  page?: number | null
+  filter: any
+}
+
+type PathsApiInput = {
+  limit?: number
+  page?: number | null
+  filter: any
+}
+
+type TokensApiInput = {
+  limit?: number
   page?: number | null
   filter: any
 }
@@ -377,5 +387,31 @@ export class Controller {
       }
     }
     return event
+  }
+
+  async getPathsForApi (input: PathsApiInput): Promise<EventsResult> {
+    const { limit = 10, filter, page = 1 } = input
+
+    const items = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page })
+    const itemsNext = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page: Number(page) + 1 })
+    const hasNextPage = itemsNext.length > 0
+
+    return {
+      items,
+      hasNextPage
+    }
+  }
+
+  async getTokensForApi (input: TokensApiInput): Promise<EventsResult> {
+    const { limit = 10, filter, page = 1 } = input
+
+    const items = await this.pgDb.nonEventTables.Token.getItems({ limit, filter, page })
+    const itemsNext = await this.pgDb.nonEventTables.Token.getItems({ limit, filter, page: Number(page) + 1 })
+    const hasNextPage = itemsNext.length > 0
+
+    return {
+      items,
+      hasNextPage
+    }
   }
 }

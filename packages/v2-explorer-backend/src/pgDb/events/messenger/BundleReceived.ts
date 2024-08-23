@@ -79,7 +79,7 @@ export class BundleReceivedTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items)
+    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -100,7 +100,7 @@ export class BundleReceivedTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${bundleFees}, ${fromChainId}, ${toChainId}, ${relayWindowStart}, ${relayer})'}
       ON CONFLICT (bundle_id)
-      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+      ${'DO UPDATE SET bundle_id = ${bundleId}, bundle_root = ${bundleRoot}, bundle_fees = ${bundleFees}, from_chain_id = ${fromChainId}, to_chain_id = ${toChainId}, relay_window_start = ${relayWindowStart}, relayer = ${relayer}'}
     `
 
     await this.db.tx(async (t: any) => {

@@ -90,7 +90,7 @@ export class BundleForwardedTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${fromChainId}, ${toChainId})'}
       ON CONFLICT (bundle_id)
-      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+      ${'DO UPDATE SET bundle_id = ${bundleId}, bundle_root = ${bundleRoot}, from_chain_id = ${fromChainId}, to_chain_id = ${toChainId}'}
     `
 
     await this.db.tx(async (t: any) => {

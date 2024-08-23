@@ -94,7 +94,7 @@ export class MessageSentTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${messageId}, ${from}, ${toChainId}, ${to}, ${data})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, "from" = ${from}, to_chain_id = ${toChainId}, "to" = ${to}, "data" = ${data}'}
     `
 
     await this.db.tx(async (t: any) => {

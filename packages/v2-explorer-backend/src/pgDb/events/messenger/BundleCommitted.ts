@@ -74,7 +74,7 @@ export class BundleCommittedTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items).map((item: any) => this.#normalizeDataForGet(item))
+    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {

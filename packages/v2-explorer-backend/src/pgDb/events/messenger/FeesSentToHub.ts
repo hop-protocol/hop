@@ -43,7 +43,7 @@ export class FeesSentToHubTable extends EventDb {
       OFFSET $4`,
       [startTimestamp, endTimestamp, limit, offset])
 
-    return getItemsWithContext(items)
+    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -58,11 +58,11 @@ export class FeesSentToHubTable extends EventDb {
     }
     const sql = `
       INSERT INTO
-        bundle_set_events
+        fees_sent_to_hub_events
       (id, event_context_id, amount)
       VALUES ${'(${id}, ${contextId}, ${amount})'}
-      ON CONFLICT (tx_hash)
-      ${'DO UPDATE SET amount = ${amount}'}
+      ON CONFLICT (id)
+      ${'DO UPDATE SET amount = ${amount}, event_context_id = ${contextId}'}
     `
 
     await this.db.tx(async (t: any) => {

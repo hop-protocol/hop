@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { getItemsWithContext, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
+import { getItemsWithContext, eventContextIdCreationSql, getInsertEventContextSqlData, selectEventContextSql } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageExecuted extends BaseType {
@@ -12,7 +12,7 @@ export class MessageExecutedTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_executed_events (
         id TEXT PRIMARY KEY,
         message_id CHAR(66) NOT NULL UNIQUE,
-        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0), -- uint256
+        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0),
         ${eventContextIdCreationSql}
     )`)
   }
@@ -41,7 +41,8 @@ export class MessageExecutedTable extends EventDb {
     const items = await this.db.any(
       `SELECT
         message_id AS "messageId",
-        from_chain_id AS "fromChainId"
+        from_chain_id AS "fromChainId",
+        ${selectEventContextSql}
       FROM
         message_executed_events e
       JOIN
@@ -76,9 +77,9 @@ export class MessageExecutedTable extends EventDb {
       INSERT INTO
         message_executed_events
       (id, event_context_id, message_id, from_chain_id)
-      VALUES ${'(${id}, ${contextId}, ${messageId}, ${fromChainId)'}
+      VALUES ${'(${id}, ${contextId}, ${messageId}, ${fromChainId})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, from_chain_id = ${fromChainId}'}
     `
 
     await this.db.tx(async (t: any) => {

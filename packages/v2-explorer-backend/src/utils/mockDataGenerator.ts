@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, TransferSent, TransferBonded, HopStruct, EventContext } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext } from '@hop-protocol/v2-sdk'
 
 // Helper function to generate random Ethereum address
 export function generateRandomAddress(): string {
@@ -68,6 +68,73 @@ export function generateMockBundleCommitted(): BundleCommitted {
     bundleFees: generateRandomUint256(),
     toChainId: generateRandomInt().toString(),
     commitTime: generateRandomInt(1_600_000_000, 1_700_000_000) // Random Unix timestamp
+  }
+}
+
+// Function to generate mock BundleForwarded
+export function generateMockBundleForwarded(): BundleForwarded {
+  return {
+    bundleId: generateRandomBytes32(),
+    bundleRoot: generateRandomBytes32(),
+    fromChainId: generateRandomInt(1, 10).toString(), // Example chain ID as string
+    toChainId: generateRandomInt(1, 10).toString() // Example chain ID as string
+  }
+}
+
+// Function to generate mock BundleReceived
+export function generateMockBundleReceived(): BundleReceived {
+  return {
+    bundleId: generateRandomBytes32(),
+    bundleRoot: generateRandomBytes32(),
+    bundleFees: generateRandomUint256(),
+    fromChainId: generateRandomInt(1, 10).toString(), // Example chain ID as string
+    toChainId: generateRandomInt(1, 10).toString(), // Example chain ID as string
+    relayWindowStart: generateRandomUnixTime(), // Random Unix timestamp
+    relayer: generateRandomAddress() // Random Ethereum address
+  }
+}
+
+// Function to generate mock BundleSet
+export function generateMockBundleSet(): BundleSet {
+  return {
+    bundleId: generateRandomBytes32(),
+    bundleRoot: generateRandomBytes32(),
+    fromChainId: generateRandomInt(1, 10).toString() // Example chain ID as string
+  }
+}
+
+// Function to generate mock FeesSentToHub
+export function generateMockFeesSentToHub(): FeesSentToHub {
+  return {
+    amount: generateRandomUint256() // Random BigNumber
+  }
+}
+
+// Function to generate mock MessageBundled
+export function generateMockMessageBundled(): MessageBundled {
+  return {
+    messageId: generateRandomBytes32(),
+    bundleId: generateRandomBytes32(),
+    treeIndex: generateRandomInt(0, 100) // Random integer for tree index
+  }
+}
+
+// Function to generate mock MessageExecuted
+export function generateMockMessageExecuted(): MessageExecuted {
+  return {
+    messageId: generateRandomBytes32(),
+    fromChainId: generateRandomInt(1, 10).toString() // Example chain ID as string
+  }
+}
+
+// Function to generate mock MessageSent
+export function generateMockMessageSent(): MessageSent {
+  return {
+    messageId: generateRandomBytes32(),
+    from: generateRandomAddress(), // Random Ethereum address
+    toChainId: generateRandomInt(1, 10).toString(), // Example chain ID as string
+    to: generateRandomAddress(), // Random Ethereum address
+    data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join('') // Random hex data
   }
 }
 

@@ -87,7 +87,7 @@ export class MessageBundledTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${messageId}, ${bundleId}, ${treeIndex})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, bundle_id = ${bundleId}, tree_index = ${treeIndex}'}
     `
 
     await this.db.tx(async (t: any) => {

@@ -1,24 +1,21 @@
 import {
-  type EthersEventWithDecodedTypes,
-  type TransferBonded,
-  type TransferPosted,
   type TransferSent,
-  addTypedEvent,
-  getTransferSentEventFilter,
-  getTransferPostedEventFilter,
-  getTransferBondedEventFilter
-} from '@hop-protocol/sdk'
+  type TransferPosted,
+  type TransferBonded,
+  // RailsSDK,
+  RailsSDKWrapper
+} from './RailsSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
-import { type IRailsTransfer, RailsTransferState } from './types.js'
+import {
+  type IRailsTransfer,
+  RailsTransferState
+} from './types.js'
 import type { providers } from 'ethers'
 import { getChainsFromPathId, getRailsStartBlockNumber } from './utils.js'
+import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
-// TODO: Update with correct types
-type LookupKey = (
-  keyof EthersEventWithDecodedTypes<TransferSent> |
-  keyof EthersEventWithDecodedTypes<TransferPosted> |
-  keyof EthersEventWithDecodedTypes<TransferBonded>
-)
+// TODO: Sent -> posted
+type LookupKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
 
 /**
  * This class is responsible for abstracting away indexing logic
@@ -47,7 +44,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
   protected override getIndexerEventFilter(state: RailsTransferState, value: IRailsTransfer): IndexerEventFilter<LookupKey> {
     const path = getChainsFromPathId(value.pathId)
     const chainId: string = state === RailsTransferState.Sent ? path.srcChainId : path.destChainId
-    return this.#getIndexerEventFilterByChainId(chainId, state)
+    return this.#getIndexerEventFilterByChainId(chainId, state, value.pathId)
   }
 
   protected override getLookupKeyValue (lookupKey: LookupKey, value: IRailsTransfer): string {
@@ -55,32 +52,32 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
     return value.transferId
   }
 
-  protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): EthersEventWithDecodedTypes {
-    // TODO: V2: Ensure this method is exposed from SDK && that it accepts a providers.Log
-    return addTypedEvent(log, chainId)
+  protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
+    return RailsSDKWrapper.addDecodedTypesAndContextToEvent(log, chainId)
   }
 
   /**
    * Internal
    */
 
-  #getIndexerEventFilterByChainId(chainId: string, state: RailsTransferState): IndexerEventFilter<LookupKey> {
+  #getIndexerEventFilterByChainId(chainId: string, state: RailsTransferState, pathId?: string): IndexerEventFilter<LookupKey> {
     return {
       chainId,
-      filter: this.#getFilterByState(state, chainId),
+      filter: this.#getFilterByState(state, chainId, pathId),
       startBlockNumber: getRailsStartBlockNumber(chainId),
       lookupKeys: ['transferId']
     }
   }
 
-  #getFilterByState (state: RailsTransferState, chainId: string): IndexerEventFilter<LookupKey> {
+  #getFilterByState (state: RailsTransferState, chainId: string, pathId?: string): RequiredEventFilter {
+    const indexes = pathId ? { pathId } : undefined
     switch (state) {
       case RailsTransferState.Sent:
-        return getTransferSentEventFilter(chainId)
+        return RailsSDKWrapper.getTransferSentEventFilter(chainId, indexes)
       case RailsTransferState.Posted:
-        return getTransferPostedEventFilter(chainId)
+        return RailsSDKWrapper.getTransferPostedEventFilter(chainId, indexes)
       case RailsTransferState.Bonded:
-        return getTransferBondedEventFilter(chainId)
+        return RailsSDKWrapper.getTransferBondedEventFilter(chainId, indexes)
       default:
         throw new Error('Invalid state')
     }

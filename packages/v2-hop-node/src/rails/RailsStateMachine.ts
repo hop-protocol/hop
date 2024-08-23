@@ -1,6 +1,7 @@
 import { wallets } from '#wallets/index.js'
-import { getChain, RailsSDK, BCR } from '@hop-protocol/sdk'
-// import { BCR } from '#bcr/BCR.js'
+import { getChain } from '@hop-protocol/sdk'
+import { RailsSDKWrapper, RailsSDK } from './RailsSDK.js'
+import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 import { StateMachine } from '#state-machine/StateMachine.js'
 import { poll } from '#utils/poll.js'
 import {
@@ -135,7 +136,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     const { destChainId } = getChainsFromPathId(pathId)
     const chainSlug = getChain(destChainId).slug
     const wallet = wallets.get(chainSlug)
-    return BCR.isBonder(transferId, pathId, wallet.getAddress())
+    return BonderChoiceRule.isTransferForBonder(transferId, pathId, await wallet.getAddress())
   }
 
   async #canRelayPostedTransfer (value: IPostedRailsTransfer): Promise<boolean> {
@@ -145,7 +146,6 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
   }
 
   async #relayTransfer (state: RailsTransferState, value: IRailsTransfer,): Promise<void> {
-    // TODO: Fill this in
     // Both the state and transferId are required as a unique key for the cache
     const { transferId, pathId } = value
     const cacheKey = state + transferId
@@ -166,7 +166,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     }
   }
 
-  async #sendRelay (state: RailsTransferState, value: IRailsTransfer): Promise<providers.TransactionRequest> {
+  async #sendRelay (state: RailsTransferState, value: IRailsTransfer): Promise<providers.TransactionResponse> {
     const { pathId } = value
     const { destChainId } = getChainsFromPathId(pathId)
 
@@ -176,7 +176,8 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     switch (state) {
       case RailsTransferState.Sent: {
         const { pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHops } = value as ISentRailsTransfer
-        return RailsSDK.connect(wallet).post({
+        // TODO: Connect when available
+        return RailsSDKWrapper/*.connect(wallet)*/.postClaim({
           pathId,
           transferId,
           to,
@@ -191,7 +192,8 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
       case RailsTransferState.Posted: {
         const { pathId, transferId } = value as IPostedRailsTransfer
         const nextHops: RailsHop[] = await this.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
-        return RailsSDK.connect(wallet).bond({
+        // TODO: Connect when available
+        return RailsSDKWrapper/*.connect(wallet)*/.bond({
           pathId,
           transferId,
           nextHops

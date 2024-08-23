@@ -1,10 +1,12 @@
-import {
-  transferSentEventFilter,
-  transferPostedEventFilter,
-  transferBondedEventFilter
-} from '@hop-protocol/v2-sdk'
+import { RailsSDKWrapper } from './RailsSDK.js'
 import { DataProvider } from '#data-provider/DataProvider.js'
-import { type IRailsTransfer, RailsTransferState } from './types.js'
+import {
+  type IRailsTransfer,
+  type ISentRailsTransfer,
+  type IPostedRailsTransfer,
+  type IBondedRailsTransfer,
+  RailsTransferState
+} from './types.js'
 import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
@@ -25,19 +27,19 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
     switch (state) {
       case RailsTransferState.Sent:
         return {
-          ...decoded,
+          ...decoded as ISentRailsTransfer,
           sentTxHash: transactionHash,
           sentTimestampMs: timestampMs
         }
       case RailsTransferState.Posted:
         return {
-          ...decoded,
+          ...decoded as IPostedRailsTransfer,
           postedTxHash: transactionHash,
           postedTimestampMs: timestampMs
         }
       case RailsTransferState.Bonded:
         return {
-          ...decoded,
+          ...decoded as IBondedRailsTransfer,
           bondedTxHash: transactionHash,
           bondedTimestampMs: timestampMs
         }
@@ -54,11 +56,11 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
     const eventSig = log.topics[0]
     const chainId = log.context.chainId
     switch (eventSig) {
-      case transferSentEventFilter(chainId).topics[0]:
+      case RailsSDKWrapper.getTransferSentEventFilter(chainId).topics![0]:
        return RailsTransferState.Sent
-      case transferPostedEventFilter(chainId).topics[0]:
+      case RailsSDKWrapper.getTransferPostedEventFilter(chainId).topics![0]:
         return RailsTransferState.Posted
-      case transferBondedEventFilter(chainId).topics[0]:
+      case RailsSDKWrapper.getTransferBondedEventFilter(chainId).topics![0]:
         return RailsTransferState.Bonded
       default:
         throw new Error('Invalid log')

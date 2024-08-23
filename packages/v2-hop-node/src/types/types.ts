@@ -3,7 +3,6 @@ import type {
   EventFilter,
   providers
 } from 'ethers'
-import type { EthersEventWithDecodedTypes } from '@hop-protocol/sdk'
 
 /**
  * Logs, events, and filters
@@ -14,7 +13,9 @@ type LogContext = {
   chainId: string
 }
 
-export type DecodedLogWithContext<T extends object = object> = EthersEventWithDecodedTypes<T> & { context: LogContext }
+type LogWithContext = providers.Log & { context: LogContext }
+// TODO: Remove in favor of SDK
+export type DecodedLogWithContext<T extends object = object> = LogWithContext & { decoded: T }
 
 // Override ethers types with required fields
 export type RequiredEventFilter = Required<EventFilter>

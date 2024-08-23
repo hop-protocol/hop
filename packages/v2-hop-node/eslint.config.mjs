@@ -26,6 +26,7 @@ export default tseslint.config(
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'error',
+      '@typescript-eslint/no-duplicate-type-constituents': ['error', { ignoreIntersections: true }],
       'n/no-missing-import': ['error'],
       'n/no-extraneous-import': ['error'],
 

@@ -1,12 +1,12 @@
 import {
-  type EthersEventWithDecodedTypes,
   transferSentEventFilter,
   transferPostedEventFilter,
   transferBondedEventFilter
-} from '@hop-protocol/sdk'
+} from '@hop-protocol/v2-sdk'
 import { DataProvider } from '#data-provider/DataProvider.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
+import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTransfer> {
 
@@ -14,11 +14,11 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
    * Implementation
    */
 
-  protected override getKeyFromDataSourceItem (log: EthersEventWithDecodedTypes): RailsTransferState {
+  protected override getKeyFromDataSourceItem (log: DecodedLogWithContext): RailsTransferState {
     return this.#getStateFromLog(log)
   }
 
-  protected override async formatDataSourceItem (state: RailsTransferState, log: EthersEventWithDecodedTypes): Promise<IRailsTransfer> {
+  protected override async formatDataSourceItem (state: RailsTransferState, log: DecodedLogWithContext): Promise<IRailsTransfer> {
     const { transactionHash, decoded } = log
     const timestampMs = await getBlockTimestampFromLogMs(log)
 
@@ -50,7 +50,7 @@ export class RailsDataProvider extends DataProvider<RailsTransferState, IRailsTr
    * Utils
    */
 
-  #getStateFromLog (log: EthersEventWithDecodedTypes): RailsTransferState {
+  #getStateFromLog (log: DecodedLogWithContext): RailsTransferState {
     const eventSig = log.topics[0]
     const chainId = log.context.chainId
     switch (eventSig) {

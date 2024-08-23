@@ -1008,6 +1008,9 @@ importers:
       '@hop-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk
+      '@hop-protocol/v2-sdk':
+        specifier: workspace:*
+        version: link:../v2-sdk
       '@maticnetwork/maticjs':
         specifier: 3.5.0
         version: 3.5.0(encoding@0.1.13)

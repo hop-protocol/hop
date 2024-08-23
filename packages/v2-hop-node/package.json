@@ -37,6 +37,7 @@
     "@ethereumjs/rlp": "5.0.2",
     "@ethereumjs/tx": "5.3.0",
     "@hop-protocol/sdk": "workspace:*",
+    "@hop-protocol/v2-sdk": "workspace:*",
     "@maticnetwork/maticjs": "3.5.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",
     "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",

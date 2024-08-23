@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers'
 import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token } from '@hop-protocol/v2-sdk'
+import { Price } from '#pgDb/prices/index.js'
 
 // Helper function to generate random Ethereum address
 export function generateRandomAddress(): string {
@@ -187,9 +188,20 @@ export function generateMockPath(): Path {
   }
 }
 
+// Prices
+
+
+export function generateMockPrice(): Price {
+  return {
+    token: generateRandomString(5).toUpperCase(), // Generates a random token symbol with length between 3 and 5 characters, converted to uppercase
+    priceUsd: Number((Math.random() * 1000).toFixed(2)), // Generates a random price in USD, formatted as a string with two decimal places
+    timestamp: generateRandomUnixTime() // Random Unix timestamp
+  }
+}
+
 // Tokens
 
-export function generateMockToken(): Token & { chainId: string } {
+export function generateMockToken(): Token {
   return {
     chainId: generateRandomInt(1, 10).toString(), // Example chain ID as a string
     address: generateRandomAddress(), // Generates a random Ethereum address

@@ -1,1 +1,1 @@
-export { Price, PricesTable } from './prices.js'
+export { Price, PriceTable } from './prices.js'

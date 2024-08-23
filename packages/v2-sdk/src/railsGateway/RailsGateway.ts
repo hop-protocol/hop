@@ -290,7 +290,7 @@ export type GetTransferSentEventFilterInput = {
 }
 
 export type Token = {
-  chainId: BigNumber
+  chainId: string
   address: string
   name: string
   symbol: string
@@ -1483,7 +1483,7 @@ export class RailsGateway extends StakingRegistry {
 
     if (cached) {
       return {
-        chainId: BigNumber.from(cached.chainId),
+        chainId: cached.chainId,
         address: cached.address,
         name: cached.name,
         symbol: cached.symbol,
@@ -1500,7 +1500,7 @@ export class RailsGateway extends StakingRegistry {
     ])
 
     const response = {
-      chainId: BigNumber.from(chainId),
+      chainId: chainId.toString(),
       address: checksumAddress(address),
       name,
       symbol,

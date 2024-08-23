@@ -7,7 +7,7 @@ export interface Price {
   timestamp: number
 }
 
-export class PricesTable extends EventDb {
+export class PriceTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS prices (
       id TEXT PRIMARY KEY,

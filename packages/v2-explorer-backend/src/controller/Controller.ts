@@ -123,9 +123,9 @@ export class Controller {
 
       const [pathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
-      const tokenPrice = await this.pgDb.pricesTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
+      const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
       item.tokenPriceUsd = tokenPrice?.priceUsd
-      const ethPrice = await this.pgDb.pricesTable.getClosestPrice('ETH', item.context.blockTimestamp)
+      const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
       item.ethPriceUsd = ethPrice?.priceUsd
 
       item.transferBondedEvent = null

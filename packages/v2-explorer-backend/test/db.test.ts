@@ -10,8 +10,9 @@ import { BundleCommittedTable } from '#pgDb/events/messenger/BundleCommitted.js'
 import { TransferBondedTable } from '#pgDb/events/railsGateway/TransferBonded.js'
 import { TransferSentTable } from '#pgDb/events/railsGateway/TransferSent.js'
 import { PathTable } from '#pgDb/paths/index.js'
+import { TokenTable } from '#pgDb/tokens/index.js'
 import { postgresConfig } from '#config/index.js'
-import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32, generateMockPath } from '#utils/mockDataGenerator.js'
+import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32, generateMockPath, generateMockToken, generateRandomString } from '#utils/mockDataGenerator.js'
 import stringify from 'json-stable-stringify'
 
 // Helper function to recursively sort arrays of objects
@@ -282,7 +283,7 @@ describe.only('Db', () => {
     })
   })
 
-  describe('Paths', () => {
+  describe('PathTable', () => {
     it('should put, get, and update data', async () => {
       const table = new PathTable(db)
 
@@ -300,6 +301,27 @@ describe.only('Db', () => {
       await table.upsertItem(updatedData)
 
       const newItems = await table.getItems({ filter: { pathId: data.pathId }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
+
+  describe('TokenTable', () => {
+    it('should put, get, and update data', async () => {
+      const table = new TokenTable(db)
+
+      const data = generateMockToken()
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { address: data.address }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        name: generateRandomString(10)
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { address: data.address }})
       expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
     }, 60 * 1000)
   })

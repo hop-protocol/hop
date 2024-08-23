@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token } from '@hop-protocol/v2-sdk'
 
 // Helper function to generate random Ethereum address
 export function generateRandomAddress(): string {
@@ -184,5 +184,17 @@ export function generateMockPath(): Path {
     token: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for token
     counterpartToken: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for counterpart token
     counterpartChainId: generateRandomInt(1, 10).toString() // Example counterpart chain ID as a string
+  }
+}
+
+// Tokens
+
+export function generateMockToken(): Token & { chainId: string } {
+  return {
+    chainId: generateRandomInt(1, 10).toString(), // Example chain ID as a string
+    address: generateRandomAddress(), // Generates a random Ethereum address
+    name: generateRandomString(12), // Generates a random name with length between 5 and 12 characters
+    symbol: generateRandomString(5).toUpperCase(), // Generates a random symbol with length between 3 and 5 characters, converted to uppercase
+    decimals: generateRandomInt(6, 18) // Random integer between 6 and 18 for decimals
   }
 }

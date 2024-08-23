@@ -76,7 +76,7 @@ export class PathTable extends BaseDb {
       )
       VALUES ${'(${id}, ${pathId}, ${chainId}, ${token}, ${counterpartToken}, ${counterpartChainId})'}
       ON CONFLICT (path_id, chain_id)
-      ${'DO UPDATE SET path_id = ${pathId}'}`, args
+      ${'DO UPDATE SET path_id = ${pathId}, chain_id = ${chainId}, token = ${token}, counterpart_token = ${counterpartToken}, counterpart_chain_id = ${counterpartChainId}'}`, args
     )
   }
 

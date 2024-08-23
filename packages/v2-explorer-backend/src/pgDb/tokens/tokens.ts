@@ -78,16 +78,8 @@ export class TokenTable extends BaseDb {
       )
       VALUES ${'(${id}, ${chainId}, ${address}, ${name}, ${symbol}, ${decimals})'}
       ON CONFLICT (chain_id, address)
-      ${'DO UPDATE SET chain_id = ${chainId}, name = ${name}, symbol = ${symbol}, decimals = ${decimals}'}`, args
+      ${'DO UPDATE SET chain_id = ${chainId}, name = ${name}, symbol = ${symbol}, decimals = ${decimals}, address = ${address}'}`, args
     )
-  }
-
-  #normalizeDataForGet (getData: Partial<Token>): Partial<Token> {
-    if (!getData) {
-      return getData
-    }
-    const data = Object.assign({}, getData)
-    return data
   }
 
   #normalizeDataForPut (putData: Partial<Token>): Partial<Token> {

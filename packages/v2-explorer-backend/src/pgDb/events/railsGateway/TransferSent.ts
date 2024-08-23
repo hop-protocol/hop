@@ -75,7 +75,7 @@ export class TransferSentTable extends EventDb {
         ${selectEventContextSql},
         nh.path_id AS "pathId",
         nh.max_total_sent AS "maxTotalSent",
-        nh.attested_claim_id AS "nextHopAttestedClaimId"
+        nh.attested_claim_id AS "nhAttestedClaimId"
       FROM
         transfer_sent_events e
       JOIN
@@ -88,7 +88,7 @@ export class TransferSentTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND e.transfer_id= $5' : ''}
+        ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
         ${filter?.recipient ? 'AND e."to" = $5' : ''}
@@ -104,7 +104,7 @@ export class TransferSentTable extends EventDb {
     const results = getItemsWithContext(items)
     // Aggregate nextHops back into an array
     const itemsWithHops = this.#aggregateHops(results)
-    return itemsWithHops
+    return itemsWithHops.map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -125,17 +125,24 @@ export class TransferSentTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${transferId}, ${to}, ${amount}, ${totalSent}, ${attestedClaimId}, ${attestedTotalClaims})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET transfer_id = ${transferId}'}
+      ${'DO UPDATE SET transfer_id = ${transferId}, "to" = ${to}, amount = ${amount}, total_sent = ${totalSent}, attested_claim_id = ${attestedClaimId}, attested_total_claims = ${attestedTotalClaims}'}
+      RETURNING id;
     `
 
     await this.db.tx(async (t: any) => {
       await t.none(insertEventContextSql, insertEventContextArgs)
-      await t.none(sql, args)
+      const result = await t.one(sql, args)
+      const transferSentEventId = result.id // Retrieve the inserted/updated id
+
+      // Delete existing nextHops for the current transferSentEventId
+      const deleteSql = `DELETE FROM next_hops WHERE transfer_sent_event_id = $1`
+      await t.none(deleteSql, [transferSentEventId])
 
       if (nextHops && nextHops.length > 0) {
         for (const hop of nextHops) {
           const hopArgs = {
             id: uuid(),
+            transferSentEventId,
             pathId: hop.pathId,
             maxTotalSent: hop.maxTotalSent.toString(),
             attestedClaimId: hop.attestedClaimId
@@ -145,7 +152,7 @@ export class TransferSentTable extends EventDb {
             (
               id, transfer_sent_event_id, path_id, max_total_sent, attested_claim_id
             )
-            VALUES ${'(${hopArgs.id}, ${hopArgs.pathId}, ${hopArgs.maxTotalSent}, ${hopArgs.attestedClaimId})'}
+            VALUES ${'(${id}, ${transferSentEventId}, ${pathId}, ${maxTotalSent}, ${attestedClaimId})'}
           `
           await t.none(hopSql, hopArgs)
         }
@@ -165,13 +172,24 @@ export class TransferSentTable extends EventDb {
         const hop = {
           pathId: item.pathId,
           maxTotalSent: BigNumber.from(item.maxTotalSent),
-          attestedClaimId: item.nextHopAttestedClaimId
+          attestedClaimId: item.nhAttestedClaimId
         }
         map.get(item.transferId).nextHops.push(hop)
       }
     }
 
-    return Array.from(map.values())
+    return Array.from(map.values()).map(item => this.#normalizeHopStructDataForGet(item))
+  }
+
+  #normalizeHopStructDataForGet (getData: Partial<HopStruct>): Partial<HopStruct> {
+    if (!getData) {
+      return getData
+    }
+    const data = Object.assign({}, getData)
+    if (data.maxTotalSent && typeof data.maxTotalSent === 'string') {
+      data.maxTotalSent = BigNumber.from(data.maxTotalSent)
+    }
+    return data
   }
 
   #normalizeDataForGet (getData: Partial<TransferSent>): Partial<TransferSent> {
@@ -179,11 +197,20 @@ export class TransferSentTable extends EventDb {
       return getData
     }
     const data = Object.assign({}, getData)
+
+    // delete next hops fields
+    delete (data as any).pathId
+    delete (data as any).maxTotalSent
+    delete (data as any).nhAttestedClaimId
+
     if (data.amount && typeof data.amount === 'string') {
       data.amount = BigNumber.from(data.amount)
     }
     if (data.totalSent && typeof data.totalSent === 'string') {
       data.totalSent = BigNumber.from(data.totalSent)
+    }
+    if (data.attestedTotalClaims && typeof data.attestedTotalClaims === 'string') {
+      data.attestedTotalClaims = BigNumber.from(data.attestedTotalClaims)
     }
     return data
   }

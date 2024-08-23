@@ -67,7 +67,7 @@ export type SendInput = {
   to: string
   amount: BigNumberish
   attestedClaimId: string
-  nextHops: HopStruct[]
+  nextHops: HopStructInput[]
 }
 
 export type ApproveSendInput = {
@@ -80,7 +80,7 @@ export type BondInput = {
   chainId: BigNumberish
   pathId: string
   transferId: string
-  nextHops: HopStruct[]
+  nextHops: HopStructInput[]
 }
 
 export type ApproveBondInput = {
@@ -297,7 +297,7 @@ export type Token = {
   decimals: number
 }
 
-export type HopStruct = {
+export type HopStructInput = {
   pathId: string
   maxTotalSent: BigNumberish
   attestedClaimId: string

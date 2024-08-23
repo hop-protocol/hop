@@ -21,6 +21,7 @@
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
+- [HopStruct](interfaces/HopStruct.md)
 - [MessageBundled](interfaces/MessageBundled.md)
 - [MessageExecuted](interfaces/MessageExecuted.md)
 - [MessageSent](interfaces/MessageSent.md)
@@ -40,6 +41,7 @@
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
+- [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
@@ -102,7 +104,7 @@
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
-- [HopStruct](modules.md#hopstruct)
+- [HopStructInput](modules.md#hopstructinput)
 - [HubConnectorConfig](modules.md#hubconnectorconfig)
 - [MessengerConfig](modules.md#messengerconfig)
 - [Path](modules.md#path)
@@ -188,7 +190,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -265,13 +267,19 @@ ___
 
 ### <a id="etherseventwithdecodedtypesandcontext" name="etherseventwithdecodedtypesandcontext"></a> EthersEventWithDecodedTypesAndContext
 
-Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: `EventContext` ; `decoded`: `T`  }
+Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: [`EventContext`](modules.md#eventcontext) ; `decoded`: `T`  }
 
 #### Type parameters
 
 | Name |
 | :------ |
 | `T` |
+
+___
+
+### <a id="eventcontext" name="eventcontext"></a> EventContext
+
+Ƭ **EventContext**: `BaseEventContext` & `ReceiptEventContext`
 
 ___
 
@@ -1129,9 +1137,9 @@ ___
 
 ___
 
-### <a id="hopstruct" name="hopstruct"></a> HopStruct
+### <a id="hopstructinput" name="hopstructinput"></a> HopStructInput
 
-Ƭ **HopStruct**: `Object`
+Ƭ **HopStructInput**: `Object`
 
 #### Type declaration
 
@@ -1252,7 +1260,7 @@ ___
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `chainId` | `BigNumberish` |
-| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `to` | `string` |
 

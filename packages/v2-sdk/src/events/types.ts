@@ -12,6 +12,7 @@ export type BaseEventContext = {
 }
 
 export type ReceiptEventContext = Partial<{
+  status: number;
   blockTimestamp: number
   from: string
   to: string

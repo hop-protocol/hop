@@ -28,7 +28,7 @@ export {
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
   GetTransferStatusInput,
-  HopStruct,
+  HopStructInput,
   Path,
   PostClaimInput,
   RailsGateway,
@@ -69,5 +69,5 @@ export {
 } from './StakingRegistry.js'
 export {
   TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher
+  TransferSent, TransferSentEventFetcher, HopStruct
 } from './events/index.js'

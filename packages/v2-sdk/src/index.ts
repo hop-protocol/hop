@@ -39,6 +39,7 @@ export {
   GetTransferSentEventFromTransferIdInput,
   GetTransferStatusInput,
   HopStruct,
+  HopStructInput,
   Path,
   PostClaimInput,
   RailsGateway,
@@ -117,4 +118,4 @@ export {
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
 export { PriceFeed } from './priceFeed/index.js'
-export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './events/index.js'
+export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'

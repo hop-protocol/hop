@@ -1,111 +1,100 @@
 import { BigNumber } from 'ethers'
-import { BundleCommittedEventsDb } from '#db/eventsDb/BundleCommittedEventsDb.js'
+import pgp from 'pg-promise'
+import { BundleCommittedTable } from '#pgDb/events/messenger/BundleCommitted.js'
+import { BundleForwardedTable } from '#pgDb/events/messenger/BundleForwarded.js'
+import { BundleReceivedTable } from '#pgDb/events/messenger/BundleReceived.js'
+import { BundleSetTable } from '#pgDb/events/messenger/BundleSet.js'
+import { FeesSentToHubTable } from '#pgDb/events/messenger/FeesSentToHub.js'
+import { MessageBundledTable } from '#pgDb/events/messenger/MessageBundled.js'
+import { MessageExecutedTable } from '#pgDb/events/messenger/MessageExecuted.js'
+import { MessageSentTable } from '#pgDb/events/messenger/MessageSent.js'
+import { TransferBondedTable } from '#pgDb/events/railsGateway/TransferBonded.js'
+import { TransferSentTable } from '#pgDb/events/railsGateway/TransferSent.js'
+import { postgresConfig } from '#config/index.js'
+import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateRandomAddress } from '#utils/mockDataGenerator.js'
+import stringify from 'json-stable-stringify'
 
-describe.skip('BundleCommittedEventsDb', () => {
-  it('should put, get, and update data', async () => {
-    const dbPath = `/tmp/test/testdb/${Date.now()}`
-    const db = new BundleCommittedEventsDb(dbPath)
-
-    const data = {
-      bundleId: '123',
-      bundleRoot: '0x123',
-      bundleFees: BigNumber.from(123),
-      toChainId: 1,
-      commitTime: 1000000000,
-      context: {
-        chainSlug: 'abc',
-        chainId: 1,
-        transactionHash: '0x456',
-        transactionIndex: 0,
-        logIndex: 0,
-        blockNumber: 1000,
-        blockTimestamp: 1000000000,
-        from: '0x123',
-        to: '0x123',
-        value: '0',
-        nonce: 1,
-        gasLimit: 10000,
-        gasUsed: 10000,
-        gasPrice: '1',
-        data: '0x'
+// Helper function to recursively sort arrays of objects
+function sortNestedArrays(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(sortNestedArrays).sort((a, b) => {
+      if (typeof a === 'object' && typeof b === 'object') {
+        return JSON.stringify(a).localeCompare(JSON.stringify(b))
       }
-    }
+      return 0
+    })
+  } else if (obj !== null && typeof obj === 'object') {
+    const sortedObj: Record<string, any> = {}
+    Object.keys(obj).sort().forEach(key => {
+      sortedObj[key] = sortNestedArrays(obj[key])
+    })
+    return sortedObj
+  }
+  return obj
+}
 
-    await db.putEvent(data.bundleId, data)
-    expect(await db.getEvent(data.bundleId)).toStrictEqual(data)
+// Generalized function to stringify objects deterministically
+function deterministicStringify(obj: any): string {
+  const sortedObj = sortNestedArrays(obj)
+  return stringify(sortedObj)
+}
 
-    const updatedData = Object.assign({}, data, {
-      toChainId: 2
+describe.only('Db', () => {
+  const db = pgp({})({ ...postgresConfig })
+
+  describe('Messenger', () => {
+    describe('BundleCommittedTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new BundleCommittedTable(db)
+        const event = generateMockBundleCommitted()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+        expect(true).toBeTruthy()
+
+        const items = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          toChainId: generateRandomInt(100, 1000).toString()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
     })
 
-    await db.updateEvent(data.bundleId, { toChainId: 2 })
+    describe('TransferSentTable', () => {
+      it('should put, get, and update data', async () => {
+        const db = pgp({})({ ...postgresConfig })
+        const table = new TransferSentTable(db)
 
-    expect(await db.getEvent(data.bundleId)).toStrictEqual(updatedData)
-  }, 60 * 1000)
+        const event = generateMockTransferSent()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
 
-  it('should return multiple events for same property index', async () => {
-    const dbPath = `/tmp/test/testdb/${Date.now()}`
-    const db = new BundleCommittedEventsDb(dbPath)
+        const data = { ...event, context }
+        await table.upsertItem(data)
+        expect(true).toBeTruthy()
 
-    const events = [
-      {
-        bundleId: '123',
-        bundleRoot: '0x123',
-        bundleFees: BigNumber.from(123),
-        toChainId: 1,
-        commitTime: 1000000000,
-        context: {
-          chainSlug: 'abc',
-          chainId: 1,
-          transactionHash: '0x456',
-          transactionIndex: 0,
-          logIndex: 0,
-          blockNumber: 1000,
-          blockTimestamp: 1000000000,
-          from: '0x123',
-          to: '0x123',
-          value: '0',
-          nonce: 1,
-          gasLimit: 10000,
-          gasUsed: 10000,
-          gasPrice: '1',
-          data: '0x'
-        }
-      },
-      {
-        bundleId: '789',
-        bundleRoot: '0x123',
-        bundleFees: BigNumber.from(123),
-        toChainId: 1,
-        commitTime: 1000000000,
-        context: {
-          chainSlug: 'abc',
-          chainId: 1,
-          transactionHash: '0x456',
-          transactionIndex: 0,
-          logIndex: 0,
-          blockNumber: 1000,
-          blockTimestamp: 1000000000,
-          from: '0x123',
-          to: '0x123',
-          value: '0',
-          nonce: 1,
-          gasLimit: 10000,
-          gasUsed: 10000,
-          gasPrice: '1',
-          data: '0x'
-        }
-      }
-    ]
+        const items = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
 
-    for (const event of events) {
-      await db.putEvent(event.bundleId, event)
-      expect(await db.getEvent(event.bundleId)).toStrictEqual(event)
-    }
+        const updatedData = Object.assign({}, data, {
+          to: generateRandomAddress()
+        })
 
-    const items = await db.getEventsByPropertyIndex('context.transactionHash', '0x456')
-    expect(items?.length).toEqual(2)
-    expect(items?.[0].bundleId).toEqual('123')
-    expect(items?.[1].bundleId).toEqual('789')
-  }, 60 * 1000)
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+  })
 })

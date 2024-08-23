@@ -36,6 +36,7 @@
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [connect](Hop.md#connect)
 - [connectTargets](Hop.md#connecttargets)
+- [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Hop.md#getcolorforchainid)
 - [getConfigAddress](Hop.md#getconfigaddress)
 - [getConfigStartBlock](Hop.md#getconfigstartblock)
@@ -59,6 +60,8 @@
 - [getSignerOrProvider](Hop.md#getsignerorprovider)
 - [getSupportedChainIds](Hop.md#getsupportedchainids)
 - [getSupportedTokenSymbols](Hop.md#getsupportedtokensymbols)
+- [getSupportedTokenSymbolsByChainId](Hop.md#getsupportedtokensymbolsbychainid)
+- [getTokenAddressByTokenSymbol](Hop.md#gettokenaddressbytokensymbol)
 - [getTokenContract](Hop.md#gettokencontract)
 - [getTransferStatus](Hop.md#gettransferstatus)
 - [getTxOverrides](Hop.md#gettxoverrides)
@@ -295,6 +298,26 @@ ___
 #### Returns
 
 `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+
+___
+
+### <a id="getchainidssupportedbytokensymbol" name="getchainidssupportedbytokensymbol"></a> getChainIdsSupportedByTokenSymbol
+
+▸ **getChainIdsSupportedByTokenSymbol**(`tokenSymbol`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
@@ -670,6 +693,47 @@ ___
 #### Inherited from
 
 Base.getSupportedTokenSymbols
+
+___
+
+### <a id="getsupportedtokensymbolsbychainid" name="getsupportedtokensymbolsbychainid"></a> getSupportedTokenSymbolsByChainId
+
+▸ **getSupportedTokenSymbolsByChainId**(`chainId`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getSupportedTokenSymbolsByChainId
+
+___
+
+### <a id="gettokenaddressbytokensymbol" name="gettokenaddressbytokensymbol"></a> getTokenAddressByTokenSymbol
+
+▸ **getTokenAddressByTokenSymbol**(`chainId`, `tokenSymbol`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenAddressByTokenSymbol
 
 ___
 

@@ -48,6 +48,7 @@
     "isomorphic-fetch": "3.0.0",
     "lodash": "4.17.21",
     "luxon": "3.4.4",
+    "memory-cache": "0.2.0",
     "merkletreejs": "0.3.11",
     "wait": "0.4.2",
     "web3-utils": "1.7.5"
@@ -57,6 +58,7 @@
     "@types/jest": "27.0.3",
     "@types/lodash": "4.14.190",
     "@types/luxon": "3.4.2",
+    "@types/memory-cache": "0.2.6",
     "jest": "29.7.0",
     "ts-jest": "29.1.2",
     "typedoc": "0.25.7",

@@ -9,7 +9,7 @@ export interface TransferSent {
   amount: BigNumber
   totalSent: BigNumber
   attestedClaimId: string
-  attestedTotalClaim: BigNumber
+  attestedTotalClaims: BigNumber
   nextHops: HopStruct[]
 }
 
@@ -38,7 +38,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const amount = parsed.args.amount
     const totalSent = parsed.args.totalSent
     const attestedClaimId = parsed.args.attestedClaimId.toString()
-    const attestedTotalClaim = parsed.args.attestedTotalClaim.toString()
+    const attestedTotalClaims = parsed.args.attestedTotalClaims.toString()
     const nextHops = parsed.args.hops.map((hop: any) => {
       return {
         pathId: hop.pathId.toString(),
@@ -53,7 +53,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
       amount,
       totalSent,
       attestedClaimId,
-      attestedTotalClaim,
+      attestedTotalClaims,
       nextHops
     }
   }

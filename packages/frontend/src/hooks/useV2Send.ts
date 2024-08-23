@@ -148,27 +148,35 @@ export function useV2Send(): V2SendHook {
   }, [amountIn, fromTokenDecimals])
 
   useEffect(() => {
-    if (tokenSymbol && fromChainId) {
-      setFromTokenAddress(getTokenAddress(fromChainId, tokenSymbol))
-      setFromTokenName(getTokenName(fromChainId, tokenSymbol))
-      setFromTokenDecimals(getTokenDecimals(fromChainId, tokenSymbol))
-    } else {
-      setFromTokenAddress(null)
-      setFromTokenName(null)
-      setFromTokenDecimals(null)
+    async function update() {
+      if (tokenSymbol && fromChainId) {
+        setFromTokenAddress(getTokenAddress(fromChainId, tokenSymbol))
+        setFromTokenName(await getTokenName(fromChainId, tokenSymbol))
+        setFromTokenDecimals(await getTokenDecimals(fromChainId, tokenSymbol))
+      } else {
+        setFromTokenAddress(null)
+        setFromTokenName(null)
+        setFromTokenDecimals(null)
+      }
     }
+
+    update().catch(console.error)
   }, [tokenSymbol, fromChainId])
 
   useEffect(() => {
-    if (tokenSymbol && toChainId) {
-      setToTokenAddress(getTokenAddress(toChainId, tokenSymbol))
-      setToTokenName(getTokenName(toChainId, tokenSymbol))
-      setToTokenDecimals(getTokenDecimals(toChainId, tokenSymbol))
-    } else {
-      setToTokenAddress(null)
-      setToTokenName(null)
-      setToTokenDecimals(null)
+    async function update() {
+      if (tokenSymbol && toChainId) {
+        setToTokenAddress(getTokenAddress(toChainId, tokenSymbol))
+        setToTokenName(await getTokenName(toChainId, tokenSymbol))
+        setToTokenDecimals(await getTokenDecimals(toChainId, tokenSymbol))
+      } else {
+        setToTokenAddress(null)
+        setToTokenName(null)
+        setToTokenDecimals(null)
+      }
     }
+
+    update().catch(console.error)
   }, [tokenSymbol, toChainId])
 
   useEffect(() => {

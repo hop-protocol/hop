@@ -204,7 +204,7 @@ export class Indexer {
   async pollPrices () {
     console.log('poll prices start')
 
-    const tokens = new Set(this.sdk.getSupportedTokenSymbols())
+    const tokens = new Set(this.sdk.getSupportedTokenSymbols()) // TODO: read from db list of tokens
     tokens.add('ETH')
     for  (const token of tokens) {
       let tokenLookup = token

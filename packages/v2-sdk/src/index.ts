@@ -117,3 +117,4 @@ export {
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
 export { PriceFeed } from './priceFeed/index.js'
+export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './events/index.js'

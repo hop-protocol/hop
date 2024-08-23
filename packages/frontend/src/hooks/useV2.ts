@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
@@ -56,9 +56,9 @@ type V2Hook = {
   getFee: (input: GetFeeInput) => Promise<BigNumber>
   getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
   getTokenAddress: (chainId: string, tokenSymbol: string) => string
-  getTokenDecimals: (chainId: string, tokenSymbol: string) => number
   getTokenList: (fromChainId?: string) => string[]
-  getTokenName: (chainId: string, tokenSymbol: string) => string
+  getTokenDecimals: (chainId: string, tokenSymbol: string) => Promise<number>
+  getTokenName: (chainId: string, tokenSymbol: string) => Promise<string>
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
@@ -66,85 +66,44 @@ type V2Hook = {
   v2Sdk: Hop | null
 }
 
-// TODO: pull from a token list
-const tokenListByChain = {
-  sepolia: {
-    '11155111': {
-      MOCK: {
-        address: '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32',
-        name: 'Mock Token',
-        decimals: 18
-      },
-      USDC: {
-        address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-        name: 'USD Coin',
-        decimals: 6
-      }
-    },
-    '11155420': {
-      MOCK: {
-        address: '0xaCa72C8D5360dC237001cD963566F411732980B0',
-        name: 'Mock Token',
-        decimals: 18
-      },
-      USDC: {
-        address: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
-        name: 'USD Coin',
-        decimals: 6
-      }
-    }
-  }
-}
-
 export function useV2(): V2Hook {
   const { address, provider } = useWeb3Context()
-  const [v2Sdk, setV2Sdk] = useState<Hop | undefined>()
 
-  useEffect(() => {
+  const v2Sdk = useMemo(() => {
     const hop = new Hop({
       network: reactAppNetwork,
       signer: provider?.getSigner(),
     })
-    setV2Sdk(hop)
+    return hop
   }, [address, provider])
 
   function getTokenList (fromChainId?: string) {
-    const list : Set<string> = new Set<string>([])
-
-    if (!fromChainId) {
-      for (const chainId in tokenListByChain[reactAppNetwork]) {
-        for (const token in tokenListByChain[reactAppNetwork][chainId]) {
-          list.add(token)
-        }
-      }
+    if (fromChainId) {
+      return v2Sdk.getSupportedTokenSymbolsByChainId(fromChainId)
     } else {
-      for (const token in tokenListByChain[reactAppNetwork][fromChainId]) {
-        list.add(token)
-      }
+      return v2Sdk.getSupportedTokenSymbols()
     }
-
-    return Array.from(list)
   }
 
   function getTokenAddress (chainId: string, tokenSymbol: string): string {
-    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].address
+    const address = v2Sdk.getTokenAddressByTokenSymbol(chainId, tokenSymbol)
+    return address
   }
 
-  function getTokenDecimals (chainId: string, tokenSymbol: string): number {
-    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].decimals
+  async function getTokenDecimals (chainId: string, tokenSymbol: string): Promise<number> {
+    const address = getTokenAddress(chainId, tokenSymbol)
+    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    return tokenInfo.decimals
   }
 
-  function getTokenName (chainId: string, tokenSymbol: string): string {
-    return tokenListByChain[reactAppNetwork][chainId][tokenSymbol].name
+  async function getTokenName (chainId: string, tokenSymbol: string): Promise<string> {
+    const address = getTokenAddress(chainId, tokenSymbol)
+    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    return tokenInfo.name
   }
 
   function getChainsSupportedByToken (tokenSymbol: string): string[] {
-    const chains = Object.keys(tokenListByChain[reactAppNetwork] ?? {})
-    const supportedChains = chains.filter(chainId => {
-      return tokenListByChain[reactAppNetwork][chainId][tokenSymbol]
-    })
-
-    return supportedChains
+    return v2Sdk.getChainIdsSupportedByTokenSymbol(tokenSymbol)
   }
 
   async function getNeedsApprovalForSendTokens (input: ApproveTokensInput): Promise<boolean> {

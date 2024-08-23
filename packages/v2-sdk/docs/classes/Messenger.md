@@ -40,6 +40,7 @@
 - [getBundleProofFromTransactionHash](Messenger.md#getbundleprooffromtransactionhash)
 - [getBundleReceivedEvents](Messenger.md#getbundlereceivedevents)
 - [getBundleSetEvents](Messenger.md#getbundlesetevents)
+- [getChainIdsSupportedByTokenSymbol](Messenger.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Messenger.md#getcolorforchainid)
 - [getConfigAddress](Messenger.md#getconfigaddress)
 - [getConfigStartBlock](Messenger.md#getconfigstartblock)
@@ -92,6 +93,8 @@
 - [getSpokeMessageBridgeContractAddress](Messenger.md#getspokemessagebridgecontractaddress)
 - [getSupportedChainIds](Messenger.md#getsupportedchainids)
 - [getSupportedTokenSymbols](Messenger.md#getsupportedtokensymbols)
+- [getSupportedTokenSymbolsByChainId](Messenger.md#getsupportedtokensymbolsbychainid)
+- [getTokenAddressByTokenSymbol](Messenger.md#gettokenaddressbytokensymbol)
 - [getTxOverrides](Messenger.md#gettxoverrides)
 - [isValidBundleProof](Messenger.md#isvalidbundleproof)
 - [relayMessage](Messenger.md#relaymessage)
@@ -418,6 +421,26 @@ ___
 #### Returns
 
 `Promise`\<`BundleSet`[]\>
+
+___
+
+### <a id="getchainidssupportedbytokensymbol" name="getchainidssupportedbytokensymbol"></a> getChainIdsSupportedByTokenSymbol
+
+▸ **getChainIdsSupportedByTokenSymbol**(`tokenSymbol`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
@@ -1258,6 +1281,47 @@ ___
 #### Inherited from
 
 Base.getSupportedTokenSymbols
+
+___
+
+### <a id="getsupportedtokensymbolsbychainid" name="getsupportedtokensymbolsbychainid"></a> getSupportedTokenSymbolsByChainId
+
+▸ **getSupportedTokenSymbolsByChainId**(`chainId`): `string`[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+Base.getSupportedTokenSymbolsByChainId
+
+___
+
+### <a id="gettokenaddressbytokensymbol" name="gettokenaddressbytokensymbol"></a> getTokenAddressByTokenSymbol
+
+▸ **getTokenAddressByTokenSymbol**(`chainId`, `tokenSymbol`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenAddressByTokenSymbol
 
 ___
 

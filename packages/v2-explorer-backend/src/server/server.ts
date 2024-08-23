@@ -23,7 +23,7 @@ app.get('/health', (req: any, res: any) => {
 
 app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
   try {
-    let { limit = 10, filter, page } = req.query
+    let { limit = 10, filter, page = 1 } = req.query
     limit = Number(limit)
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
@@ -51,7 +51,7 @@ const controller = new Controller()
 
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {
-    let { eventName, page, limit = 10, filter } = req.query
+    let { eventName, page = 1, limit = 10, filter } = req.query
     if (!eventName) {
       throw new Error('missing eventName')
     }
@@ -70,6 +70,56 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       events: items,
+      hasNextPage
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/paths', responseCache, async (req: any, res: any) => {
+  try {
+    let { page = 1, limit = 10, filter } = req.query
+    limit = Number(limit)
+    if (limit < 1) {
+      throw new Error('limit must be greater than 0')
+    }
+    if (limit > 10) {
+      throw new Error('limit must be less than 10')
+    }
+    const { items, hasNextPage } = await controller.getPathsForApi({
+      limit,
+      filter,
+      page: Number(page)
+    })
+    res.status(200).json({
+      paths: items,
+      hasNextPage
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/tokens', responseCache, async (req: any, res: any) => {
+  try {
+    let { page = 1, limit = 10, filter } = req.query
+    limit = Number(limit)
+    if (limit < 1) {
+      throw new Error('limit must be greater than 0')
+    }
+    if (limit > 10) {
+      throw new Error('limit must be less than 10')
+    }
+    const { items, hasNextPage } = await controller.getTokensForApi({
+      limit,
+      filter,
+      page: Number(page)
+    })
+    res.status(200).json({
+      tokens: items,
       hasNextPage
     })
   } catch (err: any) {

@@ -318,9 +318,40 @@ export class Base {
 
   getSupportedTokenSymbols(): string[] {
     const list : Set<string> = new Set<string>([])
+
     for (const chainId in this.contractAddresses) {
       for (const token in this.contractAddresses[chainId].tokens) {
         list.add(token)
+      }
+    }
+
+    return Array.from(list)
+  }
+
+  getSupportedTokenSymbolsByChainId(chainId: BigNumberish): string[] {
+    const list : Set<string> = new Set<string>([])
+
+    if (this.contractAddresses[chainId?.toString()]) {
+      for (const token in this.contractAddresses[chainId?.toString()].tokens) {
+        list.add(token)
+      }
+    }
+
+    return Array.from(list)
+  }
+
+  getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
+    return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+  }
+
+  getChainIdsSupportedByTokenSymbol (tokenSymbol: string): string[] {
+    const list : Set<string> = new Set<string>([])
+
+    for (const chainId in this.contractAddresses) {
+      for (const token in this.contractAddresses[chainId].tokens) {
+        if (token === tokenSymbol) {
+          list.add(chainId)
+        }
       }
     }
 

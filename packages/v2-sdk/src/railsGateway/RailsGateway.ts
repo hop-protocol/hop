@@ -7,8 +7,11 @@ import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/Tra
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
+import memcache from 'memory-cache'
 
 const { getAddress: checksumAddress } = utils
+
+const cache = new memcache.Cache()
 
 export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
 
@@ -1475,15 +1478,38 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid address "${address}"`)
     }
 
+    const key = `getTokenInfo-${chainId}-${address}`
+    const cached = cache.get(key) as Token
+
+    if (cached) {
+      return {
+        chainId: BigNumber.from(cached.chainId),
+        address: cached.address,
+        name: cached.name,
+        symbol: cached.symbol,
+        decimals: Number(cached.decimals)
+      }
+    }
+
     const contract = this.getTokenContract({ chainId, address })
 
-    return {
+    const [name, symbol, decimals] = await Promise.all([
+      contract.name(),
+      contract.symbol(),
+      contract.decimals()
+    ])
+
+    const response = {
       chainId: BigNumber.from(chainId),
       address: checksumAddress(address),
-      name: await contract.name(),
-      symbol: await contract.symbol(),
-      decimals: Number(await contract.decimals())
+      name,
+      symbol,
+      decimals: Number(decimals)
     }
+
+    cache.put(key, response)
+
+    return response
   }
 
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {

@@ -1,9 +1,9 @@
 import { BigNumber, Event as EthersEvent } from 'ethers'
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 
 // event from HubMessageBridge
-export interface BundleReceived extends EventBase {
+export interface BundleReceived {
   bundleId: string
   bundleRoot: string
   bundleFees: BigNumber
@@ -30,8 +30,6 @@ export class BundleReceivedEventFetcher extends Event<BundleReceived> {
     const relayer = parsed.args.relayer.toString()
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       bundleId,
       bundleRoot,
       bundleFees,

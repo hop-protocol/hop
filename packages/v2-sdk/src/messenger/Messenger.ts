@@ -1,5 +1,6 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
+import { EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -58,13 +59,13 @@ export type ShouldAttemptForwardMessageInput = {
 
 export type GetBundleExitPopulatedTxInput = {
   fromChainId: BigNumberish
-  bundleCommittedEvent?: BundleCommitted
+  bundleCommittedEvent?: EthersEventWithDecodedTypesAndContext<BundleCommitted>
   bundleCommittedTransactionHash?: string
 }
 
 export type ExitBundleInput = {
   fromChainId: BigNumberish
-  bundleCommittedEvent?: BundleCommitted
+  bundleCommittedEvent?: EthersEventWithDecodedTypesAndContext<BundleCommitted>
   bundleCommittedTransactionHash?: string
 }
 
@@ -632,11 +633,7 @@ export class Messenger extends Base {
         throw new InputError(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
       }
     } else if (bundleCommittedEvent) {
-      const { eventLog, context } = bundleCommittedEvent
-      if (!eventLog) {
-        throw new InputError('eventLog is required')
-      }
-      bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
+      bundleCommittedTransactionHash = bundleCommittedEvent.transactionHash ?? bundleCommittedEvent.context?.transactionHash
     } else {
       throw new InputError('bundleCommittedEvent or bundleCommittedTransactionHash is required')
     }
@@ -788,11 +785,7 @@ export class Messenger extends Base {
             throw new InputError(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
           }
         } else if (bundleCommittedEvent) {
-          const { eventLog, context } = bundleCommittedEvent
-          if (!eventLog) {
-            throw new InputError('eventLog is required')
-          }
-          bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
+          bundleCommittedTransactionHash = bundleCommittedEvent.transactionHash ?? bundleCommittedEvent.context?.transactionHash
         } else {
           throw new InputError('bundleCommittedEvent or bundleCommittedTransactionHash is required')
         }

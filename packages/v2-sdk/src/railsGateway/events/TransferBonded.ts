@@ -1,9 +1,9 @@
 import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
-import { Event, EventBase } from '#events/index.js'
+import { Event } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 
 // event from RailsGateway
-export interface TransferBonded extends EventBase {
+export interface TransferBonded {
   pathId: string
   transferId: string
   amount: BigNumber
@@ -35,8 +35,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     const amount = parsed.args.amount
 
     return {
-      eventName: this.eventName,
-      eventLog: ethersEvent,
       pathId,
       transferId,
       amount

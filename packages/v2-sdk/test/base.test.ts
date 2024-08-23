@@ -237,6 +237,33 @@ describe.skip('Base', () => {
     console.log(supportedTokens)
     expect(supportedTokens.length > 0).toBe(true)
   }, 60 * 1000)
+  it('should get supported token symbols by chain id', async () => {
+    const base = new Base({
+      network: 'sepolia'
+    })
+    const supportedTokens = base.getSupportedTokenSymbolsByChainId(11155111)
+    console.log(supportedTokens)
+    expect(supportedTokens.length > 0).toBe(true)
+  }, 60 * 1000)
+  it('should get supported chain ids by token symbol', async () => {
+    const base = new Base({
+      network: 'sepolia'
+    })
+    const tokenSymbol = 'USDC'
+    const supportedChainIds = base.getChainIdsSupportedByTokenSymbol(tokenSymbol)
+    console.log(supportedChainIds)
+    expect(supportedChainIds.length > 0).toBe(true)
+  }, 60 * 1000)
+  it('should get token address by token symbol', async () => {
+    const base = new Base({
+      network: 'sepolia'
+    })
+    const chainId = 11155111
+    const tokenSymbol = 'USDC'
+    const address = base.getTokenAddressByTokenSymbol(chainId, tokenSymbol)
+    console.log(address)
+    expect(address).toBeTruthy()
+  }, 60 * 1000)
   it.skip('should send transaction', async () => {
     const txRequest = {
       to: '0x'+ '1'.repeat(40),

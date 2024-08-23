@@ -1,11 +1,5 @@
 # Interface: BundleReceived
 
-## Hierarchy
-
-- `EventBase`
-
-  ↳ **`BundleReceived`**
-
 ## Table of contents
 
 ### Properties
@@ -13,9 +7,6 @@
 - [bundleFees](BundleReceived.md#bundlefees)
 - [bundleId](BundleReceived.md#bundleid)
 - [bundleRoot](BundleReceived.md#bundleroot)
-- [context](BundleReceived.md#context)
-- [eventLog](BundleReceived.md#eventlog)
-- [eventName](BundleReceived.md#eventname)
 - [fromChainId](BundleReceived.md#fromchainid)
 - [relayWindowStart](BundleReceived.md#relaywindowstart)
 - [relayer](BundleReceived.md#relayer)
@@ -38,36 +29,6 @@ ___
 ### <a id="bundleroot" name="bundleroot"></a> bundleRoot
 
 • **bundleRoot**: `string`
-
-___
-
-### <a id="context" name="context"></a> context
-
-• `Optional` **context**: `EventContext`
-
-#### Inherited from
-
-EventBase.context
-
-___
-
-### <a id="eventlog" name="eventlog"></a> eventLog
-
-• `Optional` **eventLog**: `Event`
-
-#### Inherited from
-
-EventBase.eventLog
-
-___
-
-### <a id="eventname" name="eventname"></a> eventName
-
-• **eventName**: `string`
-
-#### Inherited from
-
-EventBase.eventName
 
 ___
 

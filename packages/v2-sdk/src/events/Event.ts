@@ -1,4 +1,4 @@
-import { EventContext, Filter, EthersEventWithDecodedTypes } from './types.js'
+import { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk'
@@ -117,7 +117,7 @@ export class Event<T> {
   }
 
   async addContextToEvent(event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData = false): Promise<T> {
-    event.context = await this.getEventContext(event, chainId, fetchTxData)
+    (event as EthersEventWithDecodedTypesAndContext<T>).context = await this.getEventContext(event, chainId, fetchTxData)
     return event as T
   }
 

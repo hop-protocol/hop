@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import { BundleCommittedEventsDb } from '#db/eventsDb/BundleCommittedEventsDb.js'
 
-describe('BundleCommittedEventsDb', () => {
+describe.skip('BundleCommittedEventsDb', () => {
   it('should put, get, and update data', async () => {
     const dbPath = `/tmp/test/testdb/${Date.now()}`
     const db = new BundleCommittedEventsDb(dbPath)

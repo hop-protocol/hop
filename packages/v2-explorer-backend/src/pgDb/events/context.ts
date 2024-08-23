@@ -81,7 +81,7 @@ export function getInsertEventContextSqlData (context: any) {
     gasPrice: context.gasPrice,
     status: context.status,
     data: context.data
-  };
+  }
 
   const insertEventContextSql = `
     INSERT INTO event_context (
@@ -90,7 +90,7 @@ export function getInsertEventContextSqlData (context: any) {
     VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data})'}
     ON CONFLICT (chain_id, transaction_hash, log_index)
     ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}'}
-  `;
+  `
 
   return {
     contextId,

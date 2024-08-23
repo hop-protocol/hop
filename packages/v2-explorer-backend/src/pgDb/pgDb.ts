@@ -1,4 +1,3 @@
-import minimist from 'minimist'
 import pgp from 'pg-promise'
 import { BundleCommittedTable } from './events/messenger/BundleCommitted.js'
 import { BundleForwardedTable } from './events/messenger/BundleForwarded.js'

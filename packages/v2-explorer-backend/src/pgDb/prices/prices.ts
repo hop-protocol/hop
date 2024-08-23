@@ -1,6 +1,4 @@
 import { EventDb } from '../events/BaseType.js'
-import { BigNumber } from 'ethers'
-import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../events/context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface Price {

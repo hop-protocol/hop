@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
+import { getItemsWithContext, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageExecuted extends BaseType {

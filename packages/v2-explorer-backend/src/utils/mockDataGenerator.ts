@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, TransferSent, HopStruct, EventContext } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, TransferSent, TransferBonded, HopStruct, EventContext } from '@hop-protocol/v2-sdk'
 
 // Helper function to generate random Ethereum address
 export function generateRandomAddress(): string {
@@ -12,8 +12,24 @@ export function generateRandomBytes32(): string {
 }
 
 // Helper function to generate a random integer
-export function generateRandomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+export function generateRandomInt(min: number = 0, max: number = 1000): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+// Function to generate a random uint256 value
+export function generateRandomUint256(): BigNumber {
+  return BigNumber.from(Math.floor(Math.random() * 10000).toString()) // Random BigNumber
+}
+
+// Function to generate a random Unix timestamp
+export function generateRandomUnixTime(): number {
+  return generateRandomInt(1_600_000_000, 1_700_000_000)
+}
+
+// Function to generate a random lowercase string
+export function generateRandomString(length: number = 10): string {
+  const characters = 'abcdefghijklmnopqrstuvwxyz'
+  return Array.from({ length }, () => characters[Math.floor(Math.random() * characters.length)]).join('')
 }
 
 // Function to generate mock EventContext
@@ -21,8 +37,8 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
   const context: EventContext = {
     // BaseEventContext fields
     eventName,
-    chainSlug: 'ethereum',
-    chainId: generateRandomInt(1, 10).toString(), // Example chain IDs as string
+    chainSlug: generateRandomString(10),
+    chainId: generateRandomInt().toString(),
     status: 1,
     transactionHash: generateRandomBytes32(),
     transactionIndex: generateRandomInt(0, 100),
@@ -39,9 +55,9 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
     gasUsed: generateRandomInt(21_000, 1_000_000),
     gasPrice: (Math.random() * 100).toFixed(18), // Random gas price in wei as a string
     data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join('') // Random hex data
-  };
+  }
 
-  return context;
+  return context
 }
 
 // Function to generate mock BundleCommitted
@@ -49,8 +65,8 @@ export function generateMockBundleCommitted(): BundleCommitted {
   return {
     bundleId: generateRandomBytes32(),
     bundleRoot: generateRandomBytes32(),
-    bundleFees: BigNumber.from(Math.floor(Math.random() * 10000).toString()), // Random BigNumber
-    toChainId: generateRandomInt(1, 10).toString(), // Example chain ID as string
+    bundleFees: generateRandomUint256(),
+    toChainId: generateRandomInt().toString(),
     commitTime: generateRandomInt(1_600_000_000, 1_700_000_000) // Random Unix timestamp
   }
 }
@@ -59,8 +75,8 @@ export function generateMockBundleCommitted(): BundleCommitted {
 export function generateMockHopStruct(): HopStruct {
   return {
     pathId: generateRandomBytes32(),
-    maxTotalSent: BigNumber.from(Math.floor(Math.random() * 10000).toString()), // Random BigNumber
-    attestedClaimId: generateRandomBytes32(),
+    maxTotalSent: generateRandomUint256(),
+    attestedClaimId: generateRandomBytes32()
   }
 }
 
@@ -71,10 +87,19 @@ export function generateMockTransferSent(numHops: number = 3): TransferSent {
   return {
     transferId: generateRandomBytes32(),
     to: generateRandomAddress(),
-    amount: BigNumber.from(Math.floor(Math.random() * 10000).toString()), // Random BigNumber
-    totalSent: BigNumber.from(Math.floor(Math.random() * 10000).toString()), // Random BigNumber
+    amount: generateRandomUint256(),
+    totalSent: generateRandomUint256(),
     attestedClaimId: generateRandomBytes32(),
-    attestedTotalClaims: BigNumber.from(Math.floor(Math.random() * 10000).toString()), // Random BigNumber
+    attestedTotalClaims: generateRandomUint256(),
     nextHops: nextHops,
+  }
+}
+
+// Function to generate mock TransferBonded
+export function generateMockTransferBonded(): TransferBonded {
+  return {
+    pathId: generateRandomBytes32(),
+    transferId: generateRandomBytes32(),
+    amount: generateRandomUint256()
   }
 }

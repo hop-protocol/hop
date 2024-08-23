@@ -43,10 +43,10 @@ export type TransferBondedEventInput = {
 
 export type Path = {
   pathId: string
-  chainId: BigNumber
+  chainId: string
   token: string
   counterpartToken: string
-  counterpartChainId: BigNumber
+  counterpartChainId: string
 }
 
 export type GetPathIdInput = {
@@ -530,9 +530,9 @@ export class RailsGateway extends StakingRegistry {
     const pathInfoArray = await contract.getPathInfo(pathId)
     const pathInfo: Path = {
       pathId,
-      chainId: BigNumber.from(pathInfoArray[0]),
+      chainId: pathInfoArray[0].toString(),
       token: checksumAddress(pathInfoArray[1]),
-      counterpartChainId: BigNumber.from(pathInfoArray[2]),
+      counterpartChainId: pathInfoArray[2].toString(),
       counterpartToken: checksumAddress(pathInfoArray[3])
     }
 

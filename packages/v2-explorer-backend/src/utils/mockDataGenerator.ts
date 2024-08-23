@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path } from '@hop-protocol/v2-sdk'
 
 // Helper function to generate random Ethereum address
 export function generateRandomAddress(): string {
@@ -59,6 +59,8 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
 
   return context
 }
+
+// Messenger
 
 // Function to generate mock BundleCommitted
 export function generateMockBundleCommitted(): BundleCommitted {
@@ -138,6 +140,8 @@ export function generateMockMessageSent(): MessageSent {
   }
 }
 
+// RailsGateway
+
 // Function to generate mock HopStruct
 export function generateMockHopStruct(): HopStruct {
   return {
@@ -168,5 +172,17 @@ export function generateMockTransferBonded(): TransferBonded {
     pathId: generateRandomBytes32(),
     transferId: generateRandomBytes32(),
     amount: generateRandomUint256()
+  }
+}
+
+// Paths
+
+export function generateMockPath(): Path {
+  return {
+    pathId: generateRandomBytes32(),
+    chainId: generateRandomInt(1, 10).toString(), // Example chain ID as a string
+    token: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for token
+    counterpartToken: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for counterpart token
+    counterpartChainId: generateRandomInt(1, 10).toString() // Example counterpart chain ID as a string
   }
 }

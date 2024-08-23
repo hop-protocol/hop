@@ -76,16 +76,8 @@ export class PathTable extends BaseDb {
       )
       VALUES ${'(${id}, ${pathId}, ${chainId}, ${token}, ${counterpartToken}, ${counterpartChainId})'}
       ON CONFLICT (path_id, chain_id)
-      ${'DO UPDATE SET chain_id = ${chainId}'}`, args
+      ${'DO UPDATE SET path_id = ${pathId}'}`, args
     )
-  }
-
-  #normalizeDataForGet (getData: Partial<Path>): Partial<Path> {
-    if (!getData) {
-      return getData
-    }
-    const data = Object.assign({}, getData)
-    return data
   }
 
   #normalizeDataForPut (putData: Partial<Path>): Partial<Path> {

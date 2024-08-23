@@ -1171,8 +1171,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumber` |
-| `counterpartChainId` | `BigNumber` |
+| `chainId` | `string` |
+| `counterpartChainId` | `string` |
 | `counterpartToken` | `string` |
 | `pathId` | `string` |
 | `token` | `string` |

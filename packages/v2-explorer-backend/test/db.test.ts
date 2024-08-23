@@ -9,8 +9,9 @@ import { MessageSentTable } from '#pgDb/events/messenger/MessageSent.js'
 import { BundleCommittedTable } from '#pgDb/events/messenger/BundleCommitted.js'
 import { TransferBondedTable } from '#pgDb/events/railsGateway/TransferBonded.js'
 import { TransferSentTable } from '#pgDb/events/railsGateway/TransferSent.js'
+import { PathTable } from '#pgDb/paths/index.js'
 import { postgresConfig } from '#config/index.js'
-import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32 } from '#utils/mockDataGenerator.js'
+import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32, generateMockPath } from '#utils/mockDataGenerator.js'
 import stringify from 'json-stable-stringify'
 
 // Helper function to recursively sort arrays of objects
@@ -52,7 +53,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { bundleId: data.bundleId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -78,7 +78,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { bundleId: data.bundleId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -103,7 +102,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { bundleId: data.bundleId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -128,7 +126,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { bundleId: data.bundleId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -153,7 +150,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems()
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -169,7 +165,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { messageId: data.messageId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -194,7 +189,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { messageId: data.messageId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -219,7 +213,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { messageId: data.messageId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -234,9 +227,11 @@ describe.only('Db', () => {
         expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
       }, 60 * 1000)
     })
+  })
+
+  describe('RailsGateway', () => {
     describe('TransferSentTable', () => {
       it('should put, get, and update data', async () => {
-        const db = pgp({})({ ...postgresConfig })
         const table = new TransferSentTable(db)
 
         const event = generateMockTransferSent()
@@ -246,7 +241,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { transferId: data.transferId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -263,7 +257,6 @@ describe.only('Db', () => {
     })
     describe('TransferBondedTable', () => {
       it('should put, get, and update data', async () => {
-        const db = pgp({})({ ...postgresConfig })
         const table = new TransferBondedTable(db)
 
         const event = generateMockTransferBonded()
@@ -273,7 +266,6 @@ describe.only('Db', () => {
 
         const data = { ...event, context }
         await table.upsertItem(data)
-        expect(true).toBeTruthy()
 
         const items = await table.getItems({ filter: { transferId: data.transferId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
@@ -288,5 +280,27 @@ describe.only('Db', () => {
         expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
       }, 60 * 1000)
     })
+  })
+
+  describe('Paths', () => {
+    it('should put, get, and update data', async () => {
+      const table = new PathTable(db)
+
+      const data = generateMockPath()
+
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { pathId: data.pathId }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        chainId: generateRandomInt().toString()
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { pathId: data.pathId }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
   })
 })

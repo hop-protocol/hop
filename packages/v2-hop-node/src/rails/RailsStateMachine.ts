@@ -14,7 +14,7 @@ import {
 import { TxRelayDB } from '#db/TxRelayDB.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
 import type { providers } from 'ethers'
-import { getChainsFromPathId } from './utils.js'
+import { getPathFromPathId } from './utils.js'
 
 export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
   readonly #relayedTxCache: TxRelayDB = new TxRelayDB('StateMachine')
@@ -62,7 +62,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     // and for the post to be finalized on the destination chain.
     const { pathId, sentTimestampMs } = value
 
-    const { srcChainId, destChainId } = getChainsFromPathId(pathId)
+    const { srcChainId, destChainId } = getPathFromPathId(pathId)
     const srcChainSlug = getChain(srcChainId).slug
     const srcChainFinalityTimeMs = FINALITY_TIME_MS[srcChainSlug]
     const destChainSlug = getChain(destChainId).slug
@@ -86,7 +86,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     // and for the bond to be finalized on its own chain.
     const { pathId, postedTimestampMs } = value
 
-    const { destChainId } = getChainsFromPathId(pathId)
+    const { destChainId } = getPathFromPathId(pathId)
     const destChainSlug = getChain(destChainId).slug
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 
@@ -133,7 +133,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     // A transfer is postable if the bonder is chosen by the BCR
     // TODO: V2: When relayer is ripped out, create #wallet class var that is used throughout
     const { pathId, transferId } = value
-    const { destChainId } = getChainsFromPathId(pathId)
+    const { destChainId } = getPathFromPathId(pathId)
     const chainSlug = getChain(destChainId).slug
     const wallet = wallets.get(chainSlug)
     return BonderChoiceRule.isTransferForBonder(transferId, pathId, await wallet.getAddress())
@@ -151,7 +151,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
     const cacheKey = state + transferId
     if (await this.#relayedTxCache.doesItemExist(cacheKey)) return
 
-    const { destChainId } = getChainsFromPathId(pathId)
+    const { destChainId } = getPathFromPathId(pathId)
     this.logger.info(`Relaying transferId: ${transferId} to chain: ${destChainId}, state: ${state}`)
 
     try {
@@ -168,7 +168,7 @@ export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTr
 
   async #sendRelay (state: RailsTransferState, value: IRailsTransfer): Promise<providers.TransactionResponse> {
     const { pathId } = value
-    const { destChainId } = getChainsFromPathId(pathId)
+    const { destChainId } = getPathFromPathId(pathId)
 
     const chainSlug = getChain(destChainId).slug
     const wallet = wallets.get(chainSlug)

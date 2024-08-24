@@ -1,6 +1,8 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { SignerConfig } from '#config/index.js'
-import type { PathIDElements } from './types.js'
+import { RailsConfig } from '#config/index.js'
+import type { RailsPath } from './types.js'
+import { RailsSDK } from './RailsSDK.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   // TODO: Fill in the start block numbers
@@ -24,10 +26,11 @@ export function getRailsStartBlockNumber (chainId: string): number {
   return (DEFAULT_START_BLOCK_NUMBER as any)[SignerConfig.network as NetworkSlug][chainSlug]
 }
 
-export function getChainsFromPathId (pathId: string): PathIDElements {
-  const path: PathIDElements | undefined = SignerConfig.chains?.[pathId]
+export function getPathFromPathId (pathId: string): RailsPath {
+  const paths: RailsPath[] = RailsConfig.paths
+  const path: RailsPath | undefined = paths.find(path => RailsSDK.getPathId(path) === pathId)
   if (!path) {
-    throw new Error(`Unknown pathId: ${pathId}`)
+    throw new Error(`Path not found for pathId: ${pathId}`)
   }
 
   return path

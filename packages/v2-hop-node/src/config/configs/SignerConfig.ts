@@ -10,7 +10,7 @@ type ChainInfo = {
   syncType: SyncType
 }
 
-type Chains = {
+export type Chains = {
   [key in ChainSlug]?: ChainInfo
 }
 

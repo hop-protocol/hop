@@ -12,7 +12,7 @@ export type RailsHop = {
   attestedClaimId: string
 }
 
-export type PathIDElements = {
+export type RailsPath = {
   srcChainId: string
   srcToken: string
   destChainId: string

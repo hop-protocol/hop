@@ -1,7 +1,8 @@
 import type { ISharedConfig } from './configs/SharedConfig.js'
 import type { ISignerConfig } from './configs/SignerConfig.js'
+import type { IRailsConfig } from './configs/RailsConfig.js'
 
-type Configs = ISharedConfig | ISignerConfig
+type Configs = ISharedConfig | ISignerConfig | IRailsConfig
 
 export abstract class ConfigManager {
   protected static initialized: boolean = false

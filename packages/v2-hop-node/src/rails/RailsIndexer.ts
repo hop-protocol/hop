@@ -2,7 +2,6 @@ import {
   type TransferSent,
   type TransferPosted,
   type TransferBonded,
-  // RailsSDK,
   RailsSDKWrapper
 } from './RailsSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
@@ -11,7 +10,7 @@ import {
   RailsTransferState
 } from './types.js'
 import type { providers } from 'ethers'
-import { getChainsFromPathId, getRailsStartBlockNumber } from './utils.js'
+import { getPathFromPathId, getRailsStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
 // TODO: Sent -> posted
@@ -42,7 +41,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
    */
 
   protected override getIndexerEventFilter(state: RailsTransferState, value: IRailsTransfer): IndexerEventFilter<LookupKey> {
-    const path = getChainsFromPathId(value.pathId)
+    const path = getPathFromPathId(value.pathId)
     const chainId: string = state === RailsTransferState.Sent ? path.srcChainId : path.destChainId
     return this.#getIndexerEventFilterByChainId(chainId, state, value.pathId)
   }

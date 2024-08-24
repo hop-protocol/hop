@@ -17,6 +17,7 @@ import {
 } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/sdk'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
+import type { RailsPath } from './types.js'
 
 
 export type TransferSent = TransferSentSDK
@@ -129,7 +130,8 @@ export class RailsSDKWrapper {
 
 export class RailsSDK {
 
-  static connect (signer: Signer): RailsGateway {
+  // TODO: Signer or provider or however ethers does it
+  static connect (signer: Signer | providers.Provider): RailsGateway {
     return RailsSDK.getGateway()
   }
 
@@ -162,18 +164,28 @@ export class RailsSDK {
   }
 
   // TODO: get from SDK
-  static isClaimed(transferId: string): Promise<boolean> {
+  static async isClaimed(transferId: string): Promise<boolean> {
     return true
   }
 
   // TODO: get from SDK
-  static isBonded(transferId: string): Promise<boolean> {
+  static async isBonded(transferId: string): Promise<boolean> {
     return true
   }
 
   // TODO: get from SDK
   static getNextHopsHash(nextHops: HopStruct[]): string {
     return ''
+  }
+
+  // TODO: get from SDK
+  static getPathId(path: RailsPath): string {
+    return ''
+  }
+
+  // TODO: get from SDK
+  static async isPathLive(pathId: string): Promise<boolean> {
+    return true
   }
 
   /**

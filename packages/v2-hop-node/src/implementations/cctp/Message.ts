@@ -3,7 +3,7 @@ import { MessageIndexer } from './MessageIndexer.js'
 import { MessageStateMachine } from './MessageStateMachine.js'
 import { MessageState } from './types.js'
 
-export class Message {
+export class CCTP {
   readonly #stateMachine: MessageStateMachine
   #started: boolean = false
 

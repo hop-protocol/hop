@@ -1,15 +1,14 @@
 import { SignerConfig } from '../index.js'
 import { ConfigManager } from '../ConfigManager.js'
-import { RailsSDK } from '#rails/RailsSDK.js'
-import type { RailsPath } from '#rails/types.js'
+import { Rails } from '#implementations/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 export interface IRailsConfig {
-  paths: RailsPath[]
+  paths: Rails.RailsPath[]
 }
 
 export class RailsConfig extends ConfigManager {
-  static paths: RailsPath[]
+  static paths: Rails.RailsPath[]
 
   protected static override async init(config: IRailsConfig): Promise<void> {
     this.paths = config.paths
@@ -18,10 +17,10 @@ export class RailsConfig extends ConfigManager {
   protected static override async validate(): Promise<void> {
     // Validate that the paths are live
     for (const path of this.paths) {
-      const pathId = RailsSDK.getPathId(path)
+      const pathId = Rails.RailsSDK.getPathId(path)
       const provider = getRpcProvider(path.srcChainId)
       // TODO: add connect when impl
-      const isLive = await RailsSDK/*.connect(provider)*/.isPathLive(pathId)
+      const isLive = await Rails.RailsSDK/*.connect(provider)*/.isPathLive(pathId)
       if (!isLive) {
         throw new Error(`Path is not live: ${pathId}`)
       }

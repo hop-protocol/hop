@@ -414,4 +414,17 @@ export class Controller {
       hasNextPage
     }
   }
+
+  async getTokenPricesForApi (input: TokensApiInput): Promise<EventsResult> {
+    const { limit = 10, filter, page = 1 } = input
+
+    const items = await this.pgDb.priceTable.getItems({ limit, filter, page })
+    const itemsNext = await this.pgDb.priceTable.getItems({ limit, filter, page: Number(page) + 1 })
+    const hasNextPage = itemsNext.length > 0
+
+    return {
+      items,
+      hasNextPage
+    }
+  }
 }

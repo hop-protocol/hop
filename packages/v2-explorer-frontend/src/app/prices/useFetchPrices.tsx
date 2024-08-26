@@ -1,25 +1,26 @@
 import { useState, useEffect } from 'react'
 import { apiUrl } from '@/app/config'
 
-export const useFetchPaths = (props: any = {}) => {
+export const useFetchPrices = (props: any = {}) => {
   const { onPagination } = props
   const [hasNextPage, setHasNextPage] = useState(false)
   const [page, setPage] = useState(1)
   const limit = 10
-  const [paths, setPaths] = useState([])
+  const [prices, setPrices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchPaths = async () => {
+    const fetchPrices = async () => {
       try {
-        const url = `${apiUrl}/v1/paths?page=${page}&limit=${limit}`
+        const url = `${apiUrl}/v1/prices?page=${page}&limit=${limit}`
         const response = await fetch(url)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
         const data = await response.json()
-        setPaths(data.paths)
+        console.log(data)
+        setPrices(data.prices)
         setHasNextPage(data.hasNextPage)
       } catch (err: any) {
         setError(err.message)
@@ -28,7 +29,7 @@ export const useFetchPaths = (props: any = {}) => {
       }
     }
 
-    fetchPaths()
+    fetchPrices()
   }, [page, limit])
 
   const showPreviousButton = page > 1
@@ -52,5 +53,5 @@ export const useFetchPaths = (props: any = {}) => {
     }
   }
 
-  return { paths, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit }
+  return { prices, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit }
 }

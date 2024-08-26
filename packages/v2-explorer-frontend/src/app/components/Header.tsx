@@ -42,7 +42,8 @@ export function Header () {
     const routes: any = {
       '/': 'home',
       '/events': 'events',
-      '/tokens': 'tokens'
+      '/tokens': 'tokens',
+      '/paths': 'paths'
     }
 
     return routes[pathname] ?? 'home'
@@ -52,7 +53,8 @@ export function Header () {
     const routes: any = {
       home: '/',
       events: '/events',
-      tokens: '/tokens'
+      tokens: '/tokens',
+      paths: '/paths',
     }
     navigate(routes[newValue])
   }
@@ -81,6 +83,7 @@ export function Header () {
             <Tab label="Transfers" value="home" />
             <Tab label="Events" value="events" />
             <Tab label="Tokens" value="tokens" />
+            <Tab label="Paths" value="paths" />
           </Tabs>
         </Box>
       </Box>

@@ -182,8 +182,8 @@ export function generateMockPath(): Path {
   return {
     pathId: generateRandomBytes32(),
     chainId: generateRandomInt(1, 10).toString(), // Example chain ID as a string
-    token: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for token
-    counterpartToken: generateRandomString(3).toUpperCase(), // Generating a random 3-letter uppercase string for counterpart token
+    token: generateRandomAddress(), // Random Ethereum address
+    counterpartToken: generateRandomAddress(), // Random Ethereum address
     counterpartChainId: generateRandomInt(1, 10).toString() // Example counterpart chain ID as a string
   }
 }

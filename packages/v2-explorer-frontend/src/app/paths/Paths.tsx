@@ -39,22 +39,24 @@ export function Paths () {
       },
       {
         key: 'chainId',
-        value: path.chainId,
-        clipboardValue: path.chainId
+        value: path.chainLabel,
+        clipboardValue: path.chainLabel
       },
       {
         key: 'token',
-        value: path.token,
+        value: path.tokenTruncated,
+        valueUrl: path.tokenExplorerUrl,
         clipboardValue: path.token
       },
       {
         key: 'counterpartChainId',
-        value: path.counterpartChainId,
-        clipboardValue: path.counterpartChainId
+        value: path.counterpartChainLabel,
+        clipboardValue: path.counterpartChainLabel
       },
       {
         key: 'counterpartToken',
-        value: path.counterpartToken,
+        value: path.counterpartTokenTruncated,
+        valueUrl: path.counterpartTokenExplorerUrl,
         clipboardValue: path.counterpartToken
       },
     ]

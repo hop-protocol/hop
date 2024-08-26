@@ -397,7 +397,7 @@ export class Controller {
     const hasNextPage = itemsNext.length > 0
 
     return {
-      items,
+      items: items.map((item: any) => this.addPathFields(item)),
       hasNextPage
     }
   }
@@ -410,7 +410,7 @@ export class Controller {
     const hasNextPage = itemsNext.length > 0
 
     return {
-      items,
+      items: items.map((item: any) => this.addTokenFields(item)),
       hasNextPage
     }
   }
@@ -423,8 +423,66 @@ export class Controller {
     const hasNextPage = itemsNext.length > 0
 
     return {
-      items,
+      items: items.map((item: any) => this.addTokenPriceFields(item)),
       hasNextPage
     }
+  }
+
+  addTokenFields (item: any) {
+    if (item.chainId && item.address) {
+      try {
+        item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.address, item.chainId)
+      } catch (err) {
+        console.error(err)
+        item.tokenExplorerUrl = ''
+      }
+      item.addressTruncated = truncateString(item.address, 4)
+    }
+    if (item.chainId) {
+      item.chainName = chainNames[item.chainId] ?? ''
+      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId] ?? ''}`
+    }
+    return item
+  }
+
+  addPathFields (item: any) {
+    if (item.token) {
+      try {
+        item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
+      } catch (err) {
+        console.error(err)
+        item.tokenExplorerUrl = ''
+      }
+      item.tokenTruncated = truncateString(item.token, 4)
+    }
+    if (item.counterpartToken) {
+      try {
+        item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
+      } catch (err: any) {
+        console.error(err)
+        item.counterpartTokenExplorerUrl = ''
+      }
+      item.counterpartTokenTruncated = truncateString(item.counterpartToken, 4)
+    }
+    if (item.chainId) {
+      item.chainName = chainNames[item.chainId] ?? ''
+      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId] ?? ''}`
+    }
+    if (item.counterpartChainId) {
+      item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
+      item.counterpartChainLabel = `${item.counterpartChainId} - ${chainNames[item.counterpartChainId] ?? ''}`
+    }
+
+    return item
+  }
+
+  addTokenPriceFields (item: any) {
+    if (item.priceUsd != null) {
+      item.priceUsdDisplay = `$${item.priceUsd.toFixed(2)}`
+    }
+    if (item.timestamp) {
+      item.timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+    }
+    return item
   }
 }

@@ -49,13 +49,13 @@ export function Tokens () {
       },
       {
         key: 'chainId',
-        value: `${token.chainId}`,
-        clipboardValue: token.chainId
+        value: token.chainLabel,
+        clipboardValue: token.chainLabel
       },
       {
         key: 'address',
-        value: token.address,
-        // valueUrl: token.tokenExplorerUrl,
+        value: token.addressTruncated,
+        valueUrl: token.tokenExplorerUrl,
         clipboardValue: token.address
       },
     ]

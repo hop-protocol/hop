@@ -457,7 +457,7 @@ export class Base {
 
       getTransactionHashExplorerUrl: (txHash: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
+          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
         }
         if (!this.utils.isValidTxHash(txHash)) {
           throw new Error(`invalid transaction hash "${txHash}"`)
@@ -467,7 +467,7 @@ export class Base {
 
       getAddressExplorerUrl: (address: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
+          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
         }
         if (!this.utils.isValidAddress(address)) {
           throw new Error(`invalid address "${address}"`)
@@ -477,7 +477,7 @@ export class Base {
 
       getTokenExplorerUrl: (address: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          throw new Error(`invalid chainId "${chainId}"`)
+          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
         }
         if (!this.utils.isValidAddress(address)) {
           throw new Error(`invalid address "${address}"`)

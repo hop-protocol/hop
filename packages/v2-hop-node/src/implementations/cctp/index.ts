@@ -1,11 +1,11 @@
-import { CCTP } from './Message.js'
-import { MessageSDK } from './sdk/MessageSDK.js'
+import { CCTP } from './CCTP.js'
+import { CCTPSDK } from './sdk/CCTPSDK.js'
 import { getUnrelayedMessages } from './utils.js'
-import type { ISentMessage } from './types.js'
+import type { ISentCCTPMessage } from './types.js'
 
 export {
   CCTP,
-  MessageSDK as CCTPSDK,
+  CCTPSDK,
   getUnrelayedMessages,
-  type ISentMessage
+  type ISentCCTPMessage
 }

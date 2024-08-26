@@ -20,7 +20,7 @@ async function main (source: any) {
   }
 }
 
-async function relayMessage(item: CCTP.ISentMessage) {
+async function relayMessage(item: CCTP.ISentCCTPMessage) {
   const { message, destinationChainId, sentTxHash } = item
   const chainSlug = getChain(destinationChainId).slug
   const wallet = wallets.get(chainSlug)

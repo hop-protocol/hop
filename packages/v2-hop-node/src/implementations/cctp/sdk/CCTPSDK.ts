@@ -63,11 +63,11 @@ export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTr
 
 export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
-    [ChainSlug.Ethereum]: 20136183, // 19786200, //19447854,
-    [ChainSlug.Optimism]: 121663470, // 119550000, //117499078,
-    [ChainSlug.Arbitrum]: 223994580, // 207240000, //190986712,
-    [ChainSlug.Base]: 16068187, // 13956000, //11903793,
-    [ChainSlug.Polygon]: 58407447, // 56513000, //54729294
+    [ChainSlug.Ethereum]: 20136183,
+    [ChainSlug.Optimism]: 121663470,
+    [ChainSlug.Arbitrum]: 223994580,
+    [ChainSlug.Base]: 16068187,
+    [ChainSlug.Polygon]: 58407447,
   },
   [NetworkSlug.Sepolia]: {
     [ChainSlug.Ethereum]: 5498073,
@@ -78,11 +78,11 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug
 }
 
 /**
- * CCTP Message utility class. This class exposes all required chain interactions with CCTP
+ * CCTP SDK utility class. This class exposes all required chain interactions with CCTP
  * contracts while being chain agnostic and stateless.
  */
 
-export class MessageSDK {
+export class CCTPSDK{
   static getCCTPTransferSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getHopCCTPContract(chainId)
     return contract.filters.CCTPTransferSent!() as RequiredEventFilter
@@ -117,7 +117,7 @@ export class MessageSDK {
    */
   static async fetchAttestation (message: string): Promise<string> {
     return mutex.runExclusive(async () => {
-    const messageHash = MessageSDK.getMessageHashFromMessage(message)
+    const messageHash = CCTPSDK.getMessageHashFromMessage(message)
       const url = getAttestationUrl(messageHash)
       const res = await fetch(url)
       if (res.status === 429) {
@@ -146,12 +146,12 @@ export class MessageSDK {
   static addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): DecodedLogWithContext {
     let eventName: string = ''
     let decoded: DecodedEventLogs
-    if (log.topics[0] === MessageSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {
+    if (log.topics[0] === CCTPSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {
       eventName = 'CCTPTransferSent'
-      decoded = MessageSDK.parseHopCCTPTransferSentLog(log, chainId)
-    } else if (log.topics[0] === MessageSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
+      decoded = CCTPSDK.parseHopCCTPTransferSentLog(log, chainId)
+    } else if (log.topics[0] === CCTPSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
       eventName = 'CCTPMessageReceived'
-      decoded = MessageSDK.parseHopCCTPTransferReceivedLog(log)
+      decoded = CCTPSDK.parseHopCCTPTransferReceivedLog(log)
     } else {
       throw new Error('Unknown typed log')
     }
@@ -193,11 +193,11 @@ export class MessageSDK {
 
     // Use the messageBody to get the message
     const messageVersion = 0
-    const sourceDomain = MessageSDK.getDomainFromChainId(chainId)
+    const sourceDomain = CCTPSDK.getDomainFromChainId(chainId)
 
     const messageSender = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SignerConfig.network as NetworkSlug]![chainId]!, 32)
     const messageRecipient = utils.hexZeroPad(TOKEN_MESSENGER_ADDRESSES[SignerConfig.network as NetworkSlug]![cctpChainId]!, 32)
-    const destDomain = MessageSDK.getDomainFromChainId(cctpChainId)
+    const destDomain = CCTPSDK.getDomainFromChainId(cctpChainId)
     const destinationCaller = utils.hexZeroPad('0x0000000000000000000000000000000000000000', 32)
 
     const messageTypes = ['uint32', 'uint32', 'uint32', 'uint64', 'bytes32', 'bytes32', 'bytes32', 'bytes']

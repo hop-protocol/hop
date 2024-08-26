@@ -1,7 +1,7 @@
-import { MessageSDK, type HopCCTPTransferSentDecoded, type HopCCTPTransferReceivedDecoded } from './sdk/MessageSDK.js'
+import { CCTPSDK, type HopCCTPTransferSentDecoded, type HopCCTPTransferReceivedDecoded } from './sdk/CCTPSDK.js'
 import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
 import type { DecodedLogWithContext } from '#types/index.js'
-import { type IMessage, MessageState } from './types.js'
+import { type ICCTPMessage, CCTPMessageState } from './types.js'
 import type { providers } from 'ethers'
 
 type LookupKey = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceivedDecoded)
@@ -9,13 +9,13 @@ type LookupKey = (keyof HopCCTPTransferSentDecoded | keyof HopCCTPTransferReceiv
 /**
  * This class is responsible for abstracting away indexing logic
  * and for mapping concrete states to indexes so that the rest of
- * the message implementation doesn't need to concern itself with
+ * the CCTP implementation doesn't need to concern itself with
  * the details of the indexing.
  */
 
-export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, LookupKey> {
+export class CCTPIndexer extends OnchainEventIndexer<CCTPMessageState, ICCTPMessage, LookupKey> {
 
-  constructor (dbName: string, states: MessageState[], chainIds: string[]) {
+  constructor (dbName: string, states: CCTPMessageState[], chainIds: string[]) {
     super(dbName)
 
     for (const state of states) {
@@ -30,12 +30,12 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
    * Implementation
    */
 
-  protected override getIndexerEventFilter(state: MessageState, value: IMessage): IndexerEventFilter<LookupKey> {
+  protected override getIndexerEventFilter(state: CCTPMessageState, value: ICCTPMessage): IndexerEventFilter<LookupKey> {
     const chainId: string = this.#getChainIdForContext(state, value)
     return this.#getIndexerEventFilterByChainId(chainId, state)
   }
 
-  protected override getLookupKeyValue (lookupKey: LookupKey, value: IMessage): string {
+  protected override getLookupKeyValue (lookupKey: LookupKey, value: ICCTPMessage): string {
     switch (lookupKey) {
       case 'cctpNonce':
         return value.messageNonce.toString()
@@ -44,14 +44,14 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
       case 'nonce':
         return value.messageNonce.toString()
       case 'sourceDomain':
-        return MessageSDK.getDomainFromChainId(value.sourceChainId)
+        return CCTPSDK.getDomainFromChainId(value.sourceChainId)
       default:
         throw new Error('Invalid lookup key')
     }
   }
 
   protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
-    return MessageSDK.addDecodedTypesAndContextToEvent(log, chainId)
+    return CCTPSDK.addDecodedTypesAndContextToEvent(log, chainId)
   }
 
   // NOTE: This only exists here since some CCTP logs can be sent to unsupported chains. This will
@@ -60,7 +60,7 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
     const sourceDomain: string | undefined = (log.decoded as any)?.sourceDomain
     if (!sourceDomain) return true
 
-    const enabledDomains = MessageSDK.getEnabledDomains()
+    const enabledDomains = CCTPSDK.getEnabledDomains()
     if (!enabledDomains.includes(Number(sourceDomain))) return false
 
     return true
@@ -70,20 +70,20 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
    * Internal
    */
 
-  #getIndexerEventFilterByChainId(chainId: string, state: MessageState): IndexerEventFilter<LookupKey> {
+  #getIndexerEventFilterByChainId(chainId: string, state: CCTPMessageState): IndexerEventFilter<LookupKey> {
     switch (state) {
-      case MessageState.Sent:
+      case CCTPMessageState.Sent:
         return {
           chainId,
-          filter: MessageSDK.getCCTPTransferSentEventFilter(chainId),
-          startBlockNumber: MessageSDK.getStartBlockNumber(chainId),
+          filter: CCTPSDK.getCCTPTransferSentEventFilter(chainId),
+          startBlockNumber: CCTPSDK.getStartBlockNumber(chainId),
           lookupKeys: ['cctpNonce', 'chainId']
         }
-      case MessageState.Relayed:
+      case CCTPMessageState.Relayed:
         return {
           chainId,
-          filter: MessageSDK.getMessageReceivedEventFilter(chainId),
-          startBlockNumber: MessageSDK.getStartBlockNumber(chainId),
+          filter: CCTPSDK.getMessageReceivedEventFilter(chainId),
+          startBlockNumber: CCTPSDK.getStartBlockNumber(chainId),
           lookupKeys: ['nonce', 'sourceDomain']
         }
       default:
@@ -91,11 +91,11 @@ export class MessageIndexer extends OnchainEventIndexer<MessageState, IMessage, 
     }
   }
 
-  #getChainIdForContext (state: MessageState, value: IMessage): string {
+  #getChainIdForContext (state: CCTPMessageState, value: ICCTPMessage): string {
     switch (state) {
-      case MessageState.Sent:
+      case CCTPMessageState.Sent:
         return value.sourceChainId
-      case MessageState.Relayed:
+      case CCTPMessageState.Relayed:
         return value.destinationChainId
       default:
         throw new Error('Invalid state')

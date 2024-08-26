@@ -1,28 +1,28 @@
 import type { DecodedLogWithContext } from '#types/index.js'
 import {
-  MessageSDK,
+  CCTPSDK,
   type HopCCTPTransferSentDecodedWithMessage,
   type HopCCTPTransferReceivedDecoded
-} from './sdk/MessageSDK.js'
+} from './sdk/CCTPSDK.js'
 import { DataProvider } from '#data-provider/DataProvider.js'
-import { type IMessage, MessageState, type ISentMessage, type IRelayedMessage } from './types.js'
+import { type ICCTPMessage, CCTPMessageState, type ISentCCTPMessage, type IRelayedCCTPMessage } from './types.js'
 import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
 
-export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
+export class CCTPDataProvider extends DataProvider<CCTPMessageState, ICCTPMessage> {
 
   /**
    * Implementation
    */
 
-  protected override getKeyFromDataSourceItem (log: DecodedLogWithContext): MessageState {
+  protected override getKeyFromDataSourceItem (log: DecodedLogWithContext): CCTPMessageState {
     return this.#getStateFromLog(log)
   }
 
-  protected override async formatDataSourceItem (state: MessageState, log: DecodedLogWithContext): Promise<IMessage> {
+  protected override async formatDataSourceItem (state: CCTPMessageState, log: DecodedLogWithContext): Promise<ICCTPMessage> {
     switch (state) {
-      case MessageState.Sent:
+      case CCTPMessageState.Sent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>)
-      case MessageState.Relayed:
+      case CCTPMessageState.Relayed:
         return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>)
       default:
         throw new Error('Invalid state')
@@ -33,7 +33,7 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
    * Internal
    */
 
-  async #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): Promise<ISentMessage> {
+  async #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): Promise<ISentCCTPMessage> {
     const { transactionHash,context, decoded } = log
     const { chainId } = context
     const { message, cctpNonce, chainId: destinationChainId } = decoded
@@ -49,13 +49,13 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
     }
   }
 
-  async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedMessage> {
+  async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedCCTPMessage> {
     const { transactionHash, decoded, context } = log
     const { nonce, sourceDomain } = decoded
     const timestampMs = await getBlockTimestampFromLogMs(log)
     return {
       messageNonce: nonce,
-      sourceChainId: MessageSDK.getChainIdFromDomain(sourceDomain),
+      sourceChainId: CCTPSDK.getChainIdFromDomain(sourceDomain),
       destinationChainId: context.chainId,
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
@@ -66,14 +66,14 @@ export class MessageDataProvider extends DataProvider<MessageState, IMessage> {
    * Utils
    */
 
-  #getStateFromLog (log: DecodedLogWithContext): MessageState {
+  #getStateFromLog (log: DecodedLogWithContext): CCTPMessageState {
     const eventSig = log.topics[0]
     const chainId = log.context.chainId
     switch (eventSig) {
-      case (MessageSDK.getCCTPTransferSentEventFilter(chainId).topics[0]):
-       return MessageState.Sent
-      case (MessageSDK.getMessageReceivedEventFilter(chainId).topics[0]):
-        return MessageState.Relayed
+      case (CCTPSDK.getCCTPTransferSentEventFilter(chainId).topics[0]):
+       return CCTPMessageState.Sent
+      case (CCTPSDK.getMessageReceivedEventFilter(chainId).topics[0]):
+        return CCTPMessageState.Relayed
       default:
         throw new Error('Invalid log')
     }

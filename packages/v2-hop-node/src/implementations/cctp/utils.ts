@@ -1,22 +1,22 @@
 import { StateMachineDB } from '#db/StateMachineDB.js'
-import { MessageSDK } from '#cctp/sdk/MessageSDK.js'
-import { MessageState, type ISentMessage } from '#cctp/types.js'
+import { CCTPSDK } from './sdk/CCTPSDK.js'
+import { CCTPMessageState, type ISentCCTPMessage } from './types.js'
 
-export async function getUnrelayedMessages (): Promise<ISentMessage[]> {
-  const dbName = 'Message'
+export async function getUnrelayedMessages (): Promise<ISentCCTPMessage[]> {
+  const dbName = 'cctp'
   const db = new StateMachineDB(dbName)
 
   // Retrieve all messages
-  const unrelayedMessages: ISentMessage[] = []
-  for await (const [, value] of db.getItemsInState(MessageState.Sent)) {
-    unrelayedMessages.push(value as ISentMessage)
+  const unrelayedMessages: ISentCCTPMessage[] = []
+  for await (const [, value] of db.getItemsInState(CCTPMessageState.Sent)) {
+    unrelayedMessages.push(value as ISentCCTPMessage)
   }
 
   // Only return messages that have been unrelayed for long enough for the attestations to be available
-  const unrelayedMessagesFiltered: ISentMessage[] = []
+  const unrelayedMessagesFiltered: ISentCCTPMessage[] = []
   for (const message of unrelayedMessages) {
     const { sourceChainId, sentTimestampMs } = message
-    const attestationWaitTimeMs = MessageSDK.attestationAvailableTimestampMs(sourceChainId)
+    const attestationWaitTimeMs = CCTPSDK.attestationAvailableTimestampMs(sourceChainId)
     if (sentTimestampMs + attestationWaitTimeMs < Date.now()) {
       unrelayedMessagesFiltered.push(message)
     }

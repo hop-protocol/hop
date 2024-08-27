@@ -54,6 +54,9 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
 
   protected override sendRelay (value: IRailsTransfer): Promise<providers.TransactionResponse> {
     const state = this.#getStateFromItem(value)
+
+    // TODO: possibly validate BCR here to avoid a bad bond
+
     switch (state) {
       case RailsTransferState.Sent:
         return this.#sendPostClaim(value as ISentRailsTransfer)
@@ -64,8 +67,10 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
     }
   }
 
-  handleRelayError (value: IRailsTransfer, errMessage: string): void {
+  handleOnchainRelayError (value: IRailsTransfer, errMessage: string): void {
     // TODO: Fill this in when contract errors are finalized
+    // * onchain errors
+    //   * this includes onchain errors during transaction simulation
   }
 
   /**

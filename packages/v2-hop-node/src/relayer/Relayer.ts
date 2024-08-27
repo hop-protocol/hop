@@ -1,6 +1,11 @@
 import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
 import { TxRelayDB } from '#db/TxRelayDB.js'
+import {
+  NonceTooLowError,
+  InsufficientFundsError,
+  EstimateGasError
+} from '#types/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
 
@@ -29,7 +34,7 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
   protected abstract getRelayableItems(): AsyncIterable<RelayItem>
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
-  protected abstract handleRelayError(value: RelayItem, errMessage: string): void
+  protected abstract handleOnchainRelayError(value: RelayItem, errMessage: string): void
 
   constructor (dbName: string) {
     this.#relayedTxCache = new TxRelayDB(dbName)
@@ -79,22 +84,61 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
       await this.#relayedTxCache.addItem(cacheKey)
       return await this.sendRelay(relayItem)
     } catch (err) {
-      this.#handleRelayError(relayItem, err.message)
+      await this.#handleRelayError(relayItem, err.message)
     }
   }
 
-  #handleRelayError (relayItem: RelayItem, errMessage: string): void {
-      // Cases:
-        // * (Parent class) Tx fails onchain
-        // * Server restarts
-        // * Tx is dropped from mempool / nonce reused
-        // * Tx is never mined
+  async #handleRelayError (relayItem: RelayItem, err: Error): Promise<void> {
+    // TODO: Unknown
+      // * Is failed err specific to contract or general rpc? Might be OOG.
+    // TODO: Unhandled cases (all gasboost)
+      // * bcr
+        // * TODO
+      // * gasBoost
         // * OOG
-        // * (anything else)
-      // TODO: V2: Handle the case where the transaction is dropped...this should possibly be a guarantee of the signer though
-      // If it is not guaranteed, then this will not re-do the transaction due to the tx being in the cache. Consider
-      // adding a timing element like v1.
+        // * Max rebroadcast
+        // * Transaction replaced
+        // * Transaction dropped
+        // * Transaction hangs
+        // * Reorg (though I think it might be handled by replace/drop/hang
+        // * chain issues (look at historical experience)
+        // * timeout
+        // * RPC server error
+    const cacheKey = this.getUniqueRelayId(relayItem)
+    const errType = this.#getErrFromErr(err)
+
+    // TODO: Handle contract
+
+    // Tx errors
+    if (errType === NonceTooLowError) {
+      // This may occur if there are multiple servers running at once.
+      // This item is removed from the cache so it can be reattempted.
+      this.logger.debug(`Nonce already used for item: ${cacheKey}. The item will be attempted again.`)
+      await this.#relayedTxCache.removeItem(cacheKey)
+      return
+    } else if (errType === EstimateGasError) {
+      // TODO -- probably up a level
+    } else if (errType === InsufficientFundsError) {
+      this.logger.debug(`Insufficient funds to relay item: ${cacheKey}. Please add funds to the account.`)
+      // TODO: Probably some higher order blocking since this will continue to fail
+      // TODO: kick out of bcr
+      return
+    } else {
+      // TODO
+    }
+
 
       // TODO: V2: then update CCTP
+  }
+
+  // TODO: This should be owned by gasBoost
+  #getErrFromErr(err: Error): any {
+    if (err instanceof NonceTooLowError) {
+      return NonceTooLowError
+    } else if (err instanceof EstimateGasError) {
+      return EstimateGasError
+    } else if (/insufficient/g.test(err.message)) {
+      return InsufficientFundsError
+    }
   }
 }

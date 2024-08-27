@@ -27,8 +27,8 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
 
   protected abstract getUniqueRelayId(value: RelayItem): string
   protected abstract getRelayableItems(): AsyncIterable<RelayItem>
-  protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
+  protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
   protected abstract handleRelayError(value: RelayItem, errMessage: string): void
 
   constructor (dbName: string) {

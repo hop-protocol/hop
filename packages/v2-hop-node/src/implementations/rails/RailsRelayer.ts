@@ -25,10 +25,6 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
     this.#dataSource = dataSource
   }
 
-  protected override async *getRelayableItems(): AsyncIterable<IRailsTransfer> {
-    yield* this.#dataSource.getItemsInProgress()
-  }
-
   /**
    * Implementation
    */
@@ -38,6 +34,10 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
     // since the transferId is not unique across states.
     const state = this.#getStateFromItem(value)
     return state + value.transferId
+  }
+
+  protected override async *getRelayableItems(): AsyncIterable<IRailsTransfer> {
+    yield* this.#dataSource.getItemsInProgress()
   }
 
   protected override shouldAttemptRelay (value: IRailsTransfer): Promise<boolean> {
@@ -62,6 +62,10 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
       default:
         throw new Error('Invalid state')
     }
+  }
+
+  handleRelayError (value: IRailsTransfer, errMessage: string): void {
+    // TODO: Fill this in when contract errors are finalized
   }
 
   /**
@@ -113,10 +117,6 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
       transferId,
       nextHops
     })
-  }
-
-  handleRelayError (value: IRailsTransfer, errMessage: string): void {
-    // TODO: Fill this in when contract errors are finalized
   }
 
   /**

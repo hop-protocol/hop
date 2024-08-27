@@ -15,14 +15,14 @@ import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 import type { IStateMachine } from '#state-machine/IStateMachine.js'
 
 export class RailsRelayer extends Relayer<IRailsTransfer> {
-  readonly #dataSource: IStateMachine<IRailsTransfer>
+  readonly #relayerDataSource: IStateMachine<IRailsTransfer>
 
   constructor (
     dbName: string,
-    dataSource: IStateMachine<IRailsTransfer>
+    relayerDataSource: IStateMachine<IRailsTransfer>
   ) {
     super(dbName)
-    this.#dataSource = dataSource
+    this.#relayerDataSource = relayerDataSource
   }
 
   /**
@@ -37,7 +37,7 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
   }
 
   protected override async *getRelayableItems(): AsyncIterable<IRailsTransfer> {
-    yield* this.#dataSource.getItemsInProgress()
+    yield* this.#relayerDataSource.getItemsInProgress()
   }
 
   protected override shouldAttemptRelay (value: IRailsTransfer): Promise<boolean> {
@@ -109,7 +109,7 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
 
   async #sendBond (value: IPostedRailsTransfer): Promise<providers.TransactionResponse> {
     const { pathId, transferId } = value as IPostedRailsTransfer
-    const nextHops: RailsHop[] = await this.#dataSource.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
+    const nextHops: RailsHop[] = await this.#relayerDataSource.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
     const wallet = this.#getWalletFromPathId(pathId)
     // TODO: SDK: Connect when available
     return RailsSDKWrapper/*.connect(wallet)*/.bond({

@@ -51,7 +51,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   #started: boolean = false
   protected readonly logger: Logger
 
-  protected abstract getIndexerEventFilter(state: T, value: U): IndexerEventFilter<LookupKey>
+  protected abstract getIndexerEventFilter(key: T, value: U): IndexerEventFilter<LookupKey>
   protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.

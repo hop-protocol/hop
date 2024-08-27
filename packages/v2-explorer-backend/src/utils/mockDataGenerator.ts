@@ -33,6 +33,16 @@ export function generateRandomString(length: number = 10): string {
   return Array.from({ length }, () => characters[Math.floor(Math.random() * characters.length)]).join('')
 }
 
+export function generateRandomWei() {
+  // Generate a random integer and convert it to a BigNumber to simulate Wei
+  return BigNumber.from(Math.floor(Math.random() * 10**18).toString()).toString()
+}
+
+export function generateRandomGwei() {
+  // Gwei is 1e9 Wei, so we generate a random integer in this range
+  return BigNumber.from(Math.floor(Math.random() * 10**9).toString()).toString()
+}
+
 // Function to generate mock EventContext
 export function generateMockEventContext(eventName: string = ''): EventContext {
   const context: EventContext = {
@@ -50,11 +60,11 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
     blockTimestamp: generateRandomInt(1_600_000_000, 1_700_000_000),
     from: generateRandomAddress(),
     to: generateRandomAddress(),
-    value: (Math.random() * 1000).toFixed(18), // Random value in wei as a string
+    value: generateRandomWei(),
     nonce: generateRandomInt(0, 1000),
     gasLimit: generateRandomInt(21_000, 1_000_000),
     gasUsed: generateRandomInt(21_000, 1_000_000),
-    gasPrice: (Math.random() * 100).toFixed(18), // Random gas price in wei as a string
+    gasPrice: generateRandomGwei(),
     data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join('') // Random hex data
   }
 

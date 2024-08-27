@@ -52,7 +52,7 @@ export class PathTable extends BaseDb {
       WHERE
         1 = 1
         ${filter?.pathId ? 'AND path_id = $3' : ''}
-        ${filter?.chainId ? 'AND chain_id = $4' : ''}
+        ${filter?.chainId ? `AND chain_id = $${filter?.pathId ? '4' : '3'}` : ''}
       ORDER BY
         chain_id
       DESC

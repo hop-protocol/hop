@@ -9,10 +9,6 @@ export function Prices () {
 
   const headers = [
     {
-      key: 'relativeDate',
-      value: 'Relative Date'
-    },
-    {
       key: 'timestamp',
       value: 'Timestamp'
     },
@@ -29,13 +25,8 @@ export function Prices () {
   const rows = prices.map((price: any) => {
     return [
       {
-        key: 'relativeDate',
-        value: price.timestampRelative,
-        clipboardValue: price.timestampRelative
-      },
-      {
         key: 'timestamp',
-        value: price.timestamp,
+        value: `${price.timestamp} (${price.relativeDate})`,
         clipboardValue: price.timestamp
       },
       {

@@ -32,14 +32,6 @@ export function MessageExecutedEvents () {
       value: 'From Chain ID',
     },
     {
-      key: 'from',
-      value: 'From',
-    },
-    {
-      key: 'to',
-      value: 'To',
-    },
-    {
       key: 'eventChainId',
       value: 'Event Chain ID',
     },
@@ -67,16 +59,6 @@ export function MessageExecutedEvents () {
         key: 'fromChainId',
         value: event.fromChainLabel,
         clipboardValue: event.fromChainId
-      },
-      {
-        key: 'from',
-        value: event.fromTruncated,
-        clipboardValue: event.from
-      },
-      {
-        key: 'to',
-        value: event.toTruncated,
-        clipboardValue: event.to
       },
       {
         key: 'eventChainId',

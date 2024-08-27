@@ -35,11 +35,11 @@ export function getItemsWithContext (items: any[]) {
       blockTimestamp: x['context.blockTimestamp'],
       from: x['context.fromAddress'],
       to: x['context.toAddress'],
-      value: x['context.value'],
+      value: Math.round(x['context.value']).toString(), // TODO: remove Math.round and toString
       nonce: x['context.nonce'],
       gasLimit: x['context.gasLimit'],
       gasUsed: x['context.gasUsed'],
-      gasPrice: x['context.gasPrice'],
+      gasPrice: Math.round(x['context.gasPrice']).toString(), // TODO: remove Math.round and toString
       status: x['context.status'],
       data: x['context.data']
     }

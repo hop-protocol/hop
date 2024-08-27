@@ -7,9 +7,9 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function BundleForwardedEvents () {
-  const eventName = 'BundleForwarded'
-  const [filterBy, setFilterBy] = useState('bundleId')
+export function TransferSentEvents () {
+  const eventName = 'TransferSent'
+  const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
@@ -24,20 +24,24 @@ export function BundleForwardedEvents () {
       value: 'Transaction Hash'
     },
     {
-      key: 'bundleId',
-      value: 'Bundle ID',
+      key: 'transferId',
+      value: 'Transfer ID',
     },
     {
-      key: 'bundleRoot',
-      value: 'Bundle Root',
+      key: 'amount',
+      value: 'Amount',
     },
     {
-      key: 'fromChainId',
-      value: 'fromChainId',
+      key: 'totalSent',
+      value: 'Total Sent',
     },
     {
-      key: 'toChainId',
-      value: 'To Chain ID',
+      key: 'attestedClaimId',
+      value: 'Attested Claim ID',
+    },
+    {
+      key: 'attestedClaims',
+      value: 'Attested Claims',
     },
     {
       key: 'eventChainId',
@@ -59,24 +63,29 @@ export function BundleForwardedEvents () {
         clipboardValue: event.context.transactionHash
       },
       {
-        key: 'bundleId',
-        value: event.bundleIdTruncated,
-        clipboardValue: event.bundleId
+        key: 'transferId',
+        value: event.transferIdTruncated,
+        clipboardValue: event.transferId
       },
       {
-        key: 'bundleRoot',
-        value: event.bundleRootTruncated,
-        clipboardValue: event.bundleRoot
+        key: 'amount',
+        value: event.amount,
+        clipboardValue: event.amount
       },
       {
-        key: 'fromChainId',
-        value: event.fromChainLabel,
-        clipboardValue: event.fromChainId
+        key: 'totalSent',
+        value: event.totalSent,
+        clipboardValue: event.totalSent
       },
       {
-        key: 'toChainId',
-        value: event.toChainLabel,
-        clipboardValue: event.toChainId
+        key: 'attestedClaimId',
+        value: event.attestedClaimIdTruncated,
+        clipboardValue: event.attestedClaimId
+      },
+      {
+        key: 'attestedTotalClaims',
+        value: event.attestedTotalClaims,
+        clipboardValue: event.attestedTotalClaims
       },
       {
         key: 'eventChainId',
@@ -101,8 +110,7 @@ export function BundleForwardedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'bundleId'}>Bundle ID</MenuItem>
-              <MenuItem value={'bundleRoot'}>Bundle Root</MenuItem>
+              <MenuItem value={'transferId'}>TransferId ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
           </Select>
         </Box>

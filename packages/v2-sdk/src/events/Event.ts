@@ -1,6 +1,6 @@
 import { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
-import { chainSlugMap } from '#utils/chainSlugMap.js'
+import { getChainSlug } from '#utils/index.js'
 import { promiseQueue } from '@hop-protocol/sdk'
 import { providers, BigNumberish, Event as EthersEvent, utils, Contract, EventFilter } from 'ethers'
 
@@ -169,11 +169,7 @@ export class Event<T> {
   }
 
   getChainSlug(chainId: BigNumberish): string {
-    const chainSlug = chainSlugMap[chainId.toString()]
-    if (!chainSlug) {
-      throw new Error(`Invalid chain "${chainId}", slug not found`)
-    }
-    return chainSlug
+    return getChainSlug(chainId)
   }
 
   decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): T[] {

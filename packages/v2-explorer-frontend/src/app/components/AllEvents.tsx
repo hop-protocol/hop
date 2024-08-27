@@ -9,6 +9,8 @@ import { BundleSetEvents } from './events/BundleSetEvents'
 import { MessageBundledEvents } from './events/MessageBundledEvents'
 import { MessageExecutedEvents } from './events/MessageExecutedEvents'
 import { MessageSentEvents } from './events/MessageSentEvents'
+import { TransferSentEvents } from './events/TransferSentEvents'
+import { TransferBondedEvents } from './events/TransferBondedEvents'
 
 export function Events () {
   const tables = [
@@ -18,7 +20,9 @@ export function Events () {
     <BundleSetEvents key="BundleSetEvents" />,
     <MessageBundledEvents key="MessageBundledEvents" />,
     <MessageExecutedEvents key="MessageExecutedEvents" />,
-    <MessageSentEvents key="MessageSentEvents" />
+    <MessageSentEvents key="MessageSentEvents" />,
+    <TransferSentEvents key="TransferSentEvents" />,
+    <TransferBondedEvents key="TransferBondedEvents" />
   ]
 
   return (

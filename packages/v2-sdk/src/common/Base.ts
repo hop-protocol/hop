@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
+import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
 
@@ -365,7 +365,11 @@ export class Base {
       },
 
       isValidChainId: (chainId: BigNumberish): boolean => {
-        return this.contractAddresses[chainId?.toString()] != null
+        const exists = this.contractAddresses[chainId?.toString()] != null
+        if (!exists) {
+          console.warn(`chainId "${chainId}" not configured`) // TODO: handle this better
+        }
+        return true
       },
 
       isValidBytes32: (hash: string): boolean => {
@@ -414,12 +418,8 @@ export class Base {
         return !isNaN(value as number)
       },
 
-      getChainSlug: (chainId: BigNumberish) => {
-        const chainSlug = chainSlugMap[chainId.toString()]
-        if (!chainSlug) {
-          throw new Error(`Invalid chain: ${chainId}`)
-        }
-        return chainSlug
+      getChainSlug: (chainId: BigNumberish): string => {
+        return getChainSlug(chainId)
       },
 
       getBumpedGasPrice: async (provider: Provider, percent: number): Promise<BigNumber> => {
@@ -457,7 +457,7 @@ export class Base {
 
       getTransactionHashExplorerUrl: (txHash: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
+          throw new Error(`invalid chainId "${chainId}"`)
         }
         if (!this.utils.isValidTxHash(txHash)) {
           throw new Error(`invalid transaction hash "${txHash}"`)
@@ -467,7 +467,7 @@ export class Base {
 
       getAddressExplorerUrl: (address: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
+          throw new Error(`invalid chainId "${chainId}"`)
         }
         if (!this.utils.isValidAddress(address)) {
           throw new Error(`invalid address "${address}"`)
@@ -477,7 +477,7 @@ export class Base {
 
       getTokenExplorerUrl: (address: string, chainId: BigNumberish): string => {
         if (!this.utils.isValidChainId(chainId)) {
-          // throw new Error(`invalid chainId "${chainId}"`) // TODO: work with mock data
+          throw new Error(`invalid chainId "${chainId}"`)
         }
         if (!this.utils.isValidAddress(address)) {
           throw new Error(`invalid address "${address}"`)

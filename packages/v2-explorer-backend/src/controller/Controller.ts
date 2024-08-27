@@ -8,6 +8,10 @@ import { chainNames, network, rpcUrls } from '#config/index.js'
 
 const { formatUnits } = utils
 
+function getChainLabel(chainId: string) {
+  return `${chainId} - ${chainNames[chainId] ?? ''}`
+}
+
 type EventsResult = {
   items: any[]
   hasNextPage?: boolean
@@ -122,11 +126,13 @@ export class Controller {
       await this.upsertTokenInfoIfNotExists(item)
 
       const [pathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
-      const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
-      const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
-      item.tokenPriceUsd = tokenPrice?.priceUsd
-      const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
-      item.ethPriceUsd = ethPrice?.priceUsd
+      if (pathInfo) {
+        const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
+        const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
+        item.tokenPriceUsd = tokenPrice?.priceUsd
+        const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
+        item.ethPriceUsd = ethPrice?.priceUsd
+      }
 
       item.transferBondedEvent = null
       if (bondedEvents.items.length > 0) {
@@ -272,11 +278,17 @@ export class Controller {
       item.transferIdTruncated = truncateString(item.transferId, 4)
       item.transferIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.transferId}` // TODO: subdomain env var
     }
+    if (item.pathId) {
+      item.pathIdTruncated = truncateString(item.pathId, 4)
+    }
     if (item.bundleId) {
       item.bundleIdTruncated = truncateString(item.bundleId, 4)
     }
     if (item.bundleRoot) {
       item.bundleRootTruncated = truncateString(item.bundleRoot, 4)
+    }
+    if (item.attestedClaimId) {
+      item.attestedClaimIdTruncated = truncateString(item.attestedClaimId, 4)
     }
     if (item.relayer) {
       item.relayerTruncated = truncateString(item.relayer, 4)
@@ -292,16 +304,16 @@ export class Controller {
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
-      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId]}`
+      item.chainLabel = getChainLabel(item.chainId)
     }
     if (item.fromChainId) {
       item.fromChainName = chainNames[item.fromChainId]
-      item.fromChainLabel = `${item.fromChainId} - ${chainNames[item.fromChainId]}`
+      item.fromChainLabel = getChainLabel(item.fromChainId)
       item.fromChainImageUrl = this.sdk.utils.getLogoForChainId(item.fromChainId)
     }
     if (item.toChainId) {
       item.toChainName = chainNames[item.toChainId]
-      item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
+      item.toChainLabel = getChainLabel(item.toChainId)
       item.toChainImageUrl = this.sdk.utils.getLogoForChainId(item.toChainId)
       item.toChainColor = this.sdk.getColorForChainId(item.toChainId)
     }
@@ -350,7 +362,7 @@ export class Controller {
     }
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]
-      item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
+      item.context.chainLabel = getChainLabel(item.context.chainId)
       item.context.chainImageUrl = this.sdk.utils.getLogoForChainId(item.context.chainId)
       item.context.chainColor = this.sdk.getColorForChainId(item.context.chainId)
     }
@@ -440,7 +452,7 @@ export class Controller {
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId] ?? ''}`
+      item.chainLabel = getChainLabel(item.chainId)
     }
     return item
   }
@@ -466,11 +478,11 @@ export class Controller {
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId] ?? ''}`
+      item.chainLabel = getChainLabel(item.chainId)
     }
     if (item.counterpartChainId) {
       item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
-      item.counterpartChainLabel = `${item.counterpartChainId} - ${chainNames[item.counterpartChainId] ?? ''}`
+      item.counterpartChainLabel = getChainLabel(item.counterpartChainId)
     }
 
     return item

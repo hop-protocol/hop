@@ -34,7 +34,7 @@ export function Paths () {
     return [
       {
         key: 'pathId',
-        value: path.pathId,
+        value: path.pathIdTruncated,
         clipboardValue: path.pathId
       },
       {

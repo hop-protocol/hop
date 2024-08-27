@@ -1,5 +1,6 @@
 import { DB } from './DB.js'
 import { TimeIntervals } from '#constants/constants.js'
+import type { ITxRelayDB } from './interfaces/ITxRelayDB.js'
 
 /**
  * The key can be any string as long as it is unique to the DB.
@@ -13,7 +14,7 @@ type DBValue = {
   expireAtMs: number
 }
 
-export class TxRelayDB extends DB<DBKey, DBValue> {
+export class TxRelayDB extends DB<DBKey, DBValue> implements ITxRelayDB {
   // A tx that has not been relayed for an hour is considered expired in the context of this client.
   // This value can be changed to any value in milliseconds.
   #ttl: number = TimeIntervals.ONE_HOUR_MS

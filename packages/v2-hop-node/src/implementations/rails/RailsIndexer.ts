@@ -13,7 +13,7 @@ import type { providers } from 'ethers'
 import { getPathFromPathId, getRailsStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
-// TODO: Sent -> posted
+// TODO: SDK: Sent -> posted
 type LookupKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
 
 /**

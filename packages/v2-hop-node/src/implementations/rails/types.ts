@@ -36,7 +36,7 @@ export interface ISentRailsTransfer extends IRailsTransferShared {
 }
 
 export interface IPostedRailsTransfer extends IRailsTransferShared {
-  // TODO: Fill in
+  // TODO: SDK: Fill in
   postedTxHash: string
   postedTimestampMs: number
 }

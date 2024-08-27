@@ -1,10 +1,12 @@
 import { RailsDataProvider } from './RailsDataProvider.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { RailsStateMachine } from './RailsStateMachine.js'
+import { RailsRelayer } from './RailsRelayer.js'
 import { RailsTransferState } from './types.js'
 
 export class Rails {
   readonly #stateMachine: RailsStateMachine
+  readonly #relayer: RailsRelayer
   #started: boolean = false
 
   constructor (chainIds: string[]) {
@@ -21,6 +23,9 @@ export class Rails {
 
     // State handler
     this.#stateMachine = new RailsStateMachine(dbName, states, dataProvider)
+
+    // Relayer
+    this.#relayer = new RailsRelayer(dbName, this.#stateMachine)
   }
 
   async start (): Promise<void> {
@@ -30,6 +35,7 @@ export class Rails {
 
     await this.#stateMachine.init()
     this.#stateMachine.start()
+    this.#relayer.start()
     this.#started = true
   }
 }

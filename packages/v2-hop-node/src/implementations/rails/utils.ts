@@ -5,7 +5,7 @@ import type { RailsPath } from './types.js'
 import { RailsSDK } from './RailsSDK.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
-  // TODO: Fill in the start block numbers
+  // TODO: SDK: Fill in the start block numbers
   [NetworkSlug.Mainnet]: {
     [ChainSlug.Ethereum]: 0,
     [ChainSlug.Optimism]: 0,

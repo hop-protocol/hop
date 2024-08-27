@@ -14,7 +14,7 @@ import { Logger } from '#logger/index.js'
  * @dev The final state is not polled since there is no transition after it.
  */
 
-export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
+export abstract class StateMachine<State extends string, StateData> implements IStateMachine<StateData> {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataProvider: IDataProvider<State, StateData>
@@ -87,10 +87,21 @@ export abstract class StateMachine<State extends string, StateData> implements I
     yield* this.#db.getItemsInState(state)
   }
 
-  protected async getItemAttribute<PreviousState, Attribute extends keyof PreviousState>(
+  async *getItemsInProgress (): AsyncIterable<StateData> {
+    for (const state of this.#states) {
+      for await (const [, value] of this.getItemsInState(state)) {
+        yield value
+      }
+    }
+  }
+
+  async getItemAttribute<
+    ArbitraryState extends StateData,
+    Attribute extends keyof ArbitraryState
+  >(
     value: StateData,
     attribute: Attribute
-  ): Promise<PreviousState[Attribute]> {
+  ): Promise<ArbitraryState[Attribute]> {
     const key = this.getItemId(value)
     return this.#db.getItemAttribute(key, attribute)
   }

@@ -206,7 +206,7 @@ export class RailsSDK {
 
   static getGateway(): RailsGateway {
     const provider = new providers.JsonRpcProvider('https://mainnet.infura.io/v3/84842078b09946638c03157f83405213') // infura id is from ethers
-    const wallet = new Wallet('0x', provider)
+    const wallet = new Wallet('0x0000000000000000000000000000000000000000000000000000000037BDDB5C', provider) // arbitrary private key
     return new RailsGateway({
       network: NetworkSlug.Mainnet,
       signer: wallet

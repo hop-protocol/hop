@@ -56,7 +56,7 @@ export class TransferBondedTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND transfer_id= $5' : ''}
+        ${filter?.transferId ? 'AND transfer_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY

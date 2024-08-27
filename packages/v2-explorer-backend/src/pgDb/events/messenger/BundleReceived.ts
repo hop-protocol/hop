@@ -50,7 +50,10 @@ export class BundleReceivedTable extends EventDb {
       args.push(filter.bundleRoot)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.relayer) {
+      args.push(filter.relayer)
     }
+
     const items = await this.db.any(
       `SELECT
         bundle_id AS "bundleId",
@@ -71,6 +74,7 @@ export class BundleReceivedTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
+        ${filter?.relayer ? 'AND relayer = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
         ec.block_timestamp

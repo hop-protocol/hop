@@ -353,6 +353,13 @@ export class Controller {
       item.attestationFeeUsd = Number(item.attestationFeeFormatted) * Number(item.ethPriceUsd)
       item.attestationFeeUsdDisplay = `$${item.attestationFeeUsd.toFixed(2)} USD`
     }
+    if (item.nextHops) {
+      item.nextHops = item.nextHops.map((item: any) => this.addEventFields(item))
+    }
+    // nextHops
+    if (item.maxTotalSent) {
+      item.maxTotalSent = item.maxTotalSent.toString()
+    }
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
     }

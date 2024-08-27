@@ -121,6 +121,7 @@ export function BundleReceivedEvents () {
               onChange={handleFilterByChange}>
                 <MenuItem value={'bundleId'}>Bundle ID</MenuItem>
                 <MenuItem value={'bundleRoot'}>Bundle Root</MenuItem>
+                <MenuItem value={'relayer'}>Relayer</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
             </Select>
           </Box>

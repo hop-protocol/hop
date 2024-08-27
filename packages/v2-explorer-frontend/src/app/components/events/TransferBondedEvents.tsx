@@ -93,6 +93,7 @@ export function TransferBondedEvents () {
             value={filterBy}
             onChange={handleFilterByChange}>
               <MenuItem value={'transferId'}>TransferId ID</MenuItem>
+              <MenuItem value={'pathId'}>Path ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
           </Select>
         </Box>

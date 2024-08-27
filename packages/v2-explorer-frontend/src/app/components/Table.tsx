@@ -96,7 +96,7 @@ export function Table (props: Props) {
             <_Table width="100%" style={{ minWidth }}>
               <TableHead>
                 <TableRow>
-                  {headers.map((header: Header, i: number) => {
+                  {headers.filter(item => item.key !== 'subtable').map((header: Header, i: number) => {
                     return (
                       <TableCell key={i}>{header.value}</TableCell>
                     )
@@ -126,9 +126,9 @@ export function Table (props: Props) {
                   </>
                 )}
                 {rows.map((row: Row[], i: number) => {
-                  return (
+                  return <>
                     <TableRow key={i}>
-                      {row.map((col: Row, j: number) => {
+                      {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
                         const allowClick = onRowClick && !(col.valueUrl || col.clipboardValue)
                         const cellKey = `${i}${j}`
                         return (
@@ -178,7 +178,46 @@ export function Table (props: Props) {
                         )
                       })}
                     </TableRow>
-                  )
+
+                    <TableRow>
+                      {headers.filter(item => item.key === 'subtable').map((header: Header, i: number) => {
+                        return (
+                          <TableCell key={i} colSpan={headers.length} style={{ paddingLeft: '100px', paddingBottom: 0, borderBottom: 'none' }}>
+                            <Typography variant="subtitle1" fontWeight="500">{header.value}</Typography>
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                    {row.find(item => item.key === 'subtable')?.value && (
+                      <TableRow>
+                        <TableCell colSpan={headers.length} style={{ paddingLeft: '100px' }}>
+                          <_Table>
+                            <TableHead>
+                              <TableRow>
+                                {row.find(item => item.key === 'subtable')?.value.headers.map((header: Header, k: number) => (
+                                  <TableCell key={k} >
+                                    <Typography variant="body2" fontWeight="500">{header.value}</Typography>
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {row.find(item => item.key === 'subtable')?.value.rows.map((subRow: Row[], l: number) => (
+                                <TableRow key={l}>
+                                  {subRow.map((subCol: Row, m: number) => (
+                                    <TableCell key={m}>
+                                      <Typography variant="body2">{subCol.value}</Typography>
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </_Table>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+
                 })}
               </TableBody>
             </_Table>

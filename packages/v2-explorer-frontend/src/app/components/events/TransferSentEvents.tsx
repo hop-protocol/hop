@@ -13,6 +13,7 @@ export function TransferSentEvents () {
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
+  console.log(events)
 
   const headers = [
     {
@@ -46,6 +47,10 @@ export function TransferSentEvents () {
     {
       key: 'eventChainId',
       value: 'Event Chain ID',
+    },
+    {
+      key: 'subtable',
+      value: 'Next Hops',
     },
   ]
 
@@ -92,6 +97,52 @@ export function TransferSentEvents () {
         value: event.context.chainLabel,
         clipboardValue: event.context.chainLabel
       },
+      {
+        key: 'subtable',
+        value: {
+          headers: [
+            {
+              key: 'index',
+              value: '#'
+            },
+            {
+              key: 'pathId',
+              value: 'Path ID',
+            },
+            {
+              key: 'maxTotalSent',
+              value: 'Max Total Sent',
+            },
+            {
+              key: 'attestedClaimId',
+              value: 'Attested Claim ID',
+            },
+          ],
+          rows: event.nextHops.map((nextHop: any, i: number) => {
+            return [
+              {
+                key: 'index',
+                value: i+1
+              },
+              {
+                key: 'pathId',
+                value: nextHop.pathIdTruncated,
+                clipboardValue: nextHop.pathId
+              },
+              {
+                key: 'maxTotalSent',
+                value: nextHop.maxTotalSent,
+                clipboardValue: nextHop.maxTotalSent
+              },
+              {
+                key: 'attestedClaimId',
+                value: nextHop.attestedClaimIdTruncated,
+                clipboardValue: nextHop.attestedClaimId
+              },
+            ]
+          })
+        }
+      },
     ]
   })
 
@@ -111,6 +162,7 @@ export function TransferSentEvents () {
             value={filterBy}
             onChange={handleFilterByChange}>
               <MenuItem value={'transferId'}>TransferId ID</MenuItem>
+              <MenuItem value={'attestedClaimId'}>Attested Claim ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
           </Select>
         </Box>

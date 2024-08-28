@@ -84,7 +84,9 @@ export function MessageExecutedEvents () {
             value={filterBy}
             onChange={handleFilterByChange}>
               <MenuItem value={'messageId'}>Message ID</MenuItem>
+              <MenuItem value={'fromChainId'}>From Chain ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+              <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>
         </Box>
         <Box>

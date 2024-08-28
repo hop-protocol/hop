@@ -41,7 +41,12 @@ export class MessageBundledTable extends EventDb {
       args.push(filter.messageId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.treeIndex) {
+      args.push(filter.treeIndex)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         message_id AS "messageId",
@@ -58,7 +63,9 @@ export class MessageBundledTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.messageId ? 'AND message_id = $5' : ''}
+        ${filter?.treeIndex ? 'AND tree_index = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

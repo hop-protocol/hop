@@ -122,7 +122,9 @@ export function BundleReceivedEvents () {
                 <MenuItem value={'bundleId'}>Bundle ID</MenuItem>
                 <MenuItem value={'bundleRoot'}>Bundle Root</MenuItem>
                 <MenuItem value={'relayer'}>Relayer</MenuItem>
+                <MenuItem value={'toChainId'}>To Chain ID</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+                <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
             </Select>
           </Box>
           <Box>

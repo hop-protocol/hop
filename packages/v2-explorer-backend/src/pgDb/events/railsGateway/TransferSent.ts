@@ -64,6 +64,10 @@ export class TransferSentTable extends EventDb {
       args.push(filter.recipient)
     } else if (filter?.attestedClaimId) {
       args.push(filter.attestedClaimId)
+    } else if (filter?.pathId) {
+      args.push(filter.pathId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
 
     const items = await this.db.any(
@@ -91,12 +95,14 @@ export class TransferSentTable extends EventDb {
         AND
         ec.block_timestamp <= $2
         ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
-        ${filter?.attestedClaimId ? 'AND e.attested_claim_id = $5' : ''}
+        ${filter?.attestedClaimId ? 'AND (e.attested_claim_id = $5 OR nh.attested_claim_id = $5)' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
         ${filter?.recipient ? 'AND e."to" = $5' : ''}
         ${filter?.bonded != null ? 'AND tbe.transfer_id IS NOT NULL' : ''}
         ${filter?.pending != null ? 'AND tbe.transfer_id IS NULL' : ''}
+        ${filter?.pathId != null ? 'AND nh.path_id = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

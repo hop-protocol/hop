@@ -40,6 +40,8 @@ export class TransferBondedTable extends EventDb {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
 
     const items = await this.db.any(
@@ -59,6 +61,7 @@ export class TransferBondedTable extends EventDb {
         ${filter?.transferId ? 'AND transfer_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

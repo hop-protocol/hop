@@ -187,7 +187,7 @@ export function ExplorerEvents (props: any) {
             <Select
               value={filterBy}
               onChange={handleFilterByChange}>
-                <MenuItem value={'transferId'}>TransferId ID</MenuItem>
+                <MenuItem value={'transferId'}>Transfer ID</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
                 <MenuItem value={'account'}>Account</MenuItem>
                 <MenuItem value={'recipient'}>Recipient</MenuItem>

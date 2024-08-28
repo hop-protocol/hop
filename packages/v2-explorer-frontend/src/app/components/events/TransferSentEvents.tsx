@@ -161,9 +161,11 @@ export function TransferSentEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'transferId'}>TransferId ID</MenuItem>
+              <MenuItem value={'transferId'}>Transfer ID</MenuItem>
               <MenuItem value={'attestedClaimId'}>Attested Claim ID</MenuItem>
+              <MenuItem value={'pathId'}>Path ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+              <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>
         </Box>
         <Box>

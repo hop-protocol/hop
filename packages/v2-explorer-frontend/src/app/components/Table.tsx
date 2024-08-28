@@ -204,11 +204,26 @@ export function Table (props: Props) {
                             <TableBody>
                               {row.find(item => item.key === 'subtable')?.value.rows.map((subRow: Row[], l: number) => (
                                 <TableRow key={l}>
-                                  {subRow.map((subCol: Row, m: number) => (
-                                    <TableCell key={m}>
-                                      <Typography variant="body2">{subCol.value}</Typography>
+                                  {subRow.map((subCol: Row, m: number) => {
+                                    const cellKey = `${subCol.value}-${m}`
+                                    return (
+                                      <TableCell key={m}>
+                                        <Box display="flex" alignItems="center">
+                                          <Typography variant="body2">{subCol.value}</Typography>
+                                          {subCol.clipboardValue != null && (
+                                            <Box ml={0.5}>
+                                              <CopyToClipboard text={subCol.clipboardValue}
+                                                onCopy={event => handleCopy(subCol.clipboardValue!, cellKey)}>
+                                                <Typography variant="body2" style={{ cursor: 'pointer' }}>
+                                                  {copiedKey === cellKey ? '✅' : '📋'}
+                                                </Typography>
+                                              </CopyToClipboard>
+                                            </Box>
+                                          )}
+                                        </Box>
                                     </TableCell>
-                                  ))}
+                                  )}
+                                )}
                                 </TableRow>
                               ))}
                             </TableBody>

@@ -43,7 +43,14 @@ export class BundleForwardedTable extends EventDb {
       args.push(filter.bundleRoot)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.fromChainId) {
+      args.push(filter.fromChainId)
+    } else if (filter?.toChainId) {
+      args.push(filter.toChainId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         bundle_id AS "bundleId",
@@ -61,7 +68,10 @@ export class BundleForwardedTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
+        ${filter?.fromChainId ? 'AND from_chain_id = $5' : ''}
+        ${filter?.toChainId ? 'AND to_chain_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC

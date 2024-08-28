@@ -44,7 +44,7 @@ export function Prices () {
       {
         key: 'priceUsd',
         value: price.priceUsdDisplay,
-        clipboardValue: price.priceUsdDisplay
+        clipboardValue: price.priceUsd
       },
     ]
   })

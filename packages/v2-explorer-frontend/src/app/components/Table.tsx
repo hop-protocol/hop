@@ -145,7 +145,7 @@ export function Table (props: Props) {
                             <Box display="flex" alignItems="center">
                               <Box display="flex" alignItems="center">
                                 {col.imageUrl && (
-                                  <img src={col.imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} />
+                                  <img src={col.imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} onError={(event) => event.target.style.display = 'none'} />
                                 )}
                                 {col.valueUrl ? (
                                   col.button ? (

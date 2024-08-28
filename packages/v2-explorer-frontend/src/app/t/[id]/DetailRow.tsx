@@ -34,7 +34,7 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
   const styles = useStyles()
   return (
     <TableRow className={styles.tableRow}>
-      <TableCell style={{ minWidth: '350px' }}>{label}:</TableCell>
+      <TableCell style={{ minWidth: '350px' }}>{label ? `${label}:` : ''}</TableCell>
       <TableCell style={{ maxWidth }}>
         <Box display="flex" alignItems="center">
           {imageUrl && (
@@ -49,7 +49,7 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
                   {value}
                 </Link>
               </CopyToClipboardText>
-            ) : (typeof value === 'string' || typeof value === 'number') ? (
+            ) : ((typeof value === 'string' || typeof value === 'number') && value?.toString().trim() != '') ? (
               <CopyToClipboardText text={value as string}>{value}</CopyToClipboardText>
             ) : (value ? value : '-')
           )}

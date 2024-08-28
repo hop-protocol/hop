@@ -10,7 +10,11 @@ import { formatToUSD } from '#utils/formatToUSD.js'
 const { formatUnits } = utils
 
 function getChainLabel(chainId: string) {
-  return `${chainId} - ${chainNames[chainId] ?? ''}`
+  const chainName = chainNames[chainId] ?? ''
+  if (!chainName) {
+    return `${chainId}`
+  }
+  return `${chainId} - ${chainName}`
 }
 
 type EventsResult = {

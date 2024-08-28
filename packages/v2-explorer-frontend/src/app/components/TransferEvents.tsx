@@ -103,7 +103,7 @@ export function ExplorerEvents (props: any) {
       )
     }
 
-    const transferAmountDisplay = `${event?.amountDisplay} (${event?.amountUsdDisplay})`
+    const transferAmountDisplay = `${event?.amountDisplay ?? ''} (${event?.amountUsdDisplay ?? ''})`
 
     return [
       {
@@ -117,7 +117,7 @@ export function ExplorerEvents (props: any) {
       },
       {
         key: 'token',
-        value: `${event?.token?.name} (${event?.token?.symbol})`,
+        value: `${event?.token?.name ?? ''} (${event?.token?.symbol ?? ''})`,
         valueUrl: event.token?.tokenExplorerUrl,
       },
       {

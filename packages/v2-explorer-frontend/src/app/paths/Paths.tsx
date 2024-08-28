@@ -47,7 +47,7 @@ export function Paths () {
       {
         key: 'chainId',
         value: path.chainLabel,
-        clipboardValue: path.chainLabel
+        clipboardValue: path.chainId
       },
       {
         key: 'token',
@@ -58,7 +58,7 @@ export function Paths () {
       {
         key: 'counterpartChainId',
         value: path.counterpartChainLabel,
-        clipboardValue: path.counterpartChainLabel
+        clipboardValue: path.counterpartChainId
       },
       {
         key: 'counterpartToken',

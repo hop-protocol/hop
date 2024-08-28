@@ -19,6 +19,7 @@ describe.skip('Server', () => {
     const { tokens } = res.body
     console.log(tokens)
     expect(tokens).toBeTruthy()
+  }, 10 * 60 * 1000)
   it('/v1/prices', async () => {
     const res = await request(app).get('/v1/prices').send()
     const { prices } = res.body

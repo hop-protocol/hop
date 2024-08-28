@@ -57,7 +57,7 @@ export function Tokens () {
       {
         key: 'chainId',
         value: token.chainLabel,
-        clipboardValue: token.chainLabel
+        clipboardValue: token.chainId
       },
       {
         key: 'address',

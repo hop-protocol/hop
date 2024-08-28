@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { apiUrl } from '@/app/config'
 
-export const useFetchPrices = (props: any = {}) => {
-  const { onPagination } = props
+export const useFetchPrices = (filter: any) => {
   const [hasNextPage, setHasNextPage] = useState(false)
   const [page, setPage] = useState(1)
   const limit = 10
@@ -10,10 +9,21 @@ export const useFetchPrices = (props: any = {}) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const filterString = useMemo(() => {
+    let str = ''
+    for (const key in filter) {
+      const value = filter[key]
+      if (value) {
+        str += `&filter[${key}]=${value}`
+      }
+    }
+    return str
+  }, [filter])
+
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const url = `${apiUrl}/v1/prices?page=${page}&limit=${limit}`
+        const url = `${apiUrl}/v1/prices?page=${page}&limit=${limit}${filterString}`
         const response = await fetch(url)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
@@ -30,7 +40,7 @@ export const useFetchPrices = (props: any = {}) => {
     }
 
     fetchPrices()
-  }, [page, limit])
+  }, [page, limit, filterString])
 
   const showPreviousButton = page > 1
   const showNextButton = hasNextPage ?? false
@@ -39,18 +49,12 @@ export const useFetchPrices = (props: any = {}) => {
     event.preventDefault()
     const newPage = (Number(page) - 1) || 1
     setPage(newPage)
-    if (onPagination) {
-      onPagination({ page: newPage })
-    }
   }
 
   async function nextPage (event: any) {
     event.preventDefault()
     const newPage = (Number(page) + 1) || 1
     setPage(newPage)
-    if (onPagination) {
-      onPagination({ page: newPage })
-    }
   }
 
   return { prices, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit }

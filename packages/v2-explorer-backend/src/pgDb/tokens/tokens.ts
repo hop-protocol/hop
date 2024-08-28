@@ -41,6 +41,9 @@ export class TokenTable extends BaseDb {
     if (filter?.chainId) {
       args.push(filter.chainId)
     }
+    if (filter?.symbol) {
+      args.push(filter.symbol)
+    }
 
     const items = await this.db.any(
       `SELECT
@@ -54,7 +57,8 @@ export class TokenTable extends BaseDb {
       WHERE
         1 = 1
       ${filter?.address ? 'AND address = $3' : ''}
-      ${filter?.chainId ? 'AND chain_id = $4' : ''}
+      ${filter?.symbol ? 'AND symbol = $3' : ''}
+      ${filter?.chainId ? `AND chain_id = ${filter?.address ? '$4' : '$3'}` : ''}
       ORDER BY
         symbol
       DESC

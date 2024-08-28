@@ -1,11 +1,18 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import { useFetchPrices } from './useFetchPrices'
 import { Table } from '@/app/components/Table'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 
 export function Prices () {
-  const { prices, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit } = useFetchPrices ()
+  const [filterBy, setFilterBy] = useState('token')
+  const [filterValue, setFilterValue] = useState('')
+  const filter = { [filterBy]: filterValue }
+  const { prices, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit } = useFetchPrices(filter)
 
   const headers = [
     {
@@ -26,7 +33,7 @@ export function Prices () {
     return [
       {
         key: 'timestamp',
-        value: `${price.timestamp} (${price.relativeDate})`,
+        value: `${price.timestamp} (${price.timestampRelative})`,
         clipboardValue: price.timestamp
       },
       {
@@ -42,9 +49,31 @@ export function Prices () {
     ]
   })
 
+  function handleFilterByChange (event: any) {
+    setFilterBy(event.target.value)
+  }
+
   return (
     <Box>
-      <Table title={'Token Prices'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} />
+      <Table title={'Token Prices'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
+      <Box display="flex" justifyContent="flex-end" alignItems="center">
+        <Box mr={2}>
+          <Typography variant="body1" color="secondary">Filter</Typography>
+        </Box>
+        <Box mr={2}>
+          <Select
+            value={filterBy}
+            onChange={handleFilterByChange}>
+              <MenuItem value={'token'}>Symbol</MenuItem>
+          </Select>
+        </Box>
+        <Box>
+          <TextField placeholder="Value" value={filterValue} onChange={(event: any) => setFilterValue(event.target.value)} />
+        </Box>
+      </Box>
+      }
+
+      />
     </Box>
   )
 }

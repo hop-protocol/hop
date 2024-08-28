@@ -5,6 +5,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
 import { chainNames, network, rpcUrls } from '#config/index.js'
+import { formatToUSD } from '#utils/formatToUSD.js'
 
 const { formatUnits } = utils
 
@@ -335,7 +336,7 @@ export class Controller {
     }
     if (item.amount != null && item.amountFormatted && item.tokenPriceUsd) {
       item.amountUsd = Number(item.amountFormatted) * Number(item.tokenPriceUsd)
-      item.amountUsdDisplay = `$${item.amountUsd.toFixed(2)} USD`
+      item.amountUsdDisplay = `${formatToUSD(item.amountUsd.toFixed(2))} USD`
     }
     if (item.amountOut != null && item.token) {
       item.amountOutFormatted = formatUnits(item.amountOut, item.token.decimals)
@@ -343,7 +344,7 @@ export class Controller {
     }
     if (item.amountOut != null && item.amountOutFormatted != null && item.tokenPriceUsd != null) {
       item.amountOutUsd = Number(item.amountOutFormatted) * Number(item.tokenPriceUsd)
-      item.amountOutUsdDisplay = `$${item.amountOutUsd.toFixed(2)} USD`
+      item.amountOutUsdDisplay = `${formatToUSD(item.amountOutUsd.toFixed(2))} USD`
     }
     if (item.attestationFee != null) {
       item.attestationFeeFormatted = formatUnits(item.attestationFee, 18)
@@ -351,7 +352,7 @@ export class Controller {
     }
     if (item.attestationFee != null && item.attestationFeeFormatted != null && item.ethPriceUsd != null) {
       item.attestationFeeUsd = Number(item.attestationFeeFormatted) * Number(item.ethPriceUsd)
-      item.attestationFeeUsdDisplay = `$${item.attestationFeeUsd.toFixed(2)} USD`
+      item.attestationFeeUsdDisplay = `${formatToUSD(item.attestationFeeUsd.toFixed(2))} USD`
     }
     if (item.nextHops) {
       item.nextHops = item.nextHops.map((item: any) => this.addEventFields(item))
@@ -389,7 +390,7 @@ export class Controller {
     }
     if (item.context?.value != null && item.context?.valueFormatted != null && item.ethPriceUsd != null) {
       item.context.valueUsd = Number(item.context.valueFormatted) * Number(item.ethPriceUsd)
-      item.context.valueUsdDisplay = `$${item.context.valueUsd.toFixed(2)} USD`
+      item.context.valueUsdDisplay = `${formatToUSD(item.context.valueUsd.toFixed(2))} USD`
     }
 
     return item
@@ -465,6 +466,9 @@ export class Controller {
   }
 
   addPathFields (item: any) {
+    if (item.pathId) {
+      item.pathIdTruncated = truncateString(item.pathId, 4)
+    }
     if (item.token) {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
@@ -497,7 +501,7 @@ export class Controller {
 
   addTokenPriceFields (item: any) {
     if (item.priceUsd != null) {
-      item.priceUsdDisplay = `$${item.priceUsd.toFixed(2)}`
+      item.priceUsdDisplay = `${formatToUSD(item.priceUsd.toFixed(2))} USD`
     }
     if (item.timestamp) {
       item.timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()

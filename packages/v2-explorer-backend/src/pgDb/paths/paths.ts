@@ -39,6 +39,15 @@ export class PathTable extends BaseDb {
     if (filter?.chainId) {
       args.push(filter.chainId?.toString())
     }
+    if (filter?.token) {
+      args.push(filter.token)
+    }
+    if (filter?.counterpartToken) {
+      args.push(filter.counterpartToken)
+    }
+    if (filter?.counterpartChainId) {
+      args.push(filter.counterpartChainId)
+    }
 
     const items = await this.db.any(
       `SELECT
@@ -52,7 +61,10 @@ export class PathTable extends BaseDb {
       WHERE
         1 = 1
         ${filter?.pathId ? 'AND path_id = $3' : ''}
-        ${filter?.chainId ? `AND chain_id = $${filter?.pathId ? '4' : '3'}` : ''}
+        ${filter?.token ? 'AND token = $3' : ''}
+        ${filter?.counterpartToken ? 'AND counterpart_token = $3' : ''}
+        ${filter?.chainId ? `AND chain_id = ${filter?.pathId ? '$4' : '$3'}` : ''}
+        ${filter?.counterpartChainId ? 'AND counterpart_chain_id = $3' : ''}
       ORDER BY
         chain_id
       DESC

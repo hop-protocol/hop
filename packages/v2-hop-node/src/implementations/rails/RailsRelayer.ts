@@ -12,7 +12,7 @@ import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import { RailsSDKWrapper, RailsSDK } from './RailsSDK.js'
 import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
-import type { IStateMachine } from '#state-machine/IStateMachine.js'
+import type { IStateMachine } from '#state-machine/index.js'
 
 export class RailsRelayer extends Relayer<IRailsTransfer> {
   readonly #relayerDataSource: IStateMachine<IRailsTransfer>
@@ -113,8 +113,7 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
   }
 
   async #sendBond (value: IPostedRailsTransfer): Promise<providers.TransactionResponse> {
-    const { pathId, transferId } = value as IPostedRailsTransfer
-    const nextHops: RailsHop[] = await this.#relayerDataSource.getItemAttribute<ISentRailsTransfer, 'nextHops'>(value, 'nextHops')
+    const { pathId, transferId, nextHops } = value as IPostedRailsTransfer
     const wallet = this.#getWalletFromPathId(pathId)
     // TODO: SDK: Connect when available
     return RailsSDKWrapper/*.connect(wallet)*/.bond({

@@ -2,7 +2,7 @@ export function getFirstState<T>(states: T[]): T {
   return states[0]!
 }
 
-export function getNextState<T>(states: T[], state: T): T{
+export function getNextState<T>(states: T[], state: T): T {
   const index = states.indexOf(state)
 
   // If the state is unknown, the index will be -1

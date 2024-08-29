@@ -21,6 +21,14 @@ export type DecodedLogWithContext<T extends object = object> = LogWithContext & 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
+// The consumer does not always need to care about the specifics of the event, so we
+// use a default object for the event indexes.
+export interface IndexedEventData<EventIndexes extends object = object> {
+  chainId: string
+  eventName: string
+  eventIndexes: EventIndexes
+}
+
 /**
  * Transactions
  */

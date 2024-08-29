@@ -1,5 +1,5 @@
 import { getChain } from '@hop-protocol/sdk'
-import { StateMachine } from '#state-machine/StateMachine.js'
+import { StateMachine } from '#state-machine/index.js'
 import {
   type ISentRailsTransfer,
   type IPostedRailsTransfer,

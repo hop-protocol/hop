@@ -81,3 +81,5 @@ export enum SyncType {
   Collateralized = 'collateralized',
   Threshold = 'threshold'
 }
+
+export const DATA_PROCESSED_EVENT = 'DATA_PROCESSED_EVENT'

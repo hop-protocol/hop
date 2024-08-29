@@ -1,6 +1,6 @@
 import { wallets } from '#wallets/index.js'
 import { getChain } from '@hop-protocol/sdk'
-import { StateMachine } from '#state-machine/StateMachine.js'
+import { StateMachine } from '#state-machine/index.js'
 import { CCTPSDK } from './sdk/CCTPSDK.js'
 import { poll } from '#utils/poll.js'
 import {

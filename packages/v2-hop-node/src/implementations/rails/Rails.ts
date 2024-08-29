@@ -1,4 +1,4 @@
-import { RailsDataProvider } from './RailsDataProvider.js'
+import { RailsDataAdapter } from './RailsDataAdapter.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { RailsStateMachine } from './RailsStateMachine.js'
 import { RailsRelayer } from './RailsRelayer.js'
@@ -19,10 +19,10 @@ export class Rails {
 
     // Data handler
     const indexer = new RailsIndexer(dbName, states, chainIds)
-    const dataProvider = new RailsDataProvider(indexer)
 
     // State handler
-    this.#stateMachine = new RailsStateMachine(dbName, states, dataProvider)
+    const dataAdapter = new RailsDataAdapter(indexer)
+    this.#stateMachine = new RailsStateMachine(dbName, states, dataAdapter)
 
     // Relayer
     this.#relayer = new RailsRelayer(dbName, this.#stateMachine)

@@ -1,11 +1,11 @@
-export interface IDataProvider<T, U> {
+export interface IDataAdapter<State, StateData> {
   // Initialization
-  start (): void
   init (): Promise<void>
+  start (): void
 
   // Node events
   on (event: string, listener: (...args: any[]) => void): void
 
   // Public methods
-  fetchItem(key: T, value: U): Promise<U | null>
+  fetchItem (state: State, outputData: StateData): Promise<StateData | null>
 }

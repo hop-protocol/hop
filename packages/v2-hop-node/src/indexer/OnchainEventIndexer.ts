@@ -2,14 +2,21 @@ import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
 import type {
   DecodedLogWithContext,
+  IndexedEventData,
   RequiredEventFilter,
   RequiredFilter
 } from '#types/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { poll } from '#utils/poll.js'
 import type { providers } from 'ethers'
-import { DATA_STORED_EVENT } from './constants.js'
-import { getMaxBlockRangePerIndex, getIndexerSyncBlockNumber, getUniqueFilterId } from './utils.js'
+import { DATA_PROCESSED_EVENT } from '#constants/index.js'
+import {
+  getMaxBlockRangePerIndex,
+  getIndexerSyncBlockNumber,
+  getUniqueFilterId,
+  stringifyObjectValues
+} from './utils.js'
+import { filterObjectProperties } from '#utils/filterObjectProperties.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '#db/constants.js'
 import { Logger } from '#logger/index.js'
@@ -39,7 +46,7 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implements IOnchainEventIndexer<T, U> {
+export abstract class OnchainEventIndexer<LookupKey extends string> implements IOnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
@@ -51,8 +58,8 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
   #started: boolean = false
   protected readonly logger: Logger
 
-  protected abstract getIndexerEventFilter(key: T, value: U): IndexerEventFilter<LookupKey>
-  protected abstract getLookupKeyValue(lookupKey: LookupKey, value: U): string
+  protected abstract getEventFilter(chainId: string, eventName: string): RequiredEventFilter
+  protected abstract getLookupKeysByEventName(eventName: string): LookupKey[]
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
   // This exists for systems that are required to observe all events but only index some, like CCTP. This should be overridden
@@ -73,8 +80,9 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
     if (this.#initialized || this.#started) {
       throw new Error('Cannot add indexer after initializing or starting')
     }
-    const filterId = getUniqueFilterId(indexerEventFilter)
-    this.#db.newIndexerDB(filterId, indexerEventFilter.lookupKeys)
+    const { chainId, filter, lookupKeys } = indexerEventFilter
+    const filterId = getUniqueFilterId(chainId, filter)
+    this.#db.newIndexerDB(filterId, lookupKeys)
     this.#indexerEventFilters.push(indexerEventFilter)
   }
 
@@ -88,8 +96,8 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
     // Parallelize initialization and syncing since each filter is independent
     const promises: Array<Promise<void>> = this.#indexerEventFilters.map(async (indexerEventFilter) => {
-      const { chainId, startBlockNumber } = indexerEventFilter
-      const filterId = getUniqueFilterId(indexerEventFilter)
+      const { chainId, filter, startBlockNumber } = indexerEventFilter
+      const filterId = getUniqueFilterId(chainId, filter)
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexerEventFilter)
     })
@@ -112,7 +120,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    */
 
   #initListeners(): void {
-    this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_STORED_EVENT, data))
+    this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data))
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 
@@ -124,18 +132,21 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
    * Getters
    */
 
-  async retrieveItem(key: T, value: U): Promise<DecodedLogWithContext> {
-    const indexerEventFilter = this.getIndexerEventFilter(key, value)
-    const lookupKeyValues: string[] = this.#getLookupKeyValues(key, value)
-    const filterId = getUniqueFilterId(indexerEventFilter)
-    return this.#db.getIndexedItem(filterId, lookupKeyValues)
-  }
+  async fetchItem(indexedEventData: IndexedEventData): Promise<DecodedLogWithContext | null> {
+    const { chainId, eventName, eventIndexes } = indexedEventData
 
-  #getLookupKeyValues (key: T, value: U): string[] {
-    const lookupKeys: LookupKey[] = this.getIndexerEventFilter(key, value).lookupKeys
-    return lookupKeys.map((lookupKey: LookupKey) => {
-      return this.getLookupKeyValue(lookupKey, value)
-    })
+    const eventFilter: RequiredEventFilter = this.getEventFilter(chainId, eventName)
+    const filterId: string = getUniqueFilterId(chainId, eventFilter)
+
+    const lookupKeys: LookupKey[] = this.getLookupKeysByEventName(eventName)
+    const indexesObj = filterObjectProperties(eventIndexes, lookupKeys)
+    const stringifiedIndexValues: string[] = stringifyObjectValues(indexesObj)
+
+    try {
+      return await this.#db.getIndexedItem(filterId, stringifiedIndexValues)
+    } catch {
+      return null
+    }
   }
 
   /**
@@ -148,7 +159,7 @@ export abstract class OnchainEventIndexer<T, U, LookupKey extends string> implem
 
   #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
     const { chainId, filter } = indexerEventFilter
-    const filterId = getUniqueFilterId(indexerEventFilter)
+    const filterId = getUniqueFilterId(chainId, filter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
 
     // Add 1 to currentEnd to avoid fetching the same block twice

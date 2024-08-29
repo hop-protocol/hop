@@ -1,9 +1,10 @@
-import type { IDataProvider } from '#data-provider/IDataProvider.js'
+import type { IDataAdapter } from './IDataAdapter.js'
 import { StateMachineDB } from '#db/StateMachineDB.js'
 import { poll } from '#utils/poll.js'
 import { getFirstState, getNextState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
+import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
@@ -17,7 +18,7 @@ import { Logger } from '#logger/index.js'
 export abstract class StateMachine<State extends string, StateData> implements IStateMachine<StateData> {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
-  readonly #dataProvider: IDataProvider<State, StateData>
+  readonly #dataAdapter: IDataAdapter<State, StateData>
   // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
   // which is not a heavy load. The rest of the system should be set up such that these polls should not
   // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
@@ -34,11 +35,11 @@ export abstract class StateMachine<State extends string, StateData> implements I
   constructor (
     dbName: string,
     states: State[],
-    dataProvider: IDataProvider<State, StateData>
+    dataAdapter: IDataAdapter<State, StateData>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states
-    this.#dataProvider = dataProvider
+    this.#dataAdapter = dataAdapter
     this.logger = new Logger({
       tag: 'StateMachine',
       color: 'green'
@@ -51,7 +52,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   async init (): Promise<void> {
     this.#initListeners()
-    await this.#dataProvider.init()
+    await this.#dataAdapter.init()
 
     // This handles any pending state transitions upon startup
     // NOTE: Do not process in parallel, since this intentionally
@@ -64,7 +65,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   start (): void {
     this.#startPollers()
-    this.#dataProvider.start()
+    this.#dataAdapter.start()
     this.logger.info('State machine started')
   }
 
@@ -73,10 +74,9 @@ export abstract class StateMachine<State extends string, StateData> implements I
    */
 
   #initListeners (): void {
-    const firstState = getFirstState(this.#states)
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.#dataProvider.on(firstState, this.#initializeItem)
-    this.#dataProvider.on('error', () => { throw new Error('State machine error') })
+    this.#dataAdapter.on(DATA_PROCESSED_EVENT, this.#initializeItem)
+    this.#dataAdapter.on('error', () => { throw new Error('State machine error') })
   }
 
   /**
@@ -93,17 +93,6 @@ export abstract class StateMachine<State extends string, StateData> implements I
         yield value
       }
     }
-  }
-
-  async getItemAttribute<
-    ArbitraryState extends StateData,
-    Attribute extends keyof ArbitraryState
-  >(
-    value: StateData,
-    attribute: Attribute
-  ): Promise<ArbitraryState[Attribute]> {
-    const key = this.getItemId(value)
-    return this.#db.getItemAttribute(key, attribute)
   }
 
   /**
@@ -132,8 +121,10 @@ export abstract class StateMachine<State extends string, StateData> implements I
    * State transitions
    */
 
-  #initializeItem = async (value: StateData): Promise<void> => {
+  // Only used for initialization of items into the first state
+  #initializeItem = async (state: State, value: StateData): Promise<void> => {
     const firstState = getFirstState(this.#states)
+    if (state !== firstState) return
     const key = this.getItemId(value)
     this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
     return this.#db.createItemIfNotExist(firstState, key, value)
@@ -141,7 +132,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const nextState = getNextState(this.#states, state)
-    const nextValue = await this.#dataProvider.fetchItem(nextState, value)
+    const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
     if (!nextValue) {
       return
     }

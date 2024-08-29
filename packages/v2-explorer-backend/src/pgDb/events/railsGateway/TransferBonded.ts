@@ -24,6 +24,12 @@ export class TransferBondedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_bonded_events_bundle_id ON transfer_bonded_events (transfer_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_bonded_events_path_id ON transfer_bonded_events (path_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_bonded_events_event_context_id ON transfer_bonded_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

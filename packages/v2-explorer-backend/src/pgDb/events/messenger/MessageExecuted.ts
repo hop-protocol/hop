@@ -21,6 +21,12 @@ export class MessageExecutedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_executed_events_message_id ON message_executed_events (message_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_executed_events_from_chain_id ON message_executed_events (from_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_executed_events_event_context_id ON message_executed_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

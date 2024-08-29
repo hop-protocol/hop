@@ -31,6 +31,15 @@ export class BundleCommittedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_root ON bundle_committed_events (bundle_root);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_id ON bundle_committed_events (bundle_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_to_chain_id ON bundle_committed_events (to_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_event_context_id ON bundle_committed_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

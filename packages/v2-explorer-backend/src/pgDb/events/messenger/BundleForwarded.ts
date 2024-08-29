@@ -28,6 +28,15 @@ export class BundleForwardedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_forwareded_events_bundle_root ON bundle_forwarded_events (bundle_root);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_forwareded_events_from_chain_id ON bundle_forwarded_events (from_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_forwareded_events_to_chain_id ON bundle_forwarded_events (to_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_forwareded_events_event_context_id ON bundle_forwarded_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

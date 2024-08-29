@@ -26,6 +26,12 @@ export class BundleSetTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_set_events_bundle_root ON bundle_set_events (bundle_root);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_set_events_from_chain_id ON bundle_set_events (from_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_set_events_event_context_id ON bundle_set_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

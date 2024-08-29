@@ -23,6 +23,11 @@ export class PathTable extends BaseDb {
 
   override async createIndexes () {
     await this.db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_paths_path_id_chain_id ON paths (path_id, chain_id);')
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_paths_path_id ON paths (path_id);')
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_paths_chain_id ON paths (chain_id);')
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_paths_token ON paths (token);')
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_paths_counterpart_token ON paths (counterpart_token);')
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_paths_counterpart_chain_id ON paths (counterpart_chain_id);')
   }
 
   override async getItems (opts: any = {}) {

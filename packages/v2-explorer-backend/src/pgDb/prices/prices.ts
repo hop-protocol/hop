@@ -21,6 +21,9 @@ export class PriceTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_prices_token_timestamp ON prices (token, timestamp);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_prices_token ON prices (token);'
+    )
   }
 
   override async getItems (opts: any = {}) {

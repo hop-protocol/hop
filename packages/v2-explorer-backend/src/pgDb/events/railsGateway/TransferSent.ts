@@ -44,6 +44,15 @@ export class TransferSentTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_sent_events_transfer_id ON transfer_sent_events (transfer_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_to ON transfer_sent_events ("to");'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_attested_claim_id ON transfer_sent_events (attested_claim_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_event_context_id ON transfer_sent_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

@@ -26,6 +26,12 @@ export class MessageBundledTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_bundled_events_message_id ON message_bundled_events (message_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_bundled_events_bundle_id ON message_bundled_events (bundle_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_bundled_events_event_context_id ON message_bundled_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {

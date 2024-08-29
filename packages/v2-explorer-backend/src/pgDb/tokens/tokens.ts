@@ -25,6 +25,12 @@ export class TokenTable extends BaseDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_tokens_chain_id_address ON tokens (chain_id, address);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_chain_id ON tokens (chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_symbol ON tokens (symbol);'
+    )
   }
 
   override async getItems (opts: any = {}) {

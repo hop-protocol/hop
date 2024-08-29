@@ -7,7 +7,7 @@ import { truncateString } from '#utils/truncateString.js'
 import { chainNames, network, rpcUrls } from '#config/index.js'
 import { formatToUSD } from '#utils/formatToUSD.js'
 
-const { formatUnits } = utils
+const { formatUnits, getAddress: ethersChecksumAddress } = utils
 
 function getChainLabel(chainId: string) {
   const chainName = chainNames[chainId] ?? ''
@@ -15,6 +15,14 @@ function getChainLabel(chainId: string) {
     return `${chainId}`
   }
   return `${chainId} - ${chainName}`
+}
+
+function checksumAddress (address: string) {
+  try {
+    return ethersChecksumAddress(address)
+  } catch (err) {
+    return address
+  }
 }
 
 type EventsResult = {
@@ -56,7 +64,8 @@ export class Controller {
   }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {
-    const { eventName, limit = 10, filter, page = 1 } = input
+    const { eventName, limit = 10, page = 1 } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const { items, hasNextPage } = await this.getEvents({ eventName, limit, page, filter })
 
@@ -67,7 +76,8 @@ export class Controller {
   }
 
   async getEvents (input: any): Promise<any> {
-    const { eventName, limit = 10, filter, page = 1 } = input
+    const { eventName, limit = 10, page = 1 } = input
+    const filter = this.normalizeFilters(input.filter)
 
     if (!this.pgDb.events[eventName]) {
       throw new Error(`Event ${eventName} not found`)
@@ -84,7 +94,8 @@ export class Controller {
   }
 
   async getMessengerExplorerEventsForApi (input: any): Promise<any> {
-    const { limit = 10, filter, page } = input
+    const { limit = 10, page } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'MessageSent', page })
 
@@ -114,7 +125,8 @@ export class Controller {
 
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
-    const { limit = 10, filter, page } = input
+    const { limit = 10, page } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
 
@@ -414,7 +426,8 @@ export class Controller {
   }
 
   async getPathsForApi (input: PathsApiInput): Promise<EventsResult> {
-    const { limit = 10, filter, page = 1 } = input
+    const { limit = 10, page = 1 } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const items = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page })
     const itemsNext = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page: Number(page) + 1 })
@@ -427,7 +440,8 @@ export class Controller {
   }
 
   async getTokensForApi (input: TokensApiInput): Promise<EventsResult> {
-    const { limit = 10, filter, page = 1 } = input
+    const { limit = 10, page = 1 } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const items = await this.pgDb.nonEventTables.Token.getItems({ limit, filter, page })
     const itemsNext = await this.pgDb.nonEventTables.Token.getItems({ limit, filter, page: Number(page) + 1 })
@@ -440,7 +454,8 @@ export class Controller {
   }
 
   async getTokenPricesForApi (input: TokensApiInput): Promise<EventsResult> {
-    const { limit = 10, filter, page = 1 } = input
+    const { limit = 10, page = 1 } = input
+    const filter = this.normalizeFilters(input.filter)
 
     const items = await this.pgDb.priceTable.getItems({ limit, filter, page })
     const itemsNext = await this.pgDb.priceTable.getItems({ limit, filter, page: Number(page) + 1 })
@@ -511,5 +526,75 @@ export class Controller {
       item.timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
     }
     return item
+  }
+
+  normalizeFilters(filters: any) {
+    if (!filters) {
+      return {}
+    }
+
+    if (filters.eventChainId) {
+      filters.eventChainId = filters.eventChainId.toString().trim()
+    }
+    if (filters.chainId) {
+      filters.chainId = filters.chainId.toString().trim()
+    }
+    if (filters.fromChainId) {
+      filters.fromChainId = filters.fromChainId.toString().trim()
+    }
+    if (filters.toChainId) {
+      filters.toChainId = filters.toChainId.toString().trim()
+    }
+    if (filters.token) {
+      filters.token = filters.token.trim()
+      if (filters.token.startsWith('0x')) {
+        filters.token = checksumAddress(filters.token)
+      }
+    }
+    if (filters.counterpartToken) {
+      filters.counterpartToken = checksumAddress(filters.counterpartToken.trim())
+    }
+    if (filters.pathId) {
+      filters.pathId = filters.pathId.trim()
+    }
+    if (filters.transferId) {
+      filters.transferId = filters.transferId.trim()
+    }
+    if (filters.messageId) {
+      filters.messageId = filters.messageId.trim()
+    }
+    if (filters.bundleId) {
+      filters.bundleId = filters.bundleId.trim()
+    }
+    if (filters.bundleRoot) {
+      filters.bundleRoot = filters.bundleRoot.trim()
+    }
+    if (filters.transactionHash) {
+      filters.transactionHash = filters.transactionHash.trim()
+    }
+    if (filters.attestedClaimId) {
+      filters.attestedClaimId = filters.attestedClaimId.trim()
+    }
+    if (filters.relayer) {
+      filters.relayer = checksumAddress(filters.relayer.trim())
+    }
+    if (filters.from) {
+      filters.from = checksumAddress(filters.from.trim())
+    }
+    if (filters.to) {
+      filters.to = checksumAddress(filters.to.trim())
+    }
+    if (filters.address) {
+      filters.address = checksumAddress(filters.address.trim())
+    }
+    if (filters.account) {
+      filters.account = checksumAddress(filters.account.trim())
+    }
+    if (filters.recipient) {
+      filters.recipient = checksumAddress(filters.recipient.trim())
+    }
+    if (filters.symbol) {
+      filters.symbol = filters.symbol.trim()
+    }
   }
 }

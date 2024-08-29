@@ -12,7 +12,7 @@ export const useFetchPaths = (filter: any) => {
   const filterString = useMemo(() => {
     let str = ''
     for (const key in filter) {
-      const value = filter[key]
+      const value = filter[key]?.trim()
       if (value) {
         str += `&filter[${key}]=${value}`
       }

@@ -163,8 +163,8 @@ export function generateMockHopStruct(): HopStruct {
 }
 
 // Function to generate mock TransferSent
-export function generateMockTransferSent(numHops: number = 3): TransferSent {
-  const nextHops = Array.from({ length: numHops }, generateMockHopStruct)
+export function generateMockTransferSent(numHops: number = generateRandomInt(1, 5)): TransferSent {
+  const nextHops = Array.from({ length: numHops }, generateMockHopStruct).map((item: any, i: number) => ({ ...item, index: i }))
 
   return {
     transferId: generateRandomBytes32(),

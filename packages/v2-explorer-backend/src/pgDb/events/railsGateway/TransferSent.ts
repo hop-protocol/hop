@@ -4,6 +4,7 @@ import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, 
 import { v4 as uuid } from 'uuid'
 
 export interface HopStruct {
+  index?: number
   pathId: string
   maxTotalSent: BigNumber
   attestedClaimId: string
@@ -34,6 +35,7 @@ export class TransferSentTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS next_hops (
       id TEXT PRIMARY KEY,
       transfer_sent_event_id TEXT REFERENCES transfer_sent_events(id) ON DELETE CASCADE,
+      "index" INTEGER NOT NULL CHECK ("index" >= 0),
       path_id CHAR(66) NOT NULL,
       max_total_sent NUMERIC NOT NULL CHECK (max_total_sent >= 0),
       attested_claim_id CHAR(66) NOT NULL
@@ -52,6 +54,12 @@ export class TransferSentTable extends EventDb {
     )
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_event_context_id ON transfer_sent_events (event_context_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_next_hops_path_id ON next_hops (path_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_next_hops_attested_claim_id ON next_hops (attested_claim_id);'
     )
   }
 
@@ -88,6 +96,7 @@ export class TransferSentTable extends EventDb {
         e.attested_claim_id AS "attestedClaimId",
         e.attested_total_claims AS "attestedTotalClaims",
         ${selectEventContextSql},
+        nh.index,
         nh.path_id AS "pathId",
         nh.max_total_sent AS "maxTotalSent",
         nh.attested_claim_id AS "nhAttestedClaimId"
@@ -157,9 +166,11 @@ export class TransferSentTable extends EventDb {
       await t.none(deleteSql, [transferSentEventId])
 
       if (nextHops && nextHops.length > 0) {
+        let i = 0
         for (const hop of nextHops) {
           const hopArgs = {
             id: uuid(),
+            index: i,
             transferSentEventId,
             pathId: hop.pathId,
             maxTotalSent: hop.maxTotalSent.toString(),
@@ -168,11 +179,12 @@ export class TransferSentTable extends EventDb {
           const hopSql = `
             INSERT INTO next_hops
             (
-              id, transfer_sent_event_id, path_id, max_total_sent, attested_claim_id
+              id, transfer_sent_event_id, "index", path_id, max_total_sent, attested_claim_id
             )
-            VALUES ${'(${id}, ${transferSentEventId}, ${pathId}, ${maxTotalSent}, ${attestedClaimId})'}
+            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxTotalSent}, ${attestedClaimId})'}
           `
           await t.none(hopSql, hopArgs)
+          i++
         }
       }
     })
@@ -188,6 +200,7 @@ export class TransferSentTable extends EventDb {
 
       if (item.pathId) {
         const hop = {
+          index: item.index,
           pathId: item.pathId,
           maxTotalSent: BigNumber.from(item.maxTotalSent),
           attestedClaimId: item.nhAttestedClaimId
@@ -196,7 +209,11 @@ export class TransferSentTable extends EventDb {
       }
     }
 
-    return Array.from(map.values()).map(item => this.#normalizeHopStructDataForGet(item))
+    return Array.from(map.values()).map(item => {
+      // Sort nextHops within each item based on index
+      item.nextHops.sort((a: any, b: any) => a.index - b.index)
+      return this.#normalizeHopStructDataForGet(item)
+    })
   }
 
   #normalizeHopStructDataForGet (getData: Partial<HopStruct>): Partial<HopStruct> {
@@ -217,6 +234,7 @@ export class TransferSentTable extends EventDb {
     const data = Object.assign({}, getData)
 
     // delete next hops fields
+    delete (data as any).index
     delete (data as any).pathId
     delete (data as any).maxTotalSent
     delete (data as any).nhAttestedClaimId

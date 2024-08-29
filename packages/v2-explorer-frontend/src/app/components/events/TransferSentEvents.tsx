@@ -122,7 +122,7 @@ export function TransferSentEvents () {
             return [
               {
                 key: 'index',
-                value: i+1
+                value: nextHop.index
               },
               {
                 key: 'pathId',

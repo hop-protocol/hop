@@ -15,6 +15,7 @@ export function Paths () {
   const [filterValue, setFilterValue] = useState(queryParams.pathId || '')
   const filter = { [filterBy]: filterValue }
   const { paths, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit } = useFetchPaths(filter)
+  console.log(paths)
 
   useEffect(() => {
     updateQueryParams({ pathId: undefined })
@@ -57,7 +58,7 @@ export function Paths () {
       },
       {
         key: 'token',
-        value: path.tokenTruncated,
+        value: `${path.tokenSymbol ? `(${path.tokenSymbol}) ` : ''} ${path.tokenTruncated}`,
         valueUrl: path.tokenExplorerUrl,
         clipboardValue: path.token
       },
@@ -68,7 +69,7 @@ export function Paths () {
       },
       {
         key: 'counterpartToken',
-        value: path.counterpartTokenTruncated,
+        value: `${path.counterpartTokenSymbol ? `(${path.counterpartTokenSymbol}) ` : ''}${path.counterpartTokenTruncated}`,
         valueUrl: path.counterpartTokenExplorerUrl,
         clipboardValue: path.counterpartToken
       },

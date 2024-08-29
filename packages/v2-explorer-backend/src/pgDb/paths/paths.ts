@@ -54,27 +54,38 @@ export class PathTable extends BaseDb {
       args.push(filter.counterpartChainId)
     }
 
-    const items = await this.db.any(
-      `SELECT
-        path_id AS "pathId",
-        chain_id AS "chainId",
-        token,
-        counterpart_token AS "counterpartToken",
-        counterpart_chain_id AS "counterpartChainId"
+    const items = await this.db.any(`
+      SELECT
+        p.path_id AS "pathId",
+        p.chain_id::VARCHAR AS "chainId",          -- Cast chain_id to VARCHAR
+        p.token,
+        COALESCE(t1.name, '') AS "tokenName",      -- Use COALESCE to return an empty string if there's no match
+        COALESCE(t1.symbol, '') AS "tokenSymbol",
+        COALESCE(t1.decimals, 0) AS "tokenDecimals",
+        p.counterpart_token AS "counterpartToken",
+        COALESCE(t2.name, '') AS "counterpartTokenName",
+        COALESCE(t2.symbol, '') AS "counterpartTokenSymbol",
+        COALESCE(t2.decimals, 0) AS "counterpartTokenDecimals",
+        p.counterpart_chain_id::VARCHAR AS "counterpartChainId"  -- Cast counterpart_chain_id to VARCHAR
       FROM
-        paths
+        paths p
+      LEFT JOIN
+        tokens t1 ON p.chain_id::VARCHAR = t1.chain_id AND p.token = t1.address
+      LEFT JOIN
+        tokens t2 ON p.counterpart_chain_id::VARCHAR = t2.chain_id AND p.counterpart_token = t2.address
       WHERE
         1 = 1
-        ${filter?.pathId ? 'AND path_id = $3' : ''}
-        ${filter?.token ? 'AND token = $3' : ''}
-        ${filter?.counterpartToken ? 'AND counterpart_token = $3' : ''}
-        ${filter?.chainId ? `AND chain_id = ${filter?.pathId ? '$4' : '$3'}` : ''}
-        ${filter?.counterpartChainId ? 'AND counterpart_chain_id = $3' : ''}
+        ${filter?.pathId ? 'AND p.path_id = $3' : ''}
+        ${filter?.token ? 'AND p.token = $3' : ''}
+        ${filter?.counterpartToken ? 'AND p.counterpart_token = $3' : ''}
+        ${filter?.chainId ? `AND p.chain_id::VARCHAR = ${filter?.pathId ? '$4' : '$3'}` : ''}
+        ${filter?.counterpartChainId ? 'AND p.counterpart_chain_id::VARCHAR = $3' : ''}
       ORDER BY
-        chain_id
+        p.chain_id
       DESC
       LIMIT $1
-      OFFSET $2`,
+      OFFSET $2
+      `,
       args)
 
     return items

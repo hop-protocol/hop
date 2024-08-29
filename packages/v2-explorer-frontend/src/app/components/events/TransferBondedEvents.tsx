@@ -57,6 +57,7 @@ export function TransferBondedEvents () {
       {
         key: 'pathId',
         value: event.pathIdTruncated,
+        valueUrl: `/paths?pathId=${event.pathId}`,
         clipboardValue: event.pathId
       },
       {

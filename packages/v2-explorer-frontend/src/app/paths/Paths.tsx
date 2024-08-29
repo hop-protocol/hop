@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import { useFetchPaths } from './useFetchPaths'
 import { Table } from '@/app/components/Table'
@@ -7,12 +7,18 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useQueryParams } from '@/app/hooks/useQueryParams'
 
 export function Paths () {
+  const { queryParams, updateQueryParams } = useQueryParams()
   const [filterBy, setFilterBy] = useState('pathId')
-  const [filterValue, setFilterValue] = useState('')
+  const [filterValue, setFilterValue] = useState(queryParams.pathId || '')
   const filter = { [filterBy]: filterValue }
   const { paths, loading, error, nextPage, previousPage, showNextButton, showPreviousButton, limit } = useFetchPaths(filter)
+
+  useEffect(() => {
+    updateQueryParams({ pathId: undefined })
+  }, [])
 
   const headers = [
     {

@@ -596,5 +596,7 @@ export class Controller {
     if (filters.symbol) {
       filters.symbol = filters.symbol.trim()
     }
+
+    return filters
   }
 }

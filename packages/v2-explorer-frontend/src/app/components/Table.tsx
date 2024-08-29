@@ -209,7 +209,21 @@ export function Table (props: Props) {
                                     return (
                                       <TableCell key={m}>
                                         <Box display="flex" alignItems="center">
-                                          <Typography variant="body2">{subCol.value}</Typography>
+                                          {subCol.valueUrl ? (
+                                            subCol.button ? (
+                                              <Button
+                                                endIcon={<ArrowForwardIcon />}
+                                                href={subCol.valueUrl}>{subCol.value}</Button>
+                                            ) : (
+                                            <Link href={subCol.valueUrl} target="_blank" rel="noreferrer">
+                                              <Typography variant="body2">{subCol.value}</Typography>
+                                            </Link>
+                                            )
+                                          ) : (
+                                            typeof subCol.value === 'string'
+                                            ? <Typography variant="body2">{subCol.value}</Typography>
+                                            : (subCol.value != null ? subCol.value : '-')
+                                          )}
                                           {subCol.clipboardValue != null && (
                                             <Box ml={0.5}>
                                               <CopyToClipboard text={subCol.clipboardValue}

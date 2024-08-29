@@ -127,6 +127,7 @@ export function TransferSentEvents () {
               {
                 key: 'pathId',
                 value: nextHop.pathIdTruncated,
+                valueUrl: `/paths?pathId=${nextHop.pathId}`,
                 clipboardValue: nextHop.pathId
               },
               {

@@ -2,7 +2,6 @@ import { EventEmitter } from 'node:events'
 import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
-import { filterObjectProperties } from '#utils/filterObjectProperties.js'
 import type { IDataAdapter } from './IDataAdapter.js'
 import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
 import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
@@ -19,23 +18,14 @@ type IDataSource = IOnchainEventIndexer
  * The indexer is unconcerned with states.
  */
 
-export abstract class DataAdapter<
-  State,
-  StateData extends StateTxContext,
-  EventIndexKey extends string,
-  EventIndexValue extends object
-> implements IDataAdapter<
-  State,
-  StateData
-> {
+export abstract class DataAdapter<State, StateData extends StateTxContext, EventName> implements IDataAdapter<State, StateData> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #dataSource: IDataSource
   protected readonly logger: Logger
 
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract getStateFromEventName (eventName: string): State
-  protected abstract getEventNameFromState (state: State): string
-  protected abstract getIndexKeysByEventName (eventName: string): EventIndexKey[]
+  protected abstract getEventNameFromState (state: State): EventName
 
   constructor (dataSource: IDataSource) {
     this.#dataSource = dataSource
@@ -85,7 +75,19 @@ export abstract class DataAdapter<
 
   async fetchItem(state: State, outputData: StateData): Promise<StateData | null> {
     const parsedOutputData = await this.#fromStateMachine(state, outputData)
-    const inputData: DecodedLogWithContext | null = await this.#dataSource.fetchItem(parsedOutputData)
+
+    // @dev The data source will take the parsed output data and use it as the keys to fetch the input data.
+    // Typing this in a generic way is difficult since the keys are dynamic and depend on their respective
+    // context-specific logic. Because of this, the data at this point in the process may be invalid, but
+    // it is the responsibility of the data source to handle this. The data source will throw if the
+    // data is invalid. It will return null if the incoming data is valid but does not exist.
+    let inputData: DecodedLogWithContext | null
+    try {
+      inputData = await this.#dataSource.fetchItem(parsedOutputData)
+    } catch (err) {
+      throw new Error('Error fetching item, invalid data')
+    }
+
     if (!inputData) {
       return null
     }
@@ -114,16 +116,12 @@ export abstract class DataAdapter<
   async #fromStateMachine (
     state: State,
     value: StateData
-  ): Promise<IndexedEventDataWithContext<EventIndexKey, EventIndexValue>> {
+  ): Promise<IndexedEventDataWithContext<EventName>> {
     const eventName = this.getEventNameFromState(state)
-    const eventIndexKeys = this.getIndexKeysByEventName(eventName)
-    const eventIndexValues = filterObjectProperties(value, eventIndexKeys) as EventIndexValue
-
     return {
       chainId: value.txContext.chainId,
       eventName,
-      eventIndexKeys,
-      eventIndexValues
+      eventIndexValues: value
     }
   }
 }

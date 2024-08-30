@@ -14,9 +14,7 @@ import {
   getMaxBlockRangePerIndex,
   getIndexerSyncBlockNumber,
   getUniqueFilterId,
-  stringifyObjectValues
 } from './utils.js'
-import { filterObjectProperties } from '#utils/filterObjectProperties.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
 import { DATA_PUT_EVENT } from '#db/constants.js'
 import { Logger } from '#logger/index.js'
@@ -32,11 +30,11 @@ import { Logger } from '#logger/index.js'
  * to use before calling init() and start().
  */
 
-export interface IndexerEventFilter<T extends string = string>{
+export interface IndexerEventFilter<IndexerKey>{
   chainId: string
   filter: RequiredEventFilter
   startBlockNumber: number
-  lookupKeys: T[]
+  indexerKeys: IndexerKey[]
 }
 
 interface EventLogsForRange {
@@ -48,11 +46,10 @@ interface EventLogsForRange {
 
 interface IndexedEvent {
   chainId: string
-  eventName: string
+  indexerEventFilter: RequiredEventFilter
 }
 
-
-export abstract class OnchainEventIndexer<EventName extends string, LookupKey extends string> implements IOnchainEventIndexer {
+export abstract class OnchainEventIndexer<EventName extends string, IndexerKey extends string> implements IOnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexedEvents: IndexedEvent[] = []
@@ -65,7 +62,7 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
   protected readonly logger: Logger
 
   protected abstract getEventFilter(chainId: string, eventName: EventName, topics?: []): RequiredEventFilter
-  protected abstract getIndexerKeys (eventName: EventName): LookupKey[]
+  protected abstract getIndexerKeys (eventName: EventName): IndexerKey[]
   protected abstract getStartBlockNumber (chainId: string): number
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
@@ -75,37 +72,26 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
     return true
   }
 
-  constructor (
-    dbName: string,
-    eventNames: EventName[],
-    chainIds: string[]
-  ) {
+  constructor (dbName: string) {
     this.#db = new OnchainEventIndexerDB(dbName)
     this.logger = new Logger({
       tag: 'OnchainEventIndexer',
       color: 'blue'
     })
-
-    for (const eventName of eventNames) {
-      for (const chainId of chainIds) {
-        this.addIndexerEventFilter(chainId, eventName)
-      }
-    }
   }
 
-  protected addIndexerEventFilter (chainId: string, eventName: EventName): void {
+  protected addIndexerEventFilter (eventName: EventName, chainId: string, indexerEventFilter: RequiredEventFilter): void {
     if (this.#initialized || this.#started) {
       throw new Error('Cannot add indexer after initializing or starting')
     }
 
-    const filter = this.getEventFilter(chainId, eventName)
-    const filterId = getUniqueFilterId(chainId, filter)
-    const lookupKeys = this.getIndexerKeys(eventName)
+    const filterId = getUniqueFilterId(chainId, indexerEventFilter)
+    const indexerKeys = this.getIndexerKeys(eventName)
 
-    this.#db.newIndexerDB(filterId, lookupKeys)
+    this.#db.newIndexerDB(filterId, indexerKeys)
     this.#indexedEvents.push({
       chainId,
-      eventName
+      indexerEventFilter
     })
   }
 
@@ -119,11 +105,10 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
 
     // Parallelize initialization and syncing since each filter is independent
     const promises: Array<Promise<void>> = this.#indexedEvents.map(async (indexedEvent) => {
-      const { chainId, eventName } = indexedEvent
+      const { chainId, indexerEventFilter } = indexedEvent
 
-      const filter = this.getEventFilter(chainId, eventName)
-      const filterId = getUniqueFilterId(chainId, filter)
-      const startBlockNumber = this.getStartBlockNumber(eventName)
+      const filterId = getUniqueFilterId(chainId, indexerEventFilter)
+      const startBlockNumber = this.getStartBlockNumber(chainId)
 
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexedEvent)
@@ -159,17 +144,20 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
    * Getters
    */
 
-  async fetchItem(input: IndexedEventDataWithContext): Promise<DecodedLogWithContext | null> {
+  // @dev The indexed values are not strictly typed due to the complexity it adds to the system in
+  // exchange for minimal benefit. The consumer will send what it believes to be the correct values,
+  // but if they are incorrect then this method will error. If the values are correct but the data
+  // does not exist, then this method will return null.
+  async fetchItem(input: IndexedEventDataWithContext<EventName>): Promise<DecodedLogWithContext | null> {
     const { chainId, eventName, eventIndexValues } = input
     const eventFilter: RequiredEventFilter = this.getEventFilter(chainId, eventName)
     const filterId: string = getUniqueFilterId(chainId, eventFilter)
 
-    const lookupKeys: LookupKey[] = this.getIndexerKeys(eventName as EventName)
-    const indexesObj = filterObjectProperties(eventIndexValues, lookupKeys)
-    const stringifiedIndexValues: string[] = stringifyObjectValues(indexesObj)
+    const indexerKeys: IndexerKey[] = this.getIndexerKeys(eventName)
+    const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(indexerKeys, eventIndexValues)
 
     try {
-      return await this.#db.getIndexedItem(filterId, stringifiedIndexValues)
+      return await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
     } catch {
       return null
     }
@@ -184,9 +172,9 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
   }
 
   #syncEvents = async (indexedEvent: IndexedEvent): Promise<void> => {
-    const { chainId, eventName } = indexedEvent
-    const filter = this.getEventFilter(chainId, eventName as EventName)
-    const filterId = getUniqueFilterId(chainId, filter)
+    const { chainId, indexerEventFilter } = indexedEvent
+
+    const filterId = getUniqueFilterId(chainId, indexerEventFilter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
 
     // Add 1 to currentEnd to avoid fetching the same block twice
@@ -197,7 +185,7 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
 
     const getEventLogsInput: EventLogsForRange = {
       chainId,
-      filter,
+      filter: indexerEventFilter,
       startBlockNumber,
       endBlockNumber
     }
@@ -205,7 +193,7 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
     this.logger.info(`Syncing events for chainId ${chainId} and filterId ${filterId} from block ${startBlockNumber} to ${endBlockNumber}`)
     for await (const { endBlockNumber, logs } of this.#getEventLogsForRange(getEventLogsInput)) {
       const filteredLogs = logs.filter(log => this.filterIrrelevantLog(log))
-      // Note: There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
+      // There can be an updated lastBlockSynced even if the logs are empty, so don't skip the update
       await this.#db.putItemIndexedItem(filterId, endBlockNumber, filteredLogs)
     }
   }
@@ -247,5 +235,21 @@ export abstract class OnchainEventIndexer<EventName extends string, LookupKey ex
 
       currentStartBlockNumber = currentEndBlockNumber + 1
     }
+  }
+
+  /**
+   * Utils
+   */
+
+  // Retrieves the values from the object and stringifies them for use as DB indexes.
+  #getStringifiedDBIndexes (indexerKeys: IndexerKey[], eventIndexValues: any): string[] {
+    return indexerKeys.reduce<string[]>((acc, key) => {
+      const value = eventIndexValues[key as keyof typeof eventIndexValues]
+      if (value === undefined) {
+        throw new Error(`Missing index value for key ${key}`)
+      }
+      acc.push(value.toString())
+      return acc
+    }, [])
   }
 }

@@ -1,20 +1,19 @@
 import {
   type TransferSent,
-  type TransferPosted,
+  // type TransferPosted,
   type TransferBonded,
-  RailsSDKWrapper
+  RailsSDKWrapper,
+  RailsSDK,
+  RailsEventName,
 } from './RailsSDK.js'
-import { OnchainEventIndexer, type IndexerEventFilter } from '#indexer/OnchainEventIndexer.js'
-import {
-  type IRailsTransfer,
-  RailsTransferState
-} from './types.js'
+import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 import type { providers } from 'ethers'
-import { getPathFromPathId, getRailsStartBlockNumber } from './utils.js'
+import { getRailsStartBlockNumber } from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
+import type { RailsPath } from './types.js'
 
 // TODO: SDK: Sent -> posted
-type LookupKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
+type RailsIndexerKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
 
 /**
  * This class is responsible for abstracting away indexing logic
@@ -23,15 +22,22 @@ type LookupKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
  * the details of the indexing.
  */
 
-export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRailsTransfer, LookupKey> {
+export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndexerKey> {
 
-  constructor (dbName: string, states: RailsTransferState[], chainIds: string[]) {
+  constructor(dbName: string, eventNames: RailsEventName[], paths: RailsPath[]) {
     super(dbName)
 
-    for (const state of states) {
-      for (const chainId of chainIds) {
-        const indexerEventFilter = this.#getIndexerEventFilterByChainId(chainId, state)
-        this.addIndexerEventFilter(indexerEventFilter)
+    // Only index events with the pathId that the bonder cares about
+    const pathIdsPerChain = this.#getPathIdsPerChain(paths)
+    // All events are indexed by pathId so there is no need to filter them
+    for (const eventName of eventNames) {
+      for (const chainId of Object.keys(pathIdsPerChain)) {
+        const pathIds = pathIdsPerChain[chainId]!
+        const topics = {
+          pathId: pathIds
+        }
+        const filter = this.#getFilterForEvent(chainId, eventName, topics)
+        this.addIndexerEventFilter(eventName, chainId, filter)
       }
     }
   }
@@ -40,15 +46,17 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
    * Implementation
    */
 
-  protected override getIndexerEventFilter(state: RailsTransferState, value: IRailsTransfer): IndexerEventFilter<LookupKey> {
-    const path = getPathFromPathId(value.pathId)
-    const chainId: string = state === RailsTransferState.Sent ? path.srcChainId : path.destChainId
-    return this.#getIndexerEventFilterByChainId(chainId, state, value.pathId)
+  protected override getEventFilter(chainId: string, eventName: RailsEventName, topics: string[] = []): RequiredEventFilter {
+    return this.#getFilterForEvent(chainId, eventName, topics)
   }
 
-  protected override getLookupKeyValue (lookupKey: LookupKey, value: IRailsTransfer): string {
-    // The transferId is unique across all chains and transfers, so we can use it for all states
-    return value.transferId
+  protected override getIndexerKeys (eventName: RailsEventName): RailsIndexerKey[] {
+    // The indexer key for all events is transferId
+    return ['transferId']
+  }
+
+  protected override getStartBlockNumber (chainId: string): number {
+    return getRailsStartBlockNumber(chainId)
   }
 
   protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
@@ -59,26 +67,41 @@ export class RailsIndexer extends OnchainEventIndexer<RailsTransferState, IRails
    * Internal
    */
 
-  #getIndexerEventFilterByChainId(chainId: string, state: RailsTransferState, pathId?: string): IndexerEventFilter<LookupKey> {
-    return {
-      chainId,
-      filter: this.#getFilterByState(state, chainId, pathId),
-      startBlockNumber: getRailsStartBlockNumber(chainId),
-      lookupKeys: ['transferId']
-    }
-  }
-
-  #getFilterByState (state: RailsTransferState, chainId: string, pathId?: string): RequiredEventFilter {
-    const indexes = pathId ? { pathId } : undefined
-    switch (state) {
-      case RailsTransferState.Sent:
-        return RailsSDKWrapper.getTransferSentEventFilter(chainId, indexes)
-      case RailsTransferState.Posted:
-        return RailsSDKWrapper.getTransferPostedEventFilter(chainId, indexes)
-      case RailsTransferState.Bonded:
-        return RailsSDKWrapper.getTransferBondedEventFilter(chainId, indexes)
+  #getFilterForEvent (chainId: string, eventName: RailsEventName, topics: any): RequiredEventFilter {
+    switch (eventName) {
+      case RailsEventName.TransferSent:
+        return RailsSDKWrapper.getTransferSentEventFilter(chainId, topics)
+      case RailsEventName.TransferPosted:
+        return RailsSDKWrapper.getTransferPostedEventFilter(chainId, topics)
+      case RailsEventName.TransferBonded:
+        return RailsSDKWrapper.getTransferBondedEventFilter(chainId, topics)
       default:
         throw new Error('Invalid state')
     }
+  }
+
+
+  #getPathIdsPerChain(paths: RailsPath[]): Record<string, string[]> {
+    const pathIdsPerChain: Record<string, string[] | undefined> = {}
+
+    for (const path of paths) {
+      const pathId = RailsSDK.getPathId(path)
+
+      const sourceChainId = path.srcChainId
+      pathIdsPerChain[sourceChainId] = pathIdsPerChain[sourceChainId] ?? []
+      if (!pathIdsPerChain[sourceChainId]?.includes(pathId)) {
+        pathIdsPerChain[sourceChainId]?.push(pathId)
+      }
+
+      const destChainId = path.destChainId
+      pathIdsPerChain[destChainId] = pathIdsPerChain[destChainId] ?? []
+      if (!pathIdsPerChain[destChainId]?.includes(pathId)) {
+        pathIdsPerChain[destChainId]?.push(pathId)
+      }
+    }
+
+    // TODO: Shouldn't have to do this typecasting. Correctly type this
+    // when I have more time.
+    return pathIdsPerChain as Record<string, string[]>
   }
 }

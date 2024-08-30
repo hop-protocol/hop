@@ -1,10 +1,23 @@
 import type { BigNumber } from 'ethers'
+import type { IRailsTransfer } from './transfer/types.js'
 
 export enum RailsTransferState {
+
+/**
+ * Rails state data
+ */
+
+export enum State {
   Sent = 'sent',
+  Bonded = 'bonded',
   Posted = 'posted',
-  Bonded = 'bonded'
+  Claimed = 'claimed'
 }
+
+export type StateData = IRailsTransfer
+/**
+ * General
+ */
 
 export type RailsHop = {
   pathId: string
@@ -18,34 +31,3 @@ export type RailsPath = {
   destChainId: string
   destToken: string
 }
-
-interface IRailsTransferShared {
-  transferId: string
-  pathId: string
-}
-
-export interface ISentRailsTransfer extends IRailsTransferShared {
-  to: string
-  amount: BigNumber
-  totalSent: BigNumber
-  attestedClaimId: string
-  attestedTotalClaims: BigNumber
-  nextHops: RailsHop[]
-  sentTxHash: string
-  sentTimestampMs: number
-}
-
-export interface IPostedRailsTransfer extends IRailsTransferShared {
-  // TODO: SDK: Fill in
-  postedTxHash: string
-  postedTimestampMs: number
-}
-
-export interface IBondedRailsTransfer extends IRailsTransferShared {
-  to: string
-  amountOut: BigNumber
-  bondedTxHash: string
-  bondedTimestampMs: number
-}
-
-export type IRailsTransfer = ISentRailsTransfer | IPostedRailsTransfer | IBondedRailsTransfer

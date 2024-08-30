@@ -2,23 +2,28 @@ import { RailsDataAdapter } from './RailsDataAdapter.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { RailsStateMachine } from './RailsStateMachine.js'
 import { RailsRelayer } from './RailsRelayer.js'
-import { RailsTransferState } from './types.js'
+import { type RailsPath, State } from './types.js'
+import { RailsEventName } from './RailsSDK.js'
 
 export class Rails {
   readonly #stateMachine: RailsStateMachine
   readonly #relayer: RailsRelayer
   #started: boolean = false
 
-  constructor (chainIds: string[]) {
+  constructor (paths: RailsPath[]) {
     const dbName = 'Rails'
-    const states = [
-      RailsTransferState.Sent,
-      RailsTransferState.Posted,
-      RailsTransferState.Bonded
+    const states: State[] = [
+      State.Sent,
+      State.Posted,
+      State.Bonded
+    ]
+    const eventNames: RailsEventName[] = [
+      RailsEventName.TransferSent,
+      RailsEventName.TransferBonded
     ]
 
     // Data handler
-    const indexer = new RailsIndexer(dbName, states, chainIds)
+    const indexer = new RailsIndexer(dbName, eventNames, paths)
 
     // State handler
     const dataAdapter = new RailsDataAdapter(indexer)

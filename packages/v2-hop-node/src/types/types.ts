@@ -22,12 +22,11 @@ export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
 export interface IndexedEventDataWithContext<
-  IndexKey extends string = string,
+  EventName,
   IndexValue extends object = object
 > {
   chainId: string
-  eventName: string
-  eventIndexKeys: IndexKey[]
+  eventName: EventName
   eventIndexValues: IndexValue
 }
 

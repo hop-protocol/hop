@@ -55,6 +55,14 @@ export type TransferBondedIndexedEvents = {
   to: string
 }
 
+// TODO: Get from SDK
+export enum RailsEventName {
+  TransferSent = 'TransferSent',
+  TransferPosted = 'TransferPosted',
+  TransferBonded = 'TransferBonded'
+  // TODO: Add them all
+}
+
 // TODO: No chainId in input if connecting
 export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
 export type BondInput = Omit<BondInputSDK, 'chainId'>

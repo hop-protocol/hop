@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
 import type {
   DecodedLogWithContext,
-  IndexedEventData,
+  IndexedEventDataWithContext,
   RequiredEventFilter,
   RequiredFilter
 } from '#types/index.js'
@@ -46,10 +46,16 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-export abstract class OnchainEventIndexer<LookupKey extends string> implements IOnchainEventIndexer {
+interface IndexedEvent {
+  chainId: string
+  eventName: string
+}
+
+
+export abstract class OnchainEventIndexer<EventName extends string, LookupKey extends string> implements IOnchainEventIndexer {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
-  readonly #indexerEventFilters: IndexerEventFilter<LookupKey>[] = []
+  readonly #indexedEvents: IndexedEvent[] = []
   // TODO: Optimize: Poll timing, possibly two-tiered polling or per-indexer polling. PollPriority can be passed into class.
   // This poller calls a getLog for each indexed event filter every poll. This can become RPC intensive and the value
   // should reflect the tradeoff between up-to-date data and RPC usage.
@@ -58,8 +64,9 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
   #started: boolean = false
   protected readonly logger: Logger
 
-  protected abstract getEventFilter(chainId: string, eventName: string): RequiredEventFilter
-  protected abstract getLookupKeysByEventName(eventName: string): LookupKey[]
+  protected abstract getEventFilter(chainId: string, eventName: EventName, topics?: []): RequiredEventFilter
+  protected abstract getIndexerKeys (eventName: EventName): LookupKey[]
+  protected abstract getStartBlockNumber (chainId: string): number
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
   // This exists for systems that are required to observe all events but only index some, like CCTP. This should be overridden
@@ -68,22 +75,38 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
     return true
   }
 
-  constructor (dbName: string) {
+  constructor (
+    dbName: string,
+    eventNames: EventName[],
+    chainIds: string[]
+  ) {
     this.#db = new OnchainEventIndexerDB(dbName)
     this.logger = new Logger({
       tag: 'OnchainEventIndexer',
       color: 'blue'
     })
+
+    for (const eventName of eventNames) {
+      for (const chainId of chainIds) {
+        this.addIndexerEventFilter(chainId, eventName)
+      }
+    }
   }
 
-  protected addIndexerEventFilter (indexerEventFilter: IndexerEventFilter<LookupKey>): void {
+  protected addIndexerEventFilter (chainId: string, eventName: EventName): void {
     if (this.#initialized || this.#started) {
       throw new Error('Cannot add indexer after initializing or starting')
     }
-    const { chainId, filter, lookupKeys } = indexerEventFilter
+
+    const filter = this.getEventFilter(chainId, eventName)
     const filterId = getUniqueFilterId(chainId, filter)
+    const lookupKeys = this.getIndexerKeys(eventName)
+
     this.#db.newIndexerDB(filterId, lookupKeys)
-    this.#indexerEventFilters.push(indexerEventFilter)
+    this.#indexedEvents.push({
+      chainId,
+      eventName
+    })
   }
 
   /**
@@ -95,11 +118,15 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
     this.#db.init()
 
     // Parallelize initialization and syncing since each filter is independent
-    const promises: Array<Promise<void>> = this.#indexerEventFilters.map(async (indexerEventFilter) => {
-      const { chainId, filter, startBlockNumber } = indexerEventFilter
+    const promises: Array<Promise<void>> = this.#indexedEvents.map(async (indexedEvent) => {
+      const { chainId, eventName } = indexedEvent
+
+      const filter = this.getEventFilter(chainId, eventName)
       const filterId = getUniqueFilterId(chainId, filter)
+      const startBlockNumber = this.getStartBlockNumber(eventName)
+
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
-      await this.#syncEvents(indexerEventFilter)
+      await this.#syncEvents(indexedEvent)
     })
     await Promise.all(promises)
 
@@ -108,8 +135,8 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
   }
 
   start (): void {
-    for (const indexerEventFilter of this.#indexerEventFilters) {
-      this.#startPoller(indexerEventFilter)
+    for (const indexedEvent of this.#indexedEvents) {
+      this.#startPoller(indexedEvent)
     }
     this.#started = true
     this.logger.info('OnchainEventIndexer started')
@@ -132,14 +159,13 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
    * Getters
    */
 
-  async fetchItem(indexedEventData: IndexedEventData): Promise<DecodedLogWithContext | null> {
-    const { chainId, eventName, eventIndexes } = indexedEventData
-
+  async fetchItem(input: IndexedEventDataWithContext): Promise<DecodedLogWithContext | null> {
+    const { chainId, eventName, eventIndexValues } = input
     const eventFilter: RequiredEventFilter = this.getEventFilter(chainId, eventName)
     const filterId: string = getUniqueFilterId(chainId, eventFilter)
 
-    const lookupKeys: LookupKey[] = this.getLookupKeysByEventName(eventName)
-    const indexesObj = filterObjectProperties(eventIndexes, lookupKeys)
+    const lookupKeys: LookupKey[] = this.getIndexerKeys(eventName as EventName)
+    const indexesObj = filterObjectProperties(eventIndexValues, lookupKeys)
     const stringifiedIndexValues: string[] = stringifyObjectValues(indexesObj)
 
     try {
@@ -153,12 +179,13 @@ export abstract class OnchainEventIndexer<LookupKey extends string> implements I
    * Poller
    */
 
-  #startPoller (indexerEventFilter: IndexerEventFilter): void {
-    void poll(() => this.#syncEvents(indexerEventFilter), this.#pollIntervalMs, this.logger)
+  #startPoller (indexedEvent: IndexedEvent): void {
+    void poll(() => this.#syncEvents(indexedEvent), this.#pollIntervalMs, this.logger)
   }
 
-  #syncEvents = async (indexerEventFilter: IndexerEventFilter): Promise<void> => {
-    const { chainId, filter } = indexerEventFilter
+  #syncEvents = async (indexedEvent: IndexedEvent): Promise<void> => {
+    const { chainId, eventName } = indexedEvent
+    const filter = this.getEventFilter(chainId, eventName as EventName)
     const filterId = getUniqueFilterId(chainId, filter)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
 

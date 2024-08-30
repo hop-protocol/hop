@@ -1,4 +1,4 @@
-import type { DecodedLogWithContext, IndexedEventData } from "#types/index.js"
+import type { DecodedLogWithContext, IndexedEventDataWithContext } from "#types/index.js"
 
 export interface IOnchainEventIndexer {
   // Initialization
@@ -9,5 +9,5 @@ export interface IOnchainEventIndexer {
   on (event: string, listener: (...args: any[]) => void): void
 
   // Public methods
-  fetchItem (indexedEventData: IndexedEventData): Promise<DecodedLogWithContext | null>
+  fetchItem(input: IndexedEventDataWithContext): Promise<DecodedLogWithContext | null>
 }

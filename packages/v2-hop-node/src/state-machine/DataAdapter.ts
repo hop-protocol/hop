@@ -5,7 +5,7 @@ import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 import { filterObjectProperties } from '#utils/filterObjectProperties.js'
 import type { IDataAdapter } from './IDataAdapter.js'
 import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
-import type { DecodedLogWithContext, IndexedEventData } from '#types/index.js'
+import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
 import type { StateTxContext } from './types.js'
 
 // TODO: Generalize for additional data sources beyond onchain events
@@ -19,7 +19,15 @@ type IDataSource = IOnchainEventIndexer
  * The indexer is unconcerned with states.
  */
 
-export abstract class DataAdapter<State, StateData extends StateTxContext, EventIndexes extends object> implements IDataAdapter<State, StateData> {
+export abstract class DataAdapter<
+  State,
+  StateData extends StateTxContext,
+  EventIndexKey extends string,
+  EventIndexValue extends object
+> implements IDataAdapter<
+  State,
+  StateData
+> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #dataSource: IDataSource
   protected readonly logger: Logger
@@ -27,7 +35,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract getStateFromEventName (eventName: string): State
   protected abstract getEventNameFromState (state: State): string
-  protected abstract getIndexKeysByEventName (eventName: string): string[]
+  protected abstract getIndexKeysByEventName (eventName: string): EventIndexKey[]
 
   constructor (dataSource: IDataSource) {
     this.#dataSource = dataSource
@@ -103,15 +111,19 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     }
   }
 
-  async #fromStateMachine (state: State, value: StateData): Promise<IndexedEventData<EventIndexes>> {
+  async #fromStateMachine (
+    state: State,
+    value: StateData
+  ): Promise<IndexedEventDataWithContext<EventIndexKey, EventIndexValue>> {
     const eventName = this.getEventNameFromState(state)
     const eventIndexKeys = this.getIndexKeysByEventName(eventName)
-    const eventIndexes = filterObjectProperties(value, eventIndexKeys) as EventIndexes
+    const eventIndexValues = filterObjectProperties(value, eventIndexKeys) as EventIndexValue
 
     return {
       chainId: value.txContext.chainId,
       eventName,
-      eventIndexes
+      eventIndexKeys,
+      eventIndexValues
     }
   }
 }

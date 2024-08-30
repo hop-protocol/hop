@@ -125,6 +125,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
   #initializeItem = async (state: State, value: StateData): Promise<void> => {
     const firstState = getFirstState(this.#states)
     if (state !== firstState) return
+
     const key = this.getItemId(value)
     this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
     return this.#db.createItemIfNotExist(firstState, key, value)

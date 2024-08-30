@@ -39,7 +39,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const totalSent = parsed.args.totalSent
     const attestedClaimId = parsed.args.attestedClaimId.toString()
     const attestedTotalClaims = parsed.args.attestedTotalClaims.toString()
-    const nextHops = parsed.args.hops.map((hop: any) => {
+    const nextHops = parsed.args.nextHops.map((hop: any) => {
       return {
         pathId: hop.pathId.toString(),
         maxTotalSent: hop.maxTotalSent,

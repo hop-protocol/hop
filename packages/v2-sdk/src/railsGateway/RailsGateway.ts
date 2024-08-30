@@ -561,7 +561,7 @@ export class RailsGateway extends StakingRegistry {
 
   get populateTransaction() {
     return {
-      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops, maxTotalSent }: SendInput): Promise<providers.TransactionRequest> => {
+      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent }: SendInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -584,6 +584,10 @@ export class RailsGateway extends StakingRegistry {
 
         if (!this.utils.isValidBytes32(attestedClaimId)) {
           throw new InputError(`Invalid attestedClaimId "${attestedClaimId}"`)
+        }
+
+        if (!nextHops || !Array.isArray(nextHops)) {
+          throw new InputError('Invalid nextHops')
         }
 
         for (const hop of nextHops) {
@@ -651,7 +655,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      bond: async ({ chainId, pathId, transferId, nextHops }: BondInput): Promise<providers.TransactionRequest> => {
+      bond: async ({ chainId, pathId, transferId, nextHops = []}: BondInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -664,7 +668,7 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid checkpoint "${transferId}"`)
         }
 
-        if (!nextHops || !Array.isArray(nextHops) || nextHops.length === 0) {
+        if (!nextHops || !Array.isArray(nextHops)) {
           throw new InputError('Invalid nextHops')
         }
 
@@ -807,7 +811,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.withdraw(pathId, amount, timeWindow)
+        const txData = await contract.populateTransaction['withdraw(bytes32,uint256,uint256)'](pathId, amount, Number(timeWindow))
 
         return {
           ...txData,

@@ -509,7 +509,10 @@ export class Base {
       },
 
       switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {
-        chainId = BigNumber.from(chainId)
+        chainId = BigNumber.from(chainId).toNumber()
+
+        // Note: chainId must be unpadded hex string
+        const chainIdHex = `0x${chainId.toString(16)}`
         try {
           if (!provider) {
             throw new Error('provider or signer is required')
@@ -520,7 +523,7 @@ export class Base {
             return
           }
 
-          await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }]) // TODO: type
+          await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainIdHex }]) // TODO: type
         } catch (err) {
           if (err.code === 4902) {
             const chains = getNetwork(this.network as NetworkSlug).chains
@@ -528,7 +531,7 @@ export class Base {
             if (chain) {
               const nativeCurrency = chain?.nativeTokenSymbol
               await (provider as any).send('wallet_addEthereumChain', [{ // TODO: type
-                chainId: chainId.toHexString(),
+                chainId: chainIdHex,
                 chainName: this.utils.getChainSlug(chainId),
                 nativeCurrency: {
                   name: nativeCurrency,

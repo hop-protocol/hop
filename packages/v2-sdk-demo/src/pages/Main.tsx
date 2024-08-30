@@ -26,6 +26,7 @@ const RailsGatewayApproveSend = lazy(() => import('../components/railsGateway/Ra
 const RailsGatewayApproveBond = lazy(() => import('../components/railsGateway/RailsGatewayApproveBond'))
 const RailsGatewayGetTotalSent = lazy(() => import('../components/railsGateway/RailsGatewayGetTotalSent'))
 const RailsGatewayBond = lazy(() => import('../components/railsGateway/RailsGatewayBond'))
+const RailsGatewayWithdraw = lazy(() => import('../components/railsGateway/RailsGatewayWithdraw'))
 const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/RailsGatewayGetPathInfo'))
 const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId'))
 const RailsGatewayGetFee = lazy(() => import('../components/railsGateway/RailsGatewayGetFee'))
@@ -114,6 +115,7 @@ export function Main () {
     ['Rails Gateway - Approve Send', <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Bond', <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Withdraw', <RailsGatewayWithdraw signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Total Sent', <RailsGatewayGetTotalSent sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],

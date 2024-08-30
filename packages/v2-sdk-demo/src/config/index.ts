@@ -2,8 +2,7 @@ import { NetworkSlug } from '@hop-protocol/sdk'
 
 export const network = 'sepolia'
 
-// export const chainIds = ['84532', '11155420', '11155111']
-export const chainIds = ['11155420', '11155111']
+export const chainIds = ['11155420', '11155111', '84532', '42069']
 
 export const defaultChainIds = {
   from: chainIds[0],

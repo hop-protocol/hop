@@ -366,6 +366,7 @@ export class Base {
 
       isValidChainId: (chainId: BigNumberish): boolean => {
         const exists = this.contractAddresses[chainId?.toString()] != null
+        console.log('contract', this.contractAddresses)
         if (!exists) {
           console.warn(`chainId "${chainId}" not configured`) // TODO: handle this better
         }

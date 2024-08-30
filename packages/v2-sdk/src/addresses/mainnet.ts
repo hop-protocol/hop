@@ -13,7 +13,6 @@ export const addresses: Addresses = {
     chainId: '10',
     startBlock: 0,
     spokeCoreMessenger: '',
-    connector: '',
     railsGateway: ''
   }
 }

@@ -528,6 +528,7 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract(chainId)
     const pathInfoArray = await contract.getPathInfo(pathId)
+    console.log('pathInfo', pathInfoArray)
     const pathInfo: Path = {
       pathId,
       chainId: pathInfoArray[0].toString(),

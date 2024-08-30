@@ -53,5 +53,18 @@ export const chains: Chains = {
     etherscanApiUrl: '',
     isRollup: true,
     txOverrides: {}
+  },
+  hub: {
+    ...sharedChain.hub,
+    chainId: '42069',
+    parentChainId: '11155111',
+    publicRpcUrl: 'https://hub-testnet.rpc.hop.exchange',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://hub-explorer-testnet.hop.exchange'],
+    multicall: '',
+    subgraphUrl: '',
+    etherscanApiUrl: '',
+    isRollup: true,
+    txOverrides: {}
   }
 }

@@ -30,7 +30,7 @@ export const addresses: Addresses = {
     }
   },
   '84532': {
-    chainId: 84532,
+    chainId: '84532',
     startBlock: 14597343,
     spokeCoreMessenger: '0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981', // dispatcher
     railsGateway: '0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A',
@@ -40,9 +40,10 @@ export const addresses: Addresses = {
     tokens: {
       MOCK: '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf',
       USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
+    }
   },
   '42069': {
-    chainId: 42069,
+    chainId: '42069',
     startBlock: 43581,
     spokeCoreMessenger: '0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981', // dispatcher
     railsGateway: '0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A',
@@ -52,6 +53,7 @@ export const addresses: Addresses = {
     tokens: {
       MOCK: '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf',
       USDC: '0x36d3f5501Ef2BA0ea329c46C5A4a463C163e1ff0'
+    }
   }
 }
 

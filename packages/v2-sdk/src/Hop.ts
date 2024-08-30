@@ -223,7 +223,8 @@ export class Hop extends Base {
           to,
           amount,
           attestedClaimId,
-          nextHops
+          nextHops,
+          maxTotalSent
         })
 
         console.log('populatedTx', populatedTx)
@@ -348,7 +349,8 @@ export class Hop extends Base {
       to,
       amount,
       attestedClaimId,
-      nextHops
+      nextHops,
+      maxTotalSent
     })
 
     const provider = this.getRpcProviderForChainId(fromChainId)

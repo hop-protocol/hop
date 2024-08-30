@@ -50,6 +50,10 @@ export function RailsGatewaySend (props: Props) {
     defaultValue: '',
   })
 
+  const [maxTotalSent, setMaxTotalSent] = useLocalStorageState(`${cacheKey}:maxTotalSent`, {
+    defaultValue: '',
+  })
+
   const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
     defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
   })
@@ -67,7 +71,8 @@ export function RailsGatewaySend (props: Props) {
       to: toAddress,
       amount,
       attestedClaimId,
-      nextHops
+      nextHops,
+      maxTotalSent
     }
     console.log('args', args)
     const txData = await sdk.railsGateway.populateTransaction.send(args)
@@ -97,6 +102,10 @@ export function RailsGatewaySend (props: Props) {
     setLoading(false)
   }
 
+  function addHop() {
+    setNextHops([...nextHops, { pathId: '', maxTotalSent: '', attestedClaimId: '' }])
+  }
+
   const code = `
 ${populateTxDataOnly ? `
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -111,7 +120,8 @@ async function main() {
   const to = "${toAddress}"
   const amount = "${amount}"
   const attestedClaimId = "${attestedClaimId}"
-  const nextHops = "${JSON.stringify(nextHops, null, 2)}"
+  const nextHops = ${JSON.stringify(nextHops, null, 2)}
+  const maxTotalSent = "${maxTotalSent}"
 
   const hop = new Hop({ network: '${network}' )
   const txData = await hop.railsGateway.populateTransaction.send({
@@ -120,7 +130,8 @@ async function main() {
     to,
     amount,
     attestedClaimId,
-    nextHops
+    nextHops,
+    maxTotalSent
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -190,6 +201,13 @@ main().catch(console.error)
                 <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
               </Box>
 
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
+              </Box>
+
               <Stepper orientation="vertical">
                 {nextHops.map((hop: any, index: number) => {
                   const { pathId, maxTotalSent, attestedClaimId } = hop
@@ -200,13 +218,13 @@ main().catch(console.error)
                     setNextHops(newHops)
                   }
 
-                  function setMaxTotalSent (value: string) {
+                  function setHopMaxTotalSent (value: string) {
                     const newHops = [...nextHops]
                     newHops[index].maxTotalSent = value
                     setNextHops(newHops)
                   }
 
-                  function setAttestedClaimId  (value: string) {
+                  function setHopAttestedClaimId  (value: string) {
                     const newHops = [...nextHops]
                     newHops[index].attestedClaimId = value
                     setNextHops(newHops)
@@ -231,17 +249,17 @@ main().catch(console.error)
                         <Box mb={1}>
                           <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
                         </Box>
-                        <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
+                        <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setHopMaxTotalSent(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>
                         <Box mb={1}>
                           <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
                         </Box>
-                        <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
+                        <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setHopAttestedClaimId(event.target.value)} />
                       </Box>
 
-                      {nextHops.length !== 1 && (
+                      {nextHops.length !== 0 && (
                         <Box mb={2}>
                           <Button onClick={() => {
                             const newHops = [...nextHops]
@@ -256,6 +274,12 @@ main().catch(console.error)
                   )
                 })}
               </Stepper>
+
+              <Box mb={2}>
+                <HighlightedButton variant="contained" color="primary" onClick={addHop}>
+                  Add Hop
+                </HighlightedButton>
+              </Box>
 
               <Box mb={2}>
                 <Box>

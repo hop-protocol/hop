@@ -3,6 +3,7 @@ import { SignerConfig } from '#config/index.js'
 import { RailsConfig } from '#config/index.js'
 import type { RailsPath } from './types.js'
 import { RailsSDK } from './RailsSDK.js'
+import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   // TODO: SDK: Fill in the start block numbers
@@ -26,6 +27,10 @@ export function getRailsStartBlockNumber (chainId: string): number {
   return (DEFAULT_START_BLOCK_NUMBER as any)[SignerConfig.network as NetworkSlug][chainSlug]
 }
 
+/**
+ * Path utils
+ */
+
 export function getPathFromPathId (pathId: string): RailsPath {
   const paths: RailsPath[] = RailsConfig.paths
   const path: RailsPath | undefined = paths.find(path => RailsSDK.getPathId(path) === pathId)
@@ -34,4 +39,58 @@ export function getPathFromPathId (pathId: string): RailsPath {
   }
 
   return path
+}
+
+export function getChainIdsForPaths(paths: RailsPath[]): string[] {
+  return paths.reduce((chainIds: string[], path: RailsPath) => {
+    if (!chainIds.includes(path.srcChainId)) {
+      chainIds.push(path.srcChainId)
+    }
+    if (!chainIds.includes(path.destChainId)) {
+      chainIds.push(path.destChainId)
+    }
+    return chainIds
+  }, [])
+}
+
+export function getPathIdsPerChainId(chainId: string, paths: RailsPath[]): string[] {
+  return paths.reduce((pathIds: string[], path: RailsPath) => {
+    if (path.srcChainId === chainId) {
+      pathIds.push(RailsSDK.getPathId(path))
+    }
+    if (path.destChainId === chainId) {
+      pathIds.push(RailsSDK.getPathId(path))
+    }
+    return pathIds
+  }, [])
+}
+
+
+/**
+ * Events
+ */
+
+// TODO: Move this to #indexer/utils.ts when aggregation is implemented at the indexer level
+export function aggregateFilters(filters: RequiredEventFilter[]): RequiredEventFilter[] {
+  const filtersByAddress: Record<string, RequiredEventFilter> = {}
+
+  filters.forEach((filter: RequiredEventFilter) => {
+    const address = filter.address
+    const existingFilter = filtersByAddress[address] ?? { address, topics: [] }
+
+    filter.topics.forEach((topic, i) => {
+      if (!existingFilter.topics![i]) {
+        existingFilter.topics![i] = []
+      }
+      if (!existingFilter.topics![i]!.includes(topic as string)) {
+        (existingFilter.topics![i] as string[]).push(topic as string)
+      }
+    })
+
+    filtersByAddress[address] = existingFilter
+  })
+
+  return Object.values(filtersByAddress).map(filter => ({
+    ...filter,
+  }))
 }

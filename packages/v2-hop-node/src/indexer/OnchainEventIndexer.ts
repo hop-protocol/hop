@@ -80,6 +80,9 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
     })
   }
 
+  // TODO: This method should aggregate multiple filters instead of the concrete implementation
+  // It is currently too tightly coupled with eventName and chainId, which has redundant state
+  // and is dangerous to maintain due to mismatched state.
   protected addIndexerEventFilter (eventName: EventName, chainId: string, indexerEventFilter: RequiredEventFilter): void {
     if (this.#initialized || this.#started) {
       throw new Error('Cannot add indexer after initializing or starting')

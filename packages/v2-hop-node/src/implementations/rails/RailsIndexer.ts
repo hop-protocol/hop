@@ -3,12 +3,16 @@ import {
   // type TransferPosted,
   type TransferBonded,
   RailsSDKWrapper,
-  RailsSDK,
   RailsEventName,
 } from './RailsSDK.js'
 import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 import type { providers } from 'ethers'
-import { getRailsStartBlockNumber } from './utils.js'
+import {
+  aggregateFilters,
+  getChainIdsForPaths,
+  getPathIdsPerChainId,
+  getRailsStartBlockNumber
+} from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import type { RailsPath } from './types.js'
 
@@ -27,17 +31,21 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
   constructor(dbName: string, eventNames: RailsEventName[], paths: RailsPath[]) {
     super(dbName)
 
-    // Only index events with the pathId that the bonder cares about
-    const pathIdsPerChain = this.#getPathIdsPerChain(paths)
+    const chainIds = getChainIdsForPaths(paths)
     // All events are indexed by pathId so there is no need to filter them
     for (const eventName of eventNames) {
-      for (const chainId of Object.keys(pathIdsPerChain)) {
-        const pathIds = pathIdsPerChain[chainId]!
-        const topics = {
-          pathId: pathIds
-        }
-        const filter = this.#getFilterForEvent(chainId, eventName, topics)
-        this.addIndexerEventFilter(eventName, chainId, filter)
+      for (const chainId of chainIds) {
+        const getPathIdsForChainId = getPathIdsPerChainId(chainId, paths)
+        const filters = getPathIdsForChainId.map(pathId => {
+          return this.#getFilterForEvent(chainId, eventName, { pathId })
+        })
+
+        // Aggregate the filters for each event and chainId
+        // Since we are already iterating over chainIds (and therefor addresses),
+        // we know that this method will only return a single filter.
+        const aggregatedFilters = aggregateFilters(filters)[0]!
+
+        this.addIndexerEventFilter(eventName, chainId, aggregatedFilters)
       }
     }
   }
@@ -67,6 +75,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
    * Internal
    */
 
+  // TODO: not any...need to figure out type
   #getFilterForEvent (chainId: string, eventName: RailsEventName, topics: any): RequiredEventFilter {
     switch (eventName) {
       case RailsEventName.TransferSent:
@@ -78,30 +87,5 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
       default:
         throw new Error('Invalid state')
     }
-  }
-
-
-  #getPathIdsPerChain(paths: RailsPath[]): Record<string, string[]> {
-    const pathIdsPerChain: Record<string, string[] | undefined> = {}
-
-    for (const path of paths) {
-      const pathId = RailsSDK.getPathId(path)
-
-      const sourceChainId = path.srcChainId
-      pathIdsPerChain[sourceChainId] = pathIdsPerChain[sourceChainId] ?? []
-      if (!pathIdsPerChain[sourceChainId]?.includes(pathId)) {
-        pathIdsPerChain[sourceChainId]?.push(pathId)
-      }
-
-      const destChainId = path.destChainId
-      pathIdsPerChain[destChainId] = pathIdsPerChain[destChainId] ?? []
-      if (!pathIdsPerChain[destChainId]?.includes(pathId)) {
-        pathIdsPerChain[destChainId]?.push(pathId)
-      }
-    }
-
-    // TODO: Shouldn't have to do this typecasting. Correctly type this
-    // when I have more time.
-    return pathIdsPerChain as Record<string, string[]>
   }
 }

@@ -366,7 +366,7 @@ export class RailsGateway extends StakingRegistry {
 
     const EventFetcherClass = eventFetcher[eventName]
     if (!EventFetcherClass) {
-      throw new Error(`Event fetcher not found for event name: ${eventName}`)
+      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
     }
 
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
@@ -1643,16 +1643,36 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getIsTransferBonded ({ chainId, transferId }: GetIsTransferBondedInput): Promise<boolean> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new InputError(`Invalid transferId "${transferId}"`)
+    }
+
     // TODO: call contract state once it's available
     return false
   }
 
   async getIsTransferClaimed ({ chainId, transferId }: GetIsTransferClaimedInput): Promise<boolean> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new InputError(`Invalid transferId "${transferId}"`)
+    }
+
     // TODO: call contract state once it's available
     return false
   }
 
   getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {
+    if (!nextHops || !Array.isArray(nextHops)) {
+      throw new InputError('Invalid nextHops')
+    }
+
     if (nextHops.length === 0) return constants.HashZero
 
     const encodedHops = utils.defaultAbiCoder.encode(

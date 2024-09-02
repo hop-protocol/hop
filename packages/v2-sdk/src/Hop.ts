@@ -6,7 +6,7 @@ import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleRecei
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
-import { ConfigError, InputError } from '#error/index.js'
+import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
@@ -206,7 +206,7 @@ export class Hop extends Base {
         }
 
         if (!isClaimIdValid) {
-          throw new Error('Latest attestedClaimId is invalid')
+          throw new CustomError('Latest attestedClaimId is invalid')
         }
 
         const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
@@ -355,7 +355,7 @@ export class Hop extends Base {
 
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${fromChainId}`)
+      throw new CustomError(`Provider not found for chainId: ${fromChainId}`)
     }
 
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
@@ -405,7 +405,7 @@ export class Hop extends Base {
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new CustomError(`Provider not found for chainId: ${chainId}`)
     }
 
     const latestBlock = await provider.getBlockNumber()

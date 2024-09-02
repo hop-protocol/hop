@@ -94,6 +94,7 @@
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
 - [getTotalSent](RailsGateway.md#gettotalsent)
+- [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
@@ -1423,6 +1424,22 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
+
+▸ **getTransferBondedEventFilter**(`«destructured»`): `EventFilter`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferBondedEventFilterInput`](../modules.md#gettransferbondedeventfilterinput) |
+
+#### Returns
+
+`EventFilter`
 
 ___
 

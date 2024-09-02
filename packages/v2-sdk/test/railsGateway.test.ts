@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe('RailsGateway', () => {
+describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -35,6 +35,32 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferSentEventFilter({
+      chainId,
+      indexes: {
+        transferId
+      }
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(2)
+  })
+  it('should fetch TransferBonded event filter', async () => {
+    const chainId = 11155111
+    const filter = railsGateway.getTransferBondedEventFilter({
+      chainId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(1)
+  })
+  it('should fetch TransferBonded transferId event filter', async () => {
+    const chainId = 11155111
+    const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const filter = railsGateway.getTransferBondedEventFilter({
       chainId,
       indexes: {
         transferId

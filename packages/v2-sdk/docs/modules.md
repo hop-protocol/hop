@@ -100,6 +100,7 @@
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
+- [GetTransferBondedEventFilterInput](modules.md#gettransferbondedeventfilterinput)
 - [GetTransferBondedEventFromCheckpointInput](modules.md#gettransferbondedeventfromcheckpointinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
@@ -1014,6 +1015,21 @@ ___
 | :------ | :------ |
 | `address` | `string` |
 | `chainId` | `BigNumberish` |
+
+___
+
+### <a id="gettransferbondedeventfilterinput" name="gettransferbondedeventfilterinput"></a> GetTransferBondedEventFilterInput
+
+Ƭ **GetTransferBondedEventFilterInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `indexes?` | \{ `pathId?`: `string` ; `transferId?`: `string`  } |
+| `indexes.pathId?` | `string` |
+| `indexes.transferId?` | `string` |
 
 ___
 

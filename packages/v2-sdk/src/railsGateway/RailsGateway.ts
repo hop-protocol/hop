@@ -290,6 +290,14 @@ export type GetTransferSentEventFilterInput = {
   }
 }
 
+export type GetTransferBondedEventFilterInput = {
+  chainId: BigNumberish
+  indexes?: {
+    transferId?: string
+    pathId?: string
+  }
+}
+
 export type Token = {
   chainId: string
   address: string
@@ -380,6 +388,21 @@ export class RailsGateway extends StakingRegistry {
   getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput): EventFilter {
     const { transferId, pathId } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
+
+    if (transferId) {
+      return eventFetcher.getTransferIdFilter(transferId)
+    }
+
+    if (pathId) {
+      return eventFetcher.getPathIdFilter(pathId)
+    }
+
+    return eventFetcher.getFilter()
+  }
+
+  getTransferBondedEventFilter({ chainId, indexes = {} }: GetTransferBondedEventFilterInput): EventFilter {
+    const { transferId, pathId } = indexes
+    const eventFetcher = this.getEventFetcher(EventName.TransferBonded, chainId)
 
     if (transferId) {
       return eventFetcher.getTransferIdFilter(transferId)

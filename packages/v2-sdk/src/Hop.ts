@@ -4,7 +4,7 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent } from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct} from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
@@ -211,11 +211,9 @@ export class Hop extends Base {
 
         const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
 
-        const nextHops = [{
-          pathId,
-          maxTotalSent,
-          attestedClaimId
-        }]
+        const nextHops: HopStruct[] = []
+
+        const fee = await this.railsGateway.getFee({ chainId: toChainId, pathId })
 
         const populatedTx = await this.railsGateway.populateTransaction.send({
           chainId: fromChainId,
@@ -224,7 +222,8 @@ export class Hop extends Base {
           amount,
           attestedClaimId,
           nextHops,
-          maxTotalSent
+          maxTotalSent,
+          fee
         })
 
         console.log('populatedTx', populatedTx)
@@ -337,11 +336,9 @@ export class Hop extends Base {
 
     const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
 
-    const nextHops = [{
-      pathId,
-      maxTotalSent,
-      attestedClaimId
-    }]
+    const nextHops: HopStruct[] = []
+
+    const fee = await this.railsGateway.getFee({ chainId: toChainId, pathId })
 
     const populatedTx = await this.railsGateway.populateTransaction.send({
       chainId: fromChainId,
@@ -350,7 +347,8 @@ export class Hop extends Base {
       amount,
       attestedClaimId,
       nextHops,
-      maxTotalSent
+      maxTotalSent,
+      fee
     })
 
     const provider = this.getRpcProviderForChainId(fromChainId)

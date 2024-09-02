@@ -69,6 +69,7 @@ export type SendInput = {
   attestedClaimId: string
   nextHops: HopStructInput[]
   maxTotalSent: BigNumberish
+  fee: BigNumberish
 }
 
 export type ApproveSendInput = {
@@ -603,7 +604,7 @@ export class RailsGateway extends StakingRegistry {
 
   get populateTransaction() {
     return {
-      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent }: SendInput): Promise<providers.TransactionRequest> => {
+      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent, fee }: SendInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
@@ -660,7 +661,14 @@ export class RailsGateway extends StakingRegistry {
 
         const contract = await this.getRailsGatewayContract(chainId)
 
-        const fee = await this.getFee({ chainId, pathId })
+        if (fee != null && !this.utils.isValidNumericValue(fee)) {
+          throw new InputError(`Invalid amount "${fee}"`)
+        }
+
+        if (!fee) {
+          fee = await this.getFee({ chainId, pathId })
+        }
+
         const txData = await contract.populateTransaction.send(pathId, to, amount, attestedClaimId, nextHops, maxTotalSent, {
           value: fee
         })

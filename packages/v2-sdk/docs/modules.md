@@ -1336,6 +1336,7 @@ ___
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `chainId` | `BigNumberish` |
+| `fee` | `BigNumberish` |
 | `maxTotalSent` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |

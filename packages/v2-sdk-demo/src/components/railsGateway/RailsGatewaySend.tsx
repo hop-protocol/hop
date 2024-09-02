@@ -54,6 +54,10 @@ export function RailsGatewaySend (props: Props) {
     defaultValue: '',
   })
 
+  const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
+    defaultValue: '',
+  })
+
   const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
     defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
   })
@@ -72,7 +76,8 @@ export function RailsGatewaySend (props: Props) {
       amount,
       attestedClaimId,
       nextHops,
-      maxTotalSent
+      maxTotalSent,
+      fee
     }
     console.log('args', args)
     const txData = await sdk.railsGateway.populateTransaction.send(args)
@@ -122,6 +127,7 @@ async function main() {
   const attestedClaimId = "${attestedClaimId}"
   const nextHops = ${JSON.stringify(nextHops, null, 2)}
   const maxTotalSent = "${maxTotalSent}"
+  const fee = "${fee}"
 
   const hop = new Hop({ network: '${network}' )
   const txData = await hop.railsGateway.populateTransaction.send({
@@ -131,7 +137,8 @@ async function main() {
     amount,
     attestedClaimId,
     nextHops,
-    maxTotalSent
+    maxTotalSent,
+    fee
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -206,6 +213,13 @@ main().catch(console.error)
                   <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Fee <small><em>(uint256)</em></small> <small><em>Message fee</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={fee} onChange={(event: any) => setFee(event.target.value)} />
               </Box>
 
               <Stepper orientation="vertical">

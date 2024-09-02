@@ -57,7 +57,7 @@ export function RailsGatewayWithdraw (props: Props) {
       chainId: fromChainId,
       pathId,
       amount,
-      timeWindow
+      timeWindow: Number(timeWindow)
     }
     console.log('args', args)
     const txData = await sdk.railsGateway.populateTransaction.withdrawClaim(args)

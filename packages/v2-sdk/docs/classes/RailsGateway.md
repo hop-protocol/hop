@@ -65,12 +65,15 @@
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
+- [getIsTransferBonded](RailsGateway.md#getistransferbonded)
+- [getIsTransferClaimed](RailsGateway.md#getistransferclaimed)
 - [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
 - [getNeedsApprovalForBond](RailsGateway.md#getneedsapprovalforbond)
 - [getNeedsApprovalForSend](RailsGateway.md#getneedsapprovalforsend)
+- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
@@ -924,6 +927,38 @@ ___
 
 ___
 
+### <a id="getistransferbonded" name="getistransferbonded"></a> getIsTransferBonded
+
+▸ **getIsTransferBonded**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="getistransferclaimed" name="getistransferclaimed"></a> getIsTransferClaimed
+
+▸ **getIsTransferClaimed**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
 ### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
 
 ▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
@@ -1025,6 +1060,22 @@ ___
 #### Returns
 
 `Promise`\<`boolean`\>
+
+___
+
+### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
+
+▸ **getNextHopsHash**(`«destructured»`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`string`
 
 ___
 

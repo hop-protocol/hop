@@ -58,7 +58,10 @@ export {
   WithdrawAllInput,
   WithdrawBalanceInput,
   WithdrawHopInput,
-  WithdrawInput
+  WithdrawInput,
+  GetIsTransferBondedInput,
+  GetIsTransferClaimedInput,
+  GetNextHopsHashInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

@@ -58,6 +58,8 @@
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
+- [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
+- [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
 - [GetLatestClaimInput](modules.md#getlatestclaiminput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
@@ -79,6 +81,7 @@
 - [GetNeedsApprovalForBondInput](modules.md#getneedsapprovalforbondinput)
 - [GetNeedsApprovalForSendInput](modules.md#getneedsapprovalforsendinput)
 - [GetNeedsApprovalForSendTokensInput](modules.md#getneedsapprovalforsendtokensinput)
+- [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
 - [GetRelayFeeInput](modules.md#getrelayfeeinput)
@@ -508,6 +511,32 @@ ___
 
 ___
 
+### <a id="getistransferbondedinput" name="getistransferbondedinput"></a> GetIsTransferBondedInput
+
+Ƭ **GetIsTransferBondedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `transferId` | `string` |
+
+___
+
+### <a id="getistransferclaimedinput" name="getistransferclaimedinput"></a> GetIsTransferClaimedInput
+
+Ƭ **GetIsTransferClaimedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `transferId` | `string` |
+
+___
+
 ### <a id="getlatestclaiminput" name="getlatestclaiminput"></a> GetLatestClaimInput
 
 Ƭ **GetLatestClaimInput**: `Object`
@@ -786,6 +815,18 @@ ___
 | `fromToken` | `string` |
 | `toChainId` | `BigNumberish` |
 | `toToken` | `string` |
+
+___
+
+### <a id="getnexthopshashinput" name="getnexthopshashinput"></a> GetNextHopsHashInput
+
+Ƭ **GetNextHopsHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `nextHops` | `HopStruct`[] |
 
 ___
 

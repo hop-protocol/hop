@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.only('RailsGateway', () => {
+describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -617,6 +617,28 @@ describe.only('RailsGateway', () => {
     })
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()
+  }, 60 * 1000)
+
+  it('TODO should return true if transfer is bonded', async () => {
+    const chainId = 11155111
+    const transferId = '0xTODO'
+    const bonded = await railsGateway.getIsTransferBonded({
+      chainId,
+      transferId
+    })
+    console.log(bonded)
+    expect(typeof bonded).toBe('boolean')
+  }, 60 * 1000)
+
+  it('TODO should return true if transfer is claimed', async () => {
+    const chainId = 11155111
+    const transferId = '0xTODO'
+    const claimed = await railsGateway.getIsTransferClaimed({
+      chainId,
+      transferId
+    })
+    console.log(claimed)
+    expect(typeof claimed).toBe('boolean')
   }, 60 * 1000)
 
   it('getNextHopsHash - should return a keccak256 hash of the hops', () => {

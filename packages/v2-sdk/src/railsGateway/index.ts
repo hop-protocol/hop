@@ -45,7 +45,10 @@ export {
   WithdrawAllInput,
   WithdrawBalanceInput,
   WithdrawHopInput,
-  WithdrawInput
+  WithdrawInput,
+  GetIsTransferBondedInput,
+  GetIsTransferClaimedInput,
+  GetNextHopsHashInput
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,

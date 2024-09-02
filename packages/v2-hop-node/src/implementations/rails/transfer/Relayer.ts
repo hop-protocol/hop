@@ -1,20 +1,18 @@
 import {
   type IRailsTransfer,
   type ISentRailsTransfer,
-  type IPostedRailsTransfer,
   type IBondedRailsTransfer,
-  type RailsHop,
   RailsTransferState
 } from './types.js'
 import type { Signer, providers } from 'ethers'
-import { getPathFromPathId } from './utils.js'
+import { getPathFromPathId } from '../utils.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
-import { RailsSDKWrapper, RailsSDK } from './RailsSDK.js'
-import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
+import { RailsSDKWrapper, RailsSDK } from '../RailsSDK.js'
+// import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 import type { IStateMachine } from '#state-machine/index.js'
 
-export class RailsRelayer extends Relayer<IRailsTransfer> {
+export class RailsTransferRelayer extends Relayer<IRailsTransfer> {
   readonly #relayerDataSource: IStateMachine<IRailsTransfer>
 
   constructor (
@@ -45,8 +43,6 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
     switch (state) {
       case RailsTransferState.Sent:
         return this.#canRelaySentTransfer(value as ISentRailsTransfer)
-      case RailsTransferState.Posted:
-        return this.#canRelayPostedTransfer(value as IPostedRailsTransfer)
       default:
         throw new Error('Invalid state')
     }
@@ -59,9 +55,7 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
 
     switch (state) {
       case RailsTransferState.Sent:
-        return this.#sendPostClaim(value as ISentRailsTransfer)
-      case RailsTransferState.Posted:
-        return this.#sendBond(value as IPostedRailsTransfer)
+        return this.#sendBond(value as ISentRailsTransfer)
       default:
         throw new Error('Invalid state')
     }
@@ -78,15 +72,6 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
    */
 
   async #canRelaySentTransfer (value: ISentRailsTransfer): Promise<boolean> {
-    // A transfer is postable if the bonder is chosen by the BCR
-    const { pathId, transferId } = value
-    const wallet = this.#getWalletFromPathId(pathId)
-    const canClaim = BonderChoiceRule.isTransferForBonder(transferId, pathId, await wallet.getAddress())
-    const isClaimed = await RailsSDK.isClaimed(value.transferId)
-    return canClaim && !isClaimed
-  }
-
-  async #canRelayPostedTransfer (value: IPostedRailsTransfer): Promise<boolean> {
     const isClaimed = await RailsSDK.isClaimed(value.transferId)
     const isBonded = await RailsSDK.isBonded(value.transferId)
     return isClaimed && !isBonded
@@ -96,24 +81,8 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
    * Internal - Execution
    */
 
-  async #sendPostClaim (value: ISentRailsTransfer): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHops } = value as ISentRailsTransfer
-    const wallet = this.#getWalletFromPathId(pathId)
-    // TODO: SDK: Connect when available
-    return RailsSDKWrapper/*.connect(wallet)*/.postClaim({
-      pathId,
-      transferId,
-      to,
-      amount,
-      totalSent,
-      attestedClaimId,
-      attestedTotalClaims,
-      nextHopsHash: RailsSDK.getNextHopsHash(nextHops)
-    })
-  }
-
-  async #sendBond (value: IPostedRailsTransfer): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, nextHops } = value as IPostedRailsTransfer
+  async #sendBond (value: ISentRailsTransfer): Promise<providers.TransactionResponse> {
+    const { pathId, transferId, nextHops } = value as ISentRailsTransfer
     const wallet = this.#getWalletFromPathId(pathId)
     // TODO: SDK: Connect when available
     return RailsSDKWrapper/*.connect(wallet)*/.bond({
@@ -138,8 +107,6 @@ export class RailsRelayer extends Relayer<IRailsTransfer> {
     switch (true) {
       case !!(value as ISentRailsTransfer).sentTxHash === true:
         return RailsTransferState.Sent
-      case !!(value as IPostedRailsTransfer).postedTxHash === true:
-        return RailsTransferState.Posted
       case !!(value as IBondedRailsTransfer).bondedTxHash === true:
         return RailsTransferState.Bonded
       default:

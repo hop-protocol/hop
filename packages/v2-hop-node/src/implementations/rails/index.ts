@@ -1,9 +1,9 @@
-import { Rails } from './Rails.js'
+import { RailsTransfer } from './transfer/RailsTransfer.js'
 import { RailsSDK } from './RailsSDK.js'
 import type { RailsPath } from './types.js'
 
 export {
-  Rails,
+  RailsTransfer,
   RailsSDK,
   type RailsPath
 }

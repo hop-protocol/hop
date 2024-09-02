@@ -3,7 +3,7 @@ import { DataAdapter } from '#state-machine/index.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
-export class RailsDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
+export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsTransfer {
     // Rails logs do not need additional decoding since the onchain log format
     // matches the format that the state machine expects.

@@ -8,7 +8,7 @@ import {
 import { FINALITY_TIME_MS } from '#constants/index.js'
 import { getPathFromPathId } from '../utils.js'
 
-export class RailsStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
+export class RailsTransferStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
 
   /**
    * Implementation

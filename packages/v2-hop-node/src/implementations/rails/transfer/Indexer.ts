@@ -1,12 +1,11 @@
 import {
   type TransferSent,
-  // type TransferPosted,
   type TransferBonded,
   type TransferSentIndexedEvents,
   type TransferBondedIndexedEvents,
   RailsSDKWrapper,
   RailsEventName,
-} from './RailsSDK.js'
+} from '../RailsSDK.js'
 import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 import type { providers } from 'ethers'
 import {
@@ -14,23 +13,16 @@ import {
   getChainIdsForPaths,
   getPathIdsPerChainId,
   getRailsStartBlockNumber
-} from './utils.js'
+} from '../utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
-import type { RailsPath } from './types.js'
+import type { RailsPath } from '../types.js'
 
 // TODO: SDK: Sent -> posted
-type RailsIndexerKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
+type RailsIndexerKey = keyof (TransferSent | TransferBonded)
 // TOD: SDK: More generalized
 type RailsEventIndexes = TransferSentIndexedEvents | TransferBondedIndexedEvents
 
-/**
- * This class is responsible for abstracting away indexing logic
- * and for mapping concrete events to indexes so that the rest of
- * the Rails implementation doesn't need to concern itself with
- * the details of the indexing.
- */
-
-export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndexerKey> {
+export class RailsTransferIndexer extends OnchainEventIndexer<RailsEventName, RailsIndexerKey> {
 
   constructor(dbName: string, eventNames: RailsEventName[], paths: RailsPath[]) {
     super(dbName)

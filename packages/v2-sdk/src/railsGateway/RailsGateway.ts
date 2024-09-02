@@ -329,6 +329,11 @@ export type GetNextHopsHashInput = {
   nextHops: HopStruct[]
 }
 
+export type GetIsPathIdLiveInput = {
+  chainId: BigNumberish
+  pathId: string
+}
+
 export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
@@ -1665,6 +1670,31 @@ export class RailsGateway extends StakingRegistry {
     }
 
     // TODO: call contract state once it's available
+    return false
+  }
+
+  async getIsPathIdLive ({ chainId, pathId }: GetIsPathIdLiveInput): Promise<boolean> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract(chainId)
+    const pathInfoArray = await contract.getPathInfo(pathId)
+
+    const pathChainId = pathInfoArray[0].toString()
+    const pathToken = pathInfoArray[1]
+    const counterpartChainId = pathInfoArray[2].toString()
+    const counterpartToken = checksumAddress(pathInfoArray[3])
+    console.log(pathChainId, pathToken)
+
+    if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
+      return true
+    }
+
     return false
   }
 

@@ -8,8 +8,13 @@
 
 ### Classes
 
+- [ConfigError](classes/ConfigError.md)
+- [CustomError](classes/CustomError.md)
 - [Hop](classes/Hop.md)
 - [HubConnector](classes/HubConnector.md)
+- [InputError](classes/InputError.md)
+- [InsufficientApprovalError](classes/InsufficientApprovalError.md)
+- [InsufficientBalanceError](classes/InsufficientBalanceError.md)
 - [Messenger](classes/Messenger.md)
 - [PriceFeed](classes/PriceFeed.md)
 - [RailsGateway](classes/RailsGateway.md)
@@ -58,6 +63,7 @@
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
+- [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
 - [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
 - [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
 - [GetLatestClaimInput](modules.md#getlatestclaiminput)
@@ -508,6 +514,19 @@ ___
 | `fromChainId` | `BigNumberish` |
 | `messageId` | `string` |
 | `toChainId` | `BigNumberish` |
+
+___
+
+### <a id="getispathidliveinput" name="getispathidliveinput"></a> GetIsPathIdLiveInput
+
+Ƭ **GetIsPathIdLiveInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `pathId` | `string` |
 
 ___
 

@@ -65,6 +65,7 @@
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
+- [getIsPathIdLive](RailsGateway.md#getispathidlive)
 - [getIsTransferBonded](RailsGateway.md#getistransferbonded)
 - [getIsTransferClaimed](RailsGateway.md#getistransferclaimed)
 - [getLatestClaim](RailsGateway.md#getlatestclaim)
@@ -920,6 +921,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `«destructured»` | [`GetIsClaimIdValidInput`](../modules.md#getisclaimidvalidinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="getispathidlive" name="getispathidlive"></a> getIsPathIdLive
+
+▸ **getIsPathIdLive**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput) |
 
 #### Returns
 

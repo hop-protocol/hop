@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
+describe('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -659,15 +659,27 @@ describe.skip('RailsGateway', () => {
     console.log(hash)
 
     expect(typeof hash).toBe('string')
-    expect(hash.length).toBe(66) // A valid keccak256 hash is 66 characters long (including '0x')
+    expect(hash.length).toBe(66)
     expect(hash).toBe('0xaecd8bdc95baa83199d242ec7b87219b76ae0a12a858f2160a697408aa490fba')
   })
 
-  it('getNextHopsHash - should return 0x0 hash if hops is empty', function () {
+  it('getNextHopsHash - should return 0x0 hash if hops is empty', () => {
     const nextHops: any[] = []
     const hash = railsGateway.getNextHopsHash({ nextHops })
     console.log(hash)
     expect(hash).toBe(constants.HashZero)
+  })
+
+  it('should return boolean for getting is path id live', async () => {
+    const chainId = 11155111
+    const pathId = '0x5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6'
+    const isLive = await railsGateway.getIsPathIdLive({ chainId, pathId })
+    console.log(isLive)
+    expect(typeof isLive).toBe('boolean')
+    expect(isLive).toBe(true)
+
+    const invalidPathId = '0x1111111111111111111111111111111111111111111111111111111111111111'
+    expect(await railsGateway.getIsPathIdLive({ chainId, pathId: invalidPathId })).toBe(false)
   })
 })
 

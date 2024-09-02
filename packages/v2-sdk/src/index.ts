@@ -61,7 +61,8 @@ export {
   WithdrawInput,
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
-  GetNextHopsHashInput
+  GetNextHopsHashInput,
+  GetIsPathIdLiveInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

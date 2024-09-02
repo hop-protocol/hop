@@ -2,7 +2,7 @@ import { RailsDataAdapter } from './RailsDataAdapter.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { RailsStateMachine } from './RailsStateMachine.js'
 import { RailsRelayer } from './RailsRelayer.js'
-import { type RailsPath, State } from './types.js'
+import { type RailsPath, RailsState } from './types.js'
 import { RailsEventName } from './RailsSDK.js'
 
 export class Rails {
@@ -12,10 +12,9 @@ export class Rails {
 
   constructor (paths: RailsPath[]) {
     const dbName = 'Rails'
-    const states: State[] = [
-      State.Sent,
-      State.Posted,
-      State.Bonded
+    const states: RailsState[] = [
+      RailsState.Sent,
+      RailsState.Bonded
     ]
     const eventNames: RailsEventName[] = [
       RailsEventName.TransferSent,

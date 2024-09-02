@@ -49,7 +49,7 @@ interface IndexedEvent {
   indexerEventFilter: RequiredEventFilter
 }
 
-export abstract class OnchainEventIndexer<EventName extends string, IndexerKey extends string> implements IOnchainEventIndexer {
+export abstract class OnchainEventIndexer<EventName extends string, IndexerKey extends string> implements IOnchainEventIndexer<EventName> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexedEvents: IndexedEvent[] = []
@@ -61,7 +61,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
   #started: boolean = false
   protected readonly logger: Logger
 
-  protected abstract getEventFilter(chainId: string, eventName: EventName, topics?: []): RequiredEventFilter
+  protected abstract getEventFilter(chainId: string, eventName: EventName): RequiredEventFilter
   protected abstract getIndexerKeys (eventName: EventName): IndexerKey[]
   protected abstract getStartBlockNumber (chainId: string): number
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext

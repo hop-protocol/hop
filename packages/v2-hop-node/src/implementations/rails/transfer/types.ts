@@ -1,9 +1,9 @@
-import { type RailsHop, State } from '../types.js'
+import { type RailsHop, RailsState } from '../types.js'
 import type { StateTxContext } from '#state-machine/index.js'
 
 export enum RailsTransferState {
-  Sent = State.Sent,
-  Bonded = State.Bonded
+  Sent = RailsState.Sent,
+  Bonded = RailsState.Bonded
 }
 
 interface IRailsTransferShared extends StateTxContext {

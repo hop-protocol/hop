@@ -5,14 +5,14 @@ import type { IRailsTransfer } from './transfer/types.js'
  * Rails state data
  */
 
-export enum State {
+export enum RailsState {
   Sent = 'sent',
   Bonded = 'bonded',
   // Posted = 'posted',
   // Claimed = 'claimed'
 }
 
-export type StateData = IRailsTransfer
+export type RailsStateData = IRailsTransfer
 
 /**
  * General

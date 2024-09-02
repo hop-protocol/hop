@@ -8,7 +8,7 @@ import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/
 import type { StateTxContext } from './types.js'
 
 // TODO: Generalize for additional data sources beyond onchain events
-type IDataSource = IOnchainEventIndexer
+type IDataSource<T> = IOnchainEventIndexer<T>
 
 /**
  * This class is responsible for formatting data to and from the state machine.
@@ -20,14 +20,14 @@ type IDataSource = IOnchainEventIndexer
 
 export abstract class DataAdapter<State, StateData extends StateTxContext, EventName> implements IDataAdapter<State, StateData> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
-  readonly #dataSource: IDataSource
+  readonly #dataSource: IDataSource<EventName>
   protected readonly logger: Logger
 
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract getStateFromEventName (eventName: string): State
   protected abstract getEventNameFromState (state: State): EventName
 
-  constructor (dataSource: IDataSource) {
+  constructor (dataSource: IDataSource<EventName>) {
     this.#dataSource = dataSource
     this.logger = new Logger({
       tag: 'DataAdapter',
@@ -76,7 +76,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   async fetchItem(state: State, outputData: StateData): Promise<StateData | null> {
     const parsedOutputData = await this.#fromStateMachine(state, outputData)
 
-    // @dev The data source will take the parsed output data and use it as the keys to fetch the input data.
+    // The data source will take the parsed output data and use it as the keys to fetch the input data.
     // Typing this in a generic way is difficult since the keys are dynamic and depend on their respective
     // context-specific logic. Because of this, the data at this point in the process may be invalid, but
     // it is the responsibility of the data source to handle this. The data source will throw if the

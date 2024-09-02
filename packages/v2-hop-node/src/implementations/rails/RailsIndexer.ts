@@ -2,6 +2,8 @@ import {
   type TransferSent,
   // type TransferPosted,
   type TransferBonded,
+  type TransferSentIndexedEvents,
+  type TransferBondedIndexedEvents,
   RailsSDKWrapper,
   RailsEventName,
 } from './RailsSDK.js'
@@ -18,10 +20,12 @@ import type { RailsPath } from './types.js'
 
 // TODO: SDK: Sent -> posted
 type RailsIndexerKey = keyof (TransferSent /*| TransferPosted */| TransferBonded)
+// TOD: SDK: More generalized
+type RailsEventIndexes = TransferSentIndexedEvents | TransferBondedIndexedEvents
 
 /**
  * This class is responsible for abstracting away indexing logic
- * and for mapping concrete states to indexes so that the rest of
+ * and for mapping concrete events to indexes so that the rest of
  * the Rails implementation doesn't need to concern itself with
  * the details of the indexing.
  */
@@ -54,8 +58,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
    * Implementation
    */
 
-  protected override getEventFilter(chainId: string, eventName: RailsEventName, topics: string[] = []): RequiredEventFilter {
-    return this.#getFilterForEvent(chainId, eventName, topics)
+  protected override getEventFilter(chainId: string, eventName: RailsEventName): RequiredEventFilter {
+    return this.#getFilterForEvent(chainId, eventName)
   }
 
   protected override getIndexerKeys (eventName: RailsEventName): RailsIndexerKey[] {
@@ -75,8 +79,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
    * Internal
    */
 
-  // TODO: not any...need to figure out type
-  #getFilterForEvent (chainId: string, eventName: RailsEventName, topics: any): RequiredEventFilter {
+  #getFilterForEvent (chainId: string, eventName: RailsEventName, topics?: Partial<RailsEventIndexes>): RequiredEventFilter {
     switch (eventName) {
       case RailsEventName.TransferSent:
         return RailsSDKWrapper.getTransferSentEventFilter(chainId, topics)
@@ -85,7 +88,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
       case RailsEventName.TransferBonded:
         return RailsSDKWrapper.getTransferBondedEventFilter(chainId, topics)
       default:
-        throw new Error('Invalid state')
+        throw new Error('Invalid event name')
     }
   }
 }

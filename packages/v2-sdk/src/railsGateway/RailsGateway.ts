@@ -1,9 +1,9 @@
 import { BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils, EventFilter } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants, EventFilter } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
-import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
+import { TransferSent, HopStruct, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
@@ -313,6 +313,20 @@ export type GetIsCheckpointValidInput = {
 export type GetTotalSentInput = {
   chainId: BigNumberish
   pathId: string
+}
+
+export type GetIsTransferBondedInput = {
+  chainId: BigNumberish
+  transferId: string
+}
+
+export type GetIsTransferClaimedInput = {
+  chainId: BigNumberish
+  transferId: string
+}
+
+export type GetNextHopsHashInput = {
+  nextHops: HopStruct[]
 }
 
 export type RailsGatewayConstructorInput = BaseConfig
@@ -1627,4 +1641,30 @@ export class RailsGateway extends StakingRegistry {
     const contract = await this.getRailsGatewayContract(chainId)
     return contract.getTotalSent(pathId)
   }
+
+  async getIsTransferBonded ({ chainId, transferId }: GetIsTransferBondedInput): Promise<boolean> {
+    // TODO: call contract state once it's available
+    return false
+  }
+
+  async getIsTransferClaimed ({ chainId, transferId }: GetIsTransferClaimedInput): Promise<boolean> {
+    // TODO: call contract state once it's available
+    return false
+  }
+
+  getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {
+    if (nextHops.length === 0) return constants.HashZero
+
+    const encodedHops = utils.defaultAbiCoder.encode(
+      ['bytes32[]', 'uint256[]', 'bytes32[]'],
+      [
+        nextHops.map(hop => hop.pathId),
+        nextHops.map(hop => hop.maxTotalSent),
+        nextHops.map(hop => hop.attestedClaimId)
+      ]
+    )
+
+    return utils.keccak256(encodedHops)
+  }
 }
+

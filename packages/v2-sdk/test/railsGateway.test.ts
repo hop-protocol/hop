@@ -1,5 +1,5 @@
 import { RailsGateway } from '#railsGateway/index.js'
-import { providers, Wallet, utils } from 'ethers'
+import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
 
@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
+describe.only('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -183,6 +183,7 @@ describe.skip('RailsGateway', () => {
     const amount = parseUnits('1', 18)
     const to = await signer.getAddress()
     const attestedClaimId = '0xTODO'
+    const maxTotalSent = parseUnits('1', 18)
     const nextHops = [{
       pathId,
       maxTotalSent: '0',
@@ -194,6 +195,7 @@ describe.skip('RailsGateway', () => {
       to,
       amount,
       attestedClaimId,
+      maxTotalSent,
       nextHops
     })
     console.log(txData)
@@ -616,5 +618,34 @@ describe.skip('RailsGateway', () => {
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()
   }, 60 * 1000)
+
+  it('getNextHopsHash - should return a keccak256 hash of the hops', () => {
+    const nextHops = [
+      {
+        pathId: utils.formatBytes32String('path1'),
+        maxTotalSent: BigNumber.from('1000000'),
+        attestedClaimId: utils.formatBytes32String('claim1'),
+      },
+      {
+        pathId: utils.formatBytes32String('path2'),
+        maxTotalSent: BigNumber.from('2000000'),
+        attestedClaimId: utils.formatBytes32String('claim2'),
+      },
+    ]
+
+    const hash = railsGateway.getNextHopsHash({ nextHops })
+    console.log(hash)
+
+    expect(typeof hash).toBe('string')
+    expect(hash.length).toBe(66) // A valid keccak256 hash is 66 characters long (including '0x')
+    expect(hash).toBe('0xaecd8bdc95baa83199d242ec7b87219b76ae0a12a858f2160a697408aa490fba')
+  })
+
+  it('getNextHopsHash - should return 0x0 hash if hops is empty', function () {
+    const nextHops: any[] = []
+    const hash = railsGateway.getNextHopsHash({ nextHops })
+    console.log(hash)
+    expect(hash).toBe(constants.HashZero)
+  })
 })
 

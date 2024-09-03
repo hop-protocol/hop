@@ -1,22 +1,18 @@
-import { type RailsHop, RailsState } from '../types.js'
-import type { StateTxContext } from '#state-machine/index.js'
+import type { BigNumber } from 'ethers'
 
-export enum RailsTransferState {
-  Sent = RailsState.Sent,
-  Bonded = RailsState.Bonded
-}
+/**
+ * General
+ */
 
-interface IRailsTransferShared extends StateTxContext {
-  transferId: string
+export type RailsHop = {
   pathId: string
+  maxTotalSent: BigNumber
+  attestedClaimId: string
 }
 
-export interface ISentRailsTransfer extends IRailsTransferShared {
-  nextHops: RailsHop[]
+export type RailsPath = {
+  srcChainId: string
+  srcToken: string
+  destChainId: string
+  destToken: string
 }
-
-export interface IBondedRailsTransfer extends IRailsTransferShared {
-  // TODO
-}
-
-export type IRailsTransfer = ISentRailsTransfer | IBondedRailsTransfer

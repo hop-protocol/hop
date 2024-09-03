@@ -1,10 +1,10 @@
-import { RailsTransferDataAdapter } from './DataAdapter.js'
-import { RailsTransferStateMachine } from './StateMachine.js'
+import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
+import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import { RailsTransferRelayer } from './Relayer.js'
 import { RailsTransferIndexer } from './Indexer.js'
-import { RailsTransferState } from './types.js'
+import type { RailsPath } from './types.js'
+import { RailsTransferState } from './state-machine/types.js'
 import { RailsEventName } from '../RailsSDK.js'
-import type { RailsPath } from '../types.js'
 
 export class RailsTransfer {
   readonly #stateMachine: RailsTransferStateMachine

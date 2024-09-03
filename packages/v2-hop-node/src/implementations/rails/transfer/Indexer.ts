@@ -10,12 +10,14 @@ import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 import type { providers } from 'ethers'
 import {
   aggregateFilters,
-  getChainIdsForPaths,
-  getPathIdsPerChainId,
   getRailsStartBlockNumber
 } from '../utils.js'
+import {
+  getChainIdsForPaths,
+  getPathIdsPerChainId,
+} from './utils.js'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
-import type { RailsPath } from '../types.js'
+import type { RailsPath } from './types.js'
 
 // TODO: SDK: Sent -> posted
 type RailsIndexerKey = keyof (TransferSent | TransferBonded)

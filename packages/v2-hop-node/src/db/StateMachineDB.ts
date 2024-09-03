@@ -82,6 +82,20 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
       yield [key as Key, filteredValue as StateData]
     }
   }
+  async getItemByKey(key: Key, states: State[]): Promise<StateData> {
+    const keys = states.map(state => this.getSublevel(key).key(state))
+    const values: StateData[] = await this.getMany(keys)
+    if (values.length === 0) {
+      throw new Error(`Item not found for key: ${key}`)
+    }
+
+    let item: StateData = {} as StateData
+    for (const value of values) {
+      item = { ...item, ...value }
+    }
+
+    return item
+  }
 
   /**
    * Utils

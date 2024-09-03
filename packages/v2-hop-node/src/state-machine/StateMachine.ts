@@ -5,6 +5,8 @@ import { getFirstState, getNextState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
+import type { IRelayer } from '#relayer/IRelayer.js'
+
 
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
@@ -15,10 +17,11 @@ import { DATA_PROCESSED_EVENT } from '#constants/index.js'
  * @dev The final state is not polled since there is no transition after it.
  */
 
-export abstract class StateMachine<State extends string, StateData> implements IStateMachine<StateData> {
+export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
+  readonly #relayer: IRelayer<StateData>
   // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
   // which is not a heavy load. The rest of the system should be set up such that these polls should not
   // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
@@ -35,11 +38,13 @@ export abstract class StateMachine<State extends string, StateData> implements I
   constructor (
     dbName: string,
     states: State[],
-    dataAdapter: IDataAdapter<State, StateData>
+    dataAdapter: IDataAdapter<State, StateData>,
+    relayer: IRelayer<StateData>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states
     this.#dataAdapter = dataAdapter
+    this.#relayer = relayer
     this.logger = new Logger({
       tag: 'StateMachine',
       color: 'green'
@@ -87,14 +92,6 @@ export abstract class StateMachine<State extends string, StateData> implements I
     yield* this.#db.getItemsInState(state)
   }
 
-  async *getItemsInProgress (): AsyncIterable<StateData> {
-    for (const state of this.#states) {
-      for await (const [, value] of this.getItemsInState(state)) {
-        yield value
-      }
-    }
-  }
-
   /**
    * Poller
    */
@@ -111,9 +108,14 @@ export abstract class StateMachine<State extends string, StateData> implements I
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
       const shouldAttempt = this.shouldAttemptTransition(state, value)
-      if (!shouldAttempt) continue
+      if (shouldAttempt) continue
 
-      await this.#transitionState(state, key, value)
+      const nextState = getNextState(this.#states, state)
+      const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
+      if (!nextValue) continue
+
+      await this.#transitionState(state, nextState, nextValue, key)
+      await this.#postTransitionHook(state, key)
     }
   }
 
@@ -132,18 +134,36 @@ export abstract class StateMachine<State extends string, StateData> implements I
   }
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
-    const nextState = getNextState(this.#states, state)
-    const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
-    if (!nextValue) {
-      return
-    }
-
+  async #transitionState(
+    state: State,
+    nextState: State,
+    nextValue: StateData,
+    key: string
+  ): Promise<void> {
     this.logger.info(`Transitioning item with key: ${key} from state: ${state} to state: ${nextState}`)
     const isLastTransition = isLastState(this.#states, nextState)
     if (isLastTransition) {
-      return this.#db.updateFinalState(state, key, nextValue)
+      await this.#db.updateFinalState(state, key, nextValue)
+    }
+    await this.#db.updateState(state, nextState, key, nextValue)
+  }
+
+  /**
+   * Hooks
+   */
+
+  async #postTransitionHook (state: State, key: string): Promise<void> {
+    const nextState = getNextState(this.#states, state)
+
+    // There is no action needed for the final state
+    const isLastStateHook = isLastState(this.#states, nextState)
+    if (isLastStateHook) {
+      return
     }
 
-    return this.#db.updateState(state, nextState, key, nextValue)
+    // Aggregate all existing data to send to the relayer. The relayer
+    // doesn't care about the state, only the data it needs to relay.
+    const relayItem = await this.#db.getItemByKey(key, this.#states)
+    return this.#relayer.relay(relayItem)
   }
 }

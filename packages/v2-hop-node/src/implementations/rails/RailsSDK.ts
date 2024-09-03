@@ -17,7 +17,7 @@ import {
 } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/sdk'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
-import type { RailsPath } from './types.js'
+import type { RailsPath } from './transfer/types.js'
 
 
 export type TransferSent = TransferSentSDK

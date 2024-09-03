@@ -12,6 +12,9 @@ import { RailsSDKWrapper, RailsSDK } from '../RailsSDK.js'
 // import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 import type { IStateMachine } from '#state-machine/index.js'
 
+// TOD: More generalized
+// type RailsEventIndexes = 
+
 export class RailsTransferRelayer extends Relayer<IRailsTransfer> {
   readonly #relayerDataSource: IStateMachine<IRailsTransfer>
 
@@ -28,14 +31,10 @@ export class RailsTransferRelayer extends Relayer<IRailsTransfer> {
    */
 
   protected override getUniqueRelayId(value: IRailsTransfer): string {
-    // Both the state and transferId are required as a unique key for the cache
-    // since the transferId is not unique across states.
-    const state = this.#getStateFromItem(value)
-    return state + value.transferId
-  }
-
-  protected override async *getRelayableItems(): AsyncIterable<IRailsTransfer> {
-    yield* this.#relayerDataSource.getItemsInProgress()
+    // TODO: NOT JUST ID BC THAT ISN'T UNIQUE ACROSS STATES
+    const relayType = this.#getRelayType(value)
+    const transferType = value.txContext.txHash ? 'sent' : 'bonded'
+    return this.#getUniqueRelayId(value)
   }
 
   protected override shouldAttemptRelay (value: IRailsTransfer): Promise<boolean> {
@@ -105,9 +104,9 @@ export class RailsTransferRelayer extends Relayer<IRailsTransfer> {
   #getStateFromItem (value: IRailsTransfer): RailsTransferState {
     // The order does not matter since the value will only be in one state at a time.
     switch (true) {
-      case !!(value as ISentRailsTransfer).sentTxHash === true:
+      case !!(value as ISentRailsTransfer).txContext.txHash === true:
         return RailsTransferState.Sent
-      case !!(value as IBondedRailsTransfer).bondedTxHash === true:
+      case !!(value as IBondedRailsTransfer).txContext.txHash === true:
         return RailsTransferState.Bonded
       default:
         throw new Error('Invalid state')

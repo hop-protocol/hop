@@ -17,7 +17,7 @@ import {
 } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/sdk'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
-import type { RailsPath } from './transfer/types.js'
+import type { RailsPath } from './types.js'
 
 
 export type TransferSent = TransferSentSDK
@@ -63,12 +63,15 @@ export enum RailsEventName {
   // TODO: Add them all
 }
 
+export enum RailsFunctionName {
+  Bond = 'bond'
+}
 // TODO: No chainId in input if connecting
 export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
 export type BondInput = Omit<BondInputSDK, 'chainId'>
 
 export class RailsSDKWrapper {
-  static getEventFilter<T extends object>(eventName: EventName, chainId: string, indexes?: T): RequiredEventFilter {
+  static getEventFilter<T extends string, U extends object>(eventName: T, chainId: string, indexes?: U): RequiredEventFilter {
     switch (eventName) {
       case EventName.TransferSent:
         return RailsSDKWrapper.getTransferSentEventFilter(chainId, indexes as TransferSentIndexedEvents)
@@ -76,6 +79,8 @@ export class RailsSDKWrapper {
         return RailsSDKWrapper.getTransferPostedEventFilter(chainId, indexes as TransferPostedIndexedEvents)
       case EventName.TransferBonded:
         return RailsSDKWrapper.getTransferBondedEventFilter(chainId, indexes as TransferBondedIndexedEvents)
+      default:
+        throw new Error(`Unknown event name: ${eventName}`)
     }
   }
 
@@ -133,7 +138,6 @@ export class RailsSDKWrapper {
       nextHops: input.nextHops
     })
   }
-
 }
 
 export class RailsSDK {

@@ -12,3 +12,8 @@ export type RailsPath = {
   destChainId: string
   destToken: string
 }
+
+export enum RailsEventName {
+  TransferSent = 'TransferSent',
+  TransferBonded = 'TransferBonded'
+}

@@ -160,7 +160,8 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
     const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(indexerKeys, eventIndexValues)
 
     try {
-      return await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
+      const indexedItem = await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
+      return indexedItem
     } catch {
       return null
     }

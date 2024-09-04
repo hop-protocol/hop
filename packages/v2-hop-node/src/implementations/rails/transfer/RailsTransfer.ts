@@ -1,10 +1,8 @@
 import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import { RailsTransferRelayer } from './relayer/Relayer.js'
-import { RailsTransferIndexer } from './Indexer.js'
-import { RailsTransferState } from './state-machine/types.js'
-import { RailsEventName } from '../RailsSDK.js'
-import type { RailsPath } from './types.js'
+import { RailsTransferIndexer } from './indexer/Indexer.js'
+import type { RailsPath } from '../types.js'
 
 export class RailsTransfer {
   readonly #stateMachine: RailsTransferStateMachine
@@ -12,22 +10,14 @@ export class RailsTransfer {
 
   constructor (paths: RailsPath[]) {
     const dbName = 'Rails'
-    const states: RailsTransferState[] = [
-      RailsTransferState.Sent,
-      RailsTransferState.Bonded
-    ]
-    const eventNames: RailsEventName[] = [
-      RailsEventName.TransferSent,
-      RailsEventName.TransferBonded
-    ]
 
     // Data handler
-    const indexer = new RailsTransferIndexer(dbName, eventNames, paths)
+    const indexer = new RailsTransferIndexer(dbName, paths)
 
     // State handler
     const dataAdapter = new RailsTransferDataAdapter(indexer)
     const relayer = new RailsTransferRelayer(dbName)
-    this.#stateMachine = new RailsTransferStateMachine(dbName, states, dataAdapter, relayer)
+    this.#stateMachine = new RailsTransferStateMachine(dbName, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {

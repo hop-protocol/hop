@@ -1,6 +1,7 @@
 import { RailsConfig } from '#config/index.js'
-import type { RailsPath } from './types.js'
 import { RailsSDK } from '../RailsSDK.js'
+import type { RailsPath } from '../types.js'
+
 
 export function getPathFromPathId (pathId: string): RailsPath {
   const paths: RailsPath[] = RailsConfig.paths

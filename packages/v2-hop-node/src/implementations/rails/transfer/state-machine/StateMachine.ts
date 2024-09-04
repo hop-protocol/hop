@@ -14,6 +14,10 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
    * Implementation
    */
 
+  protected override getStates(): RailsTransferState[] {
+    return Object.values(RailsTransferState)
+  }
+
   protected override getItemId(value: IRailsTransfer): string {
     return value.transferId
   }

@@ -1,1 +1,2 @@
-export * from './transfer/index.js'
+export * from './transfer/RailsTransfer.js'
+export type { RailsPath } from './types.js'

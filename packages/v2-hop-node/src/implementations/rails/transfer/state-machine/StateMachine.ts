@@ -28,7 +28,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   }
 
   /**
-   * FSM Utils
+   * Internal
    */
 
   #shouldBondBeFinalized(value: ISentRailsTransfer): boolean {

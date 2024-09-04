@@ -1,9 +1,5 @@
 import type { BigNumber } from 'ethers'
 
-/**
- * General
- */
-
 export type RailsHop = {
   pathId: string
   maxTotalSent: BigNumber

@@ -66,8 +66,6 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
       if (!canRelay) return
 
       await this.#db.updateRelayTime(relayItem)
-      this.logger.info(`Relaying item with cache: ${key}`)
-
       await this.#attemptRelay(relayItem)
     }
   }
@@ -88,6 +86,7 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
 
   async #attemptRelay (relayItem: RelayItem): Promise<providers.TransactionResponse | void> {
     try {
+      this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
       return await this.sendRelay(relayItem)
     } catch (err) {
       return this.#handleRelayError(relayItem, err.message)

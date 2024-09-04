@@ -1,4 +1,4 @@
-import type { RailsHop } from '../../types.js'
+import type { RailsHop } from '../types.js'
 import type { StateTxContext } from '#state-machine/index.js'
 
 export enum RailsState {

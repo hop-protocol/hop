@@ -1268,29 +1268,8 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid timeWindow "${timeWindow}"`)
     }
 
-    const path = await this.getPathInfo({ chainId, pathId })
-    return this.#getWithdrawableBalance({ chainId, path, recipient, timeWindow })
-  }
-
-  async #getWithdrawableBalance ({ chainId, path, recipient, timeWindow }: WithdrawBalanceInput): Promise<BigNumber> {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!path) {
-      throw new InputError('pathInfo not set')
-    }
-
-    if (!this.utils.isValidAddress(recipient)) {
-      throw new InputError(`Invalid recipient "${recipient}"`)
-    }
-
-    if (!this.utils.isValidNumericValue(timeWindow)) {
-      throw new InputError(`Invalid timeWindow "${timeWindow}"`)
-    }
-
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getWithdrawableBalance(path, recipient, timeWindow)
+    return contract['getWithdrawableBalance(bytes32,address,uint256)'](pathId, recipient, timeWindow)
   }
 
   async getTransferId ({ chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint }: GetTransferIdInput): Promise<string> {

@@ -30,7 +30,6 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
   readonly #pollIntervalMs: number = 60_000
   protected readonly logger: Logger
 
-  protected abstract getUniqueRelayId(value: RelayItem): string
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
   protected abstract handleOnchainRelayError(value: RelayItem, errMessage: string): void

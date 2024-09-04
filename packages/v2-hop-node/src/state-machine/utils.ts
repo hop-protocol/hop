@@ -1,8 +1,10 @@
+import type { NextState } from './types.js'
+
 export function getFirstState<T>(states: T[]): T {
   return states[0]!
 }
 
-export function getNextState<T>(states: T[], state: T): T {
+export function getNextState<State>(states: State[], state: State): NextState<State> {
   const index = states.indexOf(state)
 
   // If the state is unknown, the index will be -1
@@ -15,7 +17,7 @@ export function getNextState<T>(states: T[], state: T): T {
     throw new Error('Invalid state: no next state available')
   }
 
-  return states[index + 1]!
+  return states[index + 1] as NextState<State>
 }
 
 export function isFirstState<T>(states: T[], state: T): boolean {

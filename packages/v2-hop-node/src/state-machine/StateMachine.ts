@@ -6,7 +6,7 @@ import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 import type { IRelayer } from '#relayer/IRelayer.js'
-
+import type { NextState, StateTxContext } from './types.js'
 
 /**
  * State machine that is strictly concerned with the creation, transition, and termination of states. This
@@ -17,11 +17,15 @@ import type { IRelayer } from '#relayer/IRelayer.js'
  * @dev The final state is not polled since there is no transition after it.
  */
 
-export abstract class StateMachine<State extends string, StateData> implements IStateMachine {
+// The relayer is unconcerned with the context of transactions, so
+// that is removed from the data that is relayed.
+type RelayItem<StateData> = Omit<StateData, 'txContext'>
+
+export abstract class StateMachine<State extends string, StateData extends StateTxContext> implements IStateMachine {
   readonly #states: State[]
-  readonly #db: StateMachineDB<State, string, StateData>
+  readonly #db: StateMachineDB<State, NextState<State>, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
-  readonly #relayer: IRelayer<StateData>
+  readonly #relayer: IRelayer
   // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
   // which is not a heavy load. The rest of the system should be set up such that these polls should not
   // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
@@ -39,7 +43,7 @@ export abstract class StateMachine<State extends string, StateData> implements I
     dbName: string,
     states: State[],
     dataAdapter: IDataAdapter<State, StateData>,
-    relayer: IRelayer<StateData>
+    relayer: IRelayer
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states
@@ -115,7 +119,9 @@ export abstract class StateMachine<State extends string, StateData> implements I
       if (!nextValue) continue
 
       await this.#transitionState(state, nextState, nextValue, key)
-      await this.#postTransitionHook(state, key)
+      // Intentionally not awaiting to avoid blocking the poller, since the relayer
+      // is independent of the state machine
+      void this.#postTransitionHook(state, key)
     }
   }
 
@@ -133,14 +139,13 @@ export abstract class StateMachine<State extends string, StateData> implements I
     return this.#db.createItemIfNotExist(firstState, key, value)
   }
 
-  async #transitionState(state: State, key: string, value: StateData): Promise<void> {
   async #transitionState(
     state: State,
-    nextState: State,
+    nextState: NextState<State>,
     nextValue: StateData,
     key: string
   ): Promise<void> {
-    this.logger.info(`Transitioning item with key: ${key} from state: ${state} to state: ${nextState}`)
+    this.logger.info(`Transitioning item with key: ${key} from state: ${state} to state: ${JSON.stringify(nextState)}`)
     const isLastTransition = isLastState(this.#states, nextState)
     if (isLastTransition) {
       await this.#db.updateFinalState(state, key, nextValue)
@@ -161,9 +166,18 @@ export abstract class StateMachine<State extends string, StateData> implements I
       return
     }
 
-    // Aggregate all existing data to send to the relayer. The relayer
-    // doesn't care about the state, only the data it needs to relay.
-    const relayItem = await this.#db.getItemByKey(key, this.#states)
+    const relayItem = await this.#getRelayItem(key)
     return this.#relayer.relay(relayItem)
+  }
+
+  // Aggregate all existing data to send to the relayer. The relayer
+  // doesn't care about the state, only the data it needs to relay.
+  async #getRelayItem(key: string): Promise<RelayItem<StateData>> {
+    const stateAndItem: [State, StateData][] = await this.#db.getItemByKey(key, this.#states)
+
+    return stateAndItem.reduce((acc, [, data]) => {
+      const { txContext, ...restData } = data
+      return { ...acc, ...restData, }
+    }, {} as RelayItem<StateData>)
   }
 }

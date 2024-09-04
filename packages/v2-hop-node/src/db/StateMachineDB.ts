@@ -21,8 +21,7 @@ import { normalizeDBValue } from './utils.js'
  * - state!key
  */
 
-export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
-
+export class StateMachineDB<State extends string, NextState extends string, Key extends string, StateData> extends DB<Key, StateData> {
   constructor (dbName: string) {
     super(dbName + 'StateMachineDB')
   }
@@ -31,20 +30,23 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     if (await this.has(key)) {
       return this.#handlePossibleReorg(key, value)
     }
-    return this.#updateState(null, initialState, key, value)
+    // A newly created item always goes from null to nextState, so we
+    // can confidently set the nextState to the initial state.
+    const nextState = initialState as unknown as NextState
+    return this.#updateState(null, nextState, key, value)
   }
 
   async updateFinalState(state: State, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, null, key, value)
   }
 
-  async updateState(state: State, nextState: State, key: Key, value: StateData): Promise<void> {
+  async updateState(state: State, nextState: NextState, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, nextState, key, value)
   }
 
   async #updateState(
     state: State | null,
-    nextState: State | null,
+    nextState: NextState | null,
     key: Key,
     value: StateData
   ): Promise<void> {
@@ -82,19 +84,41 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
       yield [key as Key, filteredValue as StateData]
     }
   }
-  async getItemByKey(key: Key, states: State[]): Promise<StateData> {
+
+  async getItemByKey(key: Key, states: State[]): Promise<[State, StateData][]> {
+    if (states.length === 0) {
+      throw new Error('No states provided')
+    }
+
     const keys = states.map(state => this.getSublevel(key).key(state))
+    if (keys.length === 0) {
+      throw new Error('No valid keys found')
+    }
+
     const values: StateData[] = await this.getMany(keys)
-    if (values.length === 0) {
-      throw new Error(`Item not found for key: ${key}`)
+    if (keys.length !== values.length) {
+      throw new Error('Invalid number of keys or values found')
     }
 
-    let item: StateData = {} as StateData
-    for (const value of values) {
-      item = { ...item, ...value }
-    }
+    return keys.map((key, i) => {
+      const state = this.#extractStateFromKey(key)
+      const value = values[i]
 
-    return item
+      if (!state || !value) {
+        throw new Error('Invalid state or value found')
+      }
+
+      return [state, value]
+    })
+  }
+
+  #extractStateFromKey(key: string): State {
+    const parts = key.split('!')
+    const state = parts[1]
+    if (!state) {
+      throw new Error('Invalid key format')
+    }
+    return state as State
   }
 
   /**

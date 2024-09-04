@@ -1,3 +1,5 @@
+export type NextState<State> = Exclude<State, State>
+
 interface TxContext {
   txHash: string
   timestampMs: number

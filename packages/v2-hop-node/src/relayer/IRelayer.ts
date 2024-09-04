@@ -1,6 +1,6 @@
-export interface IRelayer {
+export interface IRelayer<RelayItem> {
   // Initialization
   start (): void
 
-  relay <T>(relayItem: T): Promise<void>
+  relay <T extends RelayItem>(relayItem: T): Promise<void>
 }

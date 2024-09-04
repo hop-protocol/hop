@@ -1,6 +1,6 @@
 import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
-import { TxRelayDB } from '#db/TxRelayDB.js'
+import { RelayDB } from '#db/RelayDB.js'
 import {
   NonceTooLowError,
   InsufficientFundsError,
@@ -21,7 +21,7 @@ import type { providers } from 'ethers'
  */
 
 export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
-  readonly #relayedTxCache: TxRelayDB
+  readonly #db: RelayDB<RelayItem>
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls
   // may be made for an unexpected transaction and cause exhaustion of resources. If the poller
@@ -31,13 +31,12 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
   protected readonly logger: Logger
 
   protected abstract getUniqueRelayId(value: RelayItem): string
-  protected abstract getRelayableItems(): AsyncIterable<RelayItem>
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
   protected abstract handleOnchainRelayError(value: RelayItem, errMessage: string): void
 
   constructor (dbName: string) {
-    this.#relayedTxCache = new TxRelayDB(dbName)
+    this.#db = new RelayDB(dbName)
     this.logger = new Logger({
       tag: 'Relayer',
       color: 'gray'
@@ -62,11 +61,15 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
   }
 
   #checkRelay = async (): Promise<void> => {
-    for await (const relayItem of this.getRelayableItems()) {
+    for await (const relayItem of this.#db.getRelayableItems()) {
+      // Check if the item is ready to be attempted
       const canRelay = await this.shouldAttemptRelay(relayItem)
-      if (!canRelay) continue
+      if (!canRelay) return
 
-      await this.#sendRelay(relayItem)
+      await this.#db.updateRelayTime(relayItem)
+      this.logger.info(`Relaying item with cache: ${key}`)
+
+      await this.#attemptRelay(relayItem)
     }
   }
 
@@ -74,17 +77,21 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
    * Relay
    */
 
-  async #sendRelay (relayItem: RelayItem): Promise<providers.TransactionResponse | void> {
-    const cacheKey = this.getUniqueRelayId(relayItem)
-    if (await this.#relayedTxCache.doesItemExist(cacheKey)) return
+  // The concept of relaying in this class means to add it to the cache
+  // and let the poller send it.
+  async relay (relayItem: RelayItem): Promise<void> {
+    await this.#db.addItem(relayItem)
+  }
 
-    this.logger.info(`Relaying item with cache: ${cacheKey}`)
+  /**
+   * Internal
+   */
+
+  async #attemptRelay (relayItem: RelayItem): Promise<providers.TransactionResponse | void> {
     try {
-      // Add the item to the cache at the last possible moment prior to relaying
-      await this.#relayedTxCache.addItem(cacheKey)
       return await this.sendRelay(relayItem)
     } catch (err) {
-      await this.#handleRelayError(relayItem, err.message)
+      return this.#handleRelayError(relayItem, err.message)
     }
   }
 
@@ -104,7 +111,6 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
         // * chain issues (look at historical experience)
         // * timeout
         // * RPC server error
-    const cacheKey = this.getUniqueRelayId(relayItem)
     const errType = this.#getErrFromErr(err)
 
     // TODO: Handle contract

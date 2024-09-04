@@ -59,7 +59,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     this.#dataSource.on('error', () => { throw new Error('Data adapter error') })
   }
 
-  #emitStoredData = async (inputData: DecodedLogWithContext): Promise<void> => {
+  #emitStoredData = (inputData: DecodedLogWithContext): void => {
     const state = this.getStateFromEventName(inputData.context.eventName)
     const formattedInputData = this.#toStateMachine(inputData)
     this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)

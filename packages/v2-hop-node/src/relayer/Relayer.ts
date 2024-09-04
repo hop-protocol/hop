@@ -20,7 +20,7 @@ import type { providers } from 'ethers'
  * will consume RPC calls to validate onchain state, so it should be used sparingly.
  */
 
-export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
+export abstract class Relayer<RelayItem extends object> implements IRelayer<RelayItem> {
   readonly #db: RelayerDB<RelayItem>
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls
@@ -32,7 +32,7 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
 
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
-  protected abstract isContractError(value: RelayItem, errMessage: Error): boolean
+  protected abstract isImplementationError(value: RelayItem, errMessage: Error): boolean
 
   constructor (dbName: string) {
     this.#db = new RelayerDB(dbName)
@@ -100,7 +100,7 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
     // Contract errors
     // An error should not get here since it should be handled in shouldAttemptRelay.
     // If an error does get here, the concrete implementation should be updated.
-    if (this.isContractError(relayItem, err)) {
+    if (this.isImplementationError(relayItem, err)) {
       this.logger.debug(`Onchain relay error for item: ${stringifiedItem}. The item will not be attempted again.`)
       return this.#db.removeItem(relayItem)
     }

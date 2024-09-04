@@ -25,7 +25,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   readonly #states: State[]
   readonly #db: StateMachineDB<State, NextState<State>, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
-  readonly #relayer: IRelayer<RelayItem<StateData>>
+  readonly #relayer: IRelayer
   // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
   // which is not a heavy load. The rest of the system should be set up such that these polls should not
   // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
@@ -74,6 +74,7 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   start (): void {
     this.#startPollers()
+    this.#relayer.start()
     this.#dataAdapter.start()
     this.logger.info('State machine started')
   }
@@ -113,6 +114,8 @@ export abstract class StateMachine<State extends string, StateData extends State
     for await (const [key, value] of this.#db.getItemsInState(state)) {
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (shouldAttempt) continue
+
+      // TODO: Handle fork
 
       const nextState = getNextState(this.#states, state)
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)

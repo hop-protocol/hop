@@ -2,13 +2,12 @@ import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import { RailsTransferRelayer } from './relayer/Relayer.js'
 import { RailsTransferIndexer } from './Indexer.js'
-import type { RailsPath } from './types.js'
 import { RailsTransferState } from './state-machine/types.js'
 import { RailsEventName } from '../RailsSDK.js'
+import type { RailsPath } from './types.js'
 
 export class RailsTransfer {
   readonly #stateMachine: RailsTransferStateMachine
-  readonly #relayer: RailsTransferRelayer
   #started: boolean = false
 
   constructor (paths: RailsPath[]) {
@@ -27,10 +26,8 @@ export class RailsTransfer {
 
     // State handler
     const dataAdapter = new RailsTransferDataAdapter(indexer)
-    this.#stateMachine = new RailsTransferStateMachine(dbName, states, dataAdapter)
-
-    // Relayer
-    this.#relayer = new RailsTransferRelayer(dbName, this.#stateMachine)
+    const relayer = new RailsTransferRelayer(dbName)
+    this.#stateMachine = new RailsTransferStateMachine(dbName, states, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {
@@ -40,7 +37,6 @@ export class RailsTransfer {
 
     await this.#stateMachine.init()
     this.#stateMachine.start()
-    this.#relayer.start()
     this.#started = true
   }
 }

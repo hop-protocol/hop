@@ -29,7 +29,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     return this.#sendBond(relayItem)
   }
 
-  isOnchainRelayError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
+  isImplementationError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
     return (
       this.#isContractError(relayItem, err) ||
       this.#isBCRError(relayItem, err)

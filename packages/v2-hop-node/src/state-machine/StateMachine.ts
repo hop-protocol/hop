@@ -25,7 +25,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   readonly #states: State[]
   readonly #db: StateMachineDB<State, NextState<State>, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
-  readonly #relayer: IRelayer
+  readonly #relayer: IRelayer<RelayItem<StateData>>
   // This poller is what triggers the state transitions. The main resource consumed per poll is DB writes,
   // which is not a heavy load. The rest of the system should be set up such that these polls should not
   // consume many more resources than that due to the check in shouldAttemptTransition. If this poller
@@ -43,7 +43,7 @@ export abstract class StateMachine<State extends string, StateData extends State
     dbName: string,
     states: State[],
     dataAdapter: IDataAdapter<State, StateData>,
-    relayer: IRelayer
+    relayer: IRelayer<RelayItem<StateData>>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#states = states

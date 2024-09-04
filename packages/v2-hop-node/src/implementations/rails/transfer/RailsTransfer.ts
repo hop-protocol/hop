@@ -1,6 +1,6 @@
 import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
-import { RailsTransferRelayer } from './Relayer.js'
+import { RailsTransferRelayer } from './relayer/Relayer.js'
 import { RailsTransferIndexer } from './Indexer.js'
 import type { RailsPath } from './types.js'
 import { RailsTransferState } from './state-machine/types.js'

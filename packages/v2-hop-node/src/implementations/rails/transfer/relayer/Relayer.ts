@@ -1,9 +1,9 @@
-import type { BondInput, IRailsTransferRelayItem } from './types.js'
-import type { Signer, providers } from 'ethers'
 import { getPathFromPathId } from '../utils.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import { RailsSDKWrapper, RailsSDK } from '../../RailsSDK.js'
+import type { BondInput, IRailsTransferRelayItem } from './types.js'
+import type { Signer, providers } from 'ethers'
 // import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 
 export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
@@ -20,6 +20,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
   }
 
   protected override sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
+
     // TODO: possibly validate BCR here to avoid a bad bond
 
     if (!this.#isBondInput(relayItem)) {
@@ -28,10 +29,11 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     return this.#sendBond(relayItem)
   }
 
-  handleOnchainRelayError (relayItem: IRailsTransferRelayItem, errMessage: string): void {
-    // TODO: Fill this in when contract errors are finalized
-    // * onchain errors
-    //   * this includes onchain errors during transaction simulation
+  isOnchainRelayError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
+    return (
+      this.#isContractError(relayItem, err) ||
+      this.#isBCRError(relayItem, err)
+    )
   }
 
   /**
@@ -60,19 +62,8 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
   }
 
   /**
-   * Utils
-   */
-
-  #getWalletFromPathId (pathId: string): Signer {
-    // A transaction is never sent on the source chain, so the destination chain is used
-    const { destChainId } = getPathFromPathId(pathId)
-    return wallets.get(destChainId)
-  }
-
-  /**
    * Type Guards
    */
-
 
   #isBondInput(item: unknown): item is BondInput {
     if (typeof item !== 'object' || item === null) {
@@ -90,5 +81,29 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
       // NOTE: This does not validate the nextHops array. It is assumed that the
       // array is correctly formatted
     )
+  }
+
+  /**
+   * Errors
+   */
+
+  #isContractError (relayItem: BondInput, err: Error): boolean {
+    // TODO
+    return true
+  }
+
+  #isBCRError (relayItem: BondInput, err: Error): boolean {
+    // TODO
+    return true
+  }
+
+  /**
+   * Utils
+   */
+
+  #getWalletFromPathId (pathId: string): Signer {
+    // A transaction is never sent on the source chain, so the destination chain is used
+    const { destChainId } = getPathFromPathId(pathId)
+    return wallets.get(destChainId)
   }
 }

@@ -1,6 +1,6 @@
 import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
-import { RelayDB } from '#db/RelayDB.js'
+import { RelayerDB } from '#db/RelayerDB.js'
 import {
   NonceTooLowError,
   InsufficientFundsError,
@@ -21,7 +21,7 @@ import type { providers } from 'ethers'
  */
 
 export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
-  readonly #db: RelayDB<RelayItem>
+  readonly #db: RelayerDB<RelayItem>
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls
   // may be made for an unexpected transaction and cause exhaustion of resources. If the poller
@@ -32,10 +32,10 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
 
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
-  protected abstract handleOnchainRelayError(value: RelayItem, errMessage: string): void
+  protected abstract isContractError(value: RelayItem, errMessage: Error): boolean
 
   constructor (dbName: string) {
-    this.#db = new RelayDB(dbName)
+    this.#db = new RelayerDB(dbName)
     this.logger = new Logger({
       tag: 'Relayer',
       color: 'gray'
@@ -94,45 +94,47 @@ export abstract class Relayer<RelayItem> implements IRelayer<RelayItem> {
   }
 
   async #handleRelayError (relayItem: RelayItem, err: Error): Promise<void> {
-    // TODO: Unknown
-      // * Is failed err specific to contract or general rpc? Might be OOG.
-    // TODO: Unhandled cases (all gasboost)
-      // * bcr
-        // * TODO
-      // * gasBoost
-        // * OOG
-        // * Max rebroadcast
-        // * Transaction replaced
-        // * Transaction dropped
-        // * Transaction hangs
-        // * Reorg (though I think it might be handled by replace/drop/hang
-        // * chain issues (look at historical experience)
-        // * timeout
-        // * RPC server error
     const errType = this.#getErrFromErr(err)
+    const stringifiedItem = JSON.stringify(relayItem)
 
-    // TODO: Handle contract
+    // Contract errors
+    // An error should not get here since it should be handled in shouldAttemptRelay.
+    // If an error does get here, the concrete implementation should be updated.
+    if (this.isContractError(relayItem, err)) {
+      this.logger.debug(`Onchain relay error for item: ${stringifiedItem}. The item will not be attempted again.`)
+      return this.#db.removeItem(relayItem)
+    }
 
     // Tx errors
     if (errType === NonceTooLowError) {
       // This may occur if there are multiple servers running at once.
       // This item is removed from the cache so it can be reattempted.
-      this.logger.debug(`Nonce already used for item: ${cacheKey}. The item will be attempted again.`)
-      await this.#relayedTxCache.removeItem(cacheKey)
-      return
+      this.logger.debug(`Nonce already used for item: ${stringifiedItem}. The item will be attempted again.`)
+      return this.#db.resetRelayTime(relayItem)
     } else if (errType === EstimateGasError) {
-      // TODO -- probably up a level
+      // TODO: Higher level
+      // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
     } else if (errType === InsufficientFundsError) {
-      this.logger.debug(`Insufficient funds to relay item: ${cacheKey}. Please add funds to the account.`)
-      // TODO: Probably some higher order blocking since this will continue to fail
-      // TODO: kick out of bcr
+      // TODO: Higher level
+      // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
       return
     } else {
-      // TODO
+      // For each
+      // * Handle in DB
+      // * Handle in top-level
+      //
+      // TODO: GasBoost errors
+      // * OOG
+      // * Max rebroadcast
+      // * Transaction replaced
+      // * Transaction dropped
+      // * Transaction hangs
+      // * Reorg (though I think it might be handled by replace/drop/hang
+      // * chain issues (look at historical experience)
+      // * timeout
+      // * RPC server error
+      // * Anything else?
     }
-
-
-      // TODO: V2: then update CCTP
   }
 
   // TODO: This should be owned by gasBoost

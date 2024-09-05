@@ -185,12 +185,12 @@ export class Hop extends Base {
           token1: toToken
         })
 
-        console.log('pathId', pathId)
+        console.log('hopV2Sdk: pathId', pathId)
         const attestedClaimId = await this.railsGateway.getLatestClaim({
           chainId: fromChainId,
           pathId
         })
-        console.log('attestedClaimId', attestedClaimId)
+        console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
         let isClaimIdValid = await this.railsGateway.getIsClaimIdValid({
           chainId: toChainId,
@@ -198,7 +198,7 @@ export class Hop extends Base {
           claimId: attestedClaimId
         })
 
-        console.log('isClaimIdValid', isClaimIdValid)
+        console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
 
         // new path without checkpoints will return 0 bytes32
         if (!isClaimIdValid && BigNumber.from(attestedClaimId).eq(0)) {
@@ -226,7 +226,7 @@ export class Hop extends Base {
           fee
         })
 
-        console.log('populatedTx', populatedTx)
+        console.log('hopV2Sdk: populatedTx', populatedTx)
 
         return populatedTx
       },
@@ -268,7 +268,7 @@ export class Hop extends Base {
       chainId1: toChainId,
       token1: toToken
     })
-    console.log('getPathId', pathId)
+    console.log('hopV2Sdk: getPathId', pathId)
     return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount, account })
   }
 

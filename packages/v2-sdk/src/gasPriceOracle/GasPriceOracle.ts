@@ -92,7 +92,7 @@ export class GasPriceOracle {
     }
     url.searchParams.append('gasLimit', gasLimit.toString())
     url.searchParams.append('txData', txData)
-    console.log('url:', url.toString())
+    console.log('hopV2Sdk: url:', url.toString())
 
     const json = await fetchJsonOrThrow(url.toString())
     return json
@@ -107,7 +107,7 @@ export class GasPriceOracle {
     url.searchParams.append('gasLimit', gasLimit.toString())
     url.searchParams.append('txData', txData.toString())
     url.searchParams.append('targetGasCost', targetGasCost.toString())
-    console.log('url:', url.toString())
+    console.log('hopV2Sdk: url:', url.toString())
 
     const json = await fetchJsonOrThrow(url.toString())
     return json

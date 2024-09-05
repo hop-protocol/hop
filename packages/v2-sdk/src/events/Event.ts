@@ -4,6 +4,11 @@ import { getChainSlug } from '#utils/index.js'
 import { promiseQueue } from '@hop-protocol/sdk'
 import { providers, BigNumberish, Event as EthersEvent, utils, Contract, EventFilter } from 'ethers'
 
+export type GetEventsOptions = {
+  fetchTxData?: boolean
+  returnOnFirstMatch?: boolean
+}
+
 export class Event<T> {
   provider: providers.Provider
   chainId: BigNumberish
@@ -50,16 +55,17 @@ export class Event<T> {
     return iface.getEventTopic(this.eventName)
   }
 
-  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<T[]> {
+  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, options: GetEventsOptions = {}): Promise<T[]> {
+    const { fetchTxData, returnOnFirstMatch } = options
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
     })
 
     const endBlock = toBlock ?? await this.provider.getBlockNumber()
-    const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock })
+    const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock, returnOnFirstMatch })
 
-    console.log(`populating events. count: ${events.length}`)
+    console.log(`hopV2Sdk: populating events. count: ${events.length}`)
     return this.populateEvents(events, fetchTxData)
   }
 
@@ -73,14 +79,14 @@ export class Event<T> {
     const eventGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock: endBlock })
 
     for await (const events of eventGenerator) {
-      console.log(`populating events. count: ${events.length}`)
+      console.log(`hopV2Sdk: populating events. count: ${events.length}`)
       yield await this.populateEvents(events)
     }
   }
 
   async getEventsForRange (fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<T[]> {
     const filter = this.getFilter()
-    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock, fetchTxData)
+    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { fetchTxData })
   }
 
   async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
@@ -163,7 +169,7 @@ export class Event<T> {
         ...fetchedTxData
       }
     } catch (err) {
-      console.error('getEventContext error:', err, chainId, event)
+      console.error('hopV2Sdk: getEventContext error:', err, chainId, event)
       throw err
     }
   }

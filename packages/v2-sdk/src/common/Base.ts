@@ -367,7 +367,7 @@ export class Base {
       isValidChainId: (chainId: BigNumberish): boolean => {
         const exists = this.contractAddresses[chainId?.toString()] != null
         if (!exists) {
-          console.warn(`chainId "${chainId}" not configured`) // TODO: handle this better
+          console.warn(`hopV2Sdk: chainId "${chainId}" not configured`) // TODO: handle this better
         }
         return true
       },
@@ -437,7 +437,7 @@ export class Base {
           await this.utils.estimateGas(provider, tx)
           return false
         } catch (err) {
-          console.error('willTransactionFail error', err)
+          console.error('hopV2Sdk: willTransactionFail error', err)
           return true
         }
       },

@@ -1053,7 +1053,7 @@ export class Messenger extends Base {
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
     return events?.[0] ?? null
   }
 

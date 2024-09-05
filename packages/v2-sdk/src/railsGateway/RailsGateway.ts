@@ -572,7 +572,7 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract(chainId)
     const pathInfoArray = await contract.getPathInfo(pathId)
-    console.log('pathInfo', pathInfoArray)
+    console.log('hopV2Sdk: pathInfo', pathInfoArray)
     const pathInfo: Path = {
       pathId,
       chainId: pathInfoArray[0].toString(),
@@ -585,7 +585,7 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError('pathId is invalid or not found')
     }
 
-    console.log('pathInfo', pathInfo)
+    console.log('hopV2Sdk: pathInfo', pathInfo)
     return pathInfo
   }
 
@@ -1169,15 +1169,15 @@ export class RailsGateway extends StakingRegistry {
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
     const provider = this.getRpcProviderForChainId(chainId)
-    console.log('rails approval token', tokenAddress)
+    console.log('hopV2Sdk: rails approval token', tokenAddress)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress(chainId)
     account ??= (await this.getSignerAddress())!
     if (!account) {
       throw new InputError('signer not set')
     }
-    console.log('rails approval account', account)
-    console.log('rails approval spender', spender)
+    console.log('hopV2Sdk: rails approval account', account)
+    console.log('hopV2Sdk: rails approval spender', spender)
     const approved = await tokenContract.allowance(account, spender)
     return approved.lt(amount)
   }
@@ -1699,7 +1699,6 @@ export class RailsGateway extends StakingRegistry {
     const pathToken = pathInfoArray[1]
     const counterpartChainId = pathInfoArray[2].toString()
     const counterpartToken = checksumAddress(pathInfoArray[3])
-    console.log(pathChainId, pathToken)
 
     if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
       return true

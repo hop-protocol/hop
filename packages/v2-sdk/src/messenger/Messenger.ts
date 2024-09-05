@@ -843,7 +843,8 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: Number(toChainId)
+          chainId: Number(toChainId),
+          gasLimit: 1_000_000
         }
       }
     }

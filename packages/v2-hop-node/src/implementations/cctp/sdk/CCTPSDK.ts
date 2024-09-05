@@ -59,6 +59,16 @@ export type HopCCTPTransferReceivedDecoded = {
   messageBody: string
 }
 
+export enum CCTPEventName {
+  CCTPTransferSent = 'CCTPTransferSent',
+  MessageReceived = 'MessageReceived'
+}
+
+export interface ReceiveMessageInput {
+  message: string
+  attestation: string
+}
+
 export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTransferReceivedDecoded
 
 export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
@@ -82,7 +92,7 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug
  * contracts while being chain agnostic and stateless.
  */
 
-export class CCTPSDK{
+export class CCTPSDK {
   static getCCTPTransferSentEventFilter(chainId: string): RequiredEventFilter {
     const contract = getHopCCTPContract(chainId)
     return contract.filters.CCTPTransferSent!() as RequiredEventFilter
@@ -102,7 +112,7 @@ export class CCTPSDK{
     return utils.keccak256(message)
   }
 
-  static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionReceipt> {
+  static async relayMessage (signer: Signer, message: string, attestation: string): Promise<providers.TransactionResponse> {
     const chainId: string = (await signer.getChainId()).toString()
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
     const txOverrides = await getTxOverrides(chainId)

@@ -1,7 +1,7 @@
-import { CCTPDataProvider } from './CCTPDataProvider.js'
-import { CCTPIndexer } from './CCTPIndexer.js'
-import { CCTPStateMachine } from './CCTPStateMachine.js'
-import { CCTPMessageState } from './types.js'
+import { CCTPDataAdapter } from './state-machine/DataAdapter.js'
+import { CCTPStateMachine } from './state-machine/StateMachine.js'
+import { CCTPRelayer } from './relayer/Relayer.js'
+import { CCTPIndexer } from './indexer/Indexer.js'
 
 export class CCTP {
   readonly #stateMachine: CCTPStateMachine
@@ -9,17 +9,14 @@ export class CCTP {
 
   constructor (chainIds: string[]) {
     const dbName = 'cctp'
-    const states = [
-      CCTPMessageState.Sent,
-      CCTPMessageState.Relayed
-    ]
 
     // Data handler
-    const indexer = new CCTPIndexer(dbName, states, chainIds)
-    const dataProvider = new CCTPDataProvider(indexer)
+    const indexer = new CCTPIndexer(dbName, chainIds)
 
     // State handler
-    this.#stateMachine = new CCTPStateMachine(dbName, states, dataProvider)
+    const dataAdapter = new CCTPDataAdapter(indexer)
+    const relayer = new CCTPRelayer(dbName)
+    this.#stateMachine = new CCTPStateMachine(dbName, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {

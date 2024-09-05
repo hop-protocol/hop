@@ -29,7 +29,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     return this.#sendBond(relayItem)
   }
 
-  isImplementationError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
+  protected override isImplementationError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
     return (
       this.#isContractError(relayItem, err) ||
       this.#isBCRError(relayItem, err)
@@ -51,7 +51,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    */
 
   async #sendBond (relayItem: BondInput): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, nextHops } = relayItem as BondInput
+    const { pathId, transferId, nextHops } = relayItem
     const wallet = this.#getWalletFromPathId(pathId)
     // TODO: SDK: Connect when available
     return RailsSDKWrapper/*.connect(wallet)*/.bond({

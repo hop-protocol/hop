@@ -21,12 +21,12 @@ async function main (source: any) {
 }
 
 async function relayMessage(item: CCTP.ISentCCTPMessage) {
-  const { message, destinationChainId, sentTxHash } = item
+  const { message, destinationChainId, txContext } = item
   const chainSlug = getChain(destinationChainId).slug
   const wallet = wallets.get(chainSlug)
 
   try {
-    console.log(`Relaying message with txHash ${sentTxHash}... on destination chain: ${chainSlug}`)
+    console.log(`Relaying message with txHash ${txContext.txHash}... on destination chain: ${chainSlug}`)
     const attestation = await CCTP.CCTPSDK.fetchAttestation(message)
     await CCTP.CCTPSDK.relayMessage(wallet, message, attestation)
   } catch (e) {

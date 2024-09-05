@@ -19,7 +19,7 @@ import type { NextState, StateTxContext } from './types.js'
 
 // The relayer is unconcerned with the context of transactions, so
 // that is removed from the data that is relayed.
-type RelayItem<StateData> = Omit<StateData, 'txContext'>
+type RelayItem<StateData extends object = object> = Omit<StateData, 'txContext'>
 
 export abstract class StateMachine<State extends string, StateData extends StateTxContext> implements IStateMachine {
   readonly #states: State[]
@@ -43,7 +43,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   constructor (
     dbName: string,
     dataAdapter: IDataAdapter<State, StateData>,
-    relayer: IRelayer<RelayItem<StateData>>
+    relayer: IRelayer<RelayItem>
   ) {
     this.#db = new StateMachineDB(dbName)
     this.#dataAdapter = dataAdapter

@@ -10,7 +10,7 @@
 // import { getPathFromPathId } from './utils.js'
 // import { Relayer } from '#relayer/Relayer.js'
 // import { wallets } from '#wallets/index.js'
-// import { RailsSDKWrapper, RailsSDK } from './RailsSDK.js'
+// import { RailsSDKWrapper, RailsSDK } from 'RailsSDKWrapper.js'
 // import { BonderChoiceRule } from '#bcr/BonderChoiceRule.js'
 // import type { IStateMachine } from '#state-machine/index.js'
 

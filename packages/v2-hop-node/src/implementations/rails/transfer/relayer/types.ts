@@ -1,4 +1,4 @@
-import type { BondInput as BondInputSDK } from '../../RailsSDK.js'
+import type { BondInput as BondInputSDK } from '../../RailsSDKWrapper.js'
 
 export interface BondInput extends BondInputSDK {}
 

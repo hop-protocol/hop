@@ -6,7 +6,7 @@
 //   type TransferBondedIndexedEvents,
 //   RailsSDKWrapper,
 //   RailsEventName,
-// } from './RailsSDK.js'
+// } from './RailsSDKWrapper.js'
 // import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 // import type { providers } from 'ethers'
 // import {

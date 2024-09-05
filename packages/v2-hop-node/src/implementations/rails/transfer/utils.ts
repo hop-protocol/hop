@@ -1,5 +1,5 @@
 import { RailsConfig } from '#config/index.js'
-import { RailsSDK } from '../RailsSDK.js'
+import { RailsSDK } from '../RailsSDKWrapper.js'
 import type { RailsPath } from '../types.js'
 
 

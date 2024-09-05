@@ -9,7 +9,7 @@ export class RailsTransfer {
   #started: boolean = false
 
   constructor (paths: RailsPath[]) {
-    const dbName = 'Rails'
+    const dbName = 'railsTransfer'
 
     // Data handler
     const indexer = new RailsTransferIndexer(dbName, paths)

@@ -1,8 +1,8 @@
 import { getChainIdsForPaths, getPathIdsPerChainId } from '../utils.js'
 import { aggregateFilters } from '../../utils.js'
 import { RailsIndexer } from '../../RailsIndexer.js'
+import { RailsSDKWrapper } from '../../RailsSDKWrapper.js'
 import { type RailsPath, RailsEventName } from '../../types.js'
-import { RailsSDKWrapper } from '../../RailsSDK.js'
 
 export class RailsTransferIndexer extends RailsIndexer {
 

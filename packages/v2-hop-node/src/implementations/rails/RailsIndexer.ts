@@ -2,7 +2,7 @@ import {
   type TransferSent,
   type TransferBonded,
   RailsSDKWrapper
-} from './RailsSDK.js'
+} from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
 import { getRailsStartBlockNumber } from './utils.js'
 import type { providers } from 'ethers'

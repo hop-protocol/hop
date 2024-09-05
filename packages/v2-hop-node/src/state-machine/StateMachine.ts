@@ -34,6 +34,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   readonly #pollIntervalMs: number = 10_000
   protected readonly logger: Logger
 
+  protected abstract getStates(): State[]
   protected abstract getItemId(value: StateData): string
   // Checks if the implementation believes that the data source should have the state transition
   // NOTE: The final state does not need to be handled since there are no more transitions after it
@@ -41,14 +42,13 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   constructor (
     dbName: string,
-    states: State[],
     dataAdapter: IDataAdapter<State, StateData>,
     relayer: IRelayer<RelayItem<StateData>>
   ) {
     this.#db = new StateMachineDB(dbName)
-    this.#states = states
     this.#dataAdapter = dataAdapter
     this.#relayer = relayer
+    this.#states = this.getStates()
     this.logger = new Logger({
       tag: 'StateMachine',
       color: 'green'

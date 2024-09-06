@@ -1,4 +1,4 @@
-import { RailsEventName } from '../../RailsSDKWrapper.js'
+import { RailsEventName } from '../../types.js'
 import { DataAdapter } from '#state-machine/index.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'

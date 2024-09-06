@@ -56,7 +56,7 @@ export type TransferBondedIndexedEvents = {
 }
 
 // TODO: Get from SDK
-export enum RailsEventName {
+export enum RailsEventNameSDK {
   TransferSent = 'TransferSent',
   TransferPosted = 'TransferPosted',
   TransferBonded = 'TransferBonded',

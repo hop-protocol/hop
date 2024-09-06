@@ -1,8 +1,16 @@
+import { RailsEventNameSDK } from './RailsSDKWrapper.js'
 import type { BigNumber } from 'ethers'
 
 export enum RailsClientName {
   Transfer = 'transfer',
   Claim = 'claim'
+}
+
+export enum RailsEventName {
+  TransferSent = RailsEventNameSDK.TransferSent,
+  TransferBonded = RailsEventNameSDK.TransferBonded,
+  ClaimPosted = RailsEventNameSDK.ClaimPosted,
+  ClaimConfirmed = RailsEventNameSDK.ClaimConfirmed
 }
 
 export type RailsHop = {
@@ -16,9 +24,4 @@ export type RailsPath = {
   srcToken: string
   destChainId: string
   destToken: string
-}
-
-export enum RailsEventName {
-  TransferSent = 'TransferSent',
-  TransferBonded = 'TransferBonded'
 }

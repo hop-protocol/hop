@@ -101,6 +101,10 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   async #toStateMachine (log: DecodedLogWithContext): Promise<StateData> {
     const { transactionHash, context } = log
     const timestampMs = await getBlockTimestampFromLogMs(log)
+    // TODO: The return type of this should be StateData without context.
+    // This would allow the concrete implementation to not worry about it.
+    // As it stands, the concrete implementation either does incorrect
+    // type assertions or has to implement this method.
     const formattedLog = this.formatDecodedLog(log)
 
     return {

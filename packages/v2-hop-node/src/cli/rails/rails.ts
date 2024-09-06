@@ -4,7 +4,7 @@ import { wait } from '#utils/wait.js'
 
 export async function main () {
   try {
-    const railsManager = new Rails.Rails(RailsConfig.paths)
+    const railsManager = new Rails.RailsTransfer(RailsConfig.paths)
     await railsManager.start()
     // TODO: V2: Add logger
     console.log('Rails Manager started')

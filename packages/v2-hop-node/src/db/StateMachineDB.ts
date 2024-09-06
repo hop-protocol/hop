@@ -13,7 +13,7 @@ import { normalizeDBValue } from './utils.js'
  * There many not be any duplicate secondary keys for a state name primary key at any given time. This
  * is because the item can only exist in a single state at a time.
  *
- * After transitioning to the final state, the item will not be queryable as a secondary index to a 
+ * After transitioning to the final state, the item will not be queryable as a secondary index to a
  * state name primary index. It will continue to exist as a primary key.
  *
  * Key format:

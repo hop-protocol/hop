@@ -1,4 +1,4 @@
-import { Rails } from '#implementations/index.js'
+import { Rails } from '#clients/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 

@@ -1,6 +1,6 @@
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
-import { CCTP } from '#implementations/index.js'
+import { CCTP } from '#clients/index.js'
 import { actionHandler, root } from '../shared/index.js'
 
 root

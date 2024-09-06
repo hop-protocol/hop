@@ -1,5 +1,5 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
-import { CCTP } from '#implementations/index.js'
+import { CCTP } from '#clients/index.js'
 import { SignerConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 

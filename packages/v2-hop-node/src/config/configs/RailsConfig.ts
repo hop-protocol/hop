@@ -1,6 +1,6 @@
 import { SignerConfig } from '../index.js'
 import { ConfigManager } from '../ConfigManager.js'
-import { Rails } from '#implementations/index.js'
+import { Rails } from '#clients/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 export interface IRailsConfig {

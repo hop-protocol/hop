@@ -8,7 +8,7 @@ import logger from '#logger/index.js'
 import { BigNumber, utils } from 'ethers'
 import { LargeTextField } from '#components/LargeTextField/index.js'
 import { NetworkSelector } from '#components/NetworkSelector/index.js'
-import { Token } from '@hop-protocol/sdk'
+import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { toTokenDisplay } from '#utils/index.js'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 
@@ -104,6 +104,12 @@ const SendAmountSelectorCard: FC<Props> = props => {
     onChange(maxValue)
   }
 
+  let tokenSymbol = token?.symbol
+  if (tokenSymbol === 'MATIC' && selectedNetwork?.slug === ChainSlug.Polygon) {
+    tokenSymbol = 'POL'
+  }
+
+
   return (
     <Card className={styles.root}>
       <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -139,7 +145,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={token?.symbol}
+            units={tokenSymbol}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

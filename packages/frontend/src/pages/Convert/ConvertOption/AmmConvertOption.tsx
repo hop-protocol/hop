@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react'
 import { AmmDetails } from '#components/AmmDetails/index.js'
 import { BigNumber, BigNumberish, Signer } from 'ethers'
 import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token, TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 import { commafy, toTokenDisplay } from '#utils/index.js'
 
 class AmmConvertOption extends ConvertOption {
@@ -192,6 +192,11 @@ class AmmConvertOption extends ConvertOption {
       destToken?.symbol
     )
 
+    let estimatedReceivedDisplayString = estimatedReceivedDisplay
+    if (destNetwork?.slug === ChainSlug.Polygon && (destToken?.symbol === TokenSymbol.MATIC || destToken?.symbol === 'WMATIC' || destToken?.symbol === 'hMATIC')) {
+      estimatedReceivedDisplayString = estimatedReceivedDisplayString.replace('MATIC', 'POL')
+    }
+
     return (
       <>
         <DetailRow
@@ -204,7 +209,7 @@ class AmmConvertOption extends ConvertOption {
               amountOutMinDisplay={amountOutMinDisplay}
             />
           }
-          value={estimatedReceivedDisplay}
+          value={estimatedReceivedDisplayString}
           large
           bold
         />

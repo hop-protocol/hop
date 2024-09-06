@@ -21,6 +21,7 @@ import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, staki
 import { useParams } from 'react-router-dom'
 import { usePool } from '../PoolsContext.js'
 import { useStyles } from '#pages/Pools/PoolDetails/useStyles.js'
+import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 
 export function PoolDetails () {
   const styles = useStyles()
@@ -79,7 +80,9 @@ export function PoolDetails () {
     volumeUsdFormatted,
     walletConnected,
     warning,
-    isPoolDeprecated
+    isPoolDeprecated,
+    canonicalTokenSymbolDisplay,
+    hopTokenSymbolDisplay
   } = usePool()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -131,6 +134,7 @@ export function PoolDetails () {
   const selectedStakingContractAddress = stakingRewards[selectedStaking] ? stakingRewards[selectedStaking].stakingContractAddress : null
 
   const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance && !isPoolDeprecated
+  const showPolInfo = chainSlug === ChainSlug.Polygon && tokenSymbol === TokenSymbol.MATIC
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -229,10 +233,10 @@ export function PoolDetails () {
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
                       token0ImageUrl={canonicalToken?.imageUrl}
-                      token0Symbol={canonicalTokenSymbol}
+                      token0Symbol={canonicalTokenSymbolDisplay}
                       token1Amount={token1Amount}
                       token1ImageUrl={hopToken?.imageUrl}
-                      token1Symbol={hopTokenSymbol}
+                      token1Symbol={hopTokenSymbolDisplay}
                       tokenDecimals={tokenDecimals}
                       walletConnected={walletConnected}
                   />}
@@ -250,12 +254,12 @@ export function PoolDetails () {
                       token0AmountBn={token0Deposited}
                       token0ImageUrl={canonicalToken?.imageUrl}
                       token0MaxBn={token0Max}
-                      token0Symbol={canonicalTokenSymbol}
+                      token0Symbol={canonicalTokenSymbolDisplay}
                       token1Amount={token1Amount}
                       token1AmountBn={token1Deposited}
                       token1ImageUrl={hopToken?.imageUrl}
                       token1MaxBn={token1Max}
-                      token1Symbol={hopTokenSymbol}
+                      token1Symbol={hopTokenSymbolDisplay}
                       tokenDecimals={canonicalToken!.decimals}
                       totalAmount={totalAmount}
                       walletConnected={walletConnected}
@@ -286,10 +290,12 @@ export function PoolDetails () {
         poolName={poolName}
         reserve0Formatted={reserve0Formatted}
         reserve1Formatted={reserve1Formatted}
-        token0Symbol={canonicalTokenSymbol}
-        token1Symbol={hopTokenSymbol}
+        token0Symbol={canonicalTokenSymbolDisplay}
+        token1Symbol={hopTokenSymbolDisplay}
         virtualPriceFormatted={virtualPriceFormatted}
       />
+
+      {showPolInfo && <Box mt={2}><Alert severity="info">Notice: MATIC on PolygonPoS has been rebranded to POL.</Alert></Box>}
     </Box>
   )
 }

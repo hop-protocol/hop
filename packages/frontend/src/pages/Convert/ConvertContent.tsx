@@ -18,6 +18,7 @@ import { makeStyles } from '@mui/styles'
 import { sanitizeNumericalString } from '#utils/index.js'
 import { useCheckPoolDeprecated } from '#hooks/useCheckPoolDeprecated.js'
 import { useConvert } from '#pages/Convert/ConvertContext.js'
+import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -225,6 +226,7 @@ const ConvertContent: FC = () => {
   }, [needsTokenForFee, needsApproval, validFormFields, specificRouteDeprecated])
 
   const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
+  const showPolInfo = (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) && (sourceToken?._symbol === TokenSymbol.MATIC || sourceToken?._symbol === 'WMATIC' || sourceToken?._symbol === 'hMATIC')
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -340,6 +342,8 @@ const ConvertContent: FC = () => {
           }
         </>
       )}
+
+      {showPolInfo && <Box mt={2}><Alert severity="info">Notice: MATIC on PolygonPoS has been rebranded to POL.</Alert></Box>}
     </Box>
   )
 }

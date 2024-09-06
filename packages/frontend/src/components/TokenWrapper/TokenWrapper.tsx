@@ -8,6 +8,7 @@ import { Button } from '#components/Button/index.js'
 import { constants } from 'ethers'
 import { makeStyles } from '@mui/styles'
 import { useTokenWrapper } from './TokenWrapperContext.js'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles(theme => ({
   button: {
@@ -63,28 +64,34 @@ const TokenWrapper: FC<Props> = (props: Props) => {
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
-  const tokenSymbol = canonicalToken?.symbol
 
   if (!isNativeToken || !isWrappedTokenValid) {
     return null
   }
 
+  let canonicalTokenSymbol = canonicalToken?.symbol ?? ''
+  let wrappedTokenSymbol = wrappedToken?.symbol ?? ''
+  if (canonicalTokenSymbol === TokenSymbol.MATIC) {
+    canonicalTokenSymbol = canonicalTokenSymbol?.startsWith('W') ? 'WPOL' : 'POL'
+    wrappedTokenSymbol = wrappedTokenSymbol?.startsWith('W') ? 'WPOL' : 'POL'
+  }
+
   return (
-    <Expandable title={`Click here to Wrap or Unwrap ${tokenSymbol}`}>
+    <Expandable title={`Click here to Wrap or Unwrap ${canonicalTokenSymbol}`}>
       <Box display="flex" alignItems="center" my={1} justifyContent="space-around" width="100%">
         <Box display="flex" flexDirection="column" alignItems="center" width="100%">
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}
             loadingSecondaryBalance={loadingBalance}
-            secondaryBalanceLabel={`${canonicalToken?.symbol}:`}
+            secondaryBalanceLabel={`${canonicalTokenSymbol}:`}
             value={amount}
             token={wrappedToken}
             onChange={setAmount}
             titleIconUrl={canonicalToken?.image}
             title={'Amount'}
             balance={wrappedTokenBalance}
-            balanceLabel={`${wrappedToken?.symbol}:`}
+            balanceLabel={`${wrappedTokenSymbol}:`}
             loadingBalance={loadingBalance}
             hideSymbol
             decimalPlaces={4}

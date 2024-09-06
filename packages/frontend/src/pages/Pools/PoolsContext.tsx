@@ -11,7 +11,7 @@ import React, {
 } from 'react'
 import logger from '#logger/index.js'
 import { BigNumber, Signer, constants, utils } from 'ethers'
-import { Multicall, Token } from '@hop-protocol/sdk'
+import { Multicall, Token, TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from '#utils/format.js'
 import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from '#utils/index.js'
@@ -120,6 +120,8 @@ type PoolsContextProps = {
   walletConnected: boolean,
   warning?: string
   isPoolDeprecated?: boolean
+  canonicalTokenSymbolDisplay: string
+  hopTokenSymbolDisplay: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -951,10 +953,18 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
+  let canonicalTokenSymbolDisplay = canonicalTokenSymbol
+  let hopTokenSymbolDisplay = hopTokenSymbol
+  let tokenSymbolDisplay = tokenSymbol
+  if (tokenSymbolDisplay === TokenSymbol.MATIC && selectedNetwork?.slug === ChainSlug.Polygon) {
+    tokenSymbolDisplay = 'POL'
+    canonicalTokenSymbolDisplay = canonicalTokenSymbolDisplay?.startsWith('W') ? 'WPOL': 'POL'
+    hopTokenSymbolDisplay = 'hPOL'
+  }
   const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
   const reserve1 = toTokenDisplay(poolReserves?.[1], canonicalToken?.decimals)
-  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
-  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
+  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbolDisplay}`
+  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbolDisplay}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
   const apr = poolStats?.apr ?? 0
   const aprFormatted = toPercentDisplay(apr)
@@ -964,7 +974,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const priceImpactFormatted = priceImpact ? `${commafy((priceImpact * 100), 2)}%` : '-'
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : '-'
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
-  const poolName = `${tokenSymbol} ${selectedNetwork?.name} Pool`
+  const poolName = `${tokenSymbolDisplay} ${selectedNetwork?.name} Pool`
   const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
   const chainImageUrl = selectedNetwork?.imageUrl ?? ''
   const chainName = selectedNetwork?.name ?? ''
@@ -1044,6 +1054,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         canonicalBalance,
         canonicalToken,
         canonicalTokenSymbol,
+        canonicalTokenSymbolDisplay,
         chainImageUrl,
         chainName,
         chainSlug,
@@ -1058,6 +1069,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         hopBalance,
         hopToken,
         hopTokenSymbol,
+        hopTokenSymbolDisplay,
         isDepositing,
         isNativeToken,
         isWithdrawing,

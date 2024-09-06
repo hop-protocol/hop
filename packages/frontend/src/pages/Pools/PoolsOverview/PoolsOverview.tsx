@@ -381,6 +381,8 @@ export function PoolsOverview () {
       <Box mt={2}>
         <Alert severity="info"maxWidth>Notice: Pool "USDC" has been renamed to "USDC.e" (USD Coin Bridged). There are no AMM pools for native USDC.</Alert>
       </Box>
+
+      <Box mt={2}><Alert severity="info">Notice: MATIC on PolygonPoS has been rebranded to POL.</Alert></Box>
     </Box>
   )
 }

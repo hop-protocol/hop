@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, utils } from 'ethers'
-import { Multicall } from '@hop-protocol/sdk'
+import { Multicall, TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from '#config/index.js'
 import { checkIsPoolDeprecated } from '#hooks/useCheckPoolDeprecated.js'
 import { commafy, toPercentDisplay } from '#utils/index.js'
@@ -70,8 +70,12 @@ export function usePools () {
             continue
           }
           const tokenImage = getTokenImage(tokenModel.symbol)
-          const poolName = `${token} ${chainModel.name} Pool`
-          const poolSubtitle = `${token} - h${token}`
+          let tokenSymbolDisplay = token
+          if (tokenSymbolDisplay === TokenSymbol.MATIC && chainModel.slug === ChainSlug.Polygon) {
+            tokenSymbolDisplay = 'Pol'
+          }
+          const poolName = `${tokenSymbolDisplay} ${chainModel.name} Pool`
+          const poolSubtitle = `${tokenSymbolDisplay} - h${token}`
           const depositLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const withdrawLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const claimLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`

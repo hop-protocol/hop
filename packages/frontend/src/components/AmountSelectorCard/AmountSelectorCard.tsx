@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
 import { BigNumber, utils } from 'ethers'
 import { LargeTextField } from '#components/LargeTextField/index.js'
-import { Token } from '@hop-protocol/sdk'
+import { Token, TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 import { commafy } from '#utils/index.js'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 
@@ -162,6 +162,14 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     onChange(maxValue)
   }, [onChange, secondaryToken, secondaryBalance, methodName, selectedNetwork])
 
+  let tokenSymbolDisplay = token?.symbol
+  if (selectedNetwork?.slug === ChainSlug.Polygon && (token?.symbol === TokenSymbol.MATIC || token?.symbol === 'hMATIC' || token?.symbol === 'WMATIC')) {
+    tokenSymbolDisplay = tokenSymbolDisplay.replace('MATIC', 'POL')
+  }
+  if ((!selectedNetwork?.slug && !destNetwork?.slug && title?.includes('Polygon')) && (token?.symbol === TokenSymbol.MATIC || token?.symbol === 'hMATIC' || token?.symbol === 'WMATIC')) {
+    tokenSymbolDisplay = tokenSymbolDisplay.replace('MATIC', 'POL')
+  }
+
   return (
     <Card className={clsx(styles.root, className)}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb="1.8rem" width="100%">
@@ -227,7 +235,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={hideSymbol ? '' : token?.symbol}
+            units={hideSymbol ? '' : tokenSymbolDisplay}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

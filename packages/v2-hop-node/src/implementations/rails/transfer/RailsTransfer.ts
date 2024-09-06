@@ -1,7 +1,7 @@
 import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import { RailsTransferRelayer } from './relayer/Relayer.js'
-import { RailsTransferIndexer } from './indexer/Indexer.js'
+import { RailsIndexer } from '../RailsIndexer.js'
 import type { RailsPath } from '../types.js'
 
 export class RailsTransfer {
@@ -12,7 +12,7 @@ export class RailsTransfer {
     const dbName = 'railsTransfer'
 
     // Data handler
-    const indexer = new RailsTransferIndexer(dbName, paths)
+    const indexer = new RailsIndexer(dbName, paths)
 
     // State handler
     const dataAdapter = new RailsTransferDataAdapter(indexer)

@@ -19,7 +19,7 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
     ChainSlug.Base
   ]
 }
-export async function main () {
+export async function main (): Promise<never> {
   const network: NetworkSlug = SignerConfig.network
   const chains: ChainSlug[] = CHAINS[network]!
   const chainIds: string[] = chains.map(chainSlug => getChain(network, chainSlug).chainId)

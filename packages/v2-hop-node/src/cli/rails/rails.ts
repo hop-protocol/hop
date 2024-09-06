@@ -2,9 +2,10 @@ import { Rails } from '#implementations/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 
-export async function main () {
+export async function main (): Promise<never> {
   try {
-    const railsManager = new Rails.RailsTransfer(RailsConfig.paths)
+    const clients = Object.values(Rails.RailsClientName)
+    const railsManager = new Rails.Rails(clients, RailsConfig.paths)
     await railsManager.start()
     // TODO: V2: Add logger
     console.log('Rails Manager started')

@@ -6,7 +6,7 @@ import {
   type HopCCTPTransferReceivedDecoded,
   CCTPEventName,
   CCTPSDK
-} from '../sdk/CCTPSDK.js'
+} from './sdk/CCTPSDK.js'
 
 // TODO: I believe this should be union, not intersection
 type CCTPIndexerKey = keyof (HopCCTPTransferSentDecodedWithMessage & HopCCTPTransferReceivedDecoded)

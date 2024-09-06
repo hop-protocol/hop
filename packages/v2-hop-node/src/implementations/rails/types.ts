@@ -1,5 +1,10 @@
 import type { BigNumber } from 'ethers'
 
+export enum RailsClientName {
+  Transfer = 'transfer',
+  Claim = 'claim'
+}
+
 export type RailsHop = {
   pathId: string
   maxTotalSent: BigNumber

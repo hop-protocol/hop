@@ -1,4 +1,4 @@
-import { getPathFromPathId } from '../utils.js'
+import { getPathFromPathId } from '../../utils.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import { RailsSDKWrapper, RailsSDK } from '../../RailsSDKWrapper.js'
@@ -16,7 +16,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     if (!this.#isBondInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
-    return this.#canRelaySentTransfer(relayItem as BondInput)
+    return this.#canRelayBond(relayItem as BondInput)
   }
 
   protected override sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
@@ -40,7 +40,7 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Internal - Validation
    */
 
-  async #canRelaySentTransfer (relayItem: BondInput): Promise<boolean> {
+  async #canRelayBond (relayItem: BondInput): Promise<boolean> {
     const isClaimed = await RailsSDK.isClaimed(relayItem.transferId)
     const isBonded = await RailsSDK.isBonded(relayItem.transferId)
     return isClaimed && !isBonded

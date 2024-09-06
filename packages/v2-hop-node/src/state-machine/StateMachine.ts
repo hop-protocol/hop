@@ -115,7 +115,6 @@ export abstract class StateMachine<State extends string, StateData extends State
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (shouldAttempt) continue
 
-      // TODO: Handle fork
 
       const nextState = getNextState(this.#states, state)
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)

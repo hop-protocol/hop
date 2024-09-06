@@ -59,7 +59,10 @@ export type TransferBondedIndexedEvents = {
 export enum RailsEventName {
   TransferSent = 'TransferSent',
   TransferPosted = 'TransferPosted',
-  TransferBonded = 'TransferBonded'
+  TransferBonded = 'TransferBonded',
+  // TODO: This is a mock until they are live in the contract
+  ClaimPosted = 'ClaimPosted',
+  ClaimConfirmed = 'ClaimConfirmed'
   // TODO: Add them all
 }
 

@@ -1,18 +1,14 @@
 import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import { RailsTransferRelayer } from './relayer/Relayer.js'
-import { RailsIndexer } from '../RailsIndexer.js'
-import type { RailsPath } from '../types.js'
+import type { RailsIndexer } from '../RailsIndexer.js'
 
 export class RailsTransfer {
   readonly #stateMachine: RailsTransferStateMachine
   #started: boolean = false
 
-  constructor (paths: RailsPath[]) {
-    const dbName = 'railsTransfer'
-
-    // Data handler
-    const indexer = new RailsIndexer(dbName, paths)
+  constructor (clientName: string, indexer: RailsIndexer) {
+    const dbName = `${clientName}Transfer`
 
     // State handler
     const dataAdapter = new RailsTransferDataAdapter(indexer)

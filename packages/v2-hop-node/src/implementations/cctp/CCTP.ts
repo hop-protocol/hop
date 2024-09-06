@@ -1,7 +1,7 @@
 import { CCTPDataAdapter } from './state-machine/DataAdapter.js'
 import { CCTPStateMachine } from './state-machine/StateMachine.js'
 import { CCTPRelayer } from './relayer/Relayer.js'
-import { CCTPIndexer } from './indexer/Indexer.js'
+import { CCTPIndexer } from './CCTPIndexer.js'
 
 export class CCTP {
   readonly #stateMachine: CCTPStateMachine

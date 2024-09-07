@@ -32,7 +32,11 @@ export function GetBundleProof (props: Props) {
   const [messageId, setMessageId] = useLocalStorageState(`${cacheKey}:messageId`, {
     defaultValue: '',
   })
-  const [bundleProof, setBundleProof] = useState('')
+
+  const [bundleProof, setBundleProof] = useLocalStorageState(`${cacheKey}:bundleProof`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

@@ -13,11 +13,6 @@ import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import Stepper from '@mui/material/Stepper'
-import Step from '@mui/material/Step'
-import StepLabel from '@mui/material/StepLabel'
-import StepContent from '@mui/material/StepContent'
-import Button from '@mui/material/Button'
 
 type Props = {
   signer?: Signer
@@ -46,9 +41,18 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

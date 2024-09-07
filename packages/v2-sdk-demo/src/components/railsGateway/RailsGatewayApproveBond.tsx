@@ -36,9 +36,19 @@ export function RailsGatewayApproveBond (props: Props) {
   const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
     defaultValue: '',
   })
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

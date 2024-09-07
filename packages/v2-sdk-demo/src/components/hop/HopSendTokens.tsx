@@ -53,11 +53,26 @@ export function HopSendTokens (props: Props) {
     defaultValue: '',
   })
 
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [approvalTxHash, setApprovalTxHash] = useState('')
-  const [txHash, setTxHash] = useState('')
-  const [transferId, setTransferId] = useState('')
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [approvalTxHash, setApprovalTxHash] = useLocalStorageState(`${cacheKey}:approvalTxHash`, {
+    defaultValue: '',
+  })
+
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

@@ -27,7 +27,11 @@ export function RailsGatewayGetLatestClaim (props: Props) {
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
-  const [claim, setClaim] = useState('')
+
+  const [claim, setClaim] = useLocalStorageState(`${cacheKey}:claim`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

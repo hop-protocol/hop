@@ -36,7 +36,10 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
     defaultValue: '',
   })
 
-  const [balance, setBalance] = useState('')
+  const [balance, setBalance] = useLocalStorageState(`${cacheKey}:balance`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

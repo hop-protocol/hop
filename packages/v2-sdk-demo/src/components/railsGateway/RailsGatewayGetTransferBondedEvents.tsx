@@ -32,7 +32,11 @@ export function RailsGatewayGetTransferBondedEvents (props: Props) {
   const [toBlock, setToBlock] = useLocalStorageState(`${cacheKey}:toBlock`, {
     defaultValue: '',
   })
-  const [events, setEvents] = useState('')
+
+  const [events, setEvents] = useLocalStorageState(`${cacheKey}:events`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

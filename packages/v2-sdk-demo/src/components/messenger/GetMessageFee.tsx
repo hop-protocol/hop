@@ -25,8 +25,12 @@ export function GetMessageFee (props: Props) {
   const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
     defaultValue: defaultChainIds.to,
   })
+
+  const [output, setOutput] = useLocalStorageState(`${cacheKey}:output`, {
+    defaultValue: ''
+  })
+
   const [copied, setCopied] = useState(false)
-  const [output, setOutput] = useState('')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

@@ -23,9 +23,11 @@ export function HopSwitchChain (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
+
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,
   })
+
   const [connectedChainId, setConnectedChainId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

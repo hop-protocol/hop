@@ -22,8 +22,12 @@ export function SetContractAddresses (props: Props) {
   const [configString, setConfigString] = useLocalStorageState(`${cacheKey}:configString`, {
     defaultValue: JSON.stringify(sdk.getContractAddresses(), null, 2),
   })
+
+  const [result, setResult] = useLocalStorageState(`${cacheKey}:result`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState('')
   const [error, setError] = useState('')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

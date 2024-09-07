@@ -27,7 +27,10 @@ export function RailsGatewayCalcAmountOutMin (props: Props) {
     defaultValue: '',
   })
 
-  const [amountOutMin, setAmountOutMin] = useState('')
+  const [amountOutMin, setAmountOutMin] = useLocalStorageState(`${cacheKey}:amountOutMin`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

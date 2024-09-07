@@ -14,6 +14,7 @@ type Props = {
 }
 
 export function SetRpcProviders (props: Props) {
+  const cacheKey = 'setRpcProviders'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -24,8 +25,11 @@ export function SetRpcProviders (props: Props) {
     }, null, 2),
   })
 
+  const [result, setResult] = useLocalStorageState(`${cacheKey}:result`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState('')
   const [error, setError] = useState('')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

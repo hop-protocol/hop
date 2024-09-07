@@ -33,7 +33,10 @@ export function GetEvents (props: Props) {
     defaultValue: '',
   })
 
-  const [events, setEvents] = useState('')
+  const [events, setEvents] = useLocalStorageState(`${cacheKey}:events`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const eventNames = useMemo(() => {
     return sdk?.messenger.getEventNames() ?? []

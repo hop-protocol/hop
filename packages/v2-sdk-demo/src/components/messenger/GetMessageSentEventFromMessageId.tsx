@@ -28,7 +28,11 @@ export function GetMessageSentEventFromMessageId (props: Props) {
   const [messageId, setMessageId] = useLocalStorageState(`${cacheKey}:messageId`, {
     defaultValue: '',
   })
-  const [event, setEvent] = useState('')
+
+  const [event, setEvent] = useLocalStorageState(`${cacheKey}:event`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

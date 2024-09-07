@@ -196,6 +196,12 @@ export function usePools () {
               pool.totalAprFormatted = toPercentDisplay(pool.totalApr)
             }
             for (const item of stakingRewardTokens) {
+              console.log('item', item)
+              // arb rewards ended in september 2024
+              if (item.tokenSymbol === 'ARB') {
+                continue
+              }
+
               stakingRewards.push({
                 tokenSymbol: item.tokenSymbol,
                 imageUrl: getTokenImage(item.tokenSymbol),

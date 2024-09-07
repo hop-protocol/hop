@@ -133,6 +133,10 @@ export function StakeForm(props: Props) {
     stakingAprDisplay = `${stakingAprFormatted} ${isRewardsExpired ? '(rewards ended)' : ''}`
   }
 
+  if (rewardsTokenSymbol == 'ARB') { // arb rewards ended september 2024)
+    stakingAprDisplay = '0% (rewards ended)'
+  }
+
   if (isTokenDeprecated) {
     return (
       <>

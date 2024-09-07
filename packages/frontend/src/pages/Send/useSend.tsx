@@ -603,7 +603,7 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug))) {
+        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism].includes(toNetwork?.slug as ChainSlug))) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return

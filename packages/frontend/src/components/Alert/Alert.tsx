@@ -1,5 +1,5 @@
 import MuiAlert, { AlertProps as MuiAlertProps } from '@mui/material/Alert'
-import React, { FC } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import clsx from 'clsx'
 import { makeStyles } from '@mui/styles'
 import { prettifyErrorMessage } from '#utils/index.js'
@@ -23,10 +23,19 @@ type AlertProps = {
 export const Alert: FC<AlertProps & MuiAlertProps> = props => {
   const { text, className, children, severity, onClose, maxWidth } = props
   const styles = useStyles({ maxWidth })
-  const show = text ?? children
+  const [show, setShow] = useState(!!(text ?? children))
+
+  useEffect(() => {
+    setShow(!!(text ?? children))
+  }, [text, children])
+
+  function handleClose () {
+    onClose?.()
+    setShow(false)
+  }
 
   return show ? (
-    <MuiAlert severity={severity} onClose={onClose} className={clsx(styles.root, className)}>
+    <MuiAlert severity={severity} onClose={handleClose} className={clsx(styles.root, className)}>
       {children ?? prettifyErrorMessage(text ?? '')}
     </MuiAlert>
   ) : null

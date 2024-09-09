@@ -45,6 +45,21 @@ export class EventContextTable extends BaseDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_event_context_chain_id_tx_hash_log_index ON event_context (chain_id, transaction_hash, log_index);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_event_context_chain_id ON event_context (chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_event_context_tx_hash ON event_context (transaction_hash);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_event_context_from_address ON event_context (from_address);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_event_context_to_address ON event_context (to_address);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_event_context_block_number ON event_context (block_number);'
+    )
   }
 
   override async getItems (opts: any = {}) {

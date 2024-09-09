@@ -128,6 +128,31 @@ app.get('/v1/tokens', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/prices', responseCache, async (req: any, res: any) => {
+  try {
+    let { page = 1, limit = 10, filter } = req.query
+    limit = Number(limit)
+    if (limit < 1) {
+      throw new Error('limit must be greater than 0')
+    }
+    if (limit > 10) {
+      throw new Error('limit must be less than 10')
+    }
+    const { items, hasNextPage } = await controller.getTokenPricesForApi({
+      limit,
+      filter,
+      page: Number(page)
+    })
+    res.status(200).json({
+      prices: items,
+      hasNextPage
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

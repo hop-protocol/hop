@@ -24,6 +24,12 @@ export class TransferBondedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_bonded_events_bundle_id ON transfer_bonded_events (transfer_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_bonded_events_path_id ON transfer_bonded_events (path_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_bonded_events_event_context_id ON transfer_bonded_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -40,6 +46,8 @@ export class TransferBondedTable extends EventDb {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
 
     const items = await this.db.any(
@@ -56,9 +64,10 @@ export class TransferBondedTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND transfer_id= $5' : ''}
+        ${filter?.transferId ? 'AND transfer_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -66,7 +75,7 @@ export class TransferBondedTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items)
+    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -87,7 +96,7 @@ export class TransferBondedTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${amount})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET transfer_id = ${transferId}'}
+      ${'DO UPDATE SET transfer_id = ${transferId}, path_id = ${pathId}, amount = ${amount}'}
     `
 
     await this.db.tx(async (t: any) => {

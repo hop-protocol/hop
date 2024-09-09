@@ -65,12 +65,16 @@
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
+- [getIsPathIdLive](RailsGateway.md#getispathidlive)
+- [getIsTransferBonded](RailsGateway.md#getistransferbonded)
+- [getIsTransferClaimed](RailsGateway.md#getistransferclaimed)
 - [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
 - [getNeedsApprovalForBond](RailsGateway.md#getneedsapprovalforbond)
 - [getNeedsApprovalForSend](RailsGateway.md#getneedsapprovalforsend)
+- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
@@ -90,6 +94,7 @@
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
 - [getTotalSent](RailsGateway.md#gettotalsent)
+- [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
@@ -924,6 +929,54 @@ ___
 
 ___
 
+### <a id="getispathidlive" name="getispathidlive"></a> getIsPathIdLive
+
+▸ **getIsPathIdLive**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="getistransferbonded" name="getistransferbonded"></a> getIsTransferBonded
+
+▸ **getIsTransferBonded**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="getistransferclaimed" name="getistransferclaimed"></a> getIsTransferClaimed
+
+▸ **getIsTransferClaimed**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
 ### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
 
 ▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
@@ -1025,6 +1078,22 @@ ___
 #### Returns
 
 `Promise`\<`boolean`\>
+
+___
+
+### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
+
+▸ **getNextHopsHash**(`«destructured»`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`string`
 
 ___
 
@@ -1355,6 +1424,22 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
+
+▸ **getTransferBondedEventFilter**(`«destructured»`): `EventFilter`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferBondedEventFilterInput`](../modules.md#gettransferbondedeventfilterinput) |
+
+#### Returns
+
+`EventFilter`
 
 ___
 

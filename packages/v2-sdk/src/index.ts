@@ -37,8 +37,10 @@ export {
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
+  GetTransferBondedEventFilterInput,
   GetTransferStatusInput,
   HopStruct,
+  HopStructInput,
   Path,
   PostClaimInput,
   RailsGateway,
@@ -57,7 +59,11 @@ export {
   WithdrawAllInput,
   WithdrawBalanceInput,
   WithdrawHopInput,
-  WithdrawInput
+  WithdrawInput,
+  GetIsTransferBondedInput,
+  GetIsTransferClaimedInput,
+  GetNextHopsHashInput,
+  GetIsPathIdLiveInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,
@@ -117,4 +123,5 @@ export {
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
 export { PriceFeed } from './priceFeed/index.js'
-export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './events/index.js'
+export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'
+export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from './error/index.js'

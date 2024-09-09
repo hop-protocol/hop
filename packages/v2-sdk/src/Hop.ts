@@ -4,9 +4,9 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent } from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct} from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
-import { ConfigError, InputError } from '#error/index.js'
+import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
@@ -185,12 +185,12 @@ export class Hop extends Base {
           token1: toToken
         })
 
-        console.log('pathId', pathId)
+        console.log('hopV2Sdk: pathId', pathId)
         const attestedClaimId = await this.railsGateway.getLatestClaim({
           chainId: fromChainId,
           pathId
         })
-        console.log('attestedClaimId', attestedClaimId)
+        console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
         let isClaimIdValid = await this.railsGateway.getIsClaimIdValid({
           chainId: toChainId,
@@ -198,7 +198,7 @@ export class Hop extends Base {
           claimId: attestedClaimId
         })
 
-        console.log('isClaimIdValid', isClaimIdValid)
+        console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
 
         // new path without checkpoints will return 0 bytes32
         if (!isClaimIdValid && BigNumber.from(attestedClaimId).eq(0)) {
@@ -206,16 +206,14 @@ export class Hop extends Base {
         }
 
         if (!isClaimIdValid) {
-          throw new Error('Latest attestedClaimId is invalid')
+          throw new CustomError('Latest attestedClaimId is invalid')
         }
 
         const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
 
-        const nextHops = [{
-          pathId,
-          maxTotalSent,
-          attestedClaimId
-        }]
+        const nextHops: HopStruct[] = []
+
+        const fee = await this.railsGateway.getFee({ chainId: toChainId, pathId })
 
         const populatedTx = await this.railsGateway.populateTransaction.send({
           chainId: fromChainId,
@@ -223,10 +221,12 @@ export class Hop extends Base {
           to,
           amount,
           attestedClaimId,
-          nextHops
+          nextHops,
+          maxTotalSent,
+          fee
         })
 
-        console.log('populatedTx', populatedTx)
+        console.log('hopV2Sdk: populatedTx', populatedTx)
 
         return populatedTx
       },
@@ -268,7 +268,7 @@ export class Hop extends Base {
       chainId1: toChainId,
       token1: toToken
     })
-    console.log('getPathId', pathId)
+    console.log('hopV2Sdk: getPathId', pathId)
     return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount, account })
   }
 
@@ -336,11 +336,9 @@ export class Hop extends Base {
 
     const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
 
-    const nextHops = [{
-      pathId,
-      maxTotalSent,
-      attestedClaimId
-    }]
+    const nextHops: HopStruct[] = []
+
+    const fee = await this.railsGateway.getFee({ chainId: toChainId, pathId })
 
     const populatedTx = await this.railsGateway.populateTransaction.send({
       chainId: fromChainId,
@@ -348,12 +346,14 @@ export class Hop extends Base {
       to,
       amount,
       attestedClaimId,
-      nextHops
+      nextHops,
+      maxTotalSent,
+      fee
     })
 
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${fromChainId}`)
+      throw new CustomError(`Provider not found for chainId: ${fromChainId}`)
     }
 
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
@@ -403,7 +403,7 @@ export class Hop extends Base {
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new CustomError(`Provider not found for chainId: ${chainId}`)
     }
 
     const latestBlock = await provider.getBlockNumber()

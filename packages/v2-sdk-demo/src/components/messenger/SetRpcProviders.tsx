@@ -25,8 +25,12 @@ export function SetRpcProviders (props: Props) {
       11155111: 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213',
     }, null, 2),
   })
+
+  const [result, setResult] = useLocalStorageState(`${cacheKey}:result`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState('')
   const [error, setError] = useState('')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

@@ -12,7 +12,7 @@ export interface ChainConfig {
   railsGateway?: string
   dispatcher?: string
   executor?: string
-  connector?: string
+  transporter?: string
   tokens?: TokenAddresses
 }
 

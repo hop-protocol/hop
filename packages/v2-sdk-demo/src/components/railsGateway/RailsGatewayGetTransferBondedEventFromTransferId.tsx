@@ -28,7 +28,11 @@ export function RailsGatewayGetTransferBondedEventFromTransferId (props: Props) 
   const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
     defaultValue: '',
   })
-  const [event, setEvent] = useState('')
+
+  const [event, setEvent] = useLocalStorageState(`${cacheKey}:event`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

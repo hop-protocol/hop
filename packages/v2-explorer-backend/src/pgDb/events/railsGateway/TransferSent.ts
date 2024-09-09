@@ -4,6 +4,7 @@ import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, 
 import { v4 as uuid } from 'uuid'
 
 export interface HopStruct {
+  index?: number
   pathId: string
   maxTotalSent: BigNumber
   attestedClaimId: string
@@ -34,6 +35,7 @@ export class TransferSentTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS next_hops (
       id TEXT PRIMARY KEY,
       transfer_sent_event_id TEXT REFERENCES transfer_sent_events(id) ON DELETE CASCADE,
+      "index" INTEGER NOT NULL CHECK ("index" >= 0),
       path_id CHAR(66) NOT NULL,
       max_total_sent NUMERIC NOT NULL CHECK (max_total_sent >= 0),
       attested_claim_id CHAR(66) NOT NULL
@@ -43,6 +45,21 @@ export class TransferSentTable extends EventDb {
   override async createIndexes () {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_sent_events_transfer_id ON transfer_sent_events (transfer_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_to ON transfer_sent_events ("to");'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_attested_claim_id ON transfer_sent_events (attested_claim_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfer_sent_events_event_context_id ON transfer_sent_events (event_context_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_next_hops_path_id ON next_hops (path_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_next_hops_attested_claim_id ON next_hops (attested_claim_id);'
     )
   }
 
@@ -62,6 +79,12 @@ export class TransferSentTable extends EventDb {
       args.push(filter.account)
     } else if (filter?.recipient) {
       args.push(filter.recipient)
+    } else if (filter?.attestedClaimId) {
+      args.push(filter.attestedClaimId)
+    } else if (filter?.pathId) {
+      args.push(filter.pathId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
 
     const items = await this.db.any(
@@ -73,9 +96,10 @@ export class TransferSentTable extends EventDb {
         e.attested_claim_id AS "attestedClaimId",
         e.attested_total_claims AS "attestedTotalClaims",
         ${selectEventContextSql},
+        nh.index,
         nh.path_id AS "pathId",
         nh.max_total_sent AS "maxTotalSent",
-        nh.attested_claim_id AS "nextHopAttestedClaimId"
+        nh.attested_claim_id AS "nhAttestedClaimId"
       FROM
         transfer_sent_events e
       JOIN
@@ -88,12 +112,15 @@ export class TransferSentTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND e.transfer_id= $5' : ''}
+        ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
+        ${filter?.attestedClaimId ? 'AND (e.attested_claim_id = $5 OR nh.attested_claim_id = $5)' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.account ? 'AND ec.from_address = $5' : ''}
         ${filter?.recipient ? 'AND e."to" = $5' : ''}
         ${filter?.bonded != null ? 'AND tbe.transfer_id IS NOT NULL' : ''}
         ${filter?.pending != null ? 'AND tbe.transfer_id IS NULL' : ''}
+        ${filter?.pathId != null ? 'AND nh.path_id = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -104,7 +131,7 @@ export class TransferSentTable extends EventDb {
     const results = getItemsWithContext(items)
     // Aggregate nextHops back into an array
     const itemsWithHops = this.#aggregateHops(results)
-    return itemsWithHops
+    return itemsWithHops.map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -125,17 +152,26 @@ export class TransferSentTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${transferId}, ${to}, ${amount}, ${totalSent}, ${attestedClaimId}, ${attestedTotalClaims})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET transfer_id = ${transferId}'}
+      ${'DO UPDATE SET transfer_id = ${transferId}, "to" = ${to}, amount = ${amount}, total_sent = ${totalSent}, attested_claim_id = ${attestedClaimId}, attested_total_claims = ${attestedTotalClaims}'}
+      RETURNING id;
     `
 
     await this.db.tx(async (t: any) => {
       await t.none(insertEventContextSql, insertEventContextArgs)
-      await t.none(sql, args)
+      const result = await t.one(sql, args)
+      const transferSentEventId = result.id // Retrieve the inserted/updated id
+
+      // Delete existing nextHops for the current transferSentEventId
+      const deleteSql = `DELETE FROM next_hops WHERE transfer_sent_event_id = $1`
+      await t.none(deleteSql, [transferSentEventId])
 
       if (nextHops && nextHops.length > 0) {
+        let i = 0
         for (const hop of nextHops) {
           const hopArgs = {
             id: uuid(),
+            index: i,
+            transferSentEventId,
             pathId: hop.pathId,
             maxTotalSent: hop.maxTotalSent.toString(),
             attestedClaimId: hop.attestedClaimId
@@ -143,11 +179,12 @@ export class TransferSentTable extends EventDb {
           const hopSql = `
             INSERT INTO next_hops
             (
-              id, transfer_sent_event_id, path_id, max_total_sent, attested_claim_id
+              id, transfer_sent_event_id, "index", path_id, max_total_sent, attested_claim_id
             )
-            VALUES ${'(${hopArgs.id}, ${hopArgs.pathId}, ${hopArgs.maxTotalSent}, ${hopArgs.attestedClaimId})'}
+            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxTotalSent}, ${attestedClaimId})'}
           `
           await t.none(hopSql, hopArgs)
+          i++
         }
       }
     })
@@ -163,15 +200,31 @@ export class TransferSentTable extends EventDb {
 
       if (item.pathId) {
         const hop = {
+          index: item.index,
           pathId: item.pathId,
           maxTotalSent: BigNumber.from(item.maxTotalSent),
-          attestedClaimId: item.nextHopAttestedClaimId
+          attestedClaimId: item.nhAttestedClaimId
         }
         map.get(item.transferId).nextHops.push(hop)
       }
     }
 
-    return Array.from(map.values())
+    return Array.from(map.values()).map(item => {
+      // Sort nextHops within each item based on index
+      item.nextHops.sort((a: any, b: any) => a.index - b.index)
+      return this.#normalizeHopStructDataForGet(item)
+    })
+  }
+
+  #normalizeHopStructDataForGet (getData: Partial<HopStruct>): Partial<HopStruct> {
+    if (!getData) {
+      return getData
+    }
+    const data = Object.assign({}, getData)
+    if (data.maxTotalSent && typeof data.maxTotalSent === 'string') {
+      data.maxTotalSent = BigNumber.from(data.maxTotalSent)
+    }
+    return data
   }
 
   #normalizeDataForGet (getData: Partial<TransferSent>): Partial<TransferSent> {
@@ -179,11 +232,21 @@ export class TransferSentTable extends EventDb {
       return getData
     }
     const data = Object.assign({}, getData)
+
+    // delete next hops fields
+    delete (data as any).index
+    delete (data as any).pathId
+    delete (data as any).maxTotalSent
+    delete (data as any).nhAttestedClaimId
+
     if (data.amount && typeof data.amount === 'string') {
       data.amount = BigNumber.from(data.amount)
     }
     if (data.totalSent && typeof data.totalSent === 'string') {
       data.totalSent = BigNumber.from(data.totalSent)
+    }
+    if (data.attestedTotalClaims && typeof data.attestedTotalClaims === 'string') {
+      data.attestedTotalClaims = BigNumber.from(data.attestedTotalClaims)
     }
     return data
   }

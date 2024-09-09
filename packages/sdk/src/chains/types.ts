@@ -13,7 +13,8 @@ export enum ChainSlug {
   Linea = 'linea',
   ScrollZk = 'scrollzk',
   Base = 'base',
-  PolygonZk = 'polygonzk'
+  PolygonZk = 'polygonzk',
+  Hub = 'hub',
 }
 
 interface SharedChain {

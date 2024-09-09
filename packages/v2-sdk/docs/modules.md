@@ -8,8 +8,13 @@
 
 ### Classes
 
+- [ConfigError](classes/ConfigError.md)
+- [CustomError](classes/CustomError.md)
 - [Hop](classes/Hop.md)
 - [HubConnector](classes/HubConnector.md)
+- [InputError](classes/InputError.md)
+- [InsufficientApprovalError](classes/InsufficientApprovalError.md)
+- [InsufficientBalanceError](classes/InsufficientBalanceError.md)
 - [Messenger](classes/Messenger.md)
 - [PriceFeed](classes/PriceFeed.md)
 - [RailsGateway](classes/RailsGateway.md)
@@ -21,6 +26,7 @@
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
+- [HopStruct](interfaces/HopStruct.md)
 - [MessageBundled](interfaces/MessageBundled.md)
 - [MessageExecuted](interfaces/MessageExecuted.md)
 - [MessageSent](interfaces/MessageSent.md)
@@ -40,6 +46,7 @@
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
+- [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
@@ -56,6 +63,9 @@
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
+- [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
+- [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
+- [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
 - [GetLatestClaimInput](modules.md#getlatestclaiminput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
@@ -77,6 +87,7 @@
 - [GetNeedsApprovalForBondInput](modules.md#getneedsapprovalforbondinput)
 - [GetNeedsApprovalForSendInput](modules.md#getneedsapprovalforsendinput)
 - [GetNeedsApprovalForSendTokensInput](modules.md#getneedsapprovalforsendtokensinput)
+- [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
 - [GetRelayFeeInput](modules.md#getrelayfeeinput)
@@ -89,6 +100,7 @@
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
+- [GetTransferBondedEventFilterInput](modules.md#gettransferbondedeventfilterinput)
 - [GetTransferBondedEventFromCheckpointInput](modules.md#gettransferbondedeventfromcheckpointinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
@@ -102,7 +114,7 @@
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
-- [HopStruct](modules.md#hopstruct)
+- [HopStructInput](modules.md#hopstructinput)
 - [HubConnectorConfig](modules.md#hubconnectorconfig)
 - [MessengerConfig](modules.md#messengerconfig)
 - [Path](modules.md#path)
@@ -188,7 +200,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -265,13 +277,19 @@ ___
 
 ### <a id="etherseventwithdecodedtypesandcontext" name="etherseventwithdecodedtypesandcontext"></a> EthersEventWithDecodedTypesAndContext
 
-Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: `EventContext` ; `decoded`: `T`  }
+Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: [`EventContext`](modules.md#eventcontext) ; `decoded`: `T`  }
 
 #### Type parameters
 
 | Name |
 | :------ |
 | `T` |
+
+___
+
+### <a id="eventcontext" name="eventcontext"></a> EventContext
+
+Ƭ **EventContext**: `BaseEventContext` & `ReceiptEventContext`
 
 ___
 
@@ -497,6 +515,45 @@ ___
 | `fromChainId` | `BigNumberish` |
 | `messageId` | `string` |
 | `toChainId` | `BigNumberish` |
+
+___
+
+### <a id="getispathidliveinput" name="getispathidliveinput"></a> GetIsPathIdLiveInput
+
+Ƭ **GetIsPathIdLiveInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `pathId` | `string` |
+
+___
+
+### <a id="getistransferbondedinput" name="getistransferbondedinput"></a> GetIsTransferBondedInput
+
+Ƭ **GetIsTransferBondedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `transferId` | `string` |
+
+___
+
+### <a id="getistransferclaimedinput" name="getistransferclaimedinput"></a> GetIsTransferClaimedInput
+
+Ƭ **GetIsTransferClaimedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `transferId` | `string` |
 
 ___
 
@@ -781,6 +838,18 @@ ___
 
 ___
 
+### <a id="getnexthopshashinput" name="getnexthopshashinput"></a> GetNextHopsHashInput
+
+Ƭ **GetNextHopsHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `nextHops` | `HopStruct`[] |
+
+___
+
 ### <a id="getpathidinput" name="getpathidinput"></a> GetPathIdInput
 
 Ƭ **GetPathIdInput**: `Object`
@@ -946,6 +1015,21 @@ ___
 | :------ | :------ |
 | `address` | `string` |
 | `chainId` | `BigNumberish` |
+
+___
+
+### <a id="gettransferbondedeventfilterinput" name="gettransferbondedeventfilterinput"></a> GetTransferBondedEventFilterInput
+
+Ƭ **GetTransferBondedEventFilterInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `indexes?` | \{ `pathId?`: `string` ; `transferId?`: `string`  } |
+| `indexes.pathId?` | `string` |
+| `indexes.transferId?` | `string` |
 
 ___
 
@@ -1129,9 +1213,9 @@ ___
 
 ___
 
-### <a id="hopstruct" name="hopstruct"></a> HopStruct
+### <a id="hopstructinput" name="hopstructinput"></a> HopStructInput
 
-Ƭ **HopStruct**: `Object`
+Ƭ **HopStructInput**: `Object`
 
 #### Type declaration
 
@@ -1163,8 +1247,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumber` |
-| `counterpartChainId` | `BigNumber` |
+| `chainId` | `string` |
+| `counterpartChainId` | `string` |
 | `counterpartToken` | `string` |
 | `pathId` | `string` |
 | `token` | `string` |
@@ -1252,7 +1336,9 @@ ___
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `chainId` | `BigNumberish` |
-| `nextHops` | [`HopStruct`](modules.md#hopstruct)[] |
+| `fee` | `BigNumberish` |
+| `maxTotalSent` | `BigNumberish` |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `to` | `string` |
 
@@ -1313,7 +1399,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
-| `chainId` | `BigNumber` |
+| `chainId` | `string` |
 | `decimals` | `number` |
 | `name` | `string` |
 | `symbol` | `string` |

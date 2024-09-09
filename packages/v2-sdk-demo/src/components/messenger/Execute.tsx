@@ -50,9 +50,18 @@ export function Execute (props: Props) {
     defaultValue: '',
   })
 
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -63,7 +72,7 @@ export function Execute (props: Props) {
       toChainId,
       fromAddress,
       toAddress,
-      toCalldata
+      toCalldata: toCalldata.trim()
     }
     console.log('args', args)
     const txData = await sdk.messenger.populateTransaction.execute(args)
@@ -145,7 +154,7 @@ main().catch(console.error)
         <Typography variant="h5">Messenger - Execute (Mock Contract)</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Execute message at the destination</Typography>
+        <Typography variant="subtitle1">Execute message at the destination. The parameters for this can be found from the Messenger MessageSent event.</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>

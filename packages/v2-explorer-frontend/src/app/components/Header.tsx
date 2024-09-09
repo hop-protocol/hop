@@ -41,7 +41,10 @@ export function Header () {
   const currentTab = useMemo(() => {
     const routes: any = {
       '/': 'home',
-      '/events': 'events'
+      '/events': 'events',
+      '/tokens': 'tokens',
+      '/paths': 'paths',
+      '/prices': 'prices'
     }
 
     return routes[pathname] ?? 'home'
@@ -50,7 +53,10 @@ export function Header () {
   function handleTabChange (event: any, newValue: number) {
     const routes: any = {
       home: '/',
-      events: '/events'
+      events: '/events',
+      tokens: '/tokens',
+      paths: '/paths',
+      prices: '/prices',
     }
     navigate(routes[newValue])
   }
@@ -78,6 +84,9 @@ export function Header () {
           <Tabs value={currentTab} onChange={handleTabChange}>
             <Tab label="Transfers" value="home" />
             <Tab label="Events" value="events" />
+            <Tab label="Tokens" value="tokens" />
+            <Tab label="Paths" value="paths" />
+            <Tab label="Prices" value="prices" />
           </Tabs>
         </Box>
       </Box>

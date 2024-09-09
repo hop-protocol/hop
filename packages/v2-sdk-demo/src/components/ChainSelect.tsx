@@ -20,7 +20,8 @@ const labels: Record<string, string> = {
   5: 'Ethereum (Goerli)',
   84532: 'Base (Sepolia)',
   11155111: 'Ethereum (Sepolia)',
-  11155420: 'Optimism (Sepolia)'
+  11155420: 'Optimism (Sepolia)',
+  42069: 'Hop Hub (Sepolia)'
 }
 
 export function ChainSelect(props: Props) {

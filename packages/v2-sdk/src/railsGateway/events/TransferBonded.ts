@@ -22,7 +22,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
 
   getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = this.getContract()
-    // TODO: currently transferId is not indexed by contract, so this doesn't work
     const filter = railsGateway.filters.TransferBonded(transferId)
     return filter
   }

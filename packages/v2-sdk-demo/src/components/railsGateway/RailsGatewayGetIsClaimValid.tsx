@@ -32,7 +32,10 @@ export function RailsGatewayGetIsClaimValid (props: Props) {
     defaultValue: '',
   })
 
-  const [isClaimValid, setIsClaimValid] = useState('')
+  const [isClaimValid, setIsClaimValid] = useLocalStorageState(`${cacheKey}:isClaimValid`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

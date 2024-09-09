@@ -11,7 +11,7 @@ export async function fetchEvents (options: any = {}) {
     if (filter && !filterString) {
       let str = ''
       for (const key in filter) {
-        const value = filter[key]
+        const value = filter[key]?.trim()
         if (value || (key === 'bonded' || key === 'pending')) {
           str += `&filter[${key}]=${value}`
         }

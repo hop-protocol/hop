@@ -14,6 +14,7 @@ export type Options = {
 export type FetchOptions = {
   fromBlock: number
   toBlock: number
+  returnOnFirstMatch?: boolean
 }
 
 export type InputFilter = {
@@ -33,13 +34,23 @@ export class EventFetcher {
   async fetchEvents(filters: InputFilter[], options: FetchOptions) {
     const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock)
 
-    const promiseFns = blockRanges.map(([batchStart, batchEnd]) => {
+
+    const aggregatedFilters = this.aggregateFilters(filters, { fromBlock: options.fromBlock, toBlock: options.toBlock })
+    if (aggregatedFilters?.length === 0) {
+      return []
+    }
+
+    // if (aggregatedFilters?.length === 1 && (aggregatedFilters?.[0]?.topics as string[])?.length > 1) {
+    //   return this.fetchEventsWithAggregatedFilters(aggregatedFilters)
+    // }
+
+    const promiseFns = blockRanges.reverse().map(([batchStart, batchEnd]) => {
       const batchOptions = { fromBlock: batchStart, toBlock: batchEnd }
       const aggregatedFilters = this.aggregateFilters(filters, batchOptions)
       return () => this.fetchEventsWithAggregatedFilters(aggregatedFilters)
     })
 
-    const events = await this.parallelFetch(promiseFns)
+    const events = await this.parallelFetch(promiseFns, options.returnOnFirstMatch)
     return this.normalizeEvents(events)
   }
 
@@ -127,15 +138,18 @@ export class EventFetcher {
     return filteredEvents.sort((a, b) => this.#sortByBlockNumber(a, b))
   }
 
-  private async parallelFetch(promiseFns: (() => Promise<EthersEvent[]>)[]): Promise<EthersEvent[]> {
+  private async parallelFetch(promiseFns: (() => Promise<EthersEvent[]>)[], returnOnFirstMatch?: boolean): Promise<EthersEvent[]> {
     const events: EthersEvent[] = []
     let i = 1
 
     await promiseQueue(
       promiseFns,
       async (fn: () => Promise<EthersEvent[]>) => {
+        if (returnOnFirstMatch && events.length > 0) {
+          return
+        }
         const batchedEvents = await fn()
-        console.log(`got batch ${i++}/${promiseFns.length} with ${batchedEvents.length} events`)
+        console.log(`hopV2Sdk: got batch ${i++}/${promiseFns.length} with ${batchedEvents.length} events`)
         events.push(...batchedEvents)
       },
       { concurrency: 20 }

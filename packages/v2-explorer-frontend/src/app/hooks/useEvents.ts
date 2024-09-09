@@ -10,7 +10,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
   const filterString = useMemo(() => {
     let str = ''
     for (const key in filter) {
-      const value = filter[key]
+      const value = filter[key]?.trim()
       if (value || (key === 'bonded' || key === 'pending')) {
         str += `&filter[${key}]=${value}`
       }

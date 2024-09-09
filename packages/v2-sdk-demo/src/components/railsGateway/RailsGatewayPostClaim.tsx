@@ -61,9 +61,18 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -208,7 +217,7 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total amount sent</em></small></label>
+                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total amount sent from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
               </Box>

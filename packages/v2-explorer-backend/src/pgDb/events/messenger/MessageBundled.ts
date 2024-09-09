@@ -26,6 +26,12 @@ export class MessageBundledTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_bundled_events_message_id ON message_bundled_events (message_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_bundled_events_bundle_id ON message_bundled_events (bundle_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_bundled_events_event_context_id ON message_bundled_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -41,7 +47,12 @@ export class MessageBundledTable extends EventDb {
       args.push(filter.messageId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.treeIndex) {
+      args.push(filter.treeIndex)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         message_id AS "messageId",
@@ -58,7 +69,9 @@ export class MessageBundledTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.messageId ? 'AND message_id = $5' : ''}
+        ${filter?.treeIndex ? 'AND tree_index = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -87,7 +100,7 @@ export class MessageBundledTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${messageId}, ${bundleId}, ${treeIndex})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, bundle_id = ${bundleId}, tree_index = ${treeIndex}'}
     `
 
     await this.db.tx(async (t: any) => {

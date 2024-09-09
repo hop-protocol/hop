@@ -1,5 +1,5 @@
 import { RailsGateway } from '#railsGateway/index.js'
-import { providers, Wallet, utils } from 'ethers'
+import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
 
@@ -35,6 +35,32 @@ describe.skip('RailsGateway', () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferSentEventFilter({
+      chainId,
+      indexes: {
+        transferId
+      }
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(2)
+  })
+  it('should fetch TransferBonded event filter', async () => {
+    const chainId = 11155111
+    const filter = railsGateway.getTransferBondedEventFilter({
+      chainId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(1)
+  })
+  it('should fetch TransferBonded transferId event filter', async () => {
+    const chainId = 11155111
+    const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const filter = railsGateway.getTransferBondedEventFilter({
       chainId,
       indexes: {
         transferId
@@ -183,6 +209,7 @@ describe.skip('RailsGateway', () => {
     const amount = parseUnits('1', 18)
     const to = await signer.getAddress()
     const attestedClaimId = '0xTODO'
+    const maxTotalSent = parseUnits('1', 18)
     const nextHops = [{
       pathId,
       maxTotalSent: '0',
@@ -194,6 +221,7 @@ describe.skip('RailsGateway', () => {
       to,
       amount,
       attestedClaimId,
+      maxTotalSent,
       nextHops
     })
     console.log(txData)
@@ -616,5 +644,68 @@ describe.skip('RailsGateway', () => {
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()
   }, 60 * 1000)
+
+  it('TODO should return true if transfer is bonded', async () => {
+    const chainId = 11155111
+    const transferId = '0xTODO'
+    const bonded = await railsGateway.getIsTransferBonded({
+      chainId,
+      transferId
+    })
+    console.log(bonded)
+    expect(typeof bonded).toBe('boolean')
+  }, 60 * 1000)
+
+  it('TODO should return true if transfer is claimed', async () => {
+    const chainId = 11155111
+    const transferId = '0xTODO'
+    const claimed = await railsGateway.getIsTransferClaimed({
+      chainId,
+      transferId
+    })
+    console.log(claimed)
+    expect(typeof claimed).toBe('boolean')
+  }, 60 * 1000)
+
+  it('getNextHopsHash - should return a keccak256 hash of the hops', () => {
+    const nextHops = [
+      {
+        pathId: utils.formatBytes32String('path1'),
+        maxTotalSent: BigNumber.from('1000000'),
+        attestedClaimId: utils.formatBytes32String('claim1'),
+      },
+      {
+        pathId: utils.formatBytes32String('path2'),
+        maxTotalSent: BigNumber.from('2000000'),
+        attestedClaimId: utils.formatBytes32String('claim2'),
+      },
+    ]
+
+    const hash = railsGateway.getNextHopsHash({ nextHops })
+    console.log(hash)
+
+    expect(typeof hash).toBe('string')
+    expect(hash.length).toBe(66)
+    expect(hash).toBe('0xaecd8bdc95baa83199d242ec7b87219b76ae0a12a858f2160a697408aa490fba')
+  })
+
+  it('getNextHopsHash - should return 0x0 hash if hops is empty', () => {
+    const nextHops: any[] = []
+    const hash = railsGateway.getNextHopsHash({ nextHops })
+    console.log(hash)
+    expect(hash).toBe(constants.HashZero)
+  })
+
+  it('should return boolean for getting is path id live', async () => {
+    const chainId = 11155111
+    const pathId = '0x5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6'
+    const isLive = await railsGateway.getIsPathIdLive({ chainId, pathId })
+    console.log(isLive)
+    expect(typeof isLive).toBe('boolean')
+    expect(isLive).toBe(true)
+
+    const invalidPathId = '0x1111111111111111111111111111111111111111111111111111111111111111'
+    expect(await railsGateway.getIsPathIdLive({ chainId, pathId: invalidPathId })).toBe(false)
+  })
 })
 

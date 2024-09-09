@@ -25,31 +25,45 @@ export const selectEventContextSql = `
 
 export function getItemsWithContext (items: any[]) {
   return items.map((x: any) => {
-    return {
-      ...x,
-      context: {
-        chainId: x['context.chainId'],
-        transactionHash: x['context.transactionHash'],
-        transactionIndex: x['context.transactionIndex'],
-        logIndex: x['context.logIndex'],
-        blockNumber: x['context.blockNumber'],
-        blockTimestamp: x['context.blockTimestamp'],
-        from: x['context.fromAddress'],
-        to: x['context.toAddress'],
-        value: x['context.value'],
-        nonce: x['context.nonce'],
-        gasLimit: x['context.gasLimit'],
-        gasUsed: x['context.gasUsed'],
-        gasPrice: x['context.gasPrice'],
-        status: x['context.status'],
-        data: x['context.data']
-      }
+    // Destructure and collect the context properties into the context object
+    const context = {
+      chainId: x['context.chainId'],
+      transactionHash: x['context.transactionHash'],
+      transactionIndex: x['context.transactionIndex'],
+      logIndex: x['context.logIndex'],
+      blockNumber: x['context.blockNumber'],
+      blockTimestamp: x['context.blockTimestamp'],
+      from: x['context.fromAddress'],
+      to: x['context.toAddress'],
+      value: Math.round(x['context.value']).toString(), // TODO: remove Math.round and toString
+      nonce: x['context.nonce'],
+      gasLimit: x['context.gasLimit'],
+      gasUsed: x['context.gasUsed'],
+      gasPrice: Math.round(x['context.gasPrice']).toString(), // TODO: remove Math.round and toString
+      status: x['context.status'],
+      data: x['context.data']
     }
+
+    // Omit the properties that begin with 'context' from x
+    const filteredResult = Object.keys(x).reduce((acc, key) => {
+      if (!key.startsWith('context')) {
+        acc[key] = x[key]
+      }
+      return acc
+    }, {} as Record<string, any>)
+
+    // Add the context object to the filtered result
+    const result = {
+      ...filteredResult,
+      context
+    }
+
+    return result
   })
 }
 
 export function getInsertEventContextSqlData (context: any) {
-  const contextId = uuid();
+  const contextId = uuid()
   const insertEventContextArgs = {
     id: contextId,
     chainId: context.chainId,
@@ -67,7 +81,7 @@ export function getInsertEventContextSqlData (context: any) {
     gasPrice: context.gasPrice,
     status: context.status,
     data: context.data
-  };
+  }
 
   const insertEventContextSql = `
     INSERT INTO event_context (
@@ -76,7 +90,7 @@ export function getInsertEventContextSqlData (context: any) {
     VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data})'}
     ON CONFLICT (chain_id, transaction_hash, log_index)
     ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}'}
-  `;
+  `
 
   return {
     contextId,

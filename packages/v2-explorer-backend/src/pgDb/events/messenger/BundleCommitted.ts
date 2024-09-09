@@ -31,6 +31,15 @@ export class BundleCommittedTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_root ON bundle_committed_events (bundle_root);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_id ON bundle_committed_events (bundle_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_to_chain_id ON bundle_committed_events (to_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_committed_events_event_context_id ON bundle_committed_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -47,7 +56,12 @@ export class BundleCommittedTable extends EventDb {
       args.push(filter.bundleRoot)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.toChainId) {
+      args.push(filter.toChainId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         bundle_id AS "bundleId",
@@ -66,7 +80,9 @@ export class BundleCommittedTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
+        ${filter?.toChainId ? 'AND to_chain_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -74,7 +90,7 @@ export class BundleCommittedTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items)
+    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }
 
   override async upsertItem (item: any) {
@@ -95,7 +111,7 @@ export class BundleCommittedTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${bundleFees}, ${toChainId}, ${commitTime})'}
       ON CONFLICT (bundle_id)
-      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+      ${'DO UPDATE SET bundle_id = ${bundleId}, to_chain_id = ${toChainId}, commit_time = ${commitTime}, bundle_fees = ${bundleFees}'}
     `
 
     await this.db.tx(async (t: any) => {

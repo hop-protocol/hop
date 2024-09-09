@@ -28,7 +28,11 @@ export function GetMessageCalldata (props: Props) {
   const [messageId, setMessageId] = useLocalStorageState(`${cacheKey}:messageId`, {
     defaultValue: '',
   })
-  const [calldata, setCalldata] = useState('')
+
+  const [calldata, setCalldata] = useLocalStorageState(`${cacheKey}:calldata`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

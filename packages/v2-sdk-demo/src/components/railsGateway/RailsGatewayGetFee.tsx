@@ -27,7 +27,11 @@ export function RailsGatewayGetFee (props: Props) {
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
-  const [fee, setFee] = useState('')
+
+  const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

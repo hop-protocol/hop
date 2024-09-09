@@ -25,6 +25,12 @@ export class TokenTable extends BaseDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_tokens_chain_id_address ON tokens (chain_id, address);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_chain_id ON tokens (chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_symbol ON tokens (symbol);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -41,6 +47,9 @@ export class TokenTable extends BaseDb {
     if (filter?.chainId) {
       args.push(filter.chainId)
     }
+    if (filter?.symbol) {
+      args.push(filter.symbol)
+    }
 
     const items = await this.db.any(
       `SELECT
@@ -54,7 +63,8 @@ export class TokenTable extends BaseDb {
       WHERE
         1 = 1
       ${filter?.address ? 'AND address = $3' : ''}
-      ${filter?.chainId ? 'AND chain_id = $4' : ''}
+      ${filter?.symbol ? 'AND symbol = $3' : ''}
+      ${filter?.chainId ? `AND chain_id = ${filter?.address ? '$4' : '$3'}` : ''}
       ORDER BY
         symbol
       DESC
@@ -78,16 +88,8 @@ export class TokenTable extends BaseDb {
       )
       VALUES ${'(${id}, ${chainId}, ${address}, ${name}, ${symbol}, ${decimals})'}
       ON CONFLICT (chain_id, address)
-      ${'DO UPDATE SET chain_id = ${chainId}, name = ${name}, symbol = ${symbol}, decimals = ${decimals}'}`, args
+      ${'DO UPDATE SET chain_id = ${chainId}, name = ${name}, symbol = ${symbol}, decimals = ${decimals}, address = ${address}'}`, args
     )
-  }
-
-  #normalizeDataForGet (getData: Partial<Token>): Partial<Token> {
-    if (!getData) {
-      return getData
-    }
-    const data = Object.assign({}, getData)
-    return data
   }
 
   #normalizeDataForPut (putData: Partial<Token>): Partial<Token> {

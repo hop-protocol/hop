@@ -32,14 +32,6 @@ export function MessageExecutedEvents () {
       value: 'From Chain ID',
     },
     {
-      key: 'from',
-      value: 'From',
-    },
-    {
-      key: 'to',
-      value: 'To',
-    },
-    {
       key: 'eventChainId',
       value: 'Event Chain ID',
     },
@@ -69,16 +61,6 @@ export function MessageExecutedEvents () {
         clipboardValue: event.fromChainId
       },
       {
-        key: 'from',
-        value: event.fromTruncated,
-        clipboardValue: event.from
-      },
-      {
-        key: 'to',
-        value: event.toTruncated,
-        clipboardValue: event.to
-      },
-      {
         key: 'eventChainId',
         value: event.context.chainLabel,
         clipboardValue: event.context.chainLabel
@@ -102,7 +84,9 @@ export function MessageExecutedEvents () {
             value={filterBy}
             onChange={handleFilterByChange}>
               <MenuItem value={'messageId'}>Message ID</MenuItem>
+              <MenuItem value={'fromChainId'}>From Chain ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+              <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>
         </Box>
         <Box>

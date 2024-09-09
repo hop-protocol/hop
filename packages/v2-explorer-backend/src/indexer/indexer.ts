@@ -212,7 +212,7 @@ export class Indexer {
         tokenLookup = 'DOGE' // for testing, give fake token MOCK a price
       }
       const price = await this.priceFeed.getPriceByTokenSymbol(tokenLookup)
-      await this.pgDb.pricesTable.upsertItem({
+      await this.pgDb.priceTable.upsertItem({
         token,
         priceUsd: price,
         timestamp: Math.floor(Date.now() / 1000)

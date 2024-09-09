@@ -27,8 +27,9 @@ export {
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
+  GetTransferBondedEventFilterInput,
   GetTransferStatusInput,
-  HopStruct,
+  HopStructInput,
   Path,
   PostClaimInput,
   RailsGateway,
@@ -45,7 +46,11 @@ export {
   WithdrawAllInput,
   WithdrawBalanceInput,
   WithdrawHopInput,
-  WithdrawInput
+  WithdrawInput,
+  GetIsTransferBondedInput,
+  GetIsTransferClaimedInput,
+  GetNextHopsHashInput,
+  GetIsPathIdLiveInput
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,
@@ -69,5 +74,5 @@ export {
 } from './StakingRegistry.js'
 export {
   TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher
+  TransferSent, TransferSentEventFetcher, HopStruct
 } from './events/index.js'

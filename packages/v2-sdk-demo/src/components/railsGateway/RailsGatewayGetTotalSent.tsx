@@ -27,7 +27,11 @@ export function RailsGatewayGetTotalSent (props: Props) {
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
-  const [totalSent, setTotalSent] = useState('')
+
+  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

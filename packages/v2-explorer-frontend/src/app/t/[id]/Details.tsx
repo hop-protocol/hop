@@ -23,13 +23,12 @@ export function Details(props: any) {
   const {
     transferId,
     statusDisplay,
-    checkpointTotalSentDisplay,
+    attestedClaimTotalSentDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestationFeeDisplay,
-    checkpoint,
-    transferNonce,
+    attestedClaimId,
     pathId,
+    nextHops,
     sourceTxValueDisplay,
     sourceTxTransactionHash,
     sourceTxTransactionExplorerUrl,
@@ -87,9 +86,9 @@ export function Details(props: any) {
       </Box>
 
       <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }} >
-      <TableContainer>
-        <Table width="100%">
-          <TableBody>
+        <TableContainer>
+          <Table width="100%">
+            <TableBody>
               <DetailRow loading={loading} label="Transfer ID" value={transferId} />
               <DetailRow loading={loading} label="Status" value={statusDisplay} />
               <DetailRow loading={loading} label="Created" value={sourceTxTimestampDisplay} />
@@ -97,15 +96,34 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Origin Chain" value={sourceTxChainDisplay} imageUrl={sourceTxChainImageUrl} />
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
               <DetailRow loading={loading} label="Transfer Amount" value={transferAmountDisplay} />
-              <DetailRow loading={loading} label="Transfer Nonce" value={transferNonce} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
-              <DetailRow loading={loading} label="Transfer Attestation Fee" value={attestationFeeDisplay} />
-              <DetailRow loading={loading} label="Transfer Checkpoint" value={checkpoint} />
-              <DetailRow loading={loading} label="Transfer Checkpoint Total Sent" value={checkpointTotalSentDisplay} />
-              <DetailRow loading={loading} label="Path ID" value={pathId} />
+              <DetailRow loading={loading} label="Transfer Attested Claim ID" value={attestedClaimId} />
+              <DetailRow loading={loading} label="Transfer Attested Claim Total Sent" value={attestedClaimTotalSentDisplay} />
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Box mt={2} mb={2}>
+          <Typography variant="subitle1" color="textPrimary">Next Hops</Typography>
+        </Box>
+
+        {nextHops.map((nextHop: any, i: number) => {
+          const { pathId, maxTotalSent, attestedClaimId } = nextHop
+          return (
+            <Box ml={2} mb={4}>
+              <TableContainer>
+                <Table width="100%">
+                  <TableBody>
+                    <DetailRow label={i+1} value=" " />
+                    <DetailRow label="Path ID" value={pathId} />
+                    <DetailRow label="Max Total Sent" value={maxTotalSent} />
+                    <DetailRow label="Attested Claim ID" value={attestedClaimId} />
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )
+        })}
       </Paper>
 
       <Typography variant="h6" color="textPrimary" style={{ marginTop: 16 }}>Source Transaction</Typography>

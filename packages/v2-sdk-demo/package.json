@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
-    "@hop-protocol/sdk": "0.0.35",
+    "@hop-protocol/sdk": "workspace:*",
     "@hop-protocol/v2-sdk": "workspace:*",
     "@mui/icons-material": "^5.11.9",
     "@mui/lab": "^5.0.0-alpha.86",

@@ -137,5 +137,16 @@ export const sharedChain: SharedChains = {
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: 3_000
-  }
+  },
+  hub: {
+    name: 'Hop Hub',
+    slug: ChainSlug.Hub,
+    image: assets.hubImage,
+    nativeTokenSymbol: TokenSymbol.ETH,
+    primaryColor: '#e184b5',
+    isL1: false,
+    isRollup: true,
+    isManualRelayOnL2: false,
+    averageBlockTimeMs: 2_000
+  },
 }

@@ -50,9 +50,18 @@ export function RailsGatewayBond (props: Props) {
     defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
   })
 
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+    defaultValue: '',
+  })
+
+  const [txData, setTxData] = useLocalStorageState(`${cacheKey}:txData`, {
+    defaultValue: '',
+  })
+
+  const [populateTxDataOnly, setPopulateTxDataOnly] = useLocalStorageState(`${cacheKey}:populateTxDataOnly`, {
+    defaultValue: true,
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -106,6 +115,10 @@ export function RailsGatewayBond (props: Props) {
       setError(err.message)
     }
     setLoading(false)
+  }
+
+  function addHop() {
+    setNextHops([...nextHops, { pathId: '', maxTotalSent: '', attestedClaimId: '' }])
   }
 
   const code = `
@@ -241,7 +254,7 @@ main().catch(console.error)
                         <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
                       </Box>
 
-                      {nextHops.length !== 1 && (
+                      {nextHops.length !== 0 && (
                         <Box mb={2}>
                           <Button onClick={() => {
                             const newHops = [...nextHops]
@@ -256,6 +269,12 @@ main().catch(console.error)
                   )
                 })}
               </Stepper>
+
+              <Box mb={2}>
+                <HighlightedButton variant="contained" color="primary" onClick={addHop}>
+                  Add Hop
+                </HighlightedButton>
+              </Box>
 
               <Box mb={2}>
                 <Box>

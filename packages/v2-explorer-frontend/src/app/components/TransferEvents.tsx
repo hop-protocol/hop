@@ -103,7 +103,7 @@ export function ExplorerEvents (props: any) {
       )
     }
 
-    const transferAmountDisplay = `${event?.amountDisplay} (${event?.amountUsdDisplay})`
+    const transferAmountDisplay = `${event?.amountDisplay ?? ''} (${event?.amountUsdDisplay ?? ''})`
 
     return [
       {
@@ -117,7 +117,7 @@ export function ExplorerEvents (props: any) {
       },
       {
         key: 'token',
-        value: `${event?.token?.name} (${event?.token?.symbol})`,
+        value: `${event?.token?.name ?? ''} (${event?.token?.symbol ?? ''})`,
         valueUrl: event.token?.tokenExplorerUrl,
       },
       {
@@ -187,7 +187,7 @@ export function ExplorerEvents (props: any) {
             <Select
               value={filterBy}
               onChange={handleFilterByChange}>
-                <MenuItem value={'transferId'}>TransferId ID</MenuItem>
+                <MenuItem value={'transferId'}>Transfer ID</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
                 <MenuItem value={'account'}>Account</MenuItem>
                 <MenuItem value={'recipient'}>Recipient</MenuItem>

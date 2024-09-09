@@ -1,15 +1,13 @@
 import { EventDb } from '../events/BaseType.js'
-import { BigNumber } from 'ethers'
-import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../events/context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface Price {
   token: string
-  price_usd: string
+  priceUsd: number
   timestamp: number
 }
 
-export class PricesTable extends EventDb {
+export class PriceTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS prices (
       id TEXT PRIMARY KEY,
@@ -23,6 +21,9 @@ export class PricesTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_prices_token_timestamp ON prices (token, timestamp);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_prices_token ON prices (token);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -33,6 +34,9 @@ export class PricesTable extends EventDb {
     }
 
     const args = [startTimestamp, endTimestamp, limit, offset]
+    if (filter?.token) {
+      args.push(filter.token)
+    }
     if (filter?.timestamp) {
       args.push(filter.timestamp)
     }
@@ -48,9 +52,10 @@ export class PricesTable extends EventDb {
         timestamp >= $1
         AND
         timestamp <= $2
-        ${filter?.timestamp ? 'AND timestamp = $5' : ''}
+        ${filter?.token ? 'AND token = $5' : ''}
+        ${filter?.timestamp ? 'AND timestamp = $6' : ''}
       ORDER BY
-        ec.block_timestamp
+        timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -72,7 +77,7 @@ export class PricesTable extends EventDb {
       )
       VALUES ${'(${id}, ${token}, ${priceUsd}, ${timestamp})'}
       ON CONFLICT (token, timestamp)
-      ${'DO UPDATE SET price_usd = ${priceUsd}'}
+      ${'DO UPDATE SET price_usd = ${priceUsd}, timestamp = ${timestamp}, token = ${token}'}
     `
 
     await this.db.tx(async (t: any) => {

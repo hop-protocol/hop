@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
+import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
 
@@ -365,7 +365,11 @@ export class Base {
       },
 
       isValidChainId: (chainId: BigNumberish): boolean => {
-        return this.contractAddresses[chainId?.toString()] != null
+        const exists = this.contractAddresses[chainId?.toString()] != null
+        if (!exists) {
+          console.warn(`hopV2Sdk: chainId "${chainId}" not configured`) // TODO: handle this better
+        }
+        return true
       },
 
       isValidBytes32: (hash: string): boolean => {
@@ -414,12 +418,8 @@ export class Base {
         return !isNaN(value as number)
       },
 
-      getChainSlug: (chainId: BigNumberish) => {
-        const chainSlug = chainSlugMap[chainId.toString()]
-        if (!chainSlug) {
-          throw new Error(`Invalid chain: ${chainId}`)
-        }
-        return chainSlug
+      getChainSlug: (chainId: BigNumberish): string => {
+        return getChainSlug(chainId)
       },
 
       getBumpedGasPrice: async (provider: Provider, percent: number): Promise<BigNumber> => {
@@ -437,7 +437,7 @@ export class Base {
           await this.utils.estimateGas(provider, tx)
           return false
         } catch (err) {
-          console.error('willTransactionFail error', err)
+          console.error('hopV2Sdk: willTransactionFail error', err)
           return true
         }
       },
@@ -509,7 +509,10 @@ export class Base {
       },
 
       switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {
-        chainId = BigNumber.from(chainId)
+        chainId = BigNumber.from(chainId).toNumber()
+
+        // Note: chainId must be unpadded hex string
+        const chainIdHex = `0x${chainId.toString(16)}`
         try {
           if (!provider) {
             throw new Error('provider or signer is required')
@@ -520,7 +523,7 @@ export class Base {
             return
           }
 
-          await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }]) // TODO: type
+          await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainIdHex }]) // TODO: type
         } catch (err) {
           if (err.code === 4902) {
             const chains = getNetwork(this.network as NetworkSlug).chains
@@ -528,7 +531,7 @@ export class Base {
             if (chain) {
               const nativeCurrency = chain?.nativeTokenSymbol
               await (provider as any).send('wallet_addEthereumChain', [{ // TODO: type
-                chainId: chainId.toHexString(),
+                chainId: chainIdHex,
                 chainName: this.utils.getChainSlug(chainId),
                 nativeCurrency: {
                   name: nativeCurrency,

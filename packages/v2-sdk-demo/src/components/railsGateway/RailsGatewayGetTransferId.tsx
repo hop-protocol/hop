@@ -51,7 +51,11 @@ export function RailsGatewayGetTransferId (props: Props) {
   const [attestedCheckpoint, setAttestedCheckpoint] = useLocalStorageState(`${cacheKey}:attestedCheckpoint`, {
     defaultValue: '',
   })
-  const [transferId, setTransferId] = useState('')
+
+  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

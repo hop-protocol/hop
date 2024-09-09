@@ -16,7 +16,7 @@ import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBr
 import { MockExecutor__factory } from '#contracts/factories/MockExecutor__factory.js'
 import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
-import { ConfigError, InputError } from '#error/index.js'
+import { ConfigError, InputError, CustomError } from '#error/index.js'
 
 const { formatEther, formatUnits, parseEther } = utils
 
@@ -323,7 +323,7 @@ export class Messenger extends Base {
 
     const EventFetcherClass = eventFetcher[eventName]
     if (!EventFetcherClass) {
-      throw new Error(`Event fetcher not found for event name: ${eventName}`)
+      throw new CustomError(`Event fetcher not found for event name: ${eventName}`)
     }
 
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
@@ -843,7 +843,8 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: Number(toChainId)
+          chainId: Number(toChainId),
+          gasLimit: 1_000_000
         }
       }
     }
@@ -1053,7 +1054,7 @@ export class Messenger extends Base {
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
     return events?.[0] ?? null
   }
 
@@ -1127,7 +1128,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageSentEventFromTransactionHash({ chainId, transactionHash })
     if (!event) {
-      throw new Error('event not found for transaction hash')
+      throw new CustomError('event not found for transaction hash')
     }
 
     return event.messageId
@@ -1144,7 +1145,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromMessageId({ chainId, messageId })
     if (!event) {
-      throw new Error('event not found for messageId')
+      throw new CustomError('event not found for messageId')
     }
 
     return event.bundleId
@@ -1161,7 +1162,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromTransactionHash({ chainId, transactionHash })
     if (!event) {
-      throw new Error('event not found for transaction hash')
+      throw new CustomError('event not found for transaction hash')
     }
 
     return event.bundleId
@@ -1178,7 +1179,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromMessageId({ chainId, messageId })
     if (!event) {
-      throw new Error('event not found for messageId')
+      throw new CustomError('event not found for messageId')
     }
 
     return event.treeIndex
@@ -1195,7 +1196,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromTransactionHash({ chainId, transactionHash })
     if (!event) {
-      throw new Error('event not found for transaction hash')
+      throw new CustomError('event not found for transaction hash')
     }
 
     return event.treeIndex
@@ -1274,7 +1275,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromMessageId({ chainId, messageId })
     if (!event) {
-      throw new Error(`MessageBundled event not found for messageId "${messageId}"`)
+      throw new CustomError(`MessageBundled event not found for messageId "${messageId}"`)
     }
 
     const { treeIndex, bundleId } = event
@@ -1307,7 +1308,7 @@ export class Messenger extends Base {
     // TODO: handle case for when multiple message events in single transaction
     const messageBundledEvent = await this.getMessageBundledEventFromTransactionHash({ chainId, transactionHash })
     if (!messageBundledEvent) {
-      throw new Error(`MessageBundled event not found for transaction hash "${transactionHash}"`)
+      throw new CustomError(`MessageBundled event not found for transaction hash "${transactionHash}"`)
     }
 
     const { treeIndex, bundleId } = messageBundledEvent
@@ -1339,7 +1340,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageSentEventFromTransactionHash({ chainId, transactionHash })
     if (!event) {
-      throw new Error(`Event not found for transaction hash "${transactionHash}"`)
+      throw new CustomError(`Event not found for transaction hash "${transactionHash}"`)
     }
 
     const bundleProof = await this.getBundleProofFromTransactionHash({ chainId, transactionHash })
@@ -1369,7 +1370,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageSentEventFromMessageId({ chainId, messageId })
     if (!event) {
-      throw new Error(`Event not found for messageId "${messageId}"`)
+      throw new CustomError(`Event not found for messageId "${messageId}"`)
     }
 
     return event.data

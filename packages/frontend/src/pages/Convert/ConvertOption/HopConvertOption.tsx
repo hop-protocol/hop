@@ -1,11 +1,10 @@
 import ConvertOption, { SendData } from './ConvertOption.js'
-import { ChainSlug } from '@hop-protocol/sdk'
 import Network from '#models/Network.js'
 import React, { ReactNode } from 'react'
 import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
 import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
 import { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token, TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 import { RelayableChains } from '#utils/constants.js'
 import { getBonderFeeWithId, toTokenDisplay } from '#utils/index.js'
 import { getConvertedFees } from '#hooks/useFeeConversions.js'
@@ -17,6 +16,7 @@ type GetDetailsInput = {
   estimatedReceived: BigNumber,
   token?: Token
   relayFeeEth?: BigNumber
+  destNetwork?: Network
 }
 
 class HopConvertOption extends ConvertOption {
@@ -163,7 +163,8 @@ class HopConvertOption extends ConvertOption {
       adjustedBonderFee,
       estimatedReceived,
       token: l1Token,
-      relayFeeEth
+      relayFeeEth,
+      destNetwork
     })
 
     return {
@@ -227,7 +228,7 @@ class HopConvertOption extends ConvertOption {
   }
 
   private getDetails(input: GetDetailsInput): ReactNode {
-    const { totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token, relayFeeEth } = input
+    const { totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token, relayFeeEth, destNetwork } = input
     if (!token) return <></>
 
     const {
@@ -239,6 +240,11 @@ class HopConvertOption extends ConvertOption {
       estimatedReceivedDisplay,
       relayFeeEthDisplay
     } = getConvertedFees({ destinationTxFee: adjustedDestinationTxFee, bonderFee: adjustedBonderFee, estimatedReceived, destToken: token, relayFee: relayFeeEth })
+
+    let estimatedReceivedDisplayString = estimatedReceivedDisplay
+    if (destNetwork?.slug === ChainSlug.Polygon && token.symbol === TokenSymbol.MATIC) {
+      estimatedReceivedDisplayString = estimatedReceivedDisplayString.replace('MATIC', 'POL')
+    }
 
     return (
       <>
@@ -255,7 +261,7 @@ class HopConvertOption extends ConvertOption {
         <DetailRow
           title="Estimated Received"
           tooltip="The estimated amount you will receive after fees"
-          value={estimatedReceivedDisplay}
+          value={estimatedReceivedDisplayString}
           large
           bold
         />

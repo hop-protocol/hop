@@ -1,111 +1,326 @@
-import { BigNumber } from 'ethers'
-import { BundleCommittedEventsDb } from '#db/eventsDb/BundleCommittedEventsDb.js'
+import pgp from 'pg-promise'
+import { BundleForwardedTable } from '#pgDb/events/messenger/BundleForwarded.js'
+import { BundleReceivedTable } from '#pgDb/events/messenger/BundleReceived.js'
+import { BundleSetTable } from '#pgDb/events/messenger/BundleSet.js'
+import { FeesSentToHubTable } from '#pgDb/events/messenger/FeesSentToHub.js'
+import { MessageBundledTable } from '#pgDb/events/messenger/MessageBundled.js'
+import { MessageExecutedTable } from '#pgDb/events/messenger/MessageExecuted.js'
+import { MessageSentTable } from '#pgDb/events/messenger/MessageSent.js'
+import { BundleCommittedTable } from '#pgDb/events/messenger/BundleCommitted.js'
+import { TransferBondedTable } from '#pgDb/events/railsGateway/TransferBonded.js'
+import { TransferSentTable } from '#pgDb/events/railsGateway/TransferSent.js'
+import { PathTable } from '#pgDb/paths/index.js'
+import { PriceTable } from '#pgDb/prices/index.js'
+import { TokenTable } from '#pgDb/tokens/index.js'
+import { postgresConfig } from '#config/index.js'
+import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32, generateMockPath, generateMockToken, generateRandomString, generateMockPrice } from '#utils/mockDataGenerator.js'
+import { deterministicStringify } from '#utils/deterministicStringify.js'
 
-describe.skip('BundleCommittedEventsDb', () => {
-  it('should put, get, and update data', async () => {
-    const dbPath = `/tmp/test/testdb/${Date.now()}`
-    const db = new BundleCommittedEventsDb(dbPath)
+describe.only('Db', () => {
+  const db = pgp({})({ ...postgresConfig })
 
-    const data = {
-      bundleId: '123',
-      bundleRoot: '0x123',
-      bundleFees: BigNumber.from(123),
-      toChainId: 1,
-      commitTime: 1000000000,
-      context: {
-        chainSlug: 'abc',
-        chainId: 1,
-        transactionHash: '0x456',
-        transactionIndex: 0,
-        logIndex: 0,
-        blockNumber: 1000,
-        blockTimestamp: 1000000000,
-        from: '0x123',
-        to: '0x123',
-        value: '0',
-        nonce: 1,
-        gasLimit: 10000,
-        gasUsed: 10000,
-        gasPrice: '1',
-        data: '0x'
-      }
-    }
+  describe('Messenger', () => {
+    describe('BundleCommittedTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new BundleCommittedTable(db)
+        const event = generateMockBundleCommitted()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
 
-    await db.putEvent(data.bundleId, data)
-    expect(await db.getEvent(data.bundleId)).toStrictEqual(data)
+        const data = { ...event, context }
+        await table.upsertItem(data)
 
-    const updatedData = Object.assign({}, data, {
-      toChainId: 2
+        const items = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          toChainId: generateRandomInt().toString()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
     })
+    describe('BundleForwardedTable', () => {
+      it('should put, get, and update data', async () => {
+        console.log('yoo')
+        const table = new BundleForwardedTable(db)
+        const event = generateMockBundleForwarded()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
 
-    await db.updateEvent(data.bundleId, { toChainId: 2 })
+        const data = { ...event, context }
+        await table.upsertItem(data)
 
-    expect(await db.getEvent(data.bundleId)).toStrictEqual(updatedData)
-  }, 60 * 1000)
+        const items = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
 
-  it('should return multiple events for same property index', async () => {
-    const dbPath = `/tmp/test/testdb/${Date.now()}`
-    const db = new BundleCommittedEventsDb(dbPath)
+        const updatedData = Object.assign({}, data, {
+          bundleRoot: generateRandomBytes32()
+        })
 
-    const events = [
-      {
-        bundleId: '123',
-        bundleRoot: '0x123',
-        bundleFees: BigNumber.from(123),
-        toChainId: 1,
-        commitTime: 1000000000,
-        context: {
-          chainSlug: 'abc',
-          chainId: 1,
-          transactionHash: '0x456',
-          transactionIndex: 0,
-          logIndex: 0,
-          blockNumber: 1000,
-          blockTimestamp: 1000000000,
-          from: '0x123',
-          to: '0x123',
-          value: '0',
-          nonce: 1,
-          gasLimit: 10000,
-          gasUsed: 10000,
-          gasPrice: '1',
-          data: '0x'
-        }
-      },
-      {
-        bundleId: '789',
-        bundleRoot: '0x123',
-        bundleFees: BigNumber.from(123),
-        toChainId: 1,
-        commitTime: 1000000000,
-        context: {
-          chainSlug: 'abc',
-          chainId: 1,
-          transactionHash: '0x456',
-          transactionIndex: 0,
-          logIndex: 0,
-          blockNumber: 1000,
-          blockTimestamp: 1000000000,
-          from: '0x123',
-          to: '0x123',
-          value: '0',
-          nonce: 1,
-          gasLimit: 10000,
-          gasUsed: 10000,
-          gasPrice: '1',
-          data: '0x'
-        }
-      }
-    ]
+        await table.upsertItem(updatedData)
 
-    for (const event of events) {
-      await db.putEvent(event.bundleId, event)
-      expect(await db.getEvent(event.bundleId)).toStrictEqual(event)
-    }
+        const newItems = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe('BundleReceivedTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new BundleReceivedTable(db)
+        const event = generateMockBundleReceived()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
 
-    const items = await db.getEventsByPropertyIndex('context.transactionHash', '0x456')
-    expect(items?.length).toEqual(2)
-    expect(items?.[0].bundleId).toEqual('123')
-    expect(items?.[1].bundleId).toEqual('789')
-  }, 60 * 1000)
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          bundleRoot: generateRandomBytes32()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe('BundleSetTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new BundleSetTable(db)
+        const event = generateMockBundleSet()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          bundleRoot: generateRandomBytes32()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { bundleId: data.bundleId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe.skip('FeesSentToHub', () => {
+      it('should put, get, and update data', async () => {
+        const table = new FeesSentToHubTable(db)
+        const event = generateMockFeesSentToHub()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems()
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+      }, 60 * 1000)
+    })
+    describe('MessageBundledTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new MessageBundledTable(db)
+        const event = generateMockMessageBundled()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          bundleId: generateRandomBytes32()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe('MessageExecutedTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new MessageExecutedTable(db)
+        const event = generateMockMessageExecuted()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          fromChainId: generateRandomInt().toString()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe('MessageSentTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new MessageSentTable(db)
+        const event = generateMockMessageSent()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          toChainId: generateRandomInt().toString()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { messageId: data.messageId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+  })
+
+  describe('RailsGateway', () => {
+    describe('TransferSentTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new TransferSentTable(db)
+
+        const event = generateMockTransferSent()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          to: generateRandomAddress()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+    describe('TransferBondedTable', () => {
+      it('should put, get, and update data', async () => {
+        const table = new TransferBondedTable(db)
+
+        const event = generateMockTransferBonded()
+        const context = generateMockEventContext()
+        delete (context as any).eventName // not used
+        delete (context as any).chainSlug // not used
+
+        const data = { ...event, context }
+        await table.upsertItem(data)
+
+        const items = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+        const updatedData = Object.assign({}, data, {
+          amount: generateRandomUint256()
+        })
+
+        await table.upsertItem(updatedData)
+
+        const newItems = await table.getItems({ filter: { transferId: data.transferId }})
+        expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      }, 60 * 1000)
+    })
+  })
+
+  describe('PathTable', () => {
+    it('should put, get, and update data', async () => {
+      const table = new PathTable(db)
+
+      const data = generateMockPath()
+
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { pathId: data.pathId }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        chainId: generateRandomInt().toString()
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { pathId: data.pathId }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
+
+  describe('PriceTable', () => {
+    it('should put, get, and update data', async () => {
+      const table = new PriceTable(db)
+
+      const data = generateMockPrice()
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { token: data.token }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        priceUsd: generateRandomInt(),
+        timestamp: data.timestamp
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { token: data.token }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
+
+  describe('TokenTable', () => {
+    it('should put, get, and update data', async () => {
+      const table = new TokenTable(db)
+
+      const data = generateMockToken()
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { address: data.address }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        name: generateRandomString(10)
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { address: data.address }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
 })

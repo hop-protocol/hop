@@ -35,7 +35,11 @@ export function RailsGatewayGetPathId (props: Props) {
   const [toToken, setToToken] = useLocalStorageState(`${cacheKey}:toToken`, {
     defaultValue: '',
   })
-  const [pathId, setPathId] = useState('')
+
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

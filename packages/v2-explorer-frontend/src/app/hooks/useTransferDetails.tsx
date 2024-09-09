@@ -23,7 +23,7 @@ export const useTransferDetails = (props: any) => {
     const formattedValue = formatUnits(value, decimals)
     const weiLabel = decimals === 9 ? ' wei' : ''
 
-    return `${value}${weiLabel} (${formattedValue} ${unit})`
+    return `${value}${weiLabel} (${formattedValue} ${unit ?? ''})`
   }
 
   const filter = { transferId }
@@ -53,18 +53,16 @@ export const useTransferDetails = (props: any) => {
   const isBonded = !!bondedEvent
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
-  const transferAmountDisplay = `${event?.amount} (${event?.amountDisplay}) (${event?.amountUsdDisplay})`
-  const checkpointTotalSent = event?.totalSent
-  const checkpointTotalSentDisplay = formatDisplay(checkpointTotalSent, tokenDecimals, tokenSymbol)
+  const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
+  const attestedClaimTotalSent = event?.totalSent
+  const attestedClaimTotalSentDisplay = formatDisplay(attestedClaimTotalSent, tokenDecimals, tokenSymbol)
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
-  const attestationFee = event?.attestationFee
-  const attestationFeeDisplay = `${event?.attestationFee} ${event?.attestationFeeDisplay} (${event?.attestationFeeUsdDisplay})`
-  const checkpoint = event?.checkpoint
-  const transferNonce = event?.nonce
+  const attestedClaimId = event?.attestedClaimId
   const pathId = event?.pathId
+  const nextHops = event?.nextHops
   const sourceTxValue = context?.value
-  const sourceTxValueDisplay = `${context?.value} (${context?.valueDisplay}) (${context?.valueUsdDisplay})`
+  const sourceTxValueDisplay = `${context?.value ?? ''} (${context?.valueDisplay ?? ''}) (${context?.valueUsdDisplay ?? ''})`
   const sourceTxTransactionHash = context?.transactionHash
   const sourceTxTransactionExplorerUrl = context?.transactionHashExplorerUrl
   const sourceTxGasLimit = context?.gasLimit
@@ -134,13 +132,11 @@ export const useTransferDetails = (props: any) => {
     tokenSymbol,
     transferAmount,
     transferAmountDisplay,
-    checkpointTotalSent,
-    checkpointTotalSentDisplay,
+    attestedClaimTotalSent,
+    attestedClaimTotalSentDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestationFeeDisplay,
-    checkpoint,
-    transferNonce,
+    attestedClaimId,
     pathId,
     sourceTxValue,
     sourceTxValueDisplay,
@@ -190,5 +186,6 @@ export const useTransferDetails = (props: any) => {
     destinationTxBlockNumber,
     destinationTxTimestampDisplay,
     loading,
+    nextHops
   }
 }

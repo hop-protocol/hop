@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
+import { getItemsWithContext, eventContextIdCreationSql, getInsertEventContextSqlData, selectEventContextSql } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageExecuted extends BaseType {
@@ -12,7 +12,7 @@ export class MessageExecutedTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_executed_events (
         id TEXT PRIMARY KEY,
         message_id CHAR(66) NOT NULL UNIQUE,
-        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0), -- uint256
+        from_chain_id NUMERIC(78, 0) NOT NULL CHECK (from_chain_id >= 0),
         ${eventContextIdCreationSql}
     )`)
   }
@@ -20,6 +20,12 @@ export class MessageExecutedTable extends EventDb {
   override async createIndexes () {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_executed_events_message_id ON message_executed_events (message_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_executed_events_from_chain_id ON message_executed_events (from_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_executed_events_event_context_id ON message_executed_events (event_context_id);'
     )
   }
 
@@ -36,12 +42,17 @@ export class MessageExecutedTable extends EventDb {
       args.push(filter.messageId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.fromChainId) {
+      args.push(filter.fromChainId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
 
     const items = await this.db.any(
       `SELECT
         message_id AS "messageId",
-        from_chain_id AS "fromChainId"
+        from_chain_id AS "fromChainId",
+        ${selectEventContextSql}
       FROM
         message_executed_events e
       JOIN
@@ -51,7 +62,9 @@ export class MessageExecutedTable extends EventDb {
         AND
         ec.block_timestamp <= $2
         ${filter?.messageId ? 'AND message_id = $5' : ''}
+        ${filter?.fromChainId ? 'AND from_chain_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -76,9 +89,9 @@ export class MessageExecutedTable extends EventDb {
       INSERT INTO
         message_executed_events
       (id, event_context_id, message_id, from_chain_id)
-      VALUES ${'(${id}, ${contextId}, ${messageId}, ${fromChainId)'}
+      VALUES ${'(${id}, ${contextId}, ${messageId}, ${fromChainId})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, from_chain_id = ${fromChainId}'}
     `
 
     await this.db.tx(async (t: any) => {

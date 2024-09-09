@@ -6,7 +6,7 @@
 
 - [amount](TransferSent.md#amount)
 - [attestedClaimId](TransferSent.md#attestedclaimid)
-- [attestedTotalClaim](TransferSent.md#attestedtotalclaim)
+- [attestedTotalClaims](TransferSent.md#attestedtotalclaims)
 - [nextHops](TransferSent.md#nexthops)
 - [to](TransferSent.md#to)
 - [totalSent](TransferSent.md#totalsent)
@@ -26,15 +26,15 @@ ___
 
 ___
 
-### <a id="attestedtotalclaim" name="attestedtotalclaim"></a> attestedTotalClaim
+### <a id="attestedtotalclaims" name="attestedtotalclaims"></a> attestedTotalClaims
 
-• **attestedTotalClaim**: `BigNumber`
+• **attestedTotalClaims**: `BigNumber`
 
 ___
 
 ### <a id="nexthops" name="nexthops"></a> nextHops
 
-• **nextHops**: `HopStruct`[]
+• **nextHops**: [`HopStruct`](HopStruct.md)[]
 
 ___
 

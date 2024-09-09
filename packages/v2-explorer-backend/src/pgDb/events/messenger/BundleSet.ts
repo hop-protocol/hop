@@ -26,6 +26,12 @@ export class BundleSetTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_set_events_bundle_root ON bundle_set_events (bundle_root);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_set_events_from_chain_id ON bundle_set_events (from_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_bundle_set_events_event_context_id ON bundle_set_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -42,7 +48,12 @@ export class BundleSetTable extends EventDb {
       args.push(filter.bundleRoot)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.fromChainId) {
+      args.push(filter.fromChainId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         bundle_id AS "bundleId",
@@ -59,7 +70,9 @@ export class BundleSetTable extends EventDb {
         ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
+        ${filter?.fromChainId ? 'AND from_chain_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -84,11 +97,11 @@ export class BundleSetTable extends EventDb {
       INSERT INTO
         bundle_set_events
       (
-        id, event_id, bundle_id, bundle_root, from_chain_id
+        id, event_context_id, bundle_id, bundle_root, from_chain_id
       )
       VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${fromChainId})'}
       ON CONFLICT (bundle_id)
-      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+      ${'DO UPDATE SET bundle_id = ${bundleId}, bundle_root = ${bundleRoot}, from_chain_id = ${fromChainId}'}
     `
 
     await this.db.tx(async (t: any) => {

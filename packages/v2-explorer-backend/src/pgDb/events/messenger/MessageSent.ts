@@ -27,6 +27,18 @@ export class MessageSentTable extends EventDb {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_sent_events_message_id ON message_sent_events (message_id);'
     )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_sent_events_from ON message_sent_events ("from");'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_sent_events_to ON message_sent_events ("to");'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_sent_events_to_chain_id ON message_sent_events (to_chain_id);'
+    )
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_message_sent_events_event_context_id ON message_sent_events (event_context_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -40,7 +52,12 @@ export class MessageSentTable extends EventDb {
       args.push(filter.messageId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
+    } else if (filter?.toChainId) {
+      args.push(filter.toChainId)
+    } else if (filter?.eventChainId) {
+      args.push(filter.eventChainId)
     }
+
     const items = await this.db.any(
       `SELECT
         message_id AS "messageId",
@@ -58,7 +75,9 @@ export class MessageSentTable extends EventDb {
         AND
         ec.block_timestamp <= $2
         ${filter?.messageId ? 'AND message_id = $5' : ''}
+        ${filter?.toChainId ? 'AND to_chain_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
@@ -94,7 +113,7 @@ export class MessageSentTable extends EventDb {
       )
       VALUES ${'(${id}, ${contextId}, ${messageId}, ${from}, ${toChainId}, ${to}, ${data})'}
       ON CONFLICT (message_id)
-      ${'DO UPDATE SET message_id = ${messageId}'}
+      ${'DO UPDATE SET message_id = ${messageId}, "from" = ${from}, to_chain_id = ${toChainId}, "to" = ${to}, "data" = ${data}'}
     `
 
     await this.db.tx(async (t: any) => {

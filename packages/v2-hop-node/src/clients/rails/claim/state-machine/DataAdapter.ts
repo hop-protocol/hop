@@ -17,6 +17,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Sent
       case RailsEventName.ClaimPosted:
         return RailsClaimState.Posted
+      case RailsEventName.ClaimRemoved:
+        return RailsClaimState.Removed
       case RailsEventName.ClaimConfirmed:
         return RailsClaimState.Confirmed
       default:
@@ -30,6 +32,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsEventName.TransferSent
       case RailsClaimState.Posted:
         return RailsEventName.ClaimPosted
+      case RailsClaimState.Removed:
+        return RailsEventName.ClaimRemoved
       case RailsClaimState.Confirmed:
         return RailsEventName.ClaimConfirmed
       default:

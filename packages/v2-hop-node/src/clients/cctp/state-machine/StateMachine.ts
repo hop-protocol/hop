@@ -31,6 +31,15 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
     }
   }
 
+  protected override getTransitionState(state: CCTPMessageState, value: ICCTPMessage): CCTPMessageState {
+    switch (state) {
+      case CCTPMessageState.Sent:
+        return CCTPMessageState.Relayed
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   /**
    * FSM Utils
    */

@@ -1,7 +1,7 @@
 import type { IDataAdapter } from './IDataAdapter.js'
 import { StateMachineDB } from '#db/StateMachineDB.js'
 import { poll } from '#utils/poll.js'
-import { getFirstState, getNextState, isLastState } from './utils.js'
+import { getFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
@@ -39,6 +39,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   // Checks if the implementation believes that the data source should have the state transition
   // NOTE: The final state does not need to be handled since there are no more transitions after it
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
+  protected abstract getTransitionState(state: State, value: StateData): State
 
   constructor (
     dbName: string,
@@ -115,15 +116,17 @@ export abstract class StateMachine<State extends string, StateData extends State
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (shouldAttempt) continue
 
+      // TODO: Optimize: Enforce the NextState<State> type in the implementation
+      const nextState = this.getTransitionState(state, value) as NextState<State>
+      if (state === nextState) continue
 
-      const nextState = getNextState(this.#states, state)
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
       if (!nextValue) continue
 
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(state, key)
+      void this.#postTransitionHook(state, value, key)
     }
   }
 
@@ -159,14 +162,12 @@ export abstract class StateMachine<State extends string, StateData extends State
    * Hooks
    */
 
-  async #postTransitionHook (state: State, key: string): Promise<void> {
-    const nextState = getNextState(this.#states, state)
+  async #postTransitionHook (state: State, value: StateData, key: string): Promise<void> {
+    const nextState = this.getTransitionState(state, value) as NextState<State>
 
     // There is no action needed for the final state
     const isLastStateHook = isLastState(this.#states, nextState)
-    if (isLastStateHook) {
-      return
-    }
+    if (isLastStateHook) return
 
     const relayItem = await this.#getRelayItem(key)
     return this.#relayer.relay(relayItem)

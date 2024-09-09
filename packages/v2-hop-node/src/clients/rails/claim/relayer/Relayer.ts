@@ -34,9 +34,9 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    */
 
   async #canRelayPostClaim (relayItem: PostClaimInput): Promise<boolean> {
-    const isClaimed = await RailsSDK.isClaimed(relayItem.transferId)
+    const isPosted = await RailsSDK.isPosted(relayItem.transferId)
     // TODO: If this is true, should we throw?
-    return !isClaimed
+    return !isPosted
   }
 
   /**

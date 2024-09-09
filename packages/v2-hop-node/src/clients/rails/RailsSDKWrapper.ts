@@ -62,7 +62,8 @@ export enum RailsEventNameSDK {
   TransferBonded = 'TransferBonded',
   // TODO: This is a mock until they are live in the contract
   ClaimPosted = 'ClaimPosted',
-  ClaimConfirmed = 'ClaimConfirmed'
+  ClaimRemoved = 'ClaimRemoved',
+  ClaimConfirmed = 'ClaimConfirmed',
   // TODO: Add them all
 }
 
@@ -176,6 +177,11 @@ export class RailsSDK {
     // TODO: Add context from SDK
     // const decodedEventWithContext = RailsSDK.getGateway().addContextToEvent(decodedEvent, chainId)
     return decodedEvent as EthersEventWithDecodedTypesAndContext<TransferTypes>
+  }
+
+  // TODO: get from SDK
+  static async isPosted(transferId: string): Promise<boolean> {
+    return true
   }
 
   // TODO: get from SDK

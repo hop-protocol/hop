@@ -20,6 +20,7 @@ import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useSend } from '#pages/Send/useSend.js'
 import { useSendStyles } from './useSendStyles.js'
+import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -91,6 +92,27 @@ const Send: FC = () => {
     tx,
     warning,
   } = useSend()
+
+  const isFromPol = fromNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
+  const isToPol = toNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
+  const showPolInfo = isFromPol || isToPol
+
+  let estimatedReceivedDisplayString = estimatedReceivedDisplay ?? ''
+  let totalFeeDisplayString = totalFeeDisplay ?? ''
+  let bonderFeeDisplayString = bonderFeeDisplay ?? ''
+  let destinationTxFeeDisplayString = destinationTxFeeDisplay ?? ''
+  let amountOutMinDisplayString = amountOutMinDisplay ?? ''
+
+  if (isToPol) {
+    estimatedReceivedDisplayString = estimatedReceivedDisplayString.replace('MATIC', 'POL')
+    amountOutMinDisplayString = amountOutMinDisplayString.replace('MATIC', 'POL')
+  }
+
+  if (isFromPol) {
+    totalFeeDisplayString = totalFeeDisplayString.replace('MATIC', 'POL')
+    bonderFeeDisplayString = bonderFeeDisplayString.replace('MATIC', 'POL')
+    destinationTxFeeDisplayString = destinationTxFeeDisplayString.replace('MATIC', 'POL')
+  }
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -174,16 +196,16 @@ const Send: FC = () => {
             title={'Fees'}
             tooltip={
               <FeeDetails
-                bonderFee={bonderFeeDisplay}
+                bonderFee={bonderFeeDisplayString}
                 bonderFeeUsd={bonderFeeUsdDisplay}
-                destinationTxFee={destinationTxFeeDisplay}
+                destinationTxFee={destinationTxFeeDisplayString}
                 destinationTxFeeUsd={destinationTxFeeUsdDisplay}
                 relayFee={relayFeeEthDisplay}
                 relayFeeUsd={relayFeeUsdDisplay} />
             }
             value={<>
               <InfoTooltip title={totalFeeUsdDisplay}>
-                <Box>{totalFeeDisplay}</Box>
+                <Box>{totalFeeDisplayString}</Box>
               </InfoTooltip>
             </>}
             large
@@ -196,14 +218,14 @@ const Send: FC = () => {
                 rate={rate}
                 slippageTolerance={slippageTolerance}
                 priceImpact={priceImpact}
-                amountOutMinDisplay={amountOutMinDisplay}
+                amountOutMinDisplay={amountOutMinDisplayString}
                 amountOutMinUsdDisplay={amountOutMinUsdDisplay}
                 transferTime={transferTimeDisplay}
               />
             }
             value={<>
               <InfoTooltip title={estimatedReceivedUsdDisplay}>
-                <Box>{estimatedReceivedDisplay}</Box>
+                <Box>{estimatedReceivedDisplayString}</Box>
               </InfoTooltip>
             </>}
             xlarge
@@ -240,6 +262,8 @@ const Send: FC = () => {
       {!error && <Box mt={2}><Alert severity="warning">{warning}</Alert></Box>}
 
       {!!manualWarning && <Box mt={2}><Alert severity="warning">{manualWarning}</Alert></Box>}
+
+      {!!showPolInfo && <Box mt={2}><Alert severity="info">Notice: MATIC on PolygonPoS has been rebranded to POL.</Alert></Box>}
 
       {!!manualError && (
         <Box mt={2}>

@@ -29,3 +29,5 @@ test/_*
 
 *.tsbuildinfo
 *.env
+docs-ui
+docs

@@ -21,6 +21,15 @@ const DeprecatedBadge = styled(Badge)(({ theme }) => ({
   },
 }))
 
+const RebrandedBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    color: '#fff',
+    fontSize: '0.75rem',
+    top: '50%',
+    right: '-30px'
+  },
+}))
+
 export const useStyles = makeStyles(theme => ({
   box: {
   },
@@ -132,7 +141,11 @@ export function PoolRow (props: Props) {
               </Box>
               <Box>
                 <Typography variant="body2" color="secondary" title="Tokens in pool">
-                  {isPoolDeprecated ? <DeprecatedBadge badgeContent="Deprecated" color="warning" title="This pool is deprecated and only withdrawals are allowed.">{poolSubtitle}</DeprecatedBadge> : poolSubtitle}
+                  {isPoolDeprecated ? <DeprecatedBadge badgeContent="Deprecated" color="warning" title="This pool is deprecated and only withdrawals are allowed.">{poolSubtitle}</DeprecatedBadge> : (
+
+                    poolSubtitle?.includes('Pol ') ? <RebrandedBadge badgeContent="prev. MATIC" color="info" title="The token symbol has been rebranded">{poolSubtitle}</RebrandedBadge> : poolSubtitle
+
+                  )}
                 </Typography>
               </Box>
             </Box>

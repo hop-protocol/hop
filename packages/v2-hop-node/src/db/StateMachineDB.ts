@@ -21,6 +21,8 @@ import { normalizeDBValue } from './utils.js'
  * - state!key
  */
 
+// TODO: V2: This DB needs to be able to handle non-linear state transitions. This means that
+// a state can transition to a state it has already been in. This is not currently supported.
 export class StateMachineDB<State extends string, NextState extends string, Key extends string, StateData> extends DB<Key, StateData> {
   constructor (dbName: string) {
     super(dbName + 'StateMachineDB')

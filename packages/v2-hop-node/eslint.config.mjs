@@ -22,10 +22,12 @@ export default tseslint.config(
       '@typescript-eslint/restrict-template-expressions': 'error',
       '@typescript-eslint/no-base-to-string': 'error',
       'unusedImports/no-unused-imports': 'error',
-      '@typescript-eslint/no-redundant-type-constituents': 'error',
+      // TODO: Reintroduce this at some point
+      // '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'error',
+      '@typescript-eslint/no-duplicate-type-constituents': ['error', { ignoreIntersections: true }],
       'n/no-missing-import': ['error'],
       'n/no-extraneous-import': ['error'],
 

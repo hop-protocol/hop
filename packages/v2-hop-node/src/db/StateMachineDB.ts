@@ -1,26 +1,27 @@
 import { DB } from './DB.js'
 import { normalizeDBValue } from './utils.js'
-import { Mutex } from 'async-mutex'
 
 /**
- * An item always exists in the top-level DB. This entry is the aggregate of all known states
+ * Each item is indexable by its primary key. All of an items state information is stored in this DB.
+ * Each item has a secondary index of a state name for retrieval of state-specific information
  * for that item.
  *
- * An item also exists in a per-state subDB that allows for efficient querying of all items in a state.
- * An item only exists in one state subDB at a time. Within that subDB, the item only
- * contains information about that state but no other states.
+ * Each state is indexable by the state name. This allows for efficient querying of all items in a state.
+ * Each state has a secondary index of the primary key of the item. This allows for efficient querying of
+ * the item in that state without needing an additional call to the top-level DB.
  *
- * After transitioning to the final state, the item is deleted from the state subDB and will only
- * exist in the top-level DB.
+ * There many not be any duplicate secondary keys for a state name primary key at any given time. This
+ * is because the item can only exist in a single state at a time.
+ *
+ * After transitioning to the final state, the item will not be queryable as a secondary index to a
+ * state name primary index. It will continue to exist as a primary key.
  *
  * Key format:
- * - Top-level: key
- * - Per-state sub-level: state!key
+ * - key!state
+ * - state!key
  */
 
-export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
-  #updateMutex: Mutex = new Mutex()
-
+export class StateMachineDB<State extends string, NextState extends string, Key extends string, StateData> extends DB<Key, StateData> {
   constructor (dbName: string) {
     super(dbName + 'StateMachineDB')
   }
@@ -29,66 +30,52 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
     if (await this.has(key)) {
       return this.#handlePossibleReorg(key, value)
     }
-    return this.#updateState(null, initialState, key, value)
+    // A newly created item always goes from null to nextState, so we
+    // can confidently set the nextState to the initial state.
+    const nextState = initialState as unknown as NextState
+    return this.#updateState(null, nextState, key, value)
   }
 
   async updateFinalState(state: State, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, null, key, value)
   }
 
-  async updateState(state: State, nextState: State, key: Key, value: StateData): Promise<void> {
+  async updateState(state: State, nextState: NextState, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, nextState, key, value)
   }
 
   async #updateState(
     state: State | null,
-    nextState: State | null,
+    nextState: NextState | null,
     key: Key,
     value: StateData
   ): Promise<void> {
-  /**
-   * TODO: Optimize: Optimize this on a per-key basis instead of locking for every write.
-   *
-   * Note: This might be built-in to LevelDB. Investigate.
-   *
-   * In the worst case, consider a package like https://github.com/rogierschouten/async-lock
-   *
-   * There is no way to natively update with LevelDB so we use a mutex to ensure that writes that occur at the same time
-   * do not overwrite each other by reading stale data.
-   */
-    await this.#updateMutex.runExclusive(async () => {
-      // Falsy check is intentional to ensure that the state is not undefined
-      if (state == null && nextState == null) {
-        throw new Error('At least one state must be defined')
-      }
+    // Falsy check is intentional to ensure that the state is not undefined
+    if (state == null && nextState == null) {
+      throw new Error('At least one state must be defined')
+    }
 
-      const batch = this.batch()
+    const batch = this.batch()
 
-      // Delete the current state entry if this is not the initial state
-      if (state !== null) {
-        batch.del(key, { sublevel: this.getSublevel(state) })
-      }
+    // Delete the current state entry if this is not the initial state
+    if (state !== null) {
+      batch.del(key, { sublevel: this.getSublevel(state) })
+    }
 
-      // Write the next state entry if this is not the final state
-      if (nextState !== null) {
-        batch.put(key, value, { sublevel: this.getSublevel(nextState) })
-      }
+    // Write the next state entry if this is not the final state
+    if (nextState !== null) {
+      batch.put(key, value, { sublevel: this.getSublevel(nextState) })
+    }
 
-      // Always write the aggregate
-      let aggregateValue = value
-      if (state !== null) {
-        const existingValue: StateData = await this.get(key)
-        aggregateValue = { ...existingValue, ...value }
-      }
-      batch.put(key, aggregateValue)
+    // Write the key as the primary key using the state as the secondary key
+    batch.put(nextState ?? state, value, { sublevel: this.getSublevel(key) })
 
-      this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
-      return batch.write()
-    })
+    this.logger.debug(`Updating state for key: ${key} from ${state} to ${nextState}, value: ${JSON.stringify(value)}`)
+    return batch.write()
   }
 
   /**
-   * Iterators
+   * Getters
    */
 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
@@ -96,6 +83,42 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
       const filteredValue = normalizeDBValue(value)
       yield [key as Key, filteredValue as StateData]
     }
+  }
+
+  async getItemByKey(key: Key, states: State[]): Promise<[State, StateData][]> {
+    if (states.length === 0) {
+      throw new Error('No states provided')
+    }
+
+    const keys = states.map(state => this.getSublevel(key).key(state))
+    if (keys.length === 0) {
+      throw new Error('No valid keys found')
+    }
+
+    const values: StateData[] = await this.getMany(keys)
+    if (keys.length !== values.length) {
+      throw new Error('Invalid number of keys or values found')
+    }
+
+    return keys.map((key, i) => {
+      const state = this.#extractStateFromKey(key)
+      const value = values[i]
+
+      if (!state || !value) {
+        throw new Error('Invalid state or value found')
+      }
+
+      return [state, value]
+    })
+  }
+
+  #extractStateFromKey(key: string): State {
+    const parts = key.split('!')
+    const state = parts[1]
+    if (!state) {
+      throw new Error('Invalid key format')
+    }
+    return state as State
   }
 
   /**

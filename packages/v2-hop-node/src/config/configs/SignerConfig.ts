@@ -10,7 +10,7 @@ type ChainInfo = {
   syncType: SyncType
 }
 
-type Chains = {
+export type Chains = {
   [key in ChainSlug]?: ChainInfo
 }
 
@@ -25,6 +25,8 @@ export class SignerConfig extends ConfigManager {
   static network: NetworkSlug
   static blocknativeApiKey: string
   static bonderPrivateKey: string
+  // TODO: This should be paths or something
+  // TODO: Needs to dynamically convert chains/tokens to path, possibly onchain calls to `getChain()`
   static chains: Chains
 
   protected static override async init(config: ISignerConfig): Promise<void> {

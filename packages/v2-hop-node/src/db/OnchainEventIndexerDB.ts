@@ -107,7 +107,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     try {
       const item = await this.get(key) as IndexDBValue
-      return normalizeDBValue(item) as DecodedLogWithContext
+      return normalizeDBValue(item)
     } catch (err) {
       throw new Error(`No item found for key ${key}. error: ${err}`)
     }

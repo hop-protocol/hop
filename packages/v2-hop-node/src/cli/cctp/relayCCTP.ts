@@ -1,8 +1,6 @@
-import { getUnrelayedMessages } from './utils.js'
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
-import { MessageSDK } from '#cctp/sdk/MessageSDK.js'
-import type { ISentMessage } from '#cctp/types.js'
+import { CCTP } from '#clients/index.js'
 import { actionHandler, root } from '../shared/index.js'
 
 root
@@ -11,7 +9,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const unrelayedMessages = await getUnrelayedMessages()
+  const unrelayedMessages = await CCTP.getUnrelayedMessages()
   if (unrelayedMessages.length === 0) {
     console.log('No unrelayed messages found')
     return
@@ -22,15 +20,15 @@ async function main (source: any) {
   }
 }
 
-async function relayMessage(item: ISentMessage) {
-  const { message, destinationChainId, sentTxHash } = item
+async function relayMessage(item: CCTP.ISentCCTPMessage) {
+  const { message, destinationChainId, txContext } = item
   const chainSlug = getChain(destinationChainId).slug
   const wallet = wallets.get(chainSlug)
 
   try {
-    console.log(`Relaying message with txHash ${sentTxHash}... on destination chain: ${chainSlug}`)
-    const attestation = await MessageSDK.fetchAttestation(message)
-    await MessageSDK.relayMessage(wallet, message, attestation)
+    console.log(`Relaying message with txHash ${txContext.txHash}... on destination chain: ${chainSlug}`)
+    const attestation = await CCTP.CCTPSDK.fetchAttestation(message)
+    await CCTP.CCTPSDK.relayMessage(wallet, message, attestation)
   } catch (e) {
     console.error(`Error relaying message ${message}`)
   }

@@ -1,4 +1,4 @@
-import { getUnrelayedMessages } from './utils.js'
+import { CCTP } from '#clients/index.js'
 import { actionHandler, root } from '../shared/index.js'
 
 root
@@ -7,7 +7,7 @@ root
   .action(actionHandler(main))
 
 async function main () {
-  const unrelayedMessages = await getUnrelayedMessages()
+  const unrelayedMessages = await CCTP.getUnrelayedMessages()
   for (const message of unrelayedMessages) {
     console.log(message)
   }

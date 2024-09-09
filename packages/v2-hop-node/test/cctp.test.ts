@@ -1,10 +1,10 @@
-import { MessageState } from '#cctp/types.js'
+import { CCTP } from '#implementations/index.js'
 
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('CCTP', () => {
 
   it('Test', async () => {
-    const state = MessageState.Sent
-    expect(state).toBe(MessageState.Sent)
+    const state = CCTP.MessageState.Sent
+    expect(state).toBe(CCTP.MessageState.Sent)
   })
 })

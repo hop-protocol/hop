@@ -1,13 +1,13 @@
 import { StateMachineDB } from '#db/StateMachineDB.js'
 import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
-import { TxRelayDB } from '#db/TxRelayDB.js'
+import { RelayerDB } from '#db/RelayerDB.js'
 
 import { actionHandler, parseString, root } from '../shared/index.js'
 
 enum DBTypes {
   StateMachine = 'StateMachine',
   OnchainEventIndexer = 'OnchainEventIndexer',
-  TxRelay = 'TxRelay'
+  Relayer = 'Relayer'
 }
 
 root
@@ -36,7 +36,7 @@ async function main (source: any) {
     case DBTypes.OnchainEventIndexer:
       await dumpOnchainEventIndexerDB(dbName)
       break
-    case DBTypes.TxRelay:
+    case DBTypes.Relayer:
       await dumpTxRelayDB(dbName)
       break
   }
@@ -57,7 +57,7 @@ async function dumpOnchainEventIndexerDB (dbName: string) {
 }
 
 async function dumpTxRelayDB (dbName: string) {
-  const db = new TxRelayDB(dbName)
+  const db = new RelayerDB(dbName)
   for await (const [key,] of db.iterator()) {
     // The key is the item itself and the value is simply a boolean indicating existence
     console.log(key)

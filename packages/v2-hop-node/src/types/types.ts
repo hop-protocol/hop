@@ -1,6 +1,5 @@
 import type {
   CallOverrides,
-  Event as EthersEvent,
   EventFilter,
   providers
 } from 'ethers'
@@ -15,14 +14,20 @@ type LogContext = {
 }
 
 type LogWithContext = providers.Log & { context: LogContext }
+// TODO: Remove in favor of SDK
 export type DecodedLogWithContext<T extends object = object> = LogWithContext & { decoded: T }
 
 // Override ethers types with required fields
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
-export type Event = EthersEvent & {
-  blockNumber?: number
+export interface IndexedEventDataWithContext<
+  EventName,
+  IndexValue extends object = object
+> {
+  chainId: string
+  eventName: EventName
+  eventIndexValues: IndexValue
 }
 
 /**

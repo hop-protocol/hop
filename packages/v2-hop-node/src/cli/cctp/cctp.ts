@@ -1,5 +1,5 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
-import { Message } from '#cctp/Message.js'
+import { CCTP } from '#clients/index.js'
 import { SignerConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 
@@ -19,18 +19,18 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
     ChainSlug.Base
   ]
 }
-export async function main () {
+export async function main (): Promise<never> {
   const network: NetworkSlug = SignerConfig.network
   const chains: ChainSlug[] = CHAINS[network]!
   const chainIds: string[] = chains.map(chainSlug => getChain(network, chainSlug).chainId)
 
   try {
-    const messageManager = new Message(chainIds)
+    const messageManager = new CCTP.CCTP(chainIds)
     await messageManager.start()
-    // TODO: Add logger
+    // TODO: V2: Add logger
     console.log('CCTP Manager started')
 
-    // TODO: Better way to run
+    // TODO: V2: Better way to run
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       await wait (60_000)

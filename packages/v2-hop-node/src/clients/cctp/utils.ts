@@ -1,4 +1,4 @@
-import { StateMachineDB } from '#db/StateMachineDB.js'
+import { StateMachineDB } from '#state-machine/StateMachineDB.js'
 import { CCTPSDK } from './sdk/CCTPSDK.js'
 import {
   CCTPMessageState,

@@ -1,7 +1,6 @@
-import { DB } from './DB.js'
+import { DB } from '#db/DB.js'
 import type { DecodedLogWithContext } from '#types/index.js'
-import { DATA_PUT_EVENT } from './constants.js'
-import { normalizeDBValue } from './utils.js'
+import { DATA_INDEXED_EVENT } from './constants.js'
 
 /**
  * The primary key is the filterId and the secondary keys are the values that
@@ -79,7 +78,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
           // per index, so we ignore a key if it is part of a subDB.
           if (op.key.includes('!')) continue
 
-          this.emit(DATA_PUT_EVENT, op.value)
+          this.emit(DATA_INDEXED_EVENT, op.value)
         }
       })
     }
@@ -107,7 +106,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     try {
       const item = await this.get(key) as IndexDBValue
-      return normalizeDBValue(item)
+      return this.normalizeDBValue(item)
     } catch (err) {
       throw new Error(`No item found for key ${key}. error: ${err}`)
     }

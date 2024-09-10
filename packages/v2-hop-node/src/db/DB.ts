@@ -52,4 +52,12 @@ export abstract class DB<K extends string, V> extends Level<K, V> {
   protected getSublevel(sublevelName: string): any {
     return this.sublevel(sublevelName, DB_OPTS)
   }
+
+  /**
+   * Utils
+   */
+
+  protected normalizeDBValue<T extends Record<string, any>>(value: T): T {
+    return value as T
+  }
 }

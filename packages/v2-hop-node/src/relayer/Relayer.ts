@@ -1,6 +1,6 @@
 import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
-import { RelayerDB } from '#db/RelayerDB.js'
+import { RelayerDB } from './RelayerDB.js'
 import {
   NonceTooLowError,
   InsufficientFundsError,

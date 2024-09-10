@@ -1,6 +1,5 @@
-import { DB } from './DB.js'
+import { DB } from '#db/DB.js'
 import { utils } from 'ethers'
-import type { IRelayerDB } from './interfaces/IRelayerDB.js'
 
 /**
  * The key can be any string as long as it is unique to the DB.
@@ -13,7 +12,7 @@ type DBValue<RelayItem> = {
   retries: number
 }
 
-export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implements IRelayerDB<RelayItem> {
+export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
   readonly #maxRetries: number = 10
 
   constructor (dbName: string) {
@@ -68,7 +67,8 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implemen
    * Internal
    */
 
-  async #updateItem (relayItem: RelayItem, expiresAtMs: number): Promise<void> {
+
+  async #updateItem (relayItem: RelayItem, expiresAtMs: number, retries: number): Promise<void> {
     const key = this.#getKey(relayItem)
     this.logger.debug(`Adding item with key: ${key}`)
     return this.put(key, {

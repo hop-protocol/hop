@@ -1,6 +1,6 @@
-import { StateMachineDB } from '#db/StateMachineDB.js'
-import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
-import { RelayerDB } from '#db/RelayerDB.js'
+import { StateMachineDB } from '#state-machine/StateMachineDB.js'
+import { OnchainEventIndexerDB } from '#indexer/OnchainEventIndexerDB.js'
+import { RelayerDB } from '#relayer/RelayerDB.js'
 
 import { actionHandler, parseString, root } from '../shared/index.js'
 

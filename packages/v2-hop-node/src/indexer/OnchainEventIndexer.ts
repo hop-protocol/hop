@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
+import { OnchainEventIndexerDB } from '#indexer/OnchainEventIndexerDB.js'
 import type {
   DecodedLogWithContext,
   IndexedEventDataWithContext,
@@ -16,7 +16,7 @@ import {
   getUniqueFilterId,
 } from './utils.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
-import { DATA_PUT_EVENT } from '#db/constants.js'
+import { DATA_INDEXED_EVENT } from './constants.js'
 import { Logger } from '#logger/index.js'
 
 /**
@@ -135,7 +135,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
    */
 
   #initListeners(): void {
-    this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data))
+    this.#db.on(DATA_INDEXED_EVENT, (data: any) => this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data))
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 

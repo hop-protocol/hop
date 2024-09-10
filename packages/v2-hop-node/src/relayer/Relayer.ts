@@ -1,11 +1,7 @@
 import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
 import { RelayerDB } from './RelayerDB.js'
-import {
-  NonceTooLowError,
-  InsufficientFundsError,
-  EstimateGasError
-} from '#types/index.js'
+import { isEVMError } from '#gasboost/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
 
@@ -66,7 +62,12 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
       if (!canRelay) return
 
       await this.#db.addRelayAttempt(relayItem)
-      await this.#attemptRelay(relayItem)
+
+      // Do not await this. We do not want to block the execution of
+      // transactions. The relayItem will not continue to poll the
+      // same relayItem until this method is resolved, so we don't
+      // care if it is awaited.
+      void this.#attemptRelay(relayItem)
     }
   }
 
@@ -74,8 +75,6 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
    * Relay
    */
 
-  // The concept of relaying in this class means to add it to the cache
-  // and let the poller send it.
   async relay (relayItem: RelayItem): Promise<void> {
     await this.#db.addItem(relayItem)
   }
@@ -84,12 +83,11 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
    * Internal
    */
 
-  async #attemptRelay (relayItem: RelayItem): Promise<providers.TransactionResponse | void> {
+  async #attemptRelay (relayItem: RelayItem): Promise<void> {
+    this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
     try {
-      this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
-      const tx = await this.sendRelay(relayItem)
+      await this.sendRelay(relayItem)
       await this.#db.removeItem(relayItem)
-      return tx
     } catch (err: unknown) {
       return this.#handleRelayError(relayItem, err)
     }
@@ -98,7 +96,6 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   async #handleRelayError (relayItem: RelayItem, err: unknown): Promise<void> {
     const stringifiedItem = JSON.stringify(relayItem)
 
-    // Contract errors
     // An error should not get here since it should be handled in shouldAttemptRelay.
     // If an error does get here, the concrete implementation should be updated to
     // better handle is prior to being relayed. If a relayed transaction is frontrun
@@ -112,7 +109,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // many of these errors are transient and can be resolved by attempting the transaction again.
     // The errors that are less likely to be resolved by attempting again should checked against
     // explicitly prior to sending the transaction.
-    if (this.#isEVMError(err)) {
+    if (isEVMError(err)) {
       this.logger.debug(`EVM error for item: ${stringifiedItem}. The item will be attempted again.`)
       return this.#db.handleRelayError(relayItem)
     }
@@ -125,43 +122,5 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // signer with custom errors that are not known to us.
     this.logger.warn(`Unknown error for item: ${stringifiedItem}. The item will be not be attempted again.`)
     return this.#db.removeItem(relayItem)
-  }
-
-  // TODO: This should be owned by gasBoost
-  #isEVMError (err: unknown): boolean {
-    return true
-    // // const errMessage: string | undefined = (err as Error).message
-
-    // if (err instanceof NonceTooLowError) {
-    //   // This may occur if there are multiple servers running at once.
-    //   this.logger.debug('Nonce already used')
-    //   // return this.#db.resetRelayTime(relayItem)
-    // } else if (err instanceof EstimateGasError) {
-    //   // TODO: Higher level
-    //   // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
-    // } else if (err instanceof InsufficientFundsError) {
-    //   // TODO: Higher level
-    //   // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
-    //   return
-    // } else {
-    //   // For each
-    //   // * Handle in DB
-    //   // * Handle in top-level
-    //   //
-    //   // TODO: GasBoost errors
-    //   // * nonceTooLow
-    //   // * estimateGas
-    //   // * insufficientFunds
-    //   // * OOG
-    //   // * Max rebroadcast
-    //   // * Transaction replaced
-    //   // * Transaction dropped
-    //   // * Transaction hangs
-    //   // * Reorg (though I think it might be handled by replace/drop/hang
-    //   // * chain issues (look at historical experience)
-    //   // * timeout
-    //   // * RPC server error
-    //   // * Anything else?
-    // }
   }
 }

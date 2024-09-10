@@ -32,7 +32,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
 
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
-  protected abstract isImplementationError(value: RelayItem, errMessage: Error): boolean
+  protected abstract isImplementationError(err: unknown): boolean
 
   constructor (dbName: string) {
     this.#db = new RelayerDB(dbName)
@@ -65,7 +65,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
       const canRelay = await this.shouldAttemptRelay(relayItem)
       if (!canRelay) return
 
-      await this.#db.updateRelayTime(relayItem)
+      await this.#db.setRelayTime(relayItem)
       await this.#attemptRelay(relayItem)
     }
   }
@@ -87,34 +87,58 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   async #attemptRelay (relayItem: RelayItem): Promise<providers.TransactionResponse | void> {
     try {
       this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
-      return await this.sendRelay(relayItem)
-    } catch (err) {
-      return this.#handleRelayError(relayItem, err.message)
+      const tx = await this.sendRelay(relayItem)
+      await this.#db.removeItem(relayItem)
+      return tx
+    } catch (err: unknown) {
+      return this.#handleRelayError(relayItem, err)
     }
   }
 
-  async #handleRelayError (relayItem: RelayItem, err: Error): Promise<void> {
-    const errType = this.#getErrFromErr(err)
+  async #handleRelayError (relayItem: RelayItem, err: unknown): Promise<void> {
     const stringifiedItem = JSON.stringify(relayItem)
 
     // Contract errors
     // An error should not get here since it should be handled in shouldAttemptRelay.
-    // If an error does get here, the concrete implementation should be updated.
-    if (this.isImplementationError(relayItem, err)) {
+    // If an error does get here, the concrete implementation should be updated to
+    // better handle is prior to being relayed. If a relayed transaction is frontrun
+    // to cause this error, the item is still removed since we know it has already made it onchain.
+    if (this.isImplementationError(err)) {
       this.logger.debug(`Onchain relay error for item: ${stringifiedItem}. The item will not be attempted again.`)
       return this.#db.removeItem(relayItem)
     }
 
-    // Tx errors
-    if (errType === NonceTooLowError) {
+    // If the error is an EVM error, the item will be attempted again. This is because
+    // many of these errors are transient and can be resolved by attempting the transaction again.
+    // The errors that are less likely to be resolved by attempting again should checked against
+    // explicitly prior to sending the transaction.
+    if (this.#isEVMError(err)) {
+      this.logger.debug(`EVM error for item: ${stringifiedItem}. The item will be attempted again.`)
+      return this.#db.incrementRetryCount(relayItem)
+    }
+
+    // If the client does not know what the error is, it should not be attempted again since
+    // it risks useless resource consumption from the poller. All errors should be deterministic
+    // and handled before getting to this point. Alternatively, exponential backoff could be
+    // used if unknown errors are more common than we would expect. This could occur in an
+    // upgradable contract owned by a third party that is not under our control or a custom
+    // signer with custom errors that are not known to us.
+    this.logger.warn(`Unknown error for item: ${stringifiedItem}. The item will be not be attempted again.`)
+    return this.#db.removeItem(relayItem)
+  }
+
+  // TODO: This should be owned by gasBoost
+  #isEVMError (err: unknown): boolean {
+    // const errMessage: string | undefined = (err as Error).message
+
+    if (err instanceof NonceTooLowError) {
       // This may occur if there are multiple servers running at once.
-      // This item is removed from the cache so it can be reattempted.
-      this.logger.debug(`Nonce already used for item: ${stringifiedItem}. The item will be attempted again.`)
-      return this.#db.resetRelayTime(relayItem)
-    } else if (errType === EstimateGasError) {
+      this.logger.debug('Nonce already used')
+      // return this.#db.resetRelayTime(relayItem)
+    } else if (err instanceof EstimateGasError) {
       // TODO: Higher level
       // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
-    } else if (errType === InsufficientFundsError) {
+    } else if (err instanceof InsufficientFundsError) {
       // TODO: Higher level
       // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
       return
@@ -124,6 +148,9 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
       // * Handle in top-level
       //
       // TODO: GasBoost errors
+      // * nonceTooLow
+      // * estimateGas
+      // * insufficientFunds
       // * OOG
       // * Max rebroadcast
       // * Transaction replaced
@@ -134,17 +161,6 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
       // * timeout
       // * RPC server error
       // * Anything else?
-    }
-  }
-
-  // TODO: This should be owned by gasBoost
-  #getErrFromErr(err: Error): any {
-    if (err instanceof NonceTooLowError) {
-      return NonceTooLowError
-    } else if (err instanceof EstimateGasError) {
-      return EstimateGasError
-    } else if (/insufficient/g.test(err.message)) {
-      return InsufficientFundsError
     }
   }
 }

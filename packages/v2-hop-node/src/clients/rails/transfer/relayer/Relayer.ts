@@ -29,10 +29,11 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     return this.#sendBond(relayItem)
   }
 
-  protected override isImplementationError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
+  protected override isImplementationError (err: unknown): boolean {
+    const errMessage = (err as Error).message
     return (
-      this.#isContractError(relayItem, err) ||
-      this.#isBCRError(relayItem, err)
+      this.#isContractError(errMessage) ||
+      this.#isBCRError(errMessage)
     )
   }
 
@@ -87,13 +88,18 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Errors
    */
 
-  #isContractError (relayItem: BondInput, err: Error): boolean {
-    // TODO
-    return true
+  #isContractError (errMessage: string): boolean {
+    if (RailsSDK.isContractError(errMessage)) {
+      return true
+    }
+    return false
   }
 
-  #isBCRError (relayItem: BondInput, err: Error): boolean {
-    // TODO
+  #isBCRError (errMessage: string): boolean {
+    // if (err instanceof BonderChoiceRule.BCRError) {
+    //   return true
+    // }
+    // return false
     return true
   }
 

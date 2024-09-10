@@ -74,6 +74,8 @@ export enum RailsFunctionName {
 export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
 export type BondInput = Omit<BondInputSDK, 'chainId'>
 
+class ContractFunctionRevertedError extends Error {}
+
 export class RailsSDKWrapper {
   static getEventFilter<T extends string, U extends object>(eventName: T, chainId: string, indexes?: U): RequiredEventFilter {
     switch (eventName) {
@@ -145,6 +147,7 @@ export class RailsSDKWrapper {
 }
 
 export class RailsSDK {
+  static ContractFunctionRevertedError = ContractFunctionRevertedError
 
   // TODO: Signer or provider or however ethers does it
   static connect (signer: Signer | providers.Provider): RailsGateway {

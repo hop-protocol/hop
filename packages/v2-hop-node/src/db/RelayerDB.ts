@@ -1,33 +1,23 @@
 import { DB } from './DB.js'
-import { TimeIntervals } from '#constants/constants.js'
 import { utils } from 'ethers'
 import type { IRelayerDB } from './interfaces/IRelayerDB.js'
 
 /**
  * The key can be any string as long as it is unique to the DB.
- *
- * The class supports TTL. TTL cannot be 0 for the sake of simplicity.
  */
 
 type DBKey = string
 type DBValue<RelayItem> = {
   item: RelayItem
-  expiresAtMs: number
+  relayedAt: number
+  retries: number
 }
 
 export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implements IRelayerDB<RelayItem> {
-  // A tx that has not been relayed for an hour is considered expired in the context of this client.
-  // This value can be changed to any value in milliseconds.
-  #ttl: number = TimeIntervals.ONE_HOUR_MS
+  readonly #maxRetries: number = 10
 
-  constructor (dbName: string, ttl?: number) {
+  constructor (dbName: string) {
     super(dbName + 'RelayerDB')
-
-    if (typeof ttl !== 'undefined' && ttl <= 0) {
-      throw new Error('TTL must be greater than 0')
-    }
-
-    this.#ttl = ttl ?? this.#ttl
   }
 
   /**
@@ -38,7 +28,7 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implemen
     if (await this.#doesItemExist(relayItem)) {
       throw new Error('Item already exists')
     }
-    return this.#updateItem(relayItem, 0)
+    return this.#updateItem(relayItem, 0, 0)
   }
 
   async removeItem (relayItem: RelayItem): Promise<void> {
@@ -49,21 +39,16 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implemen
     return this.del(key)
   }
 
-  async updateRelayTime (relayItem: RelayItem): Promise<void> {
-    if (!(await this.#doesItemExist(relayItem))) {
-      throw new Error('Item does not exist')
-    }
-
-    const expiresAtMs = Date.now() + this.#ttl
-    return this.#updateItem(relayItem, expiresAtMs)
+  async setRelayTime (relayItem: RelayItem): Promise<void> {
+    const key = this.#getKey(relayItem)
+    const item = await this.get(key)
+    return this.#updateItem(relayItem, Date.now(), item.retries)
   }
 
-  async resetRelayTime (relayItem: RelayItem): Promise<void> {
-    if (!(await this.#doesItemExist(relayItem))) {
-      throw new Error('Item does not exist')
-    }
-
-    return this.#updateItem(relayItem, 0)
+  async incrementRetryCount (relayItem: RelayItem): Promise<void> {
+    const key = this.#getKey(relayItem)
+    const item = await this.get(key)
+    return this.#updateItem(relayItem, item.relayedAt, item.retries + 1)
   }
 
   /**
@@ -71,7 +56,7 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implemen
    */
 
   async *getRelayableItems (): AsyncGenerator<RelayItem> {
-    for await (const [key, dbValue] of this.iterator()) {
+    for await (const [, dbValue] of this.iterator()) {
       const now = Date.now()
       if (now > dbValue.expiresAtMs) continue
 
@@ -88,7 +73,8 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> implemen
     this.logger.debug(`Adding item with key: ${key}`)
     return this.put(key, {
       item: relayItem,
-      expiresAtMs
+      expiresAtMs,
+      retries
     })
   }
 

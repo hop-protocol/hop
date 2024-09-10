@@ -26,8 +26,9 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     return this.#sendReceiveMessage(relayItem)
   }
 
-  protected override isImplementationError (relayItem: ICCTPRelayItem, err: Error): boolean {
-    return this.#isContractError(relayItem, err)
+  protected override isImplementationError (err: unknown): boolean {
+    const errMessage = (err as Error).message
+    return this.#isContractError(errMessage)
   }
 
   /**
@@ -64,12 +65,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Errors
    */
 
-  #isContractError (relayItem: ReceiveMessageInput, err: Error): boolean {
-    const messageHash = CCTPSDK.getMessageHashFromMessage(relayItem.message)
-    const errMessage = err.message
+  #isContractError (errMessage: string): boolean {
 
     if (errMessage.includes('Attestation not complete')) {
-      this.logger.debug(`Attestation not yet ready for message hash: ${messageHash}. Trying again next poll.`)
+      // this.logger.debug(`Attestation not yet ready for message hash: ${messageHash}. Trying again next poll.`)
       return true
     } else if (errMessage.includes('Message hash not found')) {
       // TODO: Handle this

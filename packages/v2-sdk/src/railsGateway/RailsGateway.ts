@@ -83,6 +83,7 @@ export type BondInput = {
   pathId: string
   transferId: string
   nextHops: HopStructInput[]
+  amount: BigNumberish
 }
 
 export type ApproveBondInput = {
@@ -202,13 +203,6 @@ export type WithdrawHopInput = {
   role: string
 }
 
-export type GetCheckpointInput = {
-  chainId: BigNumberish
-  previousCheckpoint: string
-  transferId: string
-  totalSent: BigNumber
-}
-
 export type CalcAmountOutMinInput = {
   amountOut: BigNumberish,
   slippageTolerance: number
@@ -229,11 +223,6 @@ export type GetTransferSentEventFromTransferIdInput = {
   transferId: string
 }
 
-export type GetTransferSentEventFromCheckpointInput = {
-  fromChainId: BigNumberish
-  checkpoint: string
-}
-
 export type GetTransferBondedEventFromTransactionReceiptInput = {
   fromChainId: BigNumberish
   receipt: providers.TransactionReceipt
@@ -247,11 +236,6 @@ export type GetTransferBondedEventFromTransactionHashInput = {
 export type GetTransferBondedEventFromTransferIdInput = {
   fromChainId: BigNumberish
   transferId: string
-}
-
-export type GetTransferBondedEventFromCheckpointInput = {
-  fromChainId: BigNumberish
-  checkpoint: string
 }
 
 export type GetTokenInfoInput = {
@@ -311,12 +295,6 @@ export type HopStructInput = {
   pathId: string
   maxTotalSent: BigNumberish
   attestedClaimId: string
-}
-
-export type GetIsCheckpointValidInput = {
-  chainId: BigNumberish
-  pathId: string
-  checkpoint: string
 }
 
 export type GetTotalSentInput = {
@@ -613,10 +591,6 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to "${to}"`)
-        }
-
         if (!this.utils.isValidNumericValue(amount)) {
           throw new InputError(`Invalid amount "${amount}"`)
         }
@@ -639,7 +613,7 @@ export class RailsGateway extends StakingRegistry {
           }
 
           if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
-            throw new InputError(`Invalid attestedCheckpoint "${hop.maxTotalSent}"`)
+            throw new InputError(`Invalid maxTotalSent "${hop.maxTotalSent}"`)
           }
 
           if (hop.attestedClaimId) {
@@ -661,12 +635,8 @@ export class RailsGateway extends StakingRegistry {
 
         const contract = await this.getRailsGatewayContract(chainId)
 
-        if (fee != null && !this.utils.isValidNumericValue(fee)) {
+        if (!this.utils.isValidNumericValue(fee)) {
           throw new InputError(`Invalid amount "${fee}"`)
-        }
-
-        if (!fee) {
-          fee = await this.getFee({ chainId, pathId })
         }
 
         const txData = await contract.populateTransaction.send(pathId, to, amount, attestedClaimId, nextHops, maxTotalSent, {
@@ -715,7 +685,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid checkpoint "${transferId}"`)
+          throw new InputError(`Invalid transferId "${transferId}"`)
         }
 
         if (!nextHops || !Array.isArray(nextHops)) {
@@ -728,7 +698,7 @@ export class RailsGateway extends StakingRegistry {
           }
 
           if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
-            throw new InputError(`Invalid attestedCheckpoint "${hop.maxTotalSent}"`)
+            throw new InputError(`Invalid maxTotalSent "${hop.maxTotalSent}"`)
           }
 
           if (hop.attestedClaimId) {
@@ -1086,7 +1056,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async bond (input: BondInput): Promise<providers.TransactionResponse> {
-    const { chainId, pathId, transferId } = input
+    const { chainId, pathId, transferId, amount } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1095,13 +1065,6 @@ export class RailsGateway extends StakingRegistry {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathId "${pathId}"`)
     }
-
-    const event = await this.getTransferSentEventFromTransferId({ fromChainId: chainId, transferId })
-    if (!event) {
-      throw new InputError(`Transfer not found for transferId "${transferId}"`)
-    }
-
-    const amount = event.amount
 
     if (!this.utils.isValidNumericValue(amount)) {
       throw new InputError(`Invalid amount "${amount}"`)
@@ -1215,21 +1178,6 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract(chainId)
     return contract.getHeadClaim(pathId)
-  }
-
-  async getIsCheckpointValid ({ chainId, pathId, checkpoint }: GetIsCheckpointValidInput): Promise<boolean> {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(checkpoint)) {
-      throw new InputError(`Invalid checkpoint "${checkpoint}"`)
-    }
-
-    const contract = await this.getRailsGatewayContract(chainId)
-    const valid = await contract.isCheckpointValid(pathId, checkpoint)
-
-    return valid
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
@@ -1436,7 +1384,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
     return events?.[0] ?? null
   }
 

@@ -1,0 +1,257 @@
+import { Hop, HopStruct } from '#index.js'
+import { providers, Wallet, utils } from 'ethers'
+import dotenv from 'dotenv'
+import { randomBytes } from 'crypto'
+
+dotenv.config()
+
+const { parseUnits } = utils
+
+export const privateKey = process.env.PRIVATE_KEY ?? ''
+
+describe.only('Sdk e2e', () => {
+  it('should do an end to end test', async () => {
+    const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
+    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+
+    const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
+    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
+
+    let signer = new Wallet(privateKey, ethereumProvider)
+    let sdk = new Hop({
+      network: 'sepolia',
+      signer
+    })
+
+    // ----------------
+    const fromChainId = '11155111'
+    const fromToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
+    const toChainId = '84532'
+    const toToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
+    const sendAmount = parseUnits('0.1', 18)
+    // ----------------
+
+    const pathId = await sdk.railsGateway.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken
+    })
+
+    console.log('pathId:', pathId)
+
+    const isLive = await sdk.railsGateway.getIsPathIdLive({
+      chainId: fromChainId,
+      pathId
+    })
+
+    console.log('isPathIdLive:', isLive)
+
+    const needsApproval = await sdk.railsGateway.getNeedsApprovalForSend({
+      chainId: fromChainId,
+      pathId,
+      amount: sendAmount
+    })
+
+    console.log('needsApproval:', needsApproval)
+
+    if (needsApproval) {
+      const approveTx = await sdk.railsGateway.approveSend({
+        chainId: fromChainId,
+        pathId,
+        amount: sendAmount
+      })
+
+      console.log('approval tx:', approveTx.hash)
+      await approveTx.wait()
+    }
+
+    const attestedClaimId  = await sdk.railsGateway.getLatestClaim({
+      chainId: fromChainId,
+      pathId
+    })
+
+    const isClaimIdValid = await sdk.railsGateway.getIsClaimIdValid({
+      chainId: toChainId,
+      pathId,
+      claimId: attestedClaimId
+    })
+
+    console.log('isClaimIdValid:', isClaimIdValid)
+
+    const maxTotalSent = await sdk.railsGateway.getTotalSent({ chainId: fromChainId, pathId })
+    const fee = await sdk.railsGateway.getFee({ chainId: fromChainId, pathId })
+    const to = await signer.getAddress()
+    const nextHops: HopStruct[] = []
+
+    const shouldSend = false // debug
+    if (shouldSend) {
+      const sendTx = await sdk.railsGateway.send({
+        chainId: fromChainId,
+        pathId,
+        amount: sendAmount,
+        attestedClaimId,
+        maxTotalSent,
+        to,
+        nextHops,
+        fee
+      })
+
+      console.log('send tx:', sendTx.hash)
+      await sendTx.wait()
+    }
+
+    const transferSentEvent = (await sdk.railsGateway.getTransferSentEventFromTransactionHash({
+      fromChainId,
+      transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
+    }))!
+
+    console.log('TransferSent event:', transferSentEvent)
+
+    const messageId = await sdk.messenger.getMessageIdFromTransactionHash({
+      chainId: fromChainId,
+      transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
+    })
+
+    const messageSentEvent = (await sdk.messenger.getMessageSentEventFromMessageId({
+      chainId: fromChainId,
+      messageId
+    }))!
+
+    console.log('MessageSent event:', messageSentEvent)
+
+    // TODO: signer config for different chains to not do this
+    signer = new Wallet(privateKey, baseProvider)
+    sdk = new Hop({
+      network: 'sepolia',
+      signer
+    })
+
+    const shouldExecute = false // debug
+    if (shouldExecute) {
+      const executeTx = await sdk.messenger.execute({
+        messageId,
+        fromChainId,
+        toChainId: messageSentEvent.decoded.toChainId,
+        fromAddress: messageSentEvent.decoded.from,
+        toAddress: messageSentEvent.decoded.to,
+        toCalldata: messageSentEvent.decoded.data
+      })
+
+      console.log('execute tx:', executeTx.hash)
+      await executeTx.wait()
+    }
+
+    const nextHopsHash = sdk.railsGateway.getNextHopsHash({ nextHops: transferSentEvent.nextHops })
+
+    console.log('nextHopsHash:', nextHopsHash)
+
+    const shouldPostClaim = false // debug
+    if (shouldPostClaim) {
+      const postClaimTx = await sdk.railsGateway.postClaim({
+        chainId: toChainId,
+        pathId: transferSentEvent.pathId,
+        transferId: transferSentEvent.transferId,
+        to: transferSentEvent.to,
+        amount: transferSentEvent.amount,
+        totalSent: transferSentEvent.totalSent,
+        attestedClaimId: transferSentEvent.attestedClaimId,
+        attestedTotalClaims: transferSentEvent.attestedTotalClaims,
+        nextHopsHash
+      })
+
+      console.log('postClaim tx:', postClaimTx.hash)
+      await postClaimTx.wait()
+    }
+
+    const needsBondApproval = await sdk.railsGateway.getNeedsApprovalForBond({
+      chainId: toChainId,
+      pathId: transferSentEvent.pathId,
+      amount: transferSentEvent.amount
+    })
+
+    console.log('needsBondApproval:', needsBondApproval)
+
+    if (needsBondApproval) {
+      const approveTx = await sdk.railsGateway.approveBond({
+        chainId: fromChainId,
+        pathId: transferSentEvent.pathId,
+        amount: transferSentEvent.amount
+      })
+
+      console.log('approval tx:', approveTx.hash)
+      await approveTx.wait()
+    }
+
+    const isBonded = await sdk.railsGateway.getIsTransferBonded({
+      chainId: toChainId,
+      transferId: transferSentEvent.transferId,
+    })
+
+    console.log('isBonded:', isBonded)
+
+    const shouldBond = false // debug
+    if (shouldBond) {
+      const bondTx = await sdk.railsGateway.bond({
+        chainId: toChainId,
+        pathId: transferSentEvent.pathId,
+        amount: transferSentEvent.amount,
+        transferId: transferSentEvent.transferId,
+        nextHops: transferSentEvent.nextHops
+      })
+
+      console.log('bond tx:', bondTx.hash)
+      await bondTx.wait()
+    }
+
+    const isClaimed = await sdk.railsGateway.getIsTransferClaimed({
+      chainId: toChainId,
+      transferId: transferSentEvent.transferId,
+    })
+
+    console.log('isClaimed:', isClaimed)
+
+    const shouldConfirm = false // debug
+    if (shouldConfirm) {
+      const confirmTx = await sdk.railsGateway.confirmClaim({
+        chainId: toChainId,
+        pathId: transferSentEvent.pathId,
+        transferId: transferSentEvent.transferId
+      })
+
+      console.log('confirm tx:', confirmTx.hash)
+      await confirmTx.wait()
+    }
+
+    const bondedEvent = (await sdk.railsGateway.getTransferBondedEventFromTransactionHash({
+      fromChainId: toChainId,
+      transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // bondTx.hash // debug
+    }))!
+
+    console.log('BondedEvent  event:', bondedEvent)
+
+    const bondTx = await signer.provider.getTransaction('0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5') // bondTx.hash) // debug
+    const bondBlock = await signer.provider.getBlock(bondTx.blockNumber!)
+
+    const timeWindow = bondBlock.timestamp
+
+    console.log('timeWindow:', timeWindow)
+
+    const shouldWithdraw = false // debug
+    if (shouldWithdraw) {
+      const withdrawTx = await sdk.railsGateway.withdrawClaim({
+        chainId: toChainId,
+        pathId: transferSentEvent.pathId,
+        amount: transferSentEvent.amount,
+        timeWindow
+      })
+
+      console.log('withdraw tx:', withdrawTx.hash)
+      await withdrawTx.wait()
+    }
+
+    console.log('done')
+
+    expect(true).toBeDefined()
+  }, 10 * 60 * 1000)
+})

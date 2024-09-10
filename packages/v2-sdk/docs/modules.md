@@ -52,7 +52,6 @@
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
-- [GetCheckpointInput](modules.md#getcheckpointinput)
 - [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventsInput](modules.md#geteventsinput)
@@ -101,13 +100,11 @@
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
 - [GetTransferBondedEventFilterInput](modules.md#gettransferbondedeventfilterinput)
-- [GetTransferBondedEventFromCheckpointInput](modules.md#gettransferbondedeventfromcheckpointinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
 - [GetTransferIdInput](modules.md#gettransferidinput)
 - [GetTransferSentEventFilterInput](modules.md#gettransfersenteventfilterinput)
-- [GetTransferSentEventFromCheckpointInput](modules.md#gettransfersenteventfromcheckpointinput)
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
 - [GetTransferSentEventFromTransactionReceiptInput](modules.md#gettransfersenteventfromtransactionreceiptinput)
 - [GetTransferSentEventFromTransferIdInput](modules.md#gettransfersenteventfromtransferidinput)
@@ -199,6 +196,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `amount` | `BigNumberish` |
 | `chainId` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
@@ -361,21 +359,6 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
-
-___
-
-### <a id="getcheckpointinput" name="getcheckpointinput"></a> GetCheckpointInput
-
-Ƭ **GetCheckpointInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `previousCheckpoint` | `string` |
-| `totalSent` | `BigNumber` |
-| `transferId` | `string` |
 
 ___
 
@@ -1033,19 +1016,6 @@ ___
 
 ___
 
-### <a id="gettransferbondedeventfromcheckpointinput" name="gettransferbondedeventfromcheckpointinput"></a> GetTransferBondedEventFromCheckpointInput
-
-Ƭ **GetTransferBondedEventFromCheckpointInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `checkpoint` | `string` |
-| `fromChainId` | `BigNumberish` |
-
-___
-
 ### <a id="gettransferbondedeventfromtransactionhashinput" name="gettransferbondedeventfromtransactionhashinput"></a> GetTransferBondedEventFromTransactionHashInput
 
 Ƭ **GetTransferBondedEventFromTransactionHashInput**: `Object`
@@ -1116,19 +1086,6 @@ ___
 | `indexes?` | \{ `pathId?`: `string` ; `transferId?`: `string`  } |
 | `indexes.pathId?` | `string` |
 | `indexes.transferId?` | `string` |
-
-___
-
-### <a id="gettransfersenteventfromcheckpointinput" name="gettransfersenteventfromcheckpointinput"></a> GetTransferSentEventFromCheckpointInput
-
-Ƭ **GetTransferSentEventFromCheckpointInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `checkpoint` | `string` |
-| `fromChainId` | `BigNumberish` |
 
 ___
 

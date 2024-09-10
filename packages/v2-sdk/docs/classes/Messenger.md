@@ -955,7 +955,7 @@ ___
 
 ### <a id="getmessagesenteventfrommessageid" name="getmessagesenteventfrommessageid"></a> getMessageSentEventFromMessageId
 
-▸ **getMessageSentEventFromMessageId**(`«destructured»`): `Promise`\<`MessageSent`\>
+▸ **getMessageSentEventFromMessageId**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 #### Parameters
 
@@ -965,7 +965,7 @@ ___
 
 #### Returns
 
-`Promise`\<`MessageSent`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 ___
 

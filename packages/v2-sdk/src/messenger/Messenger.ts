@@ -1,6 +1,6 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
-import { EthersEventWithDecodedTypesAndContext } from '#events/index.js'
+import { EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypes } from '#events/index.js'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -1028,7 +1028,7 @@ export class Messenger extends Base {
     return events?.[0] ?? null
   }
 
-  async getMessageSentEventFromMessageId ({ chainId, messageId }: GetMessageSentEventFromMessageIdInput): Promise<MessageSent> {
+  async getMessageSentEventFromMessageId ({ chainId, messageId }: GetMessageSentEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageSent> | null> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }

@@ -4,6 +4,7 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 
 // event from RailsGateway
 export interface TransferSent {
+  pathId: string
   transferId: string
   to: string
   amount: BigNumber
@@ -33,6 +34,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
   override toTypedEvent (ethersEvent: EthersEvent): TransferSent {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
+    const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
     const to = parsed.args.to
     const amount = parsed.args.amount
@@ -48,6 +50,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     })
 
     return {
+      pathId,
       transferId,
       to,
       amount,

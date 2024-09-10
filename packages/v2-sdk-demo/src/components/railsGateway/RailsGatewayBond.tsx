@@ -133,6 +133,7 @@ async function main() {
   const chainId = "${toChainId}"
   const pathId = "${pathId}"
   const transferId = "${transferId}"
+  const amount = "${amount}"
   const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
   const hop = new Hop({ network: '${network}' )
@@ -140,6 +141,7 @@ async function main() {
     chainId,
     pathId,
     transferId,
+    amount,
     nextHops
   })
   ${populateTxDataOnly ? (

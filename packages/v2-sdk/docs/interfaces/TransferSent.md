@@ -8,6 +8,7 @@
 - [attestedClaimId](TransferSent.md#attestedclaimid)
 - [attestedTotalClaims](TransferSent.md#attestedtotalclaims)
 - [nextHops](TransferSent.md#nexthops)
+- [pathId](TransferSent.md#pathid)
 - [to](TransferSent.md#to)
 - [totalSent](TransferSent.md#totalsent)
 - [transferId](TransferSent.md#transferid)
@@ -35,6 +36,12 @@ ___
 ### <a id="nexthops" name="nexthops"></a> nextHops
 
 • **nextHops**: [`HopStruct`](HopStruct.md)[]
+
+___
+
+### <a id="pathid" name="pathid"></a> pathId
+
+• **pathId**: `string`
 
 ___
 

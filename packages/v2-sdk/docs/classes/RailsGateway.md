@@ -63,7 +63,6 @@
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
-- [getIsCheckpointValid](RailsGateway.md#getischeckpointvalid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
 - [getIsPathIdLive](RailsGateway.md#getispathidlive)
 - [getIsTransferBonded](RailsGateway.md#getistransferbonded)
@@ -894,22 +893,6 @@ ___
 #### Returns
 
 `Promise`\<`Contract`\>
-
-___
-
-### <a id="getischeckpointvalid" name="getischeckpointvalid"></a> getIsCheckpointValid
-
-▸ **getIsCheckpointValid**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | `GetIsCheckpointValidInput` |
-
-#### Returns
-
-`Promise`\<`boolean`\>
 
 ___
 

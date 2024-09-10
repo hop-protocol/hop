@@ -121,4 +121,4 @@ export {
 } from './hubConnector/index.js'
 export { PriceFeed } from './priceFeed/index.js'
 export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'
-export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from './error/index.js'
+export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from './error/index.js'

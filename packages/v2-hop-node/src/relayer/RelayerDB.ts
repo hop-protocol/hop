@@ -1,5 +1,6 @@
 import { DB } from '#db/DB.js'
 import { utils } from 'ethers'
+import { getExponentialBackoffDelayMs } from './utils.js'
 
 /**
  * The key can be any string as long as it is unique to the DB.
@@ -10,6 +11,7 @@ type DBValue<RelayItem> = {
   item: RelayItem
   relayedAt: number
   retries: number
+  inFlight: boolean
 }
 
 export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
@@ -19,15 +21,11 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
     super(dbName + 'RelayerDB')
   }
 
-  /**
-   * Setters
-   */
-
   async addItem (relayItem: RelayItem): Promise<void> {
     if (await this.#doesItemExist(relayItem)) {
       throw new Error('Item already exists')
     }
-    return this.#updateItem(relayItem, 0, 0)
+    return this.#updateItem(relayItem, 0, 0, false)
   }
 
   async removeItem (relayItem: RelayItem): Promise<void> {
@@ -38,16 +36,21 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
     return this.del(key)
   }
 
-  async setRelayTime (relayItem: RelayItem): Promise<void> {
+  async addRelayAttempt (relayItem: RelayItem): Promise<void> {
     const key = this.#getKey(relayItem)
     const item = await this.get(key)
-    return this.#updateItem(relayItem, Date.now(), item.retries)
+    return this.#updateItem(relayItem, Date.now(), item.retries, true)
   }
 
-  async incrementRetryCount (relayItem: RelayItem): Promise<void> {
+  async handleRelayError (relayItem: RelayItem): Promise<void> {
     const key = this.#getKey(relayItem)
     const item = await this.get(key)
-    return this.#updateItem(relayItem, item.relayedAt, item.retries + 1)
+
+    if (item.retries >= this.#maxRetries) {
+      throw new Error('Max retries reached')
+    }
+
+    return this.#updateItem(relayItem, item.relayedAt, item.retries + 1, false)
   }
 
   /**
@@ -56,8 +59,11 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
 
   async *getRelayableItems (): AsyncGenerator<RelayItem> {
     for await (const [, dbValue] of this.iterator()) {
-      const now = Date.now()
-      if (now > dbValue.expiresAtMs) continue
+      if (dbValue.inFlight) continue
+
+      const backoffDelayMs = getExponentialBackoffDelayMs(dbValue.retries)
+      const timeSinceRelayMs = Date.now() - dbValue.relayedAt
+      if (timeSinceRelayMs < backoffDelayMs) continue
 
       yield dbValue.item
     }
@@ -68,13 +74,19 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
    */
 
 
-  async #updateItem (relayItem: RelayItem, expiresAtMs: number, retries: number): Promise<void> {
+  async #updateItem (
+    relayItem: RelayItem,
+    relayedAt: number,
+    retries: number,
+    inFlight: boolean
+  ): Promise<void> {
     const key = this.#getKey(relayItem)
-    this.logger.debug(`Adding item with key: ${key}`)
+    this.logger.debug(`Updating item with key: ${key}`)
     return this.put(key, {
       item: relayItem,
-      expiresAtMs,
-      retries
+      relayedAt,
+      retries,
+      inFlight
     })
   }
 
@@ -82,12 +94,6 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
     const key = this.#getKey(relayItem)
     const dbValue: DBValue<RelayItem> | null = await this.getIfExists(key)
     if (!dbValue) return false
-
-    const now = Date.now()
-    if (now > dbValue.expiresAtMs) {
-      this.logger.debug(`Item expired: ${key}`)
-      return false
-    }
 
     return true
   }

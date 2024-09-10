@@ -65,7 +65,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
       const canRelay = await this.shouldAttemptRelay(relayItem)
       if (!canRelay) return
 
-      await this.#db.setRelayTime(relayItem)
+      await this.#db.addRelayAttempt(relayItem)
       await this.#attemptRelay(relayItem)
     }
   }
@@ -114,7 +114,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // explicitly prior to sending the transaction.
     if (this.#isEVMError(err)) {
       this.logger.debug(`EVM error for item: ${stringifiedItem}. The item will be attempted again.`)
-      return this.#db.incrementRetryCount(relayItem)
+      return this.#db.handleRelayError(relayItem)
     }
 
     // If the client does not know what the error is, it should not be attempted again since
@@ -129,38 +129,39 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
 
   // TODO: This should be owned by gasBoost
   #isEVMError (err: unknown): boolean {
-    // const errMessage: string | undefined = (err as Error).message
+    return true
+    // // const errMessage: string | undefined = (err as Error).message
 
-    if (err instanceof NonceTooLowError) {
-      // This may occur if there are multiple servers running at once.
-      this.logger.debug('Nonce already used')
-      // return this.#db.resetRelayTime(relayItem)
-    } else if (err instanceof EstimateGasError) {
-      // TODO: Higher level
-      // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
-    } else if (err instanceof InsufficientFundsError) {
-      // TODO: Higher level
-      // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
-      return
-    } else {
-      // For each
-      // * Handle in DB
-      // * Handle in top-level
-      //
-      // TODO: GasBoost errors
-      // * nonceTooLow
-      // * estimateGas
-      // * insufficientFunds
-      // * OOG
-      // * Max rebroadcast
-      // * Transaction replaced
-      // * Transaction dropped
-      // * Transaction hangs
-      // * Reorg (though I think it might be handled by replace/drop/hang
-      // * chain issues (look at historical experience)
-      // * timeout
-      // * RPC server error
-      // * Anything else?
-    }
+    // if (err instanceof NonceTooLowError) {
+    //   // This may occur if there are multiple servers running at once.
+    //   this.logger.debug('Nonce already used')
+    //   // return this.#db.resetRelayTime(relayItem)
+    // } else if (err instanceof EstimateGasError) {
+    //   // TODO: Higher level
+    //   // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
+    // } else if (err instanceof InsufficientFundsError) {
+    //   // TODO: Higher level
+    //   // TODO: Probably some higher order blocking since this will continue to fail. Kick out of BCR
+    //   return
+    // } else {
+    //   // For each
+    //   // * Handle in DB
+    //   // * Handle in top-level
+    //   //
+    //   // TODO: GasBoost errors
+    //   // * nonceTooLow
+    //   // * estimateGas
+    //   // * insufficientFunds
+    //   // * OOG
+    //   // * Max rebroadcast
+    //   // * Transaction replaced
+    //   // * Transaction dropped
+    //   // * Transaction hangs
+    //   // * Reorg (though I think it might be handled by replace/drop/hang
+    //   // * chain issues (look at historical experience)
+    //   // * timeout
+    //   // * RPC server error
+    //   // * Anything else?
+    // }
   }
 }

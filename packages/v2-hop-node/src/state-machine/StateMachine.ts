@@ -1,5 +1,5 @@
 import type { IDataAdapter } from './IDataAdapter.js'
-import { StateMachineDB } from '#db/StateMachineDB.js'
+import { StateMachineDB } from './StateMachineDB.js'
 import { poll } from '#utils/poll.js'
 import { getFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'

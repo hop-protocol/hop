@@ -149,6 +149,11 @@ export class RailsSDKWrapper {
 export class RailsSDK {
   static ContractFunctionRevertedError = ContractFunctionRevertedError
 
+  // TODO: From SDK
+  static isContractError (errMessage: string): boolean {
+    return true
+  }
+
   // TODO: Signer or provider or however ethers does it
   static connect (signer: Signer | providers.Provider): RailsGateway {
     return RailsSDK.getGateway()

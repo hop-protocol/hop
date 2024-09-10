@@ -9,6 +9,7 @@
 ### Classes
 
 - [ConfigError](classes/ConfigError.md)
+- [ContractFunctionRevertedError](classes/ContractFunctionRevertedError.md)
 - [CustomError](classes/CustomError.md)
 - [Hop](classes/Hop.md)
 - [HubConnector](classes/HubConnector.md)

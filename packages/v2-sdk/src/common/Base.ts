@@ -314,7 +314,7 @@ export class Base {
       const tx = await signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
       return tx
     } catch (err) {
-      if (this.utils.isContractError(err.message)) {
+      if (this.utils.isContractError(err)) {
         throw new ContractFunctionRevertedError(err.message)
       }
 
@@ -460,7 +460,8 @@ export class Base {
         return gasPrice
       }),
 
-      isContractError: (errorMsg: string): boolean => {
+      isContractError: (err: unknown): boolean => {
+        const errorMsg = typeof err === 'string' ? err : (err instanceof Error ? (err as Error).message : '')
         return (errorMsg.includes('CALL_EXCEPTION') || errorMsg.includes('UNPREDICTABLE_GAS_LIMIT')) && errorMsg.includes('execution reverted')
       },
 

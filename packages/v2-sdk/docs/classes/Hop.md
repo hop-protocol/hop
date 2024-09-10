@@ -222,7 +222,7 @@ ___
 | `getLogoForTokenSymbol` | (`tokenSymbol`: `string`) => `string` |
 | `getTokenExplorerUrl` | (`address`: `string`, `chainId`: `BigNumberish`) => `string` |
 | `getTransactionHashExplorerUrl` | (`txHash`: `string`, `chainId`: `BigNumberish`) => `string` |
-| `isContractError` | (`errorMsg`: `string`) => `boolean` |
+| `isContractError` | (`err`: `unknown`) => `boolean` |
 | `isValidAddress` | (`address`: `string`) => `boolean` |
 | `isValidBytes` | (`bytes`: `string`) => `boolean` |
 | `isValidBytes32` | (`hash`: `string`) => `boolean` |

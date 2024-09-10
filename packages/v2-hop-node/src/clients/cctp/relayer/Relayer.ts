@@ -27,8 +27,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
   }
 
   protected override isImplementationError (err: unknown): boolean {
-    const errMessage = (err as Error).message
-    return this.#isContractError(errMessage)
+    return this.#isContractError(err)
   }
 
   /**
@@ -65,8 +64,8 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Errors
    */
 
-  #isContractError (errMessage: string): boolean {
-
+  #isContractError (err: unknown): boolean {
+    const errMessage = (err as Error).message
     if (errMessage.includes('Attestation not complete')) {
       // this.logger.debug(`Attestation not yet ready for message hash: ${messageHash}. Trying again next poll.`)
       return true

@@ -26,8 +26,7 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
   }
 
   protected override isImplementationError (err: unknown): boolean {
-    const errMessage = (err as Error).message
-    return this.#isContractError(errMessage)
+    return this.#isContractError(err)
   }
 
   /**
@@ -95,7 +94,8 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    * Errors
    */
 
-  #isContractError (errMessage: string): boolean {
+  #isContractError (err: unknown): boolean {
+    const errMessage = (err as Error).message
     // TODO
     return true
   }

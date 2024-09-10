@@ -30,10 +30,9 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
   }
 
   protected override isImplementationError (err: unknown): boolean {
-    const errMessage = (err as Error).message
     return (
-      this.#isContractError(errMessage) ||
-      this.#isBCRError(errMessage)
+      this.#isContractError(err) ||
+      this.#isBCRError(err)
     )
   }
 
@@ -88,14 +87,14 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Errors
    */
 
-  #isContractError (errMessage: string): boolean {
-    if (RailsSDK.isContractError(errMessage)) {
+  #isContractError (err: unknown): boolean {
+    if (RailsSDK.isContractError(err)) {
       return true
     }
     return false
   }
 
-  #isBCRError (errMessage: string): boolean {
+  #isBCRError (err: unknown): boolean {
     // if (err instanceof BonderChoiceRule.BCRError) {
     //   return true
     // }

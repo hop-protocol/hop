@@ -150,7 +150,7 @@ export class RailsSDK {
   static ContractFunctionRevertedError = ContractFunctionRevertedError
 
   // TODO: From SDK
-  static isContractError (errMessage: string): boolean {
+  static isContractError (err: unknown): err is ContractFunctionRevertedError {
     return true
   }
 

@@ -3,7 +3,7 @@ import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 import type { IDataAdapter } from './IDataAdapter.js'
-import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
+import type { IOnchainEventIndexer } from '#indexer/index.js'
 import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
 import type { StateTxContext } from './types.js'
 

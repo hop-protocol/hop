@@ -57,7 +57,6 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
 
   #checkRelay = async (): Promise<void> => {
     for await (const relayItem of this.#db.getRelayableItems()) {
-      // Check if the item is ready to be attempted
       const canRelay = await this.shouldAttemptRelay(relayItem)
       if (!canRelay) return
 

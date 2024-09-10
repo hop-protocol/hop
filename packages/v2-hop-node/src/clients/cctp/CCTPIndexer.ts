@@ -1,4 +1,4 @@
-import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer } from '#indexer/index.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import {

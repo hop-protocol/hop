@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { OnchainEventIndexerDB } from '#indexer/OnchainEventIndexerDB.js'
+import { OnchainEventIndexerDB } from '#indexer/index.js'
 import type {
   DecodedLogWithContext,
   IndexedEventDataWithContext,

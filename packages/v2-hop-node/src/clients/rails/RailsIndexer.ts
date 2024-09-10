@@ -3,7 +3,7 @@ import {
   type TransferBonded,
   RailsSDKWrapper
 } from './RailsSDKWrapper.js'
-import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer } from '#indexer/index.js'
 import {
   aggregateFilters,
   getChainIdsForPaths,

@@ -1,6 +1,5 @@
 import { DB } from '#db/DB.js'
 import { utils } from 'ethers'
-import { getExponentialBackoffDelayMs } from './utils.js'
 
 /**
  * The key can be any string as long as it is unique to the DB.
@@ -60,11 +59,6 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
   async *getRelayableItems (): AsyncGenerator<RelayItem> {
     for await (const [, dbValue] of this.iterator()) {
       if (dbValue.inFlight) continue
-
-      const backoffDelayMs = getExponentialBackoffDelayMs(dbValue.retries)
-      const timeSinceRelayMs = Date.now() - dbValue.relayedAt
-      if (timeSinceRelayMs < backoffDelayMs) continue
-
       yield dbValue.item
     }
   }

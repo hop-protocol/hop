@@ -461,7 +461,7 @@ export class Base {
       }),
 
       isContractError: (errorMsg: string): boolean => {
-        return errorMsg.includes('execution reverted:')
+        return (errorMsg.includes('CALL_EXCEPTION') || errorMsg.includes('UNPREDICTABLE_GAS_LIMIT')) && errorMsg.includes('execution reverted')
       },
 
       getConnectedChainId: async (provider: Provider): Promise<BigNumber> => {

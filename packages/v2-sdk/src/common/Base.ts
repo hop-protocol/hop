@@ -4,6 +4,7 @@ import { addresses } from '#addresses/index.js'
 import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
+import { ContractFunctionRevertedError } from '#error/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -309,7 +310,16 @@ export class Base {
       throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chainId}"`)
     }
 
-    return signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
+    try {
+      const tx = await signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
+      return tx
+    } catch (err) {
+      if (this.utils.isContractError(err.message)) {
+        throw new ContractFunctionRevertedError(err.message)
+      }
+
+      throw err
+    }
   }
 
   getSupportedChainIds(): string[] {
@@ -449,6 +459,10 @@ export class Base {
         const gasPrice = await signerOrProvider.getGasPrice()
         return gasPrice
       }),
+
+      isContractError: (errorMsg: string): boolean => {
+        return errorMsg.includes('execution reverted:')
+      },
 
       getConnectedChainId: async (provider: Provider): Promise<BigNumber> => {
         const network = await provider.getNetwork()

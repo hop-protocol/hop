@@ -34,3 +34,10 @@ export class InsufficientApprovalError extends Error {
     this.name = 'InsufficientApprovalError'
   }
 }
+
+export class ContractFunctionRevertedError extends Error {
+  constructor(message: string) {
+    super(`${errorPrefix}${message}`)
+    this.name = 'ContractFunctionRevertedError'
+  }
+}

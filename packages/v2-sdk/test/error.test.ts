@@ -1,4 +1,4 @@
-import { ConfigError, InputError } from '#error/index.js'
+import { ConfigError, InputError, ContractFunctionRevertedError } from '#error/index.js'
 
 describe('Custom Error Classes', () => {
   const prefix = 'HopV2Sdk: '
@@ -12,6 +12,12 @@ describe('Custom Error Classes', () => {
   test('InputError should include the prefix', () => {
     const errorMessage = 'Invalid input'
     const error = new InputError(errorMessage)
+    expect(error.message).toBe(`${prefix}${errorMessage}`)
+  })
+
+  test('ContractFunctionRevertedError ', () => {
+    const errorMessage = 'execution reverted'
+    const error = new ContractFunctionRevertedError(errorMessage)
     expect(error.message).toBe(`${prefix}${errorMessage}`)
   })
 })

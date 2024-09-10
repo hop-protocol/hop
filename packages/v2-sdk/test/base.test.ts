@@ -22,7 +22,6 @@ describe.skip('Base', () => {
       chainId: '99999',
       startBlock: 0,
       spokeCoreMessenger: '',
-      connector: '',
       railsGateway: ''
     }
     base.setContractAddresses(addresses)
@@ -160,6 +159,14 @@ describe.skip('Base', () => {
     const info = base.utils.getChainInfo(chainId)
     console.log(info)
     expect(info).toBeDefined()
+  })
+  it('should return boolean if is contract error', () => {
+    const errorMsg = `
+    cannot estimate gas; transaction may fail or may require manual gas limit [ See: https://links.ethers.org/v5-errors-UNPREDICTABLE_GAS_LIMIT ] (error={"reason":"execution reverted: RailsPathLib: maxTotalSent exceeded","code":"UNPREDICTABLE_GAS_LIMIT","method":"estimateGas","transaction":{"from":"0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA","maxPriorityFeePerGas":{"type":"BigNumber","hex":"0x59682f00"},"maxFeePerGas":{"type":"BigNumber","hex":"0x016bd855d8"},"to":"0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A","value":{"type":"BigNumber","hex":"0x065dd0837000"},"data":"0x0dd74f555be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e60000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca000000000000000000000000000000000000000000000000016345785d8a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000000","type":2,"accessList":null},"error":{"reason":"processing response error","code":"SERVER_ERROR","body":"{\"jsonrpc\":\"2.0\",\"id\":47,\"error\":{\"code\":3,\"message\":\"execution reverted: RailsPathLib: maxTotalSent exceeded\",\"data\":\"0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000235261696c73506174684c69623a206d6178546f74616c53656e742065786365656465640000000000000000000000000000000000000000000000000000000000\"}}\n","error":{"code":3,"data":"0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000235261696c73506174684c69623a206d6178546f74616c53656e742065786365656465640000000000000000000000000000000000000000000000000000000000"},"requestBody":"{\"method\":\"eth_estimateGas\",\"params\":[{\"type\":\"0x2\",\"maxFeePerGas\":\"0x16bd855d8\",\"maxPriorityFeePerGas\":\"0x59682f00\",\"value\":\"0x65dd0837000\",\"from\":\"0x6020aad5cafb06c33bbf44dbabd9f55f42ff2bca\",\"to\":\"0x3791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a\",\"data\":\"0x0dd74f555be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e60000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca000000000000000000000000000000000000000000000000016345785d8a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000000\"}],\"id\":47,\"jsonrpc\":\"2.0\"}","requestMethod":"POST","url":"https://rpc2.sepolia.org"}}, tx={"data":"0x0dd74f555be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e60000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca000000000000000000000000000000000000000000000000016345785d8a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000000","to":{},"value":{"type":"BigNumber","hex":"0x065dd0837000"},"chainId":{},"from":"0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA","type":2,"maxFeePerGas":{"type":"BigNumber","hex":"0x016bd855d8"},"maxPriorityFeePerGas":{"type":"BigNumber","hex":"0x59682f00"},"nonce":{},"gasLimit":{}}, code=UNPREDICTABLE_GAS_LIMIT, version=abstract-signer/5.7.0)
+    `
+    expect(base.utils.isContractError(errorMsg)).toBe(true)
+    expect(base.utils.isContractError('processing error')).toBe(false)
+    expect(base.utils.isContractError('SERVER_ERROR')).toBe(false)
   })
   it('should set chain rpc provider', () => {
     base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))

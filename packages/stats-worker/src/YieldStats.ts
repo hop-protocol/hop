@@ -505,6 +505,11 @@ class YieldStats {
         rewardsTokenSymbol
       )
 
+      // arb rewards ended in september 2024
+      if (rewardsTokenSymbol === 'ARB') {
+        continue
+      }
+
       const timestamp = await stakingRewards.periodFinish()
       const rewardsExpired = await this.isRewardsExpired(timestamp)
 

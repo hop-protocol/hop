@@ -176,10 +176,21 @@ describe.only('Base', () => {
     const internalTokenTransferError = `
       Error: missing revert data in call exception; Transaction reverted without a reason string [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (data="0x", transaction={"from":"0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA","to":"0x991A09826587E2544a9c1C34EEaa3b29846538C4","data":"0x41ccff7f","accessList":null}, error={"code":-32000,"message":"execution reverted"}, code=CALL_EXCEPTION, version=providers/5.7.2)
     `
+
+    const intrinsicGasLowError = `
+      Error: missing revert data in call exception; Transaction reverted without a reason string [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (data="0x", transaction={"from":"0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA","gasLimit":{"type":"BigNumber","hex":"0x5208"},"to":"0x4BfD4F70148552fC89786aa650E258015379d074","data":"0x71a6a333","accessList":null}, error={"code":-32000,"message":"err: intrinsic gas too low: have 21000, want 21064 (supplied gas 21000)"}, code=CALL_EXCEPTION, version=providers/5.7.2)
+    `
+
+    const outOfGasError = `
+      Error: missing revert data in call exception; Transaction reverted without a reason string [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (data="0x", transaction={"from":"0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA","gasLimit":{"type":"BigNumber","hex":"0x5248"},"to":"0x4BfD4F70148552fC89786aa650E258015379d074","data":"0x71a6a333","accessList":null}, error={"code":-32000,"message":"out of gas"}, code=CALL_EXCEPTION, version=providers/5.7.2)
+    `
+
     expect(base.utils.isContractError(maxTotalSentError)).toBe(true)
     expect(base.utils.isContractError(falseAssertError)).toBe(true)
     expect(base.utils.isContractError(falseRequireError)).toBe(true)
     expect(base.utils.isContractError(falseRequireMessageError)).toBe(true)
+    expect(base.utils.isContractError(intrinsicGasLowError)).toBe(false)
+    expect(base.utils.isContractError(outOfGasError)).toBe(false)
     expect(base.utils.isContractError('processing error')).toBe(false)
     expect(base.utils.isContractError('SERVER_ERROR')).toBe(false)
   })

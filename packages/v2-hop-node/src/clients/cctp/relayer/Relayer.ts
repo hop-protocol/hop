@@ -67,14 +67,11 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
   #isContractError (err: unknown): boolean {
     const errMessage = (err as Error).message
     if (errMessage.includes('Attestation not complete')) {
-      // this.logger.debug(`Attestation not yet ready for message hash: ${messageHash}. Trying again next poll.`)
+      this.logger.debug(`Attestation not yet ready for message hash: ${errMessage}`)
       return true
     } else if (errMessage.includes('Message hash not found')) {
-      // TODO: Handle this
-      // throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
-      return true
-    } else if (errMessage.includes('TODO') /* TODO */) {
-      // TODO: Handle an old message or reorged
+      // This is an issue with message encoding
+      this.logger.debug(`Message hash not found for message hash: ${errMessage}`)
       return true
     }
 

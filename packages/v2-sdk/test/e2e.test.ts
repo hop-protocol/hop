@@ -142,7 +142,7 @@ describe('Sdk e2e', () => {
       await executeTx.wait()
     }
 
-    const nextHopsHash = sdk.railsGateway.getNextHopsHash({ nextHops: transferSentEvent.nextHops })
+    const nextHopsHash = sdk.railsGateway.getNextHopsHash({ nextHops: transferSentEvent.decoded.nextHops })
 
     console.log('nextHopsHash:', nextHopsHash)
 
@@ -150,13 +150,13 @@ describe('Sdk e2e', () => {
     if (shouldPostClaim) {
       const postClaimTx = await sdk.railsGateway.postClaim({
         chainId: toChainId,
-        pathId: transferSentEvent.pathId,
-        transferId: transferSentEvent.transferId,
-        to: transferSentEvent.to,
-        amount: transferSentEvent.amount,
-        totalSent: transferSentEvent.totalSent,
-        attestedClaimId: transferSentEvent.attestedClaimId,
-        attestedTotalClaims: transferSentEvent.attestedTotalClaims,
+        pathId: transferSentEvent.decoded.pathId,
+        transferId: transferSentEvent.decoded.transferId,
+        to: transferSentEvent.decoded.to,
+        amount: transferSentEvent.decoded.amount,
+        totalSent: transferSentEvent.decoded.totalSent,
+        attestedClaimId: transferSentEvent.decoded.attestedClaimId,
+        attestedTotalClaims: transferSentEvent.decoded.attestedTotalClaims,
         nextHopsHash
       })
 
@@ -166,8 +166,8 @@ describe('Sdk e2e', () => {
 
     const needsBondApproval = await sdk.railsGateway.getNeedsApprovalForBond({
       chainId: toChainId,
-      pathId: transferSentEvent.pathId,
-      amount: transferSentEvent.amount
+      pathId: transferSentEvent.decoded.pathId,
+      amount: transferSentEvent.decoded.amount
     })
 
     console.log('needsBondApproval:', needsBondApproval)
@@ -175,8 +175,8 @@ describe('Sdk e2e', () => {
     if (needsBondApproval) {
       const approveTx = await sdk.railsGateway.approveBond({
         chainId: fromChainId,
-        pathId: transferSentEvent.pathId,
-        amount: transferSentEvent.amount
+        pathId: transferSentEvent.decoded.pathId,
+        amount: transferSentEvent.decoded.amount
       })
 
       console.log('approval tx:', approveTx.hash)
@@ -185,7 +185,7 @@ describe('Sdk e2e', () => {
 
     const isBonded = await sdk.railsGateway.getIsTransferBonded({
       chainId: toChainId,
-      transferId: transferSentEvent.transferId,
+      transferId: transferSentEvent.decoded.transferId,
     })
 
     console.log('isBonded:', isBonded)
@@ -194,10 +194,10 @@ describe('Sdk e2e', () => {
     if (shouldBond) {
       const bondTx = await sdk.railsGateway.bond({
         chainId: toChainId,
-        pathId: transferSentEvent.pathId,
-        amount: transferSentEvent.amount,
-        transferId: transferSentEvent.transferId,
-        nextHops: transferSentEvent.nextHops
+        pathId: transferSentEvent.decoded.pathId,
+        amount: transferSentEvent.decoded.amount,
+        transferId: transferSentEvent.decoded.transferId,
+        nextHops: transferSentEvent.decoded.nextHops
       })
 
       console.log('bond tx:', bondTx.hash)
@@ -206,7 +206,7 @@ describe('Sdk e2e', () => {
 
     const isClaimed = await sdk.railsGateway.getIsTransferClaimed({
       chainId: toChainId,
-      transferId: transferSentEvent.transferId,
+      transferId: transferSentEvent.decoded.transferId,
     })
 
     console.log('isClaimed:', isClaimed)
@@ -215,8 +215,8 @@ describe('Sdk e2e', () => {
     if (shouldConfirm) {
       const confirmTx = await sdk.railsGateway.confirmClaim({
         chainId: toChainId,
-        pathId: transferSentEvent.pathId,
-        transferId: transferSentEvent.transferId
+        pathId: transferSentEvent.decoded.pathId,
+        transferId: transferSentEvent.decoded.transferId
       })
 
       console.log('confirm tx:', confirmTx.hash)
@@ -241,8 +241,8 @@ describe('Sdk e2e', () => {
     if (shouldWithdraw) {
       const withdrawTx = await sdk.railsGateway.withdrawClaim({
         chainId: toChainId,
-        pathId: transferSentEvent.pathId,
-        amount: transferSentEvent.amount,
+        pathId: transferSentEvent.decoded.pathId,
+        amount: transferSentEvent.decoded.amount,
         timeWindow
       })
 

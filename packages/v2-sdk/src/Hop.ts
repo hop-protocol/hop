@@ -7,7 +7,7 @@ import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct} from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
-import { EthersEventWithDecodedTypes } from '#events/index.js'
+import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
 
@@ -393,7 +393,7 @@ export class Hop extends Base {
     fromBlock,
     toBlock,
     fetchTxData
-  }: GetGeneralEventsInput): Promise<EthersEventWithDecodedTypes<AllEventTypes>[]> {
+  }: GetGeneralEventsInput): Promise<EthersEventWithDecodedTypesAndContext<AllEventTypes>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -456,7 +456,7 @@ export class Hop extends Base {
       decoded.push(...res)
     }
 
-    return decoded as EthersEventWithDecodedTypes<AllEventTypes>[]
+    return decoded as EthersEventWithDecodedTypesAndContext<AllEventTypes>[]
   }
 
   override setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {

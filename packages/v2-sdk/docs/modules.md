@@ -1408,9 +1408,9 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `state` | [`TransferState`](enums/TransferState.md) |
-| `transferBondedEvent` | `TransferBonded` |
+| `transferBondedEvent` | `EthersEventWithDecodedTypes`\<`TransferBonded`\> |
 | `transferId` | `string` |
-| `transferSentEvent` | `TransferSent` |
+| `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> |
 
 ___
 

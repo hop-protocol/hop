@@ -183,8 +183,8 @@ describe('Hop', () => {
 
   it('should get events', async () => {
     const chainId = 11155111
-    const fromBlock = 5816943
-    const toBlock = 5816948
+    const fromBlock = 6598795
+    const toBlock = 6598796
     const eventNames = ['MessageSent', 'TransferSent']
     const events = await sdk.getEvents({
       eventNames,

@@ -471,7 +471,7 @@ ___
 
 ### <a id="getevents" name="getevents"></a> getEvents
 
-▸ **getEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
+▸ **getEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypesAndContext`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
 
 #### Parameters
 
@@ -481,7 +481,7 @@ ___
 
 #### Returns
 
-`Promise`\<`EthersEventWithDecodedTypes`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
+`Promise`\<`EthersEventWithDecodedTypesAndContext`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
 
 ___
 

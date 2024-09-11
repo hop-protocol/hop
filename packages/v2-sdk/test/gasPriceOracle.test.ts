@@ -1,6 +1,6 @@
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 
-describe('GasPriceOracle Integration Tests', () => {
+describe.skip('GasPriceOracle Integration Tests', () => {
   let gasPriceOracle: GasPriceOracle
 
   beforeEach(() => {

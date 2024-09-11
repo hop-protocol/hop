@@ -1430,7 +1430,7 @@ ___
 
 ### <a id="gettransferbondedeventfromtransactionhash" name="gettransferbondedeventfromtransactionhash"></a> getTransferBondedEventFromTransactionHash
 
-▸ **getTransferBondedEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `TransferBonded`\>
+▸ **getTransferBondedEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 #### Parameters
 
@@ -1440,13 +1440,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `TransferBonded`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 ___
 
 ### <a id="gettransferbondedeventfromtransactionreceipt" name="gettransferbondedeventfromtransactionreceipt"></a> getTransferBondedEventFromTransactionReceipt
 
-▸ **getTransferBondedEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `TransferBonded`\>
+▸ **getTransferBondedEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 #### Parameters
 
@@ -1456,13 +1456,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `TransferBonded`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 ___
 
 ### <a id="gettransferbondedeventfromtransferid" name="gettransferbondedeventfromtransferid"></a> getTransferBondedEventFromTransferId
 
-▸ **getTransferBondedEventFromTransferId**(`«destructured»`): `Promise`\<`TransferBonded`\>
+▸ **getTransferBondedEventFromTransferId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 #### Parameters
 
@@ -1472,7 +1472,7 @@ ___
 
 #### Returns
 
-`Promise`\<`TransferBonded`\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 ___
 
@@ -1526,7 +1526,7 @@ ___
 
 ### <a id="gettransfersenteventfromtransactionhash" name="gettransfersenteventfromtransactionhash"></a> getTransferSentEventFromTransactionHash
 
-▸ **getTransferSentEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `TransferSent`\>
+▸ **getTransferSentEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 #### Parameters
 
@@ -1536,13 +1536,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `TransferSent`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 ___
 
 ### <a id="gettransfersenteventfromtransactionreceipt" name="gettransfersenteventfromtransactionreceipt"></a> getTransferSentEventFromTransactionReceipt
 
-▸ **getTransferSentEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `TransferSent`\>
+▸ **getTransferSentEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 #### Parameters
 
@@ -1552,13 +1552,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `TransferSent`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 ___
 
 ### <a id="gettransfersenteventfromtransferid" name="gettransfersenteventfromtransferid"></a> getTransferSentEventFromTransferId
 
-▸ **getTransferSentEventFromTransferId**(`«destructured»`): `Promise`\<`TransferSent`\>
+▸ **getTransferSentEventFromTransferId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 #### Parameters
 
@@ -1568,7 +1568,7 @@ ___
 
 #### Returns
 
-`Promise`\<`TransferSent`\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>\>
 
 ___
 

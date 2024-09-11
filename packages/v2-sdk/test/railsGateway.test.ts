@@ -541,12 +541,14 @@ describe('RailsGateway', () => {
   })
   it('should get transfer sent event from transaction hash', async () => {
     const fromChainId = 11155111
-    const transactionHash = '0xced84d48d165a5efa5382c638ab0645b6e3b9c5b3725b54f90650724138cba9f'
+    const transactionHash = '0x063287bb2b7c32fa457dfb9a8c1312043b471286b6226190b4503a969d32d971'
     const event = await railsGateway.getTransferSentEventFromTransactionHash({
       fromChainId,
       transactionHash
     })
+    console.log(event)
     expect(event).toBeDefined()
+    expect(event!.decoded).toBeDefined()
   })
   it.skip('TODO should get transfer sent event from transfer id', async () => {
     const fromChainId = 11155111

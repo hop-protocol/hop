@@ -263,8 +263,8 @@ export enum TransferState {
 export type TransferStatus = {
   state: TransferState
   transferId: string
-  transferSentEvent: TransferSent
-  transferBondedEvent: TransferBonded
+  transferSentEvent: EthersEventWithDecodedTypes<TransferSent>
+  transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded>
 }
 
 export type GetTransferSentEventFilterInput = {
@@ -1357,7 +1357,7 @@ export class RailsGateway extends StakingRegistry {
     return amountOut.mul(minBps).div(10000)
   }
 
-  async getTransferSentEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<TransferSent | null> {
+  async getTransferSentEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1377,7 +1377,7 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
-  async getTransferSentEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<TransferSent | null> {
+  async getTransferSentEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1400,7 +1400,7 @@ export class RailsGateway extends StakingRegistry {
     return this.getTransferSentEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getTransferSentEventFromTransferId ({ fromChainId, transferId }: GetTransferSentEventFromTransferIdInput): Promise<TransferSent> {
+  async getTransferSentEventFromTransferId ({ fromChainId, transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1425,7 +1425,7 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<TransferBonded | null> {
+  async getTransferBondedEventFromTransactionReceipt ({ fromChainId, receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1445,7 +1445,7 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
-  async getTransferBondedEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<TransferBonded | null> {
+  async getTransferBondedEventFromTransactionHash ({ fromChainId, transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1468,7 +1468,7 @@ export class RailsGateway extends StakingRegistry {
     return this.getTransferBondedEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getTransferBondedEventFromTransferId ({ fromChainId, transferId }: GetTransferBondedEventFromTransferIdInput): Promise<TransferBonded> {
+  async getTransferBondedEventFromTransferId ({ fromChainId, transferId }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded>> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1608,7 +1608,7 @@ export class RailsGateway extends StakingRegistry {
 
     return {
       state: transferState,
-      transferId: transferSentEvent?.transferId ?? '',
+      transferId: transferSentEvent?.decoded.transferId ?? '',
       transferSentEvent,
       transferBondedEvent
     }

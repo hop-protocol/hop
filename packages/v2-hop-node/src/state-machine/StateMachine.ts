@@ -130,9 +130,7 @@ export abstract class StateMachine<State extends string, StateData extends State
       const nextState = this.getTransitionState(state, value) as NextState<State>
       if (state === nextState) continue
 
-      this.logger.log('aaaaaaaaaaaaaa')
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
-      this.logger.log('bbbbbbbbbbbbbbb')
       if (!nextValue) continue
 
       await this.#transitionState(state, nextState, nextValue, key)

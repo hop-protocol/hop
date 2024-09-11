@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-describe.skip('HubConnector', () => {
+describe('HubConnector', () => {
   const hubConnector = new HubConnector({ network: 'mainnet' })
   it.skip('should populate the connectTargets transaction', async () => {
     const hubChainId = 1

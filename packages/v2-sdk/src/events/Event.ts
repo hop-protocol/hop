@@ -178,10 +178,15 @@ export class Event<T> {
     return getChainSlug(chainId)
   }
 
-  decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): T[] {
+  decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): EthersEventWithDecodedTypes<T>[] {
     const topic = this.getTopic0()
     return receipt.logs
       .filter(log => log.topics[0] === topic)
-      .map(log => this.toTypedEvent(log as EthersEvent))
+      .map(log => {
+        return {
+          ...log,
+          decoded: this.toTypedEvent(log as EthersEvent)
+        }
+      }) as EthersEventWithDecodedTypes<T>[]
   }
 }

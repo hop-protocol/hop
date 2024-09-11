@@ -7,7 +7,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('Messenger', () => {
+describe('Messenger', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -240,14 +240,118 @@ describe.skip('Messenger', () => {
     })
     expect(isSet).toBeDefined()
   })
-  it.skip('TODO should get MessageSent event from transaction receipt', async () => {
-    const chainId = 1
-    const receipt: any = {}
+  it('should get MessageSent event from transaction receipt', async () => {
+    const chainId = '11155111'
+    const receipt: any = {
+      "to": "0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A",
+      "from": "0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA",
+      "contractAddress": null,
+      "transactionIndex": 55,
+      "gasUsed": {
+        "type": "BigNumber",
+        "hex": "0x02cde4"
+      },
+      "logsBloom": "0x04000000840300000000000000000000000000000000000000000000000000040000002000000000100000000000000000000000000020000002000000200000000000000000000000000008001000000000000000800000000000000000200000000002000000000000008400000400000000000000000000000010000100000000800000020000000000000020000000000000100000000000000004000000020000010000000000000108040000400200000002000000000000000000000000000002000000000000000010000000000000000400000000000040004000020010000000008000000000000100400000000000008100008040000000000000",
+      "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f",
+      "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+      "logs": [
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A",
+          "topics": [
+            "0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627",
+            "0x5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6",
+            "0xd2b4de133dd9d0d38fb46e4c858e6c56aa3fb18fd7a738be80fae74604bf8947",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca"
+          ],
+          "data": "0x000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000001bc16d674ec800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "logIndex": 98,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981",
+          "topics": [
+            "0xcd767b5406b2f63d8e220a45e7163c272f174d25a5015149cbf47baed68ff7e4",
+            "0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a",
+            "0x0000000000000000000000000000000000000000000000000000000000014a34"
+          ],
+          "data": "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000044040aa57a5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6d2b4de133dd9d0d38fb46e4c858e6c56aa3fb18fd7a738be80fae74604bf894700000000000000000000000000000000000000000000000000000000",
+          "logIndex": 99,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981",
+          "topics": [
+            "0x3baa9ea6f10f788d3e1912fddcfa6831f4f9da67b643b348879a787102428ff1",
+            "0x4e17e0f8e5a658c99706752108d59951f0e3bea1258ae0cc27e4513e09be8d6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636"
+          ],
+          "data": "0x",
+          "logIndex": 100,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf",
+          "topics": [
+            "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a"
+          ],
+          "data": "0x0000000000000000000000000000000000000000000000055c8362015e220000",
+          "logIndex": 101,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf",
+          "topics": [
+            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a"
+          ],
+          "data": "0x000000000000000000000000000000000000000000000000016345785d8a0000",
+          "logIndex": 102,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        }
+      ],
+      "blockNumber": 6664679,
+      "confirmations": 6135,
+      "cumulativeGasUsed": {
+        "type": "BigNumber",
+        "hex": "0x6fb021"
+      },
+      "effectiveGasPrice": {
+        "type": "BigNumber",
+        "hex": "0xd86107aa"
+      },
+      "status": 1,
+      "type": 2,
+      "byzantium": true
+    }
+
     const event = await messenger.getMessageSentEventFromTransactionReceipt({
       chainId,
       receipt
     })
+    console.log(event)
     expect(event).toBeDefined()
+    expect(event!.logIndex).toBeDefined()
+    expect(event!.decoded).toBeDefined()
   })
   it.skip('TODO should get MessageSent event from transaction hash', async () => {
     const chainId = 1
@@ -267,14 +371,17 @@ describe.skip('Messenger', () => {
     })
     expect(event).toBeDefined()
   })
-  it.skip('TODO should get MessageSent event from messageId', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
+  it('should get MessageSent event from messageId', async () => {
+    const chainId = '11155111'
+    const messageId = '0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636'
     const event = await messenger.getMessageSentEventFromMessageId({
       chainId,
       messageId
     })
+    console.log(event)
     expect(event).toBeDefined()
+    expect(event!.decoded).toBeDefined()
+    expect(event!.topics).toBeDefined()
   })
   it.skip('TODO should get MessageExecuted event from messageId', async () => {
     const chainId = 1

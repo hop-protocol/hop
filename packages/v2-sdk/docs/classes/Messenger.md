@@ -332,7 +332,7 @@ ___
 
 ### <a id="getbundlecommittedevents" name="getbundlecommittedevents"></a> getBundleCommittedEvents
 
-▸ **getBundleCommittedEvents**(`«destructured»`): `Promise`\<`BundleCommitted`[]\>
+▸ **getBundleCommittedEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`BundleCommitted`\>[]\>
 
 #### Parameters
 
@@ -342,13 +342,13 @@ ___
 
 #### Returns
 
-`Promise`\<`BundleCommitted`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`BundleCommitted`\>[]\>
 
 ___
 
 ### <a id="getbundleforwardedevents" name="getbundleforwardedevents"></a> getBundleForwardedEvents
 
-▸ **getBundleForwardedEvents**(`«destructured»`): `Promise`\<`BundleForwarded`[]\>
+▸ **getBundleForwardedEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`BundleForwarded`\>[]\>
 
 #### Parameters
 
@@ -358,7 +358,7 @@ ___
 
 #### Returns
 
-`Promise`\<`BundleForwarded`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`BundleForwarded`\>[]\>
 
 ___
 
@@ -396,7 +396,7 @@ ___
 
 ### <a id="getbundlereceivedevents" name="getbundlereceivedevents"></a> getBundleReceivedEvents
 
-▸ **getBundleReceivedEvents**(`«destructured»`): `Promise`\<`BundleReceived`[]\>
+▸ **getBundleReceivedEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`BundleReceived`\>[]\>
 
 #### Parameters
 
@@ -406,13 +406,13 @@ ___
 
 #### Returns
 
-`Promise`\<`BundleReceived`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`BundleReceived`\>[]\>
 
 ___
 
 ### <a id="getbundlesetevents" name="getbundlesetevents"></a> getBundleSetEvents
 
-▸ **getBundleSetEvents**(`«destructured»`): `Promise`\<`BundleSet`[]\>
+▸ **getBundleSetEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`BundleSet`\>[]\>
 
 #### Parameters
 
@@ -422,7 +422,7 @@ ___
 
 #### Returns
 
-`Promise`\<`BundleSet`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`BundleSet`\>[]\>
 
 ___
 
@@ -637,7 +637,7 @@ ___
 
 ### <a id="getfeessenttohubevents" name="getfeessenttohubevents"></a> getFeesSentToHubEvents
 
-▸ **getFeesSentToHubEvents**(`«destructured»`): `Promise`\<`FeesSentToHub`[]\>
+▸ **getFeesSentToHubEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`FeesSentToHub`\>[]\>
 
 #### Parameters
 
@@ -647,7 +647,7 @@ ___
 
 #### Returns
 
-`Promise`\<`FeesSentToHub`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`FeesSentToHub`\>[]\>
 
 ___
 
@@ -797,7 +797,7 @@ ___
 
 ### <a id="getmessagebundledeventfrommessageid" name="getmessagebundledeventfrommessageid"></a> getMessageBundledEventFromMessageId
 
-▸ **getMessageBundledEventFromMessageId**(`«destructured»`): `Promise`\<``null`` \| `MessageBundled`\>
+▸ **getMessageBundledEventFromMessageId**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageBundled`\>\>
 
 #### Parameters
 
@@ -807,13 +807,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageBundled`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageBundled`\>\>
 
 ___
 
 ### <a id="getmessagebundledeventfromtransactionhash" name="getmessagebundledeventfromtransactionhash"></a> getMessageBundledEventFromTransactionHash
 
-▸ **getMessageBundledEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `MessageBundled`\>
+▸ **getMessageBundledEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageBundled`\>\>
 
 #### Parameters
 
@@ -823,13 +823,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageBundled`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageBundled`\>\>
 
 ___
 
 ### <a id="getmessagebundledevents" name="getmessagebundledevents"></a> getMessageBundledEvents
 
-▸ **getMessageBundledEvents**(`«destructured»`): `Promise`\<`MessageBundled`[]\>
+▸ **getMessageBundledEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`MessageBundled`\>[]\>
 
 #### Parameters
 
@@ -839,13 +839,13 @@ ___
 
 #### Returns
 
-`Promise`\<`MessageBundled`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`MessageBundled`\>[]\>
 
 ___
 
 ### <a id="getmessagebundledeventsforbundleid" name="getmessagebundledeventsforbundleid"></a> getMessageBundledEventsForBundleId
 
-▸ **getMessageBundledEventsForBundleId**(`«destructured»`): `Promise`\<`MessageBundled`[]\>
+▸ **getMessageBundledEventsForBundleId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`MessageBundled`\>[]\>
 
 #### Parameters
 
@@ -855,7 +855,7 @@ ___
 
 #### Returns
 
-`Promise`\<`MessageBundled`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`MessageBundled`\>[]\>
 
 ___
 
@@ -877,7 +877,7 @@ ___
 
 ### <a id="getmessageexecutedeventfrommessageid" name="getmessageexecutedeventfrommessageid"></a> getMessageExecutedEventFromMessageId
 
-▸ **getMessageExecutedEventFromMessageId**(`«destructured»`): `Promise`\<``null`` \| `MessageExecuted`\>
+▸ **getMessageExecutedEventFromMessageId**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageExecuted`\>\>
 
 #### Parameters
 
@@ -887,13 +887,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageExecuted`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageExecuted`\>\>
 
 ___
 
 ### <a id="getmessageexecutedevents" name="getmessageexecutedevents"></a> getMessageExecutedEvents
 
-▸ **getMessageExecutedEvents**(`«destructured»`): `Promise`\<`MessageExecuted`[]\>
+▸ **getMessageExecutedEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`MessageExecuted`\>[]\>
 
 #### Parameters
 
@@ -903,7 +903,7 @@ ___
 
 #### Returns
 
-`Promise`\<`MessageExecuted`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`MessageExecuted`\>[]\>
 
 ___
 
@@ -973,7 +973,7 @@ ___
 
 ### <a id="getmessagesenteventfromtransactionhash" name="getmessagesenteventfromtransactionhash"></a> getMessageSentEventFromTransactionHash
 
-▸ **getMessageSentEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `MessageSent`\>
+▸ **getMessageSentEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 #### Parameters
 
@@ -983,13 +983,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageSent`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 ___
 
 ### <a id="getmessagesenteventfromtransactionreceipt" name="getmessagesenteventfromtransactionreceipt"></a> getMessageSentEventFromTransactionReceipt
 
-▸ **getMessageSentEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `MessageSent`\>
+▸ **getMessageSentEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 #### Parameters
 
@@ -999,13 +999,13 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageSent`\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>\>
 
 ___
 
 ### <a id="getmessagesentevents" name="getmessagesentevents"></a> getMessageSentEvents
 
-▸ **getMessageSentEvents**(`«destructured»`): `Promise`\<`MessageSent`[]\>
+▸ **getMessageSentEvents**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`MessageSent`\>[]\>
 
 #### Parameters
 
@@ -1015,13 +1015,13 @@ ___
 
 #### Returns
 
-`Promise`\<`MessageSent`[]\>
+`Promise`\<`EthersEventWithDecodedTypes`\<`MessageSent`\>[]\>
 
 ___
 
 ### <a id="getmessagesenteventsfromtransactionreceipt" name="getmessagesenteventsfromtransactionreceipt"></a> getMessageSentEventsFromTransactionReceipt
 
-▸ **getMessageSentEventsFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `MessageSent`[]\>
+▸ **getMessageSentEventsFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>[]\>
 
 #### Parameters
 
@@ -1031,7 +1031,7 @@ ___
 
 #### Returns
 
-`Promise`\<``null`` \| `MessageSent`[]\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`MessageSent`\>[]\>
 
 ___
 

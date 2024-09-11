@@ -9,7 +9,7 @@ const { parseUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
-describe.only('Sdk e2e', () => {
+describe('Sdk e2e', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)

@@ -9,7 +9,7 @@ dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
-describe.skip('RailsGateway', () => {
+describe('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
@@ -215,6 +215,10 @@ describe.skip('RailsGateway', () => {
       maxTotalSent: '0',
       attestedClaimId: '0xTODO'
     }]
+    const fee = await railsGateway.getFee({
+      chainId,
+      pathId
+    })
     const txData = await railsGateway.populateTransaction.send({
       chainId,
       pathId,
@@ -222,7 +226,8 @@ describe.skip('RailsGateway', () => {
       amount,
       attestedClaimId,
       maxTotalSent,
-      nextHops
+      nextHops,
+      fee
     })
     console.log(txData)
     expect(txData).toBeDefined()
@@ -231,6 +236,7 @@ describe.skip('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xTODO'
+    const amount = parseUnits('1', 18)
     const nextHops = [{
       pathId,
       maxTotalSent: '0',
@@ -240,6 +246,7 @@ describe.skip('RailsGateway', () => {
       chainId,
       pathId,
       transferId,
+      amount,
       nextHops
     })
     console.log(txData)

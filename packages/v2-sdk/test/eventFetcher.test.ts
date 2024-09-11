@@ -6,7 +6,7 @@ const { getAddress: checksumAddress } = utils
 
 dotenv.config()
 
-describe.skip('EventFetcher', () => {
+describe('EventFetcher', () => {
   const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://1rpc.io/eth'
   console.log('rpcUrl:', rpcUrl)
 

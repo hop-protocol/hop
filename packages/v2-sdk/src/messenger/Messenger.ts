@@ -329,7 +329,7 @@ export class Messenger extends Base {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  async getBundleCommittedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<BundleCommitted[]> {
+  async getBundleCommittedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleCommitted>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -354,7 +354,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getBundleForwardedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<BundleForwarded[]> {
+  async getBundleForwardedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleForwarded>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -379,7 +379,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getBundleReceivedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<BundleReceived[]> {
+  async getBundleReceivedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleReceived>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -404,7 +404,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getBundleSetEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<BundleSet[]> {
+  async getBundleSetEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleSet>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -429,7 +429,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getFeesSentToHubEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<FeesSentToHub[]> {
+  async getFeesSentToHubEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<FeesSentToHub>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -454,7 +454,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getMessageBundledEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<MessageBundled[]> {
+  async getMessageBundledEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageBundled>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -479,7 +479,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getMessageExecutedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<MessageExecuted[]> {
+  async getMessageExecutedEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageExecuted>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -504,7 +504,7 @@ export class Messenger extends Base {
     return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
-  async getMessageSentEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<MessageSent[]> {
+  async getMessageSentEvents ({ chainId, fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageSent>[]> {
     if (!chainId) {
       throw new InputError('chainId is required')
     }
@@ -971,7 +971,7 @@ export class Messenger extends Base {
     }
   }
 
-  async getMessageSentEventsFromTransactionReceipt ({ chainId, receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<MessageSent[] | null> {
+  async getMessageSentEventsFromTransactionReceipt ({ chainId, receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<MessageSent>[] | null> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -994,12 +994,12 @@ export class Messenger extends Base {
     return eventFetcher.decodeEventsFromTransactionReceipt(receipt)
   }
 
-  async getMessageSentEventFromTransactionReceipt ({ chainId, receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<MessageSent | null> {
+  async getMessageSentEventFromTransactionReceipt ({ chainId, receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<MessageSent> | null> {
     const events = await this.getMessageSentEventsFromTransactionReceipt({ chainId, receipt })
     return events?.[0] ?? null
   }
 
-  async getMessageSentEventFromTransactionHash ({ chainId, transactionHash }: GetMessageSentEventFromTransactionHashInput): Promise<MessageSent | null> {
+  async getMessageSentEventFromTransactionHash ({ chainId, transactionHash }: GetMessageSentEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<MessageSent> | null> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1021,7 +1021,7 @@ export class Messenger extends Base {
     return this.getMessageSentEventFromTransactionReceipt({ chainId, receipt })
   }
 
-  async getMessageBundledEventFromMessageId ({ chainId, messageId }: GetMessageBundledEventFromMessageIdInput): Promise<MessageBundled | null> {
+  async getMessageBundledEventFromMessageId ({ chainId, messageId }: GetMessageBundledEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageBundled> | null> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1074,7 +1074,7 @@ export class Messenger extends Base {
   }
 
   // note: this is broken because messageId is not indexed in event
-  async getMessageExecutedEventFromMessageId ({ chainId, messageId }: GetMessageExecutedEventFromMessageIdInput): Promise<MessageExecuted | null>{
+  async getMessageExecutedEventFromMessageId ({ chainId, messageId }: GetMessageExecutedEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageExecuted> | null>{
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1100,7 +1100,7 @@ export class Messenger extends Base {
     return events?.[0] ?? null
   }
 
-  async getMessageBundledEventFromTransactionHash ({ chainId, transactionHash }: GetMessageBundledEventFromTransactionHashInput): Promise<MessageBundled | null> {
+  async getMessageBundledEventFromTransactionHash ({ chainId, transactionHash }: GetMessageBundledEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<MessageBundled> | null> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1146,7 +1146,7 @@ export class Messenger extends Base {
       throw new CustomError('event not found for transaction hash')
     }
 
-    return event.messageId
+    return event.decoded.messageId
   }
 
   async getMessageBundleIdFromMessageId ({ chainId, messageId }: GetMessageBundleIdFromMessageIdInput): Promise<string> {
@@ -1163,7 +1163,7 @@ export class Messenger extends Base {
       throw new CustomError('event not found for messageId')
     }
 
-    return event.bundleId
+    return event.decoded.bundleId
   }
 
   async getMessageBundleIdFromTransactionHash ({ chainId, transactionHash }: GetMessageBundleIdFromTransactionHashInput): Promise<string> {
@@ -1180,7 +1180,7 @@ export class Messenger extends Base {
       throw new CustomError('event not found for transaction hash')
     }
 
-    return event.bundleId
+    return event.decoded.bundleId
   }
 
   async getMessageTreeIndexFromMessageId ({ chainId, messageId }: GetMessageTreeIndexFromMessageIdInput): Promise<number> {
@@ -1197,7 +1197,7 @@ export class Messenger extends Base {
       throw new CustomError('event not found for messageId')
     }
 
-    return event.treeIndex
+    return event.decoded.treeIndex
   }
 
   async getMessageTreeIndexFromTransactionHash ({ chainId, transactionHash }: GetMessageTreeIndexFromTransactionHashInput): Promise<number> {
@@ -1214,10 +1214,10 @@ export class Messenger extends Base {
       throw new CustomError('event not found for transaction hash')
     }
 
-    return event.treeIndex
+    return event.decoded.treeIndex
   }
 
-  async getMessageBundledEventsForBundleId ({ chainId, bundleId }: GetMessageBundledEventsForBundleIdInput): Promise<MessageBundled[]> {
+  async getMessageBundledEventsForBundleId ({ chainId, bundleId }: GetMessageBundledEventsForBundleIdInput): Promise<EthersEventWithDecodedTypes<MessageBundled>[]> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1249,7 +1249,7 @@ export class Messenger extends Base {
     }
 
     const messageEvents = await this.getMessageBundledEventsForBundleId({ chainId, bundleId })
-    const messageIds = messageEvents.map(item => item.messageId)
+    const messageIds = messageEvents.map(event => event.decoded.messageId)
     return messageIds
   }
 
@@ -1293,7 +1293,7 @@ export class Messenger extends Base {
       throw new CustomError(`MessageBundled event not found for messageId "${messageId}"`)
     }
 
-    const { treeIndex, bundleId } = event
+    const { treeIndex, bundleId } = event.decoded
     const messageIds = await this.getMessageIdsForBundleId({ chainId, bundleId })
     const siblings = await this.getMerkleProofForMessageId({ messageIds, targetMessageId: messageId })
     const totalLeaves = messageIds.length
@@ -1326,7 +1326,7 @@ export class Messenger extends Base {
       throw new CustomError(`MessageBundled event not found for transaction hash "${transactionHash}"`)
     }
 
-    const { treeIndex, bundleId } = messageBundledEvent
+    const { treeIndex, bundleId } = messageBundledEvent.decoded
     const targetMessageId = await this.getMessageIdFromTransactionHash({ chainId, transactionHash })
     const messageIds = await this.getMessageIdsForBundleId({ chainId, bundleId })
     const siblings = await this.getMerkleProofForMessageId({ messageIds, targetMessageId })
@@ -1362,10 +1362,10 @@ export class Messenger extends Base {
 
     return {
       fromChainId: chainId,
-      toAddress: event.to,
-      fromAddress: event.from,
-      toCalldata: event.data,
-      toChainId: event.toChainId,
+      toAddress: event.decoded.to,
+      fromAddress: event.decoded.from,
+      toCalldata: event.decoded.data,
+      toChainId: event.decoded.toChainId,
       bundleProof,
     }
   }

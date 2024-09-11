@@ -58,6 +58,18 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
     return CCTPSDK.addDecodedTypesAndContextToEvent(log, chainId)
   }
 
+  // NOTE: This only exists here since some CCTP logs can be sent to unsupported chains. This will
+  // likely not exist in most implementations. See the comment in the abstract class.
+  protected override filterIrrelevantLog(log: DecodedLogWithContext): boolean {
+    const sourceDomain: string | undefined = (log.decoded as any)?.sourceDomain
+    if (!sourceDomain) return true
+
+    const enabledDomains = CCTPSDK.getEnabledDomains()
+    if (!enabledDomains.includes(Number(sourceDomain))) return false
+
+    return true
+  }
+
   /**
    * Internal
    */

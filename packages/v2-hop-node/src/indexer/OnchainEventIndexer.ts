@@ -115,6 +115,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
 
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexedEvent)
+      this.logger.info(`Initialized and synced indexer for chainId ${chainId} and filterId ${filterId}`)
     })
     await Promise.all(promises)
 

@@ -85,17 +85,18 @@ export abstract class StateMachine<State extends string, StateData extends State
    */
 
   #initListeners (): void {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.#dataAdapter.on(DATA_PROCESSED_EVENT, this.#handleDataProcessedEvent)
+    this.#dataAdapter.on(DATA_PROCESSED_EVENT, (state: State, value: StateData) => {
+      this.#handleDataProcessedEvent(state, value).catch(err => { process.exit(1) })
+    })
     this.#dataAdapter.on('error', () => { throw new Error('State machine error') })
   }
 
   #handleDataProcessedEvent = async (state: State, value: StateData): Promise<void> => {
     try {
-      return await this.#initializeItem(state, value)
+      await this.#initializeItem(state, value)
     } catch (err) {
       this.logger.error('Error handling data processed event', err)
-      process.exit(1)
+      throw new Error('State machine error')
     }
   }
 
@@ -129,7 +130,9 @@ export abstract class StateMachine<State extends string, StateData extends State
       const nextState = this.getTransitionState(state, value) as NextState<State>
       if (state === nextState) continue
 
+      this.logger.log('aaaaaaaaaaaaaa')
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
+      this.logger.log('bbbbbbbbbbbbbbb')
       if (!nextValue) continue
 
       await this.#transitionState(state, nextState, nextValue, key)

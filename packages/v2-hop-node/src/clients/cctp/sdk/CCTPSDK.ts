@@ -257,6 +257,11 @@ export class CCTPSDK {
   }
 
   static getChainIdFromDomain (domain: string): string {
+    console.log('CCTP_DOMAIN_TO_CHAIN_ID_MAP', CCTP_DOMAIN_TO_CHAIN_ID_MAP)
+    console.log('SignerConfig.network', SignerConfig.network)
+    console.log('Number(domain)', Number(domain))
+    console.log('CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]', CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug])
+    console.log('CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]![Number(domain)]', CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]![Number(domain)])
     return (CCTP_DOMAIN_TO_CHAIN_ID_MAP[SignerConfig.network as NetworkSlug]![Number(domain)]!).toString()
   }
 

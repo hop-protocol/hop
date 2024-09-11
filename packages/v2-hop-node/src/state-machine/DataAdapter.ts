@@ -55,18 +55,24 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
    */
 
   #initListeners = (): void => {
-    this.#dataSource.on(DATA_PROCESSED_EVENT, this.#handleDataProcessedEvent)
-    this.#dataSource.on('error', () => { throw new Error('Data adapter error') })
+    this.#dataSource.on(DATA_PROCESSED_EVENT, (inputData: DecodedLogWithContext) => {
+      this.#handleDataProcessedEvent(inputData).catch(err => { process.exit(1) })
+    })
+
+    this.#dataSource.on('error', (err) => {
+      console.error('Data adapter error', err)
+      process.exit(1)
+    })
   }
 
-  #handleDataProcessedEvent = (inputData: DecodedLogWithContext): void => {
+  #handleDataProcessedEvent = async (inputData: DecodedLogWithContext): Promise<void> => {
     try {
       const state = this.getStateFromEventName(inputData.context.eventName)
-      const formattedInputData = this.#toStateMachine(inputData)
+      const formattedInputData = await this.#toStateMachine(inputData)
       this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)
     } catch (err) {
       this.logger.error('Error handling data processed event', err)
-      process.exit(1)
+      throw new Error('Data adapter error')
     }
   }
 

@@ -1,5 +1,10 @@
 const errorPrefix = 'HopV2Sdk: '
 
+export interface ErrorWithCode {
+  code: number
+  message: string
+}
+
 export class CustomError extends Error {
   constructor(message: string) {
     super(`${errorPrefix}${message}`)

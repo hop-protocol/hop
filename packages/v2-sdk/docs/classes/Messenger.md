@@ -105,6 +105,7 @@
 - [setChainRpcProviderUrls](Messenger.md#setchainrpcproviderurls)
 - [setChainRpcProviders](Messenger.md#setchainrpcproviders)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
+- [throwError](Messenger.md#throwerror)
 
 ## Constructors
 
@@ -1515,3 +1516,23 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="throwerror" name="throwerror"></a> throwError
+
+▸ **throwError**(`err`): `unknown`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `err` | `unknown` |
+
+#### Returns
+
+`unknown`
+
+#### Inherited from
+
+Base.throwError

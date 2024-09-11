@@ -563,9 +563,14 @@ export class Messenger extends Base {
     }
 
     const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
-    const exitTime = await hubMessageBridge.getSpokeExitTime(fromChainId)
-    const exitTimeSeconds = Number(exitTime.toString())
-    return exitTimeSeconds
+
+    try {
+      const exitTime = await hubMessageBridge.getSpokeExitTime(fromChainId)
+      const exitTimeSeconds = Number(exitTime.toString())
+      return exitTimeSeconds
+    } catch (err: unknown) {
+      return this.throwError(err) as number
+    }
   }
 
   // relayReward = (block.timestamp - relayWindowStart) * feesCollected / relayWindow
@@ -886,11 +891,16 @@ export class Messenger extends Base {
     const provider = this.getRpcProviderForChainId(fromChainId)
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
-    const routeData = await spokeMessageBridge.routeData(toChainId)
 
-    return {
-      messageFee: routeData.messageFee,
-      maxBundleMessages: Number(routeData.maxBundleMessages.toString())
+    try {
+      const routeData = await spokeMessageBridge.routeData(toChainId)
+
+      return {
+        messageFee: routeData.messageFee,
+        maxBundleMessages: Number(routeData.maxBundleMessages.toString())
+      }
+    } catch (err: unknown) {
+      return this.throwError(err) as RouteData
     }
   }
 
@@ -948,12 +958,17 @@ export class Messenger extends Base {
     }
 
     const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
-    const entity = await hubMessageBridge.bundles(bundleId)
-    if (!entity) {
-      return false
-    }
 
-    return BigNumber.from(entity.root).gt(0) && Number(entity.fromChainId.toString()) === fromChainId
+    try {
+      const entity = await hubMessageBridge.bundles(bundleId)
+      if (!entity) {
+        return false
+      }
+
+      return BigNumber.from(entity.root).gt(0) && Number(entity.fromChainId.toString()) === fromChainId
+    } catch (err: unknown) {
+      return this.throwError(err) as boolean
+    }
   }
 
   async getMessageSentEventsFromTransactionReceipt ({ chainId, receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<MessageSent[] | null> {

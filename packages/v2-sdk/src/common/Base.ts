@@ -4,7 +4,7 @@ import { addresses } from '#addresses/index.js'
 import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
-import { ContractFunctionRevertedError } from '#error/index.js'
+import { ContractFunctionRevertedError, ErrorWithCode } from '#error/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -313,12 +313,8 @@ export class Base {
     try {
       const tx = await signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
       return tx
-    } catch (err) {
-      if (this.utils.isContractError(err)) {
-        throw new ContractFunctionRevertedError(err.message)
-      }
-
-      throw err
+    } catch (err: unknown) {
+      return this.throwError(err) as providers.TransactionResponse
     }
   }
 
@@ -411,7 +407,7 @@ export class Base {
             return false
           }
           return true
-        } catch (err) {
+        } catch (err: unknown) {
           return false
         }
       },
@@ -446,7 +442,7 @@ export class Base {
         try {
           await this.utils.estimateGas(provider, tx)
           return false
-        } catch (err) {
+        } catch (err: unknown) {
           console.error('hopV2Sdk: willTransactionFail error', err)
           return true
         }
@@ -539,8 +535,8 @@ export class Base {
           }
 
           await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainIdHex }]) // TODO: type
-        } catch (err) {
-          if (err.code === 4902) {
+        } catch (err: unknown) {
+          if ((err as ErrorWithCode).code === 4902) {
             const chains = getNetwork(this.network as NetworkSlug).chains
             const chain = (chains as any)[this.utils.getChainSlug(chainId)]
             if (chain) {
@@ -565,5 +561,13 @@ export class Base {
         }
       }
     }
+  }
+
+  throwError (err: unknown): unknown {
+    if (this.utils.isContractError(err)) {
+      throw new ContractFunctionRevertedError((err as Error).message)
+    }
+
+    throw err
   }
 }

@@ -1,1 +1,9 @@
-export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from './types.js'
+export {
+  ErrorWithCode,
+  CustomError,
+  ConfigError,
+  InputError,
+  InsufficientBalanceError,
+  InsufficientApprovalError,
+  ContractFunctionRevertedError
+} from './types.js'

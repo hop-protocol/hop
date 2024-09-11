@@ -74,6 +74,7 @@
 - [setChainRpcProviders](Hop.md#setchainrpcproviders)
 - [setContractAddresses](Hop.md#setcontractaddresses)
 - [switchChain](Hop.md#switchchain)
+- [throwError](Hop.md#throwerror)
 
 ## Constructors
 
@@ -959,3 +960,23 @@ ___
 #### Returns
 
 `Promise`\<`void`\>
+
+___
+
+### <a id="throwerror" name="throwerror"></a> throwError
+
+▸ **throwError**(`err`): `unknown`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `err` | `unknown` |
+
+#### Returns
+
+`unknown`
+
+#### Inherited from
+
+Base.throwError

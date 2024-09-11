@@ -128,6 +128,7 @@
 - [setChainRpcProviders](RailsGateway.md#setchainrpcproviders)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
 - [stakeHop](RailsGateway.md#stakehop)
+- [throwError](RailsGateway.md#throwerror)
 - [unstakeHop](RailsGateway.md#unstakehop)
 - [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
@@ -2040,6 +2041,26 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="throwerror" name="throwerror"></a> throwError
+
+▸ **throwError**(`err`): `unknown`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `err` | `unknown` |
+
+#### Returns
+
+`unknown`
+
+#### Inherited from
+
+StakingRegistry.throwError
 
 ___
 

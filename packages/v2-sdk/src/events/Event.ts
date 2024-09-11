@@ -168,7 +168,7 @@ export class Event<T> {
         blockNumber,
         ...fetchedTxData
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('hopV2Sdk: getEventContext error:', err, chainId, event)
       throw err
     }

@@ -5,7 +5,7 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
-import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
+import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
 
@@ -536,7 +536,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId0)
-    return contract.getPathId(chainId0, token0, chainId1, token1)
+
+    try {
+      const pathId = await contract.getPathId(chainId0, token0, chainId1, token1)
+      return pathId
+    } catch (err: unknown) {
+      return this.throwError(err) as string
+    }
   }
 
   async getPathInfo ({ chainId, pathId }: GetPathInfoInput): Promise<Path> {
@@ -577,7 +583,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getFee(pathId)
+
+    try {
+      const fee = await contract.getFee(pathId)
+      return fee
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
   }
 
   get populateTransaction() {
@@ -1217,7 +1229,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract['getWithdrawableBalance(bytes32,address,uint256)'](pathId, recipient, timeWindow)
+
+    try {
+      const balance = await contract['getWithdrawableBalance(bytes32,address,uint256)'](pathId, recipient, timeWindow)
+      return balance
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
   }
 
   async getTransferId ({ chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint }: GetTransferIdInput): Promise<string> {
@@ -1258,7 +1276,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
+
+    try {
+      const transferId = await contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
+      return transferId
+    } catch (err: unknown) {
+      return this.throwError(err) as string
+    }
   }
 
   async getHopTokenAddress (chainId: BigNumberish): Promise<string> {
@@ -1276,7 +1300,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.minBonderStake()
+
+    try {
+      const minStake = await contract.minBonderStake()
+      return minStake
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
   }
 
   async getHopBalance (chainId: BigNumberish, address?: string | null): Promise<BigNumber> {
@@ -1290,8 +1320,15 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new InputError('Address not set')
     }
+
     const contract = await this.getHopTokenContract(chainId)
-    return contract.balanceOf(address)
+
+    try {
+      const hopBalance = await contract.balanceOf(address)
+      return hopBalance
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
   }
 
   async getHopTokenContract (chainId: BigNumberish): Promise<Contract> {
@@ -1587,9 +1624,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    const valid = await contract.isClaimValid(pathId, claimId)
 
-    return valid
+    try {
+      const valid = await contract.isClaimValid(pathId, claimId)
+      return valid
+    } catch (err: unknown) {
+      return this.throwError(err) as boolean
+    }
   }
 
   async getTotalSent ({ chainId, pathId }: GetTotalSentInput): Promise<BigNumber> {
@@ -1602,7 +1643,13 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getTotalSent(pathId)
+
+    try {
+      const totalSent = await contract.getTotalSent(pathId)
+      return totalSent
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
   }
 
   async getIsTransferBonded ({ chainId, transferId }: GetIsTransferBondedInput): Promise<boolean> {
@@ -1641,15 +1688,20 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    const pathInfoArray = await contract.getPathInfo(pathId)
 
-    const pathChainId = pathInfoArray[0].toString()
-    const pathToken = pathInfoArray[1]
-    const counterpartChainId = pathInfoArray[2].toString()
-    const counterpartToken = checksumAddress(pathInfoArray[3])
+    try {
+      const pathInfoArray = await contract.getPathInfo(pathId)
 
-    if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
-      return true
+      const pathChainId = pathInfoArray[0].toString()
+      const pathToken = pathInfoArray[1]
+      const counterpartChainId = pathInfoArray[2].toString()
+      const counterpartToken = checksumAddress(pathInfoArray[3])
+
+      if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
+        return true
+      }
+    } catch (err: unknown) {
+      return this.throwError(err) as boolean
     }
 
     return false

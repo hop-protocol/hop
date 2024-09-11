@@ -58,6 +58,7 @@
 - [setChainRpcProviderUrls](HubConnector.md#setchainrpcproviderurls)
 - [setChainRpcProviders](HubConnector.md#setchainrpcproviders)
 - [setContractAddresses](HubConnector.md#setcontractaddresses)
+- [throwError](HubConnector.md#throwerror)
 
 ## Constructors
 
@@ -734,3 +735,23 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="throwerror" name="throwerror"></a> throwError
+
+▸ **throwError**(`err`): `unknown`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `err` | `unknown` |
+
+#### Returns
+
+`unknown`
+
+#### Inherited from
+
+Base.throwError

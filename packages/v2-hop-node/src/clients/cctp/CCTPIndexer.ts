@@ -9,9 +9,9 @@ import {
 } from './sdk/CCTPSDK.js'
 
 // TODO: I believe this should be union, not intersection
-type CCTPIndexerKey = keyof (HopCCTPTransferSentDecodedWithMessage & HopCCTPTransferReceivedDecoded)
+type CCTPEventIndex = keyof (HopCCTPTransferSentDecodedWithMessage & HopCCTPTransferReceivedDecoded)
 
-export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerKey> {
+export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventIndex> {
 
   constructor(dbName: string, chainIds: string[]) {
     super(dbName)
@@ -19,7 +19,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
     for (const chainId of chainIds) {
       for (const eventName of Object.values(CCTPEventName)) {
         const filter = this.#getEventFilter(chainId, eventName)
-        this.addIndexerEventFilter(eventName, chainId, filter)
+        this.addEventFilterToIndexer(eventName, chainId, filter)
       }
     }
   }
@@ -39,7 +39,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
     }
   }
 
-  protected override getIndexerKeys (eventName: CCTPEventName): CCTPIndexerKey[] {
+  protected override getDesiredEventIndexes (eventName: CCTPEventName): CCTPEventIndex[] {
     switch (eventName) {
       case CCTPEventName.CCTPTransferSent:
         return ['cctpNonce', 'chainId']

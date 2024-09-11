@@ -18,7 +18,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
       case RailsEventName.TransferBonded:
         return RailsTransferState.Bonded
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 

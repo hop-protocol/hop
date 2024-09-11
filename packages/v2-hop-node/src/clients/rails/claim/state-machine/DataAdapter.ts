@@ -22,7 +22,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
       case RailsEventName.ClaimConfirmed:
         return RailsClaimState.Confirmed
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 

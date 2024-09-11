@@ -65,7 +65,11 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     #initListeners = (): void => {
       // https://github.com/Level/levelup?tab=readme-ov-file#events
-      this.on('batch', (operations: any[]) => {
+      this.on('batch', this.#handleBatchOperation)
+    }
+
+    #handleBatchOperation = (operations: any[]): void => {
+      try {
         for (const op of operations) {
           // Only emit put events
           if (op.type !== 'put') continue
@@ -80,7 +84,10 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
           this.emit(DATA_INDEXED_EVENT, op.value)
         }
-      })
+      } catch (err) {
+        this.logger.error('Error handling batch operation', err)
+        process.exit(1)
+      }
     }
 
   /**

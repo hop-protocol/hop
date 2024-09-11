@@ -35,7 +35,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
       case CCTPEventName.MessageReceived:
         return CCTPSDK.getMessageReceivedEventFilter(chainId)
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${String(eventName)}`)
     }
   }
 
@@ -46,7 +46,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
       case CCTPEventName.MessageReceived:
         return ['nonce', 'sourceDomain']
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${String(eventName)}`)
     }
   }
 
@@ -69,7 +69,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPIndexerK
       case CCTPEventName.MessageReceived:
         return CCTPSDK.getMessageReceivedEventFilter(chainId)
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${String(eventName)}`)
     }
   }
 }

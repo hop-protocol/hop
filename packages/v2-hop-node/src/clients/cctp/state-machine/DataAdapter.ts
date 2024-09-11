@@ -29,7 +29,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
         // TODO: Fix this when abstract class return type is fixed
         return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>) as unknown as ICCTPMessage
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
@@ -40,7 +40,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
       case CCTPEventName.MessageReceived:
         return CCTPMessageState.Relayed
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
@@ -59,7 +59,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
    * Internal
    */
 
-  async #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): Promise<ISentCCTPMessageWithoutContext> {
+  #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): ISentCCTPMessageWithoutContext {
     const { context, decoded } = log
     const { chainId } = context
     const { message, cctpNonce, chainId: destinationChainId } = decoded
@@ -72,7 +72,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
-  async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedCCTPMessageWithoutContext> {
+  #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): IRelayedCCTPMessageWithoutContext {
     const { decoded, context } = log
     const { nonce, sourceDomain } = decoded
 

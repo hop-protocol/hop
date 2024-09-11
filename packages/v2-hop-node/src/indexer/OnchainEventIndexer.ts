@@ -80,7 +80,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
     })
   }
 
-  // TODO: This method should aggregate multiple filters instead of the concrete implementation.
+  // TODO: Optimize: This method should aggregate multiple filters instead of the concrete implementation.
   // It is currently too tightly coupled with eventName and chainId, which has redundant state
   // and is dangerous to maintain due to mismatched state.
   protected addIndexerEventFilter (eventName: EventName, chainId: string, indexerEventFilter: RequiredEventFilter): void {
@@ -135,12 +135,21 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
    */
 
   #initListeners(): void {
-    this.#db.on(DATA_INDEXED_EVENT, (data: any) => this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data))
+    this.#db.on(DATA_INDEXED_EVENT, this.#handleDataIndexedEvent)
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
     this.#eventEmitter.on(event, listener)
+  }
+
+  #handleDataIndexedEvent = (data: DecodedLogWithContext): void => {
+    try {
+      this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data)
+    } catch (err) {
+      this.logger.error('Error handling data indexed event', err)
+      process.exit(1)
+    }
   }
 
   /**

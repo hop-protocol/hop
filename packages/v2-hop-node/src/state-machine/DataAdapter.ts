@@ -7,7 +7,7 @@ import type { IOnchainEventIndexer } from '#indexer/index.js'
 import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
 import type { StateTxContext } from './types.js'
 
-// TODO: Generalize for additional data sources beyond onchain events
+// TODO: Optimize: Generalize for additional data sources beyond onchain events
 type IDataSource<T> = IOnchainEventIndexer<T>
 
 /**
@@ -55,14 +55,19 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
    */
 
   #initListeners = (): void => {
-    this.#dataSource.on(DATA_PROCESSED_EVENT, this.#emitStoredData)
+    this.#dataSource.on(DATA_PROCESSED_EVENT, this.#handleDataProcessedEvent)
     this.#dataSource.on('error', () => { throw new Error('Data adapter error') })
   }
 
-  #emitStoredData = (inputData: DecodedLogWithContext): void => {
-    const state = this.getStateFromEventName(inputData.context.eventName)
-    const formattedInputData = this.#toStateMachine(inputData)
-    this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)
+  #handleDataProcessedEvent = (inputData: DecodedLogWithContext): void => {
+    try {
+      const state = this.getStateFromEventName(inputData.context.eventName)
+      const formattedInputData = this.#toStateMachine(inputData)
+      this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)
+    } catch (err) {
+      this.logger.error('Error handling data processed event', err)
+      process.exit(1)
+    }
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
@@ -101,7 +106,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   async #toStateMachine (log: DecodedLogWithContext): Promise<StateData> {
     const { transactionHash, context } = log
     const timestampMs = await getBlockTimestampFromLogMs(log)
-    // TODO: The return type of this should be StateData without context.
+    // TODO: Optimize: The return type of this should be StateData without context.
     // This would allow the concrete implementation to not worry about it.
     // As it stands, the concrete implementation either does incorrect
     // type assertions or has to implement this method.

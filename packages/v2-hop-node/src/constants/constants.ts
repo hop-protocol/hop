@@ -45,7 +45,8 @@ export const FINALITY_TIME_MS: Record<ChainSlug, number> = {
   [ChainSlug.Linea]: 25 * TimeIntervals.ONE_MINUTE_MS, // TODO
   [ChainSlug.ScrollZk]: 25 * TimeIntervals.ONE_MINUTE_MS, // TODO
   [ChainSlug.Base]: 25 * TimeIntervals.ONE_MINUTE_MS,
-  [ChainSlug.PolygonZk]: 30 * TimeIntervals.ONE_MINUTE_MS
+  [ChainSlug.PolygonZk]: 30 * TimeIntervals.ONE_MINUTE_MS,
+  [ChainSlug.Hub]: 30 * TimeIntervals.ONE_MINUTE_MS // TODO
 }
 
 /**
@@ -65,6 +66,7 @@ export const MAX_BLOCK_RANGE_PER_GET_LOG_CALL: Record<ChainSlug, number> = {
   [ChainSlug.ScrollZk]: DEFAULT_MAX_BLOCK_RANGE,
   [ChainSlug.Base]: DEFAULT_MAX_BLOCK_RANGE,
   [ChainSlug.PolygonZk]: DEFAULT_MAX_BLOCK_RANGE,
+  [ChainSlug.Hub]: DEFAULT_MAX_BLOCK_RANGE,
 }
 
 /**

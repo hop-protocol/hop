@@ -33,6 +33,28 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
+  protected override parseStateMachineData(state: CCTPMessageState, value: ICCTPMessage): any {
+    const { messageNonce, sourceChainId, ...unmodifiedValues } = value
+    switch (state) {
+      case CCTPMessageState.Sent: {
+        return {
+          cctpNonce: messageNonce,
+          chainId: sourceChainId,
+          ...unmodifiedValues
+        }
+      }
+      case CCTPMessageState.Relayed: {
+        return {
+          nonce: messageNonce,
+          sourceDomain: CCTPSDK.getDomainFromChainId(sourceChainId),
+          ...unmodifiedValues
+        }
+      }
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   protected override getStateFromEventName (eventName: string): CCTPMessageState {
     switch (eventName) {
       case CCTPEventName.CCTPTransferSent:

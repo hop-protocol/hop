@@ -166,6 +166,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
       const indexedItem = await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
       return indexedItem
     } catch {
+      this.logger.warn(`No indexed item found for chainId ${chainId}, eventName ${eventName}, and indexes ${stringifiedDBIndexes.join(', ')}`)
       return null
     }
   }

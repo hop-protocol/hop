@@ -75,6 +75,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
    */
 
   async relay (relayItem: RelayItem): Promise<void> {
+    this.logger.info(`Adding item to relay: ${JSON.stringify(relayItem)}`)
     await this.#db.addItem(relayItem)
   }
 

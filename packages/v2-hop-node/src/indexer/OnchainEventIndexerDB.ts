@@ -125,10 +125,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   async putItemIndexedItem(primaryKey: string, syncedBlockNumber: number, logs: DecodedLogWithContext[]): Promise<void> {
     const batch = this.batch()
-
     for (const log of logs) {
-      batch.put(primaryKey, log)
-
       let indexedKey = primaryKey
       for (const secondaryKey of this.#secondaryKeys[primaryKey]!) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it

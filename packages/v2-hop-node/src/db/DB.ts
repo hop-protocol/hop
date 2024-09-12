@@ -31,7 +31,7 @@ export abstract class DB<K extends string, V> extends Level<K, V> {
   override async get (key: K): Promise<V> {
     const res = (await super.getMany([key], DB_OPTS))[0]
     if (!res) {
-      throw new Error(`DB Error: get() for key: ${key}`)
+      throw new Error(`DB item not found for key: ${key}`)
     }
     return res
   }

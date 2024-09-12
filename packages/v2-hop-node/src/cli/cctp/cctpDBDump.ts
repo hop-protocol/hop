@@ -28,7 +28,7 @@ async function main (source: any) {
    */
   const state = 'sent'
 
-  const dbName = 'Message'
+  const dbName = 'cctp'
   switch (dbType) {
     case DBTypes.StateMachine:
       await dumpStateMachineDB(dbName, state)

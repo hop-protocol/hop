@@ -30,10 +30,11 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
   protected abstract isImplementationError(err: unknown): boolean
 
-  constructor (dbName: string) {
-    this.#db = new RelayerDB(dbName)
+  constructor (name: string) {
+    this.#db = new RelayerDB(name)
+    const tag = name + 'Relayer'
     this.logger = new Logger({
-      tag: 'Relayer',
+      tag,
       color: 'gray'
     })
   }

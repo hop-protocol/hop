@@ -16,8 +16,8 @@ type DBValue<RelayItem> = {
 export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
   readonly #maxRetries: number = 10
 
-  constructor (dbName: string) {
-    super(dbName + 'RelayerDB')
+  constructor (name: string) {
+    super(name + 'RelayerDB')
   }
 
   async addItem (relayItem: RelayItem): Promise<void> {

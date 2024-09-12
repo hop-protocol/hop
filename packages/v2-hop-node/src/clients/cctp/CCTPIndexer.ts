@@ -13,8 +13,8 @@ type CCTPEventIndex = keyof (HopCCTPTransferSentDecodedWithMessage & HopCCTPTran
 
 export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventIndex> {
 
-  constructor(dbName: string, chainIds: string[]) {
-    super(dbName)
+  constructor(name: string, chainIds: string[]) {
+    super(name)
 
     for (const chainId of chainIds) {
       for (const eventName of Object.values(CCTPEventName)) {

@@ -8,12 +8,12 @@ export class RailsClaim {
   #started: boolean = false
 
   constructor (clientName: string, indexer: RailsIndexer) {
-    const dbName = `${clientName}Claim`
+    const name = `${clientName}Claim`
 
     // State handler
-    const dataAdapter = new RailsClaimDataAdapter(indexer)
-    const relayer = new RailsClaimRelayer(dbName)
-    this.#stateMachine = new RailsClaimStateMachine(dbName, dataAdapter, relayer)
+    const dataAdapter = new RailsClaimDataAdapter(name, indexer)
+    const relayer = new RailsClaimRelayer(name)
+    this.#stateMachine = new RailsClaimStateMachine(name, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {

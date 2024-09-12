@@ -27,8 +27,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   readonly #secondaryKeys: Record<string, string[]> = {}
   readonly #syncPrefix = 'sync'
 
-  constructor (dbName: string) {
-    super(dbName + 'OnchainEventIndexerDB')
+  constructor (name: string) {
+    super(name + 'OnchainEventIndexerDB')
   }
 
   /**

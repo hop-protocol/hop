@@ -42,16 +42,17 @@ export abstract class StateMachine<State extends string, StateData extends State
   protected abstract getTransitionState(state: State, value: StateData): State
 
   constructor (
-    dbName: string,
+    name: string,
     dataAdapter: IDataAdapter<State, StateData>,
     relayer: IRelayer<RelayItem>
   ) {
-    this.#db = new StateMachineDB(dbName)
+    this.#db = new StateMachineDB(name)
     this.#dataAdapter = dataAdapter
     this.#relayer = relayer
     this.#states = this.getStates()
+    const tag = name + 'StateMachine'
     this.logger = new Logger({
-      tag: 'StateMachine',
+      tag,
       color: 'green'
     })
   }

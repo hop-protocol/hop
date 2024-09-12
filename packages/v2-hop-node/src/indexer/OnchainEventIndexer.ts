@@ -65,8 +65,8 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
     return true
   }
 
-  constructor (dbName: string) {
-    this.#db = new OnchainEventIndexerDB(dbName)
+  constructor (name: string) {
+    this.#db = new OnchainEventIndexerDB(name)
     this.logger = new Logger({
       tag: 'OnchainEventIndexer',
       color: 'blue'

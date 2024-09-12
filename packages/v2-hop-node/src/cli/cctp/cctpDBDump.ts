@@ -28,36 +28,33 @@ async function main (source: any) {
    */
   const state = 'sent'
 
-  const dbName = 'cctp'
+  const name = 'cctp'
   switch (dbType) {
     case DBTypes.StateMachine:
-      await dumpStateMachineDB(dbName, state)
+      await dumpStateMachineDB(name, state)
       break
     case DBTypes.OnchainEventIndexer:
-      await dumpOnchainEventIndexerDB(dbName)
+      await dumpOnchainEventIndexerDB(name)
       break
     case DBTypes.Relayer:
-      await dumpTxRelayDB(dbName)
+      await dumpTxRelayDB(name)
       break
   }
 }
 
-async function dumpStateMachineDB (dbName: string, state: string) {
-  const db = new StateMachineDB(dbName)
+async function dumpStateMachineDB (name: string, state: string) {
+  const db = new StateMachineDB(name)
   for await (const [key, value] of db.getItemsInState(state)) {
     console.log(key, value)
   }
 }
 
-async function dumpOnchainEventIndexerDB (dbName: string) {
-  const db = new OnchainEventIndexerDB(dbName)
-  for await (const [, value] of db.iterator()) {
-    console.log(value)
-  }
+async function dumpOnchainEventIndexerDB (name: string) {
+  const db = new OnchainEventIndexerDB(name)
 }
 
-async function dumpTxRelayDB (dbName: string) {
-  const db = new RelayerDB(dbName)
+async function dumpTxRelayDB (name: string) {
+  const db = new RelayerDB(name)
   for await (const [key,] of db.iterator()) {
     // The key is the item itself and the value is simply a boolean indicating existence
     console.log(key)

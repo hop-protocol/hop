@@ -19,8 +19,8 @@ type RailsEventIndex = keyof (TransferSent | TransferBonded)
 
 export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
 
-  constructor(dbName: string, paths: RailsPath[]) {
-    super(dbName)
+  constructor(name: string, paths: RailsPath[]) {
+    super(name)
 
     this.addEventFilters(paths)
   }

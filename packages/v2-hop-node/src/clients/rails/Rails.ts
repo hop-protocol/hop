@@ -9,17 +9,17 @@ export class Rails {
   #started: boolean = false
 
   constructor (clientNames: RailsClientName[], paths: RailsPath[]) {
-    const dbName = 'rails'
+    const name = 'rails'
 
     // Data handler
-    const indexer = new RailsIndexer(dbName, paths)
+    const indexer = new RailsIndexer(name, paths)
 
     if (clientNames.includes(RailsClientName.Transfer)) {
-      this.#transferClient = new RailsTransfer(dbName, indexer)
+      this.#transferClient = new RailsTransfer(name, indexer)
     }
 
     if (clientNames.includes(RailsClientName.Claim)) {
-      this.#claimClient = new RailsClaim(dbName, indexer)
+      this.#claimClient = new RailsClaim(name, indexer)
     }
   }
 

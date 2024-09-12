@@ -33,10 +33,11 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     return value
   }
 
-  constructor (dataSource: IDataSource<EventName>) {
+  constructor (name: string, dataSource: IDataSource<EventName>) {
     this.#dataSource = dataSource
+    const tag = name + 'DataAdapter'
     this.logger = new Logger({
-      tag: 'DataAdapter',
+      tag,
       color: 'yellow'
     })
   }

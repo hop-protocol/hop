@@ -27,7 +27,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
 
   getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(transferId)
+    const filter = railsGateway.filters.TransferSent(null, transferId)
     return filter
   }
 

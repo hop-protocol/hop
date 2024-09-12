@@ -4,7 +4,7 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct} from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct, CalcAmountOutMinInput } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
@@ -93,6 +93,11 @@ export type GetSendFeeInput = {
   fromToken: string
   toChainId: BigNumberish
   toToken: string
+}
+
+export type GetTransferIdFromTransactionHashInput = {
+  fromChainId: BigNumberish
+  transactionHash: string
 }
 
 export class Hop extends Base {
@@ -209,7 +214,7 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: toChainId, pathId })
+        const maxTotalSent = await this.railsGateway.getTotalSent({ chainId: fromChainId, pathId })
 
         const nextHops: HopStruct[] = []
 
@@ -464,5 +469,22 @@ export class Hop extends Base {
     this.railsGateway.setChainRpcProviderUrls(chainProviders)
     this.messenger.setChainRpcProviderUrls(chainProviders)
     this.hubConnector.setChainRpcProviderUrls(chainProviders)
+  }
+
+  async getTransferIdFromTransactionHash ({ fromChainId, transactionHash}: GetTransferIdFromTransactionHashInput): Promise<string> {
+    const transferSentEvent = await this.railsGateway.getTransferSentEventFromTransactionHash({
+      fromChainId,
+      transactionHash
+    })
+
+    if (!transferSentEvent) {
+      throw new CustomError(`TransferSent event not found for transaction hash "${transactionHash}" on chainId "${fromChainId}", could not get transferId`)
+    }
+
+    return transferSentEvent.decoded.transferId
+  }
+
+  calcAmountOutMin (input: CalcAmountOutMinInput): BigNumber {
+    return this.railsGateway.calcAmountOutMin(input)
   }
 }

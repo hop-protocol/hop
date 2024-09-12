@@ -8,7 +8,8 @@ export {
   Hop,
   HopConstructorInput,
   SendTokensInput,
-  WillSendTokensFailInput
+  WillSendTokensFailInput,
+  GetTransferIdFromTransactionHashInput
 } from './Hop.js'
 export {
   ApproveBondInput,

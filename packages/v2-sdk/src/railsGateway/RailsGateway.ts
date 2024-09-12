@@ -7,6 +7,7 @@ import { TransferSent, HopStruct, TransferSentEventFetcher } from '#railsGateway
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
+import { getBlockNumberFromDate } from '@hop-protocol/sdk'
 import memcache from 'memory-cache'
 
 const { getAddress: checksumAddress } = utils
@@ -236,6 +237,7 @@ export type GetTransferBondedEventFromTransactionHashInput = {
 export type GetTransferBondedEventFromTransferIdInput = {
   fromChainId: BigNumberish
   transferId: string
+  fromBlock?: number
 }
 
 export type GetTokenInfoInput = {
@@ -264,7 +266,7 @@ export type TransferStatus = {
   state: TransferState
   transferId: string
   transferSentEvent: EthersEventWithDecodedTypes<TransferSent>
-  transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded>
+  transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null
 }
 
 export type GetTransferSentEventFilterInput = {
@@ -1421,7 +1423,9 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
+    console.log('here01110101')
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
+    console.log('here111', events)
     return events?.[0] ?? null
   }
 
@@ -1468,7 +1472,7 @@ export class RailsGateway extends StakingRegistry {
     return this.getTransferBondedEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getTransferBondedEventFromTransferId ({ fromChainId, transferId }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded>> {
+  async getTransferBondedEventFromTransferId ({ fromChainId, transferId, fromBlock = 0 }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1487,9 +1491,8 @@ export class RailsGateway extends StakingRegistry {
 
     const eventFetcher = this.getEventFetcher(EventName.TransferBonded, fromChainId)
     const filter = eventFetcher.getTransferIdFilter(transferId)
-    const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
     return events?.[0] ?? null
   }
 
@@ -1591,10 +1594,21 @@ export class RailsGateway extends StakingRegistry {
       transferId
     })
 
-    const transferBondedEvent = await this.getTransferBondedEventFromTransferId({
-      fromChainId: toChainId,
-      transferId
-    })
+    let transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null = null
+
+    if (transferSentEvent) {
+      const fromProvider = this.getRpcProviderForChainId(fromChainId)
+      const toProvider = this.getRpcProviderForChainId(toChainId)
+      const fromBlock = await fromProvider.getBlock(transferSentEvent.blockNumber)
+      const fromTimestamp = fromBlock.timestamp
+      const earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
+
+      transferBondedEvent = await this.getTransferBondedEventFromTransferId({
+        fromChainId: toChainId,
+        transferId,
+        fromBlock: earliestBlock
+      })
+    }
 
     let transferState = TransferState.NotFound
 

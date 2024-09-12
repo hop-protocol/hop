@@ -1,4 +1,4 @@
-import { Hop, HopStruct } from '#index.js'
+import { Hop, HopStruct, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import dotenv from 'dotenv'
 import { randomBytes } from 'crypto'
@@ -9,7 +9,95 @@ const { parseUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
-describe('Sdk e2e', () => {
+describe.only('Sdk - Hop - e2e', () => {
+  it('should do a send', async () => {
+    const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
+    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+
+    const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
+    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
+
+    let signer = new Wallet(privateKey, ethereumProvider)
+    let sdk = new Hop({
+      network: 'sepolia',
+      signer
+    })
+
+    // ----------------
+    const fromChainId = '11155111'
+    const fromToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
+    const toChainId = '84532'
+    const toToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
+    const sendAmount = parseUnits('0.1', 18)
+    // ----------------
+
+    const to = await signer.getAddress()
+
+    const needsApproval = await sdk.getNeedsApprovalForSendTokens({
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      amount: sendAmount
+    })
+
+    console.log('needsApproval:', needsApproval)
+
+    if (needsApproval) {
+      const approveTx = await sdk.approveSendTokens({
+        fromChainId,
+        toChainId,
+        fromToken,
+        toToken,
+        amount: sendAmount
+      })
+
+      console.log('approval tx:', approveTx.hash)
+      await approveTx.wait()
+    }
+
+    const minAmountOut = sdk.calcAmountOutMin( { amountOut: sendAmount, slippageTolerance: 0.01 } )
+
+    console.log('minAmountOut:', minAmountOut.toString())
+
+    const shouldSend = false // debug
+    let sendTxHash = '0xee4b8eed47c2474f97ad45a91a1e1bcf1c10233885bd24d02eb94b0f08ba6106' // debug
+    if (shouldSend) {
+      const sendTx = await sdk.sendTokens({
+        fromChainId,
+        toChainId,
+        fromToken,
+        toToken,
+        amount: sendAmount,
+        minAmountOut,
+        to,
+      })
+
+      sendTxHash = sendTx.hash
+      console.log('send tx:', sendTx.hash)
+      await sendTx.wait()
+    }
+
+    const transferId = await sdk.getTransferIdFromTransactionHash({
+      fromChainId,
+      transactionHash: sendTxHash
+    })
+
+    console.log('transferId:', transferId)
+
+    const transferStatus = await sdk.getTransferStatus({
+      fromChainId,
+      toChainId,
+      transferId
+    })
+
+    console.log('transferStatus:', transferStatus)
+    expect(transferStatus.state).toBe(TransferState.PendingBond)
+    expect(true).toBeDefined()
+  }, 10 * 60 * 1000)
+})
+
+describe('Sdk - RailsGateway - e2e', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)

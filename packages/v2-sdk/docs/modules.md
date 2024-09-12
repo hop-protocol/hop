@@ -104,6 +104,7 @@
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
+- [GetTransferIdFromTransactionHashInput](modules.md#gettransferidfromtransactionhashinput)
 - [GetTransferIdInput](modules.md#gettransferidinput)
 - [GetTransferSentEventFilterInput](modules.md#gettransfersenteventfilterinput)
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
@@ -1051,8 +1052,22 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `fromBlock?` | `number` |
 | `fromChainId` | `BigNumberish` |
 | `transferId` | `string` |
+
+___
+
+### <a id="gettransferidfromtransactionhashinput" name="gettransferidfromtransactionhashinput"></a> GetTransferIdFromTransactionHashInput
+
+Ƭ **GetTransferIdFromTransactionHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `fromChainId` | `BigNumberish` |
+| `transactionHash` | `string` |
 
 ___
 
@@ -1408,7 +1423,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `state` | [`TransferState`](enums/TransferState.md) |
-| `transferBondedEvent` | `EthersEventWithDecodedTypes`\<`TransferBonded`\> |
+| `transferBondedEvent` | `EthersEventWithDecodedTypes`\<`TransferBonded`\> \| ``null`` |
 | `transferId` | `string` |
 | `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> |
 

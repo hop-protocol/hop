@@ -34,6 +34,7 @@
 ### Methods
 
 - [approveSendTokens](Hop.md#approvesendtokens)
+- [calcAmountOutMin](Hop.md#calcamountoutmin)
 - [connect](Hop.md#connect)
 - [connectTargets](Hop.md#connecttargets)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
@@ -63,6 +64,7 @@
 - [getSupportedTokenSymbolsByChainId](Hop.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](Hop.md#gettokenaddressbytokensymbol)
 - [getTokenContract](Hop.md#gettokencontract)
+- [getTransferIdFromTransactionHash](Hop.md#gettransferidfromtransactionhash)
 - [getTransferStatus](Hop.md#gettransferstatus)
 - [getTxOverrides](Hop.md#gettxoverrides)
 - [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
@@ -264,6 +266,22 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="calcamountoutmin" name="calcamountoutmin"></a> calcAmountOutMin
+
+▸ **calcAmountOutMin**(`input`): `BigNumber`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | `CalcAmountOutMinInput` |
+
+#### Returns
+
+`BigNumber`
 
 ___
 
@@ -752,6 +770,22 @@ ___
 #### Returns
 
 `Contract`
+
+___
+
+### <a id="gettransferidfromtransactionhash" name="gettransferidfromtransactionhash"></a> getTransferIdFromTransactionHash
+
+▸ **getTransferIdFromTransactionHash**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferIdFromTransactionHashInput`](../modules.md#gettransferidfromtransactionhashinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 

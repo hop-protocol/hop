@@ -1462,7 +1462,7 @@ ___
 
 ### <a id="gettransferbondedeventfromtransferid" name="gettransferbondedeventfromtransferid"></a> getTransferBondedEventFromTransferId
 
-▸ **getTransferBondedEventFromTransferId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
+▸ **getTransferBondedEventFromTransferId**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 #### Parameters
 
@@ -1472,7 +1472,7 @@ ___
 
 #### Returns
 
-`Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
+`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
 
 ___
 

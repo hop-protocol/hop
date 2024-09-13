@@ -44,7 +44,7 @@ describe('RailsGateway', () => {
     console.log(filter)
 
     expect(filter).toBeTruthy()
-    expect(filter.topics!.length).toBe(2)
+    expect(filter.topics!.length).toBe(3)
   })
   it('should fetch TransferBonded event filter', async () => {
     const chainId = 11155111
@@ -530,20 +530,20 @@ describe('RailsGateway', () => {
     expect(transferId).toBeDefined()
   })
   it('should get transfer sent event from transaction receipt', async () => {
-    const fromChainId = 11155111
+    const chainId = 11155111
     const txHash = '0xced84d48d165a5efa5382c638ab0645b6e3b9c5b3725b54f90650724138cba9f'
     const receipt = await provider.getTransactionReceipt(txHash)
     const event = await railsGateway.getTransferSentEventFromTransactionReceipt({
-      fromChainId,
+      chainId,
       receipt
     })
     expect(event).toBeDefined()
   })
   it('should get transfer sent event from transaction hash', async () => {
-    const fromChainId = 11155111
+    const chainId = 11155111
     const transactionHash = '0x063287bb2b7c32fa457dfb9a8c1312043b471286b6226190b4503a969d32d971'
     const event = await railsGateway.getTransferSentEventFromTransactionHash({
-      fromChainId,
+      chainId,
       transactionHash
     })
     console.log(event)
@@ -551,39 +551,39 @@ describe('RailsGateway', () => {
     expect(event!.decoded).toBeDefined()
   })
   it.skip('TODO should get transfer sent event from transfer id', async () => {
-    const fromChainId = 11155111
+    const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const event = await railsGateway.getTransferSentEventFromTransferId({
-      fromChainId,
+      chainId,
       transferId
     })
     expect(event).toBeDefined()
   }, 60 * 1000)
   it('should get transfer bonded event from transaction receipt', async () => {
-    const fromChainId = 11155420
+    const chainId = 11155420
     const txHash = '0x65bdde1040b2623f10c5b70ed31e2f9f7150cb5745055dcbc70a1bb1e65e8888'
     const provider = new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
     const receipt = await provider.getTransactionReceipt(txHash)
     const event = await railsGateway.getTransferBondedEventFromTransactionReceipt({
-      fromChainId,
+      chainId,
       receipt
     })
     expect(event).toBeDefined()
   })
   it('should get transfer bonded event from transaction hash', async () => {
-    const fromChainId = 11155420
+    const chainId = 11155420
     const transactionHash = '0x65bdde1040b2623f10c5b70ed31e2f9f7150cb5745055dcbc70a1bb1e65e8888'
     const event = await railsGateway.getTransferBondedEventFromTransactionHash({
-      fromChainId,
+      chainId,
       transactionHash
     })
     expect(event).toBeDefined()
   })
   it.skip('TODO should get transfer bonded event from transfer id', async () => {
-    const fromChainId = 11155420
+    const chainId = 11155420
     const transferId = '0x7132cf97b6dcbabd2cabc72f36c1036f6e51dbd73d78a9f97d85b864d0f12640'
     const event = await railsGateway.getTransferBondedEventFromTransferId({
-      fromChainId,
+      chainId,
       transferId
     })
     expect(event).toBeDefined()

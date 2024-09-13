@@ -44,7 +44,7 @@ export function RailsGatewayGetTransferSentEventFromTransferId (props: Props) {
       setLoading(true)
 
       const args = {
-        fromChainId,
+        chainId: fromChainId,
         transferId
       }
 
@@ -62,12 +62,12 @@ export function RailsGatewayGetTransferSentEventFromTransferId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = "${fromChainId}"
+  const chainId = "${fromChainId}"
   const transferId = "${transferId}"
 
   const hop = new Hop({ network: '${network}' })
   const event = await hop.railsGateway.getTransferSentEventFromTransferId({
-    fromChainId,
+    chainId,
     transferId
   })
   console.log(event)

@@ -70,7 +70,8 @@ export function RailsGatewayBond (props: Props) {
       chainId: toChainId,
       pathId,
       transferId,
-      nextHops
+      amount,
+      nextHops,
     }
     console.log('args', args)
     const txData = await sdk.railsGateway.populateTransaction.bond(args)

@@ -23,6 +23,7 @@
 - [messenger](Hop.md#messenger)
 - [network](Hop.md#network)
 - [railsGateway](Hop.md#railsgateway)
+- [requireChainIdInput](Hop.md#requirechainidinput)
 - [signer](Hop.md#signer)
 
 ### Accessors
@@ -59,6 +60,7 @@
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
 - [getSignerOrProvider](Hop.md#getsignerorprovider)
+- [getSignerProviderChainId](Hop.md#getsignerproviderchainid)
 - [getSupportedChainIds](Hop.md#getsupportedchainids)
 - [getSupportedTokenSymbols](Hop.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](Hop.md#getsupportedtokensymbolsbychainid)
@@ -175,6 +177,16 @@ ___
 ### <a id="railsgateway" name="railsgateway"></a> railsGateway
 
 • `Readonly` **railsGateway**: `RailsGateway`
+
+___
+
+### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
+
+• **requireChainIdInput**: `boolean`
+
+#### Inherited from
+
+Base.requireChainIdInput
 
 ___
 
@@ -685,6 +697,20 @@ ___
 #### Inherited from
 
 Base.getSignerOrProvider
+
+___
+
+### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
+
+▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+#### Inherited from
+
+Base.getSignerProviderChainId
 
 ___
 

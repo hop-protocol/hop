@@ -20,6 +20,7 @@
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
+- [requireChainIdInput](RailsGateway.md#requirechainidinput)
 - [signer](RailsGateway.md#signer)
 
 ### Accessors
@@ -83,6 +84,7 @@
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
+- [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
 - [getStakedBalance](RailsGateway.md#getstakedbalance)
 - [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
 - [getStakingRegistryContract](RailsGateway.md#getstakingregistrycontract)
@@ -215,6 +217,16 @@ ___
 #### Inherited from
 
 StakingRegistry.network
+
+___
+
+### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
+
+• **requireChainIdInput**: `boolean`
+
+#### Inherited from
+
+StakingRegistry.requireChainIdInput
 
 ___
 
@@ -1234,6 +1246,20 @@ ___
 #### Inherited from
 
 StakingRegistry.getSignerOrProvider
+
+___
+
+### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
+
+▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+#### Inherited from
+
+StakingRegistry.getSignerProviderChainId
 
 ___
 

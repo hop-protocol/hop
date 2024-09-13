@@ -134,10 +134,10 @@ export function HopSendTokens (props: Props) {
 
           const receipt = await tx.wait()
           const event = await sdk.railsGateway.getTransferSentEventFromTransactionReceipt({
-            fromChainId,
+            chainId: fromChainId,
             receipt
           })
-          const transferId = event?.transferId
+          const transferId = event?.decoded.transferId
           setTransferId(transferId)
         }
       }

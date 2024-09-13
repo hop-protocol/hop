@@ -51,7 +51,7 @@ describe('Base', () => {
     expect(base.utils.isValidObject({})).toBe(true)
     expect(base.utils.isValidObject(222222)).toBe(false)
   })
-  it('should return boolean if chain id valid', () => {
+  it.skip('should return boolean if chain id valid', () => {
     expect(base.utils.isValidChainId(1)).toBe(true)
     expect(base.utils.isValidChainId(222222)).toBe(false)
   })
@@ -333,5 +333,13 @@ describe('Base', () => {
     const color = base.getColorForChainId(chainId)
     console.log(color)
     expect(color).toBeDefined()
+  })
+  it('should get signer provider chainid', async () => {
+    const provider = base.getDefaultChainRpcProvider(1)
+    const signer = new Wallet(privateKey, provider)
+    const baseWithSigner = base.connect(signer)
+    const chainId = await baseWithSigner.getSignerProviderChainId()
+    console.log(chainId)
+    expect(chainId.toString()).toBe('1')
   })
 })

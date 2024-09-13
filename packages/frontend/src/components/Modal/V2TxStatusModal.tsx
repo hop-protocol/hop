@@ -87,10 +87,10 @@ export function V2TxStatusModal(props: Props) {
         const fromChainId = fromChain.chainId
         const toChainId = toChain.chainId
         const event = await v2Sdk.railsGateway.getTransferSentEventFromTransactionHash({
-          fromChainId,
+          chainId: fromChainId,
           transactionHash: tx.hash
         })
-        const { transferId } = event
+        const { transferId } = event?.decoded
         const transferStatus = await v2Sdk.getTransferStatus({
           fromChainId,
           toChainId,

@@ -146,8 +146,8 @@ export function SendMessage (props: Props) {
           chainId: fromChainId,
           receipt
         }
-        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt(args)
-        setMessageId(messageId)
+        const event = await sdk.messenger.getMessageSentEventFromTransactionReceipt(args)
+        setMessageId(event?.decoded.messageId)
       }
     } catch (err: any) {
       console.error(err)

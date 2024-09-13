@@ -68,7 +68,7 @@ export function Main () {
   const [success, setSuccess] = useState('')
   const [balance, setBalance] = useState('-')
   const [sdk, setSdk] = useState(() => {
-    return new Hop({ network })
+    return new Hop({ network, requireChainIdInput: true })
   })
 
   useEffect(() => {
@@ -115,8 +115,8 @@ export function Main () {
     ['Rails Gateway - Post Claim', <RailsGatewayPostClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Confirm Claim', <RailsGatewayConfirmClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Send', <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Get Needs Approval For Send', <RailsGatewayGetNeedsApprovalForSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Get Needs Approval For Bond', <RailsGatewayGetNeedsApprovalForBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Get Needs Approval For Send', <RailsGatewayGetNeedsApprovalForSend sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Needs Approval For Bond', <RailsGatewayGetNeedsApprovalForBond sdk={sdkWithSigner} />],
     ['Rails Gateway - Approve Send', <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Bond', <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],

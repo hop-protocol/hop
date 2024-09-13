@@ -20,6 +20,7 @@
 - [gasPriceMultiplier](HubConnector.md#gaspricemultiplier)
 - [l1ChainId](HubConnector.md#l1chainid)
 - [network](HubConnector.md#network)
+- [requireChainIdInput](HubConnector.md#requirechainidinput)
 - [signer](HubConnector.md#signer)
 
 ### Accessors
@@ -47,6 +48,7 @@
 - [getSigner](HubConnector.md#getsigner)
 - [getSignerAddress](HubConnector.md#getsigneraddress)
 - [getSignerOrProvider](HubConnector.md#getsignerorprovider)
+- [getSignerProviderChainId](HubConnector.md#getsignerproviderchainid)
 - [getSupportedChainIds](HubConnector.md#getsupportedchainids)
 - [getSupportedTokenSymbols](HubConnector.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](HubConnector.md#getsupportedtokensymbolsbychainid)
@@ -139,6 +141,16 @@ ___
 #### Inherited from
 
 Base.network
+
+___
+
+### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
+
+• **requireChainIdInput**: `boolean`
+
+#### Inherited from
+
+Base.requireChainIdInput
 
 ___
 
@@ -522,6 +534,20 @@ ___
 #### Inherited from
 
 Base.getSignerOrProvider
+
+___
+
+### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
+
+▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+#### Inherited from
+
+Base.getSignerProviderChainId
 
 ___
 

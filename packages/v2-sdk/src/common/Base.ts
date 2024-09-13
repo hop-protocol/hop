@@ -27,6 +27,7 @@ export type BaseConfig = {
   gasPriceMultiplier?: number
   chainProviders?: ChainProviders
   contractAddresses?: Addresses
+  requireChainIdInput?: boolean
 }
 
 export class Base {
@@ -36,6 +37,7 @@ export class Base {
   contractAddresses: Addresses
   l1ChainId: number
   batchBlocks: number = 1000
+  requireChainIdInput: boolean = false
 
   chainProviders: ChainProviders = {}
 
@@ -60,6 +62,9 @@ export class Base {
     }
 
     this.l1ChainId = this.network === 'mainnet' ? 1 : 5
+    if (config.requireChainIdInput != null) {
+      this.requireChainIdInput = config.requireChainIdInput
+    }
   }
 
   getContractAddresses () {
@@ -569,5 +574,12 @@ export class Base {
     }
 
     throw err
+  }
+
+  async getSignerProviderChainId(): Promise<BigNumber> {
+    if (!this.signer?.provider) {
+      throw new Error('signer has no provider connected, cannot get provider chainId')
+    }
+    return this.utils.getConnectedChainId(this.signer.provider)
   }
 }

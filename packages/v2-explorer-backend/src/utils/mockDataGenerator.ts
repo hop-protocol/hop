@@ -168,6 +168,7 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
 
   return {
     transferId: generateRandomBytes32(),
+    pathId: generateRandomBytes32(),
     to: generateRandomAddress(),
     amount: generateRandomUint256(),
     totalSent: generateRandomUint256(),

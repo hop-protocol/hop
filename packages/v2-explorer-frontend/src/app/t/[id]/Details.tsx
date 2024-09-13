@@ -104,13 +104,13 @@ export function Details(props: any) {
         </TableContainer>
 
         <Box mt={2} mb={2}>
-          <Typography variant="subitle1" color="textPrimary">Next Hops</Typography>
+          <Typography variant="subtitle1" color="textPrimary">Next Hops</Typography>
         </Box>
 
         {nextHops.map((nextHop: any, i: number) => {
           const { pathId, maxTotalSent, attestedClaimId } = nextHop
           return (
-            <Box ml={2} mb={4}>
+            <Box ml={2} mb={4} key={i}>
               <TableContainer>
                 <Table width="100%">
                   <TableBody>

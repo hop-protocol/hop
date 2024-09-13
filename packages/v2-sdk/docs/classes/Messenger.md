@@ -21,6 +21,7 @@
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
 - [l1ChainId](Messenger.md#l1chainid)
 - [network](Messenger.md#network)
+- [requireChainIdInput](Messenger.md#requirechainidinput)
 - [signer](Messenger.md#signer)
 
 ### Accessors
@@ -89,6 +90,7 @@
 - [getSigner](Messenger.md#getsigner)
 - [getSignerAddress](Messenger.md#getsigneraddress)
 - [getSignerOrProvider](Messenger.md#getsignerorprovider)
+- [getSignerProviderChainId](Messenger.md#getsignerproviderchainid)
 - [getSpokeExitTime](Messenger.md#getspokeexittime)
 - [getSpokeMessageBridgeContractAddress](Messenger.md#getspokemessagebridgecontractaddress)
 - [getSupportedChainIds](Messenger.md#getsupportedchainids)
@@ -200,6 +202,16 @@ ___
 #### Inherited from
 
 Base.network
+
+___
+
+### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
+
+• **requireChainIdInput**: `boolean`
+
+#### Inherited from
+
+Base.requireChainIdInput
 
 ___
 
@@ -1231,6 +1243,20 @@ ___
 #### Inherited from
 
 Base.getSignerOrProvider
+
+___
+
+### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
+
+▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+#### Inherited from
+
+Base.getSignerProviderChainId
 
 ___
 

@@ -16,6 +16,7 @@ export type HopConstructorInput = {
   batchBlocks?: number,
   signer?: Signer
   contractAddresses?: Addresses
+  requireChainIdInput?: boolean
 }
 
 export type GetEventsInput = {
@@ -96,7 +97,7 @@ export type GetSendFeeInput = {
 }
 
 export type GetTransferIdFromTransactionHashInput = {
-  fromChainId: BigNumberish
+  chainId: BigNumberish
   transactionHash: string
 }
 
@@ -471,14 +472,14 @@ export class Hop extends Base {
     this.hubConnector.setChainRpcProviderUrls(chainProviders)
   }
 
-  async getTransferIdFromTransactionHash ({ fromChainId, transactionHash}: GetTransferIdFromTransactionHashInput): Promise<string> {
+  async getTransferIdFromTransactionHash ({ chainId, transactionHash}: GetTransferIdFromTransactionHashInput): Promise<string> {
     const transferSentEvent = await this.railsGateway.getTransferSentEventFromTransactionHash({
-      fromChainId,
+      chainId,
       transactionHash
     })
 
     if (!transferSentEvent) {
-      throw new CustomError(`TransferSent event not found for transaction hash "${transactionHash}" on chainId "${fromChainId}", could not get transferId`)
+      throw new CustomError(`TransferSent event not found for transaction hash "${transactionHash}" on chainId "${chainId}", could not get transferId`)
     }
 
     return transferSentEvent.decoded.transferId

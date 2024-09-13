@@ -9,7 +9,7 @@ const { parseUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
-describe.only('Sdk - Hop - e2e', () => {
+describe('Sdk - Hop - e2e', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -79,7 +79,7 @@ describe.only('Sdk - Hop - e2e', () => {
     }
 
     const transferId = await sdk.getTransferIdFromTransactionHash({
-      fromChainId,
+      chainId: fromChainId,
       transactionHash: sendTxHash
     })
 
@@ -190,7 +190,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     }
 
     const transferSentEvent = (await sdk.railsGateway.getTransferSentEventFromTransactionHash({
-      fromChainId,
+      chainId: fromChainId,
       transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
     }))!
 
@@ -312,7 +312,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     }
 
     const bondedEvent = (await sdk.railsGateway.getTransferBondedEventFromTransactionHash({
-      fromChainId: toChainId,
+      chainId: toChainId,
       transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // bondTx.hash // debug
     }))!
 

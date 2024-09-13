@@ -155,7 +155,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -169,7 +169,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -199,7 +199,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `transferId` | `string` |
@@ -242,7 +242,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -443,7 +443,7 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `tokenAddress` | `string` |
 
 ___
@@ -470,7 +470,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `claimId` | `string` |
 | `pathId` | `string` |
 
@@ -511,7 +511,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -524,7 +524,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -537,7 +537,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -550,7 +550,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -786,7 +786,7 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -801,7 +801,7 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -1027,7 +1027,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1040,7 +1040,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1053,8 +1053,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `chainId` | `BigNumberish` |
 | `fromBlock?` | `number` |
-| `fromChainId` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -1067,7 +1067,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1082,7 +1082,7 @@ ___
 | :------ | :------ |
 | `adjustedAmount` | `BigNumberish` |
 | `attestedCheckpoint` | `string` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `minAmountOut` | `BigNumberish` |
 | `nonce` | `BigNumberish` |
 | `pathId` | `string` |
@@ -1115,7 +1115,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1128,7 +1128,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1141,7 +1141,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
+| `chainId` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -1184,6 +1184,7 @@ ___
 | `batchBlocks?` | `number` |
 | `contractAddresses?` | `Addresses` |
 | `network` | `string` |
+| `requireChainIdInput?` | `boolean` |
 | `signer?` | `Signer` |
 
 ___
@@ -1241,7 +1242,7 @@ ___
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `attestedTotalClaims` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
@@ -1281,7 +1282,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -1310,7 +1311,7 @@ ___
 | :------ | :------ |
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `fee` | `BigNumberish` |
 | `maxTotalSent` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
@@ -1359,7 +1360,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 | `staker?` | `string` |
 
@@ -1440,7 +1441,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 
 ___
@@ -1472,7 +1473,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `timeWindow` | `number` |
 
@@ -1486,7 +1487,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `path?` | [`Path`](modules.md#path) |
 | `pathId?` | `string` |
 | `recipient` | `string` |
@@ -1502,7 +1503,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 
 ___
@@ -1516,6 +1517,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
+| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `timeWindow` | `number` |

@@ -106,6 +106,14 @@
 - [setChainRpcProviders](Messenger.md#setchainrpcproviders)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
 - [throwError](Messenger.md#throwerror)
+- [getBundleCommittedEventSignature](Messenger.md#getbundlecommittedeventsignature)
+- [getBundleForwardedEventSignature](Messenger.md#getbundleforwardedeventsignature)
+- [getBundleReceivedEventSignature](Messenger.md#getbundlereceivedeventsignature)
+- [getBundleSetEventSignature](Messenger.md#getbundleseteventsignature)
+- [getFeesSentToHubEventSignature](Messenger.md#getfeessenttohubeventsignature)
+- [getMessageBundledEventSignature](Messenger.md#getmessagebundledeventsignature)
+- [getMessageExecutedEventSignature](Messenger.md#getmessageexecutedeventsignature)
+- [getMessageSentEventSignature](Messenger.md#getmessagesenteventsignature)
 
 ## Constructors
 
@@ -1536,3 +1544,83 @@ ___
 #### Inherited from
 
 Base.throwError
+
+___
+
+### <a id="getbundlecommittedeventsignature" name="getbundlecommittedeventsignature"></a> getBundleCommittedEventSignature
+
+▸ **getBundleCommittedEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getbundleforwardedeventsignature" name="getbundleforwardedeventsignature"></a> getBundleForwardedEventSignature
+
+▸ **getBundleForwardedEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getbundlereceivedeventsignature" name="getbundlereceivedeventsignature"></a> getBundleReceivedEventSignature
+
+▸ **getBundleReceivedEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getbundleseteventsignature" name="getbundleseteventsignature"></a> getBundleSetEventSignature
+
+▸ **getBundleSetEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getfeessenttohubeventsignature" name="getfeessenttohubeventsignature"></a> getFeesSentToHubEventSignature
+
+▸ **getFeesSentToHubEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getmessagebundledeventsignature" name="getmessagebundledeventsignature"></a> getMessageBundledEventSignature
+
+▸ **getMessageBundledEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getmessageexecutedeventsignature" name="getmessageexecutedeventsignature"></a> getMessageExecutedEventSignature
+
+▸ **getMessageExecutedEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getmessagesenteventsignature" name="getmessagesenteventsignature"></a> getMessageSentEventSignature
+
+▸ **getMessageSentEventSignature**(): `string`
+
+#### Returns
+
+`string`

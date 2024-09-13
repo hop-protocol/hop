@@ -274,6 +274,7 @@ export type GetTransferSentEventFilterInput = {
   indexes?: {
     transferId?: string
     pathId?: string
+    to?: string
   }
 }
 
@@ -282,6 +283,7 @@ export type GetTransferBondedEventFilterInput = {
   indexes?: {
     transferId?: string
     pathId?: string
+    to?: string
   }
 }
 
@@ -366,8 +368,8 @@ export class RailsGateway extends StakingRegistry {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput): EventFilter {
-    const { transferId, pathId } = indexes
+  getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput) {
+    const { transferId, pathId, to } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
 
     if (transferId) {
@@ -378,11 +380,15 @@ export class RailsGateway extends StakingRegistry {
       return eventFetcher.getPathIdFilter(pathId)
     }
 
+    if (to) {
+      return eventFetcher.getToFilter(to)
+    }
+
     return eventFetcher.getFilter()
   }
 
-  getTransferBondedEventFilter({ chainId, indexes = {} }: GetTransferBondedEventFilterInput): EventFilter {
-    const { transferId, pathId } = indexes
+  getTransferBondedEventFilter({ chainId, indexes = {} }: GetTransferBondedEventFilterInput) {
+    const { transferId, pathId, to } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferBonded, chainId)
 
     if (transferId) {
@@ -391,6 +397,10 @@ export class RailsGateway extends StakingRegistry {
 
     if (pathId) {
       return eventFetcher.getPathIdFilter(pathId)
+    }
+
+    if (to) {
+      return eventFetcher.getToFilter(to)
     }
 
     return eventFetcher.getFilter()
@@ -1738,6 +1748,16 @@ export class RailsGateway extends StakingRegistry {
     )
 
     return utils.keccak256(encodedHops)
+  }
+
+  static getTransferSentEventSignature (): string {
+    const eventFetcher = new TransferSentEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getTransferBondedEventSignature (): string {
+    const eventFetcher = new TransferBondedEventFetcher()
+    return eventFetcher.getTopic0()
   }
 }
 

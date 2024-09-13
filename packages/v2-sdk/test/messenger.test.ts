@@ -550,4 +550,52 @@ describe('Messenger', () => {
     })
     expect(fee).toBeDefined()
   })
+  it('should get BundleCommitted event signature using static method', async () => {
+    const signature = Messenger.getBundleCommittedEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get BundleForwarded event signature using static method', async () => {
+    const signature = Messenger.getBundleForwardedEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get BundleReceived event signature using static method', async () => {
+    const signature = Messenger.getBundleReceivedEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get BundleSet event signature using static method', async () => {
+    const signature = Messenger.getBundleSetEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get FeesSentToHub event signature using static method', async () => {
+    const signature = Messenger.getFeesSentToHubEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get MessageBundled event signature using static method', async () => {
+    const signature = Messenger.getMessageBundledEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get MessageExecuted event signature using static method', async () => {
+    const signature = Messenger.getMessageExecutedEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get MessageSent event signature using static method', async () => {
+    const signature = Messenger.getMessageSentEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
 })

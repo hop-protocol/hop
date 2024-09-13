@@ -1012,8 +1012,9 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `transferId?`: `string`  } |
+| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
 | `indexes.pathId?` | `string` |
+| `indexes.to?` | `string` |
 | `indexes.transferId?` | `string` |
 
 ___
@@ -1099,8 +1100,9 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `transferId?`: `string`  } |
+| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
 | `indexes.pathId?` | `string` |
+| `indexes.to?` | `string` |
 | `indexes.transferId?` | `string` |
 
 ___

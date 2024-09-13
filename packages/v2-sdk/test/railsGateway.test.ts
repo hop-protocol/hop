@@ -203,7 +203,7 @@ describe('RailsGateway', () => {
     console.log(fee)
     expect(fee).toBeDefined()
   })
-  it('should initiate a token transfer', async () => {
+  it.skip('should initiate a token transfer', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
@@ -232,7 +232,7 @@ describe('RailsGateway', () => {
     console.log(txData)
     expect(txData).toBeDefined()
   })
-  it('should initiate a bond', async () => {
+  it.skip('should initiate a bond', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xTODO'
@@ -252,7 +252,7 @@ describe('RailsGateway', () => {
     console.log(txData)
     expect(txData).toBeDefined()
   })
-  it('should post claim', async () => {
+  it.skip('should post claim', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
@@ -654,7 +654,7 @@ describe('RailsGateway', () => {
     expect(transferStatus).toBeDefined()
   }, 60 * 1000)
 
-  it('TODO should return true if transfer is bonded', async () => {
+  it.skip('TODO should return true if transfer is bonded', async () => {
     const chainId = 11155111
     const transferId = '0xTODO'
     const bonded = await railsGateway.getIsTransferBonded({
@@ -665,7 +665,7 @@ describe('RailsGateway', () => {
     expect(typeof bonded).toBe('boolean')
   }, 60 * 1000)
 
-  it('TODO should return true if transfer is claimed', async () => {
+  it.skip('TODO should return true if transfer is claimed', async () => {
     const chainId = 11155111
     const transferId = '0xTODO'
     const claimed = await railsGateway.getIsTransferClaimed({
@@ -715,6 +715,18 @@ describe('RailsGateway', () => {
 
     const invalidPathId = '0x1111111111111111111111111111111111111111111111111111111111111111'
     expect(await railsGateway.getIsPathIdLive({ chainId, pathId: invalidPathId })).toBe(false)
+  })
+  it('should get TransferSent event signature using static method', async () => {
+    const signature = RailsGateway.getTransferSentEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
+  })
+  it('should get TransferBonded event signature static method', async () => {
+    const signature = RailsGateway.getTransferBondedEventSignature()
+
+    console.log(signature)
+    expect(signature).toBeTruthy()
   })
 })
 

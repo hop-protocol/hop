@@ -22,7 +22,13 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
 
   getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(transferId)
+    const filter = railsGateway.filters.TransferBonded(null, transferId)
+    return filter
+  }
+
+  getToFilter (to: string): EventFilter {
+    const railsGateway = this.getContract()
+    const filter = railsGateway.filters.TransferBonded(null, null, to)
     return filter
   }
 

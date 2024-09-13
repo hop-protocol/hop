@@ -133,6 +133,8 @@
 - [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [withdrawHop](RailsGateway.md#withdrawhop)
+- [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
+- [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
 ## Constructors
 
@@ -1414,7 +1416,7 @@ ___
 
 ### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
 
-▸ **getTransferBondedEventFilter**(`«destructured»`): `EventFilter`
+▸ **getTransferBondedEventFilter**(`«destructured»`): `any`
 
 #### Parameters
 
@@ -1424,7 +1426,7 @@ ___
 
 #### Returns
 
-`EventFilter`
+`any`
 
 ___
 
@@ -1510,7 +1512,7 @@ ___
 
 ### <a id="gettransfersenteventfilter" name="gettransfersenteventfilter"></a> getTransferSentEventFilter
 
-▸ **getTransferSentEventFilter**(`«destructured»`): `EventFilter`
+▸ **getTransferSentEventFilter**(`«destructured»`): `any`
 
 #### Parameters
 
@@ -1520,7 +1522,7 @@ ___
 
 #### Returns
 
-`EventFilter`
+`any`
 
 ___
 
@@ -2125,3 +2127,23 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="gettransferbondedeventsignature" name="gettransferbondedeventsignature"></a> getTransferBondedEventSignature
+
+▸ **getTransferBondedEventSignature**(): `string`
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="gettransfersenteventsignature" name="gettransfersenteventsignature"></a> getTransferSentEventSignature
+
+▸ **getTransferSentEventSignature**(): `string`
+
+#### Returns
+
+`string`

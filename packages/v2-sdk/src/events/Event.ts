@@ -50,7 +50,7 @@ export class Event<T> {
     return contract.filters[this.eventName]()
   }
 
-  getTopic0 (): string | null {
+  getTopic0 (): string {
     const iface = new utils.Interface(this.abi)
     return iface.getEventTopic(this.eventName)
   }

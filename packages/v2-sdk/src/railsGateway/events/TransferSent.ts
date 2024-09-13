@@ -25,9 +25,21 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
   override abi = RailsGateway__factory.abi
   override factory = RailsGateway__factory
 
+  getPathIdFilter (pathId: string): EventFilter {
+    const railsGateway = this.getContract()
+    const filter = railsGateway.filters.TransferSent(pathId)
+    return filter
+  }
+
   getTransferIdFilter (transferId: string): EventFilter {
     const railsGateway = this.getContract()
     const filter = railsGateway.filters.TransferSent(null, transferId)
+    return filter
+  }
+
+  getToFilter (to: string): EventFilter {
+    const railsGateway = this.getContract()
+    const filter = railsGateway.filters.TransferSent(null, null, to)
     return filter
   }
 

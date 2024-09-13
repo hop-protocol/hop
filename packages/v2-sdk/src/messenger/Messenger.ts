@@ -1462,4 +1462,44 @@ export class Messenger extends Base {
     const txData = await this.populateTransaction.execute(input)
     return this.sendTransaction(txData)
   }
+
+  static getBundleCommittedEventSignature (): string {
+    const eventFetcher = new BundleCommittedEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getBundleForwardedEventSignature (): string {
+    const eventFetcher = new BundleForwardedEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getBundleReceivedEventSignature (): string {
+    const eventFetcher = new BundleReceivedEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getBundleSetEventSignature (): string {
+    const eventFetcher = new BundleSetEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getFeesSentToHubEventSignature (): string {
+    const eventFetcher = new FeesSentToHubEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getMessageBundledEventSignature (): string {
+    const eventFetcher = new MessageBundledEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getMessageExecutedEventSignature (): string {
+    const eventFetcher = new MessageExecutedEventFetcher()
+    return eventFetcher.getTopic0()
+  }
+
+  static getMessageSentEventSignature (): string {
+    const eventFetcher = new MessageSentEventFetcher()
+    return eventFetcher.getTopic0()
+  }
 }

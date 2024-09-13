@@ -12,14 +12,14 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: IRailsTransferRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: IRailsTransferRelayItem): Promise<boolean> {
     if (!this.#isBondInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#canRelayBond(relayItem as BondInput)
   }
 
-  protected override sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
 
     // TODO: possibly validate BCR here to avoid a bad bond
 

@@ -11,14 +11,14 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: IRailsClaimRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: IRailsClaimRelayItem): Promise<boolean> {
     if (!this.#isPostClaimInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#canRelayPostClaim(relayItem as PostClaimInput)
   }
 
-  protected override sendRelay (relayItem: IRailsClaimRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: IRailsClaimRelayItem): Promise<providers.TransactionResponse> {
     if (!this.#isPostClaimInput(relayItem)) {
       throw new Error('Invalid relay item')
     }

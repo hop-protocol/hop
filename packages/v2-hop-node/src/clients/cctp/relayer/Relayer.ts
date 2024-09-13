@@ -10,7 +10,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: ICCTPRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: ICCTPRelayItem): Promise<boolean> {
     if (!this.#isReceiveMessageInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
@@ -19,7 +19,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     return Promise.resolve(true)
   }
 
-  protected override sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
     if (!this.#isReceiveMessageInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
@@ -27,7 +27,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
   }
 
   protected override isImplementationError (err: unknown): boolean {
-    return this.#isContractError(err)
+    return (
+      this.#isAttestationError(err) ||
+      this.#isContractError(err)
+    )
   }
 
   /**
@@ -64,7 +67,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Errors
    */
 
-  #isContractError (err: unknown): boolean {
+  #isAttestationError (err: unknown): boolean {
     const errMessage = (err as Error).message
     if (errMessage.includes('Attestation not complete')) {
       this.logger.debug(`Attestation not yet ready for message hash: ${errMessage}`)
@@ -75,6 +78,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
       return true
     }
 
+    return false
+  }
+
+  #isContractError (err: unknown): boolean {
     return false
   }
 }

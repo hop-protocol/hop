@@ -80,7 +80,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
           // Multiple writes of the same data occur if there are multiple indexes
           // for the item. We only want to emit the event once per item, not
           // per index, so we ignore a key if it is part of a subDB.
-          if (op.key.includes('!')) continue
+          const isPrimaryKey = op.key.split('!').length - 1 === 1
+          if (!isPrimaryKey) continue
 
           this.emit(DATA_INDEXED_EVENT, op.value)
         }

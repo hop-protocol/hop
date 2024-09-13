@@ -142,7 +142,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     const eventName = this.getEventNameFromState(state)
     const modifiedValue = this.parseStateMachineData(state, value)
     return {
-      chainId: value.txContext.chainId,
+      eventChainId,
       eventName,
       eventIndexValues: modifiedValue
     }

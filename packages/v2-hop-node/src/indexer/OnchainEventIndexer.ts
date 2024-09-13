@@ -67,8 +67,9 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
 
   constructor (name: string) {
     this.#db = new OnchainEventIndexerDB(name)
+    const tag = name + 'OnchainEventIndexer'
     this.logger = new Logger({
-      tag: 'OnchainEventIndexer',
+      tag,
       color: 'blue'
     })
   }
@@ -155,9 +156,9 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
   // but if they are incorrect then this method will error. If the values are correct but the data
   // does not exist, then this method will return null.
   async fetchItem(input: IndexedEventDataWithContext<EventName>): Promise<DecodedLogWithContext | null> {
-    const { chainId, eventName, eventIndexValues } = input
-    const eventFilter: RequiredEventFilter = this.getEventFilter(chainId, eventName)
-    const filterId: string = getUniqueFilterId(chainId, eventFilter)
+    const { eventChainId, eventName, eventIndexValues } = input
+    const eventFilter: RequiredEventFilter = this.getEventFilter(eventChainId, eventName)
+    const filterId: string = getUniqueFilterId(eventChainId, eventFilter)
 
     const desiredEventIndexes: EventIndex[] = this.getDesiredEventIndexes(eventName)
     const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(desiredEventIndexes, eventIndexValues)
@@ -166,7 +167,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
       const indexedItem = await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
       return indexedItem
     } catch {
-      this.logger.warn(`No indexed item found for chainId ${chainId}, eventName ${eventName}, and indexes ${stringifiedDBIndexes.join(', ')}`)
+      this.logger.warn(`No indexed item found for eventChainId ${eventChainId}, eventName ${eventName}, and indexes ${stringifiedDBIndexes.join(', ')}`)
       return null
     }
   }

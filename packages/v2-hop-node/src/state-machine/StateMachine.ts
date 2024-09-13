@@ -1,7 +1,7 @@
 import type { IDataAdapter } from './IDataAdapter.js'
 import { StateMachineDB } from './StateMachineDB.js'
 import { poll } from '#utils/poll.js'
-import { getFirstState, isLastState } from './utils.js'
+import { getFirstState, isFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
@@ -125,7 +125,7 @@ export abstract class StateMachine<State extends string, StateData extends State
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
       const shouldAttempt = this.shouldAttemptTransition(state, value)
-      if (shouldAttempt) continue
+      if (!shouldAttempt) continue
 
       // TODO: Optimize: Enforce the NextState<State> type in the implementation
       const nextState = this.getTransitionState(state, value) as NextState<State>
@@ -137,7 +137,7 @@ export abstract class StateMachine<State extends string, StateData extends State
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(state, value, key)
+      void this.#postTransitionHook(nextState, nextValue, key)
     }
   }
 
@@ -147,12 +147,12 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   // Only used for initialization of items into the first state
   #initializeItem = async (state: State, value: StateData): Promise<void> => {
-    const firstState = getFirstState(this.#states)
-    if (state !== firstState) return
+    if (state !== getFirstState(this.#states)) return
 
     const key = this.getItemId(value)
     this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
-    return this.#db.createItemIfNotExist(firstState, key, value)
+    await this.#db.createItemIfNotExist(state, key, value)
+    await this.#postTransitionHook(state, value, key)
   }
 
   async #transitionState(
@@ -173,14 +173,21 @@ export abstract class StateMachine<State extends string, StateData extends State
    * Hooks
    */
 
-  async #postTransitionHook (state: State, value: StateData, key: string): Promise<void> {
-    const nextState = this.getTransitionState(state, value) as NextState<State>
+  async #postTransitionHook (nextState: State, nextValue: StateData, key: string): Promise<void> {
+    this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
 
     // There is no action needed for the final state
     const isLastStateHook = isLastState(this.#states, nextState)
     if (isLastStateHook) return
 
-    const relayItem = await this.#getRelayItem(key)
+    // The first state hook will have nothing in the DB to read
+    const isFirstStateHook = isFirstState(this.#states, nextState)
+    let relayItem: RelayItem<StateData> = nextValue
+    if (!isFirstStateHook) {
+      relayItem = await this.#getRelayItem(key)
+    }
+
+    this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
     return this.#relayer.relay(relayItem)
   }
 

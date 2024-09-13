@@ -31,7 +31,7 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
     }
   }
 
-  protected override getTransitionState(state: CCTPMessageState, value: ICCTPMessage): CCTPMessageState {
+  protected override getTransitionState(state: CCTPMessageState): CCTPMessageState {
     switch (state) {
       case CCTPMessageState.Sent:
         return CCTPMessageState.Relayed

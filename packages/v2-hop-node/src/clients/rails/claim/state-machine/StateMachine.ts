@@ -34,7 +34,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     }
   }
 
-  protected override getTransitionState(state: RailsClaimState, value: IRailsClaim): RailsClaimState {
+  protected override getTransitionState(state: RailsClaimState): RailsClaimState {
     switch (state) {
       case RailsClaimState.Sent:
         return RailsClaimState.Posted

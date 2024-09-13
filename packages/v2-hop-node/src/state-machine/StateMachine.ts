@@ -1,7 +1,7 @@
 import type { IDataAdapter } from './IDataAdapter.js'
 import { StateMachineDB } from './StateMachineDB.js'
 import { poll } from '#utils/poll.js'
-import { getFirstState, isFirstState, isLastState } from './utils.js'
+import { getFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
@@ -39,7 +39,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   // Checks if the implementation believes that the data source should have the state transition
   // NOTE: The final state does not need to be handled since there are no more transitions after it
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
-  protected abstract getTransitionState(state: State, value: StateData): State
+  protected abstract getTransitionState(state: State): State
 
   constructor (
     name: string,
@@ -94,7 +94,7 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   #handleDataProcessedEvent = async (state: State, value: StateData): Promise<void> => {
     try {
-      await this.#initializeItem(state, value)
+      await this.#addNewItem(state, value)
     } catch (err) {
       this.logger.error('Error handling data processed event', err)
       throw new Error('State machine error')
@@ -127,8 +127,12 @@ export abstract class StateMachine<State extends string, StateData extends State
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (!shouldAttempt) continue
 
+      // Uninitialized items need to be initialized before they can be transitioned
+      const didInitialize = await this.#handleInitialization(state, key, value)
+      if (didInitialize) continue
+
       // TODO: Optimize: Enforce the NextState<State> type in the implementation
-      const nextState = this.getTransitionState(state, value) as NextState<State>
+      const nextState = this.getTransitionState(state) as NextState<State>
       if (state === nextState) continue
 
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
@@ -145,14 +149,22 @@ export abstract class StateMachine<State extends string, StateData extends State
    * State transitions
    */
 
-  // Only used for initialization of items into the first state
-  #initializeItem = async (state: State, value: StateData): Promise<void> => {
+  #addNewItem = async (state: State, value: StateData): Promise<void> => {
     if (state !== getFirstState(this.#states)) return
 
     const key = this.getItemId(value)
-    this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
-    await this.#db.createItemIfNotExist(state, key, value)
-    await this.#postTransitionHook(state, value, key)
+    this.logger.info(`Adding item with key: ${key}, value: ${JSON.stringify(value)}`)
+    await this.#db.addUninitializedItem(state, key, value)
+  }
+
+  #handleInitialization = async (state: State, key: string, value: StateData): Promise<boolean> => {
+    if (state !== getFirstState(this.#states)) return false
+    if (await this.#db.isItemInitialized(key)) return false
+
+    const relayItem: RelayItem<StateData> = value
+    void this.#relayer.relay(relayItem)
+    await this.#db.initializeItem(key)
+    return true
   }
 
   async #transitionState(
@@ -181,11 +193,7 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (isLastStateHook) return
 
     // The first state hook will have nothing in the DB to read
-    const isFirstStateHook = isFirstState(this.#states, nextState)
-    let relayItem: RelayItem<StateData> = nextValue
-    if (!isFirstStateHook) {
-      relayItem = await this.#getRelayItem(key)
-    }
+    const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
 
     this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
     return this.#relayer.relay(relayItem)

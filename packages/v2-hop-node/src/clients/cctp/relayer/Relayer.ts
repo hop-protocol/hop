@@ -15,8 +15,15 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
       throw new Error('Invalid relay item')
     }
 
-    // There is no onchain check required since the attestation is offchain
-    return Promise.resolve(true)
+    // If the attestations are not ready, we should not attempt the relay
+    try {
+      await CCTPSDK.fetchAttestation(relayItem.message)
+    } catch (err) {
+      this.logger.debug(`Attestation not yet ready for message hash: ${relayItem.message}`)
+      return false
+    }
+
+    return true
   }
 
   protected override async sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
@@ -55,11 +62,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     }
 
     const candidate = item as Partial<ReceiveMessageInput>
+    // The attestation is retrieved during the relay so we do not need to check for it here
     return (
       'message' in candidate &&
-      'attestation' in candidate &&
-      typeof candidate.message === 'string' &&
-      typeof candidate.attestation === 'string'
+      typeof candidate.message === 'string'
     )
   }
 

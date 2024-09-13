@@ -102,7 +102,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // better handle is prior to being relayed. If a relayed transaction is frontrun
     // to cause this error, the item is still removed since we know it has already made it onchain.
     if (this.isImplementationError(err)) {
-      this.logger.debug(`Onchain relay error for item: ${stringifiedItem}. The item will not be attempted again.`)
+      this.logger.debug(`Onchain relay error for item: ${stringifiedItem}. The item will not be attempted again. Error message: ${(err as Error).message}`)
       return this.#db.removeItem(relayItem)
     }
 
@@ -111,7 +111,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // The errors that are less likely to be resolved by attempting again should checked against
     // explicitly prior to sending the transaction.
     if (isEVMError(err)) {
-      this.logger.debug(`EVM error for item: ${stringifiedItem}. The item will be attempted again.`)
+      this.logger.debug(`EVM error for item: ${stringifiedItem}. The item will be attempted again. Error message: ${err.message}`)
       return this.#db.handleRelayError(relayItem)
     }
 
@@ -121,7 +121,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     // used if unknown errors are more common than we would expect. This could occur in an
     // upgradable contract owned by a third party that is not under our control or a custom
     // signer with custom errors that are not known to us.
-    this.logger.warn(`Unknown error for item: ${stringifiedItem}. The item will be not be attempted again.`)
+    this.logger.warn(`Unknown error for item: ${stringifiedItem}. The item will be not be attempted again. Error message: ${(err as Error).message}`)
     return this.#db.removeItem(relayItem)
   }
 }

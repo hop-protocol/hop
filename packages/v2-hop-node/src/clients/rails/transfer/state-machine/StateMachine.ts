@@ -31,7 +31,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
     }
   }
 
-  protected override getTransitionState(state: RailsTransferState, value: IRailsTransfer): RailsTransferState {
+  protected override getTransitionState(state: RailsTransferState): RailsTransferState {
     switch (state) {
       case RailsTransferState.Sent:
         return RailsTransferState.Bonded

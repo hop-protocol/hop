@@ -20,6 +20,8 @@ import { DB } from '#db/DB.js'
  * - state!key
  */
 
+const UNINITIALIZED = 'UNINITIALIZED'
+
 // TODO: V2: This DB needs to be able to handle non-linear state transitions. This means that
 // a state can transition to a state it has already been in. This is not currently supported.
 export class StateMachineDB<State extends string, NextState extends string, Key extends string, StateData> extends DB<Key, StateData> {
@@ -27,13 +29,17 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     super(name + 'StateMachineDB')
   }
 
-  async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
+  /**
+   * Item creation
+   */
+
+  async addUninitializedItem(firstState: State, key: Key, value: StateData): Promise<void> {
     if (await this.has(key)) {
       return this.#handlePossibleReorg(key, value)
     }
     // A newly created item always goes from null to nextState, so we
-    // can confidently set the nextState to the initial state.
-    const nextState = initialState as unknown as NextState
+    // can confidently set the nextState to the first state.
+    const nextState = firstState as unknown as NextState
     return this.#updateState(null, nextState, key, value)
   }
 
@@ -58,8 +64,11 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
     const batch = this.batch()
 
-    // Delete the current state entry if this is not the initial state
-    if (state !== null) {
+    const isFirstState = state === null
+    if (isFirstState) {
+      batch.put(key, value, { sublevel: this.getSublevel(UNINITIALIZED) })
+    } else {
+      // Delete the current state entry if this is not the first state
       batch.del(key, { sublevel: this.getSublevel(state) })
     }
 
@@ -113,6 +122,28 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     })
   }
 
+  /**
+   * Initialization
+   */
+
+  async initializeItem(key: Key): Promise<void> {
+    return this.getSublevel(UNINITIALIZED).del(key)
+  }
+
+
+  async isItemInitialized(key: Key): Promise<boolean> {
+    const item = `!${UNINITIALIZED}!${key}`
+    const doesExist = await this.has(item as Key)
+    if (doesExist) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Utils
+   */
+
   #extractStateFromKey(key: string): State {
     const parts = key.split('!')
     const state = parts[1]
@@ -121,10 +152,6 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     }
     return state as State
   }
-
-  /**
-   * Utils
-   */
 
   // TODO: V2: A reorg that changes the state of an item is not currently handled. The current
   // implementation removes both such that the message will never be handled. This should

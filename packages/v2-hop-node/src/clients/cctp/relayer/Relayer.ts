@@ -45,10 +45,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    */
 
   async #sendReceiveMessage (relayItem: ReceiveMessageInput): Promise<providers.TransactionResponse> {
-    const { message, destChainId } = relayItem
+    const { message, destinationChainId } = relayItem
 
     const attestation = await CCTPSDK.fetchAttestation(message)
-    const wallet = wallets.get(destChainId)
+    const wallet = wallets.get(destinationChainId)
     return CCTPSDK.relayMessage(wallet, message, attestation)
   }
 

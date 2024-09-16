@@ -412,7 +412,7 @@ export function useV2Send(): V2SendHook {
 
   const fromChain = networks.find(network => network.networkId?.toString() === fromChainId)
   const toChain = networks.find(network => network.networkId?.toString() === toChainId)
-  const chains = getChainsSupportedByToken(tokenSymbol).map(chainId => networks.find(network => network.networkId?.toString() === chainId))
+  const chains = getChainsSupportedByToken(tokenSymbol).map(chainId => networks.find(network => network.networkId?.toString() === chainId)).filter(Boolean)
 
   const initialTokenSymbol = tokenList?.[0]
   const initialFromChainId = networks?.[0].networkId?.toString()

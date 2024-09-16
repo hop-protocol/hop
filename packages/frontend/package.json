@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
+    "clean": "rm -rf node_modules build tsconfig.tsbuildinfo",
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "dev": "pnpm start",
     "lint": "eslint . --fix",

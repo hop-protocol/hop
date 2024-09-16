@@ -25,6 +25,7 @@ import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
 import { AmmDetails } from '#components/AmmDetails/index.js'
 import { MultiHopStepper } from './MultiHopStepper.js'
+import { TokenListModal } from './V2Tokens.js'
 
 export const SendV2: FC = () => {
   const styles = useSendStyles()
@@ -322,6 +323,7 @@ export const SendV2: FC = () => {
           toChain={toChain}
           onClose={() => setTx(null)} tx={tx as any} />}
       </Box>
+      <TokenListModal onTokenSelect={(token) => console.log('Selected token:', token)} />
     </Box>
   )
 }

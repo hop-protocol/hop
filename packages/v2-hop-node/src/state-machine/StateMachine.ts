@@ -4,7 +4,7 @@ import { poll } from '#utils/poll.js'
 import { getFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
-import { DATA_PROCESSED_EVENT } from '#constants/index.js'
+import { DATA_PROCESSED_EVENT, TimeIntervals } from '#constants/index.js'
 import type { IRelayer } from '#relayer/IRelayer.js'
 import type { NextState, StateTxContext } from './types.js'
 
@@ -40,6 +40,10 @@ export abstract class StateMachine<State extends string, StateData extends State
   // is too slow, users will have to wait longer for state transitions to the point where they
   // will be have to wait a relatively long time for the relay of their message.
   readonly #pollIntervalMs: number = 10_000
+  // The maximum amount of time an item can be in the DB before it is considered stale and missed.
+  // The resource consumed by this is a DB read per poll plus any fetches to validate state, which
+  // adds up with many misses. This is meant to avoid a huge number of missed events in the DB.
+  readonly #maxItemAgeMs: number = TimeIntervals.ONE_WEEK_MS
   protected readonly logger: Logger
 
   protected abstract getStates(): State[]
@@ -132,6 +136,8 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (isLastState(this.#states, state)) return
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
+      await this.#preTransitionHook(state, value, key)
+
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (!shouldAttempt) continue
 
@@ -149,7 +155,7 @@ export abstract class StateMachine<State extends string, StateData extends State
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(nextState, nextValue, key)
+      void this.#postTransitionHook(nextState, key)
     }
   }
 
@@ -193,7 +199,15 @@ export abstract class StateMachine<State extends string, StateData extends State
    * Hooks
    */
 
-  async #postTransitionHook (nextState: State, nextValue: StateData, key: string): Promise<void> {
+  async #preTransitionHook (state: State, value: StateData, key: string): Promise<void> {
+    const eventTimestampMs = value.txContext.timestampMs
+    if (eventTimestampMs < Date.now() - this.#maxItemAgeMs) {
+      this.logger.error(`Missed event for state: ${state}, key: ${key}`)
+      return this.#db.discardItem(state, value, key)
+    }
+  }
+
+  async #postTransitionHook (nextState: State, key: string): Promise<void> {
     this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
 
     // There is no action needed for the final state

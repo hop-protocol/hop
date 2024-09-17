@@ -19,13 +19,23 @@ import { DB } from '#db/DB.js'
  * - key!state
  * - state!key
  *
- * There is an additional sublevel for items that have not been initialized. This is to handle the
- * start of an item's lifecycle. This is for the storage of an event that has only been observed but
- * not yet finalized. The item is removed from the uninitialized sublevel once the item has been
- * initialized.
+ * There are two additional sublevels: items that have not been initialized and items that have been
+ * discarded.
+ * - The uninitialized sublevel is to handle the start of an item's lifecycle. This is for
+ * the storage of an event that has only been observed but not yet finalized. The item is removed
+ * from the uninitialized sublevel once the item has been initialized.
+ * - The discarded sublevel is for items that have been discarded. This is for the storage of an
+ * item that has a missed event and should no longer be polled.
+ *
+ * Key format:
+ * - !UNINITIALIZED!key
+ * - !DISCARDED!key
  */
 
-const UNINITIALIZED = 'UNINITIALIZED'
+const enum INTERNAL_STATES {
+  UNINITIALIZED = 'UNINITIALIZED',
+  DISCARDED = 'DISCARDED'
+}
 
 // TODO: V2: This DB needs to be able to handle non-linear state transitions. This means that
 // a state can transition to a state it has already been in. This is not currently supported.
@@ -56,6 +66,15 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     return this.#updateState(state, nextState, key, value)
   }
 
+  async discardItem(state: State, value: StateData, key: Key): Promise<void> {
+    const batch = this.batch()
+    batch.del(key, { sublevel: this.getSublevel(state) })
+    batch.del(state, { sublevel: this.getSublevel(key) })
+    batch.put(key, value, { sublevel: this.getSublevel(INTERNAL_STATES.DISCARDED) })
+    this.logger.debug(`Discarding item for key: ${key}, value: ${JSON.stringify(value)}`)
+    return batch.write()
+  }
+
   async #updateState(
     state: State | null,
     nextState: NextState | null,
@@ -71,7 +90,7 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
     const isFirstState = state === null
     if (isFirstState) {
-      batch.put(key, value, { sublevel: this.getSublevel(UNINITIALIZED) })
+      batch.put(key, value, { sublevel: this.getSublevel(INTERNAL_STATES.UNINITIALIZED) })
     } else {
       // Delete the current state entry if this is not the first state
       batch.del(key, { sublevel: this.getSublevel(state) })
@@ -132,13 +151,13 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
    */
 
   async initializeItem(key: Key): Promise<void> {
-    return this.getSublevel(UNINITIALIZED).del(key)
+    return this.getSublevel(INTERNAL_STATES.UNINITIALIZED).del(key)
   }
 
 
   async isItemInitialized(key: Key): Promise<boolean> {
     // TODO: Optimize: Figure out sublevel typing so I don't have to do this.
-    const item = this.getSublevelKey([UNINITIALIZED, key])
+    const item = this.getSublevelKey([INTERNAL_STATES.UNINITIALIZED, key])
     const doesExist = await this.has(item as Key)
     if (doesExist) {
       return false

@@ -323,7 +323,7 @@ export const SendV2: FC = () => {
           toChain={toChain}
           onClose={() => setTx(null)} tx={tx as any} />}
       </Box>
-      <TokenListModal onTokenSelect={(token) => console.log('Selected token:', token)} />
+      <TokenListModal selectedChainId={'42069'} onTokenSelect={(token) => console.log('Selected token:', token)} />
     </Box>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -18,57 +18,25 @@ import Typography from '@mui/material/Typography'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import CheckIcon from '@mui/icons-material/Check'
 import ListItemIcon from '@mui/material/ListItemIcon'
-import tokenListJson from './tokenlist.json'
 import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
-
-function generateTokenListFromJson(tokenListJson: any) {
-  const tokens = tokenListJson.tokens.map((token: any) => ({
-    chainId: token.chainId,
-    address: token.address,
-    name: token.name,
-    symbol: token.symbol,
-    decimals: token.decimals,
-    logoURI: token.logoURI,
-  }))
-
-  return tokens
-}
-
-const tokenList = generateTokenListFromJson(tokenListJson)
+import { useTokenList } from './useTokenList'
 
 export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onTokenSelect: (token: any) => void, selectedChainId: string }) => {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const [filteredTokens, setFilteredTokens] = useState(tokenList)
-  const [chainFilter, setChainFilter] = useState(selectedChainId)
+  const {
+    open,
+    search,
+    filteredTokens,
+    chainFilter,
+    handleOpen,
+    handleClose,
+    setSearch,
+    handleChainFilterChange
+  } = useTokenList(selectedChainId)
 
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
-
-  // Function to handle the search and filtering logic
-  useEffect(() => {
-    const searchLower = search.toLowerCase()
-    const filtered = tokenList.filter((token) => {
-      const matchesSearch =
-        token.name.toLowerCase().includes(searchLower) ||
-        token.symbol.toLowerCase().includes(searchLower) ||
-        token.address.toLowerCase().includes(searchLower)
-
-      const matchesChain = chainFilter ? token.chainId === parseInt(chainFilter) : true
-
-      return matchesSearch && matchesChain
-    })
-    setFilteredTokens(filtered)
-  }, [search, chainFilter])
-
-  const handleChainFilterChange = (event: any) => {
-    setChainFilter(event.target.value as string)
-  }
-
-  const networkOptions: any[] = [
+  const networkOptions = [
     { value: '', label: 'All Chains', logo: 'https://gist.github.com/user-attachments/assets/7d344fcb-6463-4ae1-a311-c89af12a99ba' },
     { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
     { value: '11155111', label: 'Ethereum Sepolia', logo: 'https://assets.hop.exchange/logos/ethereum.svg' },
@@ -181,7 +149,6 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                       </MenuItem>
                     ))}
                   </Select>
-
                 </InputAdornment>
               ),
             }}
@@ -230,7 +197,6 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                     </Box>
                   </ListItemAvatar>
 
-
                   <ListItemText
                     primary={token.name}
                     secondary={`${token.symbol} (Chain ID: ${token.chainId})`}
@@ -239,14 +205,11 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
 
                 {/* Right side: USD value and token balance */}
                 <Box textAlign="right">
-                  {/* USD value (primary) */}
                   <Typography variant="body1">
-                    {`$${(token.usdValue || 0).toFixed(2)}`} {/* USD value */}
+                    {`$${(token.usdValue || 0).toFixed(2)}`}
                   </Typography>
-
-                  {/* Token balance (secondary) */}
                   <Typography variant="body2" color="textSecondary">
-                    {`${(token.balance || 0).toFixed(4)}`} {/* Token balance */}
+                    {`${(token.balance || 0).toFixed(4)}`}
                   </Typography>
                 </Box>
               </ListItem>

@@ -25,7 +25,7 @@ import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
 import { AmmDetails } from '#components/AmmDetails/index.js'
 import { MultiHopStepper } from './MultiHopStepper.js'
-import { TokenListModal } from './V2Tokens.js'
+import { TokenListModal } from './TokenListModal.js'
 
 export const SendV2: FC = () => {
   const styles = useSendStyles()

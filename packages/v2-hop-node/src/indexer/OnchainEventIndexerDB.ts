@@ -1,7 +1,6 @@
-import { DB } from './DB.js'
+import { DB } from '#db/DB.js'
 import type { DecodedLogWithContext } from '#types/index.js'
-import { DATA_PUT_EVENT } from './constants.js'
-import { normalizeDBValue } from './utils.js'
+import { DATA_INDEXED_EVENT } from './constants.js'
 
 /**
  * The primary key is the filterId and the secondary keys are the values that
@@ -28,8 +27,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   readonly #secondaryKeys: Record<string, string[]> = {}
   readonly #syncPrefix = 'sync'
 
-  constructor (dbName: string) {
-    super(dbName + 'OnchainEventIndexerDB')
+  constructor (name: string) {
+    super(name + 'OnchainEventIndexerDB')
   }
 
   /**
@@ -40,7 +39,6 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     if (typeof this.#secondaryKeys[primaryKey] !== 'undefined') {
       throw new Error(`Indexer DB already exists for primaryKey ${primaryKey}`)
     }
-    this.sublevel(primaryKey)
     this.#secondaryKeys[primaryKey] = secondaryKeys
   }
 
@@ -66,7 +64,11 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     #initListeners = (): void => {
       // https://github.com/Level/levelup?tab=readme-ov-file#events
-      this.on('batch', (operations: any[]) => {
+      this.on('batch', this.#handleBatchOperation)
+    }
+
+    #handleBatchOperation = (operations: any[]): void => {
+      try {
         for (const op of operations) {
           // Only emit put events
           if (op.type !== 'put') continue
@@ -77,11 +79,15 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
           // Multiple writes of the same data occur if there are multiple indexes
           // for the item. We only want to emit the event once per item, not
           // per index, so we ignore a key if it is part of a subDB.
-          if (op.key.includes('!')) continue
+          const isPrimaryKey = op.key.split('!').length - 1 === 1
+          if (!isPrimaryKey) continue
 
-          this.emit(DATA_PUT_EVENT, op.value)
+          this.emit(DATA_INDEXED_EVENT, op.value)
         }
-      })
+      } catch (err) {
+        this.logger.error('Error handling batch operation', err)
+        process.exit(1)
+      }
     }
 
   /**
@@ -107,7 +113,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
     try {
       const item = await this.get(key) as IndexDBValue
-      return normalizeDBValue(item)
+      return this.normalizeDBValue(item)
     } catch (err) {
       throw new Error(`No item found for key ${key}. error: ${err}`)
     }
@@ -119,10 +125,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   async putItemIndexedItem(primaryKey: string, syncedBlockNumber: number, logs: DecodedLogWithContext[]): Promise<void> {
     const batch = this.batch()
-
     for (const log of logs) {
-      batch.put(primaryKey, log)
-
       let indexedKey = primaryKey
       for (const secondaryKey of this.#secondaryKeys[primaryKey]!) {
         // This abstract class knows the secondaryKey exists but does not care what it is, so we cast it

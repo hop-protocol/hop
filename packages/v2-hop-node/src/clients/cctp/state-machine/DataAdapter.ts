@@ -29,7 +29,30 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
         // TODO: Fix this when abstract class return type is fixed
         return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>) as unknown as ICCTPMessage
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
+    }
+  }
+
+  protected override parseStateMachineData(state: CCTPMessageState, value: ICCTPMessage): any {
+    switch (state) {
+      case CCTPMessageState.Sent: {
+        const { messageNonce, destinationChainId, ...unmodifiedValues } = value
+        return {
+          cctpNonce: messageNonce,
+          chainId: destinationChainId,
+          ...unmodifiedValues
+        }
+      }
+      case CCTPMessageState.Relayed: {
+        const { messageNonce, sourceChainId, ...unmodifiedValues } = value
+        return {
+          nonce: messageNonce,
+          sourceDomain: CCTPSDK.getDomainFromChainId(sourceChainId),
+          ...unmodifiedValues
+        }
+      }
+      default:
+        throw new Error('Invalid state')
     }
   }
 
@@ -40,7 +63,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
       case CCTPEventName.MessageReceived:
         return CCTPMessageState.Relayed
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
@@ -55,11 +78,22 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
+  protected override getEventChainIdForState (state: CCTPMessageState, value: ICCTPMessage): string {
+    switch (state) {
+      case CCTPMessageState.Sent:
+        return value.sourceChainId
+      case CCTPMessageState.Relayed:
+        return value.destinationChainId
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   /**
    * Internal
    */
 
-  async #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): Promise<ISentCCTPMessageWithoutContext> {
+  #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): ISentCCTPMessageWithoutContext {
     const { context, decoded } = log
     const { chainId } = context
     const { message, cctpNonce, chainId: destinationChainId } = decoded
@@ -72,7 +106,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
-  async #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Promise<IRelayedCCTPMessageWithoutContext> {
+  #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): IRelayedCCTPMessageWithoutContext {
     const { decoded, context } = log
     const { nonce, sourceDomain } = decoded
 

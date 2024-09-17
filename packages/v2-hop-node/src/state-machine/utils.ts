@@ -1,23 +1,5 @@
-import type { NextState } from './types.js'
-
 export function getFirstState<T>(states: T[]): T {
   return states[0]!
-}
-
-export function getNextState<State>(states: State[], state: State): NextState<State> {
-  const index = states.indexOf(state)
-
-  // If the state is unknown, the index will be -1
-  if (index === -1) {
-    throw new Error('Invalid state: state not found in states array')
-  }
-
-  // If this is the last state, the next state is not possible
-  if (index === states.length) {
-    throw new Error('Invalid state: no next state available')
-  }
-
-  return states[index + 1] as NextState<State>
 }
 
 export function isFirstState<T>(states: T[], state: T): boolean {

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { OnchainEventIndexerDB } from '#db/OnchainEventIndexerDB.js'
+import { OnchainEventIndexerDB } from '#indexer/index.js'
 import type {
   DecodedLogWithContext,
   IndexedEventDataWithContext,
@@ -16,7 +16,7 @@ import {
   getUniqueFilterId,
 } from './utils.js'
 import type { IOnchainEventIndexer } from './IOnchainEventIndexer.js'
-import { DATA_PUT_EVENT } from '#db/constants.js'
+import { DATA_INDEXED_EVENT } from './constants.js'
 import { Logger } from '#logger/index.js'
 
 /**
@@ -30,13 +30,6 @@ import { Logger } from '#logger/index.js'
  * to use before calling init() and start().
  */
 
-export interface IndexerEventFilter<IndexerKey>{
-  chainId: string
-  filter: RequiredEventFilter
-  startBlockNumber: number
-  indexerKeys: IndexerKey[]
-}
-
 interface EventLogsForRange {
   chainId: string
   filter: RequiredEventFilter
@@ -49,7 +42,7 @@ interface IndexedEvent {
   indexerEventFilter: RequiredEventFilter
 }
 
-export abstract class OnchainEventIndexer<EventName extends string, IndexerKey extends string> implements IOnchainEventIndexer<EventName> {
+export abstract class OnchainEventIndexer<EventName extends string, EventIndex extends string> implements IOnchainEventIndexer<EventName> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexedEvents: IndexedEvent[] = []
@@ -62,7 +55,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
   protected readonly logger: Logger
 
   protected abstract getEventFilter(chainId: string, eventName: EventName): RequiredEventFilter
-  protected abstract getIndexerKeys (eventName: EventName): IndexerKey[]
+  protected abstract getDesiredEventIndexes (eventName: EventName): EventIndex[]
   protected abstract getStartBlockNumber (chainId: string): number
   protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
@@ -72,26 +65,27 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
     return true
   }
 
-  constructor (dbName: string) {
-    this.#db = new OnchainEventIndexerDB(dbName)
+  constructor (name: string) {
+    this.#db = new OnchainEventIndexerDB(name)
+    const tag = name + 'OnchainEventIndexer'
     this.logger = new Logger({
-      tag: 'OnchainEventIndexer',
+      tag,
       color: 'blue'
     })
   }
 
-  // TODO: This method should aggregate multiple filters instead of the concrete implementation.
+  // TODO: Optimize: This method should aggregate multiple filters instead of the concrete implementation.
   // It is currently too tightly coupled with eventName and chainId, which has redundant state
   // and is dangerous to maintain due to mismatched state.
-  protected addIndexerEventFilter (eventName: EventName, chainId: string, indexerEventFilter: RequiredEventFilter): void {
+  protected addEventFilterToIndexer (eventName: EventName, chainId: string, indexerEventFilter: RequiredEventFilter): void {
     if (this.#initialized || this.#started) {
       throw new Error('Cannot add indexer after initializing or starting')
     }
 
     const filterId = getUniqueFilterId(chainId, indexerEventFilter)
-    const indexerKeys = this.getIndexerKeys(eventName)
+    const desiredEventIndexes = this.getDesiredEventIndexes(eventName)
 
-    this.#db.newIndexerDB(filterId, indexerKeys)
+    this.#db.newIndexerDB(filterId, desiredEventIndexes)
     this.#indexedEvents.push({
       chainId,
       indexerEventFilter
@@ -115,6 +109,7 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
 
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
       await this.#syncEvents(indexedEvent)
+      this.logger.info(`Initialized and synced indexer for chainId ${chainId} and filterId ${filterId}`)
     })
     await Promise.all(promises)
 
@@ -135,12 +130,21 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
    */
 
   #initListeners(): void {
-    this.#db.on(DATA_PUT_EVENT, (data: any) => this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data))
+    this.#db.on(DATA_INDEXED_EVENT, this.#handleDataIndexedEvent)
     this.#db.on('error', () => { throw new Error('Onchain event indexer error') })
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
     this.#eventEmitter.on(event, listener)
+  }
+
+  #handleDataIndexedEvent = (data: DecodedLogWithContext): void => {
+    try {
+      this.#eventEmitter.emit(DATA_PROCESSED_EVENT, data)
+    } catch (err) {
+      this.logger.error('Error handling data indexed event', err)
+      process.exit(1)
+    }
   }
 
   /**
@@ -152,17 +156,18 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
   // but if they are incorrect then this method will error. If the values are correct but the data
   // does not exist, then this method will return null.
   async fetchItem(input: IndexedEventDataWithContext<EventName>): Promise<DecodedLogWithContext | null> {
-    const { chainId, eventName, eventIndexValues } = input
-    const eventFilter: RequiredEventFilter = this.getEventFilter(chainId, eventName)
-    const filterId: string = getUniqueFilterId(chainId, eventFilter)
+    const { eventChainId, eventName, eventIndexValues } = input
+    const eventFilter: RequiredEventFilter = this.getEventFilter(eventChainId, eventName)
+    const filterId: string = getUniqueFilterId(eventChainId, eventFilter)
 
-    const indexerKeys: IndexerKey[] = this.getIndexerKeys(eventName)
-    const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(indexerKeys, eventIndexValues)
+    const desiredEventIndexes: EventIndex[] = this.getDesiredEventIndexes(eventName)
+    const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(desiredEventIndexes, eventIndexValues)
 
     try {
       const indexedItem = await this.#db.getIndexedItem(filterId, stringifiedDBIndexes)
       return indexedItem
     } catch {
+      this.logger.warn(`No indexed item found for eventChainId ${eventChainId}, eventName ${eventName}, and indexes ${stringifiedDBIndexes.join(', ')}`)
       return null
     }
   }
@@ -246,8 +251,8 @@ export abstract class OnchainEventIndexer<EventName extends string, IndexerKey e
    */
 
   // Retrieves the values from the object and stringifies them for use as DB indexes.
-  #getStringifiedDBIndexes (indexerKeys: IndexerKey[], eventIndexValues: any): string[] {
-    return indexerKeys.reduce<string[]>((acc, key) => {
+  #getStringifiedDBIndexes (desiredEventIndexes: EventIndex[], eventIndexValues: any): string[] {
+    return desiredEventIndexes.reduce<string[]>((acc, key) => {
       const value = eventIndexValues[key as keyof typeof eventIndexValues]
       if (value === undefined) {
         throw new Error(`Missing index value for key ${key}`)

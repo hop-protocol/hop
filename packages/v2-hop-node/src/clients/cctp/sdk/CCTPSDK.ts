@@ -160,7 +160,7 @@ export class CCTPSDK {
       eventName = 'CCTPTransferSent'
       decoded = CCTPSDK.parseHopCCTPTransferSentLog(log, chainId)
     } else if (log.topics[0] === CCTPSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
-      eventName = 'CCTPMessageReceived'
+      eventName = 'MessageReceived'
       decoded = CCTPSDK.parseHopCCTPTransferReceivedLog(log)
     } else {
       throw new Error('Unknown typed log')

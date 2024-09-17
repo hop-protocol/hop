@@ -1,6 +1,7 @@
 import { RailsEventName } from '../../types.js'
 import { DataAdapter } from '#state-machine/index.js'
 import { type IRailsClaim, RailsClaimState } from './types.js'
+import { getPathFromPathId } from '../../utils.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsClaim, RailsEventName> {
@@ -17,10 +18,12 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Sent
       case RailsEventName.ClaimPosted:
         return RailsClaimState.Posted
+      case RailsEventName.ClaimRemoved:
+        return RailsClaimState.Removed
       case RailsEventName.ClaimConfirmed:
         return RailsClaimState.Confirmed
       default:
-        throw new Error('Invalid event name')
+        throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
@@ -30,8 +33,28 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsEventName.TransferSent
       case RailsClaimState.Posted:
         return RailsEventName.ClaimPosted
+      case RailsClaimState.Removed:
+        return RailsEventName.ClaimRemoved
       case RailsClaimState.Confirmed:
         return RailsEventName.ClaimConfirmed
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getEventChainIdForState (state: RailsClaimState, value: IRailsClaim): string {
+    const path = getPathFromPathId(value.pathId)
+    const { srcChainId, destChainId } = path
+
+    switch (state) {
+      case RailsClaimState.Sent:
+        return srcChainId
+      case RailsClaimState.Posted:
+        return destChainId
+      case RailsClaimState.Removed:
+        return destChainId
+      case RailsClaimState.Confirmed:
+        return destChainId
       default:
         throw new Error('Invalid state')
     }

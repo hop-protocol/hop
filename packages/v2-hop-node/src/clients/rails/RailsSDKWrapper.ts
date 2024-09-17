@@ -62,7 +62,8 @@ export enum RailsEventNameSDK {
   TransferBonded = 'TransferBonded',
   // TODO: This is a mock until they are live in the contract
   ClaimPosted = 'ClaimPosted',
-  ClaimConfirmed = 'ClaimConfirmed'
+  ClaimRemoved = 'ClaimRemoved',
+  ClaimConfirmed = 'ClaimConfirmed',
   // TODO: Add them all
 }
 
@@ -72,6 +73,8 @@ export enum RailsFunctionName {
 // TODO: No chainId in input if connecting
 export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
 export type BondInput = Omit<BondInputSDK, 'chainId'>
+
+class ContractFunctionRevertedError extends Error {}
 
 export class RailsSDKWrapper {
   static getEventFilter<T extends string, U extends object>(eventName: T, chainId: string, indexes?: U): RequiredEventFilter {
@@ -144,6 +147,12 @@ export class RailsSDKWrapper {
 }
 
 export class RailsSDK {
+  static ContractFunctionRevertedError = ContractFunctionRevertedError
+
+  // TODO: From SDK
+  static isContractError (err: unknown): err is ContractFunctionRevertedError {
+    return true
+  }
 
   // TODO: Signer or provider or however ethers does it
   static connect (signer: Signer | providers.Provider): RailsGateway {
@@ -176,6 +185,11 @@ export class RailsSDK {
     // TODO: Add context from SDK
     // const decodedEventWithContext = RailsSDK.getGateway().addContextToEvent(decodedEvent, chainId)
     return decodedEvent as EthersEventWithDecodedTypesAndContext<TransferTypes>
+  }
+
+  // TODO: get from SDK
+  static async isPosted(transferId: string): Promise<boolean> {
+    return true
   }
 
   // TODO: get from SDK

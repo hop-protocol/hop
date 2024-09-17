@@ -12,14 +12,14 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: IRailsTransferRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: IRailsTransferRelayItem): Promise<boolean> {
     if (!this.#isBondInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#canRelayBond(relayItem as BondInput)
   }
 
-  protected override sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: IRailsTransferRelayItem): Promise<providers.TransactionResponse> {
 
     // TODO: possibly validate BCR here to avoid a bad bond
 
@@ -29,10 +29,10 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
     return this.#sendBond(relayItem)
   }
 
-  protected override isImplementationError (relayItem: IRailsTransferRelayItem, err: Error): boolean {
+  protected override isImplementationError (err: unknown): boolean {
     return (
-      this.#isContractError(relayItem, err) ||
-      this.#isBCRError(relayItem, err)
+      this.#isContractError(err) ||
+      this.#isBCRError(err)
     )
   }
 
@@ -87,13 +87,18 @@ export class RailsTransferRelayer extends Relayer<IRailsTransferRelayItem> {
    * Errors
    */
 
-  #isContractError (relayItem: BondInput, err: Error): boolean {
-    // TODO
-    return true
+  #isContractError (err: unknown): boolean {
+    if (RailsSDK.isContractError(err)) {
+      return true
+    }
+    return false
   }
 
-  #isBCRError (relayItem: BondInput, err: Error): boolean {
-    // TODO
+  #isBCRError (err: unknown): boolean {
+    // if (err instanceof BonderChoiceRule.BCRError) {
+    //   return true
+    // }
+    // return false
     return true
   }
 

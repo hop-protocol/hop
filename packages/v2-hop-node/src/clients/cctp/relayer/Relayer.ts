@@ -10,24 +10,34 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: ICCTPRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: ICCTPRelayItem): Promise<boolean> {
     if (!this.#isReceiveMessageInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
 
-    // There is no onchain check required since the attestation is offchain
-    return Promise.resolve(true)
+    // If the attestations are not ready, we should not attempt the relay
+    try {
+      await CCTPSDK.fetchAttestation(relayItem.message)
+    } catch (err) {
+      this.logger.debug(`Attestation not yet ready for message hash: ${relayItem.message}`)
+      return false
+    }
+
+    return true
   }
 
-  protected override sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
     if (!this.#isReceiveMessageInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#sendReceiveMessage(relayItem)
   }
 
-  protected override isImplementationError (relayItem: ICCTPRelayItem, err: Error): boolean {
-    return this.#isContractError(relayItem, err)
+  protected override isImplementationError (err: unknown): boolean {
+    return (
+      this.#isAttestationError(err) ||
+      this.#isContractError(err)
+    )
   }
 
   /**
@@ -35,10 +45,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    */
 
   async #sendReceiveMessage (relayItem: ReceiveMessageInput): Promise<providers.TransactionResponse> {
-    const { message, destChainId } = relayItem
+    const { message, destinationChainId } = relayItem
 
     const attestation = await CCTPSDK.fetchAttestation(message)
-    const wallet = wallets.get(destChainId)
+    const wallet = wallets.get(destinationChainId)
     return CCTPSDK.relayMessage(wallet, message, attestation)
   }
 
@@ -52,11 +62,10 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     }
 
     const candidate = item as Partial<ReceiveMessageInput>
+    // The attestation is retrieved during the relay so we do not need to check for it here
     return (
       'message' in candidate &&
-      'attestation' in candidate &&
-      typeof candidate.message === 'string' &&
-      typeof candidate.attestation === 'string'
+      typeof candidate.message === 'string'
     )
   }
 
@@ -64,22 +73,21 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
    * Errors
    */
 
-  #isContractError (relayItem: ReceiveMessageInput, err: Error): boolean {
-    const messageHash = CCTPSDK.getMessageHashFromMessage(relayItem.message)
-    const errMessage = err.message
-
+  #isAttestationError (err: unknown): boolean {
+    const errMessage = (err as Error).message
     if (errMessage.includes('Attestation not complete')) {
-      this.logger.debug(`Attestation not yet ready for message hash: ${messageHash}. Trying again next poll.`)
+      this.logger.debug(`Attestation not yet ready for message hash: ${errMessage}`)
       return true
     } else if (errMessage.includes('Message hash not found')) {
-      // TODO: Handle this
-      // throw new Error(`Message hash not found for message hash: ${messageHash} (message: ${message}). There is an issue with the message encoding.`)
-      return true
-    } else if (errMessage.includes('TODO') /* TODO */) {
-      // TODO: Handle an old message or reorged
+      // This is an issue with message encoding
+      this.logger.debug(`Message hash not found for message hash: ${errMessage}`)
       return true
     }
 
+    return false
+  }
+
+  #isContractError (err: unknown): boolean {
     return false
   }
 }

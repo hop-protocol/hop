@@ -25,7 +25,16 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   protected override shouldAttemptTransition(state: RailsTransferState, value: IRailsTransfer): boolean {
     switch (state) {
       case RailsTransferState.Sent:
-        return this.#shouldBondBeFinalized(value as ISentRailsTransfer)
+        return this.#shouldSendBeFinalized(value as ISentRailsTransfer)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getTransitionState(state: RailsTransferState): RailsTransferState {
+    switch (state) {
+      case RailsTransferState.Sent:
+        return RailsTransferState.Bonded
       default:
         throw new Error('Invalid state')
     }
@@ -35,7 +44,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
    * Internal
    */
 
-  #shouldBondBeFinalized(value: ISentRailsTransfer): boolean {
+  #shouldSendBeFinalized(value: ISentRailsTransfer): boolean {
     // A bond can be finalized if enough time has passed for the post to
     // be finalized on its own chain, for the bonder to bond the claim,
     // and for the bond to be finalized on its own chain.
@@ -52,7 +61,6 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
     // must be finalized and they exist on the same chain.
     const expectedRelayTimeMs =
       timestampMs +
-      destChainFinalityTimeMs +
       destChainFinalityTimeMs
 
     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()

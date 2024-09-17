@@ -10,6 +10,7 @@ export enum RailsEventName {
   TransferSent = RailsEventNameSDK.TransferSent,
   TransferBonded = RailsEventNameSDK.TransferBonded,
   ClaimPosted = RailsEventNameSDK.ClaimPosted,
+  ClaimRemoved = RailsEventNameSDK.ClaimRemoved,
   ClaimConfirmed = RailsEventNameSDK.ClaimConfirmed
 }
 

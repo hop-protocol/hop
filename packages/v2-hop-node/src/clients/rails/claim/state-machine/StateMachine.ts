@@ -26,9 +26,21 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   protected override shouldAttemptTransition(state: RailsClaimState, value: IRailsClaim): boolean {
     switch (state) {
       case RailsClaimState.Sent:
-        return this.#shouldPostBeFinalized(value as ISentRailsClaim)
+        return this.#shouldSendBeFinalized(value as ISentRailsClaim)
       case RailsClaimState.Posted:
-        return this.#shouldConfirmBeFinalized(value as IPostedRailsClaim)
+        return this.#shouldPostBeFinalized(value as IPostedRailsClaim)
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getTransitionState(state: RailsClaimState): RailsClaimState {
+    switch (state) {
+      case RailsClaimState.Sent:
+        return RailsClaimState.Posted
+      case RailsClaimState.Posted: {
+        return RailsClaimState.Confirmed
+      }
       default:
         throw new Error('Invalid state')
     }
@@ -38,7 +50,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
    * Internal
    */
 
-  #shouldPostBeFinalized(value: ISentRailsClaim): boolean {
+  #shouldSendBeFinalized(value: ISentRailsClaim): boolean {
     // A post can be finalized if enough time has passed for the post to
     // be finalized on its own chain, for the bonder to bond the claim,
     // and for the bond to be finalized on its own chain.
@@ -55,7 +67,6 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     // must be finalized and they exist on the same chain.
     const expectedRelayTimeMs =
       timestampMs +
-      destChainFinalityTimeMs +
       destChainFinalityTimeMs
 
     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
@@ -65,7 +76,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     )
   }
 
-  #shouldConfirmBeFinalized(value: IPostedRailsClaim): boolean {
+  #shouldPostBeFinalized(value: IPostedRailsClaim): boolean {
     // TODO: Implement this -- it should be a function of the exit time of the source
     // since this is sent with the send
     return true

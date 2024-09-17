@@ -11,22 +11,22 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    * Implementation
    */
 
-  protected override shouldAttemptRelay (relayItem: IRailsClaimRelayItem): Promise<boolean> {
+  protected override async shouldAttemptRelay (relayItem: IRailsClaimRelayItem): Promise<boolean> {
     if (!this.#isPostClaimInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#canRelayPostClaim(relayItem as PostClaimInput)
   }
 
-  protected override sendRelay (relayItem: IRailsClaimRelayItem): Promise<providers.TransactionResponse> {
+  protected override async sendRelay (relayItem: IRailsClaimRelayItem): Promise<providers.TransactionResponse> {
     if (!this.#isPostClaimInput(relayItem)) {
       throw new Error('Invalid relay item')
     }
     return this.#sentPostClaim(relayItem)
   }
 
-  protected override isImplementationError (relayItem: IRailsClaimRelayItem, err: Error): boolean {
-    return this.#isContractError(relayItem, err)
+  protected override isImplementationError (err: unknown): boolean {
+    return this.#isContractError(err)
   }
 
   /**
@@ -34,9 +34,9 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    */
 
   async #canRelayPostClaim (relayItem: PostClaimInput): Promise<boolean> {
-    const isClaimed = await RailsSDK.isClaimed(relayItem.transferId)
+    const isPosted = await RailsSDK.isPosted(relayItem.transferId)
     // TODO: If this is true, should we throw?
-    return !isClaimed
+    return !isPosted
   }
 
   /**
@@ -94,7 +94,8 @@ export class RailsClaimRelayer extends Relayer<IRailsClaimRelayItem> {
    * Errors
    */
 
-  #isContractError (relayItem: PostClaimInput, err: Error): boolean {
+  #isContractError (err: unknown): boolean {
+    const errMessage = (err as Error).message
     // TODO
     return true
   }

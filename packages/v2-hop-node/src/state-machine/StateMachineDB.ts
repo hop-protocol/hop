@@ -1,5 +1,4 @@
-import { DB } from './DB.js'
-import { normalizeDBValue } from './utils.js'
+import { DB } from '#db/DB.js'
 
 /**
  * Each item is indexable by its primary key. All of an items state information is stored in this DB.
@@ -19,20 +18,43 @@ import { normalizeDBValue } from './utils.js'
  * Key format:
  * - key!state
  * - state!key
+ *
+ * There are two additional sublevels: items that have not been initialized and items that have been
+ * discarded.
+ * - The uninitialized sublevel is to handle the start of an item's lifecycle. This is for
+ * the storage of an event that has only been observed but not yet finalized. The item is removed
+ * from the uninitialized sublevel once the item has been initialized.
+ * - The discarded sublevel is for items that have been discarded. This is for the storage of an
+ * item that has a missed event and should no longer be polled.
+ *
+ * Key format:
+ * - !UNINITIALIZED!key
+ * - !DISCARDED!key
  */
 
+const enum INTERNAL_STATES {
+  UNINITIALIZED = 'UNINITIALIZED',
+  DISCARDED = 'DISCARDED'
+}
+
+// TODO: V2: This DB needs to be able to handle non-linear state transitions. This means that
+// a state can transition to a state it has already been in. This is not currently supported.
 export class StateMachineDB<State extends string, NextState extends string, Key extends string, StateData> extends DB<Key, StateData> {
-  constructor (dbName: string) {
-    super(dbName + 'StateMachineDB')
+  constructor (name: string) {
+    super(name + 'StateMachineDB')
   }
 
-  async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
+  /**
+   * Item creation
+   */
+
+  async addUninitializedItem(firstState: State, key: Key, value: StateData): Promise<void> {
     if (await this.has(key)) {
       return this.#handlePossibleReorg(key, value)
     }
     // A newly created item always goes from null to nextState, so we
-    // can confidently set the nextState to the initial state.
-    const nextState = initialState as unknown as NextState
+    // can confidently set the nextState to the first state.
+    const nextState = firstState as unknown as NextState
     return this.#updateState(null, nextState, key, value)
   }
 
@@ -42,6 +64,15 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
   async updateState(state: State, nextState: NextState, key: Key, value: StateData): Promise<void> {
     return this.#updateState(state, nextState, key, value)
+  }
+
+  async discardItem(state: State, value: StateData, key: Key): Promise<void> {
+    const batch = this.batch()
+    batch.del(key, { sublevel: this.getSublevel(state) })
+    batch.del(state, { sublevel: this.getSublevel(key) })
+    batch.put(key, value, { sublevel: this.getSublevel(INTERNAL_STATES.DISCARDED) })
+    this.logger.debug(`Discarding item for key: ${key}, value: ${JSON.stringify(value)}`)
+    return batch.write()
   }
 
   async #updateState(
@@ -57,8 +88,11 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
     const batch = this.batch()
 
-    // Delete the current state entry if this is not the initial state
-    if (state !== null) {
+    const isFirstState = state === null
+    if (isFirstState) {
+      batch.put(key, value, { sublevel: this.getSublevel(INTERNAL_STATES.UNINITIALIZED) })
+    } else {
+      // Delete the current state entry if this is not the first state
       batch.del(key, { sublevel: this.getSublevel(state) })
     }
 
@@ -80,7 +114,7 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
     for await (const [key, value] of this.getSublevel(state).iterator()) {
-      const filteredValue = normalizeDBValue(value)
+      const filteredValue = this.normalizeDBValue(value)
       yield [key as Key, filteredValue as StateData]
     }
   }
@@ -112,6 +146,29 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     })
   }
 
+  /**
+   * Initialization
+   */
+
+  async initializeItem(key: Key): Promise<void> {
+    return this.getSublevel(INTERNAL_STATES.UNINITIALIZED).del(key)
+  }
+
+
+  async isItemInitialized(key: Key): Promise<boolean> {
+    // TODO: Optimize: Figure out sublevel typing so I don't have to do this.
+    const item = this.getSublevelKey([INTERNAL_STATES.UNINITIALIZED, key])
+    const doesExist = await this.has(item as Key)
+    if (doesExist) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Utils
+   */
+
   #extractStateFromKey(key: string): State {
     const parts = key.split('!')
     const state = parts[1]
@@ -120,10 +177,6 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     }
     return state as State
   }
-
-  /**
-   * Utils
-   */
 
   // TODO: V2: A reorg that changes the state of an item is not currently handled. The current
   // implementation removes both such that the message will never be handled. This should

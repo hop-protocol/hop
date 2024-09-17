@@ -3,11 +3,11 @@ import { getBlockTimestampFromLogMs } from '#utils/getBlockTimestampFromLogMs.js
 import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 import type { IDataAdapter } from './IDataAdapter.js'
-import type { IOnchainEventIndexer } from '#indexer/IOnchainEventIndexer.js'
+import type { IOnchainEventIndexer } from '#indexer/index.js'
 import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
 import type { StateTxContext } from './types.js'
 
-// TODO: Generalize for additional data sources beyond onchain events
+// TODO: Optimize: Generalize for additional data sources beyond onchain events
 type IDataSource<T> = IOnchainEventIndexer<T>
 
 /**
@@ -26,11 +26,19 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract getStateFromEventName (eventName: string): State
   protected abstract getEventNameFromState (state: State): EventName
+  protected abstract getEventChainIdForState (state: State, value: StateData): string
+  // @dev this is not strictly typed since it should not be used by most clients. This
+  // is custom for CCTP and there is no need to add complex typing or tight coupling to
+  // accommodate this. All clients that don't modify event names should be unconcerned.
+  protected parseStateMachineData (state: State, value: StateData): any {
+    return value
+  }
 
-  constructor (dataSource: IDataSource<EventName>) {
+  constructor (name: string, dataSource: IDataSource<EventName>) {
     this.#dataSource = dataSource
+    const tag = name + 'DataAdapter'
     this.logger = new Logger({
-      tag: 'DataAdapter',
+      tag,
       color: 'yellow'
     })
   }
@@ -55,14 +63,25 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
    */
 
   #initListeners = (): void => {
-    this.#dataSource.on(DATA_PROCESSED_EVENT, this.#emitStoredData)
-    this.#dataSource.on('error', () => { throw new Error('Data adapter error') })
+    this.#dataSource.on(DATA_PROCESSED_EVENT, (inputData: DecodedLogWithContext) => {
+      this.#handleDataProcessedEvent(inputData).catch(err => { process.exit(1) })
+    })
+
+    this.#dataSource.on('error', (err) => {
+      console.error('Data adapter error', err)
+      process.exit(1)
+    })
   }
 
-  #emitStoredData = (inputData: DecodedLogWithContext): void => {
-    const state = this.getStateFromEventName(inputData.context.eventName)
-    const formattedInputData = this.#toStateMachine(inputData)
-    this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)
+  #handleDataProcessedEvent = async (inputData: DecodedLogWithContext): Promise<void> => {
+    try {
+      const state = this.getStateFromEventName(inputData.context.eventName)
+      const formattedInputData = await this.#toStateMachine(inputData)
+      this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)
+    } catch (err) {
+      this.logger.error('Error handling data processed event', err)
+      throw new Error('Data adapter error')
+    }
   }
 
   on (event: string, listener: (...args: any[]) => void): void {
@@ -101,7 +120,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   async #toStateMachine (log: DecodedLogWithContext): Promise<StateData> {
     const { transactionHash, context } = log
     const timestampMs = await getBlockTimestampFromLogMs(log)
-    // TODO: The return type of this should be StateData without context.
+    // TODO: Optimize: The return type of this should be StateData without context.
     // This would allow the concrete implementation to not worry about it.
     // As it stands, the concrete implementation either does incorrect
     // type assertions or has to implement this method.
@@ -121,11 +140,13 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     state: State,
     value: StateData
   ): Promise<IndexedEventDataWithContext<EventName>> {
+    const eventChainId = this.getEventChainIdForState(state, value)
     const eventName = this.getEventNameFromState(state)
+    const modifiedValue = this.parseStateMachineData(state, value)
     return {
-      chainId: value.txContext.chainId,
+      eventChainId,
       eventName,
-      eventIndexValues: value
+      eventIndexValues: modifiedValue
     }
   }
 }

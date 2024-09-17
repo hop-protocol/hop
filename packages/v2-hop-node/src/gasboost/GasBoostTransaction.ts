@@ -10,7 +10,7 @@ import {
 import {
   EstimateGasError,
   NonceTooLowError
-} from '#types/error.js'
+} from './error.js'
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'

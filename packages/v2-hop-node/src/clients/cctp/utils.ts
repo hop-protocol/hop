@@ -1,4 +1,4 @@
-import { StateMachineDB } from '#db/StateMachineDB.js'
+import { StateMachineDB } from '#state-machine/index.js'
 import { CCTPSDK } from './sdk/CCTPSDK.js'
 import {
   CCTPMessageState,
@@ -6,8 +6,8 @@ import {
 } from './state-machine/types.js'
 
 export async function getUnrelayedMessages (): Promise<ISentCCTPMessage[]> {
-  const dbName = 'cctp'
-  const db = new StateMachineDB(dbName)
+  const name = 'cctp'
+  const db = new StateMachineDB(name)
 
   // Retrieve all messages
   const unrelayedMessages: ISentCCTPMessage[] = []

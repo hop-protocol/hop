@@ -3,7 +3,7 @@ import { GasBoostTransactionFactory, type Options } from './GasBoostTransactionF
 import { Logger } from '#logger/index.js'
 import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
-import { NonceTooLowError } from '#types/error.js'
+import { NonceTooLowError } from './error.js'
 import { Signer, utils } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'

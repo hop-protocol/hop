@@ -8,15 +8,15 @@ export class CCTP {
   #started: boolean = false
 
   constructor (chainIds: string[]) {
-    const dbName = 'cctp'
+    const name = 'cctp'
 
     // Data handler
-    const indexer = new CCTPIndexer(dbName, chainIds)
+    const indexer = new CCTPIndexer(name, chainIds)
 
     // State handler
-    const dataAdapter = new CCTPDataAdapter(indexer)
-    const relayer = new CCTPRelayer(dbName)
-    this.#stateMachine = new CCTPStateMachine(dbName, dataAdapter, relayer)
+    const dataAdapter = new CCTPDataAdapter(name, indexer)
+    const relayer = new CCTPRelayer(name)
+    this.#stateMachine = new CCTPStateMachine(name, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {

@@ -1,10 +1,10 @@
 import type { IDataAdapter } from './IDataAdapter.js'
-import { StateMachineDB } from '#db/StateMachineDB.js'
+import { StateMachineDB } from './StateMachineDB.js'
 import { poll } from '#utils/poll.js'
-import { getFirstState, getNextState, isLastState } from './utils.js'
+import { getFirstState, isLastState } from './utils.js'
 import type { IStateMachine } from './IStateMachine.js'
 import { Logger } from '#logger/index.js'
-import { DATA_PROCESSED_EVENT } from '#constants/index.js'
+import { DATA_PROCESSED_EVENT, TimeIntervals } from '#constants/index.js'
 import type { IRelayer } from '#relayer/IRelayer.js'
 import type { NextState, StateTxContext } from './types.js'
 
@@ -13,6 +13,14 @@ import type { NextState, StateTxContext } from './types.js'
  * class is not concerned with performing any actions on the states or any implementation details.
  *
  * Data used is retrieved from an external data stores.
+ *
+ * An item will not be polled for a state transition until the implemented shouldAttemptTransition time has
+ * passed. This represents the minimum amount of time expected for the expected transaction to have been
+ * sent and finalized.
+ *
+ * The initial state is marked as uninitialized in the DB until the time has passed for the transaction to
+ * be sent and finalized. Once the time has passed, the item is initialized and the state machine will
+ * attempt to transition the state.
  *
  * @dev The final state is not polled since there is no transition after it.
  */
@@ -32,6 +40,10 @@ export abstract class StateMachine<State extends string, StateData extends State
   // is too slow, users will have to wait longer for state transitions to the point where they
   // will be have to wait a relatively long time for the relay of their message.
   readonly #pollIntervalMs: number = 10_000
+  // The maximum amount of time an item can be in the DB before it is considered stale and missed.
+  // The resource consumed by this is a DB read per poll plus any fetches to validate state, which
+  // adds up with many misses. This is meant to avoid a huge number of missed events in the DB.
+  readonly #maxItemAgeMs: number = TimeIntervals.ONE_WEEK_MS
   protected readonly logger: Logger
 
   protected abstract getStates(): State[]
@@ -39,18 +51,20 @@ export abstract class StateMachine<State extends string, StateData extends State
   // Checks if the implementation believes that the data source should have the state transition
   // NOTE: The final state does not need to be handled since there are no more transitions after it
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
+  protected abstract getTransitionState(state: State): State
 
   constructor (
-    dbName: string,
+    name: string,
     dataAdapter: IDataAdapter<State, StateData>,
     relayer: IRelayer<RelayItem>
   ) {
-    this.#db = new StateMachineDB(dbName)
+    this.#db = new StateMachineDB(name)
     this.#dataAdapter = dataAdapter
     this.#relayer = relayer
     this.#states = this.getStates()
+    const tag = name + 'StateMachine'
     this.logger = new Logger({
-      tag: 'StateMachine',
+      tag,
       color: 'green'
     })
   }
@@ -84,9 +98,19 @@ export abstract class StateMachine<State extends string, StateData extends State
    */
 
   #initListeners (): void {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.#dataAdapter.on(DATA_PROCESSED_EVENT, this.#initializeItem)
+    this.#dataAdapter.on(DATA_PROCESSED_EVENT, (state: State, value: StateData) => {
+      this.#handleDataProcessedEvent(state, value).catch(err => { process.exit(1) })
+    })
     this.#dataAdapter.on('error', () => { throw new Error('State machine error') })
+  }
+
+  #handleDataProcessedEvent = async (state: State, value: StateData): Promise<void> => {
+    try {
+      await this.#addNewItem(state, value)
+    } catch (err) {
+      this.logger.error('Error handling data processed event', err)
+      throw new Error('State machine error')
+    }
   }
 
   /**
@@ -112,18 +136,26 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (isLastState(this.#states, state)) return
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
+      await this.#preTransitionHook(state, value, key)
+
       const shouldAttempt = this.shouldAttemptTransition(state, value)
-      if (shouldAttempt) continue
+      if (!shouldAttempt) continue
 
+      // Uninitialized items need to be initialized before they can be transitioned
+      const didInitialize = await this.#handleInitialization(state, key, value)
+      if (didInitialize) continue
 
-      const nextState = getNextState(this.#states, state)
+      // TODO: Optimize: Enforce the NextState<State> type in the implementation
+      const nextState = this.getTransitionState(state) as NextState<State>
+      if (state === nextState) continue
+
       const nextValue = await this.#dataAdapter.fetchItem(nextState, value)
       if (!nextValue) continue
 
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(state, key)
+      void this.#postTransitionHook(nextState, key)
     }
   }
 
@@ -131,14 +163,22 @@ export abstract class StateMachine<State extends string, StateData extends State
    * State transitions
    */
 
-  // Only used for initialization of items into the first state
-  #initializeItem = async (state: State, value: StateData): Promise<void> => {
-    const firstState = getFirstState(this.#states)
-    if (state !== firstState) return
+  #addNewItem = async (state: State, value: StateData): Promise<void> => {
+    if (state !== getFirstState(this.#states)) return
 
     const key = this.getItemId(value)
-    this.logger.info(`Initializing item with key: ${key}, value: ${JSON.stringify(value)}`)
-    return this.#db.createItemIfNotExist(firstState, key, value)
+    this.logger.info(`Adding item with key: ${key}, value: ${JSON.stringify(value)}`)
+    await this.#db.addUninitializedItem(state, key, value)
+  }
+
+  #handleInitialization = async (state: State, key: string, value: StateData): Promise<boolean> => {
+    if (state !== getFirstState(this.#states)) return false
+    if (await this.#db.isItemInitialized(key)) return false
+
+    const relayItem: RelayItem<StateData> = value
+    void this.#relayer.relay(relayItem)
+    await this.#db.initializeItem(key)
+    return true
   }
 
   async #transitionState(
@@ -159,16 +199,25 @@ export abstract class StateMachine<State extends string, StateData extends State
    * Hooks
    */
 
-  async #postTransitionHook (state: State, key: string): Promise<void> {
-    const nextState = getNextState(this.#states, state)
+  async #preTransitionHook (state: State, value: StateData, key: string): Promise<void> {
+    const eventTimestampMs = value.txContext.timestampMs
+    if (eventTimestampMs < Date.now() - this.#maxItemAgeMs) {
+      this.logger.error(`Missed event for state: ${state}, key: ${key}`)
+      return this.#db.discardItem(state, value, key)
+    }
+  }
+
+  async #postTransitionHook (nextState: State, key: string): Promise<void> {
+    this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
 
     // There is no action needed for the final state
     const isLastStateHook = isLastState(this.#states, nextState)
-    if (isLastStateHook) {
-      return
-    }
+    if (isLastStateHook) return
 
-    const relayItem = await this.#getRelayItem(key)
+    // The first state hook will have nothing in the DB to read
+    const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
+
+    this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
     return this.#relayer.relay(relayItem)
   }
 

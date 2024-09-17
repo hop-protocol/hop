@@ -1,0 +1,1 @@
+export const DATA_INDEXED_EVENT = 'DATA_INDEXED_EVENT'

@@ -3,7 +3,7 @@ import {
   type TransferBonded,
   RailsSDKWrapper
 } from './RailsSDKWrapper.js'
-import { OnchainEventIndexer } from '#indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer } from '#indexer/index.js'
 import {
   aggregateFilters,
   getChainIdsForPaths,
@@ -15,12 +15,12 @@ import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
 // TODO: SDK: Sent -> posted
-type RailsIndexerKey = keyof (TransferSent | TransferBonded)
+type RailsEventIndex = keyof (TransferSent | TransferBonded)
 
-export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndexerKey> {
+export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
 
-  constructor(dbName: string, paths: RailsPath[]) {
-    super(dbName)
+  constructor(name: string, paths: RailsPath[]) {
+    super(name)
 
     this.addEventFilters(paths)
   }
@@ -33,7 +33,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
     return RailsSDKWrapper.getEventFilter(eventName, chainId)
   }
 
-  protected override getIndexerKeys (eventName: RailsEventName): RailsIndexerKey[] {
+  protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndex[] {
     // The indexer key for all events is transferId
     return ['transferId']
   }
@@ -69,7 +69,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsIndex
         // we know that this method will only return a single filter.
         const aggregatedFilters = aggregateFilters(filters)[0]!
 
-        this.addIndexerEventFilter(eventName, chainId, aggregatedFilters)
+        this.addEventFilterToIndexer(eventName, chainId, aggregatedFilters)
       }
     }
   }

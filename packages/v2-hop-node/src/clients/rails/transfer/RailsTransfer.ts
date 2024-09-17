@@ -8,12 +8,12 @@ export class RailsTransfer {
   #started: boolean = false
 
   constructor (clientName: string, indexer: RailsIndexer) {
-    const dbName = `${clientName}Transfer`
+    const name = `${clientName}Transfer`
 
     // State handler
-    const dataAdapter = new RailsTransferDataAdapter(indexer)
-    const relayer = new RailsTransferRelayer(dbName)
-    this.#stateMachine = new RailsTransferStateMachine(dbName, dataAdapter, relayer)
+    const dataAdapter = new RailsTransferDataAdapter(name, indexer)
+    const relayer = new RailsTransferRelayer(name)
+    this.#stateMachine = new RailsTransferStateMachine(name, dataAdapter, relayer)
   }
 
   async start (): Promise<void> {

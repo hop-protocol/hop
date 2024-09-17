@@ -3,6 +3,7 @@ import type { StateTxContext } from '#state-machine/index.js'
 export enum RailsClaimState {
   Sent = 'sent',
   Posted = 'posted',
+  Removed = 'removed',
   Confirmed = 'confirmed'
 }
 
@@ -19,8 +20,13 @@ export interface IPostedRailsClaim extends IRailsClaimShared {
   // TODO
 }
 
+export interface IRemovedRailsClaim extends IRailsClaimShared {
+  // TODO
+}
+
 export interface IConfirmedRailsClaim extends IRailsClaimShared {
   // TODO
 }
 
-export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IConfirmedRailsClaim
+
+export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IRemovedRailsClaim | IConfirmedRailsClaim

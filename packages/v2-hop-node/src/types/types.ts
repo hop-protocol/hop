@@ -25,7 +25,7 @@ export interface IndexedEventDataWithContext<
   EventName,
   IndexValue extends object = object
 > {
-  chainId: string
+  eventChainId: string
   eventName: EventName
   eventIndexValues: IndexValue
 }

@@ -21,9 +21,9 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls
   // may be made for an unexpected transaction and cause exhaustion of resources. If the poller
-  // is too long, users will have to wait longer for their transactions to be relayed. A one
-  // minute poller is a good balance between the two.
-  readonly #pollIntervalMs: number = 60_000
+  // is too long, users will have to wait longer for their transactions to be relayed. A thirty
+  // second poller is a good balance between the two.
+  readonly #pollIntervalMs: number = 30_000
   protected readonly logger: Logger
 
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>

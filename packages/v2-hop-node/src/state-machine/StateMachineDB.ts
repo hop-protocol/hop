@@ -132,7 +132,8 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
 
 
   async isItemInitialized(key: Key): Promise<boolean> {
-    const item = `!${UNINITIALIZED}!${key}`
+    // TODO: Optimize: Figure out sublevel typing so I don't have to do this.
+    const item = this.getSublevelKey([UNINITIALIZED, key])
     const doesExist = await this.has(item as Key)
     if (doesExist) {
       return false

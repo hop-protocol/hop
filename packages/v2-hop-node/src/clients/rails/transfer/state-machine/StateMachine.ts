@@ -61,7 +61,6 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
     // must be finalized and they exist on the same chain.
     const expectedRelayTimeMs =
       timestampMs +
-      destChainFinalityTimeMs +
       destChainFinalityTimeMs
 
     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()

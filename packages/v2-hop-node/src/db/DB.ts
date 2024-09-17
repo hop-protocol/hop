@@ -48,9 +48,14 @@ export abstract class DB<K extends string, V> extends Level<K, V> {
     return (await this.getIfExists(key)) !== null
   }
 
-  // TODO: Optimize: Not any
+  // TODO: Optimize: Should not have to return any
   protected getSublevel(sublevelName: string): any {
-    return this.sublevel(sublevelName, DB_OPTS)
+    return this.sublevel<K, V>(sublevelName, DB_OPTS)
+  }
+
+  // TODO: Should not have to do this.
+  protected getSublevelKey(sublevelName: string[]): string {
+    return `!${sublevelName.join('!')}`
   }
 
   /**

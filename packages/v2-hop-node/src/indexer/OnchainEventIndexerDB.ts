@@ -39,7 +39,6 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     if (typeof this.#secondaryKeys[primaryKey] !== 'undefined') {
       throw new Error(`Indexer DB already exists for primaryKey ${primaryKey}`)
     }
-    this.sublevel(primaryKey)
     this.#secondaryKeys[primaryKey] = secondaryKeys
   }
 

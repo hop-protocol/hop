@@ -78,6 +78,17 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
+  protected override getEventChainIdForState (state: CCTPMessageState, value: ICCTPMessage): string {
+    switch (state) {
+      case CCTPMessageState.Sent:
+        return value.sourceChainId
+      case CCTPMessageState.Relayed:
+        return value.destinationChainId
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   /**
    * Internal
    */

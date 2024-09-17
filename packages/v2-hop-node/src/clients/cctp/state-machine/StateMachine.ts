@@ -46,7 +46,7 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
 
   #shouldSendBeFinalized(value: ISentCCTPMessage): boolean {
     // A relay can be finalized if enough time has passed for the message attestation to become available
-    const { sourceChainId, destinationChainId, txContext } = value
+    const { sourceChainId, txContext } = value
 
     const attestationAvailableTimestampMs = CCTPSDK.attestationAvailableTimestampMs(sourceChainId)
     // Add a buffer to allow the transaction to be processed by the relayer

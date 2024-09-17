@@ -26,6 +26,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract getStateFromEventName (eventName: string): State
   protected abstract getEventNameFromState (state: State): EventName
+  protected abstract getEventChainIdForState (state: State, value: StateData): string
   // @dev this is not strictly typed since it should not be used by most clients. This
   // is custom for CCTP and there is no need to add complex typing or tight coupling to
   // accommodate this. All clients that don't modify event names should be unconcerned.
@@ -139,6 +140,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     state: State,
     value: StateData
   ): Promise<IndexedEventDataWithContext<EventName>> {
+    const eventChainId = this.getEventChainIdForState(state, value)
     const eventName = this.getEventNameFromState(state)
     const modifiedValue = this.parseStateMachineData(state, value)
     return {

@@ -1,5 +1,6 @@
 import { RailsEventName } from '../../types.js'
 import { DataAdapter } from '#state-machine/index.js'
+import { getPathFromPathId } from '../../utils.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
@@ -28,6 +29,19 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
         return RailsEventName.TransferSent
       case RailsTransferState.Bonded:
         return RailsEventName.TransferBonded
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getEventChainIdForState (state: RailsTransferState, value: IRailsTransfer): string {
+    const path = getPathFromPathId(value.pathId)
+    const { srcChainId, destChainId } = path
+    switch (state) {
+      case RailsTransferState.Sent:
+        return srcChainId
+      case RailsTransferState.Bonded:
+        return destChainId
       default:
         throw new Error('Invalid state')
     }

@@ -18,6 +18,11 @@ import { DB } from '#db/DB.js'
  * Key format:
  * - key!state
  * - state!key
+ *
+ * There is an additional sublevel for items that have not been initialized. This is to handle the
+ * start of an item's lifecycle. This is for the storage of an event that has only been observed but
+ * not yet finalized. The item is removed from the uninitialized sublevel once the item has been
+ * initialized.
  */
 
 const UNINITIALIZED = 'UNINITIALIZED'

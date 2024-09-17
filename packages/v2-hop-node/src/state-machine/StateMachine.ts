@@ -14,6 +14,14 @@ import type { NextState, StateTxContext } from './types.js'
  *
  * Data used is retrieved from an external data stores.
  *
+ * An item will not be polled for a state transition until the implemented shouldAttemptTransition time has
+ * passed. This represents the minimum amount of time expected for the expected transaction to have been
+ * sent and finalized.
+ *
+ * The initial state is marked as uninitialized in the DB until the time has passed for the transaction to
+ * be sent and finalized. Once the time has passed, the item is initialized and the state machine will
+ * attempt to transition the state.
+ *
  * @dev The final state is not polled since there is no transition after it.
  */
 

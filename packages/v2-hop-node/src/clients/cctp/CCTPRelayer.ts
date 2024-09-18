@@ -1,4 +1,4 @@
-import { CCTPSDK } from '../CCTPSDKWrapper.js'
+import { CCTPSDK } from './CCTPSDKWrapper.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import type { ReceiveMessageInput, ICCTPRelayItem } from './types.js'

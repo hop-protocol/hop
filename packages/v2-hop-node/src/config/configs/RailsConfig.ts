@@ -2,6 +2,7 @@ import { SignerConfig } from '../index.js'
 import { ConfigManager } from '../ConfigManager.js'
 import { Rails } from '#clients/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { RailsGateway } from '#clients/rails/RailsSDKWrapper.js'
 
 export interface IRailsConfig {
   paths: Rails.RailsPath[]
@@ -19,8 +20,8 @@ export class RailsConfig extends ConfigManager {
     for (const path of this.paths) {
       const pathId = Rails.RailsSDK.getPathId(path)
       const provider = getRpcProvider(path.srcChainId)
-      // TODO: add connect when impl
-      const isLive = await Rails.RailsSDK/*.connect(provider)*/.isPathLive(pathId)
+      const railsGateway = new RailsGateway(provider)
+      const isLive = await railsGateway.getIsPathIdLive(pathId)
       if (!isLive) {
         throw new Error(`Path is not live: ${pathId}`)
       }

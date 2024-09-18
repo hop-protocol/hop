@@ -1,5 +1,6 @@
 import { RailsTransfer } from './transfer/RailsTransfer.js'
 import { RailsClaim } from './claim/RailsClaim.js'
+import { RailsRelayer } from './RailsRelayer.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { type RailsPath, RailsClientName } from './types.js'
 
@@ -13,13 +14,14 @@ export class Rails {
 
     // Data handler
     const indexer = new RailsIndexer(name, paths)
+    const relayer = new RailsRelayer(name, paths)
 
     if (clientNames.includes(RailsClientName.Transfer)) {
-      this.#transferClient = new RailsTransfer(name, indexer)
+      this.#transferClient = new RailsTransfer(name, indexer, relayer)
     }
 
     if (clientNames.includes(RailsClientName.Claim)) {
-      this.#claimClient = new RailsClaim(name, indexer)
+      this.#claimClient = new RailsClaim(name, indexer, relayer)
     }
   }
 

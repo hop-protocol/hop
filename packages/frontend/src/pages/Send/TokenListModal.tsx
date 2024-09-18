@@ -22,9 +22,9 @@ import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useTokenList } from './useTokenList'
 import { CustomTokenListManager } from './CustomTokenListManager'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'  // Import the arrow icon
 
 export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onTokenSelect: (token: any) => void, selectedChainId: string }) => {
   const {
@@ -82,7 +82,6 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
 
         <DialogContent>
           {showManager ? (
-            // Render the Token List Manager when "Manage Token List" is clicked
             <CustomTokenListManager />
           ) : (
             <>
@@ -141,7 +140,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                             justifyContent: 'space-between',
                           }}
                           renderValue={(selected) => {
-                            const selectedOption: any = networkOptions.find((option) => option.value === selected) || {}
+                            const selectedOption = networkOptions.find((option) => option.value === selected) || {}
                             return (
                               <div style={{ display: 'flex', alignItems: 'center' }}>
                                 {selectedOption.logo && (
@@ -167,60 +166,75 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                 />
               </Box>
 
-              <List>
-                {filteredTokens.map((token) => {
-                  const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
-                  return (
-                    <ListItem
-                      button
-                      key={token.address}
-                      onClick={() => {
-                        onTokenSelect(token)
-                        handleClose()
-                      }}
-                      sx={{ justifyContent: 'space-between', width: '100%' }}
-                    >
-                      {/* Left side: token logo and name */}
-                      <Box display="flex" alignItems="center" position="relative">
-                        <ListItemAvatar>
-                          <Box position="relative" width="46px">
-                            <Avatar src={token.logoURI} alt={token.symbol} sx={{ background: 'white' }} />
-                            {chainLogo && (
-                              <Avatar
-                                src={chainLogo}
-                                alt="Chain Logo"
-                                sx={{
-                                  position: 'absolute',
-                                  bottom: 0,
-                                  right: 0,
-                                  width: 16,
-                                  height: 16,
-                                  border: '2px solid white',
-                                  background: 'white'
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </ListItemAvatar>
+              <Box display="flex" alignItems="center" sx={{ padding: '0 2rem', flexShrink: 0 }}>
+                <Typography variant="body1" color="secondary" fontWeight="bold" alignItems="center" display="flex">
+                  {search ? <><SearchIcon style={{ marginRight: '0.5rem' }} /> Search results</> : <><StarIcon style={{ marginRight: '0.5rem' }} /> Tokens</>}
+                </Typography>
+              </Box>
 
-                        <ListItemText
-                          primary={token.name}
-                          secondary={`${token.symbol} (Chain ID: ${token.chainId})`}
-                        />
-                      </Box>
+              <DialogContent sx={{ padding: 0, overflowY: 'auto', flexGrow: 1, maxHeight: '500px' }}>
+                <List>
+                  {filteredTokens.map((token) => {
+                    const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
+                    return (
+                      <ListItem
+                        button
+                        key={token.address}
+                        onClick={() => {
+                          onTokenSelect(token)
+                          handleClose()
+                        }}
+                        sx={{ justifyContent: 'space-between', width: '100%' }}
+                      >
+                        <Box display="flex" alignItems="center" position="relative">
+                          <ListItemAvatar>
+                            <Box position="relative" width="46px">
+                              <Avatar src={token.logoURI} alt={token.symbol} sx={{ background: 'white' }} />
+                              {chainLogo && (
+                                <Avatar
+                                  src={chainLogo}
+                                  alt="Chain Logo"
+                                  sx={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    width: 16,
+                                    height: 16,
+                                    border: '2px solid white',
+                                    background: 'white'
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          </ListItemAvatar>
 
-                      <Box textAlign="right">
-                        <Typography variant="body1">
-                          {`$${(token.usdValue || 0).toFixed(2)}`}
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {`${(token.balance || 0).toFixed(4)}`}
-                        </Typography>
-                      </Box>
-                    </ListItem>
-                  )
-                })}
-              </List>
+                          <ListItemText
+                            primary={token.name}
+                            secondary={`${token.symbol} (Chain ID: ${token.chainId})`}
+                          />
+                        </Box>
+
+                        <Box textAlign="right">
+                          <Typography variant="body1">
+                            {`$${(token.usdValue || 0).toFixed(2)}`}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            {`${(token.balance || 0).toFixed(4)}`}
+                          </Typography>
+                        </Box>
+                      </ListItem>
+                    )
+                  })}
+
+                  {filteredTokens.length === 0 && (
+                    <Box mt={2} sx={{ padding: '0 2rem' }} display="flex" justifyContent="center">
+                      <Typography variant="body1" color="textSecondary">
+                        No results found for <strong>{search}</strong>
+                      </Typography>
+                    </Box>
+                  )}
+                </List>
+              </DialogContent>
             </>
           )}
         </DialogContent>

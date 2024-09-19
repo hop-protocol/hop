@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import tokenListJson from './tokenlist.json'
+import { useV2 } from '#hooks/useV2.js'
 
 // Utility function to generate tokens from JSON
 function generateTokenListFromJson(tokenListJson: any) {
@@ -22,47 +23,101 @@ export const useTokenList = (selectedChainId = '') => {
   const [search, setSearch] = useState('')
   const [filteredTokens, setFilteredTokens] = useState(tokenList)
   const [chainFilter, setChainFilter] = useState(selectedChainId)
-  const [error, setError] = useState<string | null>(null) // Add error state
+  const [error, setError] = useState<string | null>(null)
+
+  const { v2Sdk, getTokenInfoByTokenAddress } = useV2()
 
   // Handle fetching token list from a custom URL
-  const fetchTokenListFromUrl = async (url: string) => {
-    setError(null) // Clear previous error before fetching
+  const fetchTokenListFromUrl = useCallback(async (url: string) => {
+    setError(null)
     try {
       const response = await fetch(url)
       if (!response.ok) {
-        throw new Error('Failed to fetch token list. Please check the URL.') // Handle non-OK responses
+        throw new Error('Failed to fetch token list. Please check the URL.')
       }
       const json = await response.json()
       const tokens = generateTokenListFromJson(json)
       setTokenList(tokens)
       setCustomTokenListUrl(url)
     } catch (error) {
-      setError((error as Error).message) // Capture and set the error
+      setError((error as Error).message)
     }
-  }
+  }, [setCustomTokenListUrl])
 
   // Load token list from custom URL or default JSON
   useEffect(() => {
     if (customTokenListUrl) {
       fetchTokenListFromUrl(customTokenListUrl)
     } else {
-      setTokenList(generateTokenListFromJson(tokenListJson)) // Load default list
+      setTokenList(generateTokenListFromJson(tokenListJson))
     }
-  }, [customTokenListUrl])
+  }, [customTokenListUrl, fetchTokenListFromUrl])
 
   // Filter tokens based on search and chain filter
   useEffect(() => {
-    const searchLower = search.toLowerCase()
-    const filtered = tokenList.filter((token) => {
-      const matchesSearch =
-        token.name.toLowerCase().includes(searchLower) ||
-        token.symbol.toLowerCase().includes(searchLower) ||
-        token.address.toLowerCase().includes(searchLower)
+    const searchLower = search.toLowerCase().trim()
 
-      const matchesChain = chainFilter ? token.chainId === parseInt(chainFilter) : true
+    const filterTokens = (tokens: any[]) => {
+      return tokens.filter((token) => {
+        const matchesSearch =
+          token.name.toLowerCase().includes(searchLower) ||
+          token.symbol.toLowerCase().includes(searchLower) ||
+          token.address.toLowerCase().includes(searchLower)
 
-      return matchesSearch && matchesChain
-    })
+        const matchesChain = chainFilter ? token.chainId?.toString() === chainFilter : true
+
+        return matchesSearch && matchesChain
+      })
+    }
+
+    // Filter the existing token list
+    let filtered = filterTokens(tokenList)
+
+    if (filtered.length === 0 && v2Sdk.utils.isValidAddress(searchLower)) {
+      // Fetch and append token info if the search is a valid token address
+      const update = async () => {
+        try {
+          const tokenInfo = await getTokenInfoByTokenAddress(chainFilter, searchLower)
+          if (tokenInfo) {
+            const { address, chainId, decimals, name, symbol } = tokenInfo
+            const logoURI = `https://assets.hop.exchange/logos/${symbol.toLowerCase()}.svg`
+
+            const newToken = {
+              address,
+              chainId,
+              decimals,
+              name,
+              symbol,
+              logoURI,
+            }
+
+            // Check if the token already exists in the list
+            const tokenExists = tokenList.some(
+              (token) => token.address.toLowerCase() === address.toLowerCase() && token.chainId === chainId
+            )
+
+            if (!tokenExists) {
+              // Append the new token to the existing token list
+              const updatedTokenList = [...tokenList, newToken]
+              setTokenList(updatedTokenList)
+
+              // Re-filter the updated token list to show only the newly added token
+              filtered = filterTokens(updatedTokenList)
+            }
+          } else {
+            setFilteredTokens([]) // If tokenInfo is null, show no results
+            return
+          }
+        } catch (err) {
+          console.error('useTokenList:', err)
+          setFilteredTokens([]) // If there was an error, show no results
+          return
+        }
+      }
+
+      update()
+    }
+
     setFilteredTokens(filtered)
   }, [search, chainFilter, tokenList])
 
@@ -70,11 +125,10 @@ export const useTokenList = (selectedChainId = '') => {
     setChainFilter(event.target.value as string)
   }
 
-  // Function to delete custom token list and revert to default
   const deleteCustomTokenList = () => {
     setCustomTokenListUrl(null)
-    setTokenList(generateTokenListFromJson(tokenListJson)) // Revert to default list
-    setError(null) // Clear error after deleting custom token list
+    setTokenList(generateTokenListFromJson(tokenListJson))
+    setError(null)
   }
 
   return {
@@ -86,9 +140,9 @@ export const useTokenList = (selectedChainId = '') => {
     handleClose: () => setOpen(false),
     setSearch,
     handleChainFilterChange,
-    fetchTokenListFromUrl,  // Expose function to fetch token list from custom URL
-    deleteCustomTokenList,  // Expose function to delete custom token list
-    customTokenListUrl,     // Expose custom token list URL
-    error,                  // Expose error
+    fetchTokenListFromUrl,
+    deleteCustomTokenList,
+    customTokenListUrl,
+    error,
   }
 }

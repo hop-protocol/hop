@@ -140,7 +140,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                             justifyContent: 'space-between',
                           }}
                           renderValue={(selected) => {
-                            const selectedOption = networkOptions.find((option) => option.value === selected) || {}
+                            const selectedOption:any = networkOptions.find((option) => option.value === selected) || {}
                             return (
                               <div style={{ display: 'flex', alignItems: 'center' }}>
                                 {selectedOption.logo && (
@@ -179,7 +179,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                     return (
                       <ListItem
                         button
-                        key={token.address}
+                        key={`${token.address}-${token.chainId}`}
                         onClick={() => {
                           onTokenSelect(token)
                           handleClose()
@@ -254,3 +254,4 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
     </>
   )
 }
+

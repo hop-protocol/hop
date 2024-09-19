@@ -1,4 +1,4 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { getChain } from '@hop-protocol/sdk/chains'
 
 export function getSubgraphUrl (
   chain: string,
@@ -8,7 +8,7 @@ export function getSubgraphUrl (
     return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
-  const url = (mainnetAddresses as any)[chain]?.subgraphUrl
+  const url = getChain(chain)?.subgraphUrl
   if (!url) {
     throw new Error(`subgraph url not found for chain ${chain}`)
   }

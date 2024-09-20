@@ -1,8 +1,7 @@
 import {
-  type TransferSent,
-  type TransferBonded,
-  RailsSDKWrapper,
+  type RailsFilterInputs,
   EventName as RailsEventName,
+  addDecodedTypesToEvents,
   getRailsEventFilter
 } from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/index.js'
@@ -16,8 +15,7 @@ import type { RailsPath } from './types.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
-// TODO: SDK: Sent -> posted
-type RailsEventIndex = keyof (TransferSent | TransferBonded)
+type RailsEventIndex = keyof NonNullable<RailsFilterInputs>
 
 export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
 
@@ -45,8 +43,16 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
     return getRailsStartBlockNumber(chainId)
   }
 
-  protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
-    return RailsSDKWrapper.addDecodedTypesAndContextToEvent(log, chainId)
+  protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
+    const decodedEvent = addDecodedTypesToEvents(log)
+    const eventName = decodedEvent.event!
+    return {
+      ...decodedEvent,
+      context: {
+        eventName,
+        chainId
+      }
+    }
   }
 
   // Internal

@@ -18,7 +18,7 @@ export class RailsConfig extends ConfigManager {
   protected static override async validate(): Promise<void> {
     // Validate that the paths are live
     for (const path of this.paths) {
-      const pathId = Rails.RailsSDK.getPathId(path)
+      const pathId = Rails.getPathId(path)
       const provider = getRpcProvider(path.srcChainId)
       const railsGateway = new RailsGateway(provider)
       const isLive = await railsGateway.getIsPathIdLive(pathId)

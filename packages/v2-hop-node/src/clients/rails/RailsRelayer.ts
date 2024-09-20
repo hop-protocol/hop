@@ -1,7 +1,7 @@
 import { getChainIdsForPaths, getPathFromPathId } from './utils.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
-import { RailsGateway, RailsSDK } from './RailsSDKWrapper.js'
+import { RailsGateway, isContractError } from './RailsSDKWrapper.js'
 import { getTxOverrides } from '#utils/getTxOverrides.js'
 import type { BondInput, PostClaimInput, RailsRelayItem } from './types.js'
 import type { providers } from 'ethers'
@@ -52,13 +52,27 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    */
 
   async #canRelayBond (relayItem: BondInput): Promise<boolean> {
-    const isClaimed = await RailsSDK.isClaimed(relayItem.transferId)
-    const isBonded = await RailsSDK.isBonded(relayItem.transferId)
+    const { pathId } = relayItem
+    const { destChainId } = getPathFromPathId(pathId)
+    const gateway = this.#railsGateways[destChainId]
+    if (typeof gateway === 'undefined') {
+      throw new Error(`No gateway found for chainId: ${destChainId}`)
+    }
+
+    const isClaimed = await gateway.isClaimed(relayItem.transferId)
+    const isBonded = await gateway.isBonded(relayItem.transferId)
     return isClaimed && !isBonded
   }
 
   async #canRelayPostClaim (relayItem: PostClaimInput): Promise<boolean> {
-    const isPosted = await RailsSDK.isPosted(relayItem.transferId)
+    const { pathId } = relayItem
+    const { destChainId } = getPathFromPathId(pathId)
+    const gateway = this.#railsGateways[destChainId]
+    if (typeof gateway === 'undefined') {
+      throw new Error(`No gateway found for chainId: ${destChainId}`)
+    }
+
+    const isPosted = await gateway.isPosted(relayItem.transferId)
     // TODO: If this is true, should we throw?
     return !isPosted
   }
@@ -107,7 +121,7 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    */
 
   #isContractError (err: unknown): boolean {
-    if (RailsSDK.isContractError(err)) {
+    if (isContractError(err)) {
       return true
     }
     return true

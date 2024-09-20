@@ -153,7 +153,7 @@ export class CCTPSDK {
     })
   }
 
-  static addDecodedTypesAndContextToEvent (log: providers.Log, chainId: string): DecodedLogWithContext {
+  static getDecodedLogWithContext (log: providers.Log, chainId: string): DecodedLogWithContext {
     let eventName: string = ''
     let decoded: DecodedEventLogs
     if (log.topics[0] === CCTPSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {

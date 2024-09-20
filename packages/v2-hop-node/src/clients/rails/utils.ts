@@ -1,6 +1,6 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { RailsConfig, SignerConfig } from '#config/index.js'
-import { RailsSDK } from './RailsSDKWrapper.js'
+import { getPathId } from './RailsSDKWrapper.js'
 import type { RailsPath } from './types.js'
 import type { RequiredEventFilter } from '#types/index.js'
 
@@ -61,7 +61,7 @@ export function aggregateFilters(filters: RequiredEventFilter[]): RequiredEventF
 
 export function getPathFromPathId (pathId: string): RailsPath {
   const paths: RailsPath[] = RailsConfig.paths
-  const path: RailsPath | undefined = paths.find(path => RailsSDK.getPathId(path) === pathId)
+  const path: RailsPath | undefined = paths.find(path => getPathId(path) === pathId)
   if (!path) {
     throw new Error(`Path not found for pathId: ${pathId}`)
   }
@@ -84,10 +84,10 @@ export function getChainIdsForPaths(paths: RailsPath[]): string[] {
 export function getPathIdsPerChainId(chainId: string, paths: RailsPath[]): string[] {
   return paths.reduce((pathIds: string[], path: RailsPath) => {
     if (path.srcChainId === chainId) {
-      pathIds.push(RailsSDK.getPathId(path))
+      pathIds.push(getPathId(path))
     }
     if (path.destChainId === chainId) {
-      pathIds.push(RailsSDK.getPathId(path))
+      pathIds.push(getPathId(path))
     }
     return pathIds
   }, [])

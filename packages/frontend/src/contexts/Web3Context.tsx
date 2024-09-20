@@ -278,43 +278,49 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       try {
         setError('')
         if (web3ModalChoice) {
-          await disconnectWallet()
+          await disconnectAndReset()
           const connectorToUse = connectorMap[web3ModalChoice]
           if (!connectorToUse) {
             throw new Error(`connector not found "${web3ModalChoice}"`)
           }
           setWalletChoiceLoading(true)
           await connectorToUse.activate()
+          setWeb3ModalActive(false)
+          setStoredWalletChoice(web3ModalChoice)
         }
-        setWeb3ModalActive(false)
-        setStoredWalletChoice(web3ModalChoice)
       } catch (err) {
         setError(formatError(err.message))
         logger.error('web3 react activate error:', err)
       }
       setWalletChoiceLoading(false)
-      setWeb3ModalChoice('')
+      if (web3ModalChoice) {
+        setWeb3ModalChoice('')
+      }
     }
 
     update().catch(logger.error)
   }, [web3ModalChoice])
 
   async function requestWallet() {
-    await disconnectWallet()
+    await disconnectAndReset()
     setError('')
     setWeb3ModalActive(true)
   }
 
-  async function disconnectWallet() {
+  async function disconnectAndReset(keepWalletChoice = true) {
     try {
-      await clearStorage()
+      await clearStorage(keepWalletChoice)
       await connector.resetState()
     } catch (error) {
       logger.error(error)
     }
   }
 
-  async function clearStorage() {
+  async function disconnectWallet() {
+    await disconnectAndReset(false)
+  }
+
+  async function clearStorage(keepWalletChoice = false) {
     try {
       localStorage.clear()
       sessionStorage.clear()
@@ -329,7 +335,9 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
 
       // keep this option so we can eagerly connect to the same wallet
-      localStorage.setItem('storedWalletChoice', storedWalletChoice)
+      if (keepWalletChoice) {
+        localStorage.setItem('storedWalletChoice', storedWalletChoice)
+      }
     } catch(err) {
       logger.error(err)
     }

@@ -26,7 +26,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useTokenList } from './useTokenList'
 import { CustomTokenListManager } from './CustomTokenListManager'
 
-export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onTokenSelect: (token: any) => void, selectedChainId: string }) => {
+export const TokenListModal = ({ onTokenSelect, selectedChainId = '', open1, handleClose1 }: { onTokenSelect: (token: any) => void, selectedChainId: string, open1?: boolean, handleClose1?: any }) => {
   const {
     open,
     search,
@@ -40,6 +40,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
   } = useTokenList(selectedChainId)
 
   const [showManager, setShowManager] = useState(false)  // Toggle between token list UI and manager
+  const [selectedToken, setSelectedToken] = useState<any>(null)
 
   const networkOptions = [
     { value: '', label: 'All Chains', logo: 'https://gist.github.com/user-attachments/assets/7d344fcb-6463-4ae1-a311-c89af12a99ba' },
@@ -48,10 +49,42 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
     { value: '84532', label: 'Base Sepolia', logo: 'https://assets.hop.exchange/logos/base.svg' },
   ]
 
+  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo
+
   return (
     <>
-      <Button variant="outlined" onClick={handleOpen} endIcon={<KeyboardArrowDownIcon />}>
-        Select Token
+      <Button onClick={handleOpen} endIcon={<KeyboardArrowDownIcon />} sx={{
+        background: selectedToken ? 'rgb(255, 255, 255)' : 'linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) !important',
+        border: '1px solid 1px solid rgba(34, 34, 34, 0.07)',
+        color: selectedToken ? 'black' : 'white',
+        justifyContent: 'space-between',
+        padding: '1rem 3rem'
+      }}>
+        {selectedToken ? (
+        <Box display="flex" alignItems="center">
+          <Box position="relative" width="32px">
+            <Avatar src={selectedToken.logoURI} alt={selectedToken.symbol} sx={{ height: '24px', width: '24px', background: 'white' }} />
+            {selectedTokenChainLogo  && (
+              <Avatar
+                src={selectedTokenChainLogo}
+                alt="Chain Logo"
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: 16,
+                  height: 16,
+                  border: '2px solid white',
+                  background: 'white'
+                }}
+              />
+            )}
+          </Box>
+          <Typography variant="body1" sx={{ color: 'black' }}>{selectedToken.symbol}</Typography>
+        </Box>
+        ) : (
+          <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>Select token</Typography>
+        )}
       </Button>
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md"
@@ -182,6 +215,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '' }: { onToke
                         key={`${token.address}-${token.chainId}`}
                         onClick={() => {
                           onTokenSelect(token)
+                          setSelectedToken(token)
                           handleClose()
                         }}
                         sx={{ justifyContent: 'space-between', width: '100%' }}

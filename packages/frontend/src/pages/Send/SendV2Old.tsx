@@ -19,7 +19,7 @@ import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { V2TxStatusModal } from '#components/Modal/V2TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useSendStyles } from './useSendStyles.js'
-import { useV2Send } from '#hooks/useV2Send.js'
+import { useV2SendOld } from '#hooks/useV2SendOld.js'
 import RaisedSelect from '#components/selects/RaisedSelect.js'
 import MenuItem from '@mui/material/MenuItem'
 import SelectOption from '#components/selects/SelectOption.js'
@@ -81,7 +81,7 @@ export const SendV2: FC = () => {
     initialToChainId,
     routeChainIds,
     fetchingGetSendData,
-  } = useV2Send()
+  } = useV2SendOld()
 
   useEffect(() => {
     setTokenSymbol(initialTokenSymbol)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -26,8 +26,16 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useTokenList } from './useTokenList'
 import { CustomTokenListManager } from './CustomTokenListManager'
 
-export const TokenListModal = ({ onTokenSelect, selectedChainId = '', open1, handleClose1 }: { onTokenSelect: (token: any) => void, selectedChainId: string, open1?: boolean, handleClose1?: any }) => {
-  const {
+type Props = {
+  onTokenSelect: (token: any) => void
+  selectedChainId?: string
+  excludeChainId?: string
+  selectedTokenSymbol?: string
+  clear?: boolean
+}
+
+export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear }: Props) => {
+  let {
     open,
     search,
     filteredTokens,
@@ -39,8 +47,26 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId = '', open1, han
     customTokenListUrl,
   } = useTokenList(selectedChainId)
 
+  if (selectedTokenSymbol) {
+    filteredTokens = filteredTokens.filter(item => {
+      return item.symbol === selectedTokenSymbol
+    })
+  }
+
+  if (excludeChainId) {
+    filteredTokens = filteredTokens.filter(item => {
+      return item.chainId !== excludeChainId
+    })
+  }
+
   const [showManager, setShowManager] = useState(false)  // Toggle between token list UI and manager
   const [selectedToken, setSelectedToken] = useState<any>(null)
+
+  useEffect(() => {
+    if (clear) {
+      setSelectedToken(null)
+    }
+  }, [clear])
 
   const networkOptions = [
     { value: '', label: 'All Chains', logo: 'https://gist.github.com/user-attachments/assets/7d344fcb-6463-4ae1-a311-c89af12a99ba' },

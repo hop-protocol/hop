@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import MuiButton from '@mui/material/Button'
 import { Button } from '#components/Button/index.js'
@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField'
 import { TokenListModal } from './TokenListModal'
 import IconButton from '@mui/material/IconButton'
 import ArrowDownward from '@mui/icons-material/ArrowDownward'
+import { useV2Send } from '#hooks/useV2Send.js'
 
 interface Token {
   name: string
@@ -18,64 +19,31 @@ interface Token {
   address: string
 }
 
-const mockTokenA: Token = {
-  name: 'Mock Token A',
-  symbol: 'MOCKA',
-  decimals: 18,
-  balance: 1000,
-  logoURI: 'https://assets.hop.exchange/logos/mocka.svg',
-  chainId: 1,
-  address: '0x0000000000000000000000000000000000000001',
-}
-
-const mockTokenB: Token = {
-  name: 'Mock Token B',
-  symbol: 'MOCKB',
-  decimals: 18,
-  balance: 500,
-  logoURI: 'https://assets.hop.exchange/logos/mockb.svg',
-  chainId: 1,
-  address: '0x0000000000000000000000000000000000000002',
-}
-
-const useSend = () => {
-  const [tokenA, setTokenA] = useState<Token | null>(mockTokenA)
-  const [tokenB, setTokenB] = useState<Token | null>(mockTokenB)
-  const [amountA, setAmountA] = useState<string>('')
-  const [amountB, setAmountB] = useState<string>('')
-
-  const handleSend = () => {
-    console.log(`${amountA} ${tokenA?.symbol}, ${amountB} ${tokenB?.symbol}`)
-  }
-
-  return {
-    tokenA,
-    tokenB,
-    amountA,
-    amountB,
-    setTokenA,
-    setTokenB,
-    setAmountA,
-    setAmountB,
-    handleSend,
-  }
-}
-
 export const SendV2: React.FC = () => {
   const {
-    tokenA,
-    tokenB,
-    amountA,
-    amountB,
-    setTokenA,
-    setTokenB,
-    setAmountA,
-    setAmountB,
-    handleSend,
-  } = useSend()
+    setFromChainId,
+    setToChainId,
+    setTokenSymbol,
+    fromChainId,
+    toChainId,
+    amountIn,
+    estimatedReceivedDisplay,
+    sendTokens,
+    sendReady,
+    tokenSymbol,
+    setAmountIn
+  } = useV2Send()
 
-  const [isTokenAModalOpen, setIsTokenAModalOpen] = useState(false)
-  const [isTokenBModalOpen, setIsTokenBModalOpen] = useState(false)
+  const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
+  const [selectedToToken, setSelectedToToken] = useState<Token | null>(null)
+
+  // Effect to clear "to" token if "from" token changes and the symbols do not match
+  useEffect(() => {
+    if (selectedToToken && selectedFromToken?.symbol !== selectedToToken.symbol) {
+      setSelectedToToken(null)
+      setToChainId('')
+    }
+  }, [selectedFromToken])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '450px', margin: '0 auto', padding: '2rem' }}>
@@ -97,8 +65,8 @@ export const SendV2: React.FC = () => {
               </Box>
               <TextField
                 fullWidth
-                value={amountA}
-                onChange={(e) => setAmountA(e.target.value)}
+                value={amountIn}
+                onChange={(e) => setAmountIn(e.target.value)}
                 placeholder="0.0"
                 sx={{
                   marginTop: '0.5rem',
@@ -129,9 +97,16 @@ export const SendV2: React.FC = () => {
               <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
                 <TokenListModal
                   onTokenSelect={(token: Token) => {
-                    setTokenA(token)
+                    console.log('token', token)
+                    setSelectedFromToken(token)
+                    setFromChainId(token.chainId.toString())
+                    setTokenSymbol(token.symbol)
+
+                    if (tokenSymbol !== token.symbol) {
+                      setToChainId('')
+                    }
                   }}
-                  selectedChainId=""
+                  clear={!selectedFromToken}
                 />
               </Box>
               <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
@@ -155,7 +130,10 @@ export const SendV2: React.FC = () => {
               background: '#f0f0f0',
               borderRadius: '10px',
               border: '2px solid white',
-              color: '#000'
+              color: '#000',
+              '&:hover': {
+                background: '#f0f0f0'
+              }
             }}
           >
             <ArrowDownward />
@@ -177,7 +155,7 @@ export const SendV2: React.FC = () => {
                 </Box>
                 <TextField
                   fullWidth
-                  value={amountB}
+                  value={estimatedReceivedDisplay}
                   placeholder="0.0"
                   sx={{
                     marginTop: '0.5rem',
@@ -210,13 +188,22 @@ export const SendV2: React.FC = () => {
                 <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
                   <TokenListModal
                     onTokenSelect={(token: Token) => {
-                      setTokenB(token)
+                      console.log('token', token)
+                      setSelectedToToken(token)
+                      setToChainId(token.chainId.toString())
+                      setTokenSymbol(token.symbol)
+
+                      if (tokenSymbol !== token.symbol) {
+                        setFromChainId('')
+                      }
                     }}
-                    selectedChainId=""
+                    selectedTokenSymbol={tokenSymbol}
+                    excludeChainId={fromChainId}
+                    clear={!selectedToToken}
                   />
                 </Box>
                 <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                  {tokenB && (
+                  {false && (
                     <Typography sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Balance: 0.0</Typography>
                   )}
                 </Box>
@@ -225,7 +212,7 @@ export const SendV2: React.FC = () => {
         </Box>
       </Box>
 
-      <Button disabled={true} highlighted fullWidth large onClick={handleSend}>
+      <Button disabled={!sendReady} highlighted fullWidth large onClick={sendTokens}>
         Send
       </Button>
     </Box>

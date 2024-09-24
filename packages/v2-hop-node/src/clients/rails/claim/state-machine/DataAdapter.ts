@@ -1,6 +1,6 @@
-import { RailsEventName } from '../../types.js'
 import { DataAdapter } from '#state-machine/index.js'
 import { type IRailsClaim, RailsClaimState } from './types.js'
+import { EventName as RailsEventName } from '../../RailsSDKWrapper.js'
 import { getPathFromPathId } from '../../utils.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 

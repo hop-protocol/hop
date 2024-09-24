@@ -57,7 +57,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
   protected abstract getEventFilter(chainId: string, eventName: EventName): RequiredEventFilter
   protected abstract getDesiredEventIndexes (eventName: EventName): EventIndex[]
   protected abstract getStartBlockNumber (chainId: string): number
-  protected abstract addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext
+  protected abstract getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
   // This exists for systems that are required to observe all events but only index some, like CCTP. This should be overridden
   // by those systems, but nearly all other systems should return true, which is why it's not abstract.
@@ -235,7 +235,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
       }
 
       const logs: providers.Log[] = await provider.getLogs(filter)
-      const typedLogsWithChainId: DecodedLogWithContext[] = logs.map(log => this.addDecodedTypesAndContextToEvent(log, chainId))
+      const typedLogsWithChainId: DecodedLogWithContext[] = logs.map(log => this.getDecodedLogWithContext(log, chainId))
 
       yield {
         endBlockNumber: currentEndBlockNumber,

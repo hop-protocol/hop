@@ -1,244 +1,130 @@
 import {
-  type EthersEventWithDecodedTypesAndContext,
+  type EthersEventWithDecodedTypes,
   type TransferSent as TransferSentSDK,
-  /* type TransferPosted as TransferPostedSDK, */
   type TransferBonded as TransferBondedSDK,
   type GetTransferSentEventFilterInput,
+  type GetTransferBondedEventFilterInput,
   type PostClaimInput as PostClaimInputSDK,
   type BondInput as BondInputSDK,
-  type HopStruct,
-  RailsGateway
+  RailsGateway as RailsGatewaySDK
 } from '@hop-protocol/v2-sdk'
-import {
-  type EventFilter,
-  type Signer,
-  Wallet,
+import type {
+  EventFilter,
+  Signer,
+  Overrides,
   providers
 } from 'ethers'
-import { NetworkSlug } from '@hop-protocol/sdk'
-import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import type { RailsPath } from './types.js'
 
-
-export type TransferSent = TransferSentSDK
-export type TransferPosted = TransferSentSDK
-export type TransferBonded = TransferBondedSDK
-
-// TODO: Sent -> posted
-type TransferTypes = TransferSent | /* TransferPosted |*/ TransferBonded
-
-// TODO: Get from SDK
-export enum EventName {
-  TransferSent = 'TransferSent',
-  TransferPosted = 'TransferPosted',
-  TransferBonded = 'TransferBonded'
-}
-
-// TODO: Get from SDK
-export type TransferSentIndexedEvents = {
-  pathId: string
-  transferId: string
-  to: string
-}
-
-// TODO: Get from SDK
-export type TransferPostedIndexedEvents = {
-  pathId: string
-  transferId: string
-  to: string
-}
-
-// TODO: Get from SDK
-export type TransferBondedIndexedEvents = {
-  pathId: string
-  transferId: string
-  to: string
-}
-
-// TODO: Get from SDK
-export enum RailsEventNameSDK {
-  TransferSent = 'TransferSent',
-  TransferPosted = 'TransferPosted',
-  TransferBonded = 'TransferBonded',
-  // TODO: This is a mock until they are live in the contract
-  ClaimPosted = 'ClaimPosted',
-  ClaimRemoved = 'ClaimRemoved',
-  ClaimConfirmed = 'ClaimConfirmed',
-  // TODO: Add them all
-}
-
-export enum RailsFunctionName {
-  Bond = 'bond'
-}
-// TODO: No chainId in input if connecting
 export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
 export type BondInput = Omit<BondInputSDK, 'chainId'>
 
-class ContractFunctionRevertedError extends Error {}
+export type RailsFilterInputs = GetTransferSentEventFilterInput['indexes'] | GetTransferBondedEventFilterInput['indexes']
 
-export class RailsSDKWrapper {
-  static getEventFilter<T extends string, U extends object>(eventName: T, chainId: string, indexes?: U): RequiredEventFilter {
-    switch (eventName) {
-      case EventName.TransferSent:
-        return RailsSDKWrapper.getTransferSentEventFilter(chainId, indexes as TransferSentIndexedEvents)
-      case EventName.TransferPosted:
-        return RailsSDKWrapper.getTransferPostedEventFilter(chainId, indexes as TransferPostedIndexedEvents)
-      case EventName.TransferBonded:
-        return RailsSDKWrapper.getTransferBondedEventFilter(chainId, indexes as TransferBondedIndexedEvents)
-      default:
-        throw new Error(`Unknown event name: ${eventName}`)
-    }
-  }
+export enum EventName {
+  TransferSent = 'TransferSent',
+  TransferPosted = 'TransferPosted',
+  TransferBonded = 'TransferBonded',
+  ClaimPosted = 'ClaimPosted', // This is a mock until live in contract
+  ClaimRemoved = 'ClaimRemoved', // This is a mock until live in contract
+  ClaimConfirmed = 'ClaimConfirmed', // This is a mock until live in contract
+  // TODO: any others
+}
 
-  static getTransferSentEventFilter(chainId: string, indexes?: Partial<TransferSentIndexedEvents>): RequiredEventFilter {
-    return RailsSDK.getTransferSentEventFilter({ chainId, indexes }) as RequiredEventFilter
-  }
+export class RailsGateway {
+  #sdk: RailsGatewaySDK
 
-  static getTransferPostedEventFilter(chainId: string, indexes?: Partial<TransferPostedIndexedEvents>): RequiredEventFilter {
-    return RailsSDK.getTransferPostedEventFilter({ chainId, indexes }) as RequiredEventFilter
-  }
-
-  static getTransferBondedEventFilter(chainId: string, indexes?: Partial<TransferBondedIndexedEvents>): RequiredEventFilter {
-    // TODO: Correct filter
-    return RailsSDK.getTransferSentEventFilter({ chainId, indexes }) as RequiredEventFilter
-  }
-
-  static addDecodedTypesAndContextToEvent(event: providers.Log, chainId: string): DecodedLogWithContext {
-    const res = RailsSDK.addDecodedTypesAndContextToEvent(event, chainId)
-    return {
-      ...res,
-      context: {
-        eventName: res.context.eventName,
-        chainId: res.context.chainId
-      }
-    }
+  constructor (signerOrProvider: Signer | providers.Provider) {
+    const signer = signerOrProvider as Signer
+    this.#sdk = new RailsGatewaySDK({ network: 'mainnet', signer })
   }
 
   /**
-   * Transactions
+   * Getter methods
    */
 
-  static async postClaim (input: PostClaimInput): Promise<providers.TransactionResponse> {
-    // TODO: rm chainId since connected
-    // TODO: correct, less strict type
-    return RailsSDK.postClaim({
-      chainId: 1,
-      pathId: input.pathId,
-      transferId: input.transferId,
-      to: input.to,
-      amount: input.amount,
-      totalSent: input.totalSent,
-      attestedClaimId: input.attestedClaimId,
-      attestedTotalClaims: input.attestedTotalClaims,
-      nextHopsHash: input.nextHopsHash
-    })
+  async isPosted(transferId: string): Promise<boolean> {
+    return true
   }
 
-  static async bond (input: BondInput): Promise<providers.TransactionResponse> {
-    // TODO: rm chainId since connected
-    // TODO: correct, less strict type
-    return RailsSDK.bond({
-      chainId: 1,
-      pathId: input.pathId,
-      transferId: input.transferId,
-      nextHops: input.nextHops
-    })
+  async isClaimed(transferId: string): Promise<boolean> {
+    return true
+  }
+
+  async isBonded(transferId: string): Promise<boolean> {
+    return true
+  }
+
+  /**
+   * Transactional Methods
+   */
+
+  async bond (input: BondInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.bond(input as BondInputSDK/*, overrides*/)
+  }
+
+  async postClaim (input: PostClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.postClaim(input as PostClaimInputSDK/*, overrides*/)
+  }
+
+  /**
+   * Helpers
+   */
+
+
+  async getIsPathIdLive (pathId: string): Promise<boolean> {
+    const signer = this.#sdk.getSigner()
+    if (!signer) {
+      throw new Error('Signer not found')
+    }
+    const chainId = (await signer.getChainId()).toString()
+    return this.#sdk.getIsPathIdLive({ chainId, pathId })
   }
 }
 
-export class RailsSDK {
-  static ContractFunctionRevertedError = ContractFunctionRevertedError
+/**
+ * Utils
+ */
 
-  // TODO: From SDK
-  static isContractError (err: unknown): err is ContractFunctionRevertedError {
-    return true
+// Does not matter if in utils, just care about this being exported
+// import { RailsGateway, getRailsEventFilter } from '@hop-protocol/v2-sdk'
+export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: EventName, chainId: string, indexes?: T): EventFilter {
+  const gateway = new RailsGatewaySDK({ network: 'mainnet'})
+  switch (eventName) {
+    case EventName.TransferSent:
+      return gateway.getTransferSentEventFilter({ chainId, indexes })
+    // case EventName.TransferPosted:
+    //   return gateway.getTransferPostedEventFilter({ chainId, indexes })
+    case EventName.TransferBonded:
+      return gateway.getTransferBondedEventFilter({ chainId, indexes })
+    default:
+      throw new Error(`Unknown event name: ${JSON.stringify(eventName)}`)
+  }
+}
+
+export function addDecodedTypesToEvents(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
+  const gateway = new RailsGatewaySDK({ network: 'mainnet'})
+  const decodedEventRes = gateway.addDecodedTypesToEvents([log])
+
+  if (decodedEventRes.length === 0) {
+    throw new Error('Could not decode event')
   }
 
-  // TODO: Signer or provider or however ethers does it
-  static connect (signer: Signer | providers.Provider): RailsGateway {
-    return RailsSDK.getGateway()
+  const decodedEvent = decodedEventRes[0]
+  if (typeof decodedEvent === 'undefined') {
+    throw new Error('Could not decode event context')
   }
 
-  static getTransferSentEventFilter({ chainId , indexes = {} }: GetTransferSentEventFilterInput): EventFilter {
-    return RailsSDK.getGateway().getTransferSentEventFilter({ chainId, indexes })
-  }
+  return decodedEvent
+}
 
-  // TODO: Correct type
-  static getTransferPostedEventFilter({ chainId , indexes = {} }: any): EventFilter {
-    // TODO: Correct filter
-    return RailsSDK.getGateway().getTransferSentEventFilter({ chainId, indexes })
-  }
+export function getPathId(path: RailsPath): string {
+  return ''
+}
 
-  // TODO: Correct type
-  static getTransferBondedEventFilter({ chainId , indexes = {} }: any): EventFilter {
-    // TODO: Correct filter
-    return RailsSDK.getGateway().getTransferSentEventFilter({ chainId, indexes })
-  }
-
-  // TODO: Add posted return type
-  // TODO: Expect context
-  // TODO expect event to be providers.Log (or some ethers type) since the method doesn't care what it is, so no any or generic needed
-  static addDecodedTypesAndContextToEvent(event: any, chainId: string): EthersEventWithDecodedTypesAndContext<TransferTypes> {
-    // TODO: Single method from SDK?
-    // TODO: No array param or response
-    const decodedEvent = RailsSDK.getGateway().addDecodedTypesToEvents([event])[0]
-    // TODO: Add context from SDK
-    // const decodedEventWithContext = RailsSDK.getGateway().addContextToEvent(decodedEvent, chainId)
-    return decodedEvent as EthersEventWithDecodedTypesAndContext<TransferTypes>
-  }
-
-  // TODO: get from SDK
-  static async isPosted(transferId: string): Promise<boolean> {
-    return true
-  }
-
-  // TODO: get from SDK
-  static async isClaimed(transferId: string): Promise<boolean> {
-    return true
-  }
-
-  // TODO: get from SDK
-  static async isBonded(transferId: string): Promise<boolean> {
-    return true
-  }
-
-  // TODO: get from SDK
-  static getNextHopsHash(nextHops: HopStruct[]): string {
-    return ''
-  }
-
-  // TODO: get from SDK
-  static getPathId(path: RailsPath): string {
-    return ''
-  }
-
-  // TODO: get from SDK
-  static async isPathLive(pathId: string): Promise<boolean> {
-    return true
-  }
-
-  /**
-   * Transactions
-   */
-
-  static async postClaim (input: PostClaimInputSDK): Promise<providers.TransactionResponse> {
-    return RailsSDK.getGateway().postClaim(input)
-  }
-
-  static async bond (input: BondInputSDK): Promise<providers.TransactionResponse> {
-    return RailsSDK.getGateway().bond(input)
-  }
-
-  /**
-   * Temp helper
-   */
-
-  static getGateway(): RailsGateway {
-    const provider = new providers.JsonRpcProvider('https://mainnet.infura.io/v3/84842078b09946638c03157f83405213') // infura id is from ethers
-    const wallet = new Wallet('0x0000000000000000000000000000000000000000000000000000000037BDDB5C', provider) // arbitrary private key
-    return new RailsGateway({
-      network: NetworkSlug.Mainnet,
-      signer: wallet
-    })
-  }
+// The expectation is ContractFunctionRevertedError, not Error, but it is not exported from the SDK,
+// which is expected. The Error is just used as a mock for now since the SDK will return it but
+// should not export it (as it currently, correctly does).
+export function isContractError (err: unknown): err is Error /*ContractFunctionRevertedError*/ {
+  return true
 }

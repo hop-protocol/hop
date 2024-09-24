@@ -1,7 +1,8 @@
 import {
-  type TransferSent,
-  type TransferBonded,
-  RailsSDKWrapper
+  type RailsFilterInputs,
+  EventName as RailsEventName,
+  addDecodedTypesToEvents,
+  getRailsEventFilter
 } from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/index.js'
 import {
@@ -10,12 +11,11 @@ import {
   getPathIdsPerChainId,
   getRailsStartBlockNumber
 } from './utils.js'
-import { type RailsPath, RailsEventName } from './types.js'
+import type { RailsPath } from './types.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 
-// TODO: SDK: Sent -> posted
-type RailsEventIndex = keyof (TransferSent | TransferBonded)
+type RailsEventIndex = keyof NonNullable<RailsFilterInputs>
 
 export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
 
@@ -30,7 +30,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
    */
 
   protected override getEventFilter(chainId: string, eventName: RailsEventName): RequiredEventFilter {
-    return RailsSDKWrapper.getEventFilter(eventName, chainId)
+    // We know that the filter returned will be a RequiredEventFilter since we own the SDK
+    return getRailsEventFilter(eventName, chainId) as RequiredEventFilter
   }
 
   protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndex[] {
@@ -42,8 +43,16 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
     return getRailsStartBlockNumber(chainId)
   }
 
-  protected override addDecodedTypesAndContextToEvent(log: providers.Log, chainId: string): DecodedLogWithContext {
-    return RailsSDKWrapper.addDecodedTypesAndContextToEvent(log, chainId)
+  protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
+    const decodedEvent = addDecodedTypesToEvents(log)
+    const eventName = decodedEvent.event!
+    return {
+      ...decodedEvent,
+      context: {
+        eventName,
+        chainId
+      }
+    }
   }
 
   // Internal
@@ -61,7 +70,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
       for (const chainId of chainIds) {
         const getPathIdsForChainId = getPathIdsPerChainId(chainId, paths)
         const filters = getPathIdsForChainId.map(pathId => {
-          return RailsSDKWrapper.getEventFilter(eventName, chainId, { pathId })
+          return getRailsEventFilter(eventName, chainId, { pathId }) as RequiredEventFilter
         })
 
         // Aggregate the filters for each event and chainId

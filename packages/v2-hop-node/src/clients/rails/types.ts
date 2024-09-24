@@ -1,17 +1,12 @@
-import { RailsEventNameSDK } from './RailsSDKWrapper.js'
 import type { BigNumber } from 'ethers'
+import type {
+  BondInput as BondInputSDK,
+  PostClaimInput as PostClaimInputSDK
+} from './RailsSDKWrapper.js'
 
 export enum RailsClientName {
   Transfer = 'transfer',
   Claim = 'claim'
-}
-
-export enum RailsEventName {
-  TransferSent = RailsEventNameSDK.TransferSent,
-  TransferBonded = RailsEventNameSDK.TransferBonded,
-  ClaimPosted = RailsEventNameSDK.ClaimPosted,
-  ClaimRemoved = RailsEventNameSDK.ClaimRemoved,
-  ClaimConfirmed = RailsEventNameSDK.ClaimConfirmed
 }
 
 export type RailsHop = {
@@ -26,3 +21,7 @@ export type RailsPath = {
   destChainId: string
   destToken: string
 }
+
+export type BondInput = BondInputSDK
+export type PostClaimInput = PostClaimInputSDK
+export type RailsRelayItem = BondInput | PostClaimInput

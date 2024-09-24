@@ -1,6 +1,6 @@
 import { CCTPDataAdapter } from './state-machine/DataAdapter.js'
 import { CCTPStateMachine } from './state-machine/StateMachine.js'
-import { CCTPRelayer } from './relayer/Relayer.js'
+import { CCTPRelayer } from './CCTPRelayer.js'
 import { CCTPIndexer } from './CCTPIndexer.js'
 
 export class CCTP {

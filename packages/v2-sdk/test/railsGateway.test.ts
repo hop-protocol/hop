@@ -1,4 +1,4 @@
-import { RailsGateway } from '#railsGateway/index.js'
+import { RailsGateway, EventName } from '#railsGateway/index.js'
 import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
@@ -20,7 +20,18 @@ describe('RailsGateway', () => {
     const address = await railsGateway.getSignerAddress()
     expect(address).toBeDefined()
   })
-  it('should fetch TransferSent event filter', async () => {
+  it('should get event filter for an event name', async () => {
+    const chainId = 11155111
+    const filter = railsGateway.getEventFilter(EventName.TransferSent, {
+      chainId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(1)
+  })
+  it('should get TransferSent event filter', async () => {
     const chainId = 11155111
     const filter = railsGateway.getTransferSentEventFilter({
       chainId
@@ -31,7 +42,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(1)
   })
-  it('should fetch TransferSent transferId event filter', async () => {
+  it('should get TransferSent transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferSentEventFilter({
@@ -46,7 +57,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(3)
   })
-  it('should fetch TransferBonded event filter', async () => {
+  it('should get TransferBonded event filter', async () => {
     const chainId = 11155111
     const filter = railsGateway.getTransferBondedEventFilter({
       chainId
@@ -57,7 +68,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(1)
   })
-  it('should fetch TransferBonded transferId event filter', async () => {
+  it('should get TransferBonded transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferBondedEventFilter({

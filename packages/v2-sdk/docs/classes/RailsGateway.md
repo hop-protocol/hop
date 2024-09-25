@@ -31,6 +31,7 @@
 ### Methods
 
 - [acceptSlash](RailsGateway.md#acceptslash)
+- [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
@@ -57,6 +58,7 @@
 - [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider)
 - [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders)
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
+- [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
 - [getFee](RailsGateway.md#getfee)
 - [getFullAppeal](RailsGateway.md#getfullappeal)
@@ -323,6 +325,22 @@ StakingRegistry.utils
 #### Inherited from
 
 StakingRegistry.acceptSlash
+
+___
+
+### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
+
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `event` | `any` |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
 
 ___
 
@@ -794,6 +812,23 @@ ___
 | :------ | :------ |
 | `eventName` | `EventName` |
 | `chainId` | `BigNumberish` |
+
+#### Returns
+
+`any`
+
+___
+
+### <a id="geteventfilter" name="geteventfilter"></a> getEventFilter
+
+▸ **getEventFilter**(`eventName`, `input`): `any`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | `EventName` |
+| `input` | [`GetTransferSentEventFilterInput`](../modules.md#gettransfersenteventfilterinput) |
 
 #### Returns
 

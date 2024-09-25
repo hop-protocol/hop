@@ -406,6 +406,12 @@ export class RailsGateway extends StakingRegistry {
     return eventFetcher.getFilter()
   }
 
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
+    const decoded = this.addDecodedTypesToEvents([event])
+
+    return decoded?.[0]
+  }
+
   addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
     const transferSentEventFetcher = new TransferSentEventFetcher()
     const transferBondedEventFetcher = new TransferBondedEventFetcher()

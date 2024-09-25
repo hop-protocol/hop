@@ -121,6 +121,7 @@ describe('RailsGateway', () => {
       address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
       topics: [
         '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+        // '0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627'
       ],
       fromBlock,
       toBlock
@@ -133,6 +134,27 @@ describe('RailsGateway', () => {
 
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeTruthy()
+  }, 60 * 1000)
+  it('should add typedEvent to event', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    const event = railsGateway.addDecodedTypesToEvent(ethersEvents[0])
+    console.log(event)
+
+    expect(event.decoded).toBeTruthy()
   }, 60 * 1000)
   it('should fetch TransferBonded events', async () => {
     const chainId = 11155420

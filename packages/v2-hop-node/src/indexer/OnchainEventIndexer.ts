@@ -37,7 +37,8 @@ interface EventLogsForRange {
   endBlockNumber: number
 }
 
-interface IndexedEvent {
+interface IndexedEvent<T extends string> {
+  eventName: T
   chainId: string
   indexerEventFilter: RequiredEventFilter
 }
@@ -45,7 +46,7 @@ interface IndexedEvent {
 export abstract class OnchainEventIndexer<EventName extends string, EventIndex extends string> implements IOnchainEventIndexer<EventName> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
-  readonly #indexedEvents: IndexedEvent[] = []
+  readonly #indexedEvents: IndexedEvent<EventName>[] = []
   // TODO: Optimize: Poll timing, possibly two-tiered polling or per-indexer polling. PollPriority can be passed into class.
   // This poller calls a getLog for each indexed event filter every poll. This can become RPC intensive and the value
   // should reflect the tradeoff between up-to-date data and RPC usage.
@@ -82,12 +83,13 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
       throw new Error('Cannot add indexer after initializing or starting')
     }
 
-    const filterId = getUniqueFilterId(chainId, indexerEventFilter)
+    const filterId = getUniqueFilterId(eventName, chainId, indexerEventFilter.address)
     const desiredEventIndexes = this.getDesiredEventIndexes(eventName)
 
-    this.logger.debug(`Adding indexer for chainId ${chainId} and filterId ${filterId} (${eventName})`)
+    this.logger.debug(`Adding indexer for chainId ${chainId} and filterId ${filterId}`)
     this.#db.newIndexerDB(filterId, desiredEventIndexes)
     this.#indexedEvents.push({
+      eventName,
       chainId,
       indexerEventFilter
     })
@@ -103,9 +105,9 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
 
     // Parallelize initialization and syncing since each filter is independent
     const promises: Array<Promise<void>> = this.#indexedEvents.map(async (indexedEvent) => {
-      const { chainId, indexerEventFilter } = indexedEvent
+      const { eventName, chainId, indexerEventFilter } = indexedEvent
 
-      const filterId = getUniqueFilterId(chainId, indexerEventFilter)
+      const filterId = getUniqueFilterId(eventName, chainId, indexerEventFilter.address)
       const startBlockNumber = this.getStartBlockNumber(chainId)
 
       await this.#db.initializeIndexer(filterId, chainId, startBlockNumber)
@@ -159,7 +161,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
   async fetchItem(input: IndexedEventDataWithContext<EventName>): Promise<DecodedLogWithContext | null> {
     const { eventChainId, eventName, eventIndexValues } = input
     const eventFilter: RequiredEventFilter = this.getEventFilter(eventChainId, eventName)
-    const filterId: string = getUniqueFilterId(eventChainId, eventFilter)
+    const filterId: string = getUniqueFilterId(eventName, eventChainId, eventFilter.address)
 
     const desiredEventIndexes: EventIndex[] = this.getDesiredEventIndexes(eventName)
     const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(desiredEventIndexes, eventIndexValues)
@@ -177,14 +179,14 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
    * Poller
    */
 
-  #startPoller (indexedEvent: IndexedEvent): void {
+  #startPoller (indexedEvent: IndexedEvent<EventName>): void {
     void poll(() => this.#syncEvents(indexedEvent), this.#pollIntervalMs, this.logger)
   }
 
-  #syncEvents = async (indexedEvent: IndexedEvent): Promise<void> => {
-    const { chainId, indexerEventFilter } = indexedEvent
+  #syncEvents = async (indexedEvent: IndexedEvent<EventName>): Promise<void> => {
+    const { eventName, chainId, indexerEventFilter } = indexedEvent
 
-    const filterId = getUniqueFilterId(chainId, indexerEventFilter)
+    const filterId = getUniqueFilterId(eventName, chainId, indexerEventFilter.address)
     const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
 
     // Add 1 to currentEnd to avoid fetching the same block twice

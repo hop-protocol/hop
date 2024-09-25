@@ -1,19 +1,16 @@
 import { getChain } from '@hop-protocol/sdk'
-import { utils } from 'ethers'
 import { MAX_BLOCK_RANGE_PER_GET_LOG_CALL } from '#constants/index.js'
 import { FinalityService } from '#finality/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { SignerConfig } from '#config/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
-import type { RequiredEventFilter } from '#types/types.js'
 
 /**
  * Indexer
  */
 
-export function getUniqueFilterId (chainId: string, filter: RequiredEventFilter): string {
-  const id = chainId + filter.address + (filter.topics as string[])[0]
-  return utils.keccak256(utils.toUtf8Bytes(id))
+export function getUniqueFilterId (eventName: string, chainId: string, contractAddress: string): string {
+  return`${eventName}!${chainId}!${contractAddress}`
 }
 
 export function getMaxBlockRangePerIndex (chainId: string): number {

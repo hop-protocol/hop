@@ -28,7 +28,13 @@ export function actionHandler (fn: (source: any) => any) {
 
 function getCLIConfig (source: any): ICLIConfig {
   const customConfigPath = source?.config ?? ''
+  if (customConfigPath) {
+    logger.debug(`Using custom config path: ${customConfigPath}`)
+  }
   const dryRun = source?.dryRun ?? false
+  if (dryRun) {
+    logger.debug('Running in dry-run')
+  }
   const clientName = Object.values(ClientName).find((client) => source[client.toLowerCase()])
   if (!clientName) {
     throw new Error('Please provide a valid client name')

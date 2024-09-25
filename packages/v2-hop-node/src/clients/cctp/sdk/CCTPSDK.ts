@@ -73,11 +73,11 @@ export type DecodedEventLogs = HopCCTPTransferSentDecodedWithMessage | HopCCTPTr
 
 export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
-    [ChainSlug.Ethereum]: 20136183,
-    [ChainSlug.Optimism]: 121663470,
-    [ChainSlug.Arbitrum]: 223994580,
-    [ChainSlug.Base]: 16068187,
-    [ChainSlug.Polygon]: 58407447,
+    [ChainSlug.Ethereum]: 20809502,
+    [ChainSlug.Optimism]: 125751660,
+    [ChainSlug.Arbitrum]: 256040793,
+    [ChainSlug.Base]: 20200375,
+    [ChainSlug.Polygon]: 62204293,
   },
   [NetworkSlug.Sepolia]: {
     [ChainSlug.Ethereum]: 5498073,

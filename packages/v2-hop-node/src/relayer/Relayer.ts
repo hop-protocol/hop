@@ -92,9 +92,13 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
     try {
       // TODO: Optimize: dryRun should be a feature of the provider, not the relayer.
       // Move it there when provider and signer modules are cleaned up.
-      if (!this.#dryRun) {
-        await this.sendRelay(relayItem)
+      if (this.#dryRun) {
+        this.logger.info(`Dry run enabled. Skipping relay for item: ${JSON.stringify(relayItem)}`)
+        await this.#db.removeItem(relayItem)
+        return
       }
+
+      await this.sendRelay(relayItem)
       await this.#db.removeItem(relayItem)
     } catch (err: unknown) {
       return this.#handleRelayError(relayItem, err)

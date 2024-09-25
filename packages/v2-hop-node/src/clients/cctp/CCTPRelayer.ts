@@ -19,7 +19,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     try {
       await CCTPSDK.fetchAttestation(relayItem.message)
     } catch (err) {
-      this.logger.debug(`Attestation not yet ready for message hash: ${relayItem.message}`)
+      this.logger.debug(`Attestation not yet ready for message: ${relayItem.message}`)
       return false
     }
 
@@ -76,11 +76,11 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
   #isAttestationError (err: unknown): boolean {
     const errMessage = (err as Error).message
     if (errMessage.includes('Attestation not complete')) {
-      this.logger.debug(`Attestation not yet ready for message hash: ${errMessage}`)
+      this.logger.debug(`Attestation not yet ready for message hash, err: ${errMessage}`)
       return true
     } else if (errMessage.includes('Message hash not found')) {
       // This is an issue with message encoding
-      this.logger.debug(`Message hash not found for message hash: ${errMessage}`)
+      this.logger.debug(`Message hash not found for message hash, err: ${errMessage}`)
       return true
     }
 
@@ -88,6 +88,19 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
   }
 
   #isContractError (err: unknown): boolean {
+    const errMessage = (err as Error).message
+    if (
+      errMessage.includes('Invalid attestation length') ||
+      errMessage.includes('Invalid signature order or dupe') ||
+      errMessage.includes('Invalid signature: not attester') ||
+      errMessage.includes('Invalid destination domain') ||
+      errMessage.includes('Invalid caller for message') ||
+      errMessage.includes('Invalid message version') ||
+      errMessage.includes('Nonce already used') ||
+      errMessage.includes('handleReceiveMessage() failed')
+    ) {
+      throw new Error(`Contract error: ${errMessage}`)
+    }
     return false
   }
 }

@@ -25,7 +25,7 @@ export enum TimeIntervals {
 // This value is 2x the min gas price to ensure that the transaction goes through
 // Not all Polygon nodes follow recommended 30 Gwei gasPrice
 // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-export const MIN_POLYGON_GAS_PRICE: number = 60_000_000_000
+export const MIN_POLYGON_GAS_PRICE: number = 90_000_000_000
 // The value is pretty arbitrary but should be some value higher than 1 gwei. Since
 // the cost of gas on Gnosis is so cheap, using a buffer this large should be fine.
 export const MIN_GNOSIS_GAS_PRICE: number = 15_000_000_000

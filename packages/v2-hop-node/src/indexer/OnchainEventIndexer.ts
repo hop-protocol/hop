@@ -85,6 +85,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
     const filterId = getUniqueFilterId(chainId, indexerEventFilter)
     const desiredEventIndexes = this.getDesiredEventIndexes(eventName)
 
+    this.logger.debug(`Adding indexer for chainId ${chainId} and filterId ${filterId} (${eventName})`)
     this.#db.newIndexerDB(filterId, desiredEventIndexes)
     this.#indexedEvents.push({
       chainId,

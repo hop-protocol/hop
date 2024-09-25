@@ -2,14 +2,28 @@ import { Base } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
-import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent } from '#messenger/index.js'
+import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct, CalcAmountOutMinInput } from '#railsGateway/index.js'
+import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct, CalcAmountOutMinInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
+
+export enum EventName {
+  TransferSent = RailsGatewayEventName.TransferSent,
+  TransferBonded = RailsGatewayEventName.TransferBonded,
+
+  BundleCommitted = MessengerEventName.BundleCommitted,
+  BundleForwarded = MessengerEventName.BundleForwarded,
+  BundleReceived = MessengerEventName.BundleReceived,
+  BundleSet = MessengerEventName.BundleSet,
+  FeesSentToHub = MessengerEventName.FeesSentToHub,
+  MessageBundled = MessengerEventName.MessageBundled,
+  MessageExecuted = MessengerEventName.MessageExecuted,
+  MessageSent = MessengerEventName.MessageSent,
+}
 
 export type HopConstructorInput = {
   network: string

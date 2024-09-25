@@ -9,7 +9,8 @@ export {
   HopConstructorInput,
   SendTokensInput,
   WillSendTokensFailInput,
-  GetTransferIdFromTransactionHashInput
+  GetTransferIdFromTransactionHashInput,
+	EventName
 } from './Hop.js'
 export {
   ApproveBondInput,

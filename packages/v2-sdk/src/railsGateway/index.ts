@@ -47,7 +47,8 @@ export {
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
   GetNextHopsHashInput,
-  GetIsPathIdLiveInput
+  GetIsPathIdLiveInput,
+  EventName
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,

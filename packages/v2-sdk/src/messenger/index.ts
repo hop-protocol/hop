@@ -40,7 +40,8 @@ export {
   MessengerConfig,
   RelayMessageData,
   RouteData,
-  ShouldAttemptForwardMessageInput
+  ShouldAttemptForwardMessageInput,
+  EventName
 } from './Messenger.js'
 export {
   BundleCommitted, BundleCommittedEventFetcher,

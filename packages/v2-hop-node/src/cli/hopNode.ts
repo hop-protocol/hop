@@ -22,16 +22,15 @@ async function main (source: any) {
     throw new Error('Please provide a valid command')
   }
 
-  // TODO: Better way?
-  // TODO: Add loggers to all these
-  const promises = []
+  if (rails && cctp) {
+    throw new Error('Please provide only one command')
+  }
+
   if (rails) {
-    promises.push(runRails())
+    return runRails()
   }
 
   if (cctp) {
-    promises.push(runCCTP())
+    return runCCTP()
   }
-
-  return Promise.all(promises)
 }

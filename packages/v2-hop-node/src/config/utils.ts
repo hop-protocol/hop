@@ -4,8 +4,11 @@ import fs from 'node:fs'
 import type { IConfig } from './types.js'
 import { USER_CONFIG_PATH } from './constants.js'
 
-export async function parseUserDefinedConfigFile (): Promise<IConfig> {
-  const configPath = path.resolve(USER_CONFIG_PATH.replace('~', os.homedir()))
+export async function parseUserDefinedConfigFile (customConfigPath: string): Promise<IConfig> {
+  let configPath = customConfigPath
+  if (!configPath) {
+    configPath = path.resolve(USER_CONFIG_PATH.replace('~', os.homedir()))
+  }
   return parseConfigFile(configPath)
 }
 

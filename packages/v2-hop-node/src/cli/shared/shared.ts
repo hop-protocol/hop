@@ -2,29 +2,41 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
-import { initConfigs } from '#config/index.js'
+import { type ICLIConfig, initConfigs } from '#config/index.js'
+import { ClientName } from '#clients/index.js'
 
 export const logger = new Logger('config')
 export const program = new Command()
 
 export const root = program
-  .option(
-    '--config <path>',
-    'Config file path to use. Config file must be in JSON format',
-    parseString
-  )
-  .option('--env <path>', 'Environment variables file', parseString)
+  .option('--config <path>', 'Config file path', parseString)
+  .option('--dry-run [boolean]', 'Perform a dry run', parseBool)
 
 export function actionHandler (fn: (source: any) => any) {
   return async (source: any = {}) => {
     try {
-      await initConfigs()
+      const cliConfig = getCLIConfig(source)
+      await initConfigs(cliConfig)
       await fn(source)
       process.exit(0)
     } catch (err) {
       logger.error(`program error: ${err.message}\ntrace: ${err.stack}`)
       process.exit(1)
     }
+  }
+}
+
+function getCLIConfig (source: any): ICLIConfig {
+  const customConfigPath = source?.config ?? ''
+  const dryRun = source?.dryRun ?? false
+  const clientName = Object.values(ClientName).find((client) => source[client.toLowerCase()])
+  if (!clientName) {
+    throw new Error('Please provide a valid client name')
+  }
+  return {
+    customConfigPath,
+    dryRun,
+    clientName
   }
 }
 

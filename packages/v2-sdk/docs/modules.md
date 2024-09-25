@@ -4,6 +4,7 @@
 
 ### Enumerations
 
+- [EventName](enums/EventName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes

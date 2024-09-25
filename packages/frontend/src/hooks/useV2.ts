@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, Token } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { BigNumber, providers } from 'ethers'
@@ -59,6 +59,8 @@ type V2Hook = {
   getTokenList: (fromChainId?: string) => string[]
   getTokenDecimals: (chainId: string, tokenSymbol: string) => Promise<number>
   getTokenName: (chainId: string, tokenSymbol: string) => Promise<string>
+  getTokenInfoByTokenSymbol: (chainId: string, tokenSymbol: string) => Promise<Token>
+  getTokenInfoByTokenAddress: (chainId: string, address: string) => Promise<Token>
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
@@ -90,15 +92,24 @@ export function useV2(): V2Hook {
     return address
   }
 
-  async function getTokenDecimals (chainId: string, tokenSymbol: string): Promise<number> {
+  async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
+    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    return tokenInfo
+  }
+
+  async function getTokenInfoByTokenSymbol (chainId: string, tokenSymbol: string): Promise<Token> {
     const address = getTokenAddress(chainId, tokenSymbol)
     const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    return tokenInfo
+  }
+
+  async function getTokenDecimals (chainId: string, tokenSymbol: string): Promise<number> {
+    const tokenInfo = await getTokenInfoByTokenSymbol(chainId, tokenSymbol)
     return tokenInfo.decimals
   }
 
   async function getTokenName (chainId: string, tokenSymbol: string): Promise<string> {
-    const address = getTokenAddress(chainId, tokenSymbol)
-    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    const tokenInfo = await getTokenInfoByTokenSymbol(chainId, tokenSymbol)
     return tokenInfo.name
   }
 
@@ -316,6 +327,8 @@ export function useV2(): V2Hook {
     getTokenList,
     getTokenName,
     sendTokens,
+    getTokenInfoByTokenSymbol,
+    getTokenInfoByTokenAddress,
     getWillSendTokensFail,
     getEstimatedReceived,
     getSendData,

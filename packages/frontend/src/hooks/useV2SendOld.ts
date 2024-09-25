@@ -93,7 +93,7 @@ class Token {
   }
 }
 
-export function useV2Send(): V2SendHook {
+export function useV2SendOld(): V2SendHook {
   const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
   const {
     networks,

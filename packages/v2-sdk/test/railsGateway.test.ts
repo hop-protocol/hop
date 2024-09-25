@@ -1,4 +1,4 @@
-import { RailsGateway } from '#railsGateway/index.js'
+import { RailsGateway, EventName } from '#railsGateway/index.js'
 import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
@@ -20,7 +20,18 @@ describe('RailsGateway', () => {
     const address = await railsGateway.getSignerAddress()
     expect(address).toBeDefined()
   })
-  it('should fetch TransferSent event filter', async () => {
+  it('should get event filter for an event name', async () => {
+    const chainId = 11155111
+    const filter = railsGateway.getEventFilter(EventName.TransferSent, {
+      chainId
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(1)
+  })
+  it('should get TransferSent event filter', async () => {
     const chainId = 11155111
     const filter = railsGateway.getTransferSentEventFilter({
       chainId
@@ -31,7 +42,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(1)
   })
-  it('should fetch TransferSent transferId event filter', async () => {
+  it('should get TransferSent transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferSentEventFilter({
@@ -46,7 +57,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(3)
   })
-  it('should fetch TransferBonded event filter', async () => {
+  it('should get TransferBonded event filter', async () => {
     const chainId = 11155111
     const filter = railsGateway.getTransferBondedEventFilter({
       chainId
@@ -57,7 +68,7 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(1)
   })
-  it('should fetch TransferBonded transferId event filter', async () => {
+  it('should get TransferBonded transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const filter = railsGateway.getTransferBondedEventFilter({
@@ -121,6 +132,7 @@ describe('RailsGateway', () => {
       address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
       topics: [
         '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+        // '0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627'
       ],
       fromBlock,
       toBlock
@@ -133,6 +145,27 @@ describe('RailsGateway', () => {
 
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeTruthy()
+  }, 60 * 1000)
+  it('should add typedEvent to event', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    const event = railsGateway.addDecodedTypesToEvent(ethersEvents[0])
+    console.log(event)
+
+    expect(event.decoded).toBeTruthy()
   }, 60 * 1000)
   it('should fetch TransferBonded events', async () => {
     const chainId = 11155420

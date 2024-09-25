@@ -269,6 +269,15 @@ export type TransferStatus = {
   transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null
 }
 
+export type GetEventFilterInput = {
+  chainId: BigNumberish
+  indexes?: {
+    transferId?: string
+    pathId?: string
+    to?: string
+  }
+}
+
 export type GetTransferSentEventFilterInput = {
   chainId: BigNumberish
   indexes?: {
@@ -368,6 +377,18 @@ export class RailsGateway extends StakingRegistry {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
+  getEventFilter(eventName: EventName, input: GetTransferSentEventFilterInput) {
+    if (eventName == EventName.TransferSent) {
+      return this.getTransferSentEventFilter(input)
+    }
+
+    if (eventName == EventName.TransferBonded) {
+      return this.getTransferBondedEventFilter(input)
+    }
+
+    throw new InputError(`event name ${eventName} not found`)
+  }
+
   getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput) {
     const { transferId, pathId, to } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
@@ -404,6 +425,12 @@ export class RailsGateway extends StakingRegistry {
     }
 
     return eventFetcher.getFilter()
+  }
+
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
+    const decoded = this.addDecodedTypesToEvents([event])
+
+    return decoded?.[0]
   }
 
   addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {

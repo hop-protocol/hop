@@ -41,6 +41,7 @@ export class LambdaSigner extends AwsSigner {
       credentials
     })
     this.lambdaFunctionName = config.lambdaFunctionName
+    this.config = config
   }
 
   connect (provider: providers.Provider): LambdaSigner {

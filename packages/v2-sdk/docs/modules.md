@@ -1183,8 +1183,8 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `batchBlocks?` | `number` |
+| `chainProviders` | `ChainProviders` |
 | `contractAddresses?` | `Addresses` |
-| `network` | `string` |
 | `requireChainIdInput?` | `boolean` |
 | `signer?` | `Signer` |
 
@@ -1330,6 +1330,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
+| `attestedClaimId?` | `string` |
 | `fromChainId` | `BigNumberish` |
 | `fromToken` | `string` |
 | `minAmountOut` | `BigNumberish` |

@@ -137,6 +137,8 @@
 - [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [withdrawHop](RailsGateway.md#withdrawhop)
+- [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider-1)
+- [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders-1)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
 - [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
@@ -2188,6 +2190,46 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+
+▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Provider`
+
+#### Inherited from
+
+StakingRegistry.getDefaultChainRpcProvider
+
+___
+
+### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+
+▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+
+#### Returns
+
+`ChainProviders`
+
+#### Inherited from
+
+StakingRegistry.getDefaultChainRpcProviders
 
 ___
 

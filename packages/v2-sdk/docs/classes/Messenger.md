@@ -112,6 +112,8 @@
 - [getBundleForwardedEventSignature](Messenger.md#getbundleforwardedeventsignature)
 - [getBundleReceivedEventSignature](Messenger.md#getbundlereceivedeventsignature)
 - [getBundleSetEventSignature](Messenger.md#getbundleseteventsignature)
+- [getDefaultChainRpcProvider](Messenger.md#getdefaultchainrpcprovider-1)
+- [getDefaultChainRpcProviders](Messenger.md#getdefaultchainrpcproviders-1)
 - [getFeesSentToHubEventSignature](Messenger.md#getfeessenttohubeventsignature)
 - [getMessageBundledEventSignature](Messenger.md#getmessagebundledeventsignature)
 - [getMessageExecutedEventSignature](Messenger.md#getmessageexecutedeventsignature)
@@ -1610,6 +1612,46 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+
+▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Provider`
+
+#### Inherited from
+
+Base.getDefaultChainRpcProvider
+
+___
+
+### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+
+▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+
+#### Returns
+
+`ChainProviders`
+
+#### Inherited from
+
+Base.getDefaultChainRpcProviders
 
 ___
 

@@ -79,6 +79,8 @@
 - [setContractAddresses](Hop.md#setcontractaddresses)
 - [switchChain](Hop.md#switchchain)
 - [throwError](Hop.md#throwerror)
+- [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider-1)
+- [getDefaultChainRpcProviders](Hop.md#getdefaultchainrpcproviders-1)
 
 ## Constructors
 
@@ -1040,3 +1042,43 @@ ___
 #### Inherited from
 
 Base.throwError
+
+___
+
+### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+
+▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Provider`
+
+#### Inherited from
+
+Base.getDefaultChainRpcProvider
+
+___
+
+### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+
+▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+
+#### Returns
+
+`ChainProviders`
+
+#### Inherited from
+
+Base.getDefaultChainRpcProviders

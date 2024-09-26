@@ -56,6 +56,7 @@ export type SendTokensInput = {
   to?: string
   amount: BigNumberish
   minAmountOut: BigNumberish
+  attestedClaimId?: string
 }
 
 export type GetSendDataInput = {
@@ -164,7 +165,7 @@ export class Hop extends Base {
 
   get populateTransaction() {
     return {
-      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to }: SendTokensInput): Promise<providers.TransactionRequest> => {
+      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -200,20 +201,30 @@ export class Hop extends Base {
           token1: toToken
         })
 
-        console.log('hopV2Sdk: pathId', pathId)
-        const attestedClaimId = await this.railsGateway.getLatestClaim({
-          chainId: fromChainId,
-          pathId
-        })
-        console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
+        let isClaimIdValid = false
 
-        let isClaimIdValid = await this.railsGateway.getIsClaimIdValid({
-          chainId: toChainId,
-          pathId,
-          claimId: attestedClaimId
-        })
+        if (attestedClaimId) {
+          if (!this.utils.isValidBytes32(attestedClaimId)) {
+            throw new InputError(`Invalid attestedClaimid "${attestedClaimId}"`)
+          }
+        }
 
-        console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
+        if (attestedClaimId == null) {
+          console.log('hopV2Sdk: pathId', pathId)
+          attestedClaimId = await this.railsGateway.getLatestClaim({
+            chainId: fromChainId,
+            pathId
+          })
+          console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
+
+          isClaimIdValid = await this.railsGateway.getIsClaimIdValid({
+            chainId: toChainId,
+            pathId,
+            claimId: attestedClaimId
+          })
+
+          console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
+        }
 
         // new path without checkpoints will return 0 bytes32
         if (!isClaimIdValid && BigNumber.from(attestedClaimId).eq(0)) {

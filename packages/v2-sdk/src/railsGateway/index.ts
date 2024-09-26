@@ -71,6 +71,6 @@ export {
   StakingRegistry
 } from './StakingRegistry.js'
 export {
-  TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher, HopStruct
+  TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes,
+  TransferSent, TransferSentEventFetcher, HopStruct, TransferSentIndexes
 } from './events/index.js'

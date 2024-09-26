@@ -324,6 +324,18 @@ export type GetIsPathIdLiveInput = {
 
 export type RailsGatewayConstructorInput = BaseConfig
 
+export type TxOverrides = {
+  nonce?: BigNumberish
+  gasLimit?: BigNumberish
+  gasPrice?: BigNumberish
+  maxPriorityFeePerGas?: BigNumberish
+  maxFeePerGas?: BigNumberish
+  value?: BigNumberish
+  chainId?: BigNumberish
+  from?: string
+  type?: number
+}
+
 export class RailsGateway extends StakingRegistry {
   constructor ({ signer, contractAddresses, chainProviders }: RailsGatewayConstructorInput) {
     super({
@@ -593,7 +605,7 @@ export class RailsGateway extends StakingRegistry {
 
   get populateTransaction() {
     return {
-      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent, fee }: SendInput): Promise<providers.TransactionRequest> => {
+      send: async ({ chainId, pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent, fee }: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -660,11 +672,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
-          chainId: Number(chainId)
+          ...txOverrides,
+          chainId: Number(chainId),
         }
       },
 
-      approveSend: async ({ chainId, pathId, amount }: ApproveSendInput): Promise<providers.TransactionRequest> => {
+      approveSend: async ({ chainId, pathId, amount }: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -690,11 +703,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      bond: async ({ chainId, pathId, transferId, nextHops = []}: BondInput): Promise<providers.TransactionRequest> => {
+      bond: async ({ chainId, pathId, transferId, nextHops = []}: BondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -738,11 +752,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId),
         }
       },
 
-      approveBond: async ({ chainId, pathId, amount }: ApproveBondInput): Promise<providers.TransactionRequest> => {
+      approveBond: async ({ chainId, pathId, amount }: ApproveBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -768,11 +783,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      postClaim: async ({ chainId, pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash }: PostClaimInput): Promise<providers.TransactionRequest> => {
+      postClaim: async ({ chainId, pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash }: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -818,11 +834,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      removeClaim: async ({ chainId, pathId, transferId }: RemoveClaimInput): Promise<providers.TransactionRequest> => {
+      removeClaim: async ({ chainId, pathId, transferId }: RemoveClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -844,11 +861,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      withdrawClaim: async ({ chainId, pathId, amount, timeWindow }: WithdrawInput): Promise<providers.TransactionRequest> => {
+      withdrawClaim: async ({ chainId, pathId, amount, timeWindow }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -874,11 +892,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      withdrawAllClaims: async ({ chainId, pathId, timeWindow }: WithdrawAllInput): Promise<providers.TransactionRequest> => {
+      withdrawAllClaims: async ({ chainId, pathId, timeWindow }: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -900,11 +919,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      confirmClaim: async ({ chainId, pathId, transferId }: ConfirmClaimInput): Promise<providers.TransactionRequest> => {
+      confirmClaim: async ({ chainId, pathId, transferId }: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -926,11 +946,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      approveStakeHop: async ({ chainId, role, staker, amount }: StakeHopInput): Promise<providers.TransactionRequest> => {
+      approveStakeHop: async ({ chainId, role, staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -962,13 +983,15 @@ export class RailsGateway extends StakingRegistry {
         const hopTokenContract = await this.getHopTokenContract(chainId)
         const address = this.getRailsGatewayContractAddress(chainId)
         const txData = await hopTokenContract.populateTransaction.approve(address, amount)
+
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      stakeHop: async ({ chainId, role, staker, amount }: StakeHopInput): Promise<providers.TransactionRequest> => {
+      stakeHop: async ({ chainId, role, staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -1012,11 +1035,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      unstakeHop: async ({ chainId, role, amount }: UnstakeHopInput): Promise<providers.TransactionRequest> => {
+      unstakeHop: async ({ chainId, role, amount }: UnstakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -1047,11 +1071,12 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       },
 
-      withdrawHop: async ({ chainId, role }: WithdrawHopInput): Promise<providers.TransactionRequest> => {
+      withdrawHop: async ({ chainId, role }: WithdrawHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!chainId && !this.requireChainIdInput) {
           chainId = await this.getSignerProviderChainId()
         }
@@ -1072,13 +1097,14 @@ export class RailsGateway extends StakingRegistry {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(chainId)
         }
       }
     }
   }
 
-  async send (input: SendInput): Promise<providers.TransactionResponse> {
+  async send (input: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const { pathId, amount } = input
     let { chainId } = input
 
@@ -1114,16 +1140,16 @@ export class RailsGateway extends StakingRegistry {
       throw new InsufficientApprovalError('Insufficient approval')
     }
 
-    const populatedTx = await this.populateTransaction.send(input)
+    const populatedTx = await this.populateTransaction.send(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async approveSend (input: ApproveSendInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.approveSend(input)
+  async approveSend (input: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.approveSend(input, txOverrides)
     return this.sendTransaction(txData)
   }
 
-  async bond (input: BondInput): Promise<providers.TransactionResponse> {
+  async bond (input: BondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const { pathId, transferId, amount } = input
     let { chainId } = input
 
@@ -1159,37 +1185,37 @@ export class RailsGateway extends StakingRegistry {
       throw new InsufficientApprovalError('Insufficient approval')
     }
 
-    const populatedTx = await this.populateTransaction.bond(input)
+    const populatedTx = await this.populateTransaction.bond(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async approveBond (input: ApproveBondInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.approveBond(input)
+  async approveBond (input: ApproveBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.approveBond(input, txOverrides)
     return this.sendTransaction(txData)
   }
 
-  async postClaim (input: PostClaimInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.postClaim(input)
+  async postClaim (input: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async removeClaim (input: RemoveClaimInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.removeClaim(input)
+  async removeClaim (input: RemoveClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.removeClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async confirmClaim (input: ConfirmClaimInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.confirmClaim(input)
+  async confirmClaim (input: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.confirmClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async withdrawClaim (input: WithdrawInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdrawClaim(input)
+  async withdrawClaim (input: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.withdrawClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async withdrawAllClaims (input: WithdrawAllInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdrawAllClaims(input)
+  async withdrawAllClaims (input: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.withdrawAllClaims(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
@@ -1275,8 +1301,8 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async withdrawHop (input: WithdrawHopInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdrawHop(input)
+  async withdrawHop (input: WithdrawHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.withdrawHop(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

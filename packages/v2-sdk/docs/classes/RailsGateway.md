@@ -254,19 +254,19 @@ StakingRegistry.signer
 
 | Name | Type |
 | :------ | :------ |
-| `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput)) => `Promise`\<`TransactionRequest`\> |
-| `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput)) => `Promise`\<`TransactionRequest`\> |
-| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput)) => `Promise`\<`TransactionRequest`\> |
-| `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput)) => `Promise`\<`TransactionRequest`\> |
-| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawClaim` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput)) => `Promise`\<`TransactionRequest`\> |
+| `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawClaim` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -436,13 +436,14 @@ ___
 
 ### <a id="approvebond" name="approvebond"></a> approveBond
 
-▸ **approveBond**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **approveBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ApproveBondInput`](../modules.md#approvebondinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -452,13 +453,14 @@ ___
 
 ### <a id="approvesend" name="approvesend"></a> approveSend
 
-▸ **approveSend**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **approveSend**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ApproveSendInput`](../modules.md#approvesendinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -468,13 +470,14 @@ ___
 
 ### <a id="bond" name="bond"></a> bond
 
-▸ **bond**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **bond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`BondInput`](../modules.md#bondinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -500,13 +503,14 @@ ___
 
 ### <a id="confirmclaim" name="confirmclaim"></a> confirmClaim
 
-▸ **confirmClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **confirmClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ConfirmClaimInput`](../modules.md#confirmclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1804,13 +1808,14 @@ ___
 
 ### <a id="postclaim" name="postclaim"></a> postClaim
 
-▸ **postClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **postClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`PostClaimInput`](../modules.md#postclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1940,13 +1945,14 @@ ___
 
 ### <a id="removeclaim" name="removeclaim"></a> removeClaim
 
-▸ **removeClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **removeClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`RemoveClaimInput`](../modules.md#removeclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1956,13 +1962,14 @@ ___
 
 ### <a id="send" name="send"></a> send
 
-▸ **send**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **send**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`SendInput`](../modules.md#sendinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -2147,13 +2154,14 @@ ___
 
 ### <a id="withdrawallclaims" name="withdrawallclaims"></a> withdrawAllClaims
 
-▸ **withdrawAllClaims**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawAllClaims**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -2163,13 +2171,14 @@ ___
 
 ### <a id="withdrawclaim" name="withdrawclaim"></a> withdrawClaim
 
-▸ **withdrawClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -2179,13 +2188,14 @@ ___
 
 ### <a id="withdrawhop" name="withdrawhop"></a> withdrawHop
 
-▸ **withdrawHop**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawHop**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawHopInput`](../modules.md#withdrawhopinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 

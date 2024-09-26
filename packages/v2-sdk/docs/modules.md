@@ -130,7 +130,9 @@
 - [Token](modules.md#token)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
 - [TransferBondedEventInput](modules.md#transferbondedeventinput)
+- [TransferBondedIndexes](modules.md#transferbondedindexes)
 - [TransferSentEventInput](modules.md#transfersenteventinput)
+- [TransferSentIndexes](modules.md#transfersentindexes)
 - [TransferStatus](modules.md#transferstatus)
 - [UnstakeHopInput](modules.md#unstakehopinput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
@@ -1398,6 +1400,20 @@ ___
 
 ___
 
+### <a id="transferbondedindexes" name="transferbondedindexes"></a> TransferBondedIndexes
+
+Ƭ **TransferBondedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId?` | `string` |
+| `to?` | `string` |
+| `transferId?` | `string` |
+
+___
+
 ### <a id="transfersenteventinput" name="transfersenteventinput"></a> TransferSentEventInput
 
 Ƭ **TransferSentEventInput**: `Object`
@@ -1410,6 +1426,20 @@ ___
 | `fetchTxData?` | `boolean` |
 | `fromBlock` | `number` |
 | `toBlock` | `number` |
+
+___
+
+### <a id="transfersentindexes" name="transfersentindexes"></a> TransferSentIndexes
+
+Ƭ **TransferSentIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId?` | `string` |
+| `to?` | `string` |
+| `transferId?` | `string` |
 
 ___
 

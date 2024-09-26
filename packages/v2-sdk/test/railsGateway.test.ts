@@ -57,6 +57,25 @@ describe('RailsGateway', () => {
     expect(filter).toBeTruthy()
     expect(filter.topics!.length).toBe(3)
   })
+  it('should get TransferSent pathId, transferId, and to event filter', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const to = await signer.getAddress()
+    const filter = railsGateway.getTransferSentEventFilter({
+      chainId,
+      indexes: {
+        pathId,
+        transferId,
+        to
+      }
+    })
+
+    console.log(filter)
+
+    expect(filter).toBeTruthy()
+    expect(filter.topics!.length).toBe(4)
+  })
   it('should get TransferBonded event filter', async () => {
     const chainId = 11155111
     const filter = railsGateway.getTransferBondedEventFilter({

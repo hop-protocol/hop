@@ -1013,10 +1013,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
-| `indexes.pathId?` | `string` |
-| `indexes.to?` | `string` |
-| `indexes.transferId?` | `string` |
+| `indexes?` | `TransferBondedIndexes` |
 
 ___
 
@@ -1101,10 +1098,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
-| `indexes.pathId?` | `string` |
-| `indexes.to?` | `string` |
-| `indexes.transferId?` | `string` |
+| `indexes?` | `TransferSentIndexes` |
 
 ___
 

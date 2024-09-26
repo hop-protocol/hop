@@ -3,8 +3,8 @@ import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants 
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
-import { TransferSent, HopStruct, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
-import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
+import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
+import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import { getBlockNumberFromDate } from '@hop-protocol/sdk'
@@ -271,29 +271,17 @@ export type TransferStatus = {
 
 export type GetEventFilterInput = {
   chainId: BigNumberish
-  indexes?: {
-    transferId?: string
-    pathId?: string
-    to?: string
-  }
+  indexes?: TransferSentIndexes | TransferBondedIndexes
 }
 
 export type GetTransferSentEventFilterInput = {
   chainId: BigNumberish
-  indexes?: {
-    transferId?: string
-    pathId?: string
-    to?: string
-  }
+  indexes?: TransferSentIndexes
 }
 
 export type GetTransferBondedEventFilterInput = {
   chainId: BigNumberish
-  indexes?: {
-    transferId?: string
-    pathId?: string
-    to?: string
-  }
+  indexes?: TransferBondedIndexes
 }
 
 export type Token = {
@@ -390,41 +378,13 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getTransferSentEventFilter({ chainId, indexes = {} }: GetTransferSentEventFilterInput) {
-    const { transferId, pathId, to } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferSent, chainId)
-
-    if (transferId) {
-      return eventFetcher.getTransferIdFilter(transferId)
-    }
-
-    if (pathId) {
-      return eventFetcher.getPathIdFilter(pathId)
-    }
-
-    if (to) {
-      return eventFetcher.getToFilter(to)
-    }
-
-    return eventFetcher.getFilter()
+    return eventFetcher.getFilterWithIndexes(indexes)
   }
 
   getTransferBondedEventFilter({ chainId, indexes = {} }: GetTransferBondedEventFilterInput) {
-    const { transferId, pathId, to } = indexes
     const eventFetcher = this.getEventFetcher(EventName.TransferBonded, chainId)
-
-    if (transferId) {
-      return eventFetcher.getTransferIdFilter(transferId)
-    }
-
-    if (pathId) {
-      return eventFetcher.getPathIdFilter(pathId)
-    }
-
-    if (to) {
-      return eventFetcher.getToFilter(to)
-    }
-
-    return eventFetcher.getFilter()
+    return eventFetcher.getFilterWithIndexes(indexes)
   }
 
   addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {

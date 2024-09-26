@@ -1,4 +1,4 @@
-import { Base } from '#common/index.js'
+import { Base, ChainProviders } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
@@ -7,7 +7,7 @@ import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path, GetTokenContractInput, GetTransferStatusInput, TransferStatus, TransferBonded, TransferSent, HopStruct, CalcAmountOutMinInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
-import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
+import { EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
 
@@ -26,11 +26,11 @@ export enum EventName {
 }
 
 export type HopConstructorInput = {
-  network: string
   batchBlocks?: number,
   signer?: Signer
   contractAddresses?: Addresses
   requireChainIdInput?: boolean
+  chainProviders: ChainProviders
 }
 
 export type GetEventsInput = {
@@ -128,23 +128,18 @@ export class Hop extends Base {
       throw new ConfigError('options is required')
     }
 
-    const { network, signer } = options
-    super({ network, signer })
+    const { signer, chainProviders } = options
+    super({ signer, chainProviders })
 
-    if (!['mainnet', 'sepolia'].includes(network)) {
-      throw new ConfigError(`Invalid network: ${network}`)
-    }
-
-    const sharedConfig = { network, signer: this.signer, contractAddresses: this.contractAddresses }
+    const sharedConfig = { signer: this.signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders }
     this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.railsGateway = new RailsGateway(sharedConfig)
-    this.gasPriceOracle = new GasPriceOracle(network)
-    this.network = network
+    this.gasPriceOracle = new GasPriceOracle(this.network)
   }
 
   override connect (signer: Signer) {
-    return new Hop({ network: this.network, signer, contractAddresses: this.contractAddresses })
+    return new Hop({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   get version () {

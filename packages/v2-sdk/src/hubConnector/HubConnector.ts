@@ -31,7 +31,7 @@ export class HubConnector extends Base {
   }
 
   override connect (signer: Signer) {
-    return new HubConnector({ network: this.network, signer, contractAddresses: this.contractAddresses })
+    return new HubConnector({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   get populateTransaction() {

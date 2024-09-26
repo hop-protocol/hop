@@ -1,11 +1,11 @@
 import { BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants, EventFilter } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
-import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from '#error/index.js'
+import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import { getBlockNumberFromDate } from '@hop-protocol/sdk'
 import memcache from 'memory-cache'
@@ -337,16 +337,16 @@ export type GetIsPathIdLiveInput = {
 export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
-  constructor ({ network, signer, contractAddresses }: RailsGatewayConstructorInput) {
+  constructor ({ signer, contractAddresses, chainProviders }: RailsGatewayConstructorInput) {
     super({
-      network,
       signer,
-      contractAddresses
+      contractAddresses,
+      chainProviders
     })
   }
 
   override connect (signer: Signer) {
-    return new RailsGateway({ network: this.network, signer, contractAddresses: this.contractAddresses })
+    return new RailsGateway({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   getEventNames (): string[] {
@@ -1555,9 +1555,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    console.log('here01110101')
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
-    console.log('here111', events)
     return events?.[0] ?? null
   }
 

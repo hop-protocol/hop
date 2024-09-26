@@ -1,7 +1,6 @@
 import { Hop, HopStruct, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import dotenv from 'dotenv'
-import { randomBytes } from 'crypto'
 
 dotenv.config()
 
@@ -10,6 +9,8 @@ const { parseUnits } = utils
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
 describe('Sdk - Hop - e2e', () => {
+  const sepoliaChainProviders = Hop.getDefaultChainRpcProviders('sepolia')
+
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -17,9 +18,9 @@ describe('Sdk - Hop - e2e', () => {
     const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
     const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
 
-    let signer = new Wallet(privateKey, ethereumProvider)
-    let sdk = new Hop({
-      network: 'sepolia',
+    const signer = new Wallet(privateKey, ethereumProvider)
+    const sdk = new Hop({
+      chainProviders: sepoliaChainProviders,
       signer
     })
 
@@ -98,6 +99,8 @@ describe('Sdk - Hop - e2e', () => {
 })
 
 describe('Sdk - RailsGateway - e2e', () => {
+  const sepoliaChainProviders = Hop.getDefaultChainRpcProviders('sepolia')
+
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -107,7 +110,7 @@ describe('Sdk - RailsGateway - e2e', () => {
 
     let signer = new Wallet(privateKey, ethereumProvider)
     let sdk = new Hop({
-      network: 'sepolia',
+      chainProviders: sepoliaChainProviders,
       signer
     })
 
@@ -211,7 +214,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     // TODO: signer config for different chains to not do this
     signer = new Wallet(privateKey, baseProvider)
     sdk = new Hop({
-      network: 'sepolia',
+      chainProviders: sepoliaChainProviders,
       signer
     })
 

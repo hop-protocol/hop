@@ -258,14 +258,14 @@ export type MessengerConfig = BaseConfig
 export class Messenger extends Base {
   gasPriceOracle: GasPriceOracle
 
-  constructor({ network, signer, contractAddresses }: MessengerConfig) {
-    super({ network, signer, contractAddresses })
+  constructor({ signer, contractAddresses, chainProviders }: MessengerConfig) {
+    super({ signer, contractAddresses, chainProviders })
 
     this.gasPriceOracle = new GasPriceOracle(this.network)
   }
 
   override connect (signer: Signer) {
-    return new Messenger({ network: this.network, signer, contractAddresses: this.contractAddresses })
+    return new Messenger({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   getSpokeMessageBridgeContractAddress (chainId: BigNumberish): string {

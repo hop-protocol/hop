@@ -22,10 +22,9 @@ export type ChainProviders = {
 }
 
 export type BaseConfig = {
-  network: string
   signer?: Signer
   gasPriceMultiplier?: number
-  chainProviders?: ChainProviders
+  chainProviders: ChainProviders
   contractAddresses?: Addresses
   requireChainIdInput?: boolean
 }
@@ -42,10 +41,6 @@ export class Base {
   chainProviders: ChainProviders = {}
 
   constructor (config: BaseConfig) {
-    if (!config.network) {
-      throw new Error('network is required')
-    }
-    this.network = config.network
     if (config.signer) {
       this.signer = config.signer
       if (!Signer.isSigner(this.signer)) {
@@ -53,8 +48,9 @@ export class Base {
       }
     }
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
-    this.chainProviders = config.chainProviders ?? this.getDefaultChainRpcProviders()
+    this.chainProviders = config.chainProviders
 
+    this.network = this.#deriveNetwork()
     this.contractAddresses = addresses[this.network] ?? {}
 
     if (config.contractAddresses) {
@@ -67,6 +63,23 @@ export class Base {
     }
   }
 
+  #deriveNetwork (): string {
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+
+    for (const chainId in this.chainProviders) {
+      for (const net of networks) {
+        const network = getNetwork(net)
+        const chain = Object.values(network.chains).find(chain => chain.chainId === chainId)
+
+        if (chain) {
+          return net
+        }
+      }
+    }
+
+    throw new Error('could not derive network')
+  }
+
   getContractAddresses () {
     return this.contractAddresses
   }
@@ -75,27 +88,39 @@ export class Base {
     this.contractAddresses = contractAddresses
   }
 
-  getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
-    const network = getNetwork(this.network as NetworkSlug)
+  static getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
     const chainIdStr = chainId.toString()
-    const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
 
-    if (chain) {
-      return getProviderFromUrl(chain.publicRpcUrl)
+    for (const net of networks) {
+      const network = getNetwork(net)
+      const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
+
+      if (chain) {
+        return getProviderFromUrl(chain.publicRpcUrl)
+      }
     }
 
     throw new Error(`No default provider found for chainId "${chainIdStr}"`)
   }
 
-  getDefaultChainRpcProviders (): ChainProviders {
+  getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
+    return Base.getDefaultChainRpcProvider(chainId)
+  }
+
+  static getDefaultChainRpcProviders (network: string): ChainProviders {
     const defaultProviders: ChainProviders = {}
-    const chains = getNetwork(this.network as NetworkSlug).chains
+    const chains = getNetwork(network as NetworkSlug).chains
     for (const chainSlug in chains) {
       const item = (chains as any)[chainSlug] // TODO: type
       defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
     }
 
     return defaultProviders
+  }
+
+  getDefaultChainRpcProviders (): ChainProviders {
+    return Base.getDefaultChainRpcProviders(this.network)
   }
 
   connect (signer: Signer): Base {

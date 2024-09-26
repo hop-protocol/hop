@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { Base } from '#common/Base.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
@@ -9,8 +10,11 @@ dotenv.config()
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe('Base', () => {
+  const mainnetChainProviders = Base.getDefaultChainRpcProviders('mainnet')
+  const sepoliaChainProviders = Base.getDefaultChainRpcProviders('sepolia')
+
   const base = new Base({
-    network: 'mainnet'
+    chainProviders: mainnetChainProviders
   })
   it('should get contract addresses', () => {
     const addresses = base.getContractAddresses()
@@ -30,10 +34,21 @@ describe('Base', () => {
     console.log(addresses)
     expect(addresses['99999']).toBeDefined()
   })
+  it('should get static default chain rpc provider', () => {
+    const chainId = 1
+    const providers = Base.getDefaultChainRpcProvider(chainId)
+    // console.log(provider)
+    expect(providers).toBeDefined()
+  })
   it('should get default chain rpc provider', () => {
     const chainId = 1
     const providers = base.getDefaultChainRpcProvider(chainId)
     // console.log(provider)
+    expect(providers).toBeDefined()
+  })
+  it('should get static default chain rpc providers', () => {
+    const providers = Base.getDefaultChainRpcProviders('mainnet')
+    // console.log(providers)
     expect(providers).toBeDefined()
   })
   it('should get default chain rpc providers', () => {
@@ -262,7 +277,7 @@ describe('Base', () => {
   })
   it('should get supported chain ids', async () => {
     const base = new Base({
-      network: 'sepolia'
+      chainProviders: sepoliaChainProviders
     })
     const supportedChainIds = base.getSupportedChainIds()
     console.log(supportedChainIds)
@@ -270,7 +285,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported token symbols', async () => {
     const base = new Base({
-      network: 'sepolia'
+      chainProviders: sepoliaChainProviders
     })
     const supportedTokens = base.getSupportedTokenSymbols()
     console.log(supportedTokens)
@@ -278,7 +293,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported token symbols by chain id', async () => {
     const base = new Base({
-      network: 'sepolia'
+      chainProviders: sepoliaChainProviders
     })
     const supportedTokens = base.getSupportedTokenSymbolsByChainId(11155111)
     console.log(supportedTokens)
@@ -286,7 +301,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported chain ids by token symbol', async () => {
     const base = new Base({
-      network: 'sepolia'
+      chainProviders: sepoliaChainProviders
     })
     const tokenSymbol = 'USDC'
     const supportedChainIds = base.getChainIdsSupportedByTokenSymbol(tokenSymbol)
@@ -295,7 +310,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get token address by token symbol', async () => {
     const base = new Base({
-      network: 'sepolia'
+      chainProviders: sepoliaChainProviders
     })
     const chainId = 11155111
     const tokenSymbol = 'USDC'

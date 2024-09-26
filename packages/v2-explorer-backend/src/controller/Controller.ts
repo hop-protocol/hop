@@ -57,7 +57,7 @@ export class Controller {
 
   constructor () {
     this.sdk = new Hop({
-      network
+      chainProviders: Hop.getDefaultChainRpcProviders(network)
     })
     this.sdk.setChainRpcProviderUrls(rpcUrls)
     // console.log(this.sdk.chainProviders)

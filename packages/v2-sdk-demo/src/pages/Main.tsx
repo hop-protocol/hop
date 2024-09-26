@@ -68,7 +68,10 @@ export function Main () {
   const [success, setSuccess] = useState('')
   const [balance, setBalance] = useState('-')
   const [sdk, setSdk] = useState(() => {
-    return new Hop({ network, requireChainIdInput: true })
+    return new Hop({
+      chainProviders: Hop.getDefaultChainRpcProviders(network),
+      requireChainIdInput: true
+    })
   })
 
   useEffect(() => {

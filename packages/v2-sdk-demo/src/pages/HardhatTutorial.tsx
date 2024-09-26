@@ -167,7 +167,7 @@ export function HardhatTutorial () {
       if (!greetingTxOnOptimism) {
         return false
       }
-      const sdk = new Hop({ network: 'goerli' })
+      const sdk = new Hop()
       const isExited = await sdk.messenger.getIsL2TxHashExited({
         transactionHash: greetingTxOnOptimism,
         fromChainId: 420
@@ -331,7 +331,6 @@ export function HardhatTutorial () {
     await checkConnectedNetworkIdOrThrow(5)
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           hubConnectorFactory: hubConnectorFactoryOnGoerliAddress
@@ -421,7 +420,6 @@ export function HardhatTutorial () {
     }
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,
@@ -506,7 +504,6 @@ export function HardhatTutorial () {
     await checkConnectedNetworkIdOrThrow(5)
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,
@@ -1266,7 +1263,6 @@ const { Hop } = require('@hop-protocol/v2-sdk')
 
 async function main() {
   const sdk = new Hop({
-    network: 'goerli',
     contractAddresses: {
       5: {
         hubCoreMessenger: '0x23E7046ac7e34DCFaCa85adD8ac72B59e3812E34',

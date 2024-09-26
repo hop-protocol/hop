@@ -167,7 +167,7 @@ export function Tutorial () {
       if (!greetingTxOnOptimism) {
         return false
       }
-      const sdk = new Hop({ network: 'goerli' })
+      const sdk = new Hop()
       const isExited = await sdk.messenger.getIsL2TxHashExited({
         transactionHash: greetingTxOnOptimism,
         fromChainId: 420
@@ -330,7 +330,6 @@ export function Tutorial () {
     await checkConnectedNetworkIdOrThrow(5)
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           hubConnectorFactory: hubConnectorFactoryOnGoerliAddress
@@ -417,7 +416,6 @@ export function Tutorial () {
     }
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,
@@ -501,7 +499,6 @@ export function Tutorial () {
     await checkConnectedNetworkIdOrThrow(5)
 
     const sdk = new Hop({
-      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,

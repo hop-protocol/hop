@@ -73,7 +73,7 @@ export function useV2(): V2Hook {
 
   const v2Sdk = useMemo(() => {
     const hop = new Hop({
-      network: reactAppNetwork,
+      chainProviders: Hop.getDefaultChainRpcProviders(reactAppNetwork),
       signer: provider?.getSigner(),
     })
     return hop

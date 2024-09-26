@@ -9,8 +9,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -81,7 +82,7 @@ import { ethers } from 'ethers'
 async function main() {
   const chainId = "${fromChainId}"
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const signer = window.ethereum
   await hop.connect(signer).switchChain(chainId)
 }

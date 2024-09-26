@@ -1,23 +1,24 @@
 import React, { useState } from 'react'
-import { Signer } from 'ethers'
-import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
-import Checkbox from '@mui/material/Checkbox'
-import Typography from '@mui/material/Typography'
-import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import Stepper from '@mui/material/Stepper'
-import Step from '@mui/material/Step'
-import StepLabel from '@mui/material/StepLabel'
-import StepContent from '@mui/material/StepContent'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
+import Step from '@mui/material/Step'
+import StepContent from '@mui/material/StepContent'
+import StepLabel from '@mui/material/StepLabel'
+import Stepper from '@mui/material/Stepper'
+import Typography from '@mui/material/Typography'
+import { ChainSelect } from '../ChainSelect'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton'
+import { Hop } from '@hop-protocol/v2-sdk'
+import { Signer } from 'ethers'
+import { Syntax } from '../Syntax'
+import { defaultChainIds, chainIds } from '../../config'
+import { hopInstantiateDisplayString } from '../shared'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { useStyles } from '../useStyles'
 
 type Props = {
   signer?: Signer
@@ -138,7 +139,7 @@ async function main() {
   const maxTotalSent = "${maxTotalSent}"
   const fee = "${fee}"
 
-  const hop = new Hop({ network: '${network}' )
+  ${hopInstantiateDisplayString}
   const txData = await hop.railsGateway.populateTransaction.send({
     chainId,
     pathId,

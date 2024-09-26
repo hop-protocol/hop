@@ -15,7 +15,9 @@ export const useTransferDetails = (props: any) => {
   const pathname = usePathname()
   const parts = pathname.split('/')
   const transferId = parts[2]
-  const sdk = useMemo(() => new Hop({ network: networkSlug }), [])
+  const sdk = useMemo(() => new Hop({
+    chainProviders: Hop.getDefaultChainRpcProviders(networkSlug)
+  }), [])
   const formatDisplay = (value: string, decimals: number, symbol: string) => {
     if (value == null) return null
 

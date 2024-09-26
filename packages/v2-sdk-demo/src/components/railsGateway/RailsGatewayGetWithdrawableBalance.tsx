@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -79,7 +80,7 @@ async function main() {
   const recipient = "${recipient}"
   const timeWindow = ${timeWindow}
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const fee = await hop.railsGateway.getWithdrawableBalance({
     chainId,
     pathId,

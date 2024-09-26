@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
-import { network } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -62,7 +62,7 @@ async function main() {
   const amountOut = "${amountOut}"
   const slippageTolerance = ${slippageTolerance}
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const amountOut = await hop.railsGateway.calcAmountOutMin({
     amountOut,
     slippageTolerance

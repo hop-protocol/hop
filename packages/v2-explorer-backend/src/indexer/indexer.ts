@@ -42,9 +42,9 @@ export class Indexer {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
     this.sdk = new Hop({
-      network,
       batchBlocks: 10_000,
-      contractAddresses: options?.sdkContractAddresses
+      contractAddresses: options?.sdkContractAddresses,
+      chainProviders: Hop.getDefaultChainRpcProviders(network)
     })
     this.sdk.setChainRpcProviderUrls(rpcUrls)
     this.priceFeed = new PriceFeed({

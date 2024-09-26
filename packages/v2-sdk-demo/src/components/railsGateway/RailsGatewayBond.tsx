@@ -11,13 +11,14 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import StepContent from '@mui/material/StepContent'
 import Button from '@mui/material/Button'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -137,7 +138,7 @@ async function main() {
   const amount = "${amount}"
   const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
-  const hop = new Hop({ network: '${network}' )
+  ${hopInstantiateDisplayString}
   const txData = await hop.railsGateway.populateTransaction.bond({
     chainId,
     pathId,

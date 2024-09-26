@@ -8,6 +8,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -55,7 +56,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const rpcProviders = ${configString}
 
-  const hop = new Hop('goerli')
+  ${hopInstantiateDisplayString}
+
   hop.setRpcProviders(rpcProviders)
 }
 

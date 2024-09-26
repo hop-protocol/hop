@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -63,7 +64,7 @@ async function main() {
   const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const claim = await hop.railsGateway.getLatestClaim({
     chainId,
     pathId

@@ -9,8 +9,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -61,7 +62,7 @@ async function main() {
   const chainId = "${fromChainId}"
   const transactionHash = "${messageSentTransactionHash}"
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const messageId = await hop.messenger.getMessageIdFromTransactionHash({
     chainId,
     transactionHash

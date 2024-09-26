@@ -14,7 +14,9 @@ export class Worker {
   indexer: Indexer
 
   constructor (options: Options = {}) {
-    this.sdk = new Hop({ network })
+    this.sdk = new Hop({
+      chainProviders: Hop.getDefaultChainRpcProviders(network)
+    })
 
     const startBlocks: any = {}
     Object.keys(this.sdk.contractAddresses).forEach((chainId: string) => {

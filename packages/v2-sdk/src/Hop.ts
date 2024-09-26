@@ -132,6 +132,10 @@ export class Hop extends Base {
     const { signer, chainProviders } = options
     super({ signer, chainProviders })
 
+    if (Object.keys(chainProviders).length < 2) {
+      throw new ConfigError('At least 2 providers are needed for instantiation. Please provide a source provider and destination provider.')
+    }
+
     const sharedConfig = { signer: this.signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders }
     this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)

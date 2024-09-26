@@ -1,4 +1,4 @@
-import { Base, ChainProviders } from '#common/index.js'
+import { Base, ChainProviders, TxOverrides } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
@@ -169,7 +169,7 @@ export class Hop extends Base {
 
   get populateTransaction() {
     return {
-      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput): Promise<providers.TransactionRequest> => {
+      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -254,14 +254,14 @@ export class Hop extends Base {
           nextHops,
           maxTotalSent,
           fee
-        })
+        }, txOverrides)
 
         console.log('hopV2Sdk: populatedTx', populatedTx)
 
         return populatedTx
       },
 
-      approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput): Promise<providers.TransactionRequest> => {
+      approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const pathId = await this.railsGateway.getPathId({
           chainId0: fromChainId,
           token0: fromToken,
@@ -273,20 +273,20 @@ export class Hop extends Base {
           chainId: fromChainId,
           pathId,
           amount
-        })
+        }, txOverrides)
 
         return populatedTx
       }
     }
   }
 
-  async sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.sendTokens(input)
+  async sendTokens (input: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.sendTokens(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async approveSendTokens (input: ApproveSendTokensInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.approveSendTokens(input)
+  async approveSendTokens (input: ApproveSendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.approveSendTokens(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
@@ -306,8 +306,8 @@ export class Hop extends Base {
     return this.railsGateway.getPathInfo(input)
   }
 
-  async connectTargets (input: ConnectTargetsInput): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
-    const tx = await this.hubConnector.connectTargets(input)
+  async connectTargets (input: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
+    const tx = await this.hubConnector.connectTargets(input, txOverrides)
     const connectorAddress = await this.hubConnector.getConnectorAddressFromTx(tx)
     return { tx, connectorAddress }
   }

@@ -176,7 +176,7 @@ Base.signer
 
 | Name | Type |
 | :------ | :------ |
-| `connectTargets` | (`__namedParameters`: [`ConnectTargetsInput`](../modules.md#connecttargetsinput)) => `Promise`\<`TransactionRequest`\> |
+| `connectTargets` | (`__namedParameters`: [`ConnectTargetsInput`](../modules.md#connecttargetsinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -242,13 +242,14 @@ ___
 
 ### <a id="connecttargets" name="connecttargets"></a> connectTargets
 
-▸ **connectTargets**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **connectTargets**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ConnectTargetsInput`](../modules.md#connecttargetsinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 

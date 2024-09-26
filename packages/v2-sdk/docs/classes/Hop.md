@@ -212,8 +212,8 @@ Base.signer
 
 | Name | Type |
 | :------ | :------ |
-| `approveSendTokens` | (`__namedParameters`: [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput)) => `Promise`\<`TransactionRequest`\> |
-| `sendTokens` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput)) => `Promise`\<`TransactionRequest`\> |
+| `approveSendTokens` | (`__namedParameters`: [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `sendTokens` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -269,13 +269,14 @@ ___
 
 ### <a id="approvesendtokens" name="approvesendtokens"></a> approveSendTokens
 
-▸ **approveSendTokens**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **approveSendTokens**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -321,13 +322,14 @@ ___
 
 ### <a id="connecttargets" name="connecttargets"></a> connectTargets
 
-▸ **connectTargets**(`input`): `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+▸ **connectTargets**(`input`, `txOverrides?`): `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | `ConnectTargetsInput` |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -872,13 +874,14 @@ ___
 
 ### <a id="sendtokens" name="sendtokens"></a> sendTokens
 
-▸ **sendTokens**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **sendTokens**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`SendTokensInput`](../modules.md#sendtokensinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 

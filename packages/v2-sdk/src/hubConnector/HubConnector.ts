@@ -1,4 +1,4 @@
-import { Base, BaseConfig } from '#common/index.js'
+import { Base, BaseConfig, TxOverrides } from '#common/index.js'
 import { BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
@@ -36,7 +36,7 @@ export class HubConnector extends Base {
 
   get populateTransaction() {
     return {
-      connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput): Promise<providers.TransactionRequest> => {
+      connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const provider = this.getRpcProviderForChainId(hubChainId)
         if (!provider) {
           throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
@@ -48,6 +48,7 @@ export class HubConnector extends Base {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(hubChainId)
         }
       }
@@ -55,8 +56,8 @@ export class HubConnector extends Base {
   }
 
   // used by connector demo
-  async connectTargets (input: ConnectTargetsInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.connectTargets(input)
+  async connectTargets (input: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.connectTargets(input, txOverrides)
     return this.sendTransaction(txData)
   }
 

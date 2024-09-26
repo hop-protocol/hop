@@ -123,6 +123,9 @@ export {
   HubConnectorConfig,
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
+export {
+  TxOverrides
+} from './common/index.js'
 export { PriceFeed } from './priceFeed/index.js'
 export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'
 export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from './error/index.js'

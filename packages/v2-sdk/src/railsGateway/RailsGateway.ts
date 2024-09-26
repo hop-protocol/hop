@@ -1,4 +1,4 @@
-import { BaseConfig } from '#common/index.js'
+import { BaseConfig, TxOverrides } from '#common/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
@@ -323,18 +323,6 @@ export type GetIsPathIdLiveInput = {
 }
 
 export type RailsGatewayConstructorInput = BaseConfig
-
-export type TxOverrides = {
-  nonce?: BigNumberish
-  gasLimit?: BigNumberish
-  gasPrice?: BigNumberish
-  maxPriorityFeePerGas?: BigNumberish
-  maxFeePerGas?: BigNumberish
-  value?: BigNumberish
-  chainId?: BigNumberish
-  from?: string
-  type?: number
-}
 
 export class RailsGateway extends StakingRegistry {
   constructor ({ signer, contractAddresses, chainProviders }: RailsGatewayConstructorInput) {

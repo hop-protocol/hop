@@ -237,10 +237,10 @@ Base.signer
 
 | Name | Type |
 | :------ | :------ |
-| `bundleExit` | (`__namedParameters`: [`GetBundleExitPopulatedTxInput`](../modules.md#getbundleexitpopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
-| `execute` | (`__namedParameters`: [`ExecuteInput`](../modules.md#executeinput)) => `Promise`\<`TransactionRequest`\> |
-| `relayMessage` | (`__namedParameters`: [`GetRelayMessagePopulatedTxInput`](../modules.md#getrelaymessagepopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
-| `sendMessage` | (`__namedParameters`: [`GetSendMessagePopulatedTxInput`](../modules.md#getsendmessagepopulatedtxinput)) => `Promise`\<`TransactionRequest`\> |
+| `bundleExit` | (`__namedParameters`: [`GetBundleExitPopulatedTxInput`](../modules.md#getbundleexitpopulatedtxinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `execute` | (`__namedParameters`: [`ExecuteInput`](../modules.md#executeinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `relayMessage` | (`__namedParameters`: [`GetRelayMessagePopulatedTxInput`](../modules.md#getrelaymessagepopulatedtxinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `sendMessage` | (`__namedParameters`: [`GetSendMessagePopulatedTxInput`](../modules.md#getsendmessagepopulatedtxinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -286,13 +286,14 @@ Base.utils
 
 ### <a id="bundleexit" name="bundleexit"></a> bundleExit
 
-▸ **bundleExit**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **bundleExit**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`GetBundleExitPopulatedTxInput`](../modules.md#getbundleexitpopulatedtxinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1402,13 +1403,14 @@ ___
 
 ### <a id="relaymessage" name="relaymessage"></a> relayMessage
 
-▸ **relayMessage**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **relayMessage**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`GetRelayMessagePopulatedTxInput`](../modules.md#getrelaymessagepopulatedtxinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1418,13 +1420,14 @@ ___
 
 ### <a id="sendmessage" name="sendmessage"></a> sendMessage
 
-▸ **sendMessage**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **sendMessage**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`GetSendMessagePopulatedTxInput`](../modules.md#getsendmessagepopulatedtxinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 

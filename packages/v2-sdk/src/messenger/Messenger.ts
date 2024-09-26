@@ -1,4 +1,4 @@
-import { Base, BaseConfig } from '#common/index.js'
+import { Base, BaseConfig, TxOverrides } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
 import { EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypes } from '#events/index.js'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
@@ -680,7 +680,7 @@ export class Messenger extends Base {
 
   get populateTransaction() {
     return {
-      sendMessage: async ({ fromChainId, toChainId, toAddress, toCalldata = '0x' }: GetSendMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
+      sendMessage: async ({ fromChainId, toChainId, toAddress, toCalldata = '0x' }: GetSendMessagePopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -725,12 +725,13 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: Number(fromChainId),
-          value
+          value,
+          ...txOverrides,
+          chainId: Number(fromChainId)
         }
       },
 
-      relayMessage: async ({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof }: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
+      relayMessage: async ({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof }: GetRelayMessagePopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -776,11 +777,12 @@ export class Messenger extends Base {
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(toChainId)
         }
       },
 
-      bundleExit: async ({ fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash }: GetBundleExitPopulatedTxInput): Promise<providers.TransactionRequest> => {
+      bundleExit: async ({ fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash }: GetBundleExitPopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -808,11 +810,12 @@ export class Messenger extends Base {
 
         return {
           // ...txData,
+          ...txOverrides,
           chainId: Number(fromChainId)
         }
       },
 
-      execute: async ({ fromChainId, toChainId, messageId, fromAddress, toAddress, toCalldata }: ExecuteInput): Promise<providers.TransactionRequest> => {
+      execute: async ({ fromChainId, toChainId, messageId, fromAddress, toAddress, toCalldata }: ExecuteInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -848,25 +851,26 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: Number(toChainId),
-          gasLimit: 1_000_000
+          gasLimit: 1_000_000,
+          ...txOverrides,
+          chainId: Number(toChainId)
         }
       }
     }
   }
 
-  async sendMessage (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.sendMessage(input)
+  async sendMessage (input: GetSendMessagePopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.sendMessage(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async relayMessage (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.relayMessage(input)
+  async relayMessage (input: GetRelayMessagePopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.relayMessage(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async bundleExit (input: GetBundleExitPopulatedTxInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.bundleExit(input)
+  async bundleExit (input: GetBundleExitPopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.bundleExit(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

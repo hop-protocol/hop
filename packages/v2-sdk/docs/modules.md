@@ -134,6 +134,7 @@
 - [TransferSentEventInput](modules.md#transfersenteventinput)
 - [TransferSentIndexes](modules.md#transfersentindexes)
 - [TransferStatus](modules.md#transferstatus)
+- [TxOverrides](modules.md#txoverrides)
 - [UnstakeHopInput](modules.md#unstakehopinput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
 - [WithdrawAllInput](modules.md#withdrawallinput)
@@ -1455,6 +1456,26 @@ ___
 | `transferBondedEvent` | `EthersEventWithDecodedTypes`\<`TransferBonded`\> \| ``null`` |
 | `transferId` | `string` |
 | `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> |
+
+___
+
+### <a id="txoverrides" name="txoverrides"></a> TxOverrides
+
+Ƭ **TxOverrides**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId?` | `BigNumberish` |
+| `from?` | `string` |
+| `gasLimit?` | `BigNumberish` |
+| `gasPrice?` | `BigNumberish` |
+| `maxFeePerGas?` | `BigNumberish` |
+| `maxPriorityFeePerGas?` | `BigNumberish` |
+| `nonce?` | `BigNumberish` |
+| `type?` | `number` |
+| `value?` | `BigNumberish` |
 
 ___
 

@@ -10,13 +10,6 @@ const { getAddress: checksumAddress } = utils
 
 type Provider = providers.Provider
 
-export type TxOverrides = {
-  gasLimit?: BigNumber
-  gasPrice?: BigNumber
-  nonce?: BigNumber
-  chainId?: BigNumber
-}
-
 export type ChainProviders = {
   [key: string]: providers.Provider
 }
@@ -27,6 +20,18 @@ export type BaseConfig = {
   chainProviders: ChainProviders
   contractAddresses?: Addresses
   requireChainIdInput?: boolean
+}
+
+export type TxOverrides = {
+  nonce?: BigNumberish
+  gasLimit?: BigNumberish
+  gasPrice?: BigNumberish
+  maxPriorityFeePerGas?: BigNumberish
+  maxFeePerGas?: BigNumberish
+  value?: BigNumberish
+  chainId?: BigNumberish
+  from?: string
+  type?: number
 }
 
 export class Base {
@@ -88,35 +93,8 @@ export class Base {
     this.contractAddresses = contractAddresses
   }
 
-  static getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
-    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
-    const chainIdStr = chainId.toString()
-
-    for (const net of networks) {
-      const network = getNetwork(net)
-      const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
-
-      if (chain) {
-        return getProviderFromUrl(chain.publicRpcUrl)
-      }
-    }
-
-    throw new Error(`No default provider found for chainId "${chainIdStr}"`)
-  }
-
   getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
     return Base.getDefaultChainRpcProvider(chainId)
-  }
-
-  static getDefaultChainRpcProviders (network: string): ChainProviders {
-    const defaultProviders: ChainProviders = {}
-    const chains = getNetwork(network as NetworkSlug).chains
-    for (const chainSlug in chains) {
-      const item = (chains as any)[chainSlug] // TODO: type
-      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
-    }
-
-    return defaultProviders
   }
 
   getDefaultChainRpcProviders (): ChainProviders {
@@ -606,5 +584,32 @@ export class Base {
       throw new Error('signer has no provider connected, cannot get provider chainId')
     }
     return this.utils.getConnectedChainId(this.signer.provider)
+  }
+
+  static getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+    const chainIdStr = chainId.toString()
+
+    for (const net of networks) {
+      const network = getNetwork(net)
+      const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
+
+      if (chain) {
+        return getProviderFromUrl(chain.publicRpcUrl)
+      }
+    }
+
+    throw new Error(`No default provider found for chainId "${chainIdStr}"`)
+  }
+
+  static getDefaultChainRpcProviders (network: string): ChainProviders {
+    const defaultProviders: ChainProviders = {}
+    const chains = getNetwork(network as NetworkSlug).chains
+    for (const chainSlug in chains) {
+      const item = (chains as any)[chainSlug] // TODO: type
+      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
+    }
+
+    return defaultProviders
   }
 }

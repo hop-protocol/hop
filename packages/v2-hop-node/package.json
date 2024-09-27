@@ -45,7 +45,7 @@
     "async-mutex": "0.4.1",
     "bip39": "3.1.0",
     "chalk": "4.1.2",
-    "commander": "6.2.1",
+    "commander": "12.1.0",
     "console-clear": "1.1.1",
     "ethers": "5.7.2",
     "keythereum": "1.2.0",

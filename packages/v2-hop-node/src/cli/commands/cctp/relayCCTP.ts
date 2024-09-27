@@ -1,14 +1,16 @@
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
 import { CCTP } from '#clients/index.js'
-import { actionHandler, root } from '../shared/index.js'
+import { Command } from 'commander'
 
-root
-  .command('relay-cctp')
+export const program = new Command()
+
+program
+  .name('relay-cctp')
   .description('Relay CCTP Messages')
-  .action(actionHandler(main))
+  .action(run)
 
-async function main (source: any) {
+async function run (source: any) {
   const unrelayedMessages = await CCTP.getUnrelayedMessages()
   if (unrelayedMessages.length === 0) {
     console.log('No unrelayed messages found')

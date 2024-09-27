@@ -1,8 +1,16 @@
 import { Rails } from '#clients/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
+import { Command } from 'commander'
 
-export async function main (): Promise<never> {
+export const program = new Command()
+
+program
+  .name('rails')
+  .description('Run Rails commands')
+  .action(run)
+
+export async function run (): Promise<never> {
   try {
     const clients = Object.values(Rails.RailsClientName)
     const railsManager = new Rails.Rails(clients, RailsConfig.paths)

@@ -5,6 +5,7 @@ import { CCTP } from '#clients/index.js'
 import { SignerConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Command } from 'commander'
+import { Logger } from '#logger/index.js'
 
 export const program = new Command()
 
@@ -33,6 +34,7 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
 }
 
 async function run (options: any): Promise<never> {
+  const logger = new Logger(program.name())
   const network: NetworkSlug = SignerConfig.network
   const chains: ChainSlug[] = CHAINS[network]!
   const chainIds: string[] = chains.map(chainSlug => getChain(network, chainSlug).chainId)
@@ -41,7 +43,7 @@ async function run (options: any): Promise<never> {
     const messageManager = new CCTP.CCTP(chainIds)
     await messageManager.start()
     // TODO: V2: Add logger
-    console.log('CCTP Manager started')
+    logger.debug('CCTP Manager started')
 
     // TODO: V2: Better way to run
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -49,7 +51,7 @@ async function run (options: any): Promise<never> {
       await wait (60_000)
     }
   } catch (err: any) {
-    console.trace(err)
+    logger.error(err)
     throw new Error(`CCTP CLI error: ${err.message}`)
   }
 }

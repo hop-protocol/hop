@@ -3,20 +3,23 @@ import path from 'node:path'
 import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
 import { type ICLIConfig, initConfigs } from '#config/index.js'
-import { ClientName } from '#clients/index.js'
 
-export const logger = new Logger('config')
 export const program = new Command()
-
 export const root = program
   .option('--config <path>', 'Config file path', parseString)
   .option('--dry-run [boolean]', 'Perform a dry run', parseBool)
 
+export async function initCLI (source: any): Promise<void> {
+  const cliConfig = getCLIConfig(source)
+  await initConfigs(cliConfig)
+}
+
 export function actionHandler (fn: (source: any) => any) {
+  const logger = new Logger('CLI - actionHandler')
   return async (source: any = {}) => {
     try {
-      const cliConfig = getCLIConfig(source)
-      await initConfigs(cliConfig)
+      // const cliConfig = getCLIConfig(source)
+      // await initConfigs(cliConfig)
       await fn(source)
       process.exit(0)
     } catch (err) {
@@ -27,6 +30,7 @@ export function actionHandler (fn: (source: any) => any) {
 }
 
 function getCLIConfig (source: any): ICLIConfig {
+  const logger = new Logger('CLI - getCLIConfig')
   const customConfigPath = source?.config ?? ''
   if (customConfigPath) {
     logger.debug(`Using custom config path: ${customConfigPath}`)
@@ -35,14 +39,9 @@ function getCLIConfig (source: any): ICLIConfig {
   if (dryRun) {
     logger.debug('Running in dry-run')
   }
-  const clientName = Object.values(ClientName).find((client) => source[client.toLowerCase()])
-  if (!clientName) {
-    throw new Error('Please provide a valid client name')
-  }
   return {
     customConfigPath,
-    dryRun,
-    clientName
+    dryRun
   }
 }
 

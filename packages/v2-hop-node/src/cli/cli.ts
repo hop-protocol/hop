@@ -1,12 +1,8 @@
 import { cctpCommand, railsCommand } from './commands/index.js'
-import { initCLI } from './shared/shared.js'
+import { initCLI } from './utils.js'
 import { Command } from 'commander'
+import { Logger } from '#logger/index.js'
 
-// CCTP
-import './cctp/cctp.js'
-import './cctp/relayCCTP.js'
-import './cctp/cctpDBDump.js'
-import './cctp/unrelayedCCTPMessages.js'
 const program = new Command()
 
 // TODO: Reintroduce GitRev
@@ -25,10 +21,12 @@ program
  */
 
 process.on('SIGINT', () => {
+  const logger = new Logger('CLI - SIGINT')
   logger.debug('received SIGINT signal. exiting.')
   process.exit(0)
 })
 
 process.on('unhandledRejection', (reason: Error, p: Promise<any>) => {
+  const logger = new Logger('CLI - unhandledRejection')
   logger.error('Unhandled rejection: promise:', p, 'reason:', reason)
 })

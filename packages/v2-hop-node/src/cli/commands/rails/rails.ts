@@ -2,6 +2,7 @@ import { Rails } from '#clients/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Command } from 'commander'
+import { Logger } from '#logger/index.js'
 
 export const program = new Command()
 
@@ -11,12 +12,14 @@ program
   .action(run)
 
 export async function run (): Promise<never> {
+  const logger = new Logger(program.name())
+
   try {
     const clients = Object.values(Rails.RailsClientName)
     const railsManager = new Rails.Rails(clients, RailsConfig.paths)
     await railsManager.start()
     // TODO: V2: Add logger
-    console.log('Rails Manager started')
+    logger.debug('Rails Manager started')
 
     // TODO: V2: Better way to run
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -24,7 +27,7 @@ export async function run (): Promise<never> {
       await wait (60_000)
     }
   } catch (err: any) {
-    console.trace(err)
+    logger.error(err)
     throw new Error(`Rails CLI error: ${err.message}`)
   }
 }

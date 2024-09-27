@@ -1,4 +1,4 @@
-export const hopArt = `
+export const HOP_ART = `
     __  __
    / / / /___  ____
   / /_/ / __ \\/ __ \\
@@ -6,5 +6,3 @@ export const hopArt = `
 /_/ /_/\\____/ .___/
            /_/
 `
-
-export const printHopArt = () => console.log(hopArt)

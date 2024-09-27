@@ -1,10 +1,9 @@
 import { ConfigManager } from '../ConfigManager.js'
-import type { ClientName } from '#clients/index.js'
 
 export interface ICLIConfig {
   customConfigPath: string
   dryRun: boolean
-  clientName: ClientName
+  clientName: string
 }
 
 export class CLIConfig extends ConfigManager {

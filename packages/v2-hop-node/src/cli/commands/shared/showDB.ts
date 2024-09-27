@@ -5,7 +5,7 @@ import { Logger } from '#logger/index.js'
 import { Argument, Command } from 'commander'
 import { parseString } from '../../utils.js'
 
-type ShowDBInput = {
+type ShowDBOptions = {
   dbType: DBTypes
   state?: string
 }
@@ -33,7 +33,7 @@ program
 
 async function run (dbType: DBTypes): Promise<void> {
   const logger = new Logger(program.name())
-  const { state } = program.opts<ShowDBInput>()
+  const { state } = program.opts<ShowDBOptions>()
 
   if (!Object.values(DBTypes).includes(dbType)) {
     throw new Error(`Invalid db type: ${dbType}. Did you mean one of the following: ${Object.values(DBTypes).join(', ')}?`)

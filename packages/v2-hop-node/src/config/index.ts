@@ -15,7 +15,7 @@ export async function initConfigs (cliConfig: ICLIConfig): Promise<void> {
 
   // CLI options
   await CLIConfig.initializeConfig(cliConfig)
-  if (cliConfig.clientName === ClientName.Rails) {
+  if (cliConfig.clientName.toLowerCase() === ClientName.Rails.toLowerCase()) {
     await RailsConfig.initializeConfig(customConfig.rails)
   }
 }

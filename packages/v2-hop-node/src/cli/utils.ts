@@ -1,32 +1,27 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
-import { Logger } from '#logger/index.js'
-import { type ICLIConfig, initConfigs } from '#config/index.js'
+import { initConfigs } from '#config/index.js'
+import type { Command } from 'commander'
 
 /**
  * Initiation
  */
 
-export async function initCLI (source: any): Promise<void> {
-  const cliConfig = getCLIConfig(source)
-  await initConfigs(cliConfig)
-}
+export async function initCLI (parentCommand: Command, childCommand: Command): Promise<void> {
+  const { config, dryRun } = parentCommand.opts()
 
-function getCLIConfig (source: any): ICLIConfig {
-  const logger = new Logger('CLI - getCLIConfig')
-  const customConfigPath = source?.config ?? ''
-  if (customConfigPath) {
-    logger.debug(`Using custom config path: ${customConfigPath}`)
+  // The client name is always the child command name
+  const clientName = childCommand.name()
+  if (!clientName) {
+    throw new Error('Client name not found')
   }
-  const dryRun = source?.dryRun ?? false
-  if (dryRun) {
-    logger.debug('Running in dry-run')
-  }
-  return {
-    customConfigPath,
-    dryRun
-  }
+
+  await initConfigs({
+    customConfigPath: config ?? '',
+    dryRun: dryRun ?? false,
+    clientName
+  })
 }
 
 /**

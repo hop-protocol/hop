@@ -25,8 +25,7 @@ program
   .addCommand(railsProgram)
   .addCommand(cctpProgram)
 
-program
-  .parse(process.argv)
+await program.parseAsync(process.argv)
 
 /**
  * Error Handling

@@ -1,8 +1,8 @@
 import { getChain } from '@hop-protocol/sdk'
 import { wallets } from '#wallets/index.js'
 import { CCTP } from '#clients/index.js'
-import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
+import { Command } from 'commander'
 
 export const program = new Command()
 

@@ -1,7 +1,7 @@
-import { cctpCommand, railsCommand } from './commands/index.js'
-import { initCLI } from './utils.js'
-import { Command } from 'commander'
+import { cctpProgram, railsProgram } from './commands/index.js'
+import { initCLI, parseBool, parseString } from './utils.js'
 import { Logger } from '#logger/index.js'
+import { Command } from 'commander'
 
 const program = new Command()
 
@@ -12,8 +12,10 @@ program
   .description('Hop CLI')
   // .version(`Version: ${gitRev}`)
   .hook('preAction', initCLI)
-  .addCommand(cctpCommand)
-  .addCommand(railsCommand)
+  .option('--config <path>', 'Config file path', parseString)
+  .option('--dry-run', 'Perform a dry run', parseBool)
+  .addCommand(railsProgram)
+  .addCommand(cctpProgram)
   .parse(process.argv)
 
 /**

@@ -1,7 +1,7 @@
 import { CCTP } from '#clients/index.js'
 import { CCTPSDK } from '#clients/cctp/sdk/CCTPSDK.js'
-import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
+import { Command } from 'commander'
 
 export const program = new Command()
 

@@ -1,2 +1,2 @@
-export { program as cctpCommand } from './cctp/cctp.js'
-export { program as railsCommand } from './rails/rails.js'
+export { program as cctpProgram } from './cctp/cctp.js'
+export { program as railsProgram } from './rails/rails.js'

@@ -1,8 +1,9 @@
 import { Rails } from '#clients/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
-import { Command } from 'commander'
 import { Logger } from '#logger/index.js'
+import { Command } from 'commander'
+import { RAILS_ART } from './../../constants.js'
 
 export const program = new Command()
 
@@ -11,8 +12,9 @@ program
   .description('Run Rails commands')
   .action(run)
 
-export async function run (): Promise<never> {
+async function run (): Promise<never> {
   const logger = new Logger(program.name())
+  logger.log(RAILS_ART)
 
   try {
     const clients = Object.values(Rails.RailsClientName)

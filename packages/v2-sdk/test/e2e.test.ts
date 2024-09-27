@@ -61,8 +61,9 @@ describe('Sdk - Hop - e2e', () => {
 
     console.log('minAmountOut:', minAmountOut.toString())
 
-    const shouldSend = false // debug
-    let sendTxHash = '0xee4b8eed47c2474f97ad45a91a1e1bcf1c10233885bd24d02eb94b0f08ba6106' // debug
+    const shouldSend = true // debug
+    // let sendTxHash = '0xee4b8eed47c2474f97ad45a91a1e1bcf1c10233885bd24d02eb94b0f08ba6106' // debug
+    let sendTxHash = '' // debug
     if (shouldSend) {
       const sendTx = await sdk.sendTokens({
         fromChainId,
@@ -98,7 +99,7 @@ describe('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe('Sdk - RailsGateway - e2e', () => {
+describe.only('Sdk - RailsGateway - e2e', () => {
   const sepoliaChainProviders = Hop.getDefaultChainRpcProviders('sepolia')
 
   it('should do an end to end test', async () => {
@@ -122,7 +123,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
-    const pathId = await sdk.railsGateway.getPathId({
+    const pathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
@@ -131,15 +132,13 @@ describe('Sdk - RailsGateway - e2e', () => {
 
     console.log('pathId:', pathId)
 
-    const isLive = await sdk.railsGateway.getIsPathIdLive({
-      chainId: fromChainId,
+    const isLive = await sdk.getRailsGateway(fromChainId).getIsPathIdLive({
       pathId
     })
 
     console.log('isPathIdLive:', isLive)
 
-    const needsApproval = await sdk.railsGateway.getNeedsApprovalForSend({
-      chainId: fromChainId,
+    const needsApproval = await sdk.getRailsGateway(fromChainId).getNeedsApprovalForSend({
       pathId,
       amount: sendAmount
     })
@@ -147,8 +146,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     console.log('needsApproval:', needsApproval)
 
     if (needsApproval) {
-      const approveTx = await sdk.railsGateway.approveSend({
-        chainId: fromChainId,
+      const approveTx = await sdk.getRailsGateway(fromChainId).approveSend({
         pathId,
         amount: sendAmount
       })
@@ -157,28 +155,25 @@ describe('Sdk - RailsGateway - e2e', () => {
       await approveTx.wait()
     }
 
-    const attestedClaimId  = await sdk.railsGateway.getLatestClaim({
-      chainId: fromChainId,
+    const attestedClaimId  = await sdk.getRailsGateway(fromChainId).getLatestClaim({
       pathId
     })
 
-    const isClaimIdValid = await sdk.railsGateway.getIsClaimIdValid({
-      chainId: toChainId,
+    const isClaimIdValid = await sdk.getRailsGateway(toChainId).getIsClaimIdValid({
       pathId,
       claimId: attestedClaimId
     })
 
     console.log('isClaimIdValid:', isClaimIdValid)
 
-    const maxTotalSent = await sdk.railsGateway.getTotalSent({ chainId: fromChainId, pathId })
-    const fee = await sdk.railsGateway.getFee({ chainId: fromChainId, pathId })
+    const maxTotalSent = await sdk.getRailsGateway(fromChainId).getTotalSent({ pathId })
+    const fee = await sdk.getRailsGateway(fromChainId).getFee({ pathId })
     const to = await signer.getAddress()
     const nextHops: HopStruct[] = []
 
     const shouldSend = false // debug
     if (shouldSend) {
-      const sendTx = await sdk.railsGateway.send({
-        chainId: fromChainId,
+      const sendTx = await sdk.getRailsGateway(fromChainId).send({
         pathId,
         amount: sendAmount,
         attestedClaimId,
@@ -192,8 +187,7 @@ describe('Sdk - RailsGateway - e2e', () => {
       await sendTx.wait()
     }
 
-    const transferSentEvent = (await sdk.railsGateway.getTransferSentEventFromTransactionHash({
-      chainId: fromChainId,
+    const transferSentEvent = (await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
       transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
     }))!
 
@@ -233,14 +227,13 @@ describe('Sdk - RailsGateway - e2e', () => {
       await executeTx.wait()
     }
 
-    const nextHopsHash = sdk.railsGateway.getNextHopsHash({ nextHops: transferSentEvent.decoded.nextHops })
+    const nextHopsHash = sdk.getRailsGateway(fromChainId).getNextHopsHash({ nextHops: transferSentEvent.decoded.nextHops })
 
     console.log('nextHopsHash:', nextHopsHash)
 
     const shouldPostClaim = false // debug
     if (shouldPostClaim) {
-      const postClaimTx = await sdk.railsGateway.postClaim({
-        chainId: toChainId,
+      const postClaimTx = await sdk.getRailsGateway(toChainId).postClaim({
         pathId: transferSentEvent.decoded.pathId,
         transferId: transferSentEvent.decoded.transferId,
         to: transferSentEvent.decoded.to,
@@ -255,8 +248,7 @@ describe('Sdk - RailsGateway - e2e', () => {
       await postClaimTx.wait()
     }
 
-    const needsBondApproval = await sdk.railsGateway.getNeedsApprovalForBond({
-      chainId: toChainId,
+    const needsBondApproval = await sdk.getRailsGateway(toChainId).getNeedsApprovalForBond({
       pathId: transferSentEvent.decoded.pathId,
       amount: transferSentEvent.decoded.amount
     })
@@ -264,8 +256,7 @@ describe('Sdk - RailsGateway - e2e', () => {
     console.log('needsBondApproval:', needsBondApproval)
 
     if (needsBondApproval) {
-      const approveTx = await sdk.railsGateway.approveBond({
-        chainId: fromChainId,
+      const approveTx = await sdk.getRailsGateway(fromChainId).approveBond({
         pathId: transferSentEvent.decoded.pathId,
         amount: transferSentEvent.decoded.amount
       })
@@ -274,8 +265,7 @@ describe('Sdk - RailsGateway - e2e', () => {
       await approveTx.wait()
     }
 
-    const isBonded = await sdk.railsGateway.getIsTransferBonded({
-      chainId: toChainId,
+    const isBonded = await sdk.getRailsGateway(toChainId).getIsTransferBonded({
       transferId: transferSentEvent.decoded.transferId,
     })
 
@@ -283,8 +273,7 @@ describe('Sdk - RailsGateway - e2e', () => {
 
     const shouldBond = false // debug
     if (shouldBond) {
-      const bondTx = await sdk.railsGateway.bond({
-        chainId: toChainId,
+      const bondTx = await sdk.getRailsGateway(toChainId).bond({
         pathId: transferSentEvent.decoded.pathId,
         amount: transferSentEvent.decoded.amount,
         transferId: transferSentEvent.decoded.transferId,
@@ -295,8 +284,7 @@ describe('Sdk - RailsGateway - e2e', () => {
       await bondTx.wait()
     }
 
-    const isClaimed = await sdk.railsGateway.getIsTransferClaimed({
-      chainId: toChainId,
+    const isClaimed = await sdk.getRailsGateway(toChainId).getIsTransferClaimed({
       transferId: transferSentEvent.decoded.transferId,
     })
 
@@ -304,8 +292,7 @@ describe('Sdk - RailsGateway - e2e', () => {
 
     const shouldConfirm = false // debug
     if (shouldConfirm) {
-      const confirmTx = await sdk.railsGateway.confirmClaim({
-        chainId: toChainId,
+      const confirmTx = await sdk.getRailsGateway(toChainId).confirmClaim({
         pathId: transferSentEvent.decoded.pathId,
         transferId: transferSentEvent.decoded.transferId
       })
@@ -314,8 +301,7 @@ describe('Sdk - RailsGateway - e2e', () => {
       await confirmTx.wait()
     }
 
-    const bondedEvent = (await sdk.railsGateway.getTransferBondedEventFromTransactionHash({
-      chainId: toChainId,
+    const bondedEvent = (await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
       transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // bondTx.hash // debug
     }))!
 
@@ -330,8 +316,7 @@ describe('Sdk - RailsGateway - e2e', () => {
 
     const shouldWithdraw = false // debug
     if (shouldWithdraw) {
-      const withdrawTx = await sdk.railsGateway.withdrawClaim({
-        chainId: toChainId,
+      const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawClaim({
         pathId: transferSentEvent.decoded.pathId,
         amount: transferSentEvent.decoded.amount,
         timeWindow

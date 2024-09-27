@@ -22,7 +22,7 @@
 - [l1ChainId](Hop.md#l1chainid)
 - [messenger](Hop.md#messenger)
 - [network](Hop.md#network)
-- [railsGateway](Hop.md#railsgateway)
+- [railsGateways](Hop.md#railsgateways)
 - [requireChainIdInput](Hop.md#requirechainidinput)
 - [signer](Hop.md#signer)
 
@@ -176,9 +176,9 @@ Base.network
 
 ___
 
-### <a id="railsgateway" name="railsgateway"></a> railsGateway
+### <a id="railsgateways" name="railsgateways"></a> railsGateways
 
-• `Readonly` **railsGateway**: `RailsGateway`
+• `Readonly` **railsGateways**: `Record`\<`string`, `RailsGateway`\> = `{}`
 
 ___
 
@@ -286,13 +286,13 @@ ___
 
 ### <a id="calcamountoutmin" name="calcamountoutmin"></a> calcAmountOutMin
 
-▸ **calcAmountOutMin**(`input`): `BigNumber`
+▸ **calcAmountOutMin**(`«destructured»`): `BigNumber`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `CalcAmountOutMinInput` |
+| `«destructured»` | [`CalcAmountOutMinInput`](../modules.md#calcamountoutmininput) |
 
 #### Returns
 
@@ -579,7 +579,14 @@ ___
 
 ### <a id="getrailsgateway" name="getrailsgateway"></a> getRailsGateway
 
-▸ **getRailsGateway**(): `RailsGateway`
+▸ **getRailsGateway**(`chainId`, `signer?`): `RailsGateway`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `signer?` | `Signer` |
 
 #### Returns
 
@@ -821,17 +828,17 @@ ___
 
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
-▸ **getTransferStatus**(`input`): `Promise`\<`TransferStatus`\>
+▸ **getTransferStatus**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetTransferStatusInput` |
+| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
 
 #### Returns
 
-`Promise`\<`TransferStatus`\>
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 ___
 

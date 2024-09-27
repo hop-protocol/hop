@@ -1015,7 +1015,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `indexes?` | `TransferBondedIndexes` |
 
 ___
@@ -1100,7 +1099,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `indexes?` | `TransferSentIndexes` |
 
 ___
@@ -1251,7 +1249,7 @@ ___
 
 ### <a id="railsgatewayconstructorinput" name="railsgatewayconstructorinput"></a> RailsGatewayConstructorInput
 
-Ƭ **RailsGatewayConstructorInput**: `BaseConfig`
+Ƭ **RailsGatewayConstructorInput**: `BaseConfig` & \{ `chainId`: `BigNumberish` ; `signerOrProvider?`: `Signer` \| `providers.Provider`  }
 
 ___
 

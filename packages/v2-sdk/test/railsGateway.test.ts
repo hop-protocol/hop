@@ -13,18 +13,24 @@ describe('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
-  const railsGateway = new RailsGateway({
-    chainProviders: RailsGateway.getDefaultChainRpcProviders('sepolia')
-  })
   it('should get signer address', async () => {
+    const chainId = 1
+    const provider = RailsGateway.getDefaultChainRpcProvider(chainId)
+    const signer = new Wallet(privateKey, provider)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: signer,
+    })
     const address = await railsGateway.getSignerAddress()
     expect(address).toBeDefined()
   })
   it('should get event filter for an event name', async () => {
     const chainId = 11155111
-    const filter = railsGateway.getEventFilter(EventName.TransferSent, {
-      chainId
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
     })
+    const filter = railsGateway.getEventFilter(EventName.TransferSent)
 
     console.log(filter)
 
@@ -33,9 +39,11 @@ describe('RailsGateway', () => {
   })
   it('should get TransferSent event filter', async () => {
     const chainId = 11155111
-    const filter = railsGateway.getTransferSentEventFilter({
-      chainId
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
     })
+    const filter = railsGateway.getTransferSentEventFilter()
 
     console.log(filter)
 
@@ -45,8 +53,11 @@ describe('RailsGateway', () => {
   it('should get TransferSent transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const filter = railsGateway.getTransferSentEventFilter({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const filter = railsGateway.getTransferSentEventFilter({
       indexes: {
         transferId
       }
@@ -62,8 +73,11 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const to = await signer.getAddress()
-    const filter = railsGateway.getTransferSentEventFilter({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const filter = railsGateway.getTransferSentEventFilter({
       indexes: {
         pathId,
         transferId,
@@ -78,9 +92,11 @@ describe('RailsGateway', () => {
   })
   it('should get TransferBonded event filter', async () => {
     const chainId = 11155111
-    const filter = railsGateway.getTransferBondedEventFilter({
-      chainId
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
     })
+    const filter = railsGateway.getTransferBondedEventFilter()
 
     console.log(filter)
 
@@ -90,8 +106,11 @@ describe('RailsGateway', () => {
   it.skip('should get TransferBonded transferId event filter', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const filter = railsGateway.getTransferBondedEventFilter({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const filter = railsGateway.getTransferBondedEventFilter({
       indexes: {
         transferId
       }
@@ -106,8 +125,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const fromBlock = 5816945
     const toBlock = 5816945
-    const eventsGenerator = railsGateway.getTransferSentEventsInBatches({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const eventsGenerator = railsGateway.getTransferSentEventsInBatches({
       fromBlock,
       toBlock
     })
@@ -136,6 +158,10 @@ describe('RailsGateway', () => {
 
     console.log(ethersEvents)
 
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
     const events = railsGateway.addDecodedTypesToTransferSentEvents(ethersEvents)
     console.log(events)
 
@@ -159,6 +185,10 @@ describe('RailsGateway', () => {
 
     console.log(ethersEvents)
 
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
     const events = railsGateway.addDecodedTypesToEvents(ethersEvents)
     console.log(events)
 
@@ -181,6 +211,10 @@ describe('RailsGateway', () => {
 
     console.log(ethersEvents)
 
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
     const event = railsGateway.addDecodedTypesToEvent(ethersEvents[0])
     console.log(event)
 
@@ -190,8 +224,11 @@ describe('RailsGateway', () => {
     const chainId = 11155420
     const fromBlock = 11394756
     const toBlock = 11394756
-    const events = await railsGateway.getTransferBondedEvents({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const events = await railsGateway.getTransferBondedEvents({
       fromBlock,
       toBlock
     })
@@ -200,10 +237,19 @@ describe('RailsGateway', () => {
   })
   it('should get RailsGateway contract instance', async () => {
     const chainId = 11155420
-    const contract = await railsGateway.getRailsGatewayContract(chainId)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const contract = await railsGateway.getRailsGatewayContract()
     expect(contract).toBeDefined()
   })
   it('should get pathId', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
     const pathId = await railsGateway.getPathId({
       chainId0: 11155111,
       token0: '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32',
@@ -213,43 +259,50 @@ describe('RailsGateway', () => {
     console.log(pathId)
     expect(pathId).toBeDefined()
   })
-  it.skip('should get pathInfo', async () => {
-    {
-      const chainId = 11155111
-      const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-      const pathInfo = await railsGateway.getPathInfo({
-        chainId,
-        pathId
-      })
-      console.log(pathInfo)
-      expect(pathInfo.token).toBeDefined()
-      expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
-      expect(pathInfo.chainId.toString()).toBe('11155111')
-      expect(pathInfo.token).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
-      expect(pathInfo.counterpartChainId.toString()).toBe('11155420')
-      expect(pathInfo.counterpartToken).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
-    }
-    {
-      const chainId = 11155420
-      const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-      const pathInfo = await railsGateway.getPathInfo({
-        chainId,
-        pathId
-      })
-      console.log(pathInfo)
-      expect(pathInfo.token).toBeDefined()
-      expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
-      expect(pathInfo.chainId.toString()).toBe('11155420')
-      expect(pathInfo.token).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
-      expect(pathInfo.counterpartChainId.toString()).toBe('11155111')
-      expect(pathInfo.counterpartToken).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
-    }
+  it.skip('should get pathInfo on origin chain', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const pathInfo = await railsGateway.getPathInfo({
+      pathId
+    })
+    console.log(pathInfo)
+    expect(pathInfo.token).toBeDefined()
+    expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
+    expect(pathInfo.chainId.toString()).toBe('11155111')
+    expect(pathInfo.token).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
+    expect(pathInfo.counterpartChainId.toString()).toBe('11155420')
+    expect(pathInfo.counterpartToken).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
+  }, 60 * 1000)
+  it.skip('should get pathInfo on counter chain', async () => {
+    const chainId = 11155420
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const pathInfo = await railsGateway.getPathInfo({
+      pathId
+    })
+    console.log(pathInfo)
+    expect(pathInfo.token).toBeDefined()
+    expect(pathInfo.pathId).toBe('0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a')
+    expect(pathInfo.chainId.toString()).toBe('11155420')
+    expect(pathInfo.token).toBe('0xaCa72C8D5360dC237001cD963566F411732980B0')
+    expect(pathInfo.counterpartChainId.toString()).toBe('11155111')
+    expect(pathInfo.counterpartToken).toBe('0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32')
   }, 60 * 1000)
   it.skip('should get fee for pathId', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const fee = await railsGateway.getFee({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const fee = await railsGateway.getFee({
       pathId
     })
     console.log(fee)
@@ -267,12 +320,14 @@ describe('RailsGateway', () => {
       maxTotalSent: '0',
       attestedClaimId: '0xTODO'
     }]
-    const fee = await railsGateway.getFee({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const fee = await railsGateway.getFee({
       pathId
     })
     const txData = await railsGateway.populateTransaction.send({
-      chainId,
       pathId,
       to,
       amount,
@@ -294,8 +349,11 @@ describe('RailsGateway', () => {
       maxTotalSent: '0',
       attestedClaimId: '0xTODO'
     }]
-    const txData = await railsGateway.populateTransaction.bond({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = await railsGateway.populateTransaction.bond({
       pathId,
       transferId,
       amount,
@@ -314,8 +372,11 @@ describe('RailsGateway', () => {
     const attestedClaimId  = '0xTODO'
     const attestedTotalClaims = parseUnits('1', 18)
     const nextHopsHash = '0xTODO'
-    const txData = await railsGateway.populateTransaction.postClaim({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = await railsGateway.populateTransaction.postClaim({
       pathId,
       transferId,
       to,
@@ -333,8 +394,11 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const recipient = await signer.getAddress()
     const timeWindow = 1
-    const balance = await railsGateway.getWithdrawableBalance({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const balance = await railsGateway.getWithdrawableBalance({
       pathId,
       recipient,
       timeWindow
@@ -347,8 +411,11 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
     const timeWindow = 1
-    const txData = await railsGateway.populateTransaction.withdrawClaim({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = await railsGateway.populateTransaction.withdrawClaim({
       pathId,
       amount,
       timeWindow
@@ -359,8 +426,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const timeWindow = 1
-    const txData = await railsGateway.populateTransaction.withdrawAllClaims({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = await railsGateway.populateTransaction.withdrawAllClaims({
       pathId,
       timeWindow
     })
@@ -368,23 +438,39 @@ describe('RailsGateway', () => {
   })
   it.skip('should get HOP token address', async () => {
     const chainId = 11155111
-    const address = await railsGateway.getHopTokenAddress(chainId)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const address = await railsGateway.getHopTokenAddress()
     expect(address).toBeDefined()
   })
   it.skip('TODO should get min bonder stake', async () => {
     const chainId = 11155111
-    const amount = await railsGateway.getMinBonderStake(chainId)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const amount = await railsGateway.getMinBonderStake()
     expect(amount).toBeDefined()
   })
   it.skip('TODO should get HOP balance', async () => {
     const chainId = 11155111
     const address = await signer.getAddress()
-    const balance = await railsGateway.getHopBalance(chainId, address)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const balance = await railsGateway.getHopBalance(address)
     expect(balance).toBeDefined()
   })
   it.skip('TODO should get HOP token contract', async () => {
     const chainId = 11155111
-    const contract = await railsGateway.getHopTokenContract(chainId)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const contract = await railsGateway.getHopTokenContract()
     expect(contract).toBeDefined()
   })
   it.skip('TODO should stake HOP', async () => {
@@ -392,8 +478,11 @@ describe('RailsGateway', () => {
     const role = '0xTODO'
     const staker = await signer.getAddress()
     const amount = parseUnits('1', 18)
-    const tx = await railsGateway.stakeHop({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const tx = await railsGateway.stakeHop({
       role,
       staker,
       amount
@@ -404,32 +493,29 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const role = '0xTODO'
     const amount = parseUnits('1', 18)
-    const tx = await railsGateway.unstakeHop({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const tx = await railsGateway.unstakeHop({
       role,
       amount
     })
     expect(tx.hash).toBeDefined()
   })
-  it('should calc amountOutMin', async () => {
-    const amountOut = parseUnits('1', 18)
-    const slippageTolerance = 0.01
-    const amountOutMin = railsGateway.calcAmountOutMin({
-      amountOut,
-      slippageTolerance
-    })
-    expect(amountOutMin).toBeDefined()
-  })
   it('should get event names', async () => {
-    const eventNames = railsGateway.getEventNames()
+    const eventNames = RailsGateway.getEventNames()
     expect(eventNames.length > 0).toBeTruthy()
   })
   it.skip('should get transfer sent events', async () => {
     const chainId = 11155111
     const fromBlock = 5816945
     const toBlock = 5816945
-    const events = await railsGateway.getTransferSentEvents({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const events = await railsGateway.getTransferSentEvents({
       fromBlock,
       toBlock
     })
@@ -447,6 +533,11 @@ describe('RailsGateway', () => {
       toBlock: 11394757
     })
     console.log(rawEvents)
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
     const events = railsGateway.addDecodedTypesToTransferBondedEvents(rawEvents)
     console.log(events)
     expect(events.length > 0).toBeTruthy()
@@ -454,15 +545,22 @@ describe('RailsGateway', () => {
   })
   it('should get rails gateway contract address', async () => {
     const chainId = 11155111
-    const address = railsGateway.getRailsGatewayContractAddress(chainId)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const address = railsGateway.getRailsGatewayContractAddress()
     expect(address).toBeDefined()
   })
   it('should initiate approve send tx', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
-    const txData = railsGateway.populateTransaction.approveSend({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = railsGateway.populateTransaction.approveSend({
       pathId,
       amount
     })
@@ -472,8 +570,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
-    const txData = railsGateway.populateTransaction.approveBond({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = railsGateway.populateTransaction.approveBond({
       pathId,
       amount
     })
@@ -483,8 +584,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xTODO'
-    const txData = railsGateway.populateTransaction.removeClaim({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = railsGateway.populateTransaction.removeClaim({
       pathId,
       transferId
     })
@@ -494,8 +598,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xTODO'
-    const txData = railsGateway.populateTransaction.confirmClaim({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = railsGateway.populateTransaction.confirmClaim({
       pathId,
       transferId
     })
@@ -506,8 +613,11 @@ describe('RailsGateway', () => {
     const role = '0xTODO'
     const staker = await signer.getAddress()
     const amount = parseUnits('1', 18)
-    const txData = railsGateway.populateTransaction.approveStakeHop({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = railsGateway.populateTransaction.approveStakeHop({
       role,
       staker,
       amount
@@ -517,8 +627,11 @@ describe('RailsGateway', () => {
   it.skip('TODO should initiate withdraw hop tx', async () => {
     const chainId = 11155111
     const role = '0xTODO'
-    const txData = await railsGateway.populateTransaction.withdrawHop({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const txData = await railsGateway.populateTransaction.withdrawHop({
       role,
     })
     expect(txData).toBeDefined()
@@ -528,8 +641,11 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
     const account = await signer.getAddress()
-    const needsApproval = await railsGateway.getNeedsApprovalForSend({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const needsApproval = await railsGateway.getNeedsApprovalForSend({
       pathId,
       amount,
       account
@@ -541,8 +657,11 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
     const account = await signer.getAddress()
-    const needsApproval = await railsGateway.getNeedsApprovalForBond({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const needsApproval = await railsGateway.getNeedsApprovalForBond({
       pathId,
       amount,
       account
@@ -552,8 +671,11 @@ describe('RailsGateway', () => {
   it.skip('should get latest claim hash', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const latestClaim = await railsGateway.getLatestClaim({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const latestClaim = await railsGateway.getLatestClaim({
       pathId,
     })
     console.log(latestClaim)
@@ -568,8 +690,11 @@ describe('RailsGateway', () => {
     const totalSent = parseUnits('1', 18)
     const nonce = '1'
     const attestedCheckpoint = ''
-    const transferId = await railsGateway.getTransferId({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const transferId = await railsGateway.getTransferId({
       pathId,
       to,
       adjustedAmount,
@@ -585,8 +710,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const txHash = '0xced84d48d165a5efa5382c638ab0645b6e3b9c5b3725b54f90650724138cba9f'
     const receipt = await provider.getTransactionReceipt(txHash)
-    const event = await railsGateway.getTransferSentEventFromTransactionReceipt({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferSentEventFromTransactionReceipt({
       receipt
     })
     expect(event).toBeDefined()
@@ -594,8 +722,11 @@ describe('RailsGateway', () => {
   it.skip('should get transfer sent event from transaction hash', async () => {
     const chainId = 11155111
     const transactionHash = '0x063287bb2b7c32fa457dfb9a8c1312043b471286b6226190b4503a969d32d971'
-    const event = await railsGateway.getTransferSentEventFromTransactionHash({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferSentEventFromTransactionHash({
       transactionHash
     })
     console.log(event)
@@ -605,8 +736,11 @@ describe('RailsGateway', () => {
   it.skip('TODO should get transfer sent event from transfer id', async () => {
     const chainId = 11155111
     const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const event = await railsGateway.getTransferSentEventFromTransferId({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferSentEventFromTransferId({
       transferId
     })
     expect(event).toBeDefined()
@@ -616,8 +750,11 @@ describe('RailsGateway', () => {
     const txHash = '0x65bdde1040b2623f10c5b70ed31e2f9f7150cb5745055dcbc70a1bb1e65e8888'
     const provider = new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
     const receipt = await provider.getTransactionReceipt(txHash)
-    const event = await railsGateway.getTransferBondedEventFromTransactionReceipt({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferBondedEventFromTransactionReceipt({
       receipt
     })
     expect(event).toBeDefined()
@@ -625,8 +762,11 @@ describe('RailsGateway', () => {
   it.skip('should get transfer bonded event from transaction hash', async () => {
     const chainId = 11155420
     const transactionHash = '0x65bdde1040b2623f10c5b70ed31e2f9f7150cb5745055dcbc70a1bb1e65e8888'
-    const event = await railsGateway.getTransferBondedEventFromTransactionHash({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferBondedEventFromTransactionHash({
       transactionHash
     })
     expect(event).toBeDefined()
@@ -634,8 +774,11 @@ describe('RailsGateway', () => {
   it.skip('TODO should get transfer bonded event from transfer id', async () => {
     const chainId = 11155420
     const transferId = '0x7132cf97b6dcbabd2cabc72f36c1036f6e51dbd73d78a9f97d85b864d0f12640'
-    const event = await railsGateway.getTransferBondedEventFromTransferId({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const event = await railsGateway.getTransferBondedEventFromTransferId({
       transferId
     })
     expect(event).toBeDefined()
@@ -644,8 +787,11 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const claimId = '0xTODO'
-    const isValid = await railsGateway.getIsClaimIdValid({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const isValid = await railsGateway.getIsClaimIdValid({
       pathId,
       claimId
     })
@@ -655,8 +801,11 @@ describe('RailsGateway', () => {
   it.skip('should return total sent for path id', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const totalSent = await railsGateway.getTotalSent({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const totalSent = await railsGateway.getTotalSent({
       pathId
     })
     console.log(totalSent)
@@ -665,8 +814,11 @@ describe('RailsGateway', () => {
   it.skip('should get token info', async () => {
     const chainId = 11155111
     const address = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
-    const tokenInfo = await railsGateway.getTokenInfo({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const tokenInfo = await railsGateway.getTokenInfo({
       address
     })
     expect(tokenInfo).toBeDefined()
@@ -674,8 +826,11 @@ describe('RailsGateway', () => {
   it('should get token contract', async () => {
     const chainId = 11155420
     const address = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
-    const contract = railsGateway.getTokenContract({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const contract = railsGateway.getTokenContract({
       address
     })
     expect(contract).toBeDefined()
@@ -685,32 +840,26 @@ describe('RailsGateway', () => {
     const tokenAddress = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
     const amount = parseUnits('1', 18)
     const account = await signer.getAddress()
-    const sufficientBalance = await railsGateway.getHasSufficientBalance({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const sufficientBalance = await railsGateway.getHasSufficientBalance({
       tokenAddress,
       amount,
       account
     })
     expect(sufficientBalance).toBeDefined()
   })
-  it.skip('TODO should get transfer status for checkpoint', async () => {
-    const fromChainId = 11155111
-    const toChainId = 11155420
-    const transferId = '0xTODO'
-    const transferStatus = await railsGateway.getTransferStatus({
-      fromChainId,
-      toChainId,
-      transferId
-    })
-    console.log(transferStatus)
-    expect(transferStatus).toBeDefined()
-  }, 60 * 1000)
 
   it.skip('TODO should return true if transfer is bonded', async () => {
     const chainId = 11155111
     const transferId = '0xTODO'
-    const bonded = await railsGateway.getIsTransferBonded({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const bonded = await railsGateway.getIsTransferBonded({
       transferId
     })
     console.log(bonded)
@@ -720,8 +869,11 @@ describe('RailsGateway', () => {
   it.skip('TODO should return true if transfer is claimed', async () => {
     const chainId = 11155111
     const transferId = '0xTODO'
-    const claimed = await railsGateway.getIsTransferClaimed({
+    const railsGateway = new RailsGateway({
       chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const claimed = await railsGateway.getIsTransferClaimed({
       transferId
     })
     console.log(claimed)
@@ -742,7 +894,7 @@ describe('RailsGateway', () => {
       },
     ]
 
-    const hash = railsGateway.getNextHopsHash({ nextHops })
+    const hash = RailsGateway.getNextHopsHash({ nextHops })
     console.log(hash)
 
     expect(typeof hash).toBe('string')
@@ -752,7 +904,7 @@ describe('RailsGateway', () => {
 
   it('getNextHopsHash - should return 0x0 hash if hops is empty', () => {
     const nextHops: any[] = []
-    const hash = railsGateway.getNextHopsHash({ nextHops })
+    const hash = RailsGateway.getNextHopsHash({ nextHops })
     console.log(hash)
     expect(hash).toBe(constants.HashZero)
   })
@@ -760,13 +912,17 @@ describe('RailsGateway', () => {
   it.skip('should return boolean for getting is path id live', async () => {
     const chainId = 11155111
     const pathId = '0x5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6'
-    const isLive = await railsGateway.getIsPathIdLive({ chainId, pathId })
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultChainRpcProvider(chainId)
+    })
+    const isLive = await railsGateway.getIsPathIdLive({ pathId })
     console.log(isLive)
     expect(typeof isLive).toBe('boolean')
     expect(isLive).toBe(true)
 
     const invalidPathId = '0x1111111111111111111111111111111111111111111111111111111111111111'
-    expect(await railsGateway.getIsPathIdLive({ chainId, pathId: invalidPathId })).toBe(false)
+    expect(await railsGateway.getIsPathIdLive({ pathId: invalidPathId })).toBe(false)
   })
   it('should get TransferSent event signature using static method', async () => {
     const signature = RailsGateway.getTransferSentEventSignature()

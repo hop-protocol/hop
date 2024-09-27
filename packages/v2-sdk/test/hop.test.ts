@@ -261,4 +261,13 @@ describe('Hop', () => {
     console.log(data)
     expect(data).toBeDefined()
   }, 60 * 1000)
+  it('should calc amountOutMin', async () => {
+    const amountOut = parseUnits('1', 18)
+    const slippageTolerance = 0.01
+    const amountOutMin = Hop.calcAmountOutMin({
+      amountOut,
+      slippageTolerance
+    })
+    expect(amountOutMin).toBeDefined()
+  })
 })

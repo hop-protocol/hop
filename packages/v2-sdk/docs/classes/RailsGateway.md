@@ -15,6 +15,7 @@
 ### Properties
 
 - [batchBlocks](RailsGateway.md#batchblocks)
+- [chainId](RailsGateway.md#chainid)
 - [chainProviders](RailsGateway.md#chainproviders)
 - [contractAddresses](RailsGateway.md#contractaddresses)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
@@ -40,7 +41,6 @@
 - [approveBond](RailsGateway.md#approvebond)
 - [approveSend](RailsGateway.md#approvesend)
 - [bond](RailsGateway.md#bond)
-- [calcAmountOutMin](RailsGateway.md#calcamountoutmin)
 - [confirmClaim](RailsGateway.md#confirmclaim)
 - [connect](RailsGateway.md#connect)
 - [createChallenge](RailsGateway.md#createchallenge)
@@ -109,7 +109,6 @@
 - [getTransferSentEventFromTransferId](RailsGateway.md#gettransfersenteventfromtransferid)
 - [getTransferSentEvents](RailsGateway.md#gettransfersentevents)
 - [getTransferSentEventsInBatches](RailsGateway.md#gettransfersenteventsinbatches)
-- [getTransferStatus](RailsGateway.md#gettransferstatus)
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
 - [getWithdrawableEth](RailsGateway.md#getwithdrawableeth)
@@ -137,6 +136,7 @@
 - [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [withdrawHop](RailsGateway.md#withdrawhop)
+- [deriveNetwork](RailsGateway.md#derivenetwork)
 - [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider-1)
 - [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders-1)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
@@ -152,7 +152,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `BaseConfig` |
+| `«destructured»` | [`RailsGatewayConstructorInput`](../modules.md#railsgatewayconstructorinput) |
 
 #### Returns
 
@@ -171,6 +171,12 @@ StakingRegistry.constructor
 #### Inherited from
 
 StakingRegistry.batchBlocks
+
+___
+
+### <a id="chainid" name="chainid"></a> chainId
+
+• **chainId**: `BigNumberish`
 
 ___
 
@@ -485,22 +491,6 @@ ___
 
 ___
 
-### <a id="calcamountoutmin" name="calcamountoutmin"></a> calcAmountOutMin
-
-▸ **calcAmountOutMin**(`«destructured»`): `BigNumber`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`CalcAmountOutMinInput`](../modules.md#calcamountoutmininput) |
-
-#### Returns
-
-`BigNumber`
-
-___
-
 ### <a id="confirmclaim" name="confirmclaim"></a> confirmClaim
 
 ▸ **confirmClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -810,14 +800,13 @@ ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`, `chainId`): `any`
+▸ **getEventFetcher**(`eventName`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `eventName` | `EventName` |
-| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -827,7 +816,7 @@ ___
 
 ### <a id="geteventfilter" name="geteventfilter"></a> getEventFilter
 
-▸ **getEventFilter**(`eventName`, `input`): `any`
+▸ **getEventFilter**(`eventName`, `input?`): `any`
 
 #### Parameters
 
@@ -1673,22 +1662,6 @@ ___
 
 ___
 
-### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
-
-▸ **getTransferStatus**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
-
-#### Returns
-
-`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
-
-___
-
 ### <a id="gettxoverrides" name="gettxoverrides"></a> getTxOverrides
 
 ▸ **getTxOverrides**(`fromChainId`, `toChainId`): `Promise`\<`TxOverrides`\>
@@ -2200,6 +2173,22 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="derivenetwork" name="derivenetwork"></a> deriveNetwork
+
+▸ **deriveNetwork**(`chainId`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`
 
 ___
 

@@ -3,7 +3,7 @@ import { parseString, parseStringArray } from './../../utils.js'
 
 export const program = new Command()
 
-type RelayRailsInput = {
+type RelayInput = {
   chain: string
   txHashes: string[]
 }
@@ -16,6 +16,6 @@ program
   .action(run)
 
 async function run (): Promise<void> {
-  const { chain, txHashes } = program.opts<RelayRailsInput>()
+  const { chain, txHashes } = program.opts<RelayInput>()
   // TODO: V2: Implement
 }

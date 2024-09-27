@@ -1,23 +1,25 @@
+import { program as relayProgram } from './relay.js'
+import { program as showDBProgram } from '../shared/showDB.js'
 import { Rails } from '#clients/index.js'
 import { RailsConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
 import { RAILS_ART } from './../../constants.js'
-import { program as relayProgram } from './relay.js'
-import { getHelpTextBefore } from './../../utils.js'
+import { printArt } from './../../utils.js'
 
 export const program = new Command()
 
 program
   .name('rails')
   .description('Run Rails commands')
-  .addHelpText('before', getHelpTextBefore(RAILS_ART))
   .addCommand(relayProgram)
+  .addCommand(showDBProgram)
   .action(run)
 
 async function run (): Promise<never> {
   const logger = new Logger(program.name())
+  printArt(RAILS_ART)
 
   try {
     const clients = Object.values(Rails.RailsClientName)

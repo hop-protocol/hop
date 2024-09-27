@@ -33,12 +33,12 @@ program
  */
 
 process.on('SIGINT', () => {
-  const logger = new Logger('CLI - SIGINT')
-  logger.debug('received SIGINT signal. exiting.')
+  const logger = new Logger('SIGINT')
+  logger.error('Received SIGINT signal. Exiting.')
   process.exit(0)
 })
 
 process.on('unhandledRejection', (reason: Error, p: Promise<any>) => {
-  const logger = new Logger('CLI - unhandledRejection')
+  const logger = new Logger('unhandledRejection')
   logger.error('Unhandled rejection: promise:', p, 'reason:', reason)
 })

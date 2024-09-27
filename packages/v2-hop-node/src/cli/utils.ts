@@ -86,3 +86,6 @@ ${art}
 Version: ${version}
   `
 }
+
+// Allows for printing of ASCII art without printing the art metadata
+export const printArt = (art: string): void => console.log(art)

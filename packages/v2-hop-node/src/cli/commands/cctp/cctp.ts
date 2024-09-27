@@ -1,5 +1,6 @@
 import { program as relayCCTPProgram } from './relay.js'
-import { program as unrelayedCCTPMessages } from './unrelayedCCTPMessages.js'
+import { program as unrelayedCCTPMessagesProgram } from './unrelayedCCTPMessages.js'
+import { program as showDBProgram } from '../shared/showDB.js'
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { CCTP } from '#clients/index.js'
 import { SignerConfig } from '#config/index.js'
@@ -7,16 +8,16 @@ import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
 import { CCTP_ART } from './../../constants.js'
-import { getHelpTextBefore } from './../../utils.js'
+import { printArt } from './../../utils.js'
 
 export const program = new Command()
 
 program
   .name('cctp')
   .description('Run CCTP commands')
-  .addHelpText('before', getHelpTextBefore(CCTP_ART))
   .addCommand(relayCCTPProgram)
-  .addCommand(unrelayedCCTPMessages)
+  .addCommand(unrelayedCCTPMessagesProgram)
+  .addCommand(showDBProgram)
   .action(run)
 
   // TODO: V2: Automate
@@ -36,9 +37,9 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
   ]
 }
 
-async function run (options: any): Promise<never> {
+async function run (): Promise<never> {
   const logger = new Logger(program.name())
-  parseArt(CCTP_ART)
+  printArt(CCTP_ART)
 
   const network: NetworkSlug = SignerConfig.network
   const chains: ChainSlug[] = CHAINS[network]!

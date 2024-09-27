@@ -1,21 +1,25 @@
 import { cctpProgram, railsProgram } from './commands/index.js'
-import { initCLI, parseBool, parseString } from './utils.js'
+import { getGitRevision, initCLI, parseBool, parseString } from './utils.js'
+import { HELP_TEXT_BEFORE_ALL } from './constants.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
 
 const program = new Command()
 
-// TODO: Reintroduce GitRev
-
 program
   .name('hop')
   .description('Hop CLI')
-  // .version(`Version: ${gitRev}`)
+  .version(`Version: ${getGitRevision()}`)
   .hook('preAction', initCLI)
   .option('--config <path>', 'Config file path', parseString)
   .option('--dry-run', 'Perform a dry run', parseBool)
+  .addHelpText('beforeAll', HELP_TEXT_BEFORE_ALL)
+
+program
   .addCommand(railsProgram)
   .addCommand(cctpProgram)
+
+program
   .parse(process.argv)
 
 /**

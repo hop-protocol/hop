@@ -7,11 +7,11 @@ import { Command } from 'commander'
 export const program = new Command()
 
 program
-  .name('relay-cctp')
+  .name('relay')
   .description('Relay CCTP Messages')
   .action(run)
 
-async function run (source: any) {
+async function run (): Promise<void> {
   const logger = new Logger(program.name())
 
   const unrelayedMessages = await CCTP.getUnrelayedMessages()

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
 import { Logger } from '#logger/index.js'
 import { type ICLIConfig, initConfigs } from '#config/index.js'
 
@@ -32,23 +33,23 @@ function getCLIConfig (source: any): ICLIConfig {
  * Parsing
  */
 
-export function parseNumber (value: string) {
+export function parseNumber (value: string): number {
   return Number(value)
 }
 
-export function parseString (value: string) {
+export function parseString (value: string): string {
   return value
 }
 
-export function parseStringArray (value: string) {
+export function parseStringArray (value: string): string[] {
   return value.trim().split(',').map((v: string) => v.trim())
 }
 
-export function parseBool (value: string) {
+export function parseBool (value: string): boolean {
   return value !== 'false'
 }
 
-export function parseInputFileList (value: string) {
+export function parseInputFileList (value: string): string[] | null {
   if (value) {
     const data = fs.readFileSync(path.resolve(value), 'utf8')
     if (value.endsWith('.json')) {
@@ -67,4 +68,15 @@ export function parseInputFileList (value: string) {
     return list
   }
   return null
+}
+
+/**
+ * Other utils
+ */
+
+// This function allows us to print ASCII art without the metadata associated with Logger
+export const parseArt = (art: string): void => { console.log(art) }
+
+export const getGitRevision = (): string => {
+  return process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
 }

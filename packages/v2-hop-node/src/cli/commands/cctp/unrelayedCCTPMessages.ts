@@ -10,7 +10,7 @@ program
   .description('Get unrelayed CCTP Messages')
   .action(run)
 
-async function run () {
+async function run (): Promise<void> {
   const logger = new Logger(program.name())
 
   const unrelayedMessages = await CCTP.getUnrelayedMessages()

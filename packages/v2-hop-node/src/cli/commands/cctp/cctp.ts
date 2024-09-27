@@ -8,13 +8,14 @@ import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
 import { CCTP_ART } from './../../constants.js'
-import { printArt } from './../../utils.js'
+import { getHelpTextBefore } from './../../utils.js'
 
 export const program = new Command()
 
 program
   .name('cctp')
   .description('Run CCTP commands')
+  .addHelpText('before', getHelpTextBefore(CCTP_ART))
   .addCommand(relayCCTPProgram)
   .addCommand(unrelayedCCTPMessagesProgram)
   .addCommand(showDBProgram)
@@ -39,7 +40,6 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
 
 async function run (): Promise<never> {
   const logger = new Logger(program.name())
-  printArt(CCTP_ART)
 
   const network: NetworkSlug = SignerConfig.network
   const chains: ChainSlug[] = CHAINS[network]!

@@ -71,12 +71,18 @@ export function parseInputFileList (value: string): string[] | null {
 }
 
 /**
- * Other utils
+ * Other
  */
-
-// This function allows us to print ASCII art without the metadata associated with Logger
-export const parseArt = (art: string): void => { console.log(art) }
 
 export const getGitRevision = (): string => {
   return process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
+}
+
+export const getHelpTextBefore = (art: string): string => {
+  const version = getGitRevision()
+  return `
+${art}
+
+Version: ${version}
+  `
 }

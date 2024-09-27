@@ -6,14 +6,15 @@ import { SignerConfig } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
-import { parseArt } from './../../utils.js'
 import { CCTP_ART } from './../../constants.js'
+import { getHelpTextBefore } from './../../utils.js'
 
 export const program = new Command()
 
 program
   .name('cctp')
   .description('Run CCTP commands')
+  .addHelpText('before', getHelpTextBefore(CCTP_ART))
   .addCommand(relayCCTPProgram)
   .addCommand(unrelayedCCTPMessages)
   .action(run)

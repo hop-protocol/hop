@@ -1,6 +1,12 @@
 import { cctpProgram, railsProgram } from './commands/index.js'
-import { getGitRevision, initCLI, parseBool, parseString } from './utils.js'
-import { HELP_TEXT_BEFORE_ALL } from './constants.js'
+import {
+  getGitRevision,
+  getHelpTextBefore,
+  initCLI,
+  parseBool,
+  parseString
+} from './utils.js'
+import { HOP_ART } from './constants.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
 
@@ -9,11 +15,11 @@ const program = new Command()
 program
   .name('hop')
   .description('Hop CLI')
-  .version(`Version: ${getGitRevision()}`)
+  .version(getGitRevision())
   .hook('preAction', initCLI)
+  .addHelpText('before', getHelpTextBefore(HOP_ART))
   .option('--config <path>', 'Config file path', parseString)
   .option('--dry-run', 'Perform a dry run', parseBool)
-  .addHelpText('beforeAll', HELP_TEXT_BEFORE_ALL)
 
 program
   .addCommand(railsProgram)

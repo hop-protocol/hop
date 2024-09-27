@@ -1,9 +1,3 @@
-import { getGitRevision } from './utils.js'
-
-export const HELP_TEXT_BEFORE_ALL = `
-Version: ${getGitRevision()}
-`
-
 export const HOP_ART = `
     __  __
    / / / /___  ____

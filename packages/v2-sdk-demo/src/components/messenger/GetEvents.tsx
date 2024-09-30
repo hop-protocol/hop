@@ -51,7 +51,7 @@ export function GetEvents (props: Props) {
   async function getEvents() {
     let _fromBlock = Number(fromBlock)
     let _toBlock = Number(toBlock)
-    const provider = sdk.getRpcProviderForChainId(chainId)
+    const provider = sdk.getProvider(chainId)
     const latestBlock = await provider.getBlockNumber()
     if (latestBlock) {
       if (!toBlock) {

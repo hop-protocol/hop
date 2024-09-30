@@ -10,11 +10,11 @@ dotenv.config()
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
 
 describe('Base', () => {
-  const mainnetChainProviders = Base.getDefaultChainRpcProviders('mainnet')
-  const sepoliaChainProviders = Base.getDefaultChainRpcProviders('sepolia')
+  const mainnetChainProviders = Base.getDefaultProviders('mainnet')
+  const sepoliaChainProviders = Base.getDefaultProviders('sepolia')
 
   const base = new Base({
-    chainProviders: mainnetChainProviders
+    signersOrProviders: mainnetChainProviders
   })
   it('should get contract addresses', () => {
     const addresses = base.getContractAddresses()
@@ -36,23 +36,23 @@ describe('Base', () => {
   })
   it('should get static default chain rpc provider', () => {
     const chainId = 1
-    const providers = Base.getDefaultChainRpcProvider(chainId)
+    const providers = Base.getDefaultProvider(chainId)
     // console.log(provider)
     expect(providers).toBeDefined()
   })
   it('should get default chain rpc provider', () => {
     const chainId = 1
-    const providers = base.getDefaultChainRpcProvider(chainId)
+    const providers = base.getDefaultProvider(chainId)
     // console.log(provider)
     expect(providers).toBeDefined()
   })
   it('should get static default chain rpc providers', () => {
-    const providers = Base.getDefaultChainRpcProviders('mainnet')
+    const providers = Base.getDefaultProviders('mainnet')
     // console.log(providers)
     expect(providers).toBeDefined()
   })
   it('should get default chain rpc providers', () => {
-    const providers = base.getDefaultChainRpcProviders()
+    const providers = base.getDefaultProviders()
     // console.log(providers)
     expect(providers).toBeDefined()
   })
@@ -99,7 +99,7 @@ describe('Base', () => {
   })
   it('should get bumped gas price', async () => {
     const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(chainId)
+    const provider = base.getDefaultProvider(chainId)
     const percent = 0.20
     const gasPrice = await base.utils.getBumpedGasPrice(provider, percent)
     console.log(gasPrice)
@@ -111,13 +111,13 @@ describe('Base', () => {
       value: 0,
     }
     const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(1)
+    const provider = base.getDefaultProvider(1)
     const gas = await base.utils.estimateGas(provider, tx)
     console.log(gas)
     expect(gas).toBeDefined()
   })
   it('should get gas price', async () => {
-    const provider = await base.getProviderOrThrow(1)
+    const provider = (await base.getProvider(1))!
     const gasPrice = await base.utils.getGasPrice(provider)
     console.log(gasPrice)
     expect(gasPrice).toBeDefined()
@@ -210,27 +210,27 @@ describe('Base', () => {
     expect(base.utils.isContractError('an error string')).toBe(false)
   })
   it('should set chain rpc provider', () => {
-    base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
-    expect(base.getRpcProviderForChainId('1')).toBeDefined()
+    base.setProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
+    expect(base.getProvider('1')).toBeDefined()
   })
   it('should set chain rpc provider url', () => {
-    base.setChainRpcProviderUrl('1', 'http://localhost:8545')
-    expect(base.getRpcProviderForChainId('1')).toBeDefined()
+    base.setProviderUrl('1', 'http://localhost:8545')
+    expect(base.getProvider('1')).toBeDefined()
   })
   it('should set chain rpc providers', () => {
-    base.setChainRpcProviders({
+    base.setProviders({
       '1': new providers.StaticJsonRpcProvider('http://localhost:8545')
     })
-    expect(base.getRpcProviderForChainId('1')).toBeDefined()
+    expect(base.getProvider('1')).toBeDefined()
   })
   it('should set chain rpc provider urls', () => {
-    base.setChainRpcProviderUrls({
+    base.setProviderUrls({
       '1': 'http://localhost:8545'
     })
-    expect(base.getRpcProviderForChainId('1')).toBeDefined()
+    expect(base.getProvider('1')).toBeDefined()
   })
   it('should get rpc provider for chain id', () => {
-    expect(base.getRpcProviderForChainId('1')).toBeDefined()
+    expect(base.getProvider('1')).toBeDefined()
   })
   it('should get config address', () => {
     const address = base.getConfigAddress('1', 'hubCoreMessenger')
@@ -239,8 +239,8 @@ describe('Base', () => {
   })
   it('should get signer', async () => {
     const base = new Base({
-      chainProviders: {
-        1: new Wallet(privateKey, Base.getDefaultChainRpcProvider(1))
+      signersOrProviders: {
+        1: new Wallet(privateKey, Base.getDefaultProvider(1))
       }
     })
     const signer = base.getSigner(1)
@@ -249,8 +249,8 @@ describe('Base', () => {
   })
   it('should get signer address', async () => {
     const base = new Base({
-      chainProviders: {
-        1: new Wallet(privateKey, Base.getDefaultChainRpcProvider(1))
+      signersOrProviders: {
+        1: new Wallet(privateKey, Base.getDefaultProvider(1))
       }
     })
     const address = base.getSignerAddress(1)
@@ -272,7 +272,7 @@ describe('Base', () => {
   })
   it('should get supported chain ids', async () => {
     const base = new Base({
-      chainProviders: sepoliaChainProviders
+      signersOrProviders: sepoliaChainProviders
     })
     const supportedChainIds = base.getSupportedChainIds()
     console.log(supportedChainIds)
@@ -280,7 +280,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported token symbols', async () => {
     const base = new Base({
-      chainProviders: sepoliaChainProviders
+      signersOrProviders: sepoliaChainProviders
     })
     const supportedTokens = base.getSupportedTokenSymbols()
     console.log(supportedTokens)
@@ -288,7 +288,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported token symbols by chain id', async () => {
     const base = new Base({
-      chainProviders: sepoliaChainProviders
+      signersOrProviders: sepoliaChainProviders
     })
     const supportedTokens = base.getSupportedTokenSymbolsByChainId(11155111)
     console.log(supportedTokens)
@@ -296,7 +296,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get supported chain ids by token symbol', async () => {
     const base = new Base({
-      chainProviders: sepoliaChainProviders
+      signersOrProviders: sepoliaChainProviders
     })
     const tokenSymbol = 'USDC'
     const supportedChainIds = base.getChainIdsSupportedByTokenSymbol(tokenSymbol)
@@ -305,7 +305,7 @@ describe('Base', () => {
   }, 60 * 1000)
   it('should get token address by token symbol', async () => {
     const base = new Base({
-      chainProviders: sepoliaChainProviders
+      signersOrProviders: sepoliaChainProviders
     })
     const chainId = 11155111
     const tokenSymbol = 'USDC'
@@ -320,9 +320,9 @@ describe('Base', () => {
       chainId: 1
     }
     const chainId = 1
-    const provider = Base.getDefaultChainRpcProvider(1)
+    const provider = Base.getDefaultProvider(1)
     const base = new Base({
-      chainProviders: {
+      signersOrProviders: {
         1: new Wallet(privateKey, provider)
       }
     })
@@ -352,10 +352,10 @@ describe('Base', () => {
     expect(color).toBeDefined()
   })
   it.skip('should get signer provider chainid', async () => {
-    const provider = Base.getDefaultChainRpcProvider(1)
+    const provider = Base.getDefaultProvider(1)
     const signer = new Wallet(privateKey, provider)
     const base = new Base({
-      chainProviders: {
+      signersOrProviders: {
         1: signer
       }
     })
@@ -366,14 +366,12 @@ describe('Base', () => {
   it.skip('should return boolean if contract address exists on chain', async () => {
     const address = '0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc'
     const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(chainId)
+    const provider = base.getDefaultProvider(chainId)
 
     const exists = await base.getContractExists(address, provider)
     console.log(exists)
     expect(exists).toBeDefined()
   })
   // TOOD: getSigner
-  // TOOD: getSignerOrThrow
   // TOOD: getProvider
-  // TOOD: getProviderOrThrow
 })

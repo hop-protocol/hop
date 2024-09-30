@@ -79,7 +79,7 @@ export function HopApproveSendTokens (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -119,7 +119,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

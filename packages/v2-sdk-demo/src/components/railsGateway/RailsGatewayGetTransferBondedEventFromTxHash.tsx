@@ -45,12 +45,11 @@ export function RailsGatewayGetTransferBondedEventFromTxHash (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         transactionHash
       }
 
       console.log('args', args)
-      const event = await sdk.railsGateway.getTransferBondedEventFromTransactionHash(args)
+      const event = await sdk.getRailsGateway(fromChainId).getTransferBondedEventFromTransactionHash(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -63,12 +62,10 @@ export function RailsGatewayGetTransferBondedEventFromTxHash (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const transactionHash = "${transactionHash}"
 
   ${hopInstantiateDisplayString}
-  const event = await hop.railsGateway.getTransferBondedEventFromTransactionHash({
-    chainId,
+  const event = await hop.getRailsGateway('${fromChainId}').getTransferBondedEventFromTransactionHash({
     transactionHash
   })
   console.log(event)

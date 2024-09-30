@@ -12,14 +12,14 @@ type Provider = providers.Provider
 
 type SignerOrProvider = Signer | Provider
 
-export type ChainProviders = {
+export type SignersOrProviders = {
   [key: string]: SignerOrProvider
 }
 
 export type BaseConfig = {
   network?: string
   gasPriceMultiplier?: number
-  chainProviders: ChainProviders
+  signersOrProviders: SignersOrProviders
   contractAddresses?: Addresses
 }
 
@@ -42,11 +42,11 @@ export class Base {
   l1ChainId: number
   batchBlocks: number = 1000
 
-  chainProviders: ChainProviders = {}
+  signersOrProviders: SignersOrProviders = {}
 
   constructor (config: BaseConfig) {
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
-    this.chainProviders = config.chainProviders ?? {}
+    this.signersOrProviders = config.signersOrProviders ?? {}
 
     this.network = config.network ?? this.#deriveNetwork()
     this.contractAddresses = addresses[this.network] ?? {}
@@ -61,7 +61,7 @@ export class Base {
   #deriveNetwork (): string {
     const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
 
-    for (const chainId in this.chainProviders) {
+    for (const chainId in this.signersOrProviders) {
       for (const net of networks) {
         const network = getNetwork(net)
         const chain = Object.values(network.chains).find(chain => chain.chainId === chainId)
@@ -83,48 +83,48 @@ export class Base {
     this.contractAddresses = contractAddresses
   }
 
-  getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
-    return Base.getDefaultChainRpcProvider(chainId)
+  getDefaultProvider (chainId: BigNumberish): providers.Provider {
+    return Base.getDefaultProvider(chainId)
   }
 
-  getDefaultChainRpcProviders (): ChainProviders {
-    return Base.getDefaultChainRpcProviders(this.network)
+  getDefaultProviders (): SignersOrProviders {
+    return Base.getDefaultProviders(this.network)
   }
 
-  setChainRpcProvider (chainId: BigNumberish, provider: Provider): void {
+  setProvider (chainId: BigNumberish, provider: Provider): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
     }
-    this.chainProviders[chainId] = provider
+    this.signersOrProviders[chainId] = provider
   }
 
-  setChainRpcProviders (chainProviders: ChainProviders): void {
-    for (const chainId in chainProviders) {
+  setProviders (signersOrProviders: SignersOrProviders): void {
+    for (const chainId in signersOrProviders) {
       if (!this.utils.isValidChainId(chainId)) {
         continue
       }
-      this.chainProviders[chainId?.toString()] = chainProviders[chainId]
+      this.signersOrProviders[chainId?.toString()] = signersOrProviders[chainId]
     }
   }
 
-  setChainRpcProviderUrl (chainId: BigNumberish, url: string | string[]): void {
+  setProviderUrl (chainId: BigNumberish, url: string | string[]): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
     }
     if (url) {
-      this.chainProviders[chainId] = getProviderFromUrl(url)
+      this.signersOrProviders[chainId] = getProviderFromUrl(url)
     }
   }
 
-  setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {
-    for (const chainId in chainProviders) {
+  setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
+    for (const chainId in signersOrProviders) {
       if (!this.utils.isValidChainId(chainId)) {
         continue
       }
-      if (chainProviders[chainId]) {
-        this.chainProviders[chainId?.toString()] = getProviderFromUrl(chainProviders[chainId])
+      if (signersOrProviders[chainId]) {
+        this.signersOrProviders[chainId?.toString()] = getProviderFromUrl(signersOrProviders[chainId])
       }
     }
   }
@@ -159,15 +159,6 @@ export class Base {
     return startBlock ?? 0
   }
 
-  getRpcProviderForChainId (chainId: BigNumberish): Signer | Provider {
-    chainId = chainId.toString()
-    if (!this.chainProviders[chainId]) {
-      throw new Error(`provider not set for chain "${chainId}"`)
-    }
-
-    return this.chainProviders[chainId]
-  }
-
   async getContractExists (address: string, provider: Provider): Promise<boolean> {
     if (!address) {
       throw new Error('address is required')
@@ -199,7 +190,12 @@ export class Base {
   }
 
   async getSigner (chainId: BigNumberish): Promise<Signer | null> {
-    let signer = this.getRpcProviderForChainId(chainId)
+    chainId = chainId.toString()
+    let signer = this.signersOrProviders[chainId]
+
+    if (!signer) {
+      throw new Error(`signer or provider not set for chain "${chainId}"`)
+    }
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`invalid chainId "${chainId}"`)
@@ -208,8 +204,6 @@ export class Base {
     if (!signer) {
       throw new Error('signer not set')
     }
-
-    chainId = chainId.toString()
 
     if (signer) {
       signer = this.getEthersWeb3Signer(signer)
@@ -231,16 +225,6 @@ export class Base {
     }
   }
 
-  async getSignerOrThrow (chainId: BigNumberish): Promise<Signer> {
-    const signer = await this.getSigner(chainId)
-
-    if (!signer) {
-      throw new Error(`signer was not found for chainId ${chainId?.toString()}`)
-    }
-
-    return signer
-  }
-
   getProvider(chainId: BigNumberish): Provider | null {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`invalid chainId "${chainId}"`)
@@ -248,23 +232,17 @@ export class Base {
 
     chainId = chainId.toString()
 
-    const signerOrProvider = this.getRpcProviderForChainId(chainId)
+    const signerOrProvider = this.signersOrProviders[chainId]
+
+    if (!signerOrProvider) {
+      throw new Error(`signer or provider not set for chain "${chainId}"`)
+    }
 
     if (Signer.isSigner(signerOrProvider)) {
       return (signerOrProvider as Signer).provider ?? null
     }
 
     return signerOrProvider as Provider
-  }
-
-  async getProviderOrThrow (chainId: BigNumberish): Promise<Provider> {
-    const provider = this.getProvider(chainId)
-
-    if (!provider) {
-      throw new Error(`provider was not found for chainId ${chainId?.toString()}`)
-    }
-
-    return provider
   }
 
   async getSignerOrProvider (
@@ -630,8 +608,8 @@ export class Base {
     return this.utils.getConnectedChainId(signer.provider)
   }
 
-  static getDefaultChainRpcProviders (network: string): ChainProviders {
-    const defaultProviders: ChainProviders = {}
+  static getDefaultProviders (network: string): SignersOrProviders {
+    const defaultProviders: SignersOrProviders = {}
     const chains = getNetwork(network as NetworkSlug).chains
     for (const chainSlug in chains) {
       const item = (chains as any)[chainSlug] // TODO: type
@@ -641,7 +619,7 @@ export class Base {
     return defaultProviders
   }
 
-  static getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
+  static getDefaultProvider (chainId: BigNumberish): providers.Provider {
     const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
     const chainIdStr = chainId.toString()
 

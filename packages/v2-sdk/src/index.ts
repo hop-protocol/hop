@@ -124,6 +124,7 @@ export {
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
 export {
+  SignersOrProviders,
   TxOverrides
 } from './common/index.js'
 export { PriceFeed } from './priceFeed/index.js'

@@ -57,7 +57,7 @@ export function RailsGatewayGetPathId (props: Props) {
         token1: toToken,
       }
       console.log('args', args)
-      const pathId = await sdk.railsGateway.getPathId(args)
+      const pathId = await sdk.getRailsGateway(fromChainId).getPathId(args)
       setPathId(pathId)
     } catch (err: any) {
       console.error(err)
@@ -76,7 +76,7 @@ async function main() {
   const token1 = "${toToken}"
 
   ${hopInstantiateDisplayString}
-  const pathId = await hop.railsGateway.getPathId({
+  const pathId = await hop.getRailsGateway('${fromChainId}').getPathId({
     chainId0,
     token0,
     chainId1,

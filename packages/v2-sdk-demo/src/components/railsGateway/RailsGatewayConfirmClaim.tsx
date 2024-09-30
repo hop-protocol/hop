@@ -55,12 +55,11 @@ export function RailsGatewayConfirmClaim (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
       pathId,
       transferId
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.confirmClaim(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.confirmClaim(args)
     return txData
   }
 
@@ -77,7 +76,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -96,13 +95,11 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const transferId = "${transferId}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.railsGateway.populateTransaction.confirmClaim({
-    chainId,
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.confirmClaim({
     pathId,
     transferId
   })
@@ -111,7 +108,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

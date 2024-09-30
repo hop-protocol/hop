@@ -16,11 +16,11 @@
 
 - [batchBlocks](RailsGateway.md#batchblocks)
 - [chainId](RailsGateway.md#chainid)
-- [chainProviders](RailsGateway.md#chainproviders)
 - [contractAddresses](RailsGateway.md#contractaddresses)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
+- [signersOrProviders](RailsGateway.md#signersorproviders)
 
 ### Accessors
 
@@ -52,8 +52,8 @@
 - [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
 - [getContractAddresses](RailsGateway.md#getcontractaddresses)
 - [getContractExists](RailsGateway.md#getcontractexists)
-- [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider)
-- [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders)
+- [getDefaultProvider](RailsGateway.md#getdefaultprovider)
+- [getDefaultProviders](RailsGateway.md#getdefaultproviders)
 - [getEthersWeb3Signer](RailsGateway.md#getethersweb3signer)
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
 - [getEventFilter](RailsGateway.md#geteventfilter)
@@ -78,15 +78,12 @@
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getProvider](RailsGateway.md#getprovider)
-- [getProviderOrThrow](RailsGateway.md#getproviderorthrow)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
 - [getRoleForRoleName](RailsGateway.md#getroleforrolename)
-- [getRpcProviderForChainId](RailsGateway.md#getrpcproviderforchainid)
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
-- [getSignerOrThrow](RailsGateway.md#getsignerorthrow)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
 - [getStakedBalance](RailsGateway.md#getstakedbalance)
 - [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
@@ -126,11 +123,11 @@
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
-- [setChainRpcProvider](RailsGateway.md#setchainrpcprovider)
-- [setChainRpcProviderUrl](RailsGateway.md#setchainrpcproviderurl)
-- [setChainRpcProviderUrls](RailsGateway.md#setchainrpcproviderurls)
-- [setChainRpcProviders](RailsGateway.md#setchainrpcproviders)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
+- [setProvider](RailsGateway.md#setprovider)
+- [setProviderUrl](RailsGateway.md#setproviderurl)
+- [setProviderUrls](RailsGateway.md#setproviderurls)
+- [setProviders](RailsGateway.md#setproviders)
 - [stakeHop](RailsGateway.md#stakehop)
 - [throwError](RailsGateway.md#throwerror)
 - [unstakeHop](RailsGateway.md#unstakehop)
@@ -138,8 +135,8 @@
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [withdrawHop](RailsGateway.md#withdrawhop)
 - [deriveNetwork](RailsGateway.md#derivenetwork)
-- [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider-1)
-- [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders-1)
+- [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
+- [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
 - [getEventNames](RailsGateway.md#geteventnames-1)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash-1)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
@@ -183,16 +180,6 @@ ___
 
 ___
 
-### <a id="chainproviders" name="chainproviders"></a> chainProviders
-
-• **chainProviders**: `ChainProviders`
-
-#### Inherited from
-
-StakingRegistry.chainProviders
-
-___
-
 ### <a id="contractaddresses" name="contractaddresses"></a> contractAddresses
 
 • **contractAddresses**: `Addresses`
@@ -230,6 +217,16 @@ ___
 #### Inherited from
 
 StakingRegistry.network
+
+___
+
+### <a id="signersorproviders" name="signersorproviders"></a> signersOrProviders
+
+• **signersOrProviders**: `SignersOrProviders`
+
+#### Inherited from
+
+StakingRegistry.signersOrProviders
 
 ## Accessors
 
@@ -728,9 +725,9 @@ StakingRegistry.getContractExists
 
 ___
 
-### <a id="getdefaultchainrpcprovider" name="getdefaultchainrpcprovider"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider" name="getdefaultprovider"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -744,21 +741,21 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProvider
+StakingRegistry.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders" name="getdefaultchainrpcproviders"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders" name="getdefaultproviders"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(): `ChainProviders`
+▸ **getDefaultProviders**(): `SignersOrProviders`
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProviders
+StakingRegistry.getDefaultProviders
 
 ___
 
@@ -1143,26 +1140,6 @@ StakingRegistry.getProvider
 
 ___
 
-### <a id="getproviderorthrow" name="getproviderorthrow"></a> getProviderOrThrow
-
-▸ **getProviderOrThrow**(`chainId`): `Promise`\<`Provider`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Provider`\>
-
-#### Inherited from
-
-StakingRegistry.getProviderOrThrow
-
-___
-
 ### <a id="getrailsgatewaycontract" name="getrailsgatewaycontract"></a> getRailsGatewayContract
 
 ▸ **getRailsGatewayContract**(): `Promise`\<`Contract`\>
@@ -1200,26 +1177,6 @@ ___
 #### Inherited from
 
 StakingRegistry.getRoleForRoleName
-
-___
-
-### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
-
-▸ **getRpcProviderForChainId**(`chainId`): `Provider` \| `Signer`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Provider` \| `Signer`
-
-#### Inherited from
-
-StakingRegistry.getRpcProviderForChainId
 
 ___
 
@@ -1280,26 +1237,6 @@ ___
 #### Inherited from
 
 StakingRegistry.getSignerOrProvider
-
-___
-
-### <a id="getsignerorthrow" name="getsignerorthrow"></a> getSignerOrThrow
-
-▸ **getSignerOrThrow**(`chainId`): `Promise`\<`Signer`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Signer`\>
-
-#### Inherited from
-
-StakingRegistry.getSignerOrThrow
 
 ___
 
@@ -2002,88 +1939,6 @@ StakingRegistry.sendTransaction
 
 ___
 
-### <a id="setchainrpcprovider" name="setchainrpcprovider"></a> setChainRpcProvider
-
-▸ **setChainRpcProvider**(`chainId`, `provider`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProvider
-
-___
-
-### <a id="setchainrpcproviderurl" name="setchainrpcproviderurl"></a> setChainRpcProviderUrl
-
-▸ **setChainRpcProviderUrl**(`chainId`, `url`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `url` | `string` \| `string`[] |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviderUrl
-
-___
-
-### <a id="setchainrpcproviderurls" name="setchainrpcproviderurls"></a> setChainRpcProviderUrls
-
-▸ **setChainRpcProviderUrls**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `Record`\<`string`, `string` \| `string`[]\> |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviderUrls
-
-___
-
-### <a id="setchainrpcproviders" name="setchainrpcproviders"></a> setChainRpcProviders
-
-▸ **setChainRpcProviders**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `ChainProviders` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviders
-
-___
-
 ### <a id="setcontractaddresses" name="setcontractaddresses"></a> setContractAddresses
 
 ▸ **setContractAddresses**(`contractAddresses`): `void`
@@ -2101,6 +1956,88 @@ ___
 #### Inherited from
 
 StakingRegistry.setContractAddresses
+
+___
+
+### <a id="setprovider" name="setprovider"></a> setProvider
+
+▸ **setProvider**(`chainId`, `provider`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `provider` | `Provider` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProvider
+
+___
+
+### <a id="setproviderurl" name="setproviderurl"></a> setProviderUrl
+
+▸ **setProviderUrl**(`chainId`, `url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `url` | `string` \| `string`[] |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviderUrl
+
+___
+
+### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
+
+▸ **setProviderUrls**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviderUrls
+
+___
+
+### <a id="setproviders" name="setproviders"></a> setProviders
+
+▸ **setProviders**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `SignersOrProviders` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviders
 
 ___
 
@@ -2223,9 +2160,9 @@ ___
 
 ___
 
-### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider-1" name="getdefaultprovider-1"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -2239,13 +2176,13 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProvider
+StakingRegistry.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders-1" name="getdefaultproviders-1"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+▸ **getDefaultProviders**(`network`): `SignersOrProviders`
 
 #### Parameters
 
@@ -2255,11 +2192,11 @@ ___
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProviders
+StakingRegistry.getDefaultProviders
 
 ___
 

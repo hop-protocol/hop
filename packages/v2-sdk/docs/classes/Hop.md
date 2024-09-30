@@ -15,7 +15,6 @@
 ### Properties
 
 - [batchBlocks](Hop.md#batchblocks)
-- [chainProviders](Hop.md#chainproviders)
 - [contractAddresses](Hop.md#contractaddresses)
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
 - [hubConnector](Hop.md#hubconnector)
@@ -23,6 +22,7 @@
 - [messenger](Hop.md#messenger)
 - [network](Hop.md#network)
 - [railsGateways](Hop.md#railsgateways)
+- [signersOrProviders](Hop.md#signersorproviders)
 
 ### Accessors
 
@@ -41,8 +41,8 @@
 - [getConfigStartBlock](Hop.md#getconfigstartblock)
 - [getContractAddresses](Hop.md#getcontractaddresses)
 - [getContractExists](Hop.md#getcontractexists)
-- [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider)
-- [getDefaultChainRpcProviders](Hop.md#getdefaultchainrpcproviders)
+- [getDefaultProvider](Hop.md#getdefaultprovider)
+- [getDefaultProviders](Hop.md#getdefaultproviders)
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
 - [getEthersWeb3Signer](Hop.md#getethersweb3signer)
 - [getEvents](Hop.md#getevents)
@@ -51,16 +51,13 @@
 - [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
 - [getPathInfo](Hop.md#getpathinfo)
 - [getProvider](Hop.md#getprovider)
-- [getProviderOrThrow](Hop.md#getproviderorthrow)
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
-- [getRpcProviderForChainId](Hop.md#getrpcproviderforchainid)
 - [getSendData](Hop.md#getsenddata)
 - [getSendFee](Hop.md#getsendfee)
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
 - [getSignerOrProvider](Hop.md#getsignerorprovider)
-- [getSignerOrThrow](Hop.md#getsignerorthrow)
 - [getSignerProviderChainId](Hop.md#getsignerproviderchainid)
 - [getSupportedChainIds](Hop.md#getsupportedchainids)
 - [getSupportedTokenSymbols](Hop.md#getsupportedtokensymbols)
@@ -73,15 +70,16 @@
 - [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
 - [sendTokens](Hop.md#sendtokens)
 - [sendTransaction](Hop.md#sendtransaction)
-- [setChainRpcProvider](Hop.md#setchainrpcprovider)
-- [setChainRpcProviderUrl](Hop.md#setchainrpcproviderurl)
-- [setChainRpcProviderUrls](Hop.md#setchainrpcproviderurls)
-- [setChainRpcProviders](Hop.md#setchainrpcproviders)
 - [setContractAddresses](Hop.md#setcontractaddresses)
+- [setProvider](Hop.md#setprovider)
+- [setProviderUrl](Hop.md#setproviderurl)
+- [setProviderUrls](Hop.md#setproviderurls)
+- [setProviders](Hop.md#setproviders)
 - [switchChain](Hop.md#switchchain)
 - [throwError](Hop.md#throwerror)
-- [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider-1)
-- [getDefaultChainRpcProviders](Hop.md#getdefaultchainrpcproviders-1)
+- [calcAmountOutMin](Hop.md#calcamountoutmin-1)
+- [getDefaultProvider](Hop.md#getdefaultprovider-1)
+- [getDefaultProviders](Hop.md#getdefaultproviders-1)
 
 ## Constructors
 
@@ -112,16 +110,6 @@ Base.constructor
 #### Inherited from
 
 Base.batchBlocks
-
-___
-
-### <a id="chainproviders" name="chainproviders"></a> chainProviders
-
-• **chainProviders**: `ChainProviders`
-
-#### Inherited from
-
-Base.chainProviders
 
 ___
 
@@ -180,6 +168,16 @@ ___
 ### <a id="railsgateways" name="railsgateways"></a> railsGateways
 
 • `Readonly` **railsGateways**: `Record`\<`string`, `RailsGateway`\> = `{}`
+
+___
+
+### <a id="signersorproviders" name="signersorproviders"></a> signersOrProviders
+
+• **signersOrProviders**: `SignersOrProviders`
+
+#### Inherited from
+
+Base.signersOrProviders
 
 ## Accessors
 
@@ -415,9 +413,9 @@ Base.getContractExists
 
 ___
 
-### <a id="getdefaultchainrpcprovider" name="getdefaultchainrpcprovider"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider" name="getdefaultprovider"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -431,21 +429,21 @@ ___
 
 #### Inherited from
 
-Base.getDefaultChainRpcProvider
+Base.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders" name="getdefaultchainrpcproviders"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders" name="getdefaultproviders"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(): `ChainProviders`
+▸ **getDefaultProviders**(): `SignersOrProviders`
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-Base.getDefaultChainRpcProviders
+Base.getDefaultProviders
 
 ___
 
@@ -579,26 +577,6 @@ Base.getProvider
 
 ___
 
-### <a id="getproviderorthrow" name="getproviderorthrow"></a> getProviderOrThrow
-
-▸ **getProviderOrThrow**(`chainId`): `Promise`\<`Provider`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Provider`\>
-
-#### Inherited from
-
-Base.getProviderOrThrow
-
-___
-
 ### <a id="getrailsgateway" name="getrailsgateway"></a> getRailsGateway
 
 ▸ **getRailsGateway**(`chainId`): `RailsGateway`
@@ -628,26 +606,6 @@ ___
 #### Returns
 
 `string`
-
-___
-
-### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
-
-▸ **getRpcProviderForChainId**(`chainId`): `Provider` \| `Signer`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Provider` \| `Signer`
-
-#### Inherited from
-
-Base.getRpcProviderForChainId
 
 ___
 
@@ -740,26 +698,6 @@ ___
 #### Inherited from
 
 Base.getSignerOrProvider
-
-___
-
-### <a id="getsignerorthrow" name="getsignerorthrow"></a> getSignerOrThrow
-
-▸ **getSignerOrThrow**(`chainId`): `Promise`\<`Signer`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Signer`\>
-
-#### Inherited from
-
-Base.getSignerOrThrow
 
 ___
 
@@ -976,88 +914,6 @@ Base.sendTransaction
 
 ___
 
-### <a id="setchainrpcprovider" name="setchainrpcprovider"></a> setChainRpcProvider
-
-▸ **setChainRpcProvider**(`chainId`, `provider`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProvider
-
-___
-
-### <a id="setchainrpcproviderurl" name="setchainrpcproviderurl"></a> setChainRpcProviderUrl
-
-▸ **setChainRpcProviderUrl**(`chainId`, `url`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `url` | `string` \| `string`[] |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProviderUrl
-
-___
-
-### <a id="setchainrpcproviderurls" name="setchainrpcproviderurls"></a> setChainRpcProviderUrls
-
-▸ **setChainRpcProviderUrls**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `Record`\<`string`, `string` \| `string`[]\> |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-Base.setChainRpcProviderUrls
-
-___
-
-### <a id="setchainrpcproviders" name="setchainrpcproviders"></a> setChainRpcProviders
-
-▸ **setChainRpcProviders**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `ChainProviders` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProviders
-
-___
-
 ### <a id="setcontractaddresses" name="setcontractaddresses"></a> setContractAddresses
 
 ▸ **setContractAddresses**(`contractAddresses`): `void`
@@ -1075,6 +931,88 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setprovider" name="setprovider"></a> setProvider
+
+▸ **setProvider**(`chainId`, `provider`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `provider` | `Provider` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProvider
+
+___
+
+### <a id="setproviderurl" name="setproviderurl"></a> setProviderUrl
+
+▸ **setProviderUrl**(`chainId`, `url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `url` | `string` \| `string`[] |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProviderUrl
+
+___
+
+### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
+
+▸ **setProviderUrls**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+
+#### Returns
+
+`void`
+
+#### Overrides
+
+Base.setProviderUrls
+
+___
+
+### <a id="setproviders" name="setproviders"></a> setProviders
+
+▸ **setProviders**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `SignersOrProviders` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProviders
 
 ___
 
@@ -1114,9 +1052,25 @@ Base.throwError
 
 ___
 
-### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+### <a id="calcamountoutmin-1" name="calcamountoutmin-1"></a> calcAmountOutMin
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **calcAmountOutMin**(`«destructured»`): `BigNumber`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`CalcAmountOutMinInput`](../modules.md#calcamountoutmininput) |
+
+#### Returns
+
+`BigNumber`
+
+___
+
+### <a id="getdefaultprovider-1" name="getdefaultprovider-1"></a> getDefaultProvider
+
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -1130,13 +1084,13 @@ ___
 
 #### Inherited from
 
-Base.getDefaultChainRpcProvider
+Base.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders-1" name="getdefaultproviders-1"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+▸ **getDefaultProviders**(`network`): `SignersOrProviders`
 
 #### Parameters
 
@@ -1146,8 +1100,8 @@ ___
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-Base.getDefaultChainRpcProviders
+Base.getDefaultProviders

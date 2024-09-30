@@ -67,7 +67,6 @@ export function RailsGatewayGetTransferId (props: Props) {
       setTransferId('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         to: toAddress,
         adjustedAmount,
@@ -78,7 +77,7 @@ export function RailsGatewayGetTransferId (props: Props) {
       }
 
       console.log('args', args)
-      const transferId = await sdk.railsGateway.getTransferId(args)
+      const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
       setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
@@ -91,7 +90,6 @@ export function RailsGatewayGetTransferId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const to = "${toAddress}"
   const adjustedAmount = "${adjustedAmount}"
@@ -101,8 +99,7 @@ async function main() {
   const attestedCheckpoint = "${attestedCheckpoint}"
 
   ${hopInstantiateDisplayString}
-  const transferId = await hop.railsGateway.getTransferId({
-    chainId,
+  const transferId = await hop.getRailsGateway('${fromChainId}').getTransferId({
     pathId,
     to,
     adjustedAmount,

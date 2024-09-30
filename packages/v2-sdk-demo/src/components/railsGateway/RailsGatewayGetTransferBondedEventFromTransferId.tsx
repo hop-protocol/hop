@@ -45,12 +45,11 @@ export function RailsGatewayGetTransferBondedEventFromTransferId (props: Props) 
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         transferId
       }
 
       console.log('args', args)
-      const event = await sdk.railsGateway.getTransferBondedEventFromTransferId(args)
+      const event = await sdk.getRailsGateway(fromChainId).getTransferBondedEventFromTransferId(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -63,12 +62,10 @@ export function RailsGatewayGetTransferBondedEventFromTransferId (props: Props) 
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const transferId = "${transferId}"
 
   ${hopInstantiateDisplayString}
-  const event = await hop.railsGateway.getTransferBondedEventFromTransferId({
-    chainId,
+  const event = await hop.getRailsGateway('${fromChainId}').getTransferBondedEventFromTransferId({
     transferId
   })
   console.log(event)

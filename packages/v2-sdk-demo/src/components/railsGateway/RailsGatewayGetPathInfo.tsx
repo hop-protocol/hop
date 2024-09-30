@@ -44,12 +44,11 @@ export function RailsGatewayGetPathInfo (props: Props) {
       setPathInfo('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId: pathId,
       }
 
       console.log('args', args)
-      const pathInfo = await sdk.railsGateway.getPathInfo(args)
+      const pathInfo = await sdk.getRailsGateway(fromChainId).getPathInfo(args)
       setPathInfo(JSON.stringify(pathInfo, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -62,12 +61,10 @@ export function RailsGatewayGetPathInfo (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const pathInfo = await hop.railsGateway.getPathInfo({
-    chainId,
+  const pathInfo = await hop.getRailsGateway('${fromChainId}').getPathInfo({
     pathId
   })
   console.log(pathInfo)

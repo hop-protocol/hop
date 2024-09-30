@@ -14,7 +14,7 @@ describe('Hop', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const sdk = new Hop({
-    chainProviders: Hop.getDefaultChainRpcProviders('sepolia')
+    signersOrProviders: Hop.getDefaultProviders('sepolia')
   })
 
   it('should get version', async () => {
@@ -22,14 +22,8 @@ describe('Hop', () => {
     expect(sdk.version).toBeDefined()
   })
 
-  it('should connect signer', async () => {
-    expect(sdk.signer).toBeUndefined()
-    const sdkWithSigner = sdk.connect(signer)
-    expect(sdkWithSigner.signer).toBeDefined()
-  })
-
   it('should get rails gateway instance', async () => {
-    expect(sdk.getRailsGateway()).toBeDefined()
+    expect(sdk.getRailsGateway(11155111)).toBeDefined()
   })
 
   it('should get messenger instance', async () => {
@@ -135,7 +129,7 @@ describe('Hop', () => {
     const newChainId = 10
     let error = ''
     try {
-      await sdk.connect(signer).switchChain(newChainId)
+      await sdk.switchChain(newChainId)
     } catch (err) {
       console.error(err)
       error = err

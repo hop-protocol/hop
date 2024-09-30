@@ -1,4 +1,4 @@
-import { BaseConfig, TxOverrides, ChainProviders } from '#common/index.js'
+import { BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
@@ -120,19 +120,19 @@ export type GetTransferIdInput = {
 export type WithdrawInput = {
   pathId: string
   amount: BigNumberish
-  timeWindow: number
+  time: number
 }
 
 export type WithdrawAllInput = {
   pathId: string
-  timeWindow: number
+  time: number
 }
 
 export type WithdrawBalanceInput = {
   pathId?: string
   path?: Path
-  recipient: string
-  timeWindow: number
+  bonder: string
+  time: number
 }
 
 export type GetHasSufficientBalanceInput = {
@@ -263,7 +263,7 @@ export type GetIsPathIdLiveInput = {
 export type RailsGatewayConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
-  chainProviders?: ChainProviders
+  signersOrProviders?: SignersOrProviders
   contractAddresses?: Addresses
   chainId: BigNumberish
   signerOrProvider?: Signer | providers.Provider
@@ -272,10 +272,10 @@ export type RailsGatewayConstructorInput = {
 export class RailsGateway extends StakingRegistry {
   chainId: BigNumberish
 
-  constructor ({ contractAddresses, chainId, signerOrProvider, chainProviders }: RailsGatewayConstructorInput) {
+  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders }: RailsGatewayConstructorInput) {
     super({
       contractAddresses,
-      chainProviders: {
+      signersOrProviders: {
         [chainId?.toString()]: signerOrProvider!
       },
       network: RailsGateway.deriveNetwork(chainId)
@@ -484,7 +484,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const address = this.getRailsGatewayContractAddress()
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = await this.getSignerOrProvider(chainId)
     return RailsGateway__factory.connect(address, provider)
   }
 
@@ -653,7 +653,10 @@ export class RailsGateway extends StakingRegistry {
 
         const path = await this.getPathInfo({ pathId })
         const tokenAddress = path.token
-        const provider = this.getRpcProviderForChainId(chainId)
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+        }
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsGatewayContractAddress()
         const txData = await tokenContract.populateTransaction.approve(address, amount)
@@ -729,7 +732,10 @@ export class RailsGateway extends StakingRegistry {
 
         const path = await this.getPathInfo({ pathId })
         const tokenAddress = path.token
-        const provider = this.getRpcProviderForChainId(chainId)
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+        }
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsGatewayContractAddress()
         const txData = await tokenContract.populateTransaction.approve(address, amount)
@@ -815,7 +821,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      withdrawClaim: async ({ pathId, amount, timeWindow }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      withdrawClaim: async ({ pathId, amount, time }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         let chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -830,12 +836,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid amount "${amount}"`)
         }
 
-        if (!this.utils.isValidNumericValue(timeWindow)) {
-          throw new InputError(`Invalid timeWindow "${timeWindow}"`)
+        if (!this.utils.isValidNumericValue(time)) {
+          throw new InputError(`Invalid time "${time}"`)
         }
 
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction['withdraw(bytes32,uint256,uint256)'](pathId, amount, Number(timeWindow))
+        const txData = await contract.populateTransaction['withdraw(bytes32,uint256,uint256)'](pathId, amount, Number(time))
 
         return {
           ...txData,
@@ -844,7 +850,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      withdrawAllClaims: async ({ pathId, timeWindow }: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      withdrawAllClaims: async ({ pathId, time }: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         let chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -855,12 +861,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
-        if (!this.utils.isValidNumericValue(timeWindow)) {
-          throw new InputError(`Invalid timeWindow "${timeWindow}"`)
+        if (!this.utils.isValidNumericValue(time)) {
+          throw new InputError(`Invalid time "${time}"`)
         }
 
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.withdrawAll(pathId, timeWindow)
+        const txData = await contract.populateTransaction.withdrawAll(pathId, time)
 
         return {
           ...txData,
@@ -1057,7 +1063,10 @@ export class RailsGateway extends StakingRegistry {
 
     const path = await this.getPathInfo({ pathId })
     const tokenAddress = path.token
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress(chainId)) as string
     const balance = await tokenContract.balanceOf(signerAddress)
@@ -1098,7 +1107,10 @@ export class RailsGateway extends StakingRegistry {
 
     const path = await this.getPathInfo({ pathId })
     const tokenAddress = path.token
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress(chainId)) as string
     const balance = await tokenContract.balanceOf(signerAddress)
@@ -1159,7 +1171,10 @@ export class RailsGateway extends StakingRegistry {
 
     const path = await this.getPathInfo({ pathId })
     const tokenAddress = path.token
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
     console.log('hopV2Sdk: rails approval token', tokenAddress)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress()
@@ -1186,7 +1201,10 @@ export class RailsGateway extends StakingRegistry {
 
     const path = await this.getPathInfo({ pathId })
     const tokenAddress = path.token
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress()
     account ??= (await this.getSignerAddress(chainId))!
@@ -1227,7 +1245,7 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async getWithdrawableBalance ({ pathId, recipient, timeWindow }: WithdrawBalanceInput): Promise<BigNumber> {
+  async getWithdrawableBalance ({ pathId, bonder, time }: WithdrawBalanceInput): Promise<BigNumber> {
     let chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -1242,18 +1260,18 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid pathId "${pathId}"`)
     }
 
-    if (!this.utils.isValidAddress(recipient)) {
-      throw new InputError(`Invalid recipient "${recipient}"`)
+    if (!this.utils.isValidAddress(bonder)) {
+      throw new InputError(`Invalid bonder "${bonder}"`)
     }
 
-    if (!this.utils.isValidNumericValue(timeWindow)) {
-      throw new InputError(`Invalid timeWindow "${timeWindow}"`)
+    if (!this.utils.isValidNumericValue(time)) {
+      throw new InputError(`Invalid time "${time}"`)
     }
 
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const balance = await contract['getWithdrawableBalance(bytes32,address,uint256)'](pathId, recipient, timeWindow)
+      const balance = await contract['getWithdrawableBalance(bytes32,address,uint256)'](pathId, bonder, time)
       return balance
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
@@ -1366,7 +1384,10 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const hopTokenAddress = await this.getHopTokenAddress()
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
     const contract = ERC20__factory.connect(hopTokenAddress, provider)
     return contract
   }
@@ -1381,7 +1402,7 @@ export class RailsGateway extends StakingRegistry {
     if (!receipt) {
       throw new InputError('receipt is required')
     }
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
@@ -1455,7 +1476,7 @@ export class RailsGateway extends StakingRegistry {
     if (!receipt) {
       throw new InputError('receipt is required')
     }
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
@@ -1573,7 +1594,10 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid address "${address}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
     const tokenContract = ERC20__factory.connect(address, provider)
     return tokenContract
   }
@@ -1593,7 +1617,10 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError(`Invalid amount "${amount}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     account ??= (await this.getSignerAddress(chainId))!
     if (!account) {

@@ -36,11 +36,6 @@ export function RailsGatewayGetFee (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -48,11 +43,10 @@ export function RailsGatewayGetFee (props: Props) {
       setFee('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId
       }
       console.log('args', args)
-      const fee = await sdk.railsGateway.getFee(args)
+      const fee = await sdk.getRailsGateway(fromChainId).getFee(args)
       setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
@@ -65,12 +59,10 @@ export function RailsGatewayGetFee (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const fee = await hop.railsGateway.getFee({
-    chainId,
+  const fee = await hop.getRailsGateway('${fromChainId}').getFee({
     pathId
   })
   console.log(fee)

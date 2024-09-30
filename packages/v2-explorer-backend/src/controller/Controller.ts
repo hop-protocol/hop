@@ -57,9 +57,9 @@ export class Controller {
 
   constructor () {
     this.sdk = new Hop({
-      chainProviders: Hop.getDefaultChainRpcProviders(network)
+      signersOrProviders: Hop.getDefaultProviders(network)
     })
-    this.sdk.setChainRpcProviderUrls(rpcUrls)
+    this.sdk.setProviderUrls(rpcUrls)
     // console.log(this.sdk.chainProviders)
   }
 
@@ -175,7 +175,7 @@ export class Controller {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.context.chainId, pathId: item.pathId })
+        pathInfo = await this.sdk.getRailsGateway(item.context.chainId).getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -198,7 +198,7 @@ export class Controller {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.toChainId, pathId: item.pathId })
+        pathInfo = await this.sdk.getRailsGateway(item.toChainId).getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -231,7 +231,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId, address: tokenAddress })
+        tokenInfo = await this.sdk.getRailsGateway(chainId).getTokenInfo({ address: tokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -262,7 +262,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId: counterpartChainId, address: counterpartTokenAddress })
+        tokenInfo = await this.sdk.getRailsGateway(counterpartChainId).getTokenInfo({ address: counterpartTokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,

@@ -119,10 +119,10 @@ export type GetChallengeIdInput = {
 export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
-  constructor ({ contractAddresses, chainProviders }: StakingRegistryConstructorInput) {
+  constructor ({ contractAddresses, signersOrProviders }: StakingRegistryConstructorInput) {
     super({
       contractAddresses,
-      chainProviders
+      signersOrProviders
     })
   }
 
@@ -132,7 +132,10 @@ export class StakingRegistry extends Base {
 
   getStakingRegistryContract (chainId: BigNumberish): Contract {
     const address = this.getStakingRegistryAddress(chainId)
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId?.toString()}`)
+    }
     return StakingRegistry__factory.connect(address, provider)
   }
 

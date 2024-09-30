@@ -14,8 +14,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayCalcAmountOutMin (props: Props) {
-  const cacheKey = 'railsGatewayCalcAmountOutMin'
+export function HopCalcAmountOutMin (props: Props) {
+  const cacheKey = 'hopCalcAmountOutMin'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -46,7 +46,7 @@ export function RailsGatewayCalcAmountOutMin (props: Props) {
       }
 
       console.log('args', args)
-      const result = sdk.railsGateway.calcAmountOutMin(args)
+      const result = sdk.calcAmountOutMin(args)
       setAmountOutMin(`${result.toString()}`)
     } catch (err: any) {
       console.error(err)
@@ -63,7 +63,7 @@ async function main() {
   const slippageTolerance = ${slippageTolerance}
 
   ${hopInstantiateDisplayString}
-  const amountOut = await hop.railsGateway.calcAmountOutMin({
+  const amountOut = await hop.calcAmountOutMin({
     amountOut,
     slippageTolerance
   })
@@ -83,7 +83,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Calculate Amount Out Min</Typography>
+        <Typography variant="h5">Hop - Calculate Amount Out Min</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get calculated amountOutMin</Typography>
@@ -134,4 +134,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayCalcAmountOutMin
+export default HopCalcAmountOutMin

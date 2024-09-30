@@ -15,12 +15,12 @@
 ### Properties
 
 - [batchBlocks](Messenger.md#batchblocks)
-- [chainProviders](Messenger.md#chainproviders)
 - [contractAddresses](Messenger.md#contractaddresses)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
 - [l1ChainId](Messenger.md#l1chainid)
 - [network](Messenger.md#network)
+- [signersOrProviders](Messenger.md#signersorproviders)
 
 ### Accessors
 
@@ -44,8 +44,8 @@
 - [getConfigStartBlock](Messenger.md#getconfigstartblock)
 - [getContractAddresses](Messenger.md#getcontractaddresses)
 - [getContractExists](Messenger.md#getcontractexists)
-- [getDefaultChainRpcProvider](Messenger.md#getdefaultchainrpcprovider)
-- [getDefaultChainRpcProviders](Messenger.md#getdefaultchainrpcproviders)
+- [getDefaultProvider](Messenger.md#getdefaultprovider)
+- [getDefaultProviders](Messenger.md#getdefaultproviders)
 - [getEstimatedTxCostForForwardMessage](Messenger.md#getestimatedtxcostforforwardmessage)
 - [getEthersWeb3Signer](Messenger.md#getethersweb3signer)
 - [getEventFetcher](Messenger.md#geteventfetcher)
@@ -79,18 +79,15 @@
 - [getMessageTreeIndexFromMessageId](Messenger.md#getmessagetreeindexfrommessageid)
 - [getMessageTreeIndexFromTransactionHash](Messenger.md#getmessagetreeindexfromtransactionhash)
 - [getProvider](Messenger.md#getprovider)
-- [getProviderOrThrow](Messenger.md#getproviderorthrow)
 - [getRelayFee](Messenger.md#getrelayfee)
 - [getRelayMessageDataFromTransactionHash](Messenger.md#getrelaymessagedatafromtransactionhash)
 - [getRelayReward](Messenger.md#getrelayreward)
 - [getRelayWindowHours](Messenger.md#getrelaywindowhours)
 - [getRouteData](Messenger.md#getroutedata)
-- [getRpcProviderForChainId](Messenger.md#getrpcproviderforchainid)
 - [getShouldAttemptForwardMessage](Messenger.md#getshouldattemptforwardmessage)
 - [getSigner](Messenger.md#getsigner)
 - [getSignerAddress](Messenger.md#getsigneraddress)
 - [getSignerOrProvider](Messenger.md#getsignerorprovider)
-- [getSignerOrThrow](Messenger.md#getsignerorthrow)
 - [getSignerProviderChainId](Messenger.md#getsignerproviderchainid)
 - [getSpokeExitTime](Messenger.md#getspokeexittime)
 - [getSpokeMessageBridgeContractAddress](Messenger.md#getspokemessagebridgecontractaddress)
@@ -103,18 +100,18 @@
 - [relayMessage](Messenger.md#relaymessage)
 - [sendMessage](Messenger.md#sendmessage)
 - [sendTransaction](Messenger.md#sendtransaction)
-- [setChainRpcProvider](Messenger.md#setchainrpcprovider)
-- [setChainRpcProviderUrl](Messenger.md#setchainrpcproviderurl)
-- [setChainRpcProviderUrls](Messenger.md#setchainrpcproviderurls)
-- [setChainRpcProviders](Messenger.md#setchainrpcproviders)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
+- [setProvider](Messenger.md#setprovider)
+- [setProviderUrl](Messenger.md#setproviderurl)
+- [setProviderUrls](Messenger.md#setproviderurls)
+- [setProviders](Messenger.md#setproviders)
 - [throwError](Messenger.md#throwerror)
 - [getBundleCommittedEventSignature](Messenger.md#getbundlecommittedeventsignature)
 - [getBundleForwardedEventSignature](Messenger.md#getbundleforwardedeventsignature)
 - [getBundleReceivedEventSignature](Messenger.md#getbundlereceivedeventsignature)
 - [getBundleSetEventSignature](Messenger.md#getbundleseteventsignature)
-- [getDefaultChainRpcProvider](Messenger.md#getdefaultchainrpcprovider-1)
-- [getDefaultChainRpcProviders](Messenger.md#getdefaultchainrpcproviders-1)
+- [getDefaultProvider](Messenger.md#getdefaultprovider-1)
+- [getDefaultProviders](Messenger.md#getdefaultproviders-1)
 - [getFeesSentToHubEventSignature](Messenger.md#getfeessenttohubeventsignature)
 - [getMessageBundledEventSignature](Messenger.md#getmessagebundledeventsignature)
 - [getMessageExecutedEventSignature](Messenger.md#getmessageexecutedeventsignature)
@@ -149,16 +146,6 @@ Base.constructor
 #### Inherited from
 
 Base.batchBlocks
-
-___
-
-### <a id="chainproviders" name="chainproviders"></a> chainProviders
-
-• **chainProviders**: `ChainProviders`
-
-#### Inherited from
-
-Base.chainProviders
 
 ___
 
@@ -205,6 +192,16 @@ ___
 #### Inherited from
 
 Base.network
+
+___
+
+### <a id="signersorproviders" name="signersorproviders"></a> signersOrProviders
+
+• **signersOrProviders**: `SignersOrProviders`
+
+#### Inherited from
+
+Base.signersOrProviders
 
 ## Accessors
 
@@ -527,9 +524,9 @@ Base.getContractExists
 
 ___
 
-### <a id="getdefaultchainrpcprovider" name="getdefaultchainrpcprovider"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider" name="getdefaultprovider"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -543,21 +540,21 @@ ___
 
 #### Inherited from
 
-Base.getDefaultChainRpcProvider
+Base.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders" name="getdefaultchainrpcproviders"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders" name="getdefaultproviders"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(): `ChainProviders`
+▸ **getDefaultProviders**(): `SignersOrProviders`
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-Base.getDefaultChainRpcProviders
+Base.getDefaultProviders
 
 ___
 
@@ -1092,26 +1089,6 @@ Base.getProvider
 
 ___
 
-### <a id="getproviderorthrow" name="getproviderorthrow"></a> getProviderOrThrow
-
-▸ **getProviderOrThrow**(`chainId`): `Promise`\<`Provider`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Provider`\>
-
-#### Inherited from
-
-Base.getProviderOrThrow
-
-___
-
 ### <a id="getrelayfee" name="getrelayfee"></a> getRelayFee
 
 ▸ **getRelayFee**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -1183,26 +1160,6 @@ ___
 #### Returns
 
 `Promise`\<[`RouteData`](../modules.md#routedata)\>
-
-___
-
-### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
-
-▸ **getRpcProviderForChainId**(`chainId`): `Provider` \| `Signer`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Provider` \| `Signer`
-
-#### Inherited from
-
-Base.getRpcProviderForChainId
 
 ___
 
@@ -1279,26 +1236,6 @@ ___
 #### Inherited from
 
 Base.getSignerOrProvider
-
-___
-
-### <a id="getsignerorthrow" name="getsignerorthrow"></a> getSignerOrThrow
-
-▸ **getSignerOrThrow**(`chainId`): `Promise`\<`Signer`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`Signer`\>
-
-#### Inherited from
-
-Base.getSignerOrThrow
 
 ___
 
@@ -1516,88 +1453,6 @@ Base.sendTransaction
 
 ___
 
-### <a id="setchainrpcprovider" name="setchainrpcprovider"></a> setChainRpcProvider
-
-▸ **setChainRpcProvider**(`chainId`, `provider`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProvider
-
-___
-
-### <a id="setchainrpcproviderurl" name="setchainrpcproviderurl"></a> setChainRpcProviderUrl
-
-▸ **setChainRpcProviderUrl**(`chainId`, `url`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `url` | `string` \| `string`[] |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProviderUrl
-
-___
-
-### <a id="setchainrpcproviderurls" name="setchainrpcproviderurls"></a> setChainRpcProviderUrls
-
-▸ **setChainRpcProviderUrls**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `Record`\<`string`, `string` \| `string`[]\> |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProviderUrls
-
-___
-
-### <a id="setchainrpcproviders" name="setchainrpcproviders"></a> setChainRpcProviders
-
-▸ **setChainRpcProviders**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `ChainProviders` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-Base.setChainRpcProviders
-
-___
-
 ### <a id="setcontractaddresses" name="setcontractaddresses"></a> setContractAddresses
 
 ▸ **setContractAddresses**(`contractAddresses`): `void`
@@ -1615,6 +1470,88 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setprovider" name="setprovider"></a> setProvider
+
+▸ **setProvider**(`chainId`, `provider`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `provider` | `Provider` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProvider
+
+___
+
+### <a id="setproviderurl" name="setproviderurl"></a> setProviderUrl
+
+▸ **setProviderUrl**(`chainId`, `url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `url` | `string` \| `string`[] |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProviderUrl
+
+___
+
+### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
+
+▸ **setProviderUrls**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProviderUrls
+
+___
+
+### <a id="setproviders" name="setproviders"></a> setProviders
+
+▸ **setProviders**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `SignersOrProviders` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setProviders
 
 ___
 
@@ -1678,9 +1615,9 @@ ___
 
 ___
 
-### <a id="getdefaultchainrpcprovider-1" name="getdefaultchainrpcprovider-1"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider-1" name="getdefaultprovider-1"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -1694,13 +1631,13 @@ ___
 
 #### Inherited from
 
-Base.getDefaultChainRpcProvider
+Base.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders-1" name="getdefaultchainrpcproviders-1"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders-1" name="getdefaultproviders-1"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(`network`): `ChainProviders`
+▸ **getDefaultProviders**(`network`): `SignersOrProviders`
 
 #### Parameters
 
@@ -1710,11 +1647,11 @@ ___
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-Base.getDefaultChainRpcProviders
+Base.getDefaultProviders
 
 ___
 

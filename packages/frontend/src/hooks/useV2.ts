@@ -73,9 +73,9 @@ export function useV2(): V2Hook {
 
   const v2Sdk = useMemo(() => {
     const hop = new Hop({
-      chainProviders: Hop.getDefaultChainRpcProviders(reactAppNetwork),
-      signer: provider?.getSigner(),
+      signersOrProviders: Hop.getDefaultProviders(reactAppNetwork)
     })
+    // provider?.getSigner() // TODO
     return hop
   }, [address, provider])
 
@@ -93,13 +93,13 @@ export function useV2(): V2Hook {
   }
 
   async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
-    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }
 
   async function getTokenInfoByTokenSymbol (chainId: string, tokenSymbol: string): Promise<Token> {
     const address = getTokenAddress(chainId, tokenSymbol)
-    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }
 

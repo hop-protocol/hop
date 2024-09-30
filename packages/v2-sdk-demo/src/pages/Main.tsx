@@ -44,7 +44,7 @@ const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../compo
 const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTransferId'))
 const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents'))
 const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents'))
-const RailsGatewayCalcAmountOutMin = lazy(() => import('../components/railsGateway/RailsGatewayCalcAmountOutMin'))
+const HopCalcAmountOutMin = lazy(() => import('../components/hop/HopCalcAmountOutMin'))
 const SendMessage = lazy(() => import('../components/messenger/SendMessage'))
 const RelayMessage = lazy(() => import('../components/messenger/RelayMessage'))
 const Execute = lazy(() => import('../components/messenger/Execute'))
@@ -69,7 +69,7 @@ export function Main () {
   const [balance, setBalance] = useState('-')
   const [sdk, setSdk] = useState(() => {
     return new Hop({
-      chainProviders: Hop.getDefaultChainRpcProviders(network)
+      signersOrProviders: Hop.getDefaultProviders(network)
     })
   })
 
@@ -108,6 +108,7 @@ export function Main () {
     ['Hop - Send Tokens', <HopSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Hop - Approve Send Tokens', <HopApproveSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Hop - Switch Chain', <HopSwitchChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Hop - Calculate Amount Out Min', <HopCalcAmountOutMin sdk={sdk} />],
     ['Rails Gateway - Get Path ID', <RailsGatewayGetPathId sdk={sdk} />],
     ['Rails Gateway - Get Path Info', <RailsGatewayGetPathInfo sdk={sdk} />],
     ['Rails Gateway - Get Fee', <RailsGatewayGetFee sdk={sdk} />],
@@ -131,7 +132,6 @@ export function Main () {
     ['Rails Gateway - Get Transfer Bonded Event From Transfer ID', <RailsGatewayGetTransferBondedEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Events', <RailsGatewayGetTransferSentEvents sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Events', <RailsGatewayGetTransferBondedEvents sdk={sdk} />],
-    ['Rails Gateway - Calculate Amount Out Min', <RailsGatewayCalcAmountOutMin sdk={sdk} />],
     ['Messenger - Set Contract Addresses', <SetContractAddresses sdk={sdk} />],
     ['Messenger - Get Contract Addresses', <GetContractAddresses sdk={sdk} />],
     ['Messenger - Set RPC Providers', <SetRpcProviders sdk={sdk} />],

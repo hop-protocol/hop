@@ -38,7 +38,7 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [timeWindow, setTimeWindow] = useLocalStorageState(`${cacheKey}:timeWindow`, {
+  const [time, setTime] = useLocalStorageState(`${cacheKey}:time`, {
     defaultValue: '',
   })
 
@@ -59,13 +59,12 @@ export function RailsGatewayWithdraw (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
       pathId,
       amount,
-      timeWindow: Number(timeWindow)
+      time: Number(time)
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.withdrawClaim(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawClaim(args)
     return txData
   }
 
@@ -83,7 +82,7 @@ export function RailsGatewayWithdraw (props: Props) {
           throw new Error('No signer')
         }
 
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -102,24 +101,22 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const amount = "${amount}"
-  const timeWindow = ${timeWindow}
+  const time = ${time}
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.railsGateway.populateTransaction.withdrawClaim({
-    chainId,
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdrawClaim({
     pathId,
     amount,
-    timeWindow
+    time
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer..sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -172,7 +169,7 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Time <small><em>(uint256)</em></small> <small><em>Time window</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={timeWindow} onChange={(event: any) => setTimeWindow(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={time} onChange={(event: any) => setTime(event.target.value)} />
               </Box>
 
               <Box mb={2}>

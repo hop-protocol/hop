@@ -29,11 +29,11 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
     defaultValue: '',
   })
 
-  const [recipient, setRecipient] = useLocalStorageState(`${cacheKey}:recipient`, {
+  const [bonder, setBonder] = useLocalStorageState(`${cacheKey}:bonder`, {
     defaultValue: '',
   })
 
-  const [timeWindow, setTimeWindow] = useLocalStorageState(`${cacheKey}:timeWindow`, {
+  const [time, setTime] = useLocalStorageState(`${cacheKey}:time`, {
     defaultValue: '',
   })
 
@@ -44,11 +44,6 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -56,13 +51,12 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
       setBalance('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
-        recipient,
-        timeWindow: Number(timeWindow)
+        bonder,
+        time: Number(time)
       }
       console.log('args', args)
-      const balance = await sdk.railsGateway.getWithdrawableBalance(args)
+      const balance = await sdk.getRailsGateway(fromChainId).getWithdrawableBalance(args)
       setBalance(balance?.toString())
     } catch (err: any) {
       console.error(err)
@@ -75,17 +69,15 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
-  const recipient = "${recipient}"
-  const timeWindow = ${timeWindow}
+  const bonder = "${bonder}"
+  const time = ${time}
 
   ${hopInstantiateDisplayString}
-  const fee = await hop.railsGateway.getWithdrawableBalance({
-    chainId,
+  const fee = await hop.getRailsGateway('${fromChainId}').getWithdrawableBalance({
     pathId,
-    recipient,
-    timeWindow
+    bonder,
+    time
   })
   console.log(fee)
 }
@@ -128,16 +120,16 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Recipient <small><em>(address)</em></small> <small><em>Recipient address</em></small></label>
+                  <label>Bonder <small><em>(address)</em></small> <small><em>Bonder address</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={recipient} onChange={event => setRecipient(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={bonder} onChange={event => setBonder(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
                   <label>Time <small><em>(uint256)</em></small> <small><em>Time window</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={timeWindow} onChange={event => setTimeWindow(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={time} onChange={event => setTime(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

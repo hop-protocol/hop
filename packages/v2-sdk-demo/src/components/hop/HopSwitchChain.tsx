@@ -67,7 +67,7 @@ export function HopSwitchChain (props: Props) {
       }
 
       console.log('chainId to switch to', fromChainId)
-      await sdk.connect(signer).switchChain(fromChainId)
+      await sdk.switchChain(fromChainId)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -84,7 +84,7 @@ async function main() {
 
   ${hopInstantiateDisplayString}
   const signer = window.ethereum
-  await hop.connect(signer).switchChain(chainId)
+  await hop.switchChain(chainId)
 }
 
 main().catch(console.error)

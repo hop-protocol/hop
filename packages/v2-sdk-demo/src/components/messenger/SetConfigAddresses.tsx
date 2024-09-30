@@ -41,7 +41,7 @@ export function SetRpcProviders (props: Props) {
       setResult('')
 
       const config = JSON.parse(configString)
-      sdk.setChainRpcProviders(config)
+      sdk.setProviders(config)
       setResult('set')
     } catch (err: any) {
       console.error(err)
@@ -58,7 +58,7 @@ async function main() {
 
   ${hopInstantiateDisplayString}
 
-  hop.setRpcProviders(rpcProviders)
+  hop.setProviders(rpcProviders)
 }
 
 main().catch(console.error)

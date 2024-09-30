@@ -338,13 +338,14 @@ export function HardhatTutorial () {
       }
     } as any) // TODO
 
-    const tx = await sdk.hubConnector.connect(signer).connectTargets({
+    const txData = await sdk.hubConnector.populateTransaction.connectTargets({
       hubChainId: 5,
       spokeChainId: 420,
       target1: greeterAddressOnGoerli,
       target2: greeterAddressOnOptimism,
     })
 
+    const tx = await sdk.sendTransaction(txData, txData.data, signer)
     const receipt = await tx.wait()
     const connectorAddress = await sdk.hubConnector.getConnectorAddressFromReceipt(receipt)
 

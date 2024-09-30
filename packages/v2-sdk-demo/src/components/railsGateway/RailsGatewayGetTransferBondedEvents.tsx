@@ -44,7 +44,7 @@ export function RailsGatewayGetTransferBondedEvents (props: Props) {
   async function getEvents() {
     let _fromBlock = Number(fromBlock)
     let _toBlock = Number(toBlock)
-    const provider = sdk.getRpcProviderForChainId(chainId)
+    const provider = sdk.getProvider(chainId)
     const latestBlock = await provider.getBlockNumber()
     if (latestBlock) {
       if (!toBlock) {
@@ -62,12 +62,11 @@ export function RailsGatewayGetTransferBondedEvents (props: Props) {
       }
     }
     const args = {
-      chainId,
       fromBlock: _fromBlock,
       toBlock: _toBlock
     }
     console.log('args', args)
-    const _events = await sdk.railsGateway.getTransferBondedEvents(args)
+    const _events = await sdk.getRailsGateway(chainId).getTransferBondedEvents(args)
     return _events
   }
 
@@ -90,13 +89,11 @@ export function RailsGatewayGetTransferBondedEvents (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${chainId}"
   const fromBlock = ${fromBlock || 'undefined'}
   const toBlock = ${toBlock || 'undefined'}
 
   ${hopInstantiateDisplayString}
-  const events = await hop.messenger.getTransferBondedEvents({
-    chainId,
+  const events = await hop.getRailsGateway('${chainId}').getTransferBondedEvents({
     fromBlock,
     toBlock
   })

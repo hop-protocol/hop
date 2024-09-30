@@ -44,10 +44,6 @@ export function RailsGatewayGetNeedsApprovalForSend (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -55,13 +51,12 @@ export function RailsGatewayGetNeedsApprovalForSend (props: Props) {
       setNeedsApproval('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         amount,
         account
       }
       console.log('args', args)
-      const needsApproval = await sdk.railsGateway.getNeedsApprovalForSend(args)
+      const needsApproval = await sdk.getRailsGateway(fromChainId).getNeedsApprovalForSend(args)
       setNeedsApproval(`${needsApproval}`)
     } catch (err: any) {
       console.error(err)
@@ -74,14 +69,12 @@ export function RailsGatewayGetNeedsApprovalForSend (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const amount = "${amount}"
   const account = "${account}"
 
   ${hopInstantiateDisplayString}
-  const needsApproval = await hop.railsGateway.getNeedsApprovalForSend({
-    chainId,
+  const needsApproval = await hop.getRailsGateway('${fromChainId}').getNeedsApprovalForSend({
     pathId,
     amount,
     account

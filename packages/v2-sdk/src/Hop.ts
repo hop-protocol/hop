@@ -1,4 +1,4 @@
-import { Base, ChainProviders, TxOverrides } from '#common/index.js'
+import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
 import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
@@ -32,7 +32,7 @@ export enum EventName {
 export type HopConstructorInput = {
   batchBlocks?: number,
   contractAddresses?: Addresses
-  chainProviders: ChainProviders
+  signersOrProviders: SignersOrProviders
 }
 
 export type GetEventsInput = {
@@ -165,14 +165,14 @@ export class Hop extends Base {
       throw new ConfigError('options is required')
     }
 
-    const { chainProviders } = options
-    super({ chainProviders })
+    const { signersOrProviders } = options
+    super({ signersOrProviders })
 
-    if (Object.keys(chainProviders).length < 2) {
+    if (Object.keys(signersOrProviders).length < 2) {
       throw new ConfigError('At least 2 providers are needed for instantiation. Please provide a source provider and destination provider.')
     }
 
-    const sharedConfig = { contractAddresses: this.contractAddresses, chainProviders: this.chainProviders }
+    const sharedConfig = { contractAddresses: this.contractAddresses, signersOrProviders: this.signersOrProviders }
     this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.gasPriceOracle = new GasPriceOracle(this.network)
@@ -507,13 +507,13 @@ export class Hop extends Base {
     return decoded as EthersEventWithDecodedTypesAndContext<AllEventTypes>[]
   }
 
-  override setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {
-    super.setChainRpcProviderUrls(chainProviders)
-    this.messenger.setChainRpcProviderUrls(chainProviders)
-    this.hubConnector.setChainRpcProviderUrls(chainProviders)
+  override setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
+    super.setProviderUrls(signersOrProviders)
+    this.messenger.setProviderUrls(signersOrProviders)
+    this.hubConnector.setProviderUrls(signersOrProviders)
 
-    for (const chainId in chainProviders) {
-      this.getRailsGateway(chainId).setChainRpcProviderUrls(chainProviders)
+    for (const chainId in signersOrProviders) {
+      this.getRailsGateway(chainId).setProviderUrls(signersOrProviders)
     }
   }
 
@@ -529,19 +529,23 @@ export class Hop extends Base {
     return transferSentEvent.decoded.transferId
   }
 
-  calcAmountOutMin ({ amountOut, slippageTolerance }: CalcAmountOutMinInput): BigNumber {
-    if (!this.utils.isValidNumericValue(amountOut)) {
-      throw new InputError(`Invalid amountOut "${amountOut}"`)
-    }
+  static calcAmountOutMin ({ amountOut, slippageTolerance }: CalcAmountOutMinInput): BigNumber {
+    // if (!this.utils.isValidNumericValue(amountOut)) {
+    //   throw new InputError(`Invalid amountOut "${amountOut}"`)
+    // }
 
-    if (!this.utils.isValidNumericValue(slippageTolerance)) {
-      throw new InputError(`Invalid slippageTolerance "${slippageTolerance}"`)
-    }
+    // if (!this.utils.isValidNumericValue(slippageTolerance)) {
+    //   throw new InputError(`Invalid slippageTolerance "${slippageTolerance}"`)
+    // }
 
     amountOut = BigNumber.from(amountOut.toString())
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     return amountOut.mul(minBps).div(10000)
+  }
+
+  calcAmountOutMin ({ amountOut, slippageTolerance }: CalcAmountOutMinInput): BigNumber {
+    return Hop.calcAmountOutMin({ amountOut, slippageTolerance })
   }
 
   async getTransferStatus({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
@@ -601,12 +605,13 @@ export class Hop extends Base {
   }
 
   getRailsGateway (chainId: BigNumberish): RailsGateway {
-    const key = `RailsGateway:${chainId?.toString()}`
+    chainId = chainId?.toString()
+    const key = `RailsGateway:${chainId}`
     let instance = cache.get(key) as RailsGateway
     if (!instance) {
       instance = new RailsGateway({
         chainId,
-        signerOrProvider: this.getRpcProviderForChainId(chainId)
+        signerOrProvider: this.signersOrProviders[chainId]
       })
 
       cache.put(key, instance)

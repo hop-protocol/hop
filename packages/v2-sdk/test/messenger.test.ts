@@ -13,7 +13,7 @@ describe('Messenger', () => {
   const signer = new Wallet(privateKey)
   const address = '0xTODO'
   const messenger = new Messenger({
-    chainProviders: Messenger.getDefaultChainRpcProviders('sepolia')
+    signersOrProviders: Messenger.getDefaultProviders('sepolia')
   })
   it.skip('TODO should get spokeMessageBridge contract address', async () => {
     const chainId = 1

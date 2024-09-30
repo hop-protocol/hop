@@ -94,7 +94,7 @@ export function SendMessage (props: Props) {
   }, [abiJson, selectedAbiMethod])
 
   const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
+    return sdk.getProvider(fromChainId)
   }, [sdk, fromChainId])
 
   const abiOptions = useMemo(() => {

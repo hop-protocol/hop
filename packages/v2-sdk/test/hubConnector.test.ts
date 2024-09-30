@@ -5,7 +5,7 @@ dotenv.config()
 
 describe('HubConnector', () => {
   const hubConnector = new HubConnector({
-    chainProviders: HubConnector.getDefaultChainRpcProviders('mainnet')
+    signersOrProviders: HubConnector.getDefaultProviders('mainnet')
   })
   it.skip('should populate the connectTargets transaction', async () => {
     const hubChainId = 1

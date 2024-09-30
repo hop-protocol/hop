@@ -15,7 +15,7 @@ export class Worker {
 
   constructor (options: Options = {}) {
     this.sdk = new Hop({
-      chainProviders: Hop.getDefaultChainRpcProviders(network)
+      signersOrProviders: Hop.getDefaultProviders(network)
     })
 
     const startBlocks: any = {}

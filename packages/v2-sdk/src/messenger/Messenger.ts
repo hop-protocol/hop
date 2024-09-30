@@ -258,8 +258,8 @@ export type MessengerConfig = BaseConfig
 export class Messenger extends Base {
   gasPriceOracle: GasPriceOracle
 
-  constructor({ contractAddresses, chainProviders }: MessengerConfig) {
-    super({ contractAddresses, chainProviders })
+  constructor({ contractAddresses, signersOrProviders }: MessengerConfig) {
+    super({ contractAddresses, signersOrProviders })
 
     this.gasPriceOracle = new GasPriceOracle(this.network)
   }
@@ -548,7 +548,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(toChainId)
+    const provider = this.getProvider(toChainId)
     if (!provider) {
       throw new InputError(`Invalid chainId "${toChainId}", provider not found`)
     }
@@ -642,8 +642,8 @@ export class Messenger extends Base {
       throw new InputError('expected bundle comitted transaction hash')
     }
 
-    const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
-    const l2Provider = this.getRpcProviderForChainId(fromChainId)
+    // const l1Provider = this.getProvider(this.l1ChainId)
+    // const l2Provider = this.getProvider(fromChainId)
     // TODO
     const exitRelayer : ExitRelayer | undefined = undefined
     if (!exitRelayer) {
@@ -663,8 +663,8 @@ export class Messenger extends Base {
       throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
 
-    const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
-    const l2Provider = this.getRpcProviderForChainId(fromChainId)
+    // const l1Provider = this.getProvider(this.l1ChainId)
+    // const l2Provider = this.getProvider(fromChainId)
     const exitRelayer : ExitRelayer | undefined = undefined
     if (!exitRelayer) {
       throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
@@ -705,7 +705,7 @@ export class Messenger extends Base {
           throw new InputError(`Invalid toCalldata "${toCalldata}"`)
         }
 
-        const provider = this.getRpcProviderForChainId(fromChainId)
+        const provider = this.getProvider(fromChainId)
         if (!provider) {
           throw new InputError(`Invalid chainId, "${fromChainId}", provider not found`)
         }
@@ -752,7 +752,7 @@ export class Messenger extends Base {
           throw new InputError('Invalid bundleProof')
         }
 
-        const provider = this.getRpcProviderForChainId(toChainId)
+        const provider = this.getProvider(toChainId)
         if (!provider) {
           throw new InputError(`Invalid chainId "${toChainId}", provider not found`)
         }
@@ -796,8 +796,8 @@ export class Messenger extends Base {
           throw new InputError('expected bundle comitted transaction hash')
         }
 
-        const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
-        const l2Provider = this.getRpcProviderForChainId(fromChainId)
+        // const l1Provider = this.getProvider(this.l1ChainId)
+        // const l2Provider = this.getProvider(fromChainId)
         const exitRelayer : ExitRelayer | undefined = undefined
         if (!exitRelayer) {
           throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
@@ -841,7 +841,11 @@ export class Messenger extends Base {
           throw new InputError(`Invalid address, not found for chainId "${toChainId}"`)
         }
 
-        const provider = this.getRpcProviderForChainId(toChainId)
+        const provider = this.getProvider(toChainId)
+        if (!provider) {
+          throw new InputError(`Invalid chainId, "${toChainId}", provider not found`)
+        }
+
         const mockExecutor = MockExecutor__factory.connect(address, provider)
         const txData = await mockExecutor.populateTransaction.execute(messageId, fromChainId, fromAddress, toAddress, toCalldata)
 
@@ -888,7 +892,10 @@ export class Messenger extends Base {
       throw new InputError('fromChainId and toChainId must be different')
     }
 
-    const provider = this.getRpcProviderForChainId(fromChainId)
+    const provider = this.getProvider(fromChainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
+    }
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
 
@@ -947,7 +954,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(toChainId)
+    const provider = this.getProvider(toChainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId "${toChainId}"`)
     }
@@ -980,7 +987,7 @@ export class Messenger extends Base {
       throw new InputError('receipt is required')
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
@@ -1315,7 +1322,7 @@ export class Messenger extends Base {
       throw new InputError(`Invalid transactionHash "${transactionHash}"`)
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
@@ -1441,7 +1448,10 @@ export class Messenger extends Base {
     const timestamp: number | null = null
     const txData = (populatedTx.data ?? '0x').toString()
     const chain = this.utils.getChainSlug(toChainId)
-    const provider = this.getRpcProviderForChainId(toChainId)
+    const provider = this.getProvider(toChainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${toChainId}"`)
+    }
     const gasLimit = await provider.estimateGas(populatedTx)
     const feeData = await this.gasPriceOracle.estimateGasCost(chain, timestamp, gasLimit.toNumber(), txData)
     return parseEther(feeData.data.gasCost)

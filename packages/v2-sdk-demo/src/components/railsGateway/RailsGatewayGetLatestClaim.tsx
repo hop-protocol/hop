@@ -43,12 +43,11 @@ export function RailsGatewayGetLatestClaim (props: Props) {
       setClaim('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId
       }
 
       console.log('args', args)
-      const transferId = await sdk.railsGateway.getLatestClaim(args)
+      const transferId = await sdk.getRailsGateway(fromChainId).getLatestClaim(args)
       setClaim(transferId)
     } catch (err: any) {
       console.error(err)
@@ -61,12 +60,10 @@ export function RailsGatewayGetLatestClaim (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const claim = await hop.railsGateway.getLatestClaim({
-    chainId,
+  const claim = await hop.getRailsGateway('${fromChainId}').getLatestClaim({
     pathId
   })
   console.log(claim)

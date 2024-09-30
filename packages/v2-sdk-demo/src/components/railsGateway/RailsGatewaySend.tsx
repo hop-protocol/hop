@@ -80,7 +80,6 @@ export function RailsGatewaySend (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
       pathId,
       to: toAddress,
       amount,
@@ -90,7 +89,7 @@ export function RailsGatewaySend (props: Props) {
       fee
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.send(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.send(args)
     return txData
   }
 
@@ -107,7 +106,7 @@ export function RailsGatewaySend (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -130,7 +129,6 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const to = "${toAddress}"
   const amount = "${amount}"
@@ -140,8 +138,7 @@ async function main() {
   const fee = "${fee}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.railsGateway.populateTransaction.send({
-    chainId,
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.send({
     pathId,
     to,
     amount,
@@ -155,7 +152,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

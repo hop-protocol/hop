@@ -126,6 +126,7 @@
 - [SendInput](modules.md#sendinput)
 - [SendTokensInput](modules.md#sendtokensinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
+- [SignersOrProviders](modules.md#signersorproviders)
 - [StakeHopInput](modules.md#stakehopinput)
 - [Token](modules.md#token)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
@@ -1155,8 +1156,8 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `batchBlocks?` | `number` |
-| `chainProviders` | `ChainProviders` |
 | `contractAddresses?` | `Addresses` |
+| `signersOrProviders` | `SignersOrProviders` |
 
 ___
 
@@ -1230,11 +1231,11 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `chainProviders?` | `ChainProviders` |
 | `contractAddresses?` | `Addresses` |
 | `gasPriceMultiplier?` | `number` |
 | `network?` | `string` |
 | `signerOrProvider?` | `Signer` \| `providers.Provider` |
+| `signersOrProviders?` | `SignersOrProviders` |
 
 ___
 
@@ -1328,6 +1329,16 @@ ___
 | :------ | :------ |
 | `bundleCommittedEvent` | `BundleCommitted` |
 | `fromChainId` | `BigNumberish` |
+
+___
+
+### <a id="signersorproviders" name="signersorproviders"></a> SignersOrProviders
+
+Ƭ **SignersOrProviders**: `Object`
+
+#### Index signature
+
+▪ [key: `string`]: `SignerOrProvider`
 
 ___
 
@@ -1498,7 +1509,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
-| `timeWindow` | `number` |
+| `time` | `number` |
 
 ___
 
@@ -1510,10 +1521,10 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `bonder` | `string` |
 | `path?` | [`Path`](modules.md#path) |
 | `pathId?` | `string` |
-| `recipient` | `string` |
-| `timeWindow` | `number` |
+| `time` | `number` |
 
 ___
 
@@ -1539,4 +1550,4 @@ ___
 | :------ | :------ |
 | `amount` | `BigNumberish` |
 | `pathId` | `string` |
-| `timeWindow` | `number` |
+| `time` | `number` |

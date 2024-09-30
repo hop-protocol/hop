@@ -33,13 +33,12 @@ export class HubConnector extends Base {
   get populateTransaction() {
     return {
       connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const provider = this.getRpcProviderForChainId(hubChainId)
+        const provider = this.getProvider(hubChainId)
         if (!provider) {
           throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
         }
         const address = this.getHubConnectorContractAddress(hubChainId)
-        const signer = await this.getSignerOrThrow(hubChainId)
-        const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
+        const factory = HubERC5164ConnectorFactory__factory.connect(address, provider)
         const txData = await factory.populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
 
         return {

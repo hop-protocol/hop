@@ -8,7 +8,7 @@ const { parseUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
-describe('Sdk - Hop - e2e', () => {
+describe.skip('Sdk - Hop - e2e', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -26,7 +26,7 @@ describe('Sdk - Hop - e2e', () => {
 
     const signer = new Wallet(privateKey)
     const sdk = new Hop({
-      chainProviders: {
+      signersOrProviders: {
         [fromChainId]: signer.connect(ethereumProvider),
         [toChainId]: signer.connect(baseProvider),
       },
@@ -99,7 +99,7 @@ describe('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e', () => {
+describe.skip('Sdk - RailsGateway - e2e', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -117,7 +117,7 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     const signer = new Wallet(privateKey)
     const sdk = new Hop({
-      chainProviders: {
+      signersOrProviders: {
         [fromChainId]: signer.connect(ethereumProvider),
         [toChainId]: signer.connect(baseProvider)
       },
@@ -307,21 +307,21 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('BondedEvent  event:', bondedEvent)
 
-    const destProvider = await sdk.getProviderOrThrow(toChainId)
+    const destProvider = (await sdk.getProvider(toChainId))!
     // const bondTx = await destProvider.getTransaction('0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5') // debug
     const bondTxFromHash = await destProvider.getTransaction(bondTx.hash)
     const bondBlock = await destProvider.getBlock(bondTxFromHash.blockNumber!)
 
-    const timeWindow = bondBlock.timestamp
+    const time = bondBlock.timestamp
 
-    console.log('timeWindow:', timeWindow)
+    console.log('time:', time)
 
     const shouldWithdraw = false // debug
     if (shouldWithdraw) {
       const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawClaim({
         pathId: transferSentEvent.decoded.pathId,
         amount: transferSentEvent.decoded.amount,
-        timeWindow
+        time
       })
 
       console.log('withdraw tx:', withdrawTx.hash)

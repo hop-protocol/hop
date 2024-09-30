@@ -44,9 +44,9 @@ export class Indexer {
     this.sdk = new Hop({
       batchBlocks: 10_000,
       contractAddresses: options?.sdkContractAddresses,
-      chainProviders: Hop.getDefaultChainRpcProviders(network)
+      signersOrProviders: Hop.getDefaultProviders(network)
     })
-    this.sdk.setChainRpcProviderUrls(rpcUrls)
+    this.sdk.setProviderUrls(rpcUrls)
     this.priceFeed = new PriceFeed({
       coingecko: coingeckoApiKey
     })
@@ -146,7 +146,11 @@ export class Indexer {
       const syncState = await _db.getSyncState(chainId)
       console.log('syncState', chainId, syncState)
 
-      const provider = this.sdk.getRpcProviderForChainId(chainId)
+      const provider = this.sdk.getProvider(chainId)
+      if (!provider) {
+        console.error('provider not found for chainId', chainId)
+        continue
+      }
       let fromBlock = this.startBlocks[chainId]
       let headBlock = await provider.getBlockNumber()
       if (this.endBlocks[chainId]) {

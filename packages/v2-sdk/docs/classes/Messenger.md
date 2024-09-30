@@ -47,6 +47,7 @@
 - [getDefaultChainRpcProvider](Messenger.md#getdefaultchainrpcprovider)
 - [getDefaultChainRpcProviders](Messenger.md#getdefaultchainrpcproviders)
 - [getEstimatedTxCostForForwardMessage](Messenger.md#getestimatedtxcostforforwardmessage)
+- [getEthersWeb3Signer](Messenger.md#getethersweb3signer)
 - [getEventFetcher](Messenger.md#geteventfetcher)
 - [getEventNames](Messenger.md#geteventnames)
 - [getExecutorContractAddress](Messenger.md#getexecutorcontractaddress)
@@ -573,6 +574,26 @@ ___
 #### Returns
 
 `Promise`\<`number`\>
+
+___
+
+### <a id="getethersweb3signer" name="getethersweb3signer"></a> getEthersWeb3Signer
+
+▸ **getEthersWeb3Signer**(`signer`): `Signer`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | `any` |
+
+#### Returns
+
+`Signer`
+
+#### Inherited from
+
+Base.getEthersWeb3Signer
 
 ___
 
@@ -1475,7 +1496,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -1483,6 +1504,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
+| `signer?` | ``null`` \| `Signer` |
 
 #### Returns
 

@@ -200,35 +200,34 @@ export class Base {
 
   async getSigner (chainId: BigNumberish): Promise<Signer | null> {
     let signer = this.getRpcProviderForChainId(chainId)
+
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`invalid chainId "${chainId}"`);
+      throw new Error(`invalid chainId "${chainId}"`)
     }
 
-    chainId = chainId.toString();
+    if (!signer) {
+      throw new Error('signer not set')
+    }
 
-    if (!Signer.isSigner(signer)) {
-      try {
-        signer = (new providers.Web3Provider(signer as any, 'any').getSigner()) as any
-      } catch (err: any) {
-        console.log('new Web3Provider error:', err)
-      }
+    chainId = chainId.toString()
 
-      return null;
+    if (signer) {
+      signer = this.getEthersWeb3Signer(signer)
     }
 
     if (signer.provider) {
-      const connectedChainId = (await signer.getChainId()).toString();
+      const connectedChainId = (await signer.getChainId()).toString()
       if (connectedChainId !== chainId) {
-        return null;
+        return null
       }
-      return signer;
+      return signer
     } else {
-      const provider = await this.getProvider(chainId);
+      const provider = this.getProvider(chainId)
       if (!provider) {
         throw new Error(`provider for chainId "${chainId?.toString()}"`)
       }
 
-      return signer.connect(provider);
+      return signer.connect(provider)
     }
   }
 
@@ -244,12 +243,12 @@ export class Base {
 
   getProvider(chainId: BigNumberish): Provider | null {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`invalid chainId "${chainId}"`);
+      throw new Error(`invalid chainId "${chainId}"`)
     }
 
-    chainId = chainId.toString();
+    chainId = chainId.toString()
 
-    const signerOrProvider = this.getRpcProviderForChainId(chainId);
+    const signerOrProvider = this.getRpcProviderForChainId(chainId)
 
     if (Signer.isSigner(signerOrProvider)) {
       return (signerOrProvider as Signer).provider ?? null
@@ -317,8 +316,12 @@ export class Base {
     return txOptions
   }
 
-  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<providers.TransactionResponse> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId, signer?: Signer | null): Promise<providers.TransactionResponse> {
     chainId = chainId?.toString()
+
+    if (signer) {
+      signer = this.getEthersWeb3Signer(signer)
+    }
 
     if (!chainId) {
       throw new Error('chainId is required in sendTransaction')
@@ -332,7 +335,7 @@ export class Base {
       throw new Error('invalid "to" address')
     }
 
-    let signer = await this.getSigner(chainId)
+    signer ??= await this.getSigner(chainId)
 
     if (!signer) {
       throw new Error('signer is required')
@@ -652,5 +655,17 @@ export class Base {
     }
 
     throw new Error(`No default provider found for chainId "${chainIdStr}"`)
+  }
+
+  getEthersWeb3Signer(signer: any): Signer {
+    if (!Signer.isSigner(signer)) {
+      try {
+        signer = (new providers.Web3Provider(signer as any, 'any').getSigner()) as any
+      } catch (err: any) {
+        console.log('new Web3Provider error:', err)
+      }
+    }
+
+    return signer
   }
 }

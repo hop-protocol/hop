@@ -40,6 +40,7 @@
 - [getContractExists](HubConnector.md#getcontractexists)
 - [getDefaultChainRpcProvider](HubConnector.md#getdefaultchainrpcprovider)
 - [getDefaultChainRpcProviders](HubConnector.md#getdefaultchainrpcproviders)
+- [getEthersWeb3Signer](HubConnector.md#getethersweb3signer)
 - [getHubConnectorContractAddress](HubConnector.md#gethubconnectorcontractaddress)
 - [getProvider](HubConnector.md#getprovider)
 - [getProviderOrThrow](HubConnector.md#getproviderorthrow)
@@ -416,6 +417,26 @@ Base.getDefaultChainRpcProviders
 
 ___
 
+### <a id="getethersweb3signer" name="getethersweb3signer"></a> getEthersWeb3Signer
+
+▸ **getEthersWeb3Signer**(`signer`): `Signer`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | `any` |
+
+#### Returns
+
+`Signer`
+
+#### Inherited from
+
+Base.getEthersWeb3Signer
+
+___
+
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
@@ -684,7 +705,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -692,6 +713,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
+| `signer?` | ``null`` \| `Signer` |
 
 #### Returns
 

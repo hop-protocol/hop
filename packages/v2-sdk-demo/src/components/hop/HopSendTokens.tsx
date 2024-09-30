@@ -109,12 +109,15 @@ export function HopSendTokens (props: Props) {
           throw new Error('No signer')
         }
 
+        const account = await signer.getAddress()
+
         const needsApproval = await sdk.getNeedsApprovalForSendTokens({
           fromChainId,
           toChainId,
           fromToken,
           toToken,
-          amount
+          amount,
+          account
         })
 
         if (needsApproval) {
@@ -125,17 +128,16 @@ export function HopSendTokens (props: Props) {
             toToken,
             amount
           })
-          const tx = await sdk.sendTransaction(approveTxData)
+          const tx = await sdk.sendTransaction(approveTxData, approveTxData.chainId, signer)
           setApprovalTxHash(tx.hash)
         } else {
           const txData = await getSendTxData()
           setTxData(JSON.stringify(txData, null, 2))
-          const tx = await sdk.sendTransaction(txData)
+          const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
           setTxHash(tx.hash)
 
           const receipt = await tx.wait()
-          const event = await sdk.railsGateway.getTransferSentEventFromTransactionReceipt({
-            chainId: fromChainId,
+          const event = await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionReceipt({
             receipt
           })
           const transferId = event?.decoded.transferId
@@ -181,7 +183,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.sendTransaction(txData)
+  const tx = await hop.sendTransaction(txData, fromChainId, signer)
   console.log(tx)
   `.trim()
   )}

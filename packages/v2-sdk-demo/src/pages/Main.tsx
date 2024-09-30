@@ -102,7 +102,7 @@ export function Main () {
   const signer = provider?.getSigner()
   const showAccountInfo = false
 
-  const sdkWithSigner = signer ? sdk.connect(signer) : sdk
+  const sdkWithSigner = sdk // TODO
 
   const components = [
     ['Hop - Send Tokens', <HopSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],

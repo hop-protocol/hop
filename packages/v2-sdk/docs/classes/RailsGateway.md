@@ -54,6 +54,7 @@
 - [getContractExists](RailsGateway.md#getcontractexists)
 - [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider)
 - [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders)
+- [getEthersWeb3Signer](RailsGateway.md#getethersweb3signer)
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
 - [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
@@ -758,6 +759,26 @@ ___
 #### Inherited from
 
 StakingRegistry.getDefaultChainRpcProviders
+
+___
+
+### <a id="getethersweb3signer" name="getethersweb3signer"></a> getEthersWeb3Signer
+
+▸ **getEthersWeb3Signer**(`signer`): `Signer`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | `any` |
+
+#### Returns
+
+`Signer`
+
+#### Inherited from
+
+StakingRegistry.getEthersWeb3Signer
 
 ___
 
@@ -1961,7 +1982,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -1969,6 +1990,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
+| `signer?` | ``null`` \| `Signer` |
 
 #### Returns
 

@@ -44,6 +44,7 @@
 - [getDefaultChainRpcProvider](Hop.md#getdefaultchainrpcprovider)
 - [getDefaultChainRpcProviders](Hop.md#getdefaultchainrpcproviders)
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
+- [getEthersWeb3Signer](Hop.md#getethersweb3signer)
 - [getEvents](Hop.md#getevents)
 - [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
 - [getMessenger](Hop.md#getmessenger)
@@ -461,6 +462,26 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="getethersweb3signer" name="getethersweb3signer"></a> getEthersWeb3Signer
+
+▸ **getEthersWeb3Signer**(`signer`): `Signer`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | `any` |
+
+#### Returns
+
+`Signer`
+
+#### Inherited from
+
+Base.getEthersWeb3Signer
 
 ___
 
@@ -935,7 +956,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -943,6 +964,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
+| `signer?` | ``null`` \| `Signer` |
 
 #### Returns
 

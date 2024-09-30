@@ -53,4 +53,7 @@ describe('getComputedPathId', () => {
 
     expect(result).toBe(expected)
   })
+
+
+  // TODO: generateZeroBytes32
 })

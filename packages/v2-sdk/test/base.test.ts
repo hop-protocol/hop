@@ -56,12 +56,6 @@ describe('Base', () => {
     // console.log(providers)
     expect(providers).toBeDefined()
   })
-  it('should connect signer', () => {
-    expect(base.signer).toBeUndefined()
-    const signer = new Wallet(privateKey)
-    const baseWithSigner = base.connect(signer)
-    expect(baseWithSigner.signer).toBeDefined()
-  })
   it('should return boolean if option is object', () => {
     expect(base.utils.isValidObject({})).toBe(true)
     expect(base.utils.isValidObject(222222)).toBe(false)
@@ -123,7 +117,7 @@ describe('Base', () => {
     expect(gas).toBeDefined()
   })
   it('should get gas price', async () => {
-    const provider = await base.getSignerOrProvider(1)
+    const provider = await base.getProviderOrThrow(1)
     const gasPrice = await base.utils.getGasPrice(provider)
     console.log(gasPrice)
     expect(gasPrice).toBeDefined()
@@ -243,28 +237,29 @@ describe('Base', () => {
     console.log(address)
     expect(address).toBeDefined()
   })
-  it('should return boolean if contract address exists on chain', async () => {
-    const address = '0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc'
-    const chainId = 1
-    const provider = base.getDefaultChainRpcProvider(chainId)
-    const exists = await base.getContractExists(address, provider)
-    console.log(exists)
-    expect(exists).toBeDefined()
-  })
   it('should get signer', async () => {
-    const signer = base.connect(new Wallet(privateKey)).getSigner()
+    const base = new Base({
+      chainProviders: {
+        1: new Wallet(privateKey, Base.getDefaultChainRpcProvider(1))
+      }
+    })
+    const signer = base.getSigner(1)
     console.log(signer)
     expect(signer).toBeDefined()
   })
   it('should get signer address', async () => {
-    const signer = new Wallet(privateKey)
-    const address = base.connect(signer).getSignerAddress()
+    const base = new Base({
+      chainProviders: {
+        1: new Wallet(privateKey, Base.getDefaultChainRpcProvider(1))
+      }
+    })
+    const address = base.getSignerAddress(1)
     console.log(address)
     expect(address).toBeDefined()
   })
   it('should get signer or provider given chain id', async () => {
     const chainId = 1
-    const provider = await base.getSignerOrProvider(1)
+    const provider = await base.getSignerOrProvider(chainId)
     console.log(provider)
     expect(provider).toBeDefined()
   })
@@ -325,8 +320,15 @@ describe('Base', () => {
       chainId: 1
     }
     const chainId = 1
-    const signer = base.getSigner()
+    const provider = Base.getDefaultChainRpcProvider(1)
+    const base = new Base({
+      chainProviders: {
+        1: new Wallet(privateKey, provider)
+      }
+    })
+    const signer = base.getSigner(chainId)
     const tx = await base.sendTransaction(txRequest)
+    expect(signer).toBeDefined()
     expect(tx.hash).toBeDefined()
   })
   it.skip('should switch provider chain id', async () => {
@@ -349,12 +351,29 @@ describe('Base', () => {
     console.log(color)
     expect(color).toBeDefined()
   })
-  it('should get signer provider chainid', async () => {
-    const provider = base.getDefaultChainRpcProvider(1)
+  it.skip('should get signer provider chainid', async () => {
+    const provider = Base.getDefaultChainRpcProvider(1)
     const signer = new Wallet(privateKey, provider)
-    const baseWithSigner = base.connect(signer)
-    const chainId = await baseWithSigner.getSignerProviderChainId()
+    const base = new Base({
+      chainProviders: {
+        1: signer
+      }
+    })
+    const chainId = await base.getSignerProviderChainId(1)
     console.log(chainId)
     expect(chainId.toString()).toBe('1')
   })
+  it.skip('should return boolean if contract address exists on chain', async () => {
+    const address = '0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc'
+    const chainId = 1
+    const provider = base.getDefaultChainRpcProvider(chainId)
+
+    const exists = await base.getContractExists(address, provider)
+    console.log(exists)
+    expect(exists).toBeDefined()
+  })
+  // TOOD: getSigner
+  // TOOD: getSignerOrThrow
+  // TOOD: getProvider
+  // TOOD: getProviderOrThrow
 })

@@ -31,9 +31,7 @@ export enum EventName {
 
 export type HopConstructorInput = {
   batchBlocks?: number,
-  signer?: Signer
   contractAddresses?: Addresses
-  requireChainIdInput?: boolean
   chainProviders: ChainProviders
 }
 
@@ -167,21 +165,17 @@ export class Hop extends Base {
       throw new ConfigError('options is required')
     }
 
-    const { signer, chainProviders } = options
-    super({ signer, chainProviders })
+    const { chainProviders } = options
+    super({ chainProviders })
 
     if (Object.keys(chainProviders).length < 2) {
       throw new ConfigError('At least 2 providers are needed for instantiation. Please provide a source provider and destination provider.')
     }
 
-    const sharedConfig = { signer: this.signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders }
+    const sharedConfig = { contractAddresses: this.contractAddresses, chainProviders: this.chainProviders }
     this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.gasPriceOracle = new GasPriceOracle(this.network)
-  }
-
-  override connect (signer: Signer) {
-    return new Hop({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   get version () {
@@ -224,7 +218,7 @@ export class Hop extends Base {
         }
 
         if (!to) {
-          to = (await this.getSignerAddress()) as string
+          to = (await this.getSignerAddress(fromChainId)) as string
         }
 
         if (!this.utils.isValidAddress(to)) {
@@ -253,7 +247,7 @@ export class Hop extends Base {
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
-          isClaimIdValid = await this.getRailsGateway(toChainId, false).getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(toChainId).getIsClaimIdValid({
             pathId,
             claimId: attestedClaimId
           })
@@ -346,15 +340,17 @@ export class Hop extends Base {
       throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
-    if (!this.signer) {
+    const signer = await this.getSigner(chainId)
+
+    if (!signer) {
       throw new ConfigError('No signer connected to switch chains')
     }
 
-    if (!this.signer.provider) {
+    if (!signer.provider) {
       throw new ConfigError('No provider connected to signer')
     }
 
-    await this.utils.switchChain(chainId, this.signer.provider)
+    await this.utils.switchChain(chainId, signer.provider)
   }
 
   async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
@@ -391,7 +387,7 @@ export class Hop extends Base {
       pathId
     })
 
-    const maxTotalSent = await this.getRailsGateway(toChainId, false).getTotalSent({ pathId })
+    const maxTotalSent = await this.getRailsGateway(toChainId).getTotalSent({ pathId })
 
     const nextHops: HopStruct[] = []
 
@@ -407,7 +403,7 @@ export class Hop extends Base {
       fee
     })
 
-    const provider = this.getRpcProviderForChainId(fromChainId)
+    const provider = this.getProvider(fromChainId)
     if (!provider) {
       throw new CustomError(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -453,7 +449,7 @@ export class Hop extends Base {
       throw new InputError('fromBlock is required')
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new CustomError(`Provider not found for chainId: ${chainId}`)
     }
@@ -568,13 +564,19 @@ export class Hop extends Base {
     let transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null = null
 
     if (transferSentEvent) {
-      const fromProvider = this.getRpcProviderForChainId(fromChainId)
-      const toProvider = this.getRpcProviderForChainId(toChainId)
+      const fromProvider = this.getProvider(fromChainId)
+      if (!fromProvider) {
+        throw new ConfigError('fromChainId provider not found')
+      }
+      const toProvider = this.getProvider(toChainId)
+      if (!toProvider) {
+        throw new ConfigError('toChainId provider not found')
+      }
       const fromBlock = await fromProvider.getBlock(transferSentEvent.blockNumber)
       const fromTimestamp = fromBlock.timestamp
       const earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
 
-      transferBondedEvent = await this.getRailsGateway(toChainId, false).getTransferBondedEventFromTransferId({
+      transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
         transferId,
         fromBlock: earliestBlock
       })
@@ -598,14 +600,13 @@ export class Hop extends Base {
     }
   }
 
-  getRailsGateway (chainId: BigNumberish, useSigner: boolean = true): RailsGateway {
-    let signer = useSigner ? this.signer : undefined
-    const key = `RailsGateway:${chainId?.toString()}:${!!signer}`
+  getRailsGateway (chainId: BigNumberish): RailsGateway {
+    const key = `RailsGateway:${chainId?.toString()}`
     let instance = cache.get(key) as RailsGateway
     if (!instance) {
       instance = new RailsGateway({
         chainId,
-        signerOrProvider: signer ?? this.getRpcProviderForChainId(chainId),
+        signerOrProvider: this.getRpcProviderForChainId(chainId)
       })
 
       cache.put(key, instance)

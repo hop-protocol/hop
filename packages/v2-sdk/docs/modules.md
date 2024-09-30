@@ -159,7 +159,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -173,7 +172,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -203,7 +201,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `transferId` | `string` |
@@ -246,7 +243,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -415,7 +411,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -447,7 +442,6 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `tokenAddress` | `string` |
 
 ___
@@ -474,7 +468,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `claimId` | `string` |
 | `pathId` | `string` |
 
@@ -515,7 +508,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -528,7 +520,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -541,7 +532,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -554,7 +544,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -790,7 +779,6 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -805,7 +793,6 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -862,7 +849,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -990,7 +976,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -1003,7 +988,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -1027,7 +1011,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1040,7 +1023,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1053,7 +1035,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fromBlock?` | `number` |
 | `transferId` | `string` |
 
@@ -1082,7 +1063,6 @@ ___
 | :------ | :------ |
 | `adjustedAmount` | `BigNumberish` |
 | `attestedCheckpoint` | `string` |
-| `chainId?` | `BigNumberish` |
 | `minAmountOut` | `BigNumberish` |
 | `nonce` | `BigNumberish` |
 | `pathId` | `string` |
@@ -1111,7 +1091,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1124,7 +1103,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1137,7 +1115,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -1180,8 +1157,6 @@ ___
 | `batchBlocks?` | `number` |
 | `chainProviders` | `ChainProviders` |
 | `contractAddresses?` | `Addresses` |
-| `requireChainIdInput?` | `boolean` |
-| `signer?` | `Signer` |
 
 ___
 
@@ -1238,7 +1213,6 @@ ___
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
 | `attestedTotalClaims` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
@@ -1249,7 +1223,18 @@ ___
 
 ### <a id="railsgatewayconstructorinput" name="railsgatewayconstructorinput"></a> RailsGatewayConstructorInput
 
-Ƭ **RailsGatewayConstructorInput**: `BaseConfig` & \{ `chainId`: `BigNumberish` ; `signerOrProvider?`: `Signer` \| `providers.Provider`  }
+Ƭ **RailsGatewayConstructorInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `chainProviders?` | `ChainProviders` |
+| `contractAddresses?` | `Addresses` |
+| `gasPriceMultiplier?` | `number` |
+| `network?` | `string` |
+| `signerOrProvider?` | `Signer` \| `providers.Provider` |
 
 ___
 
@@ -1278,7 +1263,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -1307,7 +1291,6 @@ ___
 | :------ | :------ |
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
-| `chainId?` | `BigNumberish` |
 | `fee` | `BigNumberish` |
 | `maxTotalSent` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
@@ -1357,7 +1340,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 | `staker?` | `string` |
 
@@ -1393,7 +1375,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fromBlock` | `number` |
 | `toBlock` | `number` |
 
@@ -1421,7 +1402,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fetchTxData?` | `boolean` |
 | `fromBlock` | `number` |
 | `toBlock` | `number` |
@@ -1486,7 +1466,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 
 ___
@@ -1518,7 +1497,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `timeWindow` | `number` |
 
@@ -1532,7 +1510,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `path?` | [`Path`](modules.md#path) |
 | `pathId?` | `string` |
 | `recipient` | `string` |
@@ -1548,7 +1525,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 
 ___
@@ -1562,6 +1538,5 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `timeWindow` | `number` |

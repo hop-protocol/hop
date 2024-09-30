@@ -23,8 +23,6 @@
 - [messenger](Hop.md#messenger)
 - [network](Hop.md#network)
 - [railsGateways](Hop.md#railsgateways)
-- [requireChainIdInput](Hop.md#requirechainidinput)
-- [signer](Hop.md#signer)
 
 ### Accessors
 
@@ -36,7 +34,6 @@
 
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [calcAmountOutMin](Hop.md#calcamountoutmin)
-- [connect](Hop.md#connect)
 - [connectTargets](Hop.md#connecttargets)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Hop.md#getcolorforchainid)
@@ -52,6 +49,8 @@
 - [getMessenger](Hop.md#getmessenger)
 - [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
 - [getPathInfo](Hop.md#getpathinfo)
+- [getProvider](Hop.md#getprovider)
+- [getProviderOrThrow](Hop.md#getproviderorthrow)
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
 - [getRpcProviderForChainId](Hop.md#getrpcproviderforchainid)
@@ -60,6 +59,7 @@
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
 - [getSignerOrProvider](Hop.md#getsignerorprovider)
+- [getSignerOrThrow](Hop.md#getsignerorthrow)
 - [getSignerProviderChainId](Hop.md#getsignerproviderchainid)
 - [getSupportedChainIds](Hop.md#getsupportedchainids)
 - [getSupportedTokenSymbols](Hop.md#getsupportedtokensymbols)
@@ -180,26 +180,6 @@ ___
 
 • `Readonly` **railsGateways**: `Record`\<`string`, `RailsGateway`\> = `{}`
 
-___
-
-### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
-
-• **requireChainIdInput**: `boolean`
-
-#### Inherited from
-
-Base.requireChainIdInput
-
-___
-
-### <a id="signer" name="signer"></a> signer
-
-• **signer**: `Signer`
-
-#### Inherited from
-
-Base.signer
-
 ## Accessors
 
 ### <a id="populatetransaction" name="populatetransaction"></a> populateTransaction
@@ -228,6 +208,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `estimateGas` | (`provider`: `Provider`, `tx`: `TransactionRequest`) => `Promise`\<`BigNumber`\> |
+| `generateZeroBytes32` | () => `string` |
 | `getAddressExplorerUrl` | (`address`: `string`, `chainId`: `BigNumberish`) => `string` |
 | `getBumpedGasPrice` | (`provider`: `Provider`, `percent`: `number`) => `Promise`\<`BigNumber`\> |
 | `getChainInfo` | (`chainId`: `BigNumberish`) => `any` |
@@ -297,26 +278,6 @@ ___
 #### Returns
 
 `BigNumber`
-
-___
-
-### <a id="connect" name="connect"></a> connect
-
-▸ **connect**(`signer`): [`Hop`](Hop.md)
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `signer` | `Signer` |
-
-#### Returns
-
-[`Hop`](Hop.md)
-
-#### Overrides
-
-Base.connect
 
 ___
 
@@ -563,13 +524,13 @@ ___
 
 ### <a id="getpathinfo" name="getpathinfo"></a> getPathInfo
 
-▸ **getPathInfo**(`input`): `Promise`\<`Path`\>
+▸ **getPathInfo**(`«destructured»`): `Promise`\<`Path`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetPathInfoInput` |
+| `«destructured»` | `GetPathInfoInput` |
 
 #### Returns
 
@@ -577,16 +538,55 @@ ___
 
 ___
 
-### <a id="getrailsgateway" name="getrailsgateway"></a> getRailsGateway
+### <a id="getprovider" name="getprovider"></a> getProvider
 
-▸ **getRailsGateway**(`chainId`, `signer?`): `RailsGateway`
+▸ **getProvider**(`chainId`): ``null`` \| `Provider`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `signer?` | `Signer` |
+
+#### Returns
+
+``null`` \| `Provider`
+
+#### Inherited from
+
+Base.getProvider
+
+___
+
+### <a id="getproviderorthrow" name="getproviderorthrow"></a> getProviderOrThrow
+
+▸ **getProviderOrThrow**(`chainId`): `Promise`\<`Provider`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Promise`\<`Provider`\>
+
+#### Inherited from
+
+Base.getProviderOrThrow
+
+___
+
+### <a id="getrailsgateway" name="getrailsgateway"></a> getRailsGateway
+
+▸ **getRailsGateway**(`chainId`): `RailsGateway`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -612,7 +612,7 @@ ___
 
 ### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
 
-▸ **getRpcProviderForChainId**(`chainId`): `Provider`
+▸ **getRpcProviderForChainId**(`chainId`): `Provider` \| `Signer`
 
 #### Parameters
 
@@ -622,7 +622,7 @@ ___
 
 #### Returns
 
-`Provider`
+`Provider` \| `Signer`
 
 #### Inherited from
 
@@ -664,11 +664,17 @@ ___
 
 ### <a id="getsigner" name="getsigner"></a> getSigner
 
-▸ **getSigner**(): ``null`` \| `Signer`
+▸ **getSigner**(`chainId`): `Promise`\<``null`` \| `Signer`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
-``null`` \| `Signer`
+`Promise`\<``null`` \| `Signer`\>
 
 #### Inherited from
 
@@ -678,7 +684,13 @@ ___
 
 ### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
 
-▸ **getSignerAddress**(): `Promise`\<``null`` \| `string`\>
+▸ **getSignerAddress**(`chainId`): `Promise`\<``null`` \| `string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -692,14 +704,13 @@ ___
 
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chainId`, `signer?`): `Promise`\<`Provider` \| `Signer`\>
+▸ **getSignerOrProvider**(`chainId`): `Promise`\<`Provider` \| `Signer`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `signer?` | `Signer` |
 
 #### Returns
 
@@ -711,9 +722,35 @@ Base.getSignerOrProvider
 
 ___
 
+### <a id="getsignerorthrow" name="getsignerorthrow"></a> getSignerOrThrow
+
+▸ **getSignerOrThrow**(`chainId`): `Promise`\<`Signer`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Promise`\<`Signer`\>
+
+#### Inherited from
+
+Base.getSignerOrThrow
+
+___
+
 ### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
 
-▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+▸ **getSignerProviderChainId**(`chainId`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 

@@ -21,7 +21,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: signer,
     })
-    const address = await railsGateway.getSignerAddress()
+    const address = await railsGateway.getSignerAddress(chainId)
     expect(address).toBeDefined()
   })
   it('should get event filter for an event name', async () => {

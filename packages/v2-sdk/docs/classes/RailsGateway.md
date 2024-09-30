@@ -21,8 +21,6 @@
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
-- [requireChainIdInput](RailsGateway.md#requirechainidinput)
-- [signer](RailsGateway.md#signer)
 
 ### Accessors
 
@@ -42,7 +40,6 @@
 - [approveSend](RailsGateway.md#approvesend)
 - [bond](RailsGateway.md#bond)
 - [confirmClaim](RailsGateway.md#confirmclaim)
-- [connect](RailsGateway.md#connect)
 - [createChallenge](RailsGateway.md#createchallenge)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
@@ -79,6 +76,8 @@
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
+- [getProvider](RailsGateway.md#getprovider)
+- [getProviderOrThrow](RailsGateway.md#getproviderorthrow)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
 - [getRoleForRoleName](RailsGateway.md#getroleforrolename)
@@ -86,6 +85,7 @@
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
+- [getSignerOrThrow](RailsGateway.md#getsignerorthrow)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
 - [getStakedBalance](RailsGateway.md#getstakedbalance)
 - [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
@@ -139,6 +139,8 @@
 - [deriveNetwork](RailsGateway.md#derivenetwork)
 - [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider-1)
 - [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders-1)
+- [getEventNames](RailsGateway.md#geteventnames-1)
+- [getNextHopsHash](RailsGateway.md#getnexthopshash-1)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
 - [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
@@ -228,26 +230,6 @@ ___
 
 StakingRegistry.network
 
-___
-
-### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
-
-• **requireChainIdInput**: `boolean`
-
-#### Inherited from
-
-StakingRegistry.requireChainIdInput
-
-___
-
-### <a id="signer" name="signer"></a> signer
-
-• **signer**: `Signer`
-
-#### Inherited from
-
-StakingRegistry.signer
-
 ## Accessors
 
 ### <a id="populatetransaction" name="populatetransaction"></a> populateTransaction
@@ -287,6 +269,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `estimateGas` | (`provider`: `Provider`, `tx`: `TransactionRequest`) => `Promise`\<`BigNumber`\> |
+| `generateZeroBytes32` | () => `string` |
 | `getAddressExplorerUrl` | (`address`: `string`, `chainId`: `BigNumberish`) => `string` |
 | `getBumpedGasPrice` | (`provider`: `Provider`, `percent`: `number`) => `Promise`\<`BigNumber`\> |
 | `getChainInfo` | (`chainId`: `BigNumberish`) => `any` |
@@ -505,26 +488,6 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="connect" name="connect"></a> connect
-
-▸ **connect**(`signer`): [`RailsGateway`](RailsGateway.md)
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `signer` | `Signer` |
-
-#### Returns
-
-[`RailsGateway`](RailsGateway.md)
-
-#### Overrides
-
-StakingRegistry.connect
 
 ___
 
@@ -895,13 +858,12 @@ ___
 
 ### <a id="gethopbalance" name="gethopbalance"></a> getHopBalance
 
-▸ **getHopBalance**(`chainId`, `address?`): `Promise`\<`BigNumber`\>
+▸ **getHopBalance**(`address?`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `address?` | ``null`` \| `string` |
 
 #### Returns
@@ -912,13 +874,7 @@ ___
 
 ### <a id="gethoptokenaddress" name="gethoptokenaddress"></a> getHopTokenAddress
 
-▸ **getHopTokenAddress**(`chainId`): `Promise`\<`string`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHopTokenAddress**(): `Promise`\<`string`\>
 
 #### Returns
 
@@ -928,13 +884,7 @@ ___
 
 ### <a id="gethoptokencontract" name="gethoptokencontract"></a> getHopTokenContract
 
-▸ **getHopTokenContract**(`chainId`): `Promise`\<`Contract`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHopTokenContract**(): `Promise`\<`Contract`\>
 
 #### Returns
 
@@ -1024,13 +974,7 @@ ___
 
 ### <a id="getminbonderstake" name="getminbonderstake"></a> getMinBonderStake
 
-▸ **getMinBonderStake**(`chainId`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getMinBonderStake**(): `Promise`\<`BigNumber`\>
 
 #### Returns
 
@@ -1158,9 +1102,9 @@ ___
 
 ___
 
-### <a id="getrailsgatewaycontract" name="getrailsgatewaycontract"></a> getRailsGatewayContract
+### <a id="getprovider" name="getprovider"></a> getProvider
 
-▸ **getRailsGatewayContract**(`chainId`): `Promise`\<`Contract`\>
+▸ **getProvider**(`chainId`): ``null`` \| `Provider`
 
 #### Parameters
 
@@ -1170,19 +1114,47 @@ ___
 
 #### Returns
 
-`Promise`\<`Contract`\>
+``null`` \| `Provider`
+
+#### Inherited from
+
+StakingRegistry.getProvider
 
 ___
 
-### <a id="getrailsgatewaycontractaddress" name="getrailsgatewaycontractaddress"></a> getRailsGatewayContractAddress
+### <a id="getproviderorthrow" name="getproviderorthrow"></a> getProviderOrThrow
 
-▸ **getRailsGatewayContractAddress**(`chainId`): `string`
+▸ **getProviderOrThrow**(`chainId`): `Promise`\<`Provider`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Promise`\<`Provider`\>
+
+#### Inherited from
+
+StakingRegistry.getProviderOrThrow
+
+___
+
+### <a id="getrailsgatewaycontract" name="getrailsgatewaycontract"></a> getRailsGatewayContract
+
+▸ **getRailsGatewayContract**(): `Promise`\<`Contract`\>
+
+#### Returns
+
+`Promise`\<`Contract`\>
+
+___
+
+### <a id="getrailsgatewaycontractaddress" name="getrailsgatewaycontractaddress"></a> getRailsGatewayContractAddress
+
+▸ **getRailsGatewayContractAddress**(): `string`
 
 #### Returns
 
@@ -1212,7 +1184,7 @@ ___
 
 ### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
 
-▸ **getRpcProviderForChainId**(`chainId`): `Provider`
+▸ **getRpcProviderForChainId**(`chainId`): `Provider` \| `Signer`
 
 #### Parameters
 
@@ -1222,7 +1194,7 @@ ___
 
 #### Returns
 
-`Provider`
+`Provider` \| `Signer`
 
 #### Inherited from
 
@@ -1232,11 +1204,17 @@ ___
 
 ### <a id="getsigner" name="getsigner"></a> getSigner
 
-▸ **getSigner**(): ``null`` \| `Signer`
+▸ **getSigner**(`chainId`): `Promise`\<``null`` \| `Signer`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
-``null`` \| `Signer`
+`Promise`\<``null`` \| `Signer`\>
 
 #### Inherited from
 
@@ -1246,7 +1224,13 @@ ___
 
 ### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
 
-▸ **getSignerAddress**(): `Promise`\<``null`` \| `string`\>
+▸ **getSignerAddress**(`chainId`): `Promise`\<``null`` \| `string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -1260,14 +1244,13 @@ ___
 
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chainId`, `signer?`): `Promise`\<`Provider` \| `Signer`\>
+▸ **getSignerOrProvider**(`chainId`): `Promise`\<`Provider` \| `Signer`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `signer?` | `Signer` |
 
 #### Returns
 
@@ -1279,9 +1262,35 @@ StakingRegistry.getSignerOrProvider
 
 ___
 
+### <a id="getsignerorthrow" name="getsignerorthrow"></a> getSignerOrThrow
+
+▸ **getSignerOrThrow**(`chainId`): `Promise`\<`Signer`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Promise`\<`Signer`\>
+
+#### Inherited from
+
+StakingRegistry.getSignerOrThrow
+
+___
+
 ### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
 
-▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+▸ **getSignerProviderChainId**(`chainId`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -1472,7 +1481,7 @@ ___
 
 ### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
 
-▸ **getTransferBondedEventFilter**(`«destructured»`): `any`
+▸ **getTransferBondedEventFilter**(`«destructured»?`): `any`
 
 #### Parameters
 
@@ -1568,7 +1577,7 @@ ___
 
 ### <a id="gettransfersenteventfilter" name="gettransfersenteventfilter"></a> getTransferSentEventFilter
 
-▸ **getTransferSentEventFilter**(`«destructured»`): `any`
+▸ **getTransferSentEventFilter**(`«destructured»?`): `any`
 
 #### Parameters
 
@@ -2229,6 +2238,32 @@ ___
 #### Inherited from
 
 StakingRegistry.getDefaultChainRpcProviders
+
+___
+
+### <a id="geteventnames-1" name="geteventnames-1"></a> getEventNames
+
+▸ **getEventNames**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+___
+
+### <a id="getnexthopshash-1" name="getnexthopshash-1"></a> getNextHopsHash
+
+▸ **getNextHopsHash**(`«destructured»`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`string`
 
 ___
 

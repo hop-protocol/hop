@@ -9,20 +9,12 @@ const { parseUnits } = utils
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
 describe('Sdk - Hop - e2e', () => {
-  const sepoliaChainProviders = Hop.getDefaultChainRpcProviders('sepolia')
-
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
 
     const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
     const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-
-    const signer = new Wallet(privateKey, ethereumProvider)
-    const sdk = new Hop({
-      chainProviders: sepoliaChainProviders,
-      signer
-    })
 
     // ----------------
     const fromChainId = '11155111'
@@ -31,6 +23,14 @@ describe('Sdk - Hop - e2e', () => {
     const toToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
+
+    const signer = new Wallet(privateKey)
+    const sdk = new Hop({
+      chainProviders: {
+        [fromChainId]: signer.connect(ethereumProvider),
+        [toChainId]: signer.connect(baseProvider),
+      },
+    })
 
     const to = await signer.getAddress()
 
@@ -62,8 +62,8 @@ describe('Sdk - Hop - e2e', () => {
     console.log('minAmountOut:', minAmountOut.toString())
 
     const shouldSend = true // debug
-    // let sendTxHash = '0xee4b8eed47c2474f97ad45a91a1e1bcf1c10233885bd24d02eb94b0f08ba6106' // debug
-    let sendTxHash = '' // debug
+    let sendTxHash = '0xee4b8eed47c2474f97ad45a91a1e1bcf1c10233885bd24d02eb94b0f08ba6106' // debug
+    // let sendTxHash = '' // debug
     if (shouldSend) {
       const sendTx = await sdk.sendTokens({
         fromChainId,
@@ -100,20 +100,12 @@ describe('Sdk - Hop - e2e', () => {
 })
 
 describe.only('Sdk - RailsGateway - e2e', () => {
-  const sepoliaChainProviders = Hop.getDefaultChainRpcProviders('sepolia')
-
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
 
     const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
     const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-
-    let signer = new Wallet(privateKey, ethereumProvider)
-    let sdk = new Hop({
-      chainProviders: sepoliaChainProviders,
-      signer
-    })
 
     // ----------------
     const fromChainId = '11155111'
@@ -122,6 +114,14 @@ describe.only('Sdk - RailsGateway - e2e', () => {
     const toToken = '0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf'
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
+
+    const signer = new Wallet(privateKey)
+    const sdk = new Hop({
+      chainProviders: {
+        [fromChainId]: signer.connect(ethereumProvider),
+        [toChainId]: signer.connect(baseProvider)
+      },
+    })
 
     const pathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
@@ -155,7 +155,7 @@ describe.only('Sdk - RailsGateway - e2e', () => {
       await approveTx.wait()
     }
 
-    const attestedClaimId  = await sdk.getRailsGateway(fromChainId).getLatestClaim({
+    const attestedClaimId  = await sdk.getRailsGateway(toChainId).getLatestClaim({
       pathId
     })
 
@@ -171,12 +171,15 @@ describe.only('Sdk - RailsGateway - e2e', () => {
     const to = await signer.getAddress()
     const nextHops: HopStruct[] = []
 
-    const shouldSend = false // debug
+    const blankAttestedClaimId = sdk.utils.generateZeroBytes32()
+
+    const shouldSend = true // debug
+    let sendTx: any
     if (shouldSend) {
-      const sendTx = await sdk.getRailsGateway(fromChainId).send({
+      sendTx = await sdk.getRailsGateway(fromChainId).send({
         pathId,
         amount: sendAmount,
-        attestedClaimId,
+        attestedClaimId: blankAttestedClaimId,
         maxTotalSent,
         to,
         nextHops,
@@ -188,14 +191,16 @@ describe.only('Sdk - RailsGateway - e2e', () => {
     }
 
     const transferSentEvent = (await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
-      transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
+      // transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // debug
+      transactionHash: sendTx.hash // debug
     }))!
 
     console.log('TransferSent event:', transferSentEvent)
 
     const messageId = await sdk.messenger.getMessageIdFromTransactionHash({
       chainId: fromChainId,
-      transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // sendTx.hash // debug
+      // transactionHash: '0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d' // debug
+      transactionHash: sendTx.hash
     })
 
     const messageSentEvent = (await sdk.messenger.getMessageSentEventFromMessageId({
@@ -204,13 +209,6 @@ describe.only('Sdk - RailsGateway - e2e', () => {
     }))!
 
     console.log('MessageSent event:', messageSentEvent)
-
-    // TODO: signer config for different chains to not do this
-    signer = new Wallet(privateKey, baseProvider)
-    sdk = new Hop({
-      chainProviders: sepoliaChainProviders,
-      signer
-    })
 
     const shouldExecute = false // debug
     if (shouldExecute) {
@@ -271,9 +269,10 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('isBonded:', isBonded)
 
-    const shouldBond = false // debug
+    const shouldBond = true // debug
+    let bondTx: any
     if (shouldBond) {
-      const bondTx = await sdk.getRailsGateway(toChainId).bond({
+      bondTx = await sdk.getRailsGateway(toChainId).bond({
         pathId: transferSentEvent.decoded.pathId,
         amount: transferSentEvent.decoded.amount,
         transferId: transferSentEvent.decoded.transferId,
@@ -302,13 +301,16 @@ describe.only('Sdk - RailsGateway - e2e', () => {
     }
 
     const bondedEvent = (await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
-      transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // bondTx.hash // debug
+      // transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // debug
+      transactionHash: bondTx.hash
     }))!
 
     console.log('BondedEvent  event:', bondedEvent)
 
-    const bondTx = await signer.provider.getTransaction('0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5') // bondTx.hash) // debug
-    const bondBlock = await signer.provider.getBlock(bondTx.blockNumber!)
+    const destProvider = await sdk.getProviderOrThrow(toChainId)
+    // const bondTx = await destProvider.getTransaction('0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5') // debug
+    const bondTxFromHash = await destProvider.getTransaction(bondTx.hash)
+    const bondBlock = await destProvider.getBlock(bondTxFromHash.blockNumber!)
 
     const timeWindow = bondBlock.timestamp
 

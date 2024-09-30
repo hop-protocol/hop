@@ -181,7 +181,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await hop.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

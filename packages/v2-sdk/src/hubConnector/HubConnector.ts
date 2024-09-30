@@ -30,10 +30,6 @@ export class HubConnector extends Base {
     super(config)
   }
 
-  override connect (signer: Signer) {
-    return new HubConnector({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
-  }
-
   get populateTransaction() {
     return {
       connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
@@ -42,7 +38,7 @@ export class HubConnector extends Base {
           throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
         }
         const address = this.getHubConnectorContractAddress(hubChainId)
-        const signer = await this.getSignerOrProvider(hubChainId)
+        const signer = await this.getSignerOrThrow(hubChainId)
         const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
         const txData = await factory.populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
 
@@ -88,7 +84,7 @@ export class HubConnector extends Base {
       throw new InputError('fromBlock is required')
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }

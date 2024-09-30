@@ -119,16 +119,11 @@ export type GetChallengeIdInput = {
 export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
-  constructor ({ signer, contractAddresses, chainProviders }: StakingRegistryConstructorInput) {
+  constructor ({ contractAddresses, chainProviders }: StakingRegistryConstructorInput) {
     super({
-      signer,
       contractAddresses,
       chainProviders
     })
-  }
-
-  override connect (signer: Signer) {
-    return new StakingRegistry({ signer, contractAddresses: this.contractAddresses, chainProviders: this.chainProviders })
   }
 
   getStakingRegistryAddress (chainId: BigNumberish): string {

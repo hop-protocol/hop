@@ -72,7 +72,7 @@ export function usePools () {
           const tokenImage = getTokenImage(tokenModel.symbol)
           let tokenSymbolDisplay = token
           if (tokenSymbolDisplay === TokenSymbol.MATIC && chainModel.slug === ChainSlug.Polygon) {
-            tokenSymbolDisplay = 'Pol'
+            tokenSymbolDisplay = 'POL'
           }
           const poolName = `${tokenSymbolDisplay} ${chainModel.name} Pool`
           const poolSubtitle = `${tokenSymbolDisplay} - h${token}`

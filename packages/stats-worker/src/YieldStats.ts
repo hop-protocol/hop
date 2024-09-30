@@ -132,6 +132,7 @@ class YieldStats {
       for (const chain in (this.bridges as any)[token]) {
         const shouldSkip = this.shouldSkipYields(this.bridges, chain, token)
         if (shouldSkip) {
+          console.log(`skipping ${chain}.${token}`)
           continue
         }
 

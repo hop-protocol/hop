@@ -343,7 +343,6 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const transferId = '0xTODO'
-    const amount = parseUnits('1', 18)
     const nextHops = [{
       pathId,
       maxTotalSent: '0',
@@ -356,7 +355,6 @@ describe('RailsGateway', () => {
     const txData = await railsGateway.populateTransaction.bond({
       pathId,
       transferId,
-      amount,
       nextHops
     })
     console.log(txData)

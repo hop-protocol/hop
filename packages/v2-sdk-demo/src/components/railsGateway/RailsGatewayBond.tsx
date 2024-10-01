@@ -70,7 +70,6 @@ export function RailsGatewayBond (props: Props) {
     const args = {
       pathId,
       transferId,
-      amount,
       nextHops,
     }
     console.log('args', args)
@@ -131,14 +130,12 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const transferId = "${transferId}"
-  const amount = "${amount}"
   const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.bond({
     pathId,
     transferId,
-    amount,
     nextHops
   })
   ${populateTxDataOnly ? (

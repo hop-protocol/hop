@@ -201,7 +201,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `transferId` | `string` |

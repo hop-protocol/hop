@@ -78,7 +78,6 @@ export type BondInput = {
   pathId: string
   transferId: string
   nextHops: HopStructInput[]
-  amount: BigNumberish
 }
 
 export type ApproveBondInput = {
@@ -1090,40 +1089,6 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async bond (input: BondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, amount } = input
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(pathId)) {
-      throw new InputError(`Invalid pathId "${pathId}"`)
-    }
-
-    if (!this.utils.isValidNumericValue(amount)) {
-      throw new InputError(`Invalid amount "${amount}"`)
-    }
-
-    const path = await this.getPathInfo({ pathId })
-    const tokenAddress = path.token
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const signerAddress = (await this.getSignerAddress(chainId)) as string
-    const balance = await tokenContract.balanceOf(signerAddress)
-    if (balance.lt(amount)) {
-      throw new InsufficientBalanceError('Insufficient balance')
-    }
-
-    const address = this.getRailsGatewayContractAddress()
-    const approved = await tokenContract.allowance(signerAddress, address)
-    if (approved.lt(amount)) {
-      throw new InsufficientApprovalError('Insufficient approval')
-    }
-
     const populatedTx = await this.populateTransaction.bond(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }

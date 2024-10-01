@@ -134,6 +134,10 @@
 - [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [withdrawHop](RailsGateway.md#withdrawhop)
+- [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
+- [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
+- [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
+- [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents-1)
 - [deriveNetwork](RailsGateway.md#derivenetwork)
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
@@ -2141,6 +2145,70 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="adddecodedtypestoevent-1" name="adddecodedtypestoevent-1"></a> addDecodedTypesToEvent
+
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `event` | `any` |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+___
+
+### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
+
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
+
+___
+
+### <a id="adddecodedtypestotransferbondedevents-1" name="adddecodedtypestotransferbondedevents-1"></a> addDecodedTypesToTransferBondedEvents
+
+▸ **addDecodedTypesToTransferBondedEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+
+___
+
+### <a id="adddecodedtypestotransfersentevents-1" name="adddecodedtypestotransfersentevents-1"></a> addDecodedTypesToTransferSentEvents
+
+▸ **addDecodedTypesToTransferSentEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent`\>[]
 
 ___
 

@@ -934,5 +934,7 @@ describe('RailsGateway', () => {
     console.log(signature)
     expect(signature).toBeTruthy()
   })
+
+  // TODO: static addDecodedTypesToEvents
 })
 

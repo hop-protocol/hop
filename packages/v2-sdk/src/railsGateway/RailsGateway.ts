@@ -282,26 +282,6 @@ export class RailsGateway extends StakingRegistry {
     this.chainId = chainId
   }
 
-  static deriveNetwork (chainId: BigNumberish): string {
-    chainId = chainId?.toString()
-    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
-
-    for (const net of networks) {
-      const network = getNetwork(net)
-      const chain = Object.values(network.chains).find(chain => chain.chainId === chainId)
-
-      if (chain) {
-        return net
-      }
-    }
-
-    throw new Error('could not derive network')
-  }
-
-  static getEventNames (): string[] {
-    return Object.keys(EventName)
-  }
-
   getEventNames (): string[] {
     return RailsGateway.getEventNames()
   }
@@ -354,24 +334,11 @@ export class RailsGateway extends StakingRegistry {
   }
 
   addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
-    const decoded = this.addDecodedTypesToEvents([event])
-
-    return decoded?.[0]
+    return RailsGateway.addDecodedTypesToEvent(event)
   }
 
   addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
-    const transferSentEventFetcher = new TransferSentEventFetcher()
-    const transferBondedEventFetcher = new TransferBondedEventFetcher()
-
-    if (events.some(event => transferSentEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return this.addDecodedTypesToTransferSentEvents(events)
-    }
-
-    if (events.some(event => transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return this.addDecodedTypesToTransferBondedEvents(events)
-    }
-
-    return events
+    return RailsGateway.addDecodedTypesToEvents(events)
   }
 
   async #getEvents ({ fromBlock, toBlock, eventName, fetchTxData = false }: GetEventsInput) {
@@ -450,17 +417,12 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
-  #addDecodedTypesToEvents <T>(events: any[], Fetcher: any): EthersEventWithDecodedTypes<T>[] {
-    const eventFetcher = new Fetcher()
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
   addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
-    return this.#addDecodedTypesToEvents<TransferSent>(events, TransferSentEventFetcher)
+    return RailsGateway.addDecodedTypesToTransferSentEvents(events)
   }
 
   addDecodedTypesToTransferBondedEvents (events: any[]): EthersEventWithDecodedTypes<TransferBonded>[] {
-    return this.#addDecodedTypesToEvents<TransferBonded>(events, TransferBondedEventFetcher)
+    return RailsGateway.addDecodedTypesToTransferBondedEvents(events)
   }
 
   async getTransferBondedEvents (input: TransferBondedEventInput): Promise<EthersEventWithDecodedTypes<TransferBonded>[]> {
@@ -1721,6 +1683,26 @@ export class RailsGateway extends StakingRegistry {
     return utils.keccak256(encodedHops)
   }
 
+  static deriveNetwork (chainId: BigNumberish): string {
+    chainId = chainId?.toString()
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+
+    for (const net of networks) {
+      const network = getNetwork(net)
+      const chain = Object.values(network.chains).find((chain: any) => chain.chainId === chainId)
+
+      if (chain) {
+        return net
+      }
+    }
+
+    throw new Error('could not derive network')
+  }
+
+  static getEventNames (): string[] {
+    return Object.keys(EventName)
+  }
+
   static getTransferSentEventSignature (): string {
     const eventFetcher = new TransferSentEventFetcher()
     return eventFetcher.getTopic0()
@@ -1729,6 +1711,37 @@ export class RailsGateway extends StakingRegistry {
   static getTransferBondedEventSignature (): string {
     const eventFetcher = new TransferBondedEventFetcher()
     return eventFetcher.getTopic0()
+  }
+
+  static addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
+    const decoded = RailsGateway.addDecodedTypesToEvents([event])
+
+    return decoded?.[0]
+  }
+
+  static addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+    const transferSentEventFetcher = new TransferSentEventFetcher()
+    const transferBondedEventFetcher = new TransferBondedEventFetcher()
+
+    if (events.some(event => transferSentEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return RailsGateway.addDecodedTypesToTransferSentEvents(events)
+    }
+
+    if (events.some(event => transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return RailsGateway.addDecodedTypesToTransferBondedEvents(events)
+    }
+
+    return events
+  }
+
+  static addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
+    const eventFetcher = new TransferSentEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
+  }
+
+  static addDecodedTypesToTransferBondedEvents (events: any[]): EthersEventWithDecodedTypes<TransferBonded>[] {
+    const eventFetcher = new TransferBondedEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
   }
 }
 

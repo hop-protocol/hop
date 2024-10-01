@@ -152,7 +152,7 @@ export type GetNeedsApprovalForBondInput = {
   account?: string
 }
 
-export type GetLatestClaimInput = {
+export type GetHeadClaimInput = {
   pathId: string
 }
 
@@ -1006,6 +1006,142 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
+  get helpers() {
+    return {
+      getNeedsApprovalForSend: async ({ pathId, amount, account }: GetNeedsApprovalForSendInput): Promise<boolean> => {
+        let chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
+        }
+
+        const path = await this.getPathInfo({ pathId })
+        const tokenAddress = path.token
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+        }
+        console.log('hopV2Sdk: rails approval token', tokenAddress)
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+        const spender = this.getRailsGatewayContractAddress()
+        account ??= (await this.getSignerAddress(chainId))!
+        if (!account) {
+          throw new InputError('signer not set')
+        }
+        console.log('hopV2Sdk: rails approval account', account)
+        console.log('hopV2Sdk: rails approval spender', spender)
+        const approved = await tokenContract.allowance(account, spender)
+        return approved.lt(amount)
+      },
+
+      getNeedsApprovalForBond: async ({ pathId, amount, account }: GetNeedsApprovalForBondInput): Promise<boolean> => {
+        let chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
+        }
+
+        const path = await this.getPathInfo({ pathId })
+        const tokenAddress = path.token
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+        }
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+        const spender = this.getRailsGatewayContractAddress()
+        account ??= (await this.getSignerAddress(chainId))!
+        if (!account) {
+          throw new InputError('signer not set')
+        }
+        const approved = await tokenContract.allowance(account, spender)
+        return approved.lt(amount)
+      },
+
+      approveSend: async (input: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {
+        const txData = await this.populateTransaction.approveSend(input, txOverrides)
+        return this.sendTransaction(txData)
+      },
+
+      approveBond: async (input: ApproveBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {
+        const txData = await this.populateTransaction.approveBond(input, txOverrides)
+        return this.sendTransaction(txData)
+      },
+
+      getIsTransferBonded: async ({ transferId }: GetIsTransferBondedInput): Promise<boolean> => {
+        let chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(transferId)) {
+          throw new InputError(`Invalid transferId "${transferId}"`)
+        }
+
+        // TODO: call contract state once it's available
+        return false
+      },
+
+      getIsTransferClaimed: async ({ transferId }: GetIsTransferClaimedInput): Promise<boolean> => {
+        let chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(transferId)) {
+          throw new InputError(`Invalid transferId "${transferId}"`)
+        }
+
+        // TODO: call contract state once it's available
+        return false
+      },
+
+      getIsPathIdLive: async ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> => {
+        let chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(pathId)) {
+          throw new InputError(`Invalid pathId "${pathId}"`)
+        }
+
+        const contract = await this.getRailsGatewayContract()
+
+        try {
+          const pathInfoArray = await contract.getPathInfo(pathId)
+
+          const pathChainId = pathInfoArray[0].toString()
+          const pathToken = pathInfoArray[1]
+          const counterpartChainId = pathInfoArray[2].toString()
+          const counterpartToken = checksumAddress(pathInfoArray[3])
+
+          if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
+            return true
+          }
+        } catch (err: unknown) {
+          return this.throwError(err) as boolean
+        }
+
+        return false
+      },
+
+      getNextHopsHash: ({ nextHops }: GetNextHopsHashInput): string => {
+        return RailsGateway.getNextHopsHash({ nextHops })
+      }
+    }
+  }
+
   async send (input: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const { pathId, amount } = input
     let chainId = this.chainId
@@ -1045,19 +1181,9 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async approveSend (input: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.approveSend(input, txOverrides)
-    return this.sendTransaction(txData)
-  }
-
   async bond (input: BondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.bond(input, txOverrides)
     return this.sendTransaction(populatedTx)
-  }
-
-  async approveBond (input: ApproveBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.approveBond(input, txOverrides)
-    return this.sendTransaction(txData)
   }
 
   async postClaim (input: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
@@ -1085,64 +1211,7 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async getNeedsApprovalForSend ({ pathId, amount, account }: GetNeedsApprovalForSendInput): Promise<boolean> {
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidNumericValue(amount)) {
-      throw new InputError(`Invalid amount "${amount}"`)
-    }
-
-    const path = await this.getPathInfo({ pathId })
-    const tokenAddress = path.token
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-    console.log('hopV2Sdk: rails approval token', tokenAddress)
-    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const spender = this.getRailsGatewayContractAddress()
-    account ??= (await this.getSignerAddress(chainId))!
-    if (!account) {
-      throw new InputError('signer not set')
-    }
-    console.log('hopV2Sdk: rails approval account', account)
-    console.log('hopV2Sdk: rails approval spender', spender)
-    const approved = await tokenContract.allowance(account, spender)
-    return approved.lt(amount)
-  }
-
-  async getNeedsApprovalForBond ({ pathId, amount, account }: GetNeedsApprovalForBondInput): Promise<boolean> {
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidNumericValue(amount)) {
-      throw new InputError(`Invalid amount "${amount}"`)
-    }
-
-    const path = await this.getPathInfo({ pathId })
-    const tokenAddress = path.token
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const spender = this.getRailsGatewayContractAddress()
-    account ??= (await this.getSignerAddress(chainId))!
-    if (!account) {
-      throw new InputError('signer not set')
-    }
-    const approved = await tokenContract.allowance(account, spender)
-    return approved.lt(amount)
-  }
-
-  async getLatestClaim ({ pathId }: GetLatestClaimInput): Promise<string> {
+  async getHeadClaim ({ pathId }: GetHeadClaimInput): Promise<string> {
     let chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -1597,71 +1666,6 @@ export class RailsGateway extends StakingRegistry {
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
     }
-  }
-
-  async getIsTransferBonded ({ transferId }: GetIsTransferBondedInput): Promise<boolean> {
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(transferId)) {
-      throw new InputError(`Invalid transferId "${transferId}"`)
-    }
-
-    // TODO: call contract state once it's available
-    return false
-  }
-
-  async getIsTransferClaimed ({ transferId }: GetIsTransferClaimedInput): Promise<boolean> {
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(transferId)) {
-      throw new InputError(`Invalid transferId "${transferId}"`)
-    }
-
-    // TODO: call contract state once it's available
-    return false
-  }
-
-  async getIsPathIdLive ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> {
-    let chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(pathId)) {
-      throw new InputError(`Invalid pathId "${pathId}"`)
-    }
-
-    const contract = await this.getRailsGatewayContract()
-
-    try {
-      const pathInfoArray = await contract.getPathInfo(pathId)
-
-      const pathChainId = pathInfoArray[0].toString()
-      const pathToken = pathInfoArray[1]
-      const counterpartChainId = pathInfoArray[2].toString()
-      const counterpartToken = checksumAddress(pathInfoArray[3])
-
-      if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
-        return true
-      }
-    } catch (err: unknown) {
-      return this.throwError(err) as boolean
-    }
-
-    return false
-  }
-
-  getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {
-    return RailsGateway.getNextHopsHash({ nextHops })
   }
 
   static getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {

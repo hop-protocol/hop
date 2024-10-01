@@ -643,7 +643,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const needsApproval = await railsGateway.getNeedsApprovalForSend({
+    const needsApproval = await railsGateway.helpers.getNeedsApprovalForSend({
       pathId,
       amount,
       account
@@ -659,21 +659,21 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const needsApproval = await railsGateway.getNeedsApprovalForBond({
+    const needsApproval = await railsGateway.helpers.getNeedsApprovalForBond({
       pathId,
       amount,
       account
     })
     expect(needsApproval).toBeDefined()
   })
-  it.skip('should get latest claim hash', async () => {
+  it.skip('should get head claim hash', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const latestClaim = await railsGateway.getLatestClaim({
+    const latestClaim = await railsGateway.getHeadClaim({
       pathId,
     })
     console.log(latestClaim)
@@ -857,7 +857,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const bonded = await railsGateway.getIsTransferBonded({
+    const bonded = await railsGateway.helpers.getIsTransferBonded({
       transferId
     })
     console.log(bonded)
@@ -871,7 +871,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const claimed = await railsGateway.getIsTransferClaimed({
+    const claimed = await railsGateway.helpers.getIsTransferClaimed({
       transferId
     })
     console.log(claimed)
@@ -914,13 +914,13 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const isLive = await railsGateway.getIsPathIdLive({ pathId })
+    const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
     console.log(isLive)
     expect(typeof isLive).toBe('boolean')
     expect(isLive).toBe(true)
 
     const invalidPathId = '0x1111111111111111111111111111111111111111111111111111111111111111'
-    expect(await railsGateway.getIsPathIdLive({ pathId: invalidPathId })).toBe(false)
+    expect(await railsGateway.helpers.getIsPathIdLive({ pathId: invalidPathId })).toBe(false)
   }, 60 * 1000)
   it('should get TransferSent event signature using static method', async () => {
     const signature = RailsGateway.getTransferSentEventSignature()

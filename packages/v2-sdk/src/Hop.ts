@@ -242,7 +242,7 @@ export class Hop extends Base {
 
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', pathId)
-          attestedClaimId = await this.getRailsGateway(fromChainId).getLatestClaim({
+          attestedClaimId = await this.getRailsGateway(fromChainId).getHeadClaim({
             pathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
@@ -322,7 +322,7 @@ export class Hop extends Base {
       token1: toToken
     })
     console.log('hopV2Sdk: getPathId', pathId)
-    return this.getRailsGateway(fromChainId).getNeedsApprovalForSend({ pathId, amount, account })
+    return this.getRailsGateway(fromChainId).helpers.getNeedsApprovalForSend({ pathId, amount, account })
   }
 
   async getPathInfo ({ chainId, pathId }: GetPathInfoInput): Promise<Path> {
@@ -383,7 +383,7 @@ export class Hop extends Base {
       token1: toToken
     })
 
-    const attestedClaimId  = await this.getRailsGateway(fromChainId).getLatestClaim({
+    const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaim({
       pathId
     })
 

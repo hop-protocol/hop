@@ -8,7 +8,7 @@ export {
   GetFeeInput,
   GetIsClaimIdValidInput,
   GetHasSufficientBalanceInput,
-  GetLatestClaimInput,
+  GetHeadClaimInput,
   GetNeedsApprovalForBondInput,
   GetNeedsApprovalForSendInput,
   GetPathIdInput,

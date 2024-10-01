@@ -16,8 +16,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetLatestClaim (props: Props) {
-  const cacheKey = 'railsGatewayGetLatestClaim'
+export function RailsGatewayGetHeadClaim (props: Props) {
+  const cacheKey = 'railsGatewayGetHeadClaim'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -47,7 +47,7 @@ export function RailsGatewayGetLatestClaim (props: Props) {
       }
 
       console.log('args', args)
-      const transferId = await sdk.getRailsGateway(fromChainId).getLatestClaim(args)
+      const transferId = await sdk.getRailsGateway(fromChainId).getHeadClaim(args)
       setClaim(transferId)
     } catch (err: any) {
       console.error(err)
@@ -63,7 +63,7 @@ async function main() {
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const claim = await hop.getRailsGateway('${fromChainId}').getLatestClaim({
+  const claim = await hop.getRailsGateway('${fromChainId}').getHeadClaim({
     pathId
   })
   console.log(claim)
@@ -82,10 +82,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Latest Claim</Typography>
+        <Typography variant="h5">Rails Gateway - Get Head Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway Latest Claim</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Latest Head Claim</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -105,7 +105,7 @@ main().catch(console.error)
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Latest Claim</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Head Claim</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -133,4 +133,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayGetLatestClaim
+export default RailsGatewayGetHeadClaim

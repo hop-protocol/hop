@@ -91,7 +91,7 @@ export function RailsGatewayBond (props: Props) {
           throw new Error('No signer')
         }
 
-        const needsApproval = await sdk.getRailsGateway(fromChainId).getNeedsApprovalForBond({
+        const needsApproval = await sdk.getRailsGateway(fromChainId).helpers.getNeedsApprovalForBond({
           pathId,
           amount
         })

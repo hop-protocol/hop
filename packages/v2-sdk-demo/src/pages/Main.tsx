@@ -34,7 +34,7 @@ const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/Ra
 const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId'))
 const RailsGatewayGetFee = lazy(() => import('../components/railsGateway/RailsGatewayGetFee'))
 const RailsGatewayGetTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferId'))
-const RailsGatewayGetLatestClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetLatestClaim'))
+const RailsGatewayGetHeadClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetHeadClaim'))
 const RailsGatewayGetIsClaimValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsClaimValid'))
 const RailsGatewayPostClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostClaim'))
 const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/RailsGatewayConfirmClaim'))
@@ -113,7 +113,7 @@ export function Main () {
     ['Rails Gateway - Get Path Info', <RailsGatewayGetPathInfo sdk={sdk} />],
     ['Rails Gateway - Get Fee', <RailsGatewayGetFee sdk={sdk} />],
     ['Rails Gateway - Get Transfer ID', <RailsGatewayGetTransferId sdk={sdk} />],
-    ['Rails Gateway - Get Latest Claim', <RailsGatewayGetLatestClaim sdk={sdk} />],
+    ['Rails Gateway - Get Head Claim', <RailsGatewayGetHeadClaim sdk={sdk} />],
     ['Rails Gateway - Is Claim Valid', <RailsGatewayGetIsClaimValid sdk={sdk} />],
     ['Rails Gateway - Post Claim', <RailsGatewayPostClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Confirm Claim', <RailsGatewayConfirmClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],

@@ -56,7 +56,7 @@ export function RailsGatewayGetNeedsApprovalForBond (props: Props) {
         account
       }
       console.log('args', args)
-      const needsApproval = await sdk.getRailsGateway(fromChainId).getNeedsApprovalForBond(args)
+      const needsApproval = await sdk.getRailsGateway(fromChainId).helpers.getNeedsApprovalForBond(args)
       setNeedsApproval(`${needsApproval}`)
     } catch (err: any) {
       console.error(err)

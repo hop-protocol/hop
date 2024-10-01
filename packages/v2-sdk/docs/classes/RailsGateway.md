@@ -24,6 +24,7 @@
 
 ### Accessors
 
+- [helpers](RailsGateway.md#helpers)
 - [populateTransaction](RailsGateway.md#populatetransaction)
 - [utils](RailsGateway.md#utils)
 
@@ -36,8 +37,6 @@
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
 - [addToAppeal](RailsGateway.md#addtoappeal)
 - [addToChallenge](RailsGateway.md#addtochallenge)
-- [approveBond](RailsGateway.md#approvebond)
-- [approveSend](RailsGateway.md#approvesend)
 - [bond](RailsGateway.md#bond)
 - [confirmClaim](RailsGateway.md#confirmclaim)
 - [createChallenge](RailsGateway.md#createchallenge)
@@ -61,20 +60,14 @@
 - [getFee](RailsGateway.md#getfee)
 - [getFullAppeal](RailsGateway.md#getfullappeal)
 - [getHasSufficientBalance](RailsGateway.md#gethassufficientbalance)
+- [getHeadClaim](RailsGateway.md#getheadclaim)
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
-- [getIsPathIdLive](RailsGateway.md#getispathidlive)
-- [getIsTransferBonded](RailsGateway.md#getistransferbonded)
-- [getIsTransferClaimed](RailsGateway.md#getistransferclaimed)
-- [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
-- [getNeedsApprovalForBond](RailsGateway.md#getneedsapprovalforbond)
-- [getNeedsApprovalForSend](RailsGateway.md#getneedsapprovalforsend)
-- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getProvider](RailsGateway.md#getprovider)
@@ -142,7 +135,7 @@
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
 - [getEventNames](RailsGateway.md#geteventnames-1)
-- [getNextHopsHash](RailsGateway.md#getnexthopshash-1)
+- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
 - [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
@@ -233,6 +226,27 @@ ___
 StakingRegistry.signersOrProviders
 
 ## Accessors
+
+### <a id="helpers" name="helpers"></a> helpers
+
+• `get` **helpers**(): `Object`
+
+#### Returns
+
+`Object`
+
+| Name | Type |
+| :------ | :------ |
+| `approveBond` | (`input`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
+| `approveSend` | (`input`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
+| `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
+| `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
+| `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
+| `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
+| `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
+| `getNextHopsHash` | (`__namedParameters`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
+
+___
 
 ### <a id="populatetransaction" name="populatetransaction"></a> populateTransaction
 
@@ -422,40 +436,6 @@ ___
 #### Inherited from
 
 StakingRegistry.addToChallenge
-
-___
-
-### <a id="approvebond" name="approvebond"></a> approveBond
-
-▸ **approveBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`ApproveBondInput`](../modules.md#approvebondinput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="approvesend" name="approvesend"></a> approveSend
-
-▸ **approveSend**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`ApproveSendInput`](../modules.md#approvesendinput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -878,6 +858,22 @@ ___
 
 ___
 
+### <a id="getheadclaim" name="getheadclaim"></a> getHeadClaim
+
+▸ **getHeadClaim**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetHeadClaimInput`](../modules.md#getheadclaiminput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="gethopbalance" name="gethopbalance"></a> getHopBalance
 
 ▸ **getHopBalance**(`address?`): `Promise`\<`BigNumber`\>
@@ -930,70 +926,6 @@ ___
 
 ___
 
-### <a id="getispathidlive" name="getispathidlive"></a> getIsPathIdLive
-
-▸ **getIsPathIdLive**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getistransferbonded" name="getistransferbonded"></a> getIsTransferBonded
-
-▸ **getIsTransferBonded**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getistransferclaimed" name="getistransferclaimed"></a> getIsTransferClaimed
-
-▸ **getIsTransferClaimed**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
-
-▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetLatestClaimInput`](../modules.md#getlatestclaiminput) |
-
-#### Returns
-
-`Promise`\<`string`\>
-
-___
-
 ### <a id="getminbonderstake" name="getminbonderstake"></a> getMinBonderStake
 
 ▸ **getMinBonderStake**(): `Promise`\<`BigNumber`\>
@@ -1041,54 +973,6 @@ ___
 #### Inherited from
 
 StakingRegistry.getMinHopStakeForRole
-
-___
-
-### <a id="getneedsapprovalforbond" name="getneedsapprovalforbond"></a> getNeedsApprovalForBond
-
-▸ **getNeedsApprovalForBond**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getneedsapprovalforsend" name="getneedsapprovalforsend"></a> getNeedsApprovalForSend
-
-▸ **getNeedsApprovalForSend**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
-
-▸ **getNextHopsHash**(`«destructured»`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
-
-#### Returns
-
-`string`
 
 ___
 
@@ -2278,7 +2162,7 @@ ___
 
 ___
 
-### <a id="getnexthopshash-1" name="getnexthopshash-1"></a> getNextHopsHash
+### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
 
 ▸ **getNextHopsHash**(`«destructured»`): `string`
 

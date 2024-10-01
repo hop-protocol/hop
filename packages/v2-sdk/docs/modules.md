@@ -61,6 +61,7 @@
 - [GetFeeInput](modules.md#getfeeinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
+- [GetHeadClaimInput](modules.md#getheadclaiminput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
@@ -68,7 +69,6 @@
 - [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
 - [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
 - [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
-- [GetLatestClaimInput](modules.md#getlatestclaiminput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
 - [GetMessageBundleIdFromMessageIdInput](modules.md#getmessagebundleidfrommessageidinput)
@@ -463,6 +463,18 @@ ___
 
 ___
 
+### <a id="getheadclaiminput" name="getheadclaiminput"></a> GetHeadClaimInput
+
+Ƭ **GetHeadClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
 ### <a id="getisbundlesetinput" name="getisbundlesetinput"></a> GetIsBundleSetInput
 
 Ƭ **GetIsBundleSetInput**: `Object`
@@ -550,18 +562,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `transferId` | `string` |
-
-___
-
-### <a id="getlatestclaiminput" name="getlatestclaiminput"></a> GetLatestClaimInput
-
-Ƭ **GetLatestClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
 
 ___
 

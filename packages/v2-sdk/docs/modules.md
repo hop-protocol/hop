@@ -143,6 +143,10 @@
 - [WithdrawHopInput](modules.md#withdrawhopinput)
 - [WithdrawInput](modules.md#withdrawinput)
 
+### Variables
+
+- [utils](modules.md#utils)
+
 ## Type Aliases
 
 ### <a id="alleventtypes" name="alleventtypes"></a> AllEventTypes
@@ -1550,3 +1554,21 @@ ___
 | `amount` | `BigNumberish` |
 | `pathId` | `string` |
 | `time` | `number` |
+
+## Variables
+
+### <a id="utils" name="utils"></a> utils
+
+• `Const` **utils**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
+| `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
+| `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
+| `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |
+| `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
+| `getTxHashExplorerUrl` | (`network`: `string`, `chainId`: `string`, `txHash`: `string`) => `string` |
+| `isContractError` | (`err`: `unknown`) => `boolean` |

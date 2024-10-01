@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
+import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl, isContractError } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
 import { ContractFunctionRevertedError, ErrorWithCode } from '#error/index.js'
@@ -482,8 +482,7 @@ export class Base {
       }),
 
       isContractError: (err: unknown): boolean => {
-        const errorMsg = typeof err === 'string' ? err : (err instanceof Error ? (err as Error).message : '')
-        return (errorMsg.includes('CALL_EXCEPTION') || errorMsg.includes('UNPREDICTABLE_GAS_LIMIT')) && errorMsg.includes('execution reverted')
+        return isContractError(err)
       },
 
       getConnectedChainId: async (provider: Provider): Promise<BigNumber> => {

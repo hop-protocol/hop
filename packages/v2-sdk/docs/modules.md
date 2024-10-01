@@ -56,6 +56,7 @@
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
 - [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
+- [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
 - [GetFeeInput](modules.md#getfeeinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
@@ -390,6 +391,18 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `event` | `EthersEvent` |
+
+___
+
+### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
+
+Ƭ **GetEventFilterInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `indexes?` | `TransferSentIndexes` \| `TransferBondedIndexes` |
 
 ___
 

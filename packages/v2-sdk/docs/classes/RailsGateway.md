@@ -804,7 +804,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `eventName` | `EventName` |
-| `input` | [`GetTransferSentEventFilterInput`](../modules.md#gettransfersenteventfilterinput) |
+| `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
 
 #### Returns
 

@@ -331,7 +331,7 @@ export class RailsGateway extends StakingRegistry {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  getEventFilter(eventName: EventName, input: GetTransferSentEventFilterInput = {}) {
+  getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
     if (eventName == EventName.TransferSent) {
       return this.getTransferSentEventFilter(input)
     }

@@ -35,6 +35,7 @@ export {
   GetTransferBondedEventFromTransactionReceiptInput,
   GetTransferBondedEventFromTransferIdInput,
   GetTransferIdInput,
+  GetEventFilterInput,
   GetTransferSentEventFilterInput,
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,

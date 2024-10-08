@@ -31,7 +31,10 @@ export const SendV2: React.FC = () => {
     sendTokens,
     sendReady,
     tokenSymbol,
-    setAmountIn
+    setAmountIn,
+    fromTokenBalanceFormatted,
+    toTokenBalanceFormatted,
+    handleSwitchDirection
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -110,7 +113,7 @@ export const SendV2: React.FC = () => {
                 />
               </Box>
               <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                <Typography sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Balance: 0.0</Typography> <MuiButton variant="text" onClick={() => {}} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
+                <Typography sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Balance: {fromTokenBalanceFormatted}</Typography> <MuiButton variant="text" onClick={() => {}} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
               </Box>
             </Box>
           </Box>
@@ -126,6 +129,7 @@ export const SendV2: React.FC = () => {
             aria-label="Switch direction"
             color="primary"
             size="large"
+            onClick={() => handleSwitchDirection()}
             sx={{
               background: '#f0f0f0',
               borderRadius: '10px',
@@ -203,9 +207,7 @@ export const SendV2: React.FC = () => {
                   />
                 </Box>
                 <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                  {false && (
-                    <Typography sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Balance: 0.0</Typography>
-                  )}
+                    <Typography sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Balance: {toTokenBalanceFormatted}</Typography>
                 </Box>
               </Box>
             </Box>

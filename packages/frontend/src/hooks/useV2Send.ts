@@ -69,6 +69,10 @@ type V2SendHook = {
   initialToChainId: string
   routeChainIds: string[]
   fetchingGetSendData: boolean
+  fromTokenBalanceFormatted: string
+  toTokenBalanceFormatted: string
+  fromTokenBalanceDisplay: string
+  toTokenBalanceDisplay: string
 }
 
 class Token {
@@ -462,6 +466,11 @@ export function useV2Send(): V2SendHook {
     approveTokens()
   }
 
+  const fromTokenBalanceFormatted = fromTokenBalance ? formatUnits(fromTokenBalance, fromToken.decimals) : '-'
+  const toTokenBalanceFormatted = toTokenBalance ? formatUnits(toTokenBalance, toToken.decimals) : '-'
+  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
+  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
+
   return {
     accountAddress,
     amountIn,
@@ -518,6 +527,10 @@ export function useV2Send(): V2SendHook {
     initialFromChainId,
     initialToChainId,
     routeChainIds,
-    fetchingGetSendData
+    fetchingGetSendData,
+    fromTokenBalanceFormatted,
+    toTokenBalanceFormatted,
+    fromTokenBalanceDisplay,
+    toTokenBalanceDisplay,
   }
 }

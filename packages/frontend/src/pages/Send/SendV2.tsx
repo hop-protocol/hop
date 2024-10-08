@@ -48,6 +48,12 @@ export const SendV2: React.FC = () => {
     }
   }, [selectedFromToken])
 
+  function switchDirection() {
+    handleSwitchDirection()
+    setSelectedFromToken(selectedToToken)
+    setSelectedToToken(selectedFromToken)
+  }
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '450px', margin: '0 auto', padding: '2rem' }}>
       <Typography variant="h5" gutterBottom>
@@ -99,8 +105,9 @@ export const SendV2: React.FC = () => {
             <Box display="flex" justifyContent="center" flexDirection="column">
               <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
                 <TokenListModal
+                  value={selectedFromToken}
                   onTokenSelect={(token: Token) => {
-                    console.log('token', token)
+                    console.log('fromToken', token)
                     setSelectedFromToken(token)
                     setFromChainId(token.chainId.toString())
                     setTokenSymbol(token.symbol)
@@ -129,7 +136,7 @@ export const SendV2: React.FC = () => {
             aria-label="Switch direction"
             color="primary"
             size="large"
-            onClick={() => handleSwitchDirection()}
+            onClick={switchDirection}
             sx={{
               background: '#f0f0f0',
               borderRadius: '10px',
@@ -191,8 +198,9 @@ export const SendV2: React.FC = () => {
               <Box display="flex" justifyContent="center" flexDirection="column">
                 <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
                   <TokenListModal
+                    value={selectedToToken}
                     onTokenSelect={(token: Token) => {
-                      console.log('token', token)
+                      console.log('toToken', token)
                       setSelectedToToken(token)
                       setToChainId(token.chainId.toString())
                       setTokenSymbol(token.symbol)

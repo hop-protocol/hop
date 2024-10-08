@@ -28,13 +28,14 @@ import { CustomTokenListManager } from './CustomTokenListManager'
 
 type Props = {
   onTokenSelect: (token: any) => void
+  value?: any
   selectedChainId?: string
   excludeChainId?: string
   selectedTokenSymbol?: string
   clear?: boolean
 }
 
-export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear }: Props) => {
+export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value }: Props) => {
   let {
     open,
     search,
@@ -63,6 +64,12 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
   const [selectedToken, setSelectedToken] = useState<any>(null)
 
   useEffect(() => {
+    if (value) {
+      setSelectedToken(value)
+    }
+  }, [value])
+
+  useEffect(() => {
     if (clear) {
       setSelectedToken(null)
     }
@@ -73,6 +80,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
     { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
     { value: '11155111', label: 'Ethereum Sepolia', logo: 'https://assets.hop.exchange/logos/ethereum.svg' },
     { value: '84532', label: 'Base Sepolia', logo: 'https://assets.hop.exchange/logos/base.svg' },
+    { value: '11155420', label: 'Optimism Sepolia', logo: 'https://assets.hop.exchange/logos/optimism.svg' },
   ]
 
   const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo

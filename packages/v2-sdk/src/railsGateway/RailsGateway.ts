@@ -1670,7 +1670,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const eventFetcher = this.getEventFetcher(EventName.TransferBonded)
-    const filter = eventFetcher.getTransferIdFilter(transferId)
+    const filter = eventFetcher.getClaimIdFilter(transferId)
     const toBlock = await provider.getBlockNumber()
     const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
     return events?.[0] ?? null

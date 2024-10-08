@@ -57,7 +57,7 @@ export {
   TransferSentEventInput,
   UnstakeHopInput,
   WithdrawAllInput,
-  WithdrawBalanceInput,
+  WithdrawableBalanceInput,
   WithdrawHopInput,
   WithdrawInput,
   GetIsTransferBondedInput,
@@ -65,7 +65,12 @@ export {
   GetNextHopsHashInput,
   GetIsPathIdLiveInput,
   TransferBondedIndexes,
-  TransferSentIndexes
+  TransferSentIndexes,
+  BatchUpdateClaimChainInput,
+  ClaimFeesFromPathInput,
+  DistributeFeesInput,
+  GetTransferDataHashInput,
+  UpdateClaimChainInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

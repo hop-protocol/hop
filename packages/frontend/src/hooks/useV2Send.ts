@@ -93,6 +93,9 @@ class Token {
   }
 
   async balanceOf (address: string) {
+    if (!address) {
+      throw new Error('address is required')
+    }
     return this.contract.balanceOf(address)
   }
 }

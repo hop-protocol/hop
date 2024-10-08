@@ -38,14 +38,19 @@ export {
   TransferSentEventInput,
   UnstakeHopInput,
   WithdrawAllInput,
-  WithdrawBalanceInput,
+  WithdrawableBalanceInput,
   WithdrawHopInput,
   WithdrawInput,
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
   GetNextHopsHashInput,
   GetIsPathIdLiveInput,
-  EventName
+  EventName,
+  BatchUpdateClaimChainInput,
+  ClaimFeesFromPathInput,
+  DistributeFeesInput,
+  GetTransferDataHashInput,
+  UpdateClaimChainInput
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,

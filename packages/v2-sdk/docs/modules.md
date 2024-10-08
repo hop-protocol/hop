@@ -41,11 +41,14 @@
 - [ApproveBondInput](modules.md#approvebondinput)
 - [ApproveSendInput](modules.md#approvesendinput)
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
+- [BatchUpdateClaimChainInput](modules.md#batchupdateclaimchaininput)
 - [BondInput](modules.md#bondinput)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
+- [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
+- [DistributeFeesInput](modules.md#distributefeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
 - [EventContext](modules.md#eventcontext)
@@ -106,6 +109,7 @@
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
+- [GetTransferDataHashInput](modules.md#gettransferdatahashinput)
 - [GetTransferIdFromTransactionHashInput](modules.md#gettransferidfromtransactionhashinput)
 - [GetTransferIdInput](modules.md#gettransferidinput)
 - [GetTransferSentEventFilterInput](modules.md#gettransfersenteventfilterinput)
@@ -138,11 +142,12 @@
 - [TransferStatus](modules.md#transferstatus)
 - [TxOverrides](modules.md#txoverrides)
 - [UnstakeHopInput](modules.md#unstakehopinput)
+- [UpdateClaimChainInput](modules.md#updateclaimchaininput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
 - [WithdrawAllInput](modules.md#withdrawallinput)
-- [WithdrawBalanceInput](modules.md#withdrawbalanceinput)
 - [WithdrawHopInput](modules.md#withdrawhopinput)
 - [WithdrawInput](modules.md#withdrawinput)
+- [WithdrawableBalanceInput](modules.md#withdrawablebalanceinput)
 
 ### Variables
 
@@ -198,6 +203,20 @@ ___
 
 ___
 
+### <a id="batchupdateclaimchaininput" name="batchupdateclaimchaininput"></a> BatchUpdateClaimChainInput
+
+Ƭ **BatchUpdateClaimChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `finalTransferId` | `string` |
+| `pathId` | `string` |
+| `transferDataHashes` | `string`[] |
+
+___
+
 ### <a id="bondinput" name="bondinput"></a> BondInput
 
 Ƭ **BondInput**: `Object`
@@ -206,9 +225,9 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimId` | `string` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
-| `transferId` | `string` |
 
 ___
 
@@ -240,6 +259,19 @@ ___
 
 ___
 
+### <a id="claimfeesfrompathinput" name="claimfeesfrompathinput"></a> ClaimFeesFromPathInput
+
+Ƭ **ClaimFeesFromPathInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `messageFee` | `BigNumberish` |
+| `pathId` | `string` |
+
+___
+
 ### <a id="confirmclaiminput" name="confirmclaiminput"></a> ConfirmClaimInput
 
 Ƭ **ConfirmClaimInput**: `Object`
@@ -265,6 +297,21 @@ ___
 | `spokeChainId` | `BigNumberish` |
 | `target1` | `string` |
 | `target2` | `string` |
+
+___
+
+### <a id="distributefeesinput" name="distributefeesinput"></a> DistributeFeesInput
+
+Ƭ **DistributeFeesInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `account` | `string` |
+| `lastClaimId` | `string` |
+| `pathId` | `string` |
+| `totalFees` | `BigNumberish` |
 
 ___
 
@@ -1057,6 +1104,23 @@ ___
 
 ___
 
+### <a id="gettransferdatahashinput" name="gettransferdatahashinput"></a> GetTransferDataHashInput
+
+Ƭ **GetTransferDataHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amountOut` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `nextHops` | `HopStruct`[] |
+| `to` | `string` |
+| `totalClaims` | `BigNumberish` |
+| `totalSent` | `BigNumberish` |
+
+___
+
 ### <a id="gettransferidfromtransactionhashinput" name="gettransferidfromtransactionhashinput"></a> GetTransferIdFromTransactionHashInput
 
 Ƭ **GetTransferIdFromTransactionHashInput**: `Object`
@@ -1227,12 +1291,12 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
+| `amountOut` | `BigNumberish` |
 | `attestedClaimId` | `string` |
-| `attestedTotalClaims` | `BigNumberish` |
 | `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
+| `totalClaims` | `BigNumberish` |
 | `totalSent` | `BigNumberish` |
 | `transferId` | `string` |
 
@@ -1415,9 +1479,9 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimId?` | `string` |
 | `pathId?` | `string` |
 | `to?` | `string` |
-| `transferId?` | `string` |
 
 ___
 
@@ -1497,6 +1561,20 @@ ___
 
 ___
 
+### <a id="updateclaimchaininput" name="updateclaimchaininput"></a> UpdateClaimChainInput
+
+Ƭ **UpdateClaimChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `headTransferId` | `string` |
+| `pathId` | `string` |
+| `transferDataHash` | `string` |
+
+___
+
 ### <a id="willsendtokensfailinput" name="willsendtokensfailinput"></a> WillSendTokensFailInput
 
 Ƭ **WillSendTokensFailInput**: `Object`
@@ -1524,23 +1602,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `bucketIndex` | `number` |
 | `pathId` | `string` |
-| `time` | `number` |
-
-___
-
-### <a id="withdrawbalanceinput" name="withdrawbalanceinput"></a> WithdrawBalanceInput
-
-Ƭ **WithdrawBalanceInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
-| `path?` | [`Path`](modules.md#path) |
-| `pathId?` | `string` |
-| `time` | `number` |
 
 ___
 
@@ -1565,8 +1628,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
+| `bucketIndex` | `number` |
 | `pathId` | `string` |
-| `time` | `number` |
+
+___
+
+### <a id="withdrawablebalanceinput" name="withdrawablebalanceinput"></a> WithdrawableBalanceInput
+
+Ƭ **WithdrawableBalanceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bucketIndex` | `number` |
+| `pathId` | `string` |
+| `recipient` | `string` |
 
 ## Variables
 

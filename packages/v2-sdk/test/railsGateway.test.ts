@@ -342,7 +342,7 @@ describe('RailsGateway', () => {
   it.skip('should initiate a bond', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const transferId = '0xTODO'
+    const claimId = '0xTODO'
     const nextHops = [{
       pathId,
       maxTotalSent: '0',
@@ -354,7 +354,7 @@ describe('RailsGateway', () => {
     })
     const txData = await railsGateway.populateTransaction.bond({
       pathId,
-      transferId,
+      claimId,
       nextHops
     })
     console.log(txData)
@@ -391,7 +391,7 @@ describe('RailsGateway', () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const bonder = await signer.getAddress()
-    const time = 1
+    const bucketIndex = 1
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
@@ -399,38 +399,38 @@ describe('RailsGateway', () => {
     const balance = await railsGateway.getWithdrawableBalance({
       pathId,
       bonder,
-      time
+      bucketIndex
     })
     console.log(balance)
     expect(balance).toBeDefined()
   })
-  it.skip('TODO should withdraw claim', async () => {
+  it.skip('TODO should withdraw', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
-    const time = 1
+    const bucketIndex = 1
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const txData = await railsGateway.populateTransaction.withdrawClaim({
+    const txData = await railsGateway.populateTransaction.withdraw({
       pathId,
       amount,
-      time
+      bucketIndex
     })
     expect(txData).toBeDefined()
   })
-  it('should withdraw all claims', async () => {
+  it('should withdraw all', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const time = 1
+    const bucketIndex = 1
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const txData = await railsGateway.populateTransaction.withdrawAllClaims({
+    const txData = await railsGateway.populateTransaction.withdrawAll({
       pathId,
-      time
+      bucketIndex
     })
     expect(txData).toBeDefined()
   }, 60 * 1000)

@@ -37,9 +37,12 @@
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
 - [addToAppeal](RailsGateway.md#addtoappeal)
 - [addToChallenge](RailsGateway.md#addtochallenge)
+- [batchUpdateClaimChain](RailsGateway.md#batchupdateclaimchain)
 - [bond](RailsGateway.md#bond)
+- [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
 - [createChallenge](RailsGateway.md#createchallenge)
+- [distributeFees](RailsGateway.md#distributefees)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
@@ -93,6 +96,7 @@
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
 - [getTransferBondedEvents](RailsGateway.md#gettransferbondedevents)
+- [getTransferDataHash](RailsGateway.md#gettransferdatahash)
 - [getTransferId](RailsGateway.md#gettransferid)
 - [getTransferSentEventFilter](RailsGateway.md#gettransfersenteventfilter)
 - [getTransferSentEventFromTransactionHash](RailsGateway.md#gettransfersenteventfromtransactionhash)
@@ -124,8 +128,9 @@
 - [stakeHop](RailsGateway.md#stakehop)
 - [throwError](RailsGateway.md#throwerror)
 - [unstakeHop](RailsGateway.md#unstakehop)
-- [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
-- [withdrawClaim](RailsGateway.md#withdrawclaim)
+- [updateClaimChain](RailsGateway.md#updateclaimchain)
+- [withdraw](RailsGateway.md#withdraw)
+- [withdrawAll](RailsGateway.md#withdrawall)
 - [withdrawHop](RailsGateway.md#withdrawhop)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
@@ -261,15 +266,19 @@ ___
 | `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `batchUpdateClaimChain` | (`__namedParameters`: [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `distributeFees` | (`__namedParameters`: [`DistributeFeesInput`](../modules.md#distributefeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawClaim` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawAll` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
@@ -439,6 +448,23 @@ StakingRegistry.addToChallenge
 
 ___
 
+### <a id="batchupdateclaimchain" name="batchupdateclaimchain"></a> batchUpdateClaimChain
+
+▸ **batchUpdateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="bond" name="bond"></a> bond
 
 ▸ **bond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -448,6 +474,23 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`BondInput`](../modules.md#bondinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="claimfeesfrompath" name="claimfeesfrompath"></a> claimFeesFromPath
+
+▸ **claimFeesFromPath**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -490,6 +533,23 @@ ___
 #### Inherited from
 
 StakingRegistry.createChallenge
+
+___
+
+### <a id="distributefees" name="distributefees"></a> distributeFees
+
+▸ **distributeFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`DistributeFeesInput`](../modules.md#distributefeesinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -1405,6 +1465,22 @@ ___
 
 ___
 
+### <a id="gettransferdatahash" name="gettransferdatahash"></a> getTransferDataHash
+
+▸ **getTransferDataHash**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferDataHashInput`](../modules.md#gettransferdatahashinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="gettransferid" name="gettransferid"></a> getTransferId
 
 ▸ **getTransferId**(`«destructured»`): `Promise`\<`string`\>
@@ -1546,7 +1622,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`WithdrawBalanceInput`](../modules.md#withdrawbalanceinput) |
+| `«destructured»` | [`WithdrawableBalanceInput`](../modules.md#withdrawablebalanceinput) |
 
 #### Returns
 
@@ -1981,15 +2057,15 @@ ___
 
 ___
 
-### <a id="withdrawallclaims" name="withdrawallclaims"></a> withdrawAllClaims
+### <a id="updateclaimchain" name="updateclaimchain"></a> updateClaimChain
 
-▸ **withdrawAllClaims**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **updateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
+| `input` | [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -1998,15 +2074,32 @@ ___
 
 ___
 
-### <a id="withdrawclaim" name="withdrawclaim"></a> withdrawClaim
+### <a id="withdraw" name="withdraw"></a> withdraw
 
-▸ **withdrawClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **withdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="withdrawall" name="withdrawall"></a> withdrawAll
+
+▸ **withdrawAll**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns

@@ -126,6 +126,29 @@
   },
   {
     "type": "function",
+    "name": "batchUpdateClaimChain",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "transferDataHashes",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      },
+      {
+        "name": "finalTransferId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "bond",
     "inputs": [
       {
@@ -134,7 +157,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "transferId",
+        "name": "claimId",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -162,7 +185,7 @@
       }
     ],
     "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -243,6 +266,24 @@
   },
   {
     "type": "function",
+    "name": "claimFeesFromPath",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "messageFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "confirmClaim",
     "inputs": [
       {
@@ -295,6 +336,34 @@
   },
   {
     "type": "function",
+    "name": "distributeFees",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "totalFees",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lastClaimId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "forceSettleChallenge",
     "inputs": [
       {
@@ -315,6 +384,30 @@
     "type": "function",
     "name": "fullAppeal",
     "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBucketIndex",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "claimId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
     "outputs": [
       {
         "name": "",
@@ -384,6 +477,25 @@
   },
   {
     "type": "function",
+    "name": "getFeePrice",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getHeadClaim",
     "inputs": [
       {
@@ -400,6 +512,42 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getNextHopsHash",
+    "inputs": [
+      {
+        "name": "nextHops",
+        "type": "tuple[]",
+        "internalType": "struct Hop[]",
+        "components": [
+          {
+            "name": "pathId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "maxTotalSent",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "attestedClaimId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -514,6 +662,67 @@
   },
   {
     "type": "function",
+    "name": "getTransferDataHash",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amountOut",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalSent",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalClaims",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "attestedClaimId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "nextHops",
+        "type": "tuple[]",
+        "internalType": "struct Hop[]",
+        "components": [
+          {
+            "name": "pathId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "maxTotalSent",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "attestedClaimId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
     "name": "getWithdrawableBalance",
     "inputs": [
       {
@@ -527,7 +736,7 @@
         "internalType": "address"
       },
       {
-        "name": "time",
+        "name": "bucketIndex",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -773,7 +982,7 @@
         "internalType": "address"
       },
       {
-        "name": "amount",
+        "name": "amountOut",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -783,14 +992,14 @@
         "internalType": "uint256"
       },
       {
+        "name": "totalClaims",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "attestedClaimId",
         "type": "bytes32",
         "internalType": "bytes32"
-      },
-      {
-        "name": "attestedTotalClaims",
-        "type": "uint256",
-        "internalType": "uint256"
       },
       {
         "name": "nextHopsHash",
@@ -889,6 +1098,42 @@
   },
   {
     "type": "function",
+    "name": "setFeePrice",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "feePrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFeePrices",
+    "inputs": [
+      {
+        "name": "chainIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "prices",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "stakeHop",
     "inputs": [
       {
@@ -943,6 +1188,29 @@
   },
   {
     "type": "function",
+    "name": "updateClaimChain",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "transferDataHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "headTransferId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "withdraw",
     "inputs": [
       {
@@ -974,7 +1242,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "time",
+        "name": "bucketIndex",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -992,7 +1260,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "time",
+        "name": "bucketIndex",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -1055,7 +1323,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "transferId",
+        "name": "claimId",
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
@@ -1098,7 +1366,7 @@
         "internalType": "address"
       },
       {
-        "name": "amount",
+        "name": "amountOut",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -1110,16 +1378,16 @@
         "internalType": "uint256"
       },
       {
+        "name": "totalClaims",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
         "name": "attestedClaimId",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
-      },
-      {
-        "name": "attestedTotalClaims",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
       },
       {
         "name": "nextHops",

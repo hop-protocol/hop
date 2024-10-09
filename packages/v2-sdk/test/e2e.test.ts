@@ -1,6 +1,7 @@
 import { Hop, HopStruct, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import dotenv from 'dotenv'
+import { getComputedTransferDataHash } from '#utils/index.js'
 
 dotenv.config()
 
@@ -123,6 +124,38 @@ describe.only('Sdk - RailsGateway - e2e', () => {
       },
     })
 
+    const shouldBatchUpdateClaimChain = false // debug
+    if (shouldBatchUpdateClaimChain) {
+      const pathId = '0xb3a7b3f7f8451629de6395167aa5d6d2525d592d733a5d4389c4feafa2ec0cab'
+      const finalTransferId = '0x55d71bbb1e0f5f297dabb748558edc0eb79c6e9fa41346f34121fc31cbcb1203'
+
+      console.log('calling batchUpdateClaimChain')
+
+      const events = await sdk.getRailsGateway(fromChainId).getTransferSentEventsFromPathId({
+        pathId
+      })
+
+      console.log(events)
+
+      const transferDataHashes: any[] = events.map((event: any) => {
+        return getComputedTransferDataHash(event.decoded)
+      })
+
+      console.log('transferDataHashes:', transferDataHashes)
+      console.log('calling batchUpdateClaimChain')
+
+      const tx = await sdk.getRailsGateway(toChainId).batchUpdateClaimChain({
+        pathId,
+        transferDataHashes,
+        finalTransferId
+      })
+
+      console.log('batchUpdateClaimChain tx:', tx.hash)
+
+      await tx.wait()
+      console.log('done batchUpdateClaimChain')
+    }
+
     const pathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
@@ -232,7 +265,7 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('transferDataHash:', transferDataHash)
 
-    const shouldUpdateClaimChain = true // debug
+    const shouldUpdateClaimChain = false // debug // TODO: dynamically check
     if (shouldUpdateClaimChain) {
       const headTransferId = await sdk.getRailsGateway(toChainId).getHeadClaim({ pathId: transferSentEvent.decoded.pathId })
       console.log('headTransferId:', headTransferId)
@@ -246,8 +279,9 @@ describe.only('Sdk - RailsGateway - e2e', () => {
       await updateClaimChainTx.wait()
     }
 
-    const shouldPostClaim = true // debug
+    const shouldPostClaim = false // debug
     if (shouldPostClaim) {
+      console.log('calling postClaim')
       const postClaimTx = await sdk.getRailsGateway(toChainId).postClaim({
         pathId: transferSentEvent.decoded.pathId,
         transferId: transferSentEvent.decoded.transferId,
@@ -286,9 +320,10 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('isBonded:', isBonded)
 
-    const shouldBond = true // debug
+    const shouldBond = false // debug
     let bondTx: any
     if (shouldBond) {
+      console.log('calling bond')
       bondTx = await sdk.getRailsGateway(toChainId).bond({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId,
@@ -305,8 +340,9 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('isClaimed:', isClaimed)
 
-    const shouldConfirm = true // debug
+    const shouldConfirm = false // debug
     if (shouldConfirm) {
+      console.log('calling confirmClaim')
       const confirmTx = await sdk.getRailsGateway(toChainId).confirmClaim({
         pathId: transferSentEvent.decoded.pathId,
         transferId: transferSentEvent.decoded.transferId

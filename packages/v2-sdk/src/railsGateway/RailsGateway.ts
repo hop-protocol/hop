@@ -10,6 +10,7 @@ import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } fro
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
+import { getComputedNextHopsHash } from '../utils/getComputedNextHopsHash.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -189,6 +190,10 @@ export type GetTransferSentEventFromTransactionHashInput = {
 
 export type GetTransferSentEventFromTransferIdInput = {
   transferId: string
+}
+
+export type GetTransferSentEventsFromPathIdInput = {
+  pathId: string
 }
 
 export type GetTransferBondedEventFromTransactionReceiptInput = {
@@ -1603,6 +1608,33 @@ export class RailsGateway extends StakingRegistry {
     return events?.[0] ?? null
   }
 
+  async getTransferSentEventsFromPathId ({ pathId }: GetTransferSentEventsFromPathIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
+    let chainId = this.chainId
+
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
+
+    const address = this.getRailsGatewayContractAddress()
+    if (!address) {
+      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
+    }
+
+    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
+    const filter = eventFetcher.getPathIdFilter(pathId)
+    const fromBlock = 0
+    const toBlock = await provider.getBlockNumber()
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
+    return events
+  }
+
   async getTransferBondedEventFromTransactionReceipt ({ receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
     let chainId = this.chainId
 
@@ -1839,18 +1871,7 @@ export class RailsGateway extends StakingRegistry {
       throw new InputError('Invalid nextHops')
     }
 
-    if (nextHops.length === 0) return constants.HashZero
-
-    const encodedHops = utils.defaultAbiCoder.encode(
-      ['bytes32[]', 'uint256[]', 'bytes32[]'],
-      [
-        nextHops.map(hop => hop.pathId),
-        nextHops.map(hop => hop.maxTotalSent),
-        nextHops.map(hop => hop.attestedClaimId)
-      ]
-    )
-
-    return utils.keccak256(encodedHops)
+    return getComputedNextHopsHash(nextHops)
   }
 
   static deriveNetwork (chainId: BigNumberish): string {

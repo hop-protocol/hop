@@ -103,6 +103,7 @@
 - [getTransferSentEventFromTransactionReceipt](RailsGateway.md#gettransfersenteventfromtransactionreceipt)
 - [getTransferSentEventFromTransferId](RailsGateway.md#gettransfersenteventfromtransferid)
 - [getTransferSentEvents](RailsGateway.md#gettransfersentevents)
+- [getTransferSentEventsFromPathId](RailsGateway.md#gettransfersenteventsfrompathid)
 - [getTransferSentEventsInBatches](RailsGateway.md#gettransfersenteventsinbatches)
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
@@ -1570,6 +1571,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`TransferSentEventInput`](../modules.md#transfersenteventinput) |
+
+#### Returns
+
+`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
+
+___
+
+### <a id="gettransfersenteventsfrompathid" name="gettransfersenteventsfrompathid"></a> getTransferSentEventsFromPathId
+
+▸ **getTransferSentEventsFromPathId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferSentEventsFromPathIdInput`](../modules.md#gettransfersenteventsfrompathidinput) |
 
 #### Returns
 

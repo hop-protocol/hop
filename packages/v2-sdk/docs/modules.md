@@ -116,6 +116,7 @@
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
 - [GetTransferSentEventFromTransactionReceiptInput](modules.md#gettransfersenteventfromtransactionreceiptinput)
 - [GetTransferSentEventFromTransferIdInput](modules.md#gettransfersenteventfromtransferidinput)
+- [GetTransferSentEventsFromPathIdInput](modules.md#gettransfersenteventsfrompathidinput)
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
@@ -1200,6 +1201,18 @@ ___
 
 ___
 
+### <a id="gettransfersenteventsfrompathidinput" name="gettransfersenteventsfrompathidinput"></a> GetTransferSentEventsFromPathIdInput
+
+Ƭ **GetTransferSentEventsFromPathIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
 ### <a id="gettransferstatusinput" name="gettransferstatusinput"></a> GetTransferStatusInput
 
 Ƭ **GetTransferStatusInput**: `Object`
@@ -1657,7 +1670,9 @@ ___
 | :------ | :------ |
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
+| `getComputedNextHopsHash` | (`nextHops`: `HopStruct`[]) => `string` |
 | `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
+| `getComputedTransferDataHash` | (`__namedParameters`: `Input`) => `string` |
 | `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |
 | `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |
 | `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |

@@ -24,6 +24,7 @@ export {
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
+  GetTransferSentEventsFromPathIdInput,
   GetTransferBondedEventFilterInput,
   HopStructInput,
   Path,

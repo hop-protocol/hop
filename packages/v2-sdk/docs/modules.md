@@ -1658,6 +1658,7 @@ ___
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
 | `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
+| `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |
 | `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |
 | `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getTxHashExplorerUrl` | (`network`: `string`, `chainId`: `string`, `txHash`: `string`) => `string` |

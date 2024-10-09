@@ -1290,8 +1290,8 @@ export class RailsGateway extends StakingRegistry {
         return false
       },
 
-      getNextHopsHash: ({ nextHops }: GetNextHopsHashInput): string => {
-        return RailsGateway.getNextHopsHash({ nextHops })
+      getComputedNextHopsHash: ({ nextHops }: GetNextHopsHashInput): string => {
+        return RailsGateway.getComputedNextHopsHash({ nextHops })
       }
     }
   }
@@ -1877,7 +1877,16 @@ export class RailsGateway extends StakingRegistry {
     return Number(index)
   }
 
-  static getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {
+  async getNextHopsHash ({ nextHops }: GetNextHopsHashInput): Promise<string> {
+    if (!nextHops || !Array.isArray(nextHops)) {
+      throw new InputError('Invalid nextHops')
+    }
+
+    const contract = await this.getRailsGatewayContract()
+    return contract.getNextHopsHash(nextHops)
+  }
+
+  static getComputedNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {
     if (!nextHops || !Array.isArray(nextHops)) {
       throw new InputError('Invalid nextHops')
     }

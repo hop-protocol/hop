@@ -1,5 +1,5 @@
 import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent, Contract } from 'ethers'
+import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'

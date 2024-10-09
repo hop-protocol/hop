@@ -117,7 +117,7 @@ describe('Base', () => {
     expect(gas).toBeDefined()
   })
   it('should get gas price', async () => {
-    const provider = (await base.getProvider(1))!
+    const provider = base.getProvider(1)
     const gasPrice = await base.utils.getGasPrice(provider)
     console.log(gasPrice)
     expect(gasPrice).toBeDefined()

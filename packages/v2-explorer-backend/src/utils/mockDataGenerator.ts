@@ -170,10 +170,10 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
     transferId: generateRandomBytes32(),
     pathId: generateRandomBytes32(),
     to: generateRandomAddress(),
-    amount: generateRandomUint256(),
+    amountOut: generateRandomUint256(),
     totalSent: generateRandomUint256(),
+    totalClaims: generateRandomUint256(),
     attestedClaimId: generateRandomBytes32(),
-    attestedTotalClaims: generateRandomUint256(),
     nextHops: nextHops,
   }
 }
@@ -182,8 +182,9 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
 export function generateMockTransferBonded(): TransferBonded {
   return {
     pathId: generateRandomBytes32(),
-    transferId: generateRandomBytes32(),
-    amount: generateRandomUint256()
+    claimId: generateRandomBytes32(),
+    to: generateRandomAddress(),
+    amount: generateRandomUint256(),
   }
 }
 

@@ -1,5 +1,5 @@
 import { Base, BaseConfig, TxOverrides } from '#common/index.js'
-import { BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
+import { BigNumberish, providers, utils, Event as EthersEvent } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
 import { ConfigError, InputError } from '#error/index.js'

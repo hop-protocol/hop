@@ -38,7 +38,7 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [time, setTime] = useLocalStorageState(`${cacheKey}:time`, {
+  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
     defaultValue: '',
   })
 
@@ -61,10 +61,10 @@ export function RailsGatewayWithdraw (props: Props) {
     const args = {
       pathId,
       amount,
-      time: Number(time)
+      bucketIndex: Number(bucketIndex)
     }
     console.log('args', args)
-    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawClaim(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdraw(args)
     return txData
   }
 
@@ -103,13 +103,13 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const amount = "${amount}"
-  const time = ${time}
+  const bucketIndex = ${bucketIndex}
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdrawClaim({
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdraw({
     pathId,
     amount,
-    time
+    bucketIndex
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -167,9 +167,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Time <small><em>(uint256)</em></small> <small><em>Time window</em></small></label>
+                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={time} onChange={(event: any) => setTime(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={(event: any) => setBucketIndex(event.target.value)} />
               </Box>
 
               <Box mb={2}>

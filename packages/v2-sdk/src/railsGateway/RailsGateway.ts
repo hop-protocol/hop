@@ -1,7 +1,7 @@
-import { BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
+import { TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
-import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
+import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
@@ -384,7 +384,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async #getEvents ({ fromBlock, toBlock, eventName, fetchTxData = false }: GetEventsInput) {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -425,7 +425,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async *getTransferSentEventsInBatches({ fromBlock, toBlock }: TransferSentEventInput) {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -472,7 +472,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getRailsGatewayContractAddress (): string {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -481,7 +481,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getRailsGatewayContract (): Promise<Contract> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -519,7 +519,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getPathInfo ({ pathId }: GetPathInfoInput): Promise<Path> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -548,7 +548,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getFee ({ pathId }: GetFeeInput): Promise<BigNumber> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -570,7 +570,7 @@ export class RailsGateway extends StakingRegistry {
   get populateTransaction() {
     return {
       send: async ({ pathId, to, amount, attestedClaimId, nextHops = [], maxTotalSent, fee }: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -640,7 +640,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       approveSend: async ({ pathId, amount }: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -672,7 +672,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       bond: async ({ pathId, claimId, nextHops = []}: BondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -719,7 +719,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       approveBond: async ({ pathId, amount }: ApproveBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -751,7 +751,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       postClaim: async ({ pathId, transferId, to, amountOut, totalSent, totalClaims, attestedClaimId, nextHopsHash }: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -796,7 +796,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       removeClaim: async ({ pathId, transferId }: RemoveClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -821,7 +821,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       withdraw: async ({ pathId, amount, bucketIndex }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -850,7 +850,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       withdrawAll: async ({ pathId, bucketIndex }: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -875,7 +875,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       confirmClaim: async ({ pathId, transferId }: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -900,7 +900,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       approveStakeHop: async ({ role, staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -938,7 +938,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       stakeHop: async ({ role, staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -985,7 +985,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       unstakeHop: async ({ role, amount }: UnstakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1019,7 +1019,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       withdrawHop: async ({ role }: WithdrawHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1043,7 +1043,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       batchUpdateClaimChain: async ({ pathId, transferDataHashes, finalTransferId }: BatchUpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1076,7 +1076,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       claimFeesFromPath: async ({ pathId, messageFee }: ClaimFeesFromPathInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1101,7 +1101,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       distributeFees: async ({ pathId, account, totalFees, lastClaimId }: DistributeFeesInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1134,7 +1134,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       updateClaimChain: async ({ pathId, transferDataHash, headTransferId }: UpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1163,7 +1163,7 @@ export class RailsGateway extends StakingRegistry {
   get helpers() {
     return {
       getNeedsApprovalForSend: async ({ pathId, amount, account }: GetNeedsApprovalForSendInput): Promise<boolean> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1193,7 +1193,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       getNeedsApprovalForBond: async ({ pathId, amount, account }: GetNeedsApprovalForBondInput): Promise<boolean> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1230,7 +1230,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       getIsTransferBonded: async ({ transferId }: GetIsTransferBondedInput): Promise<boolean> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1245,7 +1245,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       getIsTransferClaimed: async ({ transferId }: GetIsTransferClaimedInput): Promise<boolean> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1260,7 +1260,7 @@ export class RailsGateway extends StakingRegistry {
       },
 
       getIsPathIdLive: async ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> => {
-        let chainId = this.chainId
+        const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1298,7 +1298,7 @@ export class RailsGateway extends StakingRegistry {
 
   async send (input: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const { pathId, amount } = input
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1366,7 +1366,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getHeadClaim ({ pathId }: GetHeadClaimInput): Promise<string> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1396,7 +1396,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getWithdrawableBalance ({ pathId, recipient, bucketIndex }: WithdrawableBalanceInput): Promise<BigNumber> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1425,7 +1425,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferId ({ pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint }: GetTransferIdInput): Promise<string> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1474,7 +1474,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getHopTokenAddress (): Promise<string> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1485,7 +1485,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getMinBonderStake (): Promise<BigNumber> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1501,7 +1501,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getHopBalance (address?: string | null): Promise<BigNumber> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1524,7 +1524,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getHopTokenContract (): Promise<Contract> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1539,7 +1539,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferSentEventFromTransactionReceipt ({ receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1562,7 +1562,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferSentEventFromTransactionHash ({ transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1587,7 +1587,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferSentEventFromTransferId ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1614,7 +1614,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferSentEventsFromPathId ({ pathId }: GetTransferSentEventsFromPathIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1641,7 +1641,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferBondedEventFromTransactionReceipt ({ receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1663,7 +1663,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferBondedEventFromTransactionHash ({ transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1688,7 +1688,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferBondedEventFromTransferId ({ transferId, fromBlock = 0 }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1714,7 +1714,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTokenInfo ({ address }: GetTokenInfoInput): Promise<Token> {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1758,7 +1758,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   getTokenContract ({ address }: GetTokenContractInput): Contract {
-    let chainId = this.chainId
+    const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
@@ -1776,7 +1776,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getHasSufficientBalance ({ tokenAddress, amount, account }: GetHasSufficientBalanceInput): Promise<boolean> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1804,7 +1804,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getIsClaimIdValid ({ pathId, claimId }: GetIsClaimIdValidInput): Promise<boolean> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
@@ -1825,7 +1825,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTotalSent ({ pathId }: GetTotalSentInput): Promise<BigNumber> {
-    let chainId = this.chainId
+    const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)

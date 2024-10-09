@@ -29,11 +29,11 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
     defaultValue: '',
   })
 
-  const [bonder, setBonder] = useLocalStorageState(`${cacheKey}:bonder`, {
+  const [recipient, setRecipient] = useLocalStorageState(`${cacheKey}:recipient`, {
     defaultValue: '',
   })
 
-  const [time, setTime] = useLocalStorageState(`${cacheKey}:time`, {
+  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
     defaultValue: '',
   })
 
@@ -52,8 +52,8 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
       setLoading(true)
       const args = {
         pathId,
-        bonder,
-        time: Number(time)
+        recipient,
+        bucketIndex: Number(bucketIndex)
       }
       console.log('args', args)
       const balance = await sdk.getRailsGateway(fromChainId).getWithdrawableBalance(args)
@@ -70,14 +70,14 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const pathId = "${pathId}"
-  const bonder = "${bonder}"
-  const time = ${time}
+  const recipient = "${recipient}"
+  const bucketIndex = ${bucketIndex}
 
   ${hopInstantiateDisplayString}
   const fee = await hop.getRailsGateway('${fromChainId}').getWithdrawableBalance({
     pathId,
-    bonder,
-    time
+    recipient,
+    bucketIndex
   })
   console.log(fee)
 }
@@ -98,7 +98,7 @@ main().catch(console.error)
         <Typography variant="h5">Rails Gateway - Get Withdrawable Balance</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway withdrawable balance for a bonder addres</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway withdrawable balance for a recipient addres</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -120,16 +120,16 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bonder <small><em>(address)</em></small> <small><em>Bonder address</em></small></label>
+                  <label>Recipient <small><em>(address)</em></small> <small><em>Recipient address</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={bonder} onChange={event => setBonder(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={recipient} onChange={event => setRecipient(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Time <small><em>(uint256)</em></small> <small><em>Time window</em></small></label>
+                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={time} onChange={event => setTime(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={event => setBucketIndex(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

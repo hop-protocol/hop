@@ -42,7 +42,7 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
+  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
     defaultValue: '',
   })
 
@@ -50,11 +50,11 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
+  const [totalClaims, setTotalClaims] = useLocalStorageState(`${cacheKey}:totalClaims`, {
     defaultValue: '',
   })
 
-  const [attestedTotalClaims, setAttestedTotalClaims] = useLocalStorageState(`${cacheKey}:attestedTotalClaims`, {
+  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
     defaultValue: '',
   })
 
@@ -82,10 +82,10 @@ export function RailsGatewayPostClaim (props: Props) {
       pathId,
       transferId,
       to: toAddress,
-      amount,
+      amountOut,
       totalSent,
+      totalClaims,
       attestedClaimId,
-      attestedTotalClaims,
       nextHopsHash
     }
     console.log('args', args)
@@ -128,10 +128,10 @@ async function main() {
   const pathId = "${pathId}"
   const transferId = "${transferId}"
   const to = "${toAddress}"
-  const amount = "${amount}"
+  const amountOut = "${amountOut}"
   const totalSent = "${totalSent}"
+  const totalClaims = "${totalClaims}"
   const attestedClaimId = "${attestedClaimId}"
-  const attestedTotalClaims = "${attestedTotalClaims}"
   const nextHopsHash = "${nextHopsHash}"
 
   ${hopInstantiateDisplayString}
@@ -139,10 +139,10 @@ async function main() {
     pathId,
     transferId,
     to,
-    amount,
+    amountOut,
     totalSent,
+    totalClaims,
     attestedClaimId,
-    attestedTotalClaims,
     nextHopsHash
   })
   ${populateTxDataOnly ? (
@@ -208,9 +208,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to send</em></small></label>
+                  <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount out of transfer sent event</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -222,16 +222,16 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
+                  <label>Total Claims <small><em>(uint256)</em></small> <small><em>Total claims</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={totalClaims} onChange={(event: any) => setTotalClaims(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested Total Claims <small><em>(uint256)</em></small> <small><em>Attested total claims</em></small></label>
+                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={attestedTotalClaims} onChange={(event: any) => setAttestedTotalClaims(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

@@ -1,5 +1,5 @@
 import { Base, BaseConfig, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
+import { BigNumber, BigNumberish, providers, utils, Event as EthersEvent } from 'ethers'
 import { EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypes } from '#events/index.js'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'

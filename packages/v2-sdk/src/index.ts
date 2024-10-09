@@ -71,7 +71,8 @@ export {
   ClaimFeesFromPathInput,
   DistributeFeesInput,
   GetTransferDataHashInput,
-  UpdateClaimChainInput
+  UpdateClaimChainInput,
+  GetBucketIndexInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

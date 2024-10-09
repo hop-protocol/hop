@@ -320,7 +320,7 @@ describe.only('Sdk - RailsGateway - e2e', () => {
 
     console.log('isBonded:', isBonded)
 
-    const shouldBond = false // debug
+    const shouldBond = true // debug
     let bondTx: any
     if (shouldBond) {
       console.log('calling bond')
@@ -352,23 +352,23 @@ describe.only('Sdk - RailsGateway - e2e', () => {
       await confirmTx.wait()
     }
 
-    const bondedEvent = (await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
-      // transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // debug
-      transactionHash: bondTx.hash
-    }))!
+    // const bondedEvent = (await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
+    //   // transactionHash: '0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5' // debug
+    //   transactionHash: bondTx.hash
+    // }))!
 
-    console.log('BondedEvent  event:', bondedEvent)
+    //console.log('BondedEvent  event:', bondedEvent)
 
-    const destProvider = (await sdk.getProvider(toChainId))!
+    // const destProvider = (await sdk.getProvider(toChainId))!
     // const bondTx = await destProvider.getTransaction('0x99672ac84de539eefc9b4ed8a546e8c430d68b21ad1a315f2d72fd52e5d706b5') // debug
     // const bondTxFromHash = await destProvider.getTransaction(bondTx.hash)
     // const bondBlock = await destProvider.getBlock(bondTxFromHash.blockNumber!)
 
-    const bucketIndex = 1 // TODO
+    const bucketIndex = await sdk.getRailsGateway(toChainId).getBucketIndex({ pathId, claimId: transferSentEvent.decoded.transferId })
 
     console.log('bucketIndex:', bucketIndex)
 
-    const shouldWithdraw = true // debug
+    const shouldWithdraw = false // debug
     if (shouldWithdraw) {
       const withdrawTx = await sdk.getRailsGateway(toChainId).withdraw({
         pathId: transferSentEvent.decoded.pathId,

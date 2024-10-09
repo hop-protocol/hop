@@ -51,7 +51,8 @@ export {
   ClaimFeesFromPathInput,
   DistributeFeesInput,
   GetTransferDataHashInput,
-  UpdateClaimChainInput
+  UpdateClaimChainInput,
+  GetBucketIndexInput
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,

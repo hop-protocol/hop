@@ -54,6 +54,7 @@
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
+- [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
@@ -374,6 +375,19 @@ ___
 | `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
 | `fromChainId` | `BigNumberish` |
+
+___
+
+### <a id="getbucketindexinput" name="getbucketindexinput"></a> GetBucketIndexInput
+
+Ƭ **GetBucketIndexInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
 
 ___
 

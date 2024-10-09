@@ -45,6 +45,7 @@
 - [distributeFees](RailsGateway.md#distributefees)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
+- [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
 - [getChallengeId](RailsGateway.md#getchallengeid)
 - [getChallengePeriod](RailsGateway.md#getchallengeperiod)
@@ -591,6 +592,22 @@ ___
 #### Inherited from
 
 StakingRegistry.getAppealPeriod
+
+___
+
+### <a id="getbucketindex" name="getbucketindex"></a> getBucketIndex
+
+▸ **getBucketIndex**(`«destructured»`): `Promise`\<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetBucketIndexInput`](../modules.md#getbucketindexinput) |
+
+#### Returns
+
+`Promise`\<`number`\>
 
 ___
 

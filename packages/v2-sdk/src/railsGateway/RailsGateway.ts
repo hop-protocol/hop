@@ -296,6 +296,11 @@ export type UpdateClaimChainInput = {
   headTransferId: string
 }
 
+export type GetBucketIndexInput = {
+  pathId: string
+  claimId: string
+}
+
 export type RailsGatewayConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -1864,6 +1869,12 @@ export class RailsGateway extends StakingRegistry {
   async getTransferDataHash ({ to, amountOut, totalSent, totalClaims, attestedClaimId, nextHops }: GetTransferDataHashInput): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.getTransferDataHash(to, amountOut, totalSent, totalClaims, attestedClaimId, nextHops)
+  }
+
+  async getBucketIndex ({ pathId, claimId }: GetBucketIndexInput): Promise<number> {
+    const contract = await this.getRailsGatewayContract()
+    const index = await contract.getBucketIndex(pathId, claimId)
+    return Number(index)
   }
 
   static getNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {

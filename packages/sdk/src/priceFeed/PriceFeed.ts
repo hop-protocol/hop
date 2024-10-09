@@ -31,7 +31,8 @@ export class PriceFeed {
     WETH: 'ETH',
     WMATIC: 'MATIC',
     WXDAI: 'DAI',
-    XDAI: 'DAI'
+    XDAI: 'DAI',
+    WPOL: 'MATIC'
   }
 
   constructor (apiKeysMap: PriceFeedApiKeys = {}) {

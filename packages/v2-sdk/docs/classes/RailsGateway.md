@@ -72,6 +72,7 @@
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
+- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getProvider](RailsGateway.md#getprovider)
@@ -139,10 +140,10 @@
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents-1)
 - [deriveNetwork](RailsGateway.md#derivenetwork)
+- [getComputedNextHopsHash](RailsGateway.md#getcomputednexthopshash)
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
 - [getEventNames](RailsGateway.md#geteventnames-1)
-- [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
 - [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
@@ -246,12 +247,12 @@ StakingRegistry.signersOrProviders
 | :------ | :------ |
 | `approveBond` | (`input`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
 | `approveSend` | (`input`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
+| `getComputedNextHopsHash` | (`__namedParameters`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
-| `getNextHopsHash` | (`__namedParameters`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
 
 ___
 
@@ -1051,6 +1052,22 @@ ___
 #### Inherited from
 
 StakingRegistry.getMinHopStakeForRole
+
+___
+
+### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
+
+▸ **getNextHopsHash**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -1917,7 +1934,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `customSigner?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -1925,7 +1942,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
-| `signer?` | ``null`` \| `Signer` |
+| `customSigner?` | ``null`` \| `Signer` |
 
 #### Returns
 
@@ -2239,6 +2256,22 @@ ___
 
 ___
 
+### <a id="getcomputednexthopshash" name="getcomputednexthopshash"></a> getComputedNextHopsHash
+
+▸ **getComputedNextHopsHash**(`«destructured»`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`string`
+
+___
+
 ### <a id="getdefaultprovider-1" name="getdefaultprovider-1"></a> getDefaultProvider
 
 ▸ **getDefaultProvider**(`chainId`): `Provider`
@@ -2286,22 +2319,6 @@ ___
 #### Returns
 
 `string`[]
-
-___
-
-### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
-
-▸ **getNextHopsHash**(`«destructured»`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
-
-#### Returns
-
-`string`
 
 ___
 

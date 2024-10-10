@@ -455,7 +455,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`SendTokensInput`](../modules.md#sendtokensinput) |
+| `«destructured»` | [`GetEstimatedReceivedInput`](../modules.md#getestimatedreceivedinput) |
 
 #### Returns
 
@@ -894,7 +894,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`, `signer?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `customSigner?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -902,7 +902,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
-| `signer?` | ``null`` \| `Signer` |
+| `customSigner?` | ``null`` \| `Signer` |
 
 #### Returns
 

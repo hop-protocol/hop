@@ -8,6 +8,7 @@ import { TokenListModal } from './TokenListModal'
 import IconButton from '@mui/material/IconButton'
 import ArrowDownward from '@mui/icons-material/ArrowDownward'
 import { useV2Send } from '#hooks/useV2Send.js'
+import { Alert } from '#components/Alert/index.js'
 
 interface Token {
   name: string
@@ -34,7 +35,14 @@ export const SendV2: React.FC = () => {
     setAmountIn,
     fromTokenBalanceFormatted,
     toTokenBalanceFormatted,
-    handleSwitchDirection
+    handleSwitchDirection,
+    needsApproval,
+    approveTokens,
+    isSending,
+    isApproving,
+    sendTx,
+    setSendTx,
+    fetchingGetSendData
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -52,6 +60,21 @@ export const SendV2: React.FC = () => {
     handleSwitchDirection()
     setSelectedFromToken(selectedToToken)
     setSelectedToToken(selectedFromToken)
+  }
+
+  let buttonDisabled = !sendReady
+  let buttonAction = sendTokens
+  let buttonText = isSending ? 'Sending' : 'Send'
+  let buttonLoading = isSending
+  if (fetchingGetSendData) {
+    buttonText = 'Getting estimate'
+  }
+
+  if (needsApproval) {
+    buttonDisabled = !needsApproval
+    buttonAction = approveTokens
+    buttonText = isApproving ? 'Approving' : 'Approve'
+    buttonLoading = isApproving
   }
 
   return (
@@ -222,9 +245,15 @@ export const SendV2: React.FC = () => {
         </Box>
       </Box>
 
-      <Button disabled={!sendReady} highlighted fullWidth large onClick={sendTokens}>
-        Send
+      <Button disabled={buttonDisabled} highlighted fullWidth large onClick={buttonAction} loading={buttonLoading}>
+        {buttonText}
       </Button>
+
+      {!!sendTx && (
+        <Box mt={6}>
+          <Alert severity="success" onClose={() => setSendTx(null)}>Transaction Hash: {sendTx.hash}</Alert>
+        </Box>
+      )}
     </Box>
   )
 }

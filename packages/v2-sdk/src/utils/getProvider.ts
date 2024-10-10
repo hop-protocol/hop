@@ -8,5 +8,5 @@ export function getProvider (network: string, chainId: number) {
     throw new Error(`Invalid network ${network} or chainId: ${chainId}, rpcUrl not found`)
   }
 
-  return new providers.JsonRpcProvider(rpcUrl)
+  return new providers.StaticJsonRpcProvider(rpcUrl)
 }

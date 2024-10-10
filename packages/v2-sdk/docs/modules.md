@@ -58,6 +58,7 @@
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
+- [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
@@ -428,6 +429,23 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
+
+___
+
+### <a id="getestimatedreceivedinput" name="getestimatedreceivedinput"></a> GetEstimatedReceivedInput
+
+Ƭ **GetEstimatedReceivedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `fromChainId` | `BigNumberish` |
+| `fromToken` | `string` |
+| `minAmountOut` | `BigNumberish` |
+| `toChainId` | `BigNumberish` |
+| `toToken` | `string` |
 
 ___
 
@@ -1420,7 +1438,7 @@ ___
 | `fromChainId` | `BigNumberish` |
 | `fromToken` | `string` |
 | `minAmountOut` | `BigNumberish` |
-| `to?` | `string` |
+| `to` | `string` |
 | `toChainId` | `BigNumberish` |
 | `toToken` | `string` |
 

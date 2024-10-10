@@ -9,7 +9,7 @@ const { parseUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 
-describe.skip('Sdk - Hop - e2e', () => {
+describe.only('Sdk - Hop - e2e', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -40,7 +40,8 @@ describe.skip('Sdk - Hop - e2e', () => {
       toChainId,
       fromToken,
       toToken,
-      amount: sendAmount
+      amount: sendAmount,
+      account: to
     })
 
     console.log('needsApproval:', needsApproval)
@@ -61,6 +62,19 @@ describe.skip('Sdk - Hop - e2e', () => {
     const minAmountOut = sdk.calcAmountOutMin( { amountOut: sendAmount, slippageTolerance: 0.01 } )
 
     console.log('minAmountOut:', minAmountOut.toString())
+
+    const willFail = await sdk.getWillSendTokensFail({
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount: sendAmount,
+      minAmountOut,
+      from: to
+    })
+
+    console.log('willFail:', willFail)
 
     const shouldSend = true // debug
     let sendTxHash = '0xcc78bc7d6a137d7aaaa4a47947ad82dc7b95b191e6a5852300371c9e00b9aa8a' // debug
@@ -100,7 +114,7 @@ describe.skip('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e', () => {
+describe('Sdk - RailsGateway - e2e', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -259,7 +273,7 @@ describe.only('Sdk - RailsGateway - e2e', () => {
       await executeTx.wait()
     }
 
-    const nextHopsHash = sdk.getRailsGateway(fromChainId).helpers.getNextHopsHash({ nextHops: transferSentEvent.decoded.nextHops })
+    const nextHopsHash = await sdk.getRailsGateway(fromChainId).getNextHopsHash({ nextHops: transferSentEvent.decoded.nextHops })
 
     console.log('nextHopsHash:', nextHopsHash)
 

@@ -10,11 +10,12 @@ export {
   SendTokensInput,
   WillSendTokensFailInput,
   GetTransferIdFromTransactionHashInput,
-	EventName,
+  EventName,
   GetTransferStatusInput,
   TransferState,
   TransferStatus,
   CalcAmountOutMinInput,
+  GetEstimatedReceivedInput
 } from './Hop.js'
 export {
   ApproveBondInput,

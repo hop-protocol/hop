@@ -51,7 +51,7 @@ type V2SendHook = {
   setRecipient: (recipient: string) => void
   setToChainId: (chainId: string) => void
   setTokenSymbol: (symbol: string) => void
-  setTx: (tx: providers.TransactionResponse | null) => void
+  setSendTx: (tx: providers.TransactionResponse | null) => void
   setWarning: (warning: string) => void
   toChain: any
   toChainId: string
@@ -62,7 +62,7 @@ type V2SendHook = {
   tokenSymbol: string | null
   totalFeeDisplay: string
   totalFeeUsdDisplay: string
-  tx: providers.TransactionResponse | null
+  sendTx: providers.TransactionResponse | null
   warning: string
   initialTokenSymbol: string
   initialFromChainId: string
@@ -107,7 +107,7 @@ export function useV2Send(): V2SendHook {
     txConfirm
   } = useApp()
   const { address, provider } = useWeb3Context()
-  const [tx, setTx] = useState<providers.TransactionResponse | null>(null)
+  const [sendTx, setSendTx] = useState<providers.TransactionResponse | null>(null)
   const [approvalTx, setApprovalTx] = useState<providers.TransactionResponse | null>(null)
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null)
   const [tokenList, setTokenList] = useState<string[]>([])
@@ -206,7 +206,7 @@ export function useV2Send(): V2SendHook {
     }
 
     update().catch(console.error)
-  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn])
+  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving])
 
   async function approveTokens () {
     try {
@@ -255,7 +255,7 @@ export function useV2Send(): V2SendHook {
 
   async function sendTokens () {
     try {
-      setTx(null)
+      setSendTx(null)
       setError('')
       setIsSending(true)
 
@@ -304,7 +304,9 @@ export function useV2Send(): V2SendHook {
             minAmountOut: parsedMinAmountOut
           })
 
-          setTx(tx)
+          setAmountIn('')
+
+          setSendTx(tx)
         },
       })
     } catch (err) {
@@ -484,7 +486,7 @@ export function useV2Send(): V2SendHook {
     bonderFeeUsdDisplay,
     chains,
     error,
-    estimatedReceivedDisplay,
+    estimatedReceivedDisplay: fetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
     estimatedReceivedUsdDisplay,
     fromChain,
     fromChainId,
@@ -512,7 +514,7 @@ export function useV2Send(): V2SendHook {
     setRecipient,
     setToChainId,
     setTokenSymbol,
-    setTx,
+    setSendTx,
     setWarning,
     toChain,
     toChainId,
@@ -523,7 +525,7 @@ export function useV2Send(): V2SendHook {
     tokenSymbol,
     totalFeeDisplay,
     totalFeeUsdDisplay,
-    tx,
+    sendTx,
     warning,
     v2Sdk,
     initialTokenSymbol,

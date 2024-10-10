@@ -55,10 +55,19 @@ export type SendTokensInput = {
   toChainId: BigNumberish
   fromToken: string
   toToken: string
-  to?: string
+  to: string
   amount: BigNumberish
   minAmountOut: BigNumberish
   attestedClaimId?: string
+}
+
+export type GetEstimatedReceivedInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  amount: BigNumberish
+  minAmountOut: BigNumberish
 }
 
 export type GetSendDataInput = {
@@ -387,7 +396,7 @@ export class Hop extends Base {
       pathId
     })
 
-    const maxTotalSent = await this.getRailsGateway(toChainId).getTotalSent({ pathId })
+    const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
 
     const nextHops: HopStruct[] = []
 
@@ -411,7 +420,7 @@ export class Hop extends Base {
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
-  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: SendTokensInput): Promise<BigNumber> {
+  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
     // TODO: will fill in once we have contract implementation for this
     return BigNumber.from(amount)
   }

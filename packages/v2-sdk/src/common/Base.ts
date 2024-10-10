@@ -201,8 +201,9 @@ export class Base {
       throw new Error(`invalid chainId "${chainId}"`)
     }
 
-    if (!signer) {
-      throw new Error('signer not set')
+    const isProvider = (signer as any)._isProvider
+    if (isProvider) {
+      return null
     }
 
     if (signer) {
@@ -248,9 +249,13 @@ export class Base {
   async getSignerOrProvider (
     chainId: BigNumberish
   ): Promise<Signer | Provider> {
-    const signer = await this.getSigner(chainId)
-    if (signer) {
-      return signer
+    try {
+      const signer = await this.getSigner(chainId)
+      if (signer) {
+        return signer
+      }
+    } catch (err: any) {
+      console.warn('hopV2Sdk:', err)
     }
 
     const provider = this.getProvider(chainId)
@@ -294,11 +299,11 @@ export class Base {
     return txOptions
   }
 
-  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId, signer?: Signer | null): Promise<providers.TransactionResponse> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId, customSigner?: Signer | null): Promise<providers.TransactionResponse> {
     chainId = chainId?.toString()
 
-    if (signer) {
-      signer = this.getEthersWeb3Signer(signer)
+    if (customSigner) {
+      customSigner = this.getEthersWeb3Signer(customSigner)
     }
 
     if (!chainId) {
@@ -313,7 +318,10 @@ export class Base {
       throw new Error('invalid "to" address')
     }
 
-    signer ??= await this.getSigner(chainId)
+    let signer = customSigner
+    if (!signer) {
+      signer = await this.getSigner(chainId)
+    }
 
     if (!signer) {
       throw new Error('signer is required')
@@ -325,8 +333,13 @@ export class Base {
 
     await this.utils.switchChain(chainId, signer.provider)
 
-    signer = await this.getSigner(chainId)
+    if (!customSigner) {
+      // note: this is to get the correct signer from configured siginersOrProviders object
+      signer = await this.getSigner(chainId)
+    }
+
     if (!(Signer.isSigner(signer) && signer.provider)) {
+      console.error(signer)
       throw new Error(`signer not connected to required chain "${chainId}"`)
     }
 

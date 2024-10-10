@@ -70,12 +70,14 @@ type V2Hook = {
 
 export function useV2(): V2Hook {
   const { address, provider } = useWeb3Context()
+  const signer = provider?.getSigner()
+
+  const account = address?.toString()
 
   const v2Sdk = useMemo(() => {
     const hop = new Hop({
       signersOrProviders: Hop.getDefaultProviders(reactAppNetwork)
     })
-    // provider?.getSigner() // TODO
     return hop
   }, [address, provider])
 
@@ -139,7 +141,8 @@ export function useV2(): V2Hook {
       fromToken,
       toChainId,
       toToken,
-      amount
+      amount,
+      account
     })
 
     return needs
@@ -162,13 +165,15 @@ export function useV2(): V2Hook {
       amount
     } = input
 
-    const tx = await v2Sdk.approveSendTokens({
+    const txData = await v2Sdk.populateTransaction.approveSendTokens({
       fromChainId,
       toChainId,
       fromToken,
       toToken,
       amount
     })
+
+    const tx = await v2Sdk.sendTransaction(txData, txData.chainId, signer)
 
     return tx
   }
@@ -198,7 +203,7 @@ export function useV2(): V2Hook {
       toChainId,
       fromToken,
       toToken,
-      to,
+      to: to || account,
       amount,
       minAmountOut,
       from
@@ -238,15 +243,17 @@ export function useV2(): V2Hook {
       throw new Error('Needs token approval')
     }
 
-    const tx = await v2Sdk.sendTokens({
+    const txData = await v2Sdk.populateTransaction.sendTokens({
       fromChainId,
       toChainId,
       fromToken,
       toToken,
-      to,
+      to: to || account,
       amount,
       minAmountOut
     })
+
+    const tx = await v2Sdk.sendTransaction(txData, txData.chainId, signer)
 
     return tx
   }

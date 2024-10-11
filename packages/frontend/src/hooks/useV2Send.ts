@@ -3,14 +3,16 @@ import { useWeb3Context } from '#contexts/Web3Context.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { BigNumber, providers, utils, Contract, constants } from 'ethers'
 import { useV2 } from './useV2.js'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, utils as v2Utils  } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
+import { useTokenPrice } from '#hooks/useTokenPrice.js'
 import {
   useBalance,
   useFeeConversions,
 } from '#hooks/index.js'
 
 const { formatUnits, parseUnits } = utils
+const { formatUSD } = v2Utils
 
 type V2SendHook = {
   v2Sdk: Hop
@@ -68,11 +70,14 @@ type V2SendHook = {
   initialFromChainId: string
   initialToChainId: string
   routeChainIds: string[]
-  fetchingGetSendData: boolean
+  isFetchingGetSendData: boolean
   fromTokenBalanceFormatted: string
   toTokenBalanceFormatted: string
   fromTokenBalanceDisplay: string
   toTokenBalanceDisplay: string
+  handleMaxClick: () => void
+  fromBalanceUsdDisplay: string
+  toBalanceUsdDisplay: string
 }
 
 class Token {
@@ -135,7 +140,7 @@ export function useV2Send(): V2SendHook {
   const [hasEnoughBalance, setHasEnoughBalance] = useState<boolean>(false)
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>(BigNumber.from(0))
   const [routeChainIds, setRouteChainIds] = useState<string[]>([])
-  const [fetchingGetSendData, setFetchingGetSendData] = useState<boolean>(false)
+  const [isFetchingGetSendData, setIsFetchingGetSendData] = useState<boolean>(false)
 
   useEffect(() => {
     const list = getTokenList()
@@ -188,7 +193,7 @@ export function useV2Send(): V2SendHook {
 
   useEffect(() => {
     async function update () {
-      if (tokenSymbol && fromChainId && toChainId && parsedAmountIn != '0') {
+      if (tokenSymbol && fromChainId && toChainId && parsedAmountIn != '0' && fromTokenAddress && toTokenAddress) {
         try {
           const needs = await v2GetNeedsApprovalForSendTokens({
             fromChainId,
@@ -317,12 +322,12 @@ export function useV2Send(): V2SendHook {
   }
 
   useEffect(() => {
-    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !fetchingGetSendData)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, fetchingGetSendData])
+    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData])
 
   useEffect(() => {
-    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !fetchingGetSendData)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, fetchingGetSendData])
+    setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData])
 
   const accountAddress = address?.toString() ?? null
 
@@ -374,7 +379,7 @@ export function useV2Send(): V2SendHook {
     async function update() {
       try {
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
-          setFetchingGetSendData(true)
+          setIsFetchingGetSendData(true)
           const data = await getSendData({
             fromChainId,
             fromToken: fromTokenAddress,
@@ -392,14 +397,14 @@ export function useV2Send(): V2SendHook {
           setEstimatedReceived(estimated)
           setRouteChainIds(routeChainIds)
           setBonderFee(bonderFee)
-          setFetchingGetSendData(false)
+          setIsFetchingGetSendData(false)
         } else {
           setEstimatedReceived(BigNumber.from(0))
           setRouteChainIds([])
           setBonderFee(BigNumber.from(0))
         }
       } catch (err) {
-        setFetchingGetSendData(false)
+        setIsFetchingGetSendData(false)
       }
     }
 
@@ -470,11 +475,31 @@ export function useV2Send(): V2SendHook {
   function handleApprove() {
     approveTokens()
   }
+  function handleMaxClick() {
+    setAmountIn(formatUnits(fromTokenBalance, fromTokenDecimals))
+  }
 
-  const fromTokenBalanceFormatted = fromTokenBalance ? formatUnits(fromTokenBalance, fromToken.decimals) : '-'
-  const toTokenBalanceFormatted = toTokenBalance ? formatUnits(toTokenBalance, toToken.decimals) : '-'
+  const fromTokenBalanceFormatted = fromTokenBalance != null ? formatUnits(fromTokenBalance, fromToken.decimals) : '-'
+  const toTokenBalanceFormatted = toTokenBalance != null ? formatUnits(toTokenBalance, toToken.decimals) : '-'
   const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
   const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
+
+  const { priceUsd: tokenPriceUsd } = useTokenPrice(tokenSymbol)
+  const fromBalanceUsdDisplay = useMemo(() => {
+    if ((amountIn !== '' && amountIn != null) && tokenPriceUsd) {
+      const value = parseFloat(amountIn) * parseFloat(tokenPriceUsd)
+      return formatUSD(value)
+    }
+    return '-'
+  }, [amountIn, tokenPriceUsd])
+
+  const toBalanceUsdDisplay = useMemo(() => {
+    if (estimatedReceived?.gt(0)) {
+      return estimatedReceivedUsdDisplay
+    }
+
+    return '-'
+  }, [estimatedReceivedUsdDisplay])
 
   return {
     accountAddress,
@@ -486,7 +511,7 @@ export function useV2Send(): V2SendHook {
     bonderFeeUsdDisplay,
     chains,
     error,
-    estimatedReceivedDisplay: fetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
+    estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
     estimatedReceivedUsdDisplay,
     fromChain,
     fromChainId,
@@ -532,10 +557,13 @@ export function useV2Send(): V2SendHook {
     initialFromChainId,
     initialToChainId,
     routeChainIds,
-    fetchingGetSendData,
+    isFetchingGetSendData,
     fromTokenBalanceFormatted,
     toTokenBalanceFormatted,
     fromTokenBalanceDisplay,
     toTokenBalanceDisplay,
+    handleMaxClick,
+    fromBalanceUsdDisplay,
+    toBalanceUsdDisplay
   }
 }

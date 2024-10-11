@@ -214,6 +214,10 @@ export class Hop extends Base {
           throw new InputError(`Invalid toChainId "${toChainId}"`)
         }
 
+        if (fromChainId?.toString() === toChainId?.toString()) {
+          throw new InputError('fromChainId and toChainId must be different')
+        }
+
         if (!this.utils.isValidAddress(fromToken)) {
           throw new InputError(`Invalid fromToken "${fromToken}"`)
         }
@@ -427,8 +431,13 @@ export class Hop extends Base {
 
   async getSendData ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {
     const amountIn = BigNumber.from(amount)
-    const estimatedReceived = await this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut })
-    const bonderFee = await this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+    const [
+      estimatedReceived,
+      bonderFee
+    ] = await Promise.all([
+      this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }),
+      this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+    ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
 
     return {

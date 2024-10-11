@@ -56,7 +56,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
 
   if (excludeChainId) {
     filteredTokens = filteredTokens.filter(item => {
-      return item.chainId !== excludeChainId
+      return item.chainId?.toString() !== excludeChainId?.toString()
     })
   }
 
@@ -125,7 +125,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
         sx={{
           '& .MuiDialog-paper': {
             borderRadius: '24px',
-            maxWidth: '400px',
+            maxWidth: '500px',
             minHeight: '300px',
             maxHeight: '700px'
           }

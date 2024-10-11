@@ -1700,6 +1700,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `formatUSD` | (`amount`: `string` \| `number`) => `string` |
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
 | `getComputedNextHopsHash` | (`nextHops`: `HopStruct`[]) => `string` |

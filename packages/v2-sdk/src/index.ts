@@ -140,5 +140,5 @@ export { PriceFeed } from './priceFeed/index.js'
 export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'
 export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from './error/index.js'
 
-import { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash } from './utils/index.js'
-export const utils = { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash }
+import { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash, formatUSD } from './utils/index.js'
+export const utils = { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash, formatUSD }

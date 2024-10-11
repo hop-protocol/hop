@@ -173,21 +173,23 @@ export const SendV2: React.FC = () => {
                   clear={!selectedFromToken}
                 />
               </Box>
-              <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                <Typography sx={{
-                  display: 'flex',
-                  color: '#7d7d7d',
-                  fontWeight: 'bold',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>Balance: {isLoadingFromTokenBalance ? (
-                  <Skeleton animation="wave" width={'20px'} title="loading" />
-                ) : fromTokenBalanceFormatted}</Typography>
-                {showMaxButton && (
-                  <MuiButton variant="text" onClick={() => handleMaxClick()} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
-                )}
-              </Box>
+              {!!accountAddress && (
+                <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
+                  <Typography sx={{
+                    display: 'flex',
+                    color: '#7d7d7d',
+                    fontWeight: 'bold',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>Balance: {isLoadingFromTokenBalance ? (
+                    <Skeleton animation="wave" width={'20px'} title="loading" />
+                  ) : fromTokenBalanceFormatted}</Typography>
+                  {showMaxButton && (
+                    <MuiButton variant="text" onClick={() => handleMaxClick()} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
+                  )}
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>
@@ -283,18 +285,20 @@ export const SendV2: React.FC = () => {
                     clear={!selectedToToken}
                   />
                 </Box>
-                <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                    <Typography sx={{
-                      display: 'flex',
-                      color: '#7d7d7d',
-                      fontWeight: 'bold',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>Balance: {isLoadingToTokenBalance ? (
-                  <Skeleton animation="wave" width={'20px'} title="loading" />
-                    ) : toTokenBalanceFormatted}</Typography>
-                </Box>
+                {!!accountAddress && (
+                  <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
+                      <Typography sx={{
+                        display: 'flex',
+                        color: '#7d7d7d',
+                        fontWeight: 'bold',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>Balance: {isLoadingToTokenBalance ? (
+                    <Skeleton animation="wave" width={'20px'} title="loading" />
+                      ) : toTokenBalanceFormatted}</Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
         </Box>

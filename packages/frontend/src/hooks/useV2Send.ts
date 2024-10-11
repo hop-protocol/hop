@@ -143,6 +143,7 @@ export function useV2Send(): V2SendHook {
   const [routeChainIds, setRouteChainIds] = useState<string[]>([])
   const [isFetchingGetSendData, setIsFetchingGetSendData] = useState<boolean>(false)
   const [isLoadingNeedsApproval, setIsLoadingNeedsApproval] = useState<boolean>(false)
+  const accountAddress = address?.toString() ?? null
 
   useEffect(() => {
     const list = getTokenList()
@@ -195,7 +196,7 @@ export function useV2Send(): V2SendHook {
 
   useEffect(() => {
     async function update () {
-      if (tokenSymbol && fromChainId && toChainId && parsedAmountIn != '0' && fromTokenAddress && toTokenAddress) {
+      if (tokenSymbol && fromChainId && toChainId && parsedAmountIn != '0' && fromTokenAddress && toTokenAddress && accountAddress) {
         try {
           setIsLoadingNeedsApproval(true)
           const needs = await v2GetNeedsApprovalForSendTokens({
@@ -217,7 +218,7 @@ export function useV2Send(): V2SendHook {
     }
 
     update().catch(console.error)
-  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving])
+  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving, accountAddress])
 
   async function approveTokens () {
     try {
@@ -338,8 +339,6 @@ export function useV2Send(): V2SendHook {
   useEffect(() => {
     setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
   }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData])
-
-  const accountAddress = address?.toString() ?? null
 
   const fromToken = useMemo(() => {
     if (!(fromChainId && fromTokenAddress)) {
@@ -504,12 +503,15 @@ export function useV2Send(): V2SendHook {
   }, [amountIn, tokenPriceUsd])
 
   const toBalanceUsdDisplay = useMemo(() => {
+    if (isFetchingGetSendData) {
+      return '-'
+    }
     if (estimatedReceived?.gt(0)) {
       return estimatedReceivedUsdDisplay
     }
 
     return '-'
-  }, [estimatedReceivedUsdDisplay])
+  }, [estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
   return {
     accountAddress,

@@ -427,7 +427,10 @@ export class Hop extends Base {
 
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
     // TODO: will fill in once we have contract implementation for this
-    return BigNumber.from(amount)
+    // return this.getRailsGateway(fromChainId).getAmountOut({ amount })
+
+    const amountOut = this.calcAmountOutMin({ amountOut: amount, slippageTolerance: 0.3 })
+    return amountOut
   }
 
   async getSendData ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {

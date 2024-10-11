@@ -78,6 +78,7 @@ type V2SendHook = {
   handleMaxClick: () => void
   fromBalanceUsdDisplay: string
   toBalanceUsdDisplay: string
+  isLoadingNeedsApproval: boolean
 }
 
 class Token {
@@ -141,6 +142,7 @@ export function useV2Send(): V2SendHook {
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>(BigNumber.from(0))
   const [routeChainIds, setRouteChainIds] = useState<string[]>([])
   const [isFetchingGetSendData, setIsFetchingGetSendData] = useState<boolean>(false)
+  const [isLoadingNeedsApproval, setIsLoadingNeedsApproval] = useState<boolean>(false)
 
   useEffect(() => {
     const list = getTokenList()
@@ -195,6 +197,7 @@ export function useV2Send(): V2SendHook {
     async function update () {
       if (tokenSymbol && fromChainId && toChainId && parsedAmountIn != '0' && fromTokenAddress && toTokenAddress) {
         try {
+          setIsLoadingNeedsApproval(true)
           const needs = await v2GetNeedsApprovalForSendTokens({
             fromChainId,
             fromToken: fromTokenAddress,
@@ -205,8 +208,11 @@ export function useV2Send(): V2SendHook {
           setNeedsApproval(needs)
         } catch (err) {
           console.error('useV2Send getNeedsApprovalForSendTokens', err)
-          setError(formatError(err.message))
+          if (!/cancelled/gi.test(err.message)) {
+            setError(formatError(err.message))
+          }
         }
+        setIsLoadingNeedsApproval(false)
       }
     }
 
@@ -253,7 +259,9 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err){
       console.error('useV2Send approveTokens', err)
-      setError(formatError(err.message))
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err.message))
+      }
       setIsApproving(false)
     }
   }
@@ -316,7 +324,9 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err) {
       console.error('useV2Send sendTokens', err)
-      setError(formatError(err.message))
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err.message))
+      }
     }
     setIsSending(false)
   }
@@ -564,6 +574,7 @@ export function useV2Send(): V2SendHook {
     toTokenBalanceDisplay,
     handleMaxClick,
     fromBalanceUsdDisplay,
-    toBalanceUsdDisplay
+    toBalanceUsdDisplay,
+    isLoadingNeedsApproval
   }
 }

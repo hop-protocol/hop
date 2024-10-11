@@ -51,6 +51,12 @@ export const SendV2: React.FC = () => {
     toBalanceUsdDisplay,
     isLoadingFromTokenBalance,
     isLoadingToTokenBalance,
+    isLoadingNeedsApproval,
+    bonderFee,
+    bonderFeeDisplay,
+    bonderFeeUsdDisplay,
+    totalFeeDisplay,
+    accountAddress
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -75,11 +81,21 @@ export const SendV2: React.FC = () => {
   let buttonText = isSending ? 'Sending' : 'Send'
   let buttonLoading = isSending
 
+  if (!accountAddress) {
+    buttonText = 'Connect a Wallet'
+  }
+
   if (needsApproval) {
     buttonDisabled = !needsApproval
     buttonAction = approveTokens
     buttonText = isApproving ? 'Approving' : 'Approve'
     buttonLoading = isApproving
+  }
+
+  if (isLoadingNeedsApproval) {
+    buttonDisabled = true
+    buttonLoading = false
+    buttonText = 'Checking approval'
   }
 
   if (isFetchingGetSendData) {
@@ -287,6 +303,14 @@ export const SendV2: React.FC = () => {
       <Button disabled={buttonDisabled} highlighted fullWidth large onClick={buttonAction} loading={buttonLoading}>
         {buttonText}
       </Button>
+
+      {bonderFee?.gt(0) && (
+        <Box mt={2} pl={2} width="100%" display="flex" alignItems="flex-start">
+          <Typography variant="body1" gutterBottom sx={{ fontWeight: "bold" }}>
+            <Box display="inline-flex" sx={{ color: '#4d4d4d' }}>Fee: {bonderFeeDisplay}</Box> <Box display="inline-flex" sx={{ color: '#7d7d7d' }}>({bonderFeeUsdDisplay})</Box>
+          </Typography>
+        </Box>
+      )}
 
       {!!error && (
         <Box mt={6}>

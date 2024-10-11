@@ -511,7 +511,7 @@ export function useV2Send(): V2SendHook {
     }
 
     return '-'
-  }, [estimatedReceivedUsdDisplay, isFetchingGetSendData])
+  }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
   return {
     accountAddress,

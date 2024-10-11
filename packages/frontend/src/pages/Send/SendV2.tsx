@@ -10,6 +10,7 @@ import ArrowDownward from '@mui/icons-material/ArrowDownward'
 import { useV2Send } from '#hooks/useV2Send.js'
 import { Alert } from '#components/Alert/index.js'
 import Skeleton from '@mui/material/Skeleton'
+import { ConnectWalletButton } from '#components/Header/ConnectWalletButton.js'
 
 interface Token {
   name: string
@@ -80,10 +81,6 @@ export const SendV2: React.FC = () => {
   let buttonAction = sendTokens
   let buttonText = isSending ? 'Sending' : 'Send'
   let buttonLoading = isSending
-
-  if (!accountAddress) {
-    buttonText = 'Connect a Wallet'
-  }
 
   if (needsApproval) {
     buttonDisabled = !needsApproval
@@ -304,9 +301,14 @@ export const SendV2: React.FC = () => {
         </Box>
       </Box>
 
-      <Button disabled={buttonDisabled} highlighted fullWidth large onClick={buttonAction} loading={buttonLoading}>
-        {buttonText}
-      </Button>
+      {!accountAddress && (
+        <ConnectWalletButton large fullWidth />
+      )}
+      {!!accountAddress && (
+        <Button disabled={buttonDisabled} highlighted fullWidth large onClick={buttonAction} loading={buttonLoading}>
+          {buttonText}
+        </Button>
+      )}
 
       {bonderFee?.gt(0) && (
         <Box mt={2} pl={2} width="100%" display="flex" alignItems="flex-start">

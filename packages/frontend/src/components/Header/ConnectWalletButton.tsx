@@ -30,7 +30,7 @@ export function ConnectWalletButton(props: any) {
       fullWidth={fullWidth}
       large={large}
     >
-      Connect a Wallet
+      Connect Wallet
     </StyledButton>
   )
 }

@@ -69,17 +69,22 @@ type V2Hook = {
 }
 
 export function useV2(): V2Hook {
-  const { address, provider } = useWeb3Context()
+  const { address, provider, connectedNetworkId } = useWeb3Context()
   const signer = provider?.getSigner()
 
   const account = address?.toString()
 
   const v2Sdk = useMemo(() => {
+    const signer = provider?.getSigner()
+    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork))
+    if (connectedNetworkId && signer) {
+      providers[connectedNetworkId] = signer
+    }
     const hop = new Hop({
-      signersOrProviders: Hop.getDefaultProviders(reactAppNetwork)
+      signersOrProviders: providers
     })
     return hop
-  }, [address, provider])
+  }, [address, provider, connectedNetworkId])
 
   function getTokenList (fromChainId?: string) {
     if (fromChainId) {

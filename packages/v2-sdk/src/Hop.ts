@@ -367,14 +367,15 @@ export class Hop extends Base {
   }
 
   async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
-    const pathId = await this.getRailsGateway(fromChainId).getPathId({
+    const gateway = this.getRailsGateway(fromChainId)
+    const pathId = await gateway.getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
       token1: toToken
     })
 
-    return this.getRailsGateway(fromChainId).getFee({
+    return gateway.getFee({
       pathId
     })
   }

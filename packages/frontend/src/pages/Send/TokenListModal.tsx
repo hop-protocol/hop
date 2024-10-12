@@ -106,8 +106,8 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                   position: 'absolute',
                   bottom: 0,
                   right: 0,
-                  width: 16,
-                  height: 16,
+                  width: 20,
+                  height: 20,
                   border: '2px solid white',
                   background: 'white'
                 }}
@@ -152,7 +152,13 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
             <CustomTokenListManager />
           ) : (
             <>
-              <Box mb={2} display="flex" sx={{ padding: '0 2rem', flexShrink: 0 }}>
+              <Box mb={2} display="flex" sx={{
+                padding: '0 2rem',
+                position: 'sticky',
+                top: 0, // Keep it at the top
+                zIndex: 10,
+                backgroundColor: 'white'
+              }}>
                 <TextField
                   fullWidth
                   variant="outlined"
@@ -239,7 +245,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                 </Typography>
               </Box>
 
-              <DialogContent sx={{ padding: 0, overflowY: 'auto', flexGrow: 1, maxHeight: '500px' }}>
+              <DialogContent sx={{ padding: 0, overflowY: 'auto', flexGrow: 1, maxHeight: '475px' }}>
                 <List>
                   {filteredTokens.map((token) => {
                     const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
@@ -262,12 +268,13 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                                 <Avatar
                                   src={chainLogo}
                                   alt="Chain Logo"
+                                  title={`Chain ID: ${token.chainId}`}
                                   sx={{
                                     position: 'absolute',
                                     bottom: 0,
                                     right: 0,
-                                    width: 16,
-                                    height: 16,
+                                    width: 20,
+                                    height: 20,
                                     border: '2px solid white',
                                     background: 'white'
                                   }}
@@ -278,7 +285,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
 
                           <ListItemText
                             primary={token.name}
-                            secondary={`${token.symbol} (Chain ID: ${token.chainId})`}
+                            secondary={`${token.symbol} on ${token.chainName}`}
                           />
                         </Box>
 

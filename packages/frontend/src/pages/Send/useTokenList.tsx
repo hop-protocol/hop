@@ -118,6 +118,15 @@ export const useTokenList = (selectedChainId = '') => {
       update()
     }
 
+    filtered = filtered.map((token) => {
+      const chainName = v2Sdk.utils.getChainInfo(token.chainId)?.name ?? ''
+      return {
+        ...token,
+        chainName
+      }
+    })
+
+
     setFilteredTokens(filtered)
   }, [search, chainFilter, tokenList])
 

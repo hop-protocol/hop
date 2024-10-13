@@ -82,6 +82,18 @@ export const SendV2: React.FC = () => {
   let buttonText = isSending ? 'Sending' : 'Send'
   let buttonLoading = isSending
 
+  if (!fromChainId) {
+    buttonText = 'Select a token'
+  }
+
+  if (!toChainId) {
+    buttonText = 'Select destination'
+  }
+
+  if (!amountIn) {
+    buttonText = 'Enter amount'
+  }
+
   if (needsApproval) {
     buttonDisabled = !needsApproval
     buttonAction = approveTokens
@@ -101,7 +113,7 @@ export const SendV2: React.FC = () => {
     buttonText = 'Getting estimate'
   }
 
-  const showMaxButton = (fromTokenBalanceFormatted !== '-' && tokenSymbol !== 'ETH')
+  const showMaxButton = (fromTokenBalanceFormatted !== '' && tokenSymbol !== 'ETH')
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
@@ -119,13 +131,13 @@ export const SendV2: React.FC = () => {
           <Box display="flex" justifyContent="space-between">
             <Box display="flex" flexDirection="column">
               <Box>
-                <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Origin</Typography>
+                <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Amount</Typography>
               </Box>
               <TextField
                 fullWidth
                 value={amountIn}
                 onChange={(e) => setAmountIn(e.target.value)}
-                placeholder="0.0"
+                placeholder="0"
                 sx={{
                   marginTop: '0.5rem',
                   '& .MuiOutlinedInput-root': {
@@ -149,7 +161,7 @@ export const SendV2: React.FC = () => {
               />
               <Box>
                 <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>
-                  {fromBalanceUsdDisplay}
+                  {fromBalanceUsdDisplay || <>&nbsp;</>}
                 </Typography>
               </Box>
             </Box>
@@ -170,7 +182,7 @@ export const SendV2: React.FC = () => {
                   clear={!selectedFromToken}
                 />
               </Box>
-              {!!accountAddress && (
+              {(!!accountAddress && fromChainId && Number(fromTokenBalanceFormatted) > 0) && (
                 <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
                   <Typography sx={{
                     display: 'flex',
@@ -231,8 +243,8 @@ export const SendV2: React.FC = () => {
                 </Box>
                 <TextField
                   fullWidth
-                  value={estimatedReceivedDisplay}
-                  placeholder="0.0"
+                  value={estimatedReceivedDisplay === '0' ? '': estimatedReceivedDisplay}
+                  placeholder="0"
                   sx={{
                     marginTop: '0.5rem',
                     '& .MuiOutlinedInput-root': {
@@ -260,7 +272,7 @@ export const SendV2: React.FC = () => {
                 />
               </Box>
               <Box>
-                <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>{toBalanceUsdDisplay}</Typography>
+                <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>{toBalanceUsdDisplay || <>&nbsp;</>}</Typography>
               </Box>
             </Box>
               <Box display="flex" justifyContent="center" flexDirection="column">
@@ -282,7 +294,7 @@ export const SendV2: React.FC = () => {
                     clear={!selectedToToken}
                   />
                 </Box>
-                {!!accountAddress && (
+                {(!!accountAddress && toChainId && Number(toTokenBalanceFormatted) > 0) && (
                   <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
                       <Typography sx={{
                         display: 'flex',

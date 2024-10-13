@@ -66,6 +66,7 @@ type V2Hook = {
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   getSendData: (input: GetSendDataInput) => Promise<any>
   v2Sdk: Hop | null
+  account: string
 }
 
 export function useV2(): V2Hook {
@@ -345,5 +346,6 @@ export function useV2(): V2Hook {
     getEstimatedReceived,
     getSendData,
     v2Sdk,
+    account
   }
 }

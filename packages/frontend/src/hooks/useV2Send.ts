@@ -488,10 +488,10 @@ export function useV2Send(): V2SendHook {
     setAmountIn(formatUnits(fromTokenBalance, fromTokenDecimals))
   }
 
-  const fromTokenBalanceFormatted = fromTokenBalance != null ? formatUnits(fromTokenBalance, fromToken.decimals) : '-'
-  const toTokenBalanceFormatted = toTokenBalance != null ? formatUnits(toTokenBalance, toToken.decimals) : '-'
-  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
-  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : '-'
+  const fromTokenBalanceFormatted = fromTokenBalance != null ? formatUnits(fromTokenBalance, fromToken.decimals) : ''
+  const toTokenBalanceFormatted = toTokenBalance != null ? formatUnits(toTokenBalance, toToken.decimals) : ''
+  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
+  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
 
   const { priceUsd: tokenPriceUsd } = useTokenPrice(tokenSymbol)
   const fromBalanceUsdDisplay = useMemo(() => {
@@ -499,18 +499,18 @@ export function useV2Send(): V2SendHook {
       const value = parseFloat(amountIn) * parseFloat(tokenPriceUsd)
       return formatUSD(value)
     }
-    return '-'
+    return ''
   }, [amountIn, tokenPriceUsd])
 
   const toBalanceUsdDisplay = useMemo(() => {
     if (isFetchingGetSendData) {
-      return '-'
+      return ''
     }
     if (estimatedReceived?.gt(0)) {
       return estimatedReceivedUsdDisplay
     }
 
-    return '-'
+    return ''
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
   return {

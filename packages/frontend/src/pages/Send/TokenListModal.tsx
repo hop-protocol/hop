@@ -98,18 +98,19 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
         <Box display="flex" alignItems="center">
           <Box position="relative" width="32px">
             <Avatar src={selectedToken.logoURI} alt={selectedToken.symbol} sx={{ height: '24px', width: '24px', background: 'white' }} />
-            {selectedTokenChainLogo  && (
+            {(selectedTokenChainLogo && selectedToken.chainSlug !== 'ethereum') && (
               <Avatar
                 src={selectedTokenChainLogo}
                 alt="Chain Logo"
                 sx={{
                   position: 'absolute',
                   bottom: 0,
-                  right: 0,
-                  width: 20,
-                  height: 20,
-                  border: '2px solid white',
-                  background: 'white'
+                  right: 4,
+                  width: 14,
+                  height: 14,
+                  border: '1px solid white',
+                  background: selectedToken.chainPrimaryColor || 'white',
+                  borderRadius: '4px'
                 }}
               />
             )}
@@ -252,7 +253,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                     return (
                       <ListItem
                         button
-                        key={`${token.address}-${token.chainId}`}
+                        key={`${token.address}-${token.chainId}-${token.balanceUsd}`}
                         onClick={() => {
                           onTokenSelect(token)
                           setSelectedToken(token)
@@ -264,7 +265,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                           <ListItemAvatar>
                             <Box position="relative" width="46px">
                               <Avatar src={token.logoURI} alt={token.symbol} sx={{ background: 'white' }} />
-                              {chainLogo && (
+                              {(chainLogo && token.chainSlug !== 'ethereum') && (
                                 <Avatar
                                   src={chainLogo}
                                   alt="Chain Logo"
@@ -273,10 +274,10 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                                     position: 'absolute',
                                     bottom: 0,
                                     right: 0,
-                                    width: 20,
-                                    height: 20,
-                                    border: '2px solid white',
-                                    background: 'white'
+                                    width: 22,
+                                    height: 22,
+                                    background: token.chainPrimaryColor || 'white',
+                                    borderRadius: '4px'
                                   }}
                                 />
                               )}
@@ -289,14 +290,16 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                           />
                         </Box>
 
-                        <Box textAlign="right">
-                          <Typography variant="body1">
-                            {`$${(token.usdValue || 0).toFixed(2)}`}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {`${(token.balance || 0).toFixed(4)}`}
-                          </Typography>
-                        </Box>
+                        {!!token.balanceFormatted && (
+                          <Box textAlign="right">
+                            <Typography variant="body1">
+                              {token.balanceUsdDisplay}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {token.balanceFormatted}
+                            </Typography>
+                          </Box>
+                        )}
                       </ListItem>
                     )
                   })}

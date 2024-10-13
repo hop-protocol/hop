@@ -22,7 +22,9 @@ import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
+import TollIcon from '@mui/icons-material/Toll'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
 import { useTokenList } from './useTokenList'
 import { CustomTokenListManager } from './CustomTokenListManager'
 
@@ -85,6 +87,64 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
 
   const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo
 
+  function renderTokenList(list: any[]) {
+      return list.map((token) => {
+        const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
+        return (
+          <ListItem
+            button
+            key={`${token.address}-${token.chainId}-${token.balanceUsd}`}
+            onClick={() => {
+              onTokenSelect(token)
+              setSelectedToken(token)
+              handleClose()
+            }}
+            sx={{ justifyContent: 'space-between', width: '100%' }}
+          >
+            <Box display="flex" alignItems="center" position="relative">
+              <ListItemAvatar>
+                <Box position="relative" width="46px">
+                  <Avatar src={token.logoURI} alt={token.symbol} sx={{ background: 'white' }} />
+                  {(chainLogo && token.chainSlug !== 'ethereum') && (
+                    <Avatar
+                      src={chainLogo}
+                      alt="Chain Logo"
+                      title={`Chain ID: ${token.chainId}`}
+                      sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 22,
+                        height: 22,
+                        background: token.chainPrimaryColor || 'white',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  )}
+                </Box>
+              </ListItemAvatar>
+
+              <ListItemText
+                primary={token.name}
+                secondary={`${token.symbol} on ${token.chainName}`}
+              />
+            </Box>
+
+            {!!token.balanceFormatted && (
+              <Box textAlign="right">
+                <Typography variant="body1">
+                  {token.balanceUsdDisplay}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {token.balanceFormatted}
+                </Typography>
+              </Box>
+            )}
+          </ListItem>
+        )
+      })
+  }
+
   return (
     <>
       <Button onClick={handleOpen} endIcon={<KeyboardArrowDownIcon />} sx={{
@@ -126,7 +186,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
         sx={{
           '& .MuiDialog-paper': {
             borderRadius: '24px',
-            maxWidth: '500px',
+            maxWidth: '450px',
             minHeight: '300px',
             maxHeight: '700px'
           }
@@ -158,7 +218,6 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                 position: 'sticky',
                 top: 0, // Keep it at the top
                 zIndex: 10,
-                backgroundColor: 'white'
               }}>
                 <TextField
                   fullWidth
@@ -240,70 +299,46 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                 />
               </Box>
 
-              <Box display="flex" alignItems="center" sx={{ padding: '0 2rem', flexShrink: 0 }}>
-                <Typography variant="body1" color="secondary" fontWeight="bold" alignItems="center" display="flex">
-                  {search ? <><SearchIcon style={{ marginRight: '0.5rem' }} /> Search results</> : <><StarIcon style={{ marginRight: '0.5rem' }} /> Tokens</>}
-                </Typography>
-              </Box>
-
               <DialogContent sx={{ padding: 0, overflowY: 'auto', flexGrow: 1, maxHeight: '475px' }}>
+
+                {!!search && (
+                  <Box display="flex" alignItems="center" sx={{ padding: '0 2rem', flexShrink: 0, position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#FDF7F9' }} className="sticky">
+                    <Typography variant="body1" color="secondary" fontWeight="bold" alignItems="center" display="flex">
+                      <><SearchIcon style={{ marginRight: '0.5rem' }} /> Search results</>
+                    </Typography>
+                  </Box>
+                )}
+
+                {!search && filteredTokens.filter((item: any) => item.balanceUsd).length > 0 && (
+                  <>
+                  <Box display="flex" alignItems="center" sx={{ padding: '0 2rem', flexShrink: 0, position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#FDF7F9' }} className="sticky">
+                    <Typography variant="body1" color="secondary" fontWeight="bold" alignItems="center" display="flex">
+                      <><MonetizationOnIcon style={{ marginRight: '0.5rem' }} /> Your tokens</>
+                    </Typography>
+                  </Box>
+                  </>
+                )}
+
                 <List>
-                  {filteredTokens.map((token) => {
-                    const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
-                    return (
-                      <ListItem
-                        button
-                        key={`${token.address}-${token.chainId}-${token.balanceUsd}`}
-                        onClick={() => {
-                          onTokenSelect(token)
-                          setSelectedToken(token)
-                          handleClose()
-                        }}
-                        sx={{ justifyContent: 'space-between', width: '100%' }}
-                      >
-                        <Box display="flex" alignItems="center" position="relative">
-                          <ListItemAvatar>
-                            <Box position="relative" width="46px">
-                              <Avatar src={token.logoURI} alt={token.symbol} sx={{ background: 'white' }} />
-                              {(chainLogo && token.chainSlug !== 'ethereum') && (
-                                <Avatar
-                                  src={chainLogo}
-                                  alt="Chain Logo"
-                                  title={`Chain ID: ${token.chainId}`}
-                                  sx={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    right: 0,
-                                    width: 22,
-                                    height: 22,
-                                    background: token.chainPrimaryColor || 'white',
-                                    borderRadius: '4px'
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          </ListItemAvatar>
+                  {renderTokenList(filteredTokens.filter((item: any) => item.balanceUsd))}
+                </List>
 
-                          <ListItemText
-                            primary={token.name}
-                            secondary={`${token.symbol} on ${token.chainName}`}
-                          />
-                        </Box>
+                {!search && filteredTokens.filter((item: any) => !item.balanceUsd).length > 0 && (
+                  <>
+                  <Box display="flex" alignItems="center" sx={{ padding: '0 2rem', flexShrink: 0, position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#FDF7F9' }} className="sticky">
+                    <Typography variant="body1" color="secondary" fontWeight="bold" alignItems="center" display="flex">
+                      <><StarIcon style={{ marginRight: '0.5rem' }} /> Tokens</>
+                    </Typography>
+                  </Box>
 
-                        {!!token.balanceFormatted && (
-                          <Box textAlign="right">
-                            <Typography variant="body1">
-                              {token.balanceUsdDisplay}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary">
-                              {token.balanceFormatted}
-                            </Typography>
-                          </Box>
-                        )}
-                      </ListItem>
-                    )
-                  })}
+                  </>
+                )}
 
+                <List>
+                  {renderTokenList(filteredTokens.filter((item: any) => !item.balanceUsd))}
+                </List>
+
+                <List>
                   {filteredTokens.length === 0 && (
                     <Box mt={2} sx={{ padding: '0 2rem' }} display="flex" justifyContent="center">
                       <Typography variant="body1" color="textSecondary">
@@ -312,6 +347,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
                     </Box>
                   )}
                 </List>
+
               </DialogContent>
             </>
           )}

@@ -3,7 +3,7 @@
 # Port number to check
 PORT=4665
 
-# Find process using the port and get its PID
+# Find the process using the port and get its PID
 pid=$(lsof -t -i:$PORT)
 
 # Check if any process was found

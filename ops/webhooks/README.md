@@ -19,6 +19,6 @@ Set up a webhook [on GitHub](https://github.com/hop-protocol/hop/settings/hooks)
   - Run `/.install-_dependencies.sh`
 - Run the webhook server in the background with `./run_webhook_server.sh &`
 
-Ensure that you have a `docker.sh` executable file in the directly where these files are being executed.
+Ensure that you have a `docker.sh` executable file directly where these files are being executed.
 
 To stop the webhook server, run `./stop_webhook_server.sh`.

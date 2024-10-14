@@ -262,6 +262,10 @@ class Db {
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfers_reorged_null ON transfers ((1)) WHERE reorged IS NULL;'
     )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_bond_transaction_hash ON transfers (bond_transaction_hash);'
+    )
   }
 
   async getPrices () {
@@ -590,7 +594,7 @@ class Db {
     }
 
     if (transferId) {
-      whereClauses.push(`(transfer_id = $${i} OR transaction_hash = $${i})`)
+      whereClauses.push(`(transfer_id = $${i} OR transaction_hash = $${i} OR bond_transaction_hash = $${i})`)
       queryParams.push(transferId)
       i++
     }

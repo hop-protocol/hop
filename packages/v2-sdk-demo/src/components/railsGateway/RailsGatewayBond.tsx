@@ -11,13 +11,14 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import StepContent from '@mui/material/StepContent'
 import Button from '@mui/material/Button'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -30,7 +31,7 @@ export function RailsGatewayBond (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
+  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.to,
   })
 
@@ -42,7 +43,7 @@ export function RailsGatewayBond (props: Props) {
     defaultValue: '',
   })
 
-  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -67,14 +68,12 @@ export function RailsGatewayBond (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: toChainId,
       pathId,
-      transferId,
-      amount,
+      claimId,
       nextHops,
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.bond(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.bond(args)
     return txData
   }
 
@@ -92,23 +91,21 @@ export function RailsGatewayBond (props: Props) {
           throw new Error('No signer')
         }
 
-        const needsApproval = await sdk.railsGateway.getNeedsApprovalForBond({
-          chainId: toChainId,
+        const needsApproval = await sdk.getRailsGateway(fromChainId).helpers.getNeedsApprovalForBond({
           pathId,
           amount
         })
 
         if (needsApproval) {
-          const approveTxData = await sdk.railsGateway.populateTransaction.approveBond({
-            chainId: toChainId,
+          const approveTxData = await sdk.getRailsGateway(fromChainId).populateTransaction.approveBond({
             pathId,
             amount
           })
-          const tx = await sdk.sendTransaction(approveTxData)
+          const tx = await sdk.sendTransaction(approveTxData, approveTxData.chainId, signer)
           await tx.wait()
         }
 
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -131,18 +128,14 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${toChainId}"
   const pathId = "${pathId}"
-  const transferId = "${transferId}"
-  const amount = "${amount}"
+  const claimId = "${claimId}"
   const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
-  const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.bond({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.bond({
     pathId,
-    transferId,
-    amount,
+    claimId,
     nextHops
   })
   ${populateTxDataOnly ? (
@@ -150,7 +143,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -182,7 +175,7 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
                 </Box>
-                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
+                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>
@@ -194,9 +187,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>Transfer ID to bond</em></small></label>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>Claim ID to bond. This is transferId from TransferSentEvent.</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, Token } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { BigNumber, providers } from 'ethers'
@@ -59,23 +59,33 @@ type V2Hook = {
   getTokenList: (fromChainId?: string) => string[]
   getTokenDecimals: (chainId: string, tokenSymbol: string) => Promise<number>
   getTokenName: (chainId: string, tokenSymbol: string) => Promise<string>
+  getTokenInfoByTokenSymbol: (chainId: string, tokenSymbol: string) => Promise<Token>
+  getTokenInfoByTokenAddress: (chainId: string, address: string) => Promise<Token>
   sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   getSendData: (input: GetSendDataInput) => Promise<any>
   v2Sdk: Hop | null
+  account: string
 }
 
 export function useV2(): V2Hook {
-  const { address, provider } = useWeb3Context()
+  const { address, provider, connectedNetworkId } = useWeb3Context()
+  const signer = provider?.getSigner()
+
+  const account = address?.toString()
 
   const v2Sdk = useMemo(() => {
+    const signer = provider?.getSigner()
+    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork))
+    if (connectedNetworkId && signer) {
+      providers[connectedNetworkId] = signer
+    }
     const hop = new Hop({
-      network: reactAppNetwork,
-      signer: provider?.getSigner(),
+      signersOrProviders: providers
     })
     return hop
-  }, [address, provider])
+  }, [address, provider, connectedNetworkId])
 
   function getTokenList (fromChainId?: string) {
     if (fromChainId) {
@@ -90,15 +100,24 @@ export function useV2(): V2Hook {
     return address
   }
 
-  async function getTokenDecimals (chainId: string, tokenSymbol: string): Promise<number> {
+  async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
+    return tokenInfo
+  }
+
+  async function getTokenInfoByTokenSymbol (chainId: string, tokenSymbol: string): Promise<Token> {
     const address = getTokenAddress(chainId, tokenSymbol)
-    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
+    return tokenInfo
+  }
+
+  async function getTokenDecimals (chainId: string, tokenSymbol: string): Promise<number> {
+    const tokenInfo = await getTokenInfoByTokenSymbol(chainId, tokenSymbol)
     return tokenInfo.decimals
   }
 
   async function getTokenName (chainId: string, tokenSymbol: string): Promise<string> {
-    const address = getTokenAddress(chainId, tokenSymbol)
-    const tokenInfo = await v2Sdk.railsGateway.getTokenInfo({ chainId, address })
+    const tokenInfo = await getTokenInfoByTokenSymbol(chainId, tokenSymbol)
     return tokenInfo.name
   }
 
@@ -128,7 +147,8 @@ export function useV2(): V2Hook {
       fromToken,
       toChainId,
       toToken,
-      amount
+      amount,
+      account
     })
 
     return needs
@@ -151,13 +171,15 @@ export function useV2(): V2Hook {
       amount
     } = input
 
-    const tx = await v2Sdk.approveSendTokens({
+    const txData = await v2Sdk.populateTransaction.approveSendTokens({
       fromChainId,
       toChainId,
       fromToken,
       toToken,
       amount
     })
+
+    const tx = await v2Sdk.sendTransaction(txData, txData.chainId, signer)
 
     return tx
   }
@@ -187,7 +209,7 @@ export function useV2(): V2Hook {
       toChainId,
       fromToken,
       toToken,
-      to,
+      to: to || account,
       amount,
       minAmountOut,
       from
@@ -227,15 +249,17 @@ export function useV2(): V2Hook {
       throw new Error('Needs token approval')
     }
 
-    const tx = await v2Sdk.sendTokens({
+    const txData = await v2Sdk.populateTransaction.sendTokens({
       fromChainId,
       toChainId,
       fromToken,
       toToken,
-      to,
+      to: to || account,
       amount,
       minAmountOut
     })
+
+    const tx = await v2Sdk.sendTransaction(txData, txData.chainId, signer)
 
     return tx
   }
@@ -316,9 +340,12 @@ export function useV2(): V2Hook {
     getTokenList,
     getTokenName,
     sendTokens,
+    getTokenInfoByTokenSymbol,
+    getTokenInfoByTokenAddress,
     getWillSendTokensFail,
     getEstimatedReceived,
     getSendData,
     v2Sdk,
+    account
   }
 }

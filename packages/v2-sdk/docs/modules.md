@@ -4,6 +4,7 @@
 
 ### Enumerations
 
+- [EventName](enums/EventName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes
@@ -40,25 +41,32 @@
 - [ApproveBondInput](modules.md#approvebondinput)
 - [ApproveSendInput](modules.md#approvesendinput)
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
+- [BatchUpdateClaimChainInput](modules.md#batchupdateclaimchaininput)
 - [BondInput](modules.md#bondinput)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
+- [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
+- [DistributeFeesInput](modules.md#distributefeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
+- [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
+- [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
+- [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
 - [GetFeeInput](modules.md#getfeeinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
+- [GetHeadClaimInput](modules.md#getheadclaiminput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
@@ -66,7 +74,6 @@
 - [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
 - [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
 - [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
-- [GetLatestClaimInput](modules.md#getlatestclaiminput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
 - [GetMessageBundleIdFromMessageIdInput](modules.md#getmessagebundleidfrommessageidinput)
@@ -104,12 +111,14 @@
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
+- [GetTransferDataHashInput](modules.md#gettransferdatahashinput)
 - [GetTransferIdFromTransactionHashInput](modules.md#gettransferidfromtransactionhashinput)
 - [GetTransferIdInput](modules.md#gettransferidinput)
 - [GetTransferSentEventFilterInput](modules.md#gettransfersenteventfilterinput)
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
 - [GetTransferSentEventFromTransactionReceiptInput](modules.md#gettransfersenteventfromtransactionreceiptinput)
 - [GetTransferSentEventFromTransferIdInput](modules.md#gettransfersenteventfromtransferidinput)
+- [GetTransferSentEventsFromPathIdInput](modules.md#gettransfersenteventsfrompathidinput)
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
@@ -125,18 +134,27 @@
 - [SendInput](modules.md#sendinput)
 - [SendTokensInput](modules.md#sendtokensinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
+- [SignersOrProviders](modules.md#signersorproviders)
 - [StakeHopInput](modules.md#stakehopinput)
 - [Token](modules.md#token)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
 - [TransferBondedEventInput](modules.md#transferbondedeventinput)
+- [TransferBondedIndexes](modules.md#transferbondedindexes)
 - [TransferSentEventInput](modules.md#transfersenteventinput)
+- [TransferSentIndexes](modules.md#transfersentindexes)
 - [TransferStatus](modules.md#transferstatus)
+- [TxOverrides](modules.md#txoverrides)
 - [UnstakeHopInput](modules.md#unstakehopinput)
+- [UpdateClaimChainInput](modules.md#updateclaimchaininput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
 - [WithdrawAllInput](modules.md#withdrawallinput)
-- [WithdrawBalanceInput](modules.md#withdrawbalanceinput)
 - [WithdrawHopInput](modules.md#withdrawhopinput)
 - [WithdrawInput](modules.md#withdrawinput)
+- [WithdrawableBalanceInput](modules.md#withdrawablebalanceinput)
+
+### Variables
+
+- [utils](modules.md#utils)
 
 ## Type Aliases
 
@@ -155,7 +173,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -169,7 +186,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -190,6 +206,20 @@ ___
 
 ___
 
+### <a id="batchupdateclaimchaininput" name="batchupdateclaimchaininput"></a> BatchUpdateClaimChainInput
+
+Ƭ **BatchUpdateClaimChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `finalTransferId` | `string` |
+| `pathId` | `string` |
+| `transferDataHashes` | `string`[] |
+
+___
+
 ### <a id="bondinput" name="bondinput"></a> BondInput
 
 Ƭ **BondInput**: `Object`
@@ -198,11 +228,9 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
+| `claimId` | `string` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
-| `transferId` | `string` |
 
 ___
 
@@ -234,6 +262,19 @@ ___
 
 ___
 
+### <a id="claimfeesfrompathinput" name="claimfeesfrompathinput"></a> ClaimFeesFromPathInput
+
+Ƭ **ClaimFeesFromPathInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `messageFee` | `BigNumberish` |
+| `pathId` | `string` |
+
+___
+
 ### <a id="confirmclaiminput" name="confirmclaiminput"></a> ConfirmClaimInput
 
 Ƭ **ConfirmClaimInput**: `Object`
@@ -242,7 +283,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -260,6 +300,21 @@ ___
 | `spokeChainId` | `BigNumberish` |
 | `target1` | `string` |
 | `target2` | `string` |
+
+___
+
+### <a id="distributefeesinput" name="distributefeesinput"></a> DistributeFeesInput
+
+Ƭ **DistributeFeesInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `account` | `string` |
+| `lastClaimId` | `string` |
+| `pathId` | `string` |
+| `totalFees` | `BigNumberish` |
 
 ___
 
@@ -324,6 +379,19 @@ ___
 
 ___
 
+### <a id="getbucketindexinput" name="getbucketindexinput"></a> GetBucketIndexInput
+
+Ƭ **GetBucketIndexInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
 ### <a id="getbundleexitpopulatedtxinput" name="getbundleexitpopulatedtxinput"></a> GetBundleExitPopulatedTxInput
 
 Ƭ **GetBundleExitPopulatedTxInput**: `Object`
@@ -364,6 +432,23 @@ ___
 
 ___
 
+### <a id="getestimatedreceivedinput" name="getestimatedreceivedinput"></a> GetEstimatedReceivedInput
+
+Ƭ **GetEstimatedReceivedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `fromChainId` | `BigNumberish` |
+| `fromToken` | `string` |
+| `minAmountOut` | `BigNumberish` |
+| `toChainId` | `BigNumberish` |
+| `toToken` | `string` |
+
+___
+
 ### <a id="getestimatedtxcostforforwardmessageinput" name="getestimatedtxcostforforwardmessageinput"></a> GetEstimatedTxCostForForwardMessageInput
 
 Ƭ **GetEstimatedTxCostForForwardMessageInput**: `Object`
@@ -389,6 +474,18 @@ ___
 
 ___
 
+### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
+
+Ƭ **GetEventFilterInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `indexes?` | `TransferSentIndexes` \| `TransferBondedIndexes` |
+
+___
+
 ### <a id="geteventsinput" name="geteventsinput"></a> GetEventsInput
 
 Ƭ **GetEventsInput**: `Object`
@@ -411,7 +508,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -443,8 +539,19 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `tokenAddress` | `string` |
+
+___
+
+### <a id="getheadclaiminput" name="getheadclaiminput"></a> GetHeadClaimInput
+
+Ƭ **GetHeadClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -470,7 +577,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `claimId` | `string` |
 | `pathId` | `string` |
 
@@ -511,7 +617,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -524,7 +629,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
 
 ___
@@ -537,21 +641,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `transferId` | `string` |
-
-___
-
-### <a id="getlatestclaiminput" name="getlatestclaiminput"></a> GetLatestClaimInput
-
-Ƭ **GetLatestClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId?` | `BigNumberish` |
-| `pathId` | `string` |
 
 ___
 
@@ -786,7 +876,6 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -801,7 +890,6 @@ ___
 | :------ | :------ |
 | `account?` | `string` |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -858,7 +946,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -986,7 +1073,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -999,7 +1085,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -1011,11 +1096,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
-| `indexes.pathId?` | `string` |
-| `indexes.to?` | `string` |
-| `indexes.transferId?` | `string` |
+| `indexes?` | `TransferBondedIndexes` |
 
 ___
 
@@ -1027,7 +1108,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1040,7 +1120,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1053,9 +1132,25 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fromBlock?` | `number` |
 | `transferId` | `string` |
+
+___
+
+### <a id="gettransferdatahashinput" name="gettransferdatahashinput"></a> GetTransferDataHashInput
+
+Ƭ **GetTransferDataHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amountOut` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `nextHops` | `HopStruct`[] |
+| `to` | `string` |
+| `totalClaims` | `BigNumberish` |
+| `totalSent` | `BigNumberish` |
 
 ___
 
@@ -1082,7 +1177,6 @@ ___
 | :------ | :------ |
 | `adjustedAmount` | `BigNumberish` |
 | `attestedCheckpoint` | `string` |
-| `chainId?` | `BigNumberish` |
 | `minAmountOut` | `BigNumberish` |
 | `nonce` | `BigNumberish` |
 | `pathId` | `string` |
@@ -1099,11 +1193,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `indexes?` | \{ `pathId?`: `string` ; `to?`: `string` ; `transferId?`: `string`  } |
-| `indexes.pathId?` | `string` |
-| `indexes.to?` | `string` |
-| `indexes.transferId?` | `string` |
+| `indexes?` | `TransferSentIndexes` |
 
 ___
 
@@ -1115,7 +1205,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1128,7 +1217,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -1141,8 +1229,19 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transferId` | `string` |
+
+___
+
+### <a id="gettransfersenteventsfrompathidinput" name="gettransfersenteventsfrompathidinput"></a> GetTransferSentEventsFromPathIdInput
+
+Ƭ **GetTransferSentEventsFromPathIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -1183,9 +1282,7 @@ ___
 | :------ | :------ |
 | `batchBlocks?` | `number` |
 | `contractAddresses?` | `Addresses` |
-| `network` | `string` |
-| `requireChainIdInput?` | `boolean` |
-| `signer?` | `Signer` |
+| `signersOrProviders` | `SignersOrProviders` |
 
 ___
 
@@ -1239,13 +1336,12 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
+| `amountOut` | `BigNumberish` |
 | `attestedClaimId` | `string` |
-| `attestedTotalClaims` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
+| `totalClaims` | `BigNumberish` |
 | `totalSent` | `BigNumberish` |
 | `transferId` | `string` |
 
@@ -1253,7 +1349,18 @@ ___
 
 ### <a id="railsgatewayconstructorinput" name="railsgatewayconstructorinput"></a> RailsGatewayConstructorInput
 
-Ƭ **RailsGatewayConstructorInput**: `BaseConfig`
+Ƭ **RailsGatewayConstructorInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `contractAddresses?` | `Addresses` |
+| `gasPriceMultiplier?` | `number` |
+| `network?` | `string` |
+| `signerOrProvider?` | `Signer` \| `providers.Provider` |
+| `signersOrProviders?` | `SignersOrProviders` |
 
 ___
 
@@ -1282,7 +1389,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `pathId` | `string` |
 | `transferId` | `string` |
 
@@ -1311,7 +1417,6 @@ ___
 | :------ | :------ |
 | `amount` | `BigNumberish` |
 | `attestedClaimId` | `string` |
-| `chainId?` | `BigNumberish` |
 | `fee` | `BigNumberish` |
 | `maxTotalSent` | `BigNumberish` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
@@ -1329,10 +1434,11 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
+| `attestedClaimId?` | `string` |
 | `fromChainId` | `BigNumberish` |
 | `fromToken` | `string` |
 | `minAmountOut` | `BigNumberish` |
-| `to?` | `string` |
+| `to` | `string` |
 | `toChainId` | `BigNumberish` |
 | `toToken` | `string` |
 
@@ -1351,6 +1457,16 @@ ___
 
 ___
 
+### <a id="signersorproviders" name="signersorproviders"></a> SignersOrProviders
+
+Ƭ **SignersOrProviders**: `Object`
+
+#### Index signature
+
+▪ [key: `string`]: `SignerOrProvider`
+
+___
+
 ### <a id="stakehopinput" name="stakehopinput"></a> StakeHopInput
 
 Ƭ **StakeHopInput**: `Object`
@@ -1360,7 +1476,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 | `staker?` | `string` |
 
@@ -1396,9 +1511,22 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fromBlock` | `number` |
 | `toBlock` | `number` |
+
+___
+
+### <a id="transferbondedindexes" name="transferbondedindexes"></a> TransferBondedIndexes
+
+Ƭ **TransferBondedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId?` | `string` |
+| `pathId?` | `string` |
+| `to?` | `string` |
 
 ___
 
@@ -1410,10 +1538,23 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `fetchTxData?` | `boolean` |
 | `fromBlock` | `number` |
 | `toBlock` | `number` |
+
+___
+
+### <a id="transfersentindexes" name="transfersentindexes"></a> TransferSentIndexes
+
+Ƭ **TransferSentIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId?` | `string` |
+| `to?` | `string` |
+| `transferId?` | `string` |
 
 ___
 
@@ -1432,6 +1573,26 @@ ___
 
 ___
 
+### <a id="txoverrides" name="txoverrides"></a> TxOverrides
+
+Ƭ **TxOverrides**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId?` | `BigNumberish` |
+| `from?` | `string` |
+| `gasLimit?` | `BigNumberish` |
+| `gasPrice?` | `BigNumberish` |
+| `maxFeePerGas?` | `BigNumberish` |
+| `maxPriorityFeePerGas?` | `BigNumberish` |
+| `nonce?` | `BigNumberish` |
+| `type?` | `number` |
+| `value?` | `BigNumberish` |
+
+___
+
 ### <a id="unstakehopinput" name="unstakehopinput"></a> UnstakeHopInput
 
 Ƭ **UnstakeHopInput**: `Object`
@@ -1441,8 +1602,21 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
+
+___
+
+### <a id="updateclaimchaininput" name="updateclaimchaininput"></a> UpdateClaimChainInput
+
+Ƭ **UpdateClaimChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `headTransferId` | `string` |
+| `pathId` | `string` |
+| `transferDataHash` | `string` |
 
 ___
 
@@ -1473,25 +1647,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
+| `bucketIndex` | `number` |
 | `pathId` | `string` |
-| `timeWindow` | `number` |
-
-___
-
-### <a id="withdrawbalanceinput" name="withdrawbalanceinput"></a> WithdrawBalanceInput
-
-Ƭ **WithdrawBalanceInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId?` | `BigNumberish` |
-| `path?` | [`Path`](modules.md#path) |
-| `pathId?` | `string` |
-| `recipient` | `string` |
-| `timeWindow` | `number` |
 
 ___
 
@@ -1503,7 +1660,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId?` | `BigNumberish` |
 | `role` | `string` |
 
 ___
@@ -1517,6 +1673,41 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId?` | `BigNumberish` |
+| `bucketIndex` | `number` |
 | `pathId` | `string` |
-| `timeWindow` | `number` |
+
+___
+
+### <a id="withdrawablebalanceinput" name="withdrawablebalanceinput"></a> WithdrawableBalanceInput
+
+Ƭ **WithdrawableBalanceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bucketIndex` | `number` |
+| `pathId` | `string` |
+| `recipient` | `string` |
+
+## Variables
+
+### <a id="utils" name="utils"></a> utils
+
+• `Const` **utils**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `formatUSD` | (`amount`: `string` \| `number`) => `string` |
+| `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
+| `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
+| `getComputedNextHopsHash` | (`nextHops`: `HopStruct`[]) => `string` |
+| `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
+| `getComputedTransferDataHash` | (`__namedParameters`: `Input`) => `string` |
+| `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |
+| `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |
+| `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
+| `getTxHashExplorerUrl` | (`network`: `string`, `chainId`: `string`, `txHash`: `string`) => `string` |
+| `isContractError` | (`err`: `unknown`) => `boolean` |

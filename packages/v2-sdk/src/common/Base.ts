@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
+import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl, isContractError } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
 import { networks } from '#common/networks.js'
 import { ContractFunctionRevertedError, ErrorWithCode } from '#error/index.js'
@@ -10,51 +10,45 @@ const { getAddress: checksumAddress } = utils
 
 type Provider = providers.Provider
 
-export type TxOverrides = {
-  gasLimit?: BigNumber
-  gasPrice?: BigNumber
-  nonce?: BigNumber
-  chainId?: BigNumber
-}
+type SignerOrProvider = Signer | Provider
 
-export type ChainProviders = {
-  [key: string]: providers.Provider
+export type SignersOrProviders = {
+  [key: string]: SignerOrProvider
 }
 
 export type BaseConfig = {
-  network: string
-  signer?: Signer
+  network?: string
   gasPriceMultiplier?: number
-  chainProviders?: ChainProviders
+  signersOrProviders: SignersOrProviders
   contractAddresses?: Addresses
-  requireChainIdInput?: boolean
+}
+
+export type TxOverrides = {
+  nonce?: BigNumberish
+  gasLimit?: BigNumberish
+  gasPrice?: BigNumberish
+  maxPriorityFeePerGas?: BigNumberish
+  maxFeePerGas?: BigNumberish
+  value?: BigNumberish
+  chainId?: BigNumberish
+  from?: string
+  type?: number
 }
 
 export class Base {
   network: string
-  signer: Signer
   gasPriceMultiplier: number = 0
   contractAddresses: Addresses
   l1ChainId: number
   batchBlocks: number = 1000
-  requireChainIdInput: boolean = false
 
-  chainProviders: ChainProviders = {}
+  signersOrProviders: SignersOrProviders = {}
 
   constructor (config: BaseConfig) {
-    if (!config.network) {
-      throw new Error('network is required')
-    }
-    this.network = config.network
-    if (config.signer) {
-      this.signer = config.signer
-      if (!Signer.isSigner(this.signer)) {
-        this.signer = new providers.Web3Provider(this.signer, 'any').getSigner()
-      }
-    }
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
-    this.chainProviders = config.chainProviders ?? this.getDefaultChainRpcProviders()
+    this.signersOrProviders = config.signersOrProviders ?? {}
 
+    this.network = config.network ?? this.#deriveNetwork()
     this.contractAddresses = addresses[this.network] ?? {}
 
     if (config.contractAddresses) {
@@ -62,9 +56,23 @@ export class Base {
     }
 
     this.l1ChainId = this.network === 'mainnet' ? 1 : 5
-    if (config.requireChainIdInput != null) {
-      this.requireChainIdInput = config.requireChainIdInput
+  }
+
+  #deriveNetwork (): string {
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+
+    for (const chainId in this.signersOrProviders) {
+      for (const net of networks) {
+        const network = getNetwork(net)
+        const chain = Object.values(network.chains).find(chain => chain.chainId === chainId)
+
+        if (chain) {
+          return net
+        }
+      }
     }
+
+    throw new Error('could not derive network')
   }
 
   getContractAddresses () {
@@ -75,68 +83,48 @@ export class Base {
     this.contractAddresses = contractAddresses
   }
 
-  getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
-    const network = getNetwork(this.network as NetworkSlug)
-    const chainIdStr = chainId.toString()
-    const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
-
-    if (chain) {
-      return getProviderFromUrl(chain.publicRpcUrl)
-    }
-
-    throw new Error(`No default provider found for chainId "${chainIdStr}"`)
+  getDefaultProvider (chainId: BigNumberish): providers.Provider {
+    return Base.getDefaultProvider(chainId)
   }
 
-  getDefaultChainRpcProviders (): ChainProviders {
-    const defaultProviders: ChainProviders = {}
-    const chains = getNetwork(this.network as NetworkSlug).chains
-    for (const chainSlug in chains) {
-      const item = (chains as any)[chainSlug] // TODO: type
-      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
-    }
-
-    return defaultProviders
+  getDefaultProviders (): SignersOrProviders {
+    return Base.getDefaultProviders(this.network)
   }
 
-  connect (signer: Signer): Base {
-    this.signer = signer
-    return this
-  }
-
-  setChainRpcProvider (chainId: BigNumberish, provider: Provider): void {
+  setProvider (chainId: BigNumberish, provider: Provider): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
     }
-    this.chainProviders[chainId] = provider
+    this.signersOrProviders[chainId] = provider
   }
 
-  setChainRpcProviders (chainProviders: ChainProviders): void {
-    for (const chainId in chainProviders) {
+  setProviders (signersOrProviders: SignersOrProviders): void {
+    for (const chainId in signersOrProviders) {
       if (!this.utils.isValidChainId(chainId)) {
         continue
       }
-      this.chainProviders[chainId?.toString()] = chainProviders[chainId]
+      this.signersOrProviders[chainId?.toString()] = signersOrProviders[chainId]
     }
   }
 
-  setChainRpcProviderUrl (chainId: BigNumberish, url: string | string[]): void {
+  setProviderUrl (chainId: BigNumberish, url: string | string[]): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
     }
     if (url) {
-      this.chainProviders[chainId] = getProviderFromUrl(url)
+      this.signersOrProviders[chainId] = getProviderFromUrl(url)
     }
   }
 
-  setChainRpcProviderUrls (chainProviders: Record<string, string | string[]>): void {
-    for (const chainId in chainProviders) {
+  setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
+    for (const chainId in signersOrProviders) {
       if (!this.utils.isValidChainId(chainId)) {
         continue
       }
-      if (chainProviders[chainId]) {
-        this.chainProviders[chainId?.toString()] = getProviderFromUrl(chainProviders[chainId])
+      if (signersOrProviders[chainId]) {
+        this.signersOrProviders[chainId?.toString()] = getProviderFromUrl(signersOrProviders[chainId])
       }
     }
   }
@@ -171,14 +159,6 @@ export class Base {
     return startBlock ?? 0
   }
 
-  getRpcProviderForChainId (chainId: BigNumberish): Provider {
-    chainId = chainId.toString()
-    if (!this.chainProviders[chainId]) {
-      throw new Error(`provider not set for chain "${chainId}"`)
-    }
-    return this.chainProviders[chainId]
-  }
-
   async getContractExists (address: string, provider: Provider): Promise<boolean> {
     if (!address) {
       throw new Error('address is required')
@@ -200,51 +180,90 @@ export class Base {
     return code !== '0x'
   }
 
-  getSigner (): Signer | null {
-    return this.signer ?? null
-  }
-
-  async getSignerAddress (): Promise<string | null> {
-    if (this.signer) {
-      return this.signer.getAddress()
+  async getSignerAddress (chainId: BigNumberish): Promise<string | null> {
+    const signer = await this.getSigner(chainId)
+    if (signer) {
+      return signer.getAddress()
     }
 
     return null
   }
 
-  async getSignerOrProvider (
-    chainId: BigNumberish,
-    signer: Signer = this.signer
-  ): Promise<Signer | Provider> {
+  async getSigner (chainId: BigNumberish): Promise<Signer | null> {
+    chainId = chainId.toString()
+    let signer = this.signersOrProviders[chainId]
+
+    if (!signer) {
+      throw new Error(`signer or provider not set for chain "${chainId}"`)
+    }
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`invalid chainId "${chainId}"`)
+    }
+
+    const isProvider = (signer as any)._isProvider
+    if (isProvider) {
+      return null
+    }
+
+    if (signer) {
+      signer = this.getEthersWeb3Signer(signer)
+    }
+
+    if (signer.provider) {
+      const connectedChainId = (await signer.getChainId()).toString()
+      if (connectedChainId !== chainId) {
+        return null
+      }
+      return signer
+    } else {
+      const provider = this.getProvider(chainId)
+      if (!provider) {
+        throw new Error(`provider for chainId "${chainId?.toString()}"`)
+      }
+
+      return signer.connect(provider)
+    }
+  }
+
+  getProvider(chainId: BigNumberish): Provider | null {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`invalid chainId "${chainId}"`)
     }
 
     chainId = chainId.toString()
-    const provider = this.getRpcProviderForChainId(chainId)
-    if (!signer) {
+
+    const signerOrProvider = this.signersOrProviders[chainId]
+
+    if (!signerOrProvider) {
+      throw new Error(`signer or provider not set for chain "${chainId}"`)
+    }
+
+    if (Signer.isSigner(signerOrProvider)) {
+      return (signerOrProvider as Signer).provider ?? null
+    }
+
+    return signerOrProvider as Provider
+  }
+
+  async getSignerOrProvider (
+    chainId: BigNumberish
+  ): Promise<Signer | Provider> {
+    try {
+      const signer = await this.getSigner(chainId)
+      if (signer) {
+        return signer
+      }
+    } catch (err: any) {
+      console.warn('hopV2Sdk:', err)
+    }
+
+    const provider = this.getProvider(chainId)
+    if (provider) {
       return provider
     }
-    if (Signer.isSigner(signer)) {
-      if (signer.provider) {
-        const connectedChainId = (await signer.getChainId()).toString()
-        if (connectedChainId !== chainId) {
-          if (!signer.provider) {
-            return signer.connect(provider)
-          }
-          return provider
-        }
-        return signer
-      } else {
-        return provider
-      }
-    } else {
-      const { chainId: signerChainId } = await (signer as Provider).getNetwork()
-      if (signerChainId.toString() !== chainId) {
-        return provider
-      }
-      return signer
-    }
+
+    throw new Error(`could not get signer or provider for chain "${chainId}"`)
   }
 
   async getTxOverrides (fromChainId: BigNumberish, toChainId: BigNumberish): Promise<TxOverrides> {
@@ -280,8 +299,12 @@ export class Base {
     return txOptions
   }
 
-  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<providers.TransactionResponse> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId, customSigner?: Signer | null): Promise<providers.TransactionResponse> {
     chainId = chainId?.toString()
+
+    if (customSigner) {
+      customSigner = this.getEthersWeb3Signer(customSigner)
+    }
 
     if (!chainId) {
       throw new Error('chainId is required in sendTransaction')
@@ -295,18 +318,28 @@ export class Base {
       throw new Error('invalid "to" address')
     }
 
-    if (!this.signer.provider) {
-      throw new Error('signer provider is required')
+    let signer = customSigner
+    if (!signer) {
+      signer = await this.getSigner(chainId)
     }
 
-    if (!this.signer) {
+    if (!signer) {
       throw new Error('signer is required')
     }
 
-    await this.utils.switchChain(chainId, this.signer.provider)
+    if (!signer.provider) {
+      throw new Error('signer provider is required')
+    }
 
-    const signer = await this.getSignerOrProvider(chainId)
+    await this.utils.switchChain(chainId, signer.provider)
+
+    if (!customSigner) {
+      // note: this is to get the correct signer from configured siginersOrProviders object
+      signer = await this.getSigner(chainId)
+    }
+
     if (!(Signer.isSigner(signer) && signer.provider)) {
+      console.error(signer)
       throw new Error(`signer not connected to required chain "${chainId}"`)
     }
 
@@ -462,8 +495,7 @@ export class Base {
       }),
 
       isContractError: (err: unknown): boolean => {
-        const errorMsg = typeof err === 'string' ? err : (err instanceof Error ? (err as Error).message : '')
-        return (errorMsg.includes('CALL_EXCEPTION') || errorMsg.includes('UNPREDICTABLE_GAS_LIMIT')) && errorMsg.includes('execution reverted')
+        return isContractError(err)
       },
 
       getConnectedChainId: async (provider: Provider): Promise<BigNumber> => {
@@ -564,6 +596,10 @@ export class Base {
             throw err
           }
         }
+      },
+
+      generateZeroBytes32: () => {
+        return '0x' + '0'.repeat(64)
       }
     }
   }
@@ -576,10 +612,50 @@ export class Base {
     throw err
   }
 
-  async getSignerProviderChainId(): Promise<BigNumber> {
-    if (!this.signer?.provider) {
+  async getSignerProviderChainId(chainId: BigNumberish): Promise<BigNumber> {
+    const signer = await this.getSigner(chainId)
+    if (!signer?.provider) {
       throw new Error('signer has no provider connected, cannot get provider chainId')
     }
-    return this.utils.getConnectedChainId(this.signer.provider)
+    return this.utils.getConnectedChainId(signer.provider)
+  }
+
+  static getDefaultProviders (network: string): SignersOrProviders {
+    const defaultProviders: SignersOrProviders = {}
+    const chains = getNetwork(network as NetworkSlug).chains
+    for (const chainSlug in chains) {
+      const item = (chains as any)[chainSlug] // TODO: type
+      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
+    }
+
+    return defaultProviders
+  }
+
+  static getDefaultProvider (chainId: BigNumberish): providers.Provider {
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+    const chainIdStr = chainId.toString()
+
+    for (const net of networks) {
+      const network = getNetwork(net)
+      const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
+
+      if (chain) {
+        return getProviderFromUrl(chain.publicRpcUrl)
+      }
+    }
+
+    throw new Error(`No default provider found for chainId "${chainIdStr}"`)
+  }
+
+  getEthersWeb3Signer(signer: any): Signer {
+    if (!Signer.isSigner(signer)) {
+      try {
+        signer = (new providers.Web3Provider(signer as any, 'any').getSigner()) as any
+      } catch (err: any) {
+        console.log('new Web3Provider error:', err)
+      }
+    }
+
+    return signer
   }
 }

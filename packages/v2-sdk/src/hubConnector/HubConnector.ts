@@ -1,5 +1,5 @@
-import { Base, BaseConfig } from '#common/index.js'
-import { BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
+import { Base, BaseConfig, TxOverrides } from '#common/index.js'
+import { BigNumberish, providers, utils, Event as EthersEvent } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
 import { ConfigError, InputError } from '#error/index.js'
@@ -30,24 +30,20 @@ export class HubConnector extends Base {
     super(config)
   }
 
-  override connect (signer: Signer) {
-    return new HubConnector({ network: this.network, signer, contractAddresses: this.contractAddresses })
-  }
-
   get populateTransaction() {
     return {
-      connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput): Promise<providers.TransactionRequest> => {
-        const provider = this.getRpcProviderForChainId(hubChainId)
+      connectTargets: async ({ hubChainId, spokeChainId, target1, target2 }: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const provider = this.getProvider(hubChainId)
         if (!provider) {
           throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
         }
         const address = this.getHubConnectorContractAddress(hubChainId)
-        const signer = await this.getSignerOrProvider(hubChainId)
-        const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
+        const factory = HubERC5164ConnectorFactory__factory.connect(address, provider)
         const txData = await factory.populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
 
         return {
           ...txData,
+          ...txOverrides,
           chainId: Number(hubChainId)
         }
       }
@@ -55,8 +51,8 @@ export class HubConnector extends Base {
   }
 
   // used by connector demo
-  async connectTargets (input: ConnectTargetsInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.connectTargets(input)
+  async connectTargets (input: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.connectTargets(input, txOverrides)
     return this.sendTransaction(txData)
   }
 
@@ -87,7 +83,7 @@ export class HubConnector extends Base {
       throw new InputError('fromBlock is required')
     }
 
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }

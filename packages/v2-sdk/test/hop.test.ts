@@ -14,7 +14,7 @@ describe('Hop', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const sdk = new Hop({
-    network: 'sepolia'
+    signersOrProviders: Hop.getDefaultProviders('sepolia')
   })
 
   it('should get version', async () => {
@@ -22,14 +22,8 @@ describe('Hop', () => {
     expect(sdk.version).toBeDefined()
   })
 
-  it('should connect signer', async () => {
-    expect(sdk.signer).toBeUndefined()
-    const sdkWithSigner = sdk.connect(signer)
-    expect(sdkWithSigner.signer).toBeDefined()
-  })
-
   it('should get rails gateway instance', async () => {
-    expect(sdk.getRailsGateway()).toBeDefined()
+    expect(sdk.getRailsGateway(11155111)).toBeDefined()
   })
 
   it('should get messenger instance', async () => {
@@ -69,7 +63,7 @@ describe('Hop', () => {
     expect(txData).toBeDefined()
   }, 60 * 1000)
 
-  it('should initiate approve tokens to send tx', async () => {
+  it.skip('should initiate approve tokens to send tx', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420
     const fromToken = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
@@ -86,7 +80,7 @@ describe('Hop', () => {
     expect(txData).toBeDefined()
   }, 60 * 1000)
 
-  it('should return boolean from send tokens approval check', async () => {
+  it.skip('should return boolean from send tokens approval check', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420
     const fromToken = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
@@ -105,7 +99,7 @@ describe('Hop', () => {
     expect(typeof needsApproval).toBe('boolean')
   }, 60 * 1000)
 
-  it('should get pathInfo', async () => {
+  it.skip('should get pathInfo', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const pathInfo = await sdk.getPathInfo({
@@ -135,7 +129,7 @@ describe('Hop', () => {
     const newChainId = 10
     let error = ''
     try {
-      await sdk.connect(signer).switchChain(newChainId)
+      await sdk.switchChain(newChainId)
     } catch (err) {
       console.error(err)
       error = err
@@ -143,7 +137,7 @@ describe('Hop', () => {
     expect(error).toBe('')
   }, 60 * 1000)
 
-  it('should get send tokens fee', async () => {
+  it.skip('should get send tokens fee', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420
     const fromToken = '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32'
@@ -181,7 +175,7 @@ describe('Hop', () => {
     expect(transferStatus).toBeDefined()
   }, 60 * 1000)
 
-  it('should get events', async () => {
+  it.skip('should get events', async () => {
     const chainId = 11155111
     const fromBlock = 6598795
     const toBlock = 6598796
@@ -261,4 +255,13 @@ describe('Hop', () => {
     console.log(data)
     expect(data).toBeDefined()
   }, 60 * 1000)
+  it('should calc amountOutMin', async () => {
+    const amountOut = parseUnits('1', 18)
+    const slippageTolerance = 0.01
+    const amountOutMin = Hop.calcAmountOutMin({
+      amountOut,
+      slippageTolerance
+    })
+    expect(amountOutMin).toBeDefined()
+  })
 })

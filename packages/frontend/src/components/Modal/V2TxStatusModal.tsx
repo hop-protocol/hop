@@ -86,8 +86,7 @@ export function V2TxStatusModal(props: Props) {
       if (v2Sdk && tx && fromChain && toChain) {
         const fromChainId = fromChain.chainId
         const toChainId = toChain.chainId
-        const event = await v2Sdk.railsGateway.getTransferSentEventFromTransactionHash({
-          chainId: fromChainId,
+        const event = await v2Sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
           transactionHash: tx.hash
         })
         const { transferId } = event?.decoded
@@ -101,7 +100,7 @@ export function V2TxStatusModal(props: Props) {
         setToCompleted(!!transferStatus.transferBondedEvent)
 
         if (!transferStatus.transferBondedEvent) {
-          const provider = v2Sdk.getRpcProviderForChainId(fromChainId)
+          const provider = v2Sdk.getProvider(fromChainId)
           const blockNumber = await provider.getBlockNumber()
           const { blockNumber: receiptBlockNumber } = await provider.getTransactionReceipt(tx.hash)
           setCurrentConfirmations(blockNumber - receiptBlockNumber)

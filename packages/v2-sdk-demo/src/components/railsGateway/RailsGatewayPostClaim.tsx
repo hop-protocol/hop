@@ -11,8 +11,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -41,7 +42,7 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
+  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
     defaultValue: '',
   })
 
@@ -49,11 +50,11 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
+  const [totalClaims, setTotalClaims] = useLocalStorageState(`${cacheKey}:totalClaims`, {
     defaultValue: '',
   })
 
-  const [attestedTotalClaims, setAttestedTotalClaims] = useLocalStorageState(`${cacheKey}:attestedTotalClaims`, {
+  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
     defaultValue: '',
   })
 
@@ -78,18 +79,17 @@ export function RailsGatewayPostClaim (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
       pathId,
       transferId,
       to: toAddress,
-      amount,
+      amountOut,
       totalSent,
+      totalClaims,
       attestedClaimId,
-      attestedTotalClaims,
       nextHopsHash
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.postClaim(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.postClaim(args)
     return txData
   }
 
@@ -106,7 +106,7 @@ export function RailsGatewayPostClaim (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -125,26 +125,24 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const transferId = "${transferId}"
   const to = "${toAddress}"
-  const amount = "${amount}"
+  const amountOut = "${amountOut}"
   const totalSent = "${totalSent}"
+  const totalClaims = "${totalClaims}"
   const attestedClaimId = "${attestedClaimId}"
-  const attestedTotalClaims = "${attestedTotalClaims}"
   const nextHopsHash = "${nextHopsHash}"
 
-  const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.postClaim({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.postClaim({
     pathId,
     transferId,
     to,
-    amount,
+    amountOut,
     totalSent,
+    totalClaims,
     attestedClaimId,
-    attestedTotalClaims,
     nextHopsHash
   })
   ${populateTxDataOnly ? (
@@ -152,7 +150,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -210,9 +208,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to send</em></small></label>
+                  <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount out of transfer sent event</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -224,16 +222,16 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
+                  <label>Total Claims <small><em>(uint256)</em></small> <small><em>Total claims</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={totalClaims} onChange={(event: any) => setTotalClaims(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested Total Claims <small><em>(uint256)</em></small> <small><em>Attested total claims</em></small></label>
+                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={attestedTotalClaims} onChange={(event: any) => setAttestedTotalClaims(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

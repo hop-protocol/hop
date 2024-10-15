@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
-import { network } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -41,7 +41,7 @@ export function SetRpcProviders (props: Props) {
       setResult('')
 
       const config = JSON.parse(configString)
-      sdk.setChainRpcProviderUrls(config)
+      sdk.setProviderUrls(config)
       setResult('set')
     } catch (err: any) {
       console.error(err)
@@ -56,8 +56,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const rpcProviders = ${configString}
 
-  const hop = new Hop({ network: '${network}' })
-  hop.setChainRpcProviderUrls(rpcProviders)
+  ${hopInstantiateDisplayString}
+  hop.setProviderUrls(rpcProviders)
 }
 
 main().catch(console.error)

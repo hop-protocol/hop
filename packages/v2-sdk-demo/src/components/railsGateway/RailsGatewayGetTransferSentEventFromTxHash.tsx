@@ -9,8 +9,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -44,12 +45,11 @@ export function RailsGatewayGetTransferSentEventFromTxHash (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         transactionHash
       }
 
       console.log('args', args)
-      const event = await sdk.railsGateway.getTransferSentEventFromTransactionHash(args)
+      const event = await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -62,12 +62,10 @@ export function RailsGatewayGetTransferSentEventFromTxHash (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const transactionHash = "${transactionHash}"
 
-  const hop = new Hop({ network: '${network}' })
-  const event = await hop.railsGateway.getTransferSentEventFromTransactionHash({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const event = await hop.getRailsGateway('${fromChainId}').getTransferSentEventFromTransactionHash({
     transactionHash
   })
   console.log(event)

@@ -13,6 +13,10 @@ export function toUsdDisplay(amount?: BigNumber, tokenDecimals?: number, tokenUs
       return `<$0.01`
     }
 
+    if (value <= 0) {
+      return '0'
+    }
+
     return `$${commafy(value, 2)}`
   } catch (err) {
     return ''

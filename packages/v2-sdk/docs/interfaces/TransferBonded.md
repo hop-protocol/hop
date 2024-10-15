@@ -5,8 +5,9 @@
 ### Properties
 
 - [amount](TransferBonded.md#amount)
+- [claimId](TransferBonded.md#claimid)
 - [pathId](TransferBonded.md#pathid)
-- [transferId](TransferBonded.md#transferid)
+- [to](TransferBonded.md#to)
 
 ## Properties
 
@@ -16,12 +17,18 @@
 
 ___
 
+### <a id="claimid" name="claimid"></a> claimId
+
+• **claimId**: `string`
+
+___
+
 ### <a id="pathid" name="pathid"></a> pathId
 
 • **pathId**: `string`
 
 ___
 
-### <a id="transferid" name="transferid"></a> transferId
+### <a id="to" name="to"></a> to
 
-• **transferId**: `string`
+• **to**: `string`

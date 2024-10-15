@@ -15,8 +15,9 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -93,7 +94,7 @@ export function SendMessage (props: Props) {
   }, [abiJson, selectedAbiMethod])
 
   const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
+    return sdk.getProvider(fromChainId)
   }, [sdk, fromChainId])
 
   const abiOptions = useMemo(() => {
@@ -170,7 +171,7 @@ async function main() {
   const toAddress = "${toAddress}"
   const toCalldata = "${toCalldata}"
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const txData = await hop.messenger.populateTransaction.sendMessage({
     fromChainId,
     toChainId,

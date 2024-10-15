@@ -7,10 +7,10 @@ export interface TransferSent {
   pathId: string
   transferId: string
   to: string
-  amount: BigNumber
+  amountOut: BigNumber
   totalSent: BigNumber
+  totalClaims: BigNumber
   attestedClaimId: string
-  attestedTotalClaims: BigNumber
   nextHops: HopStruct[]
 }
 
@@ -20,26 +20,32 @@ export interface HopStruct {
   attestedClaimId: string
 }
 
+export type TransferSentIndexes = {
+  transferId?: string
+  pathId?: string
+  to?: string
+}
+
 export class TransferSentEventFetcher extends Event<TransferSent> {
   override eventName = 'TransferSent'
   override abi = RailsGateway__factory.abi
   override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(pathId)
-    return filter
+    return this.getFilterWithIndexes({ pathId })
   }
 
   getTransferIdFilter (transferId: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(null, transferId)
-    return filter
+    return this.getFilterWithIndexes({ transferId })
   }
 
   getToFilter (to: string): EventFilter {
+    return this.getFilterWithIndexes({ to })
+  }
+
+  getFilterWithIndexes ({ pathId, transferId, to } : TransferSentIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(null, null, to)
+    const filter = railsGateway.filters.TransferSent(pathId ?? null, transferId ?? null, to ?? null)
     return filter
   }
 
@@ -49,10 +55,10 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
     const to = parsed.args.to
-    const amount = parsed.args.amount
+    const amountOut = parsed.args.amountOut
     const totalSent = parsed.args.totalSent
+    const totalClaims = parsed.args.totalClaims
     const attestedClaimId = parsed.args.attestedClaimId.toString()
-    const attestedTotalClaims = parsed.args.attestedTotalClaims.toString()
     const nextHops = parsed.args.nextHops.map((hop: any) => {
       return {
         pathId: hop.pathId.toString(),
@@ -65,10 +71,10 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
       pathId,
       transferId,
       to,
-      amount,
+      amountOut,
       totalSent,
+      totalClaims,
       attestedClaimId,
-      attestedTotalClaims,
       nextHops
     }
   }

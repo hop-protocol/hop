@@ -5,8 +5,15 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 // event from RailsGateway
 export interface TransferBonded {
   pathId: string
-  transferId: string
+  claimId: string
+  to: string
   amount: BigNumber
+}
+
+export type TransferBondedIndexes = {
+  pathId?: string
+  claimId?: string
+  to?: string
 }
 
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
@@ -15,20 +22,20 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
   override factory = RailsGateway__factory
 
   getPathIdFilter (pathId: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(pathId)
-    return filter
+    return this.getFilterWithIndexes({ pathId })
   }
 
-  getTransferIdFilter (transferId: string): EventFilter {
-    const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(null, transferId)
-    return filter
+  getClaimIdFilter (claimId: string): EventFilter {
+    return this.getFilterWithIndexes({ claimId })
   }
 
   getToFilter (to: string): EventFilter {
+    return this.getFilterWithIndexes({ to })
+  }
+
+  getFilterWithIndexes ({ pathId, claimId, to } : TransferBondedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(null, null, to)
+    const filter = railsGateway.filters.TransferBonded(pathId ?? null, claimId ?? null, to ?? null)
     return filter
   }
 
@@ -36,12 +43,14 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()
-    const transferId = parsed.args.transferId.toString()
+    const claimId = parsed.args.claimId.toString()
+    const to = parsed.args.to
     const amount = parsed.args.amount
 
     return {
       pathId,
-      transferId,
+      claimId,
+      to,
       amount
     }
   }

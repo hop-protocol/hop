@@ -11,8 +11,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -54,12 +55,11 @@ export function RailsGatewayApproveBond (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
       pathId,
       amount,
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.approveBond(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.approveBond(args)
     return txData
   }
 
@@ -76,7 +76,7 @@ export function RailsGatewayApproveBond (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -95,13 +95,11 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const amount = "${amount}"
 
-  const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.approveBond({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.approveBond({
     pathId,
     amount
   })
@@ -110,7 +108,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

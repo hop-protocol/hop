@@ -15,36 +15,37 @@
 ### Properties
 
 - [batchBlocks](RailsGateway.md#batchblocks)
-- [chainProviders](RailsGateway.md#chainproviders)
+- [chainId](RailsGateway.md#chainid)
 - [contractAddresses](RailsGateway.md#contractaddresses)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
-- [requireChainIdInput](RailsGateway.md#requirechainidinput)
-- [signer](RailsGateway.md#signer)
+- [signersOrProviders](RailsGateway.md#signersorproviders)
 
 ### Accessors
 
+- [helpers](RailsGateway.md#helpers)
 - [populateTransaction](RailsGateway.md#populatetransaction)
 - [utils](RailsGateway.md#utils)
 
 ### Methods
 
 - [acceptSlash](RailsGateway.md#acceptslash)
+- [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
 - [addToAppeal](RailsGateway.md#addtoappeal)
 - [addToChallenge](RailsGateway.md#addtochallenge)
-- [approveBond](RailsGateway.md#approvebond)
-- [approveSend](RailsGateway.md#approvesend)
+- [batchUpdateClaimChain](RailsGateway.md#batchupdateclaimchain)
 - [bond](RailsGateway.md#bond)
-- [calcAmountOutMin](RailsGateway.md#calcamountoutmin)
+- [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
-- [connect](RailsGateway.md#connect)
 - [createChallenge](RailsGateway.md#createchallenge)
+- [distributeFees](RailsGateway.md#distributefees)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
+- [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
 - [getChallengeId](RailsGateway.md#getchallengeid)
 - [getChallengePeriod](RailsGateway.md#getchallengeperiod)
@@ -54,33 +55,30 @@
 - [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
 - [getContractAddresses](RailsGateway.md#getcontractaddresses)
 - [getContractExists](RailsGateway.md#getcontractexists)
-- [getDefaultChainRpcProvider](RailsGateway.md#getdefaultchainrpcprovider)
-- [getDefaultChainRpcProviders](RailsGateway.md#getdefaultchainrpcproviders)
+- [getDefaultProvider](RailsGateway.md#getdefaultprovider)
+- [getDefaultProviders](RailsGateway.md#getdefaultproviders)
+- [getEthersWeb3Signer](RailsGateway.md#getethersweb3signer)
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
+- [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
 - [getFee](RailsGateway.md#getfee)
 - [getFullAppeal](RailsGateway.md#getfullappeal)
 - [getHasSufficientBalance](RailsGateway.md#gethassufficientbalance)
+- [getHeadClaim](RailsGateway.md#getheadclaim)
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
-- [getIsPathIdLive](RailsGateway.md#getispathidlive)
-- [getIsTransferBonded](RailsGateway.md#getistransferbonded)
-- [getIsTransferClaimed](RailsGateway.md#getistransferclaimed)
-- [getLatestClaim](RailsGateway.md#getlatestclaim)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
 - [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
-- [getNeedsApprovalForBond](RailsGateway.md#getneedsapprovalforbond)
-- [getNeedsApprovalForSend](RailsGateway.md#getneedsapprovalforsend)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
+- [getProvider](RailsGateway.md#getprovider)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
 - [getRoleForRoleName](RailsGateway.md#getroleforrolename)
-- [getRpcProviderForChainId](RailsGateway.md#getrpcproviderforchainid)
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
@@ -100,14 +98,15 @@
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
 - [getTransferBondedEvents](RailsGateway.md#gettransferbondedevents)
+- [getTransferDataHash](RailsGateway.md#gettransferdatahash)
 - [getTransferId](RailsGateway.md#gettransferid)
 - [getTransferSentEventFilter](RailsGateway.md#gettransfersenteventfilter)
 - [getTransferSentEventFromTransactionHash](RailsGateway.md#gettransfersenteventfromtransactionhash)
 - [getTransferSentEventFromTransactionReceipt](RailsGateway.md#gettransfersenteventfromtransactionreceipt)
 - [getTransferSentEventFromTransferId](RailsGateway.md#gettransfersenteventfromtransferid)
 - [getTransferSentEvents](RailsGateway.md#gettransfersentevents)
+- [getTransferSentEventsFromPathId](RailsGateway.md#gettransfersenteventsfrompathid)
 - [getTransferSentEventsInBatches](RailsGateway.md#gettransfersenteventsinbatches)
-- [getTransferStatus](RailsGateway.md#gettransferstatus)
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
 - [getWithdrawableEth](RailsGateway.md#getwithdrawableeth)
@@ -124,17 +123,27 @@
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
-- [setChainRpcProvider](RailsGateway.md#setchainrpcprovider)
-- [setChainRpcProviderUrl](RailsGateway.md#setchainrpcproviderurl)
-- [setChainRpcProviderUrls](RailsGateway.md#setchainrpcproviderurls)
-- [setChainRpcProviders](RailsGateway.md#setchainrpcproviders)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
+- [setProvider](RailsGateway.md#setprovider)
+- [setProviderUrl](RailsGateway.md#setproviderurl)
+- [setProviderUrls](RailsGateway.md#setproviderurls)
+- [setProviders](RailsGateway.md#setproviders)
 - [stakeHop](RailsGateway.md#stakehop)
 - [throwError](RailsGateway.md#throwerror)
 - [unstakeHop](RailsGateway.md#unstakehop)
-- [withdrawAllClaims](RailsGateway.md#withdrawallclaims)
-- [withdrawClaim](RailsGateway.md#withdrawclaim)
+- [updateClaimChain](RailsGateway.md#updateclaimchain)
+- [withdraw](RailsGateway.md#withdraw)
+- [withdrawAll](RailsGateway.md#withdrawall)
 - [withdrawHop](RailsGateway.md#withdrawhop)
+- [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
+- [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
+- [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
+- [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents-1)
+- [deriveNetwork](RailsGateway.md#derivenetwork)
+- [getComputedNextHopsHash](RailsGateway.md#getcomputednexthopshash)
+- [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
+- [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
+- [getEventNames](RailsGateway.md#geteventnames-1)
 - [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
 - [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
 
@@ -148,7 +157,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `BaseConfig` |
+| `«destructured»` | [`RailsGatewayConstructorInput`](../modules.md#railsgatewayconstructorinput) |
 
 #### Returns
 
@@ -170,13 +179,9 @@ StakingRegistry.batchBlocks
 
 ___
 
-### <a id="chainproviders" name="chainproviders"></a> chainProviders
+### <a id="chainid" name="chainid"></a> chainId
 
-• **chainProviders**: `ChainProviders`
-
-#### Inherited from
-
-StakingRegistry.chainProviders
+• **chainId**: `BigNumberish`
 
 ___
 
@@ -220,25 +225,36 @@ StakingRegistry.network
 
 ___
 
-### <a id="requirechainidinput" name="requirechainidinput"></a> requireChainIdInput
+### <a id="signersorproviders" name="signersorproviders"></a> signersOrProviders
 
-• **requireChainIdInput**: `boolean`
-
-#### Inherited from
-
-StakingRegistry.requireChainIdInput
-
-___
-
-### <a id="signer" name="signer"></a> signer
-
-• **signer**: `Signer`
+• **signersOrProviders**: `SignersOrProviders`
 
 #### Inherited from
 
-StakingRegistry.signer
+StakingRegistry.signersOrProviders
 
 ## Accessors
+
+### <a id="helpers" name="helpers"></a> helpers
+
+• `get` **helpers**(): `Object`
+
+#### Returns
+
+`Object`
+
+| Name | Type |
+| :------ | :------ |
+| `approveBond` | (`input`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
+| `approveSend` | (`input`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
+| `getComputedNextHopsHash` | (`__namedParameters`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
+| `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
+| `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
+| `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
+| `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
+| `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
+
+___
 
 ### <a id="populatetransaction" name="populatetransaction"></a> populateTransaction
 
@@ -250,19 +266,23 @@ StakingRegistry.signer
 
 | Name | Type |
 | :------ | :------ |
-| `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput)) => `Promise`\<`TransactionRequest`\> |
-| `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput)) => `Promise`\<`TransactionRequest`\> |
-| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput)) => `Promise`\<`TransactionRequest`\> |
-| `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput)) => `Promise`\<`TransactionRequest`\> |
-| `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput)) => `Promise`\<`TransactionRequest`\> |
-| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAllClaims` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawClaim` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput)) => `Promise`\<`TransactionRequest`\> |
-| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput)) => `Promise`\<`TransactionRequest`\> |
+| `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `batchUpdateClaimChain` | (`__namedParameters`: [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `distributeFees` | (`__namedParameters`: [`DistributeFeesInput`](../modules.md#distributefeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawAll` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -277,6 +297,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `estimateGas` | (`provider`: `Provider`, `tx`: `TransactionRequest`) => `Promise`\<`BigNumber`\> |
+| `generateZeroBytes32` | () => `string` |
 | `getAddressExplorerUrl` | (`address`: `string`, `chainId`: `BigNumberish`) => `string` |
 | `getBumpedGasPrice` | (`provider`: `Provider`, `percent`: `number`) => `Promise`\<`BigNumber`\> |
 | `getChainInfo` | (`chainId`: `BigNumberish`) => `any` |
@@ -323,6 +344,22 @@ StakingRegistry.utils
 #### Inherited from
 
 StakingRegistry.acceptSlash
+
+___
+
+### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
+
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `event` | `any` |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
 
 ___
 
@@ -414,31 +451,16 @@ StakingRegistry.addToChallenge
 
 ___
 
-### <a id="approvebond" name="approvebond"></a> approveBond
+### <a id="batchupdateclaimchain" name="batchupdateclaimchain"></a> batchUpdateClaimChain
 
-▸ **approveBond**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`ApproveBondInput`](../modules.md#approvebondinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="approvesend" name="approvesend"></a> approveSend
-
-▸ **approveSend**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **batchUpdateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`ApproveSendInput`](../modules.md#approvesendinput) |
+| `input` | [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -448,13 +470,14 @@ ___
 
 ### <a id="bond" name="bond"></a> bond
 
-▸ **bond**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **bond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`BondInput`](../modules.md#bondinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -462,55 +485,37 @@ ___
 
 ___
 
-### <a id="calcamountoutmin" name="calcamountoutmin"></a> calcAmountOutMin
+### <a id="claimfeesfrompath" name="claimfeesfrompath"></a> claimFeesFromPath
 
-▸ **calcAmountOutMin**(`«destructured»`): `BigNumber`
+▸ **claimFeesFromPath**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`CalcAmountOutMinInput`](../modules.md#calcamountoutmininput) |
+| `input` | [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
-`BigNumber`
+`Promise`\<`TransactionResponse`\>
 
 ___
 
 ### <a id="confirmclaim" name="confirmclaim"></a> confirmClaim
 
-▸ **confirmClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **confirmClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`ConfirmClaimInput`](../modules.md#confirmclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="connect" name="connect"></a> connect
-
-▸ **connect**(`signer`): [`RailsGateway`](RailsGateway.md)
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `signer` | `Signer` |
-
-#### Returns
-
-[`RailsGateway`](RailsGateway.md)
-
-#### Overrides
-
-StakingRegistry.connect
 
 ___
 
@@ -531,6 +536,23 @@ ___
 #### Inherited from
 
 StakingRegistry.createChallenge
+
+___
+
+### <a id="distributefees" name="distributefees"></a> distributeFees
+
+▸ **distributeFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`DistributeFeesInput`](../modules.md#distributefeesinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -571,6 +593,22 @@ ___
 #### Inherited from
 
 StakingRegistry.getAppealPeriod
+
+___
+
+### <a id="getbucketindex" name="getbucketindex"></a> getBucketIndex
+
+▸ **getBucketIndex**(`«destructured»`): `Promise`\<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetBucketIndexInput`](../modules.md#getbucketindexinput) |
+
+#### Returns
+
+`Promise`\<`number`\>
 
 ___
 
@@ -750,9 +788,9 @@ StakingRegistry.getContractExists
 
 ___
 
-### <a id="getdefaultchainrpcprovider" name="getdefaultchainrpcprovider"></a> getDefaultChainRpcProvider
+### <a id="getdefaultprovider" name="getdefaultprovider"></a> getDefaultProvider
 
-▸ **getDefaultChainRpcProvider**(`chainId`): `Provider`
+▸ **getDefaultProvider**(`chainId`): `Provider`
 
 #### Parameters
 
@@ -766,34 +804,70 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProvider
+StakingRegistry.getDefaultProvider
 
 ___
 
-### <a id="getdefaultchainrpcproviders" name="getdefaultchainrpcproviders"></a> getDefaultChainRpcProviders
+### <a id="getdefaultproviders" name="getdefaultproviders"></a> getDefaultProviders
 
-▸ **getDefaultChainRpcProviders**(): `ChainProviders`
+▸ **getDefaultProviders**(): `SignersOrProviders`
 
 #### Returns
 
-`ChainProviders`
+`SignersOrProviders`
 
 #### Inherited from
 
-StakingRegistry.getDefaultChainRpcProviders
+StakingRegistry.getDefaultProviders
+
+___
+
+### <a id="getethersweb3signer" name="getethersweb3signer"></a> getEthersWeb3Signer
+
+▸ **getEthersWeb3Signer**(`signer`): `Signer`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | `any` |
+
+#### Returns
+
+`Signer`
+
+#### Inherited from
+
+StakingRegistry.getEthersWeb3Signer
 
 ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`, `chainId`): `any`
+▸ **getEventFetcher**(`eventName`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `eventName` | `EventName` |
-| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`any`
+
+___
+
+### <a id="geteventfilter" name="geteventfilter"></a> getEventFilter
+
+▸ **getEventFilter**(`eventName`, `input?`): `any`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | `EventName` |
+| `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
 
 #### Returns
 
@@ -863,15 +937,30 @@ ___
 
 ___
 
-### <a id="gethopbalance" name="gethopbalance"></a> getHopBalance
+### <a id="getheadclaim" name="getheadclaim"></a> getHeadClaim
 
-▸ **getHopBalance**(`chainId`, `address?`): `Promise`\<`BigNumber`\>
+▸ **getHeadClaim**(`«destructured»`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `«destructured»` | [`GetHeadClaimInput`](../modules.md#getheadclaiminput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="gethopbalance" name="gethopbalance"></a> getHopBalance
+
+▸ **getHopBalance**(`address?`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
 | `address?` | ``null`` \| `string` |
 
 #### Returns
@@ -882,13 +971,7 @@ ___
 
 ### <a id="gethoptokenaddress" name="gethoptokenaddress"></a> getHopTokenAddress
 
-▸ **getHopTokenAddress**(`chainId`): `Promise`\<`string`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHopTokenAddress**(): `Promise`\<`string`\>
 
 #### Returns
 
@@ -898,13 +981,7 @@ ___
 
 ### <a id="gethoptokencontract" name="gethoptokencontract"></a> getHopTokenContract
 
-▸ **getHopTokenContract**(`chainId`): `Promise`\<`Contract`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHopTokenContract**(): `Promise`\<`Contract`\>
 
 #### Returns
 
@@ -928,79 +1005,9 @@ ___
 
 ___
 
-### <a id="getispathidlive" name="getispathidlive"></a> getIsPathIdLive
-
-▸ **getIsPathIdLive**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getistransferbonded" name="getistransferbonded"></a> getIsTransferBonded
-
-▸ **getIsTransferBonded**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getistransferclaimed" name="getistransferclaimed"></a> getIsTransferClaimed
-
-▸ **getIsTransferClaimed**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getlatestclaim" name="getlatestclaim"></a> getLatestClaim
-
-▸ **getLatestClaim**(`«destructured»`): `Promise`\<`string`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetLatestClaimInput`](../modules.md#getlatestclaiminput) |
-
-#### Returns
-
-`Promise`\<`string`\>
-
-___
-
 ### <a id="getminbonderstake" name="getminbonderstake"></a> getMinBonderStake
 
-▸ **getMinBonderStake**(`chainId`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getMinBonderStake**(): `Promise`\<`BigNumber`\>
 
 #### Returns
 
@@ -1048,41 +1055,9 @@ StakingRegistry.getMinHopStakeForRole
 
 ___
 
-### <a id="getneedsapprovalforbond" name="getneedsapprovalforbond"></a> getNeedsApprovalForBond
-
-▸ **getNeedsApprovalForBond**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
-### <a id="getneedsapprovalforsend" name="getneedsapprovalforsend"></a> getNeedsApprovalForSend
-
-▸ **getNeedsApprovalForSend**(`«destructured»`): `Promise`\<`boolean`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput) |
-
-#### Returns
-
-`Promise`\<`boolean`\>
-
-___
-
 ### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
 
-▸ **getNextHopsHash**(`«destructured»`): `string`
+▸ **getNextHopsHash**(`«destructured»`): `Promise`\<`string`\>
 
 #### Parameters
 
@@ -1092,7 +1067,7 @@ ___
 
 #### Returns
 
-`string`
+`Promise`\<`string`\>
 
 ___
 
@@ -1128,9 +1103,9 @@ ___
 
 ___
 
-### <a id="getrailsgatewaycontract" name="getrailsgatewaycontract"></a> getRailsGatewayContract
+### <a id="getprovider" name="getprovider"></a> getProvider
 
-▸ **getRailsGatewayContract**(`chainId`): `Promise`\<`Contract`\>
+▸ **getProvider**(`chainId`): ``null`` \| `Provider`
 
 #### Parameters
 
@@ -1140,19 +1115,27 @@ ___
 
 #### Returns
 
+``null`` \| `Provider`
+
+#### Inherited from
+
+StakingRegistry.getProvider
+
+___
+
+### <a id="getrailsgatewaycontract" name="getrailsgatewaycontract"></a> getRailsGatewayContract
+
+▸ **getRailsGatewayContract**(): `Promise`\<`Contract`\>
+
+#### Returns
+
 `Promise`\<`Contract`\>
 
 ___
 
 ### <a id="getrailsgatewaycontractaddress" name="getrailsgatewaycontractaddress"></a> getRailsGatewayContractAddress
 
-▸ **getRailsGatewayContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getRailsGatewayContractAddress**(): `string`
 
 #### Returns
 
@@ -1180,9 +1163,9 @@ StakingRegistry.getRoleForRoleName
 
 ___
 
-### <a id="getrpcproviderforchainid" name="getrpcproviderforchainid"></a> getRpcProviderForChainId
+### <a id="getsigner" name="getsigner"></a> getSigner
 
-▸ **getRpcProviderForChainId**(`chainId`): `Provider`
+▸ **getSigner**(`chainId`): `Promise`\<``null`` \| `Signer`\>
 
 #### Parameters
 
@@ -1192,21 +1175,7 @@ ___
 
 #### Returns
 
-`Provider`
-
-#### Inherited from
-
-StakingRegistry.getRpcProviderForChainId
-
-___
-
-### <a id="getsigner" name="getsigner"></a> getSigner
-
-▸ **getSigner**(): ``null`` \| `Signer`
-
-#### Returns
-
-``null`` \| `Signer`
+`Promise`\<``null`` \| `Signer`\>
 
 #### Inherited from
 
@@ -1216,7 +1185,13 @@ ___
 
 ### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
 
-▸ **getSignerAddress**(): `Promise`\<``null`` \| `string`\>
+▸ **getSignerAddress**(`chainId`): `Promise`\<``null`` \| `string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -1230,14 +1205,13 @@ ___
 
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chainId`, `signer?`): `Promise`\<`Provider` \| `Signer`\>
+▸ **getSignerOrProvider**(`chainId`): `Promise`\<`Provider` \| `Signer`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `signer?` | `Signer` |
 
 #### Returns
 
@@ -1251,7 +1225,13 @@ ___
 
 ### <a id="getsignerproviderchainid" name="getsignerproviderchainid"></a> getSignerProviderChainId
 
-▸ **getSignerProviderChainId**(): `Promise`\<`BigNumber`\>
+▸ **getSignerProviderChainId**(`chainId`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -1442,7 +1422,7 @@ ___
 
 ### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
 
-▸ **getTransferBondedEventFilter**(`«destructured»`): `any`
+▸ **getTransferBondedEventFilter**(`«destructured»?`): `any`
 
 #### Parameters
 
@@ -1520,6 +1500,22 @@ ___
 
 ___
 
+### <a id="gettransferdatahash" name="gettransferdatahash"></a> getTransferDataHash
+
+▸ **getTransferDataHash**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferDataHashInput`](../modules.md#gettransferdatahashinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="gettransferid" name="gettransferid"></a> getTransferId
 
 ▸ **getTransferId**(`«destructured»`): `Promise`\<`string`\>
@@ -1538,7 +1534,7 @@ ___
 
 ### <a id="gettransfersenteventfilter" name="gettransfersenteventfilter"></a> getTransferSentEventFilter
 
-▸ **getTransferSentEventFilter**(`«destructured»`): `any`
+▸ **getTransferSentEventFilter**(`«destructured»?`): `any`
 
 #### Parameters
 
@@ -1616,6 +1612,22 @@ ___
 
 ___
 
+### <a id="gettransfersenteventsfrompathid" name="gettransfersenteventsfrompathid"></a> getTransferSentEventsFromPathId
+
+▸ **getTransferSentEventsFromPathId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferSentEventsFromPathIdInput`](../modules.md#gettransfersenteventsfrompathidinput) |
+
+#### Returns
+
+`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
+
+___
+
 ### <a id="gettransfersenteventsinbatches" name="gettransfersenteventsinbatches"></a> getTransferSentEventsInBatches
 
 ▸ **getTransferSentEventsInBatches**(`«destructured»`): `AsyncGenerator`\<`any`, `void`, `unknown`\>
@@ -1629,22 +1641,6 @@ ___
 #### Returns
 
 `AsyncGenerator`\<`any`, `void`, `unknown`\>
-
-___
-
-### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
-
-▸ **getTransferStatus**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
-
-#### Returns
-
-`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 ___
 
@@ -1677,7 +1673,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`WithdrawBalanceInput`](../modules.md#withdrawbalanceinput) |
+| `«destructured»` | [`WithdrawableBalanceInput`](../modules.md#withdrawablebalanceinput) |
 
 #### Returns
 
@@ -1767,13 +1763,14 @@ ___
 
 ### <a id="postclaim" name="postclaim"></a> postClaim
 
-▸ **postClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **postClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`PostClaimInput`](../modules.md#postclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1903,13 +1900,14 @@ ___
 
 ### <a id="removeclaim" name="removeclaim"></a> removeClaim
 
-▸ **removeClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **removeClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`RemoveClaimInput`](../modules.md#removeclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1919,13 +1917,14 @@ ___
 
 ### <a id="send" name="send"></a> send
 
-▸ **send**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **send**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`SendInput`](../modules.md#sendinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -1935,7 +1934,7 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chainId?`): `Promise`\<`TransactionResponse`\>
+▸ **sendTransaction**(`transactionRequest`, `chainId?`, `customSigner?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -1943,6 +1942,7 @@ ___
 | :------ | :------ |
 | `transactionRequest` | `TransactionRequest` |
 | `chainId?` | `BigNumberish` |
+| `customSigner?` | ``null`` \| `Signer` |
 
 #### Returns
 
@@ -1951,88 +1951,6 @@ ___
 #### Inherited from
 
 StakingRegistry.sendTransaction
-
-___
-
-### <a id="setchainrpcprovider" name="setchainrpcprovider"></a> setChainRpcProvider
-
-▸ **setChainRpcProvider**(`chainId`, `provider`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProvider
-
-___
-
-### <a id="setchainrpcproviderurl" name="setchainrpcproviderurl"></a> setChainRpcProviderUrl
-
-▸ **setChainRpcProviderUrl**(`chainId`, `url`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `url` | `string` \| `string`[] |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviderUrl
-
-___
-
-### <a id="setchainrpcproviderurls" name="setchainrpcproviderurls"></a> setChainRpcProviderUrls
-
-▸ **setChainRpcProviderUrls**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `Record`\<`string`, `string` \| `string`[]\> |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviderUrls
-
-___
-
-### <a id="setchainrpcproviders" name="setchainrpcproviders"></a> setChainRpcProviders
-
-▸ **setChainRpcProviders**(`chainProviders`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainProviders` | `ChainProviders` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-StakingRegistry.setChainRpcProviders
 
 ___
 
@@ -2053,6 +1971,88 @@ ___
 #### Inherited from
 
 StakingRegistry.setContractAddresses
+
+___
+
+### <a id="setprovider" name="setprovider"></a> setProvider
+
+▸ **setProvider**(`chainId`, `provider`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `provider` | `Provider` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProvider
+
+___
+
+### <a id="setproviderurl" name="setproviderurl"></a> setProviderUrl
+
+▸ **setProviderUrl**(`chainId`, `url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `url` | `string` \| `string`[] |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviderUrl
+
+___
+
+### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
+
+▸ **setProviderUrls**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviderUrls
+
+___
+
+### <a id="setproviders" name="setproviders"></a> setProviders
+
+▸ **setProviders**(`signersOrProviders`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signersOrProviders` | `SignersOrProviders` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setProviders
 
 ___
 
@@ -2108,15 +2108,16 @@ ___
 
 ___
 
-### <a id="withdrawallclaims" name="withdrawallclaims"></a> withdrawAllClaims
+### <a id="updateclaimchain" name="updateclaimchain"></a> updateClaimChain
 
-▸ **withdrawAllClaims**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **updateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
+| `input` | [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -2124,15 +2125,33 @@ ___
 
 ___
 
-### <a id="withdrawclaim" name="withdrawclaim"></a> withdrawClaim
+### <a id="withdraw" name="withdraw"></a> withdraw
 
-▸ **withdrawClaim**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **withdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="withdrawall" name="withdrawall"></a> withdrawAll
+
+▸ **withdrawAll**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
@@ -2142,17 +2161,164 @@ ___
 
 ### <a id="withdrawhop" name="withdrawhop"></a> withdrawHop
 
-▸ **withdrawHop**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawHop**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawHopInput`](../modules.md#withdrawhopinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="adddecodedtypestoevent-1" name="adddecodedtypestoevent-1"></a> addDecodedTypesToEvent
+
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `event` | `any` |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>
+
+___
+
+### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
+
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded`\>[]
+
+___
+
+### <a id="adddecodedtypestotransferbondedevents-1" name="adddecodedtypestotransferbondedevents-1"></a> addDecodedTypesToTransferBondedEvents
+
+▸ **addDecodedTypesToTransferBondedEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+
+___
+
+### <a id="adddecodedtypestotransfersentevents-1" name="adddecodedtypestotransfersentevents-1"></a> addDecodedTypesToTransferSentEvents
+
+▸ **addDecodedTypesToTransferSentEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+
+___
+
+### <a id="derivenetwork" name="derivenetwork"></a> deriveNetwork
+
+▸ **deriveNetwork**(`chainId`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getcomputednexthopshash" name="getcomputednexthopshash"></a> getComputedNextHopsHash
+
+▸ **getComputedNextHopsHash**(`«destructured»`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput) |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getdefaultprovider-1" name="getdefaultprovider-1"></a> getDefaultProvider
+
+▸ **getDefaultProvider**(`chainId`): `Provider`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Provider`
+
+#### Inherited from
+
+StakingRegistry.getDefaultProvider
+
+___
+
+### <a id="getdefaultproviders-1" name="getdefaultproviders-1"></a> getDefaultProviders
+
+▸ **getDefaultProviders**(`network`): `SignersOrProviders`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+
+#### Returns
+
+`SignersOrProviders`
+
+#### Inherited from
+
+StakingRegistry.getDefaultProviders
+
+___
+
+### <a id="geteventnames-1" name="geteventnames-1"></a> getEventNames
+
+▸ **getEventNames**(): `string`[]
+
+#### Returns
+
+`string`[]
 
 ___
 

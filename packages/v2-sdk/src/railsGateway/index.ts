@@ -2,14 +2,13 @@ export {
   ApproveBondInput,
   ApproveSendInput,
   BondInput,
-  CalcAmountOutMinInput,
   ConfirmClaimInput,
   EventFetcher,
   GetEventsInput,
   GetFeeInput,
   GetIsClaimIdValidInput,
   GetHasSufficientBalanceInput,
-  GetLatestClaimInput,
+  GetHeadClaimInput,
   GetNeedsApprovalForBondInput,
   GetNeedsApprovalForSendInput,
   GetPathIdInput,
@@ -20,12 +19,13 @@ export {
   GetTransferBondedEventFromTransactionReceiptInput,
   GetTransferBondedEventFromTransferIdInput,
   GetTransferIdInput,
+  GetEventFilterInput,
   GetTransferSentEventFilterInput,
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
+  GetTransferSentEventsFromPathIdInput,
   GetTransferBondedEventFilterInput,
-  GetTransferStatusInput,
   HopStructInput,
   Path,
   PostClaimInput,
@@ -37,17 +37,22 @@ export {
   Token,
   TransferBondedEventInput,
   TransferSentEventInput,
-  TransferState,
-  TransferStatus,
   UnstakeHopInput,
   WithdrawAllInput,
-  WithdrawBalanceInput,
+  WithdrawableBalanceInput,
   WithdrawHopInput,
   WithdrawInput,
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
   GetNextHopsHashInput,
-  GetIsPathIdLiveInput
+  GetIsPathIdLiveInput,
+  EventName,
+  BatchUpdateClaimChainInput,
+  ClaimFeesFromPathInput,
+  DistributeFeesInput,
+  GetTransferDataHashInput,
+  UpdateClaimChainInput,
+  GetBucketIndexInput
 } from './RailsGateway.js'
 export {
   MinHopStakeForRoleInput,
@@ -70,6 +75,6 @@ export {
   StakingRegistry
 } from './StakingRegistry.js'
 export {
-  TransferBonded, TransferBondedEventFetcher,
-  TransferSent, TransferSentEventFetcher, HopStruct
+  TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes,
+  TransferSent, TransferSentEventFetcher, HopStruct, TransferSentIndexes
 } from './events/index.js'

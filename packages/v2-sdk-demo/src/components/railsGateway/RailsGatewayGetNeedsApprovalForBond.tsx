@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -43,10 +44,6 @@ export function RailsGatewayGetNeedsApprovalForBond (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -54,13 +51,12 @@ export function RailsGatewayGetNeedsApprovalForBond (props: Props) {
       setNeedsApproval('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         amount,
         account
       }
       console.log('args', args)
-      const needsApproval = await sdk.railsGateway.getNeedsApprovalForBond(args)
+      const needsApproval = await sdk.getRailsGateway(fromChainId).helpers.getNeedsApprovalForBond(args)
       setNeedsApproval(`${needsApproval}`)
     } catch (err: any) {
       console.error(err)
@@ -70,17 +66,15 @@ export function RailsGatewayGetNeedsApprovalForBond (props: Props) {
   }
 
   const code = `
-import { Hop } from '@hop-protocol/v2-sdk'
+import { RailsGateway } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const amount = "${amount}"
   const account = "${account}"
 
-  const hop = new Hop({ network: '${network}' })
-  const needsApproval = await hop.railsGateway.getNeedsApprovalForBond({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const needsApproval = await hop.getRailsGateway('${fromChainId}').getNeedsApprovalForBond({
     pathId,
     amount,
     account

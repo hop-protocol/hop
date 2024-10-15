@@ -7,15 +7,15 @@ import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
-import { network } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayCalcAmountOutMin (props: Props) {
-  const cacheKey = 'railsGatewayCalcAmountOutMin'
+export function HopCalcAmountOutMin (props: Props) {
+  const cacheKey = 'hopCalcAmountOutMin'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -46,7 +46,7 @@ export function RailsGatewayCalcAmountOutMin (props: Props) {
       }
 
       console.log('args', args)
-      const result = sdk.railsGateway.calcAmountOutMin(args)
+      const result = sdk.calcAmountOutMin(args)
       setAmountOutMin(`${result.toString()}`)
     } catch (err: any) {
       console.error(err)
@@ -62,8 +62,8 @@ async function main() {
   const amountOut = "${amountOut}"
   const slippageTolerance = ${slippageTolerance}
 
-  const hop = new Hop({ network: '${network}' })
-  const amountOut = await hop.railsGateway.calcAmountOutMin({
+  ${hopInstantiateDisplayString}
+  const amountOut = await hop.calcAmountOutMin({
     amountOut,
     slippageTolerance
   })
@@ -83,7 +83,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Calculate Amount Out Min</Typography>
+        <Typography variant="h5">Hop - Calculate Amount Out Min</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get calculated amountOutMin</Typography>
@@ -134,4 +134,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayCalcAmountOutMin
+export default HopCalcAmountOutMin

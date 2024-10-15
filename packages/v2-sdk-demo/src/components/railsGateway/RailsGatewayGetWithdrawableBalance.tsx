@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -32,7 +33,7 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
     defaultValue: '',
   })
 
-  const [timeWindow, setTimeWindow] = useLocalStorageState(`${cacheKey}:timeWindow`, {
+  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
     defaultValue: '',
   })
 
@@ -43,11 +44,6 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -55,13 +51,12 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
       setBalance('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         recipient,
-        timeWindow: Number(timeWindow)
+        bucketIndex: Number(bucketIndex)
       }
       console.log('args', args)
-      const balance = await sdk.railsGateway.getWithdrawableBalance(args)
+      const balance = await sdk.getRailsGateway(fromChainId).getWithdrawableBalance(args)
       setBalance(balance?.toString())
     } catch (err: any) {
       console.error(err)
@@ -74,17 +69,15 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const recipient = "${recipient}"
-  const timeWindow = ${timeWindow}
+  const bucketIndex = ${bucketIndex}
 
-  const hop = new Hop({ network: '${network}' })
-  const fee = await hop.railsGateway.getWithdrawableBalance({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const fee = await hop.getRailsGateway('${fromChainId}').getWithdrawableBalance({
     pathId,
     recipient,
-    timeWindow
+    bucketIndex
   })
   console.log(fee)
 }
@@ -105,7 +98,7 @@ main().catch(console.error)
         <Typography variant="h5">Rails Gateway - Get Withdrawable Balance</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway withdrawable balance for a bonder addres</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway withdrawable balance for a recipient addres</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -134,9 +127,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Time <small><em>(uint256)</em></small> <small><em>Time window</em></small></label>
+                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={timeWindow} onChange={event => setTimeWindow(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={event => setBucketIndex(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

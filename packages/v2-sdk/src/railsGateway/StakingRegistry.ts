@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { Contract, Signer, ethers, BigNumberish } from 'ethers'
+import { Contract, ethers, BigNumberish } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
 export type MinHopStakeForRoleInput = {
@@ -119,16 +119,11 @@ export type GetChallengeIdInput = {
 export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
-  constructor (input: StakingRegistryConstructorInput) {
+  constructor ({ contractAddresses, signersOrProviders }: StakingRegistryConstructorInput) {
     super({
-      network: input.network,
-      signer: input.signer,
-      contractAddresses: input.contractAddresses,
+      contractAddresses,
+      signersOrProviders
     })
-  }
-
-  override connect (signer: Signer) {
-    return new StakingRegistry({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
   getStakingRegistryAddress (chainId: BigNumberish): string {
@@ -137,7 +132,10 @@ export class StakingRegistry extends Base {
 
   getStakingRegistryContract (chainId: BigNumberish): Contract {
     const address = this.getStakingRegistryAddress(chainId)
-    const provider = this.getRpcProviderForChainId(chainId)
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId?.toString()}`)
+    }
     return StakingRegistry__factory.connect(address, provider)
   }
 

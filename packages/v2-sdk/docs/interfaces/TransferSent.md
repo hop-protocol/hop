@@ -4,32 +4,26 @@
 
 ### Properties
 
-- [amount](TransferSent.md#amount)
+- [amountOut](TransferSent.md#amountout)
 - [attestedClaimId](TransferSent.md#attestedclaimid)
-- [attestedTotalClaims](TransferSent.md#attestedtotalclaims)
 - [nextHops](TransferSent.md#nexthops)
 - [pathId](TransferSent.md#pathid)
 - [to](TransferSent.md#to)
+- [totalClaims](TransferSent.md#totalclaims)
 - [totalSent](TransferSent.md#totalsent)
 - [transferId](TransferSent.md#transferid)
 
 ## Properties
 
-### <a id="amount" name="amount"></a> amount
+### <a id="amountout" name="amountout"></a> amountOut
 
-• **amount**: `BigNumber`
+• **amountOut**: `BigNumber`
 
 ___
 
 ### <a id="attestedclaimid" name="attestedclaimid"></a> attestedClaimId
 
 • **attestedClaimId**: `string`
-
-___
-
-### <a id="attestedtotalclaims" name="attestedtotalclaims"></a> attestedTotalClaims
-
-• **attestedTotalClaims**: `BigNumber`
 
 ___
 
@@ -48,6 +42,12 @@ ___
 ### <a id="to" name="to"></a> to
 
 • **to**: `string`
+
+___
+
+### <a id="totalclaims" name="totalclaims"></a> totalClaims
+
+• **totalClaims**: `BigNumber`
 
 ___
 

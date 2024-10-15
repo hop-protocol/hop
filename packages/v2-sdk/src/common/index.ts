@@ -1,1 +1,1 @@
-export { Base, BaseConfig } from './Base.js'
+export { Base, BaseConfig, SignersOrProviders, TxOverrides } from './Base.js'

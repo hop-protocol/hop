@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -39,10 +40,6 @@ export function RailsGatewayGetIsClaimValid (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -50,13 +47,12 @@ export function RailsGatewayGetIsClaimValid (props: Props) {
       setIsClaimValid('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         claimId
       }
 
       console.log('args', args)
-      const isClaimValid = await sdk.railsGateway.getIsClaimIdValid(args)
+      const isClaimValid = await sdk.getRailsGateway(fromChainId).getIsClaimIdValid(args)
       setIsClaimValid(`${isClaimValid}`)
     } catch (err: any) {
       console.error(err)
@@ -69,13 +65,11 @@ export function RailsGatewayGetIsClaimValid (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const claimId = "${claimId}"
 
-  const hop = new Hop({ network: '${network}' })
-  const isClaimValid = await hop.railsGateway.getIsClaimIdValid({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const isClaimValid = await hop.getRailsGateway('${fromChainId}').getIsClaimIdValid({
     pathId,
     claimId
   })

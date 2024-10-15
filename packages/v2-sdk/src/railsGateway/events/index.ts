@@ -1,2 +1,2 @@
-export { TransferBonded, TransferBondedEventFetcher } from './TransferBonded.js'
-export { TransferSent, TransferSentEventFetcher, HopStruct } from './TransferSent.js'
+export { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from './TransferBonded.js'
+export { TransferSent, TransferSentEventFetcher, HopStruct, TransferSentIndexes } from './TransferSent.js'

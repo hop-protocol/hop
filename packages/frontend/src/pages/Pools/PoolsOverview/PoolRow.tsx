@@ -143,7 +143,7 @@ export function PoolRow (props: Props) {
                 <Typography variant="body2" color="secondary" title="Tokens in pool">
                   {isPoolDeprecated ? <DeprecatedBadge badgeContent="Deprecated" color="warning" title="This pool is deprecated and only withdrawals are allowed.">{poolSubtitle}</DeprecatedBadge> : (
 
-                    poolSubtitle?.includes('Pol ') ? <RebrandedBadge badgeContent="prev. MATIC" color="info" title="The token symbol has been rebranded">{poolSubtitle}</RebrandedBadge> : poolSubtitle
+                    poolSubtitle?.includes('POL ') ? <RebrandedBadge badgeContent="prev. MATIC" color="info" title="The token symbol has been rebranded">{poolSubtitle}</RebrandedBadge> : poolSubtitle
 
                   )}
                 </Typography>

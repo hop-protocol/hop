@@ -134,6 +134,29 @@ const _abi = [
   },
   {
     type: "function",
+    name: "batchUpdateClaimChain",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "transferDataHashes",
+        type: "bytes32[]",
+        internalType: "bytes32[]",
+      },
+      {
+        name: "finalTransferId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "bond",
     inputs: [
       {
@@ -142,7 +165,7 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "transferId",
+        name: "claimId",
         type: "bytes32",
         internalType: "bytes32",
       },
@@ -170,7 +193,7 @@ const _abi = [
       },
     ],
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
   },
   {
     type: "function",
@@ -251,6 +274,24 @@ const _abi = [
   },
   {
     type: "function",
+    name: "claimFeesFromPath",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "messageFee",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "confirmClaim",
     inputs: [
       {
@@ -303,6 +344,34 @@ const _abi = [
   },
   {
     type: "function",
+    name: "distributeFees",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "totalFees",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "lastClaimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "forceSettleChallenge",
     inputs: [
       {
@@ -323,6 +392,30 @@ const _abi = [
     type: "function",
     name: "fullAppeal",
     inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getBucketIndex",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "claimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
     outputs: [
       {
         name: "",
@@ -392,6 +485,25 @@ const _abi = [
   },
   {
     type: "function",
+    name: "getFeePrice",
+    inputs: [
+      {
+        name: "chainId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getHeadClaim",
     inputs: [
       {
@@ -408,6 +520,42 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getNextHopsHash",
+    inputs: [
+      {
+        name: "nextHops",
+        type: "tuple[]",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -522,6 +670,67 @@ const _abi = [
   },
   {
     type: "function",
+    name: "getTransferDataHash",
+    inputs: [
+      {
+        name: "to",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amountOut",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "totalSent",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "totalClaims",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "attestedClaimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "nextHops",
+        type: "tuple[]",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
     name: "getWithdrawableBalance",
     inputs: [
       {
@@ -535,7 +744,7 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "time",
+        name: "bucketIndex",
         type: "uint256",
         internalType: "uint256",
       },
@@ -781,7 +990,7 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "amount",
+        name: "amountOut",
         type: "uint256",
         internalType: "uint256",
       },
@@ -791,14 +1000,14 @@ const _abi = [
         internalType: "uint256",
       },
       {
+        name: "totalClaims",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "attestedClaimId",
         type: "bytes32",
         internalType: "bytes32",
-      },
-      {
-        name: "attestedTotalClaims",
-        type: "uint256",
-        internalType: "uint256",
       },
       {
         name: "nextHopsHash",
@@ -897,6 +1106,42 @@ const _abi = [
   },
   {
     type: "function",
+    name: "setFeePrice",
+    inputs: [
+      {
+        name: "chainId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "feePrice",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setFeePrices",
+    inputs: [
+      {
+        name: "chainIds",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "prices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "stakeHop",
     inputs: [
       {
@@ -951,6 +1196,29 @@ const _abi = [
   },
   {
     type: "function",
+    name: "updateClaimChain",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "transferDataHash",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "headTransferId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "withdraw",
     inputs: [
       {
@@ -982,7 +1250,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "time",
+        name: "bucketIndex",
         type: "uint256",
         internalType: "uint256",
       },
@@ -1000,7 +1268,7 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "time",
+        name: "bucketIndex",
         type: "uint256",
         internalType: "uint256",
       },
@@ -1063,7 +1331,7 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "transferId",
+        name: "claimId",
         type: "bytes32",
         indexed: true,
         internalType: "bytes32",
@@ -1106,7 +1374,7 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "amount",
+        name: "amountOut",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -1118,16 +1386,16 @@ const _abi = [
         internalType: "uint256",
       },
       {
+        name: "totalClaims",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
         name: "attestedClaimId",
         type: "bytes32",
         indexed: false,
         internalType: "bytes32",
-      },
-      {
-        name: "attestedTotalClaims",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
       },
       {
         name: "nextHops",

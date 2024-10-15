@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
-import { network } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -53,7 +53,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const contractAddresses = ${configString}
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
+
   hop.setContractAddresses(contractAddresses)
 }
 

@@ -11,8 +11,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -108,12 +109,15 @@ export function HopSendTokens (props: Props) {
           throw new Error('No signer')
         }
 
+        const account = await signer.getAddress()
+
         const needsApproval = await sdk.getNeedsApprovalForSendTokens({
           fromChainId,
           toChainId,
           fromToken,
           toToken,
-          amount
+          amount,
+          account
         })
 
         if (needsApproval) {
@@ -124,17 +128,16 @@ export function HopSendTokens (props: Props) {
             toToken,
             amount
           })
-          const tx = await sdk.sendTransaction(approveTxData)
+          const tx = await sdk.sendTransaction(approveTxData, approveTxData.chainId, signer)
           setApprovalTxHash(tx.hash)
         } else {
           const txData = await getSendTxData()
           setTxData(JSON.stringify(txData, null, 2))
-          const tx = await sdk.sendTransaction(txData)
+          const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
           setTxHash(tx.hash)
 
           const receipt = await tx.wait()
-          const event = await sdk.railsGateway.getTransferSentEventFromTransactionReceipt({
-            chainId: fromChainId,
+          const event = await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionReceipt({
             receipt
           })
           const transferId = event?.decoded.transferId
@@ -165,7 +168,7 @@ async function main() {
   const amount = "${amount}"
   const minAmountOut = "${minAmountOut}"
 
-  const hop = new Hop({ network: '${network}' )
+  ${hopInstantiateDisplayString}
   const txData = await hop.populateTransaction.sendTokens({
     fromChainId,
     toChainId,
@@ -180,7 +183,7 @@ async function main() {
   ) : (
   `
   const signer = window.ethereum
-  const tx = await hop.connect(signer).sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

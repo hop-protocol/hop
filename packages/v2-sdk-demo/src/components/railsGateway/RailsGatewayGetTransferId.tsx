@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -66,7 +67,6 @@ export function RailsGatewayGetTransferId (props: Props) {
       setTransferId('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
         to: toAddress,
         adjustedAmount,
@@ -77,7 +77,7 @@ export function RailsGatewayGetTransferId (props: Props) {
       }
 
       console.log('args', args)
-      const transferId = await sdk.railsGateway.getTransferId(args)
+      const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
       setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
@@ -90,7 +90,6 @@ export function RailsGatewayGetTransferId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const to = "${toAddress}"
   const adjustedAmount = "${adjustedAmount}"
@@ -99,9 +98,8 @@ async function main() {
   const nonce = "${nonce}"
   const attestedCheckpoint = "${attestedCheckpoint}"
 
-  const hop = new Hop({ network: '${network}' })
-  const transferId = await hop.railsGateway.getTransferId({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const transferId = await hop.getRailsGateway('${fromChainId}').getTransferId({
     pathId,
     to,
     adjustedAmount,

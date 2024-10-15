@@ -9,8 +9,9 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -43,7 +44,7 @@ export function RailsGatewayGetTransferSentEvents (props: Props) {
   async function getEvents() {
     let _fromBlock = Number(fromBlock)
     let _toBlock = Number(toBlock)
-    const provider = sdk.getRpcProviderForChainId(chainId)
+    const provider = sdk.getProvider(chainId)
     const latestBlock = await provider.getBlockNumber()
     if (latestBlock) {
       if (!toBlock) {
@@ -61,12 +62,11 @@ export function RailsGatewayGetTransferSentEvents (props: Props) {
       }
     }
     const args = {
-      chainId,
       fromBlock: _fromBlock,
       toBlock: _toBlock
     }
     console.log('args', args)
-    const _events = await sdk.railsGateway.getTransferSentEvents(args)
+    const _events = await sdk.getRailsGateway(chainId).getTransferSentEvents(args)
     return _events
   }
 
@@ -89,13 +89,11 @@ export function RailsGatewayGetTransferSentEvents (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${chainId}"
   const fromBlock = ${fromBlock || 'undefined'}
   const toBlock = ${toBlock || 'undefined'}
 
-  const hop = new Hop({ network: '${network}' )
-  const events = await hop.messenger.getTransferSentEvents({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const events = await hop.getRailsGateway('${chainId}').getTransferSentEvents({
     fromBlock,
     toBlock
   })

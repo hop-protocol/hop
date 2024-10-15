@@ -9,18 +9,23 @@ export {
   HopConstructorInput,
   SendTokensInput,
   WillSendTokensFailInput,
-  GetTransferIdFromTransactionHashInput
+  GetTransferIdFromTransactionHashInput,
+  EventName,
+  GetTransferStatusInput,
+  TransferState,
+  TransferStatus,
+  CalcAmountOutMinInput,
+  GetEstimatedReceivedInput
 } from './Hop.js'
 export {
   ApproveBondInput,
   ApproveSendInput,
   BondInput,
-  CalcAmountOutMinInput,
   ConfirmClaimInput,
   GetFeeInput,
   GetHasSufficientBalanceInput,
   GetIsClaimIdValidInput,
-  GetLatestClaimInput,
+  GetHeadClaimInput,
   GetNeedsApprovalForBondInput,
   GetNeedsApprovalForSendInput,
   GetPathIdInput,
@@ -31,12 +36,13 @@ export {
   GetTransferBondedEventFromTransactionReceiptInput,
   GetTransferBondedEventFromTransferIdInput,
   GetTransferIdInput,
+  GetEventFilterInput,
   GetTransferSentEventFilterInput,
   GetTransferSentEventFromTransactionHashInput,
   GetTransferSentEventFromTransactionReceiptInput,
   GetTransferSentEventFromTransferIdInput,
+  GetTransferSentEventsFromPathIdInput,
   GetTransferBondedEventFilterInput,
-  GetTransferStatusInput,
   HopStruct,
   HopStructInput,
   Path,
@@ -51,17 +57,23 @@ export {
   TransferBondedEventInput,
   TransferSent,
   TransferSentEventInput,
-  TransferState,
-  TransferStatus,
   UnstakeHopInput,
   WithdrawAllInput,
-  WithdrawBalanceInput,
+  WithdrawableBalanceInput,
   WithdrawHopInput,
   WithdrawInput,
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
   GetNextHopsHashInput,
-  GetIsPathIdLiveInput
+  GetIsPathIdLiveInput,
+  TransferBondedIndexes,
+  TransferSentIndexes,
+  BatchUpdateClaimChainInput,
+  ClaimFeesFromPathInput,
+  DistributeFeesInput,
+  GetTransferDataHashInput,
+  UpdateClaimChainInput,
+  GetBucketIndexInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,
@@ -120,6 +132,13 @@ export {
   HubConnectorConfig,
   TransactionReceiptWithEvents
 } from './hubConnector/index.js'
+export {
+  SignersOrProviders,
+  TxOverrides
+} from './common/index.js'
 export { PriceFeed } from './priceFeed/index.js'
 export { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EventContext } from './events/index.js'
 export { CustomError, ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError, ContractFunctionRevertedError } from './error/index.js'
+
+import { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash, formatUSD } from './utils/index.js'
+export const utils = { getAddressExplorerUrl, getChainSlug, getComputedPathId, getExplorerUrl, getTokenExplorerUrl, getTxHashExplorerUrl, isContractError, getComputedTransferId, getComputedNextHopsHash, getComputedTransferDataHash, formatUSD }

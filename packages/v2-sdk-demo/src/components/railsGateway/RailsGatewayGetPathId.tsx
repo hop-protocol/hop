@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -56,7 +57,7 @@ export function RailsGatewayGetPathId (props: Props) {
         token1: toToken,
       }
       console.log('args', args)
-      const pathId = await sdk.railsGateway.getPathId(args)
+      const pathId = await sdk.getRailsGateway(fromChainId).getPathId(args)
       setPathId(pathId)
     } catch (err: any) {
       console.error(err)
@@ -74,8 +75,8 @@ async function main() {
   const chainId1 = "${toChainId}"
   const token1 = "${toToken}"
 
-  const hop = new Hop({ network: '${network}' })
-  const pathId = await hop.railsGateway.getPathId({
+  ${hopInstantiateDisplayString}
+  const pathId = await hop.getRailsGateway('${fromChainId}').getPathId({
     chainId0,
     token0,
     chainId1,

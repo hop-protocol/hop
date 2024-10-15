@@ -12,7 +12,9 @@ describe('Messenger', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const address = '0xTODO'
-  const messenger = new Messenger({ network: 'sepolia' })
+  const messenger = new Messenger({
+    signersOrProviders: Messenger.getDefaultProviders('sepolia')
+  })
   it.skip('TODO should get spokeMessageBridge contract address', async () => {
     const chainId = 1
     const address = messenger.getSpokeMessageBridgeContractAddress(chainId)

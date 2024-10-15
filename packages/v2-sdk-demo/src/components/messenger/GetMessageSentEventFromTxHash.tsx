@@ -11,6 +11,7 @@ import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { network, defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -65,7 +66,7 @@ async function main() {
   const chainId = "${fromChainId}"
   const transactionHash = "${transactionHash}"
 
-  const hop = new Hop({ network: '${network}' })
+  ${hopInstantiateDisplayString}
   const event = await hop.messenger.getMessageSentEventFromTransactionHash({
     chainId,
     transactionHash

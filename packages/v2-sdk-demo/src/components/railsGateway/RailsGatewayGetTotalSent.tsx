@@ -8,8 +8,9 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { hopInstantiateDisplayString } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -35,10 +36,6 @@ export function RailsGatewayGetTotalSent (props: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(fromChainId)
-  }, [sdk, fromChainId])
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -46,11 +43,10 @@ export function RailsGatewayGetTotalSent (props: Props) {
       setTotalSent('')
       setLoading(true)
       const args = {
-        chainId: fromChainId,
         pathId,
       }
       console.log('args', args)
-      const total = await sdk.railsGateway.getTotalSent(args)
+      const total = await sdk.getRailsGateway(fromChainId).getTotalSent(args)
       setTotalSent(total?.toString())
     } catch (err: any) {
       console.error(err)
@@ -63,12 +59,10 @@ export function RailsGatewayGetTotalSent (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
-  const hop = new Hop({ network: '${network}' })
-  const totalSent = await hop.railsGateway.getTotalSent({
-    chainId,
+  ${hopInstantiateDisplayString}
+  const totalSent = await hop.getRailsGateway('${fromChainId}').getTotalSent({
     pathId
   })
   console.log(totalSent)

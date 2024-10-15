@@ -193,6 +193,8 @@ Base.signersOrProviders
 | :------ | :------ |
 | `approveSendTokens` | (`__namedParameters`: [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `sendTokens` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `sendTokensMultiHop` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `sendTokensSingleHop` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 

@@ -206,6 +206,124 @@ export class Hop extends Base {
   get populateTransaction() {
     return {
       sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        return this.populateTransaction.sendTokensMultiHop({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId, }, txOverrides)
+      },
+
+      sendTokensMultiHop: async ({ fromChainId: originChainId, toChainId: destChainId, fromToken: originToken, toToken: destToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        if (!this.utils.isValidChainId(originChainId)) {
+          throw new InputError(`Invalid fromChainId "${originChainId}"`)
+        }
+
+        if (!this.utils.isValidChainId(destChainId)) {
+          throw new InputError(`Invalid toChainId "${destChainId}"`)
+        }
+
+        if (originChainId?.toString() === destChainId?.toString()) {
+          throw new InputError('fromChainId and toChainId must be different')
+        }
+
+        if (!this.utils.isValidAddress(originToken)) {
+          throw new InputError(`Invalid fromToken "${originToken}"`)
+        }
+
+        if (!this.utils.isValidAddress(destToken)) {
+          throw new InputError(`Invalid toToken "${destToken}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(minAmountOut)) {
+          throw new InputError(`Invalid minAmountOut "${minAmountOut}"`)
+        }
+
+        if (!to) {
+          to = (await this.getSignerAddress(originChainId)) as string
+        }
+
+        if (!this.utils.isValidAddress(to)) {
+          throw new InputError(`Invalid "to" address "${to}"`)
+        }
+
+        const nextChainId = '42069' // Hop pHub // TODO: make dynamic
+        const tokenSymbol = 'MOCK' // TODO
+        const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
+
+        const nextPathId = await this.getRailsGateway(originChainId).getPathId({
+          chainId0: originChainId,
+          token0: originToken,
+          chainId1: nextChainId,
+          token1: nextToken
+        })
+
+        const destPathId = await this.getRailsGateway(originChainId).getPathId({
+          chainId0: nextChainId,
+          token0: nextToken,
+          chainId1: destChainId,
+          token1: destToken
+        })
+
+        let isClaimIdValid = false
+
+        if (attestedClaimId) {
+          if (!this.utils.isValidBytes32(attestedClaimId)) {
+            throw new InputError(`Invalid attestedClaimid "${attestedClaimId}"`)
+          }
+        }
+
+        if (attestedClaimId == null) {
+          console.log('hopV2Sdk: pathId', destPathId)
+          attestedClaimId = await this.getRailsGateway(originChainId).getHeadClaim({
+            pathId: nextPathId
+          })
+          console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
+
+          isClaimIdValid = await this.getRailsGateway(nextChainId).getIsClaimIdValid({
+            pathId: nextPathId,
+            claimId: attestedClaimId
+          })
+
+          console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
+        }
+
+        // new path without checkpoints will return 0 bytes32
+        if (!isClaimIdValid && BigNumber.from(attestedClaimId).eq(0)) {
+          isClaimIdValid = true
+        }
+
+        if (!isClaimIdValid) {
+          throw new CustomError('Latest attestedClaimId is invalid')
+        }
+
+        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: nextPathId })
+        const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
+        const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaim({
+          pathId: destPathId
+        })
+
+        const nextHops: HopStruct[] = [
+          {
+            pathId: destPathId,
+            maxTotalSent: destMaxTotalSent,
+            attestedClaimId: destAttestedClaimId
+          }
+        ]
+
+        const fee = await this.getRailsGateway(nextChainId).getFee({ pathId: nextPathId })
+
+        const populatedTx = await this.getRailsGateway(originChainId).populateTransaction.send({
+          pathId: nextPathId,
+          to,
+          amount,
+          attestedClaimId,
+          nextHops,
+          maxTotalSent: nextMaxTotalSent,
+          fee
+        }, txOverrides)
+
+        console.log('hopV2Sdk: populatedTx', populatedTx)
+
+        return populatedTx
+      },
+
+      sendTokensSingleHop: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }

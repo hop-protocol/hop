@@ -1,9 +1,9 @@
-import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
+import { type ValidationOptions, HopSigner } from '#signer/index.js'
 import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
-import { SignerConfig } from '#config/index.js'
+import { CLIConfig, SignerConfig } from '#config/index.js'
 
 const cache: Record<string, Signer> = {}
 
@@ -24,7 +24,16 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
 
   const provider = getRpcProvider(network as ChainSlug)
   const wallet = new Wallet(privateKey, provider)
-  const signer = new GasBoostSigner(wallet)
+
+  const validationOptions: ValidationOptions = {
+    clientName: CLIConfig.clientName,
+    validationStatusEndpoint: SignerConfig.validationStatusEndpoint,
+    validationClientUrls: {
+      calldataValidationClientUrl: SignerConfig.calldataValidationClientUrl,
+      stateValidationClientUrl: SignerConfig.stateValidationClientUrl
+    }
+  }
+  const signer = new HopSigner(wallet, validationOptions)
   cache[cacheKey] = signer
   return signer
 }

@@ -1,5 +1,5 @@
-import { SignerConfig } from '../index.js'
-import { ConfigManager } from '../ConfigManager.js'
+import { SignerConfig } from '../../index.js'
+import { ConfigManager } from '../../ConfigManager.js'
 import { Rails } from '#clients/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { RailsGateway } from '#clients/rails/RailsSDKWrapper.js'

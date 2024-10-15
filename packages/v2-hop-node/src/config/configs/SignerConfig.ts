@@ -3,6 +3,7 @@ import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { ConfigManager } from '../ConfigManager.js'
 import { providers } from 'ethers'
 import { getChain } from '@hop-protocol/sdk'
+import { isValidUrl } from '#utils/isValidUrl.js'
 
 type ChainInfo = {
   rpcUrl: string
@@ -19,6 +20,8 @@ export interface ISignerConfig {
   blocknativeApiKey: string
   bonderPrivateKey: string
   chains: Chains
+  calldataValidationClientUrl?: string
+  stateValidationClientUrl?: string
 }
 
 export class SignerConfig extends ConfigManager {
@@ -28,13 +31,17 @@ export class SignerConfig extends ConfigManager {
   // TODO: This should be paths or something
   // TODO: Needs to dynamically convert chains/tokens to path, possibly onchain calls to `getChain()`
   static chains: Chains
+  static calldataValidationClientUrl: string | undefined
+  static stateValidationClientUrl: string | undefined
 
   protected static override async init(config: ISignerConfig): Promise<void> {
-    const { network, blocknativeApiKey, bonderPrivateKey, chains } = config
+    const { network, blocknativeApiKey, bonderPrivateKey, chains, calldataValidationClientUrl, stateValidationClientUrl } = config
     this.network = network
     this.blocknativeApiKey = blocknativeApiKey
     this.bonderPrivateKey = bonderPrivateKey
     this.chains = chains
+    this.calldataValidationClientUrl = calldataValidationClientUrl
+    this.stateValidationClientUrl = stateValidationClientUrl
   }
 
   protected static override async validate(): Promise<void> {
@@ -58,6 +65,14 @@ export class SignerConfig extends ConfigManager {
     // Validate chains
     for (const [chain, chainInfo] of Object.entries(this.chains)) {
       await this.#validateChainInfo(chain, chainInfo)
+    }
+
+    // Validate URLS
+    if (
+      (this.calldataValidationClientUrl && !isValidUrl(this.calldataValidationClientUrl)) ||
+      (this.stateValidationClientUrl && !isValidUrl(this.stateValidationClientUrl))
+    ) {
+      throw new Error('Invalid validation service urls')
     }
   }
 

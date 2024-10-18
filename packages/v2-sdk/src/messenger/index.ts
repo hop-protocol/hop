@@ -1,5 +1,6 @@
 export {
   BundleProof,
+  EventName,
   ExecuteInput,
   ExitBundleInput,
   GetBundleExitPopulatedTxInput,
@@ -40,16 +41,23 @@ export {
   MessengerConfig,
   RelayMessageData,
   RouteData,
-  ShouldAttemptForwardMessageInput,
-  EventName
+  ShouldAttemptForwardMessageInput
 } from './Messenger.js'
 export {
-  BundleCommitted, BundleCommittedEventFetcher,
-  BundleForwarded, BundleForwardedEventFetcher,
-  BundleReceived, BundleReceivedEventFetcher,
-  BundleSet, BundleSetEventFetcher,
-  FeesSentToHub, FeesSentToHubEventFetcher,
-  MessageBundled, MessageBundledEventFetcher,
-  MessageExecuted, MessageExecutedEventFetcher,
-  MessageSent, MessageSentEventFetcher
+  BundleCommitted,
+  BundleCommittedEventFetcher,
+  BundleForwarded,
+  BundleForwardedEventFetcher,
+  BundleReceived,
+  BundleReceivedEventFetcher,
+  BundleSet,
+  BundleSetEventFetcher,
+  FeesSentToHub,
+  FeesSentToHubEventFetcher,
+  MessageBundled,
+  MessageBundledEventFetcher,
+  MessageExecuted,
+  MessageExecutedEventFetcher,
+  MessageSent,
+  MessageSentEventFetcher
 } from './events/index.js'

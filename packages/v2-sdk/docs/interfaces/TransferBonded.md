@@ -5,6 +5,7 @@
 ### Properties
 
 - [amount](TransferBonded.md#amount)
+- [bonderFee](TransferBonded.md#bonderfee)
 - [claimId](TransferBonded.md#claimid)
 - [pathId](TransferBonded.md#pathid)
 - [to](TransferBonded.md#to)
@@ -14,6 +15,12 @@
 ### <a id="amount" name="amount"></a> amount
 
 • **amount**: `BigNumber`
+
+___
+
+### <a id="bonderfee" name="bonderfee"></a> bonderFee
+
+• **bonderFee**: `BigNumber`
 
 ___
 

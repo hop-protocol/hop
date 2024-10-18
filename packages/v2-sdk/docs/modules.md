@@ -56,6 +56,7 @@
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
+- [GetAmountOutInput](modules.md#getamountoutinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
@@ -379,6 +380,20 @@ ___
 | `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
 | `fromChainId` | `BigNumberish` |
+
+___
+
+### <a id="getamountoutinput" name="getamountoutinput"></a> GetAmountOutInput
+
+Ƭ **GetAmountOutInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `pathId` | `string` |
 
 ___
 

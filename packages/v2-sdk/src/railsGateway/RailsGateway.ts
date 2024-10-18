@@ -301,6 +301,12 @@ export type GetBucketIndexInput = {
   claimId: string
 }
 
+export type GetAmountOutInput = {
+  pathId: string
+  amount: BigNumberish
+  attestedClaimId: string
+}
+
 export type RailsGatewayConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -1880,6 +1886,11 @@ export class RailsGateway extends StakingRegistry {
     const contract = await this.getRailsGatewayContract()
     const index = await contract.getBucketIndex(pathId, claimId)
     return Number(index)
+  }
+
+  async getAmountOut ({ pathId, amount, attestedClaimId }: GetAmountOutInput): Promise<BigNumber> {
+    const contract = await this.getRailsGatewayContract()
+    return contract.getAmountOut(pathId, amount, attestedClaimId)
   }
 
   async getNextHopsHash ({ nextHops }: GetNextHopsHashInput): Promise<string> {

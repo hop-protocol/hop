@@ -45,6 +45,7 @@
 - [createChallenge](RailsGateway.md#createchallenge)
 - [distributeFees](RailsGateway.md#distributefees)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
+- [getAmountOut](RailsGateway.md#getamountout)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
@@ -580,6 +581,22 @@ ___
 #### Inherited from
 
 StakingRegistry.forceSettleChallenge
+
+___
+
+### <a id="getamountout" name="getamountout"></a> getAmountOut
+
+▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetAmountOutInput`](../modules.md#getamountoutinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 

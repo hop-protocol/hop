@@ -52,29 +52,35 @@ export {
   DistributeFeesInput,
   GetTransferDataHashInput,
   UpdateClaimChainInput,
-  GetBucketIndexInput
+  GetBucketIndexInput,
+  GetAmountOutInput
 } from './RailsGateway.js'
 export {
-  MinHopStakeForRoleInput,
+  AcceptSlashInput,
+  AddToAppealInput,
+  AddToChallengeInput,
+  CreateChallengeInput,
+  ForceSettleChallengeInput,
+  GetChallengeIdInput,
   GetChallengesInput,
+  GetStakedBalanceInput,
+  GetWithdrawableBalanceInput,
   GetWithdrawableEthInput,
+  IsStakedInput,
+  MinHopStakeForRoleInput,
+  OptimisticallySettleChallengeInput,
   RegistryStakeHopInput,
   RegistryUnstakeHopInput,
   RegistryWithdrawInput,
-  CreateChallengeInput,
-  AddToChallengeInput,
-  AddToAppealInput,
-  OptimisticallySettleChallengeInput,
-  AcceptSlashInput,
-  ForceSettleChallengeInput,
-  IsStakedInput,
-  GetStakedBalanceInput,
-  GetWithdrawableBalanceInput,
-  GetChallengeIdInput,
-  StakingRegistryConstructorInput,
-  StakingRegistry
+  StakingRegistry,
+  StakingRegistryConstructorInput
 } from './StakingRegistry.js'
 export {
-  TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes,
-  TransferSent, TransferSentEventFetcher, HopStruct, TransferSentIndexes
+  HopStruct,
+  TransferBonded,
+  TransferBondedEventFetcher,
+  TransferBondedIndexes,
+  TransferSent,
+  TransferSentEventFetcher,
+  TransferSentIndexes
 } from './events/index.js'

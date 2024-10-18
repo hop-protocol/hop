@@ -1636,7 +1636,7 @@ export class RailsGateway extends StakingRegistry {
     const filter = eventFetcher.getPathIdFilter(pathId)
     const fromBlock = 0
     const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
     return events
   }
 

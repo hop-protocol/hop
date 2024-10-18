@@ -69,6 +69,7 @@
 - [getTxOverrides](Hop.md#gettxoverrides)
 - [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
 - [sendTokens](Hop.md#sendtokens)
+- [sendTokensMultiHop](Hop.md#sendtokensmultihop)
 - [sendTransaction](Hop.md#sendtransaction)
 - [setContractAddresses](Hop.md#setcontractaddresses)
 - [setProvider](Hop.md#setprovider)
@@ -194,7 +195,6 @@ Base.signersOrProviders
 | `approveSendTokens` | (`__namedParameters`: [`ApproveSendTokensInput`](../modules.md#approvesendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `sendTokens` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `sendTokensMultiHop` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `sendTokensSingleHop` | (`__namedParameters`: [`SendTokensInput`](../modules.md#sendtokensinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -880,6 +880,23 @@ ___
 ### <a id="sendtokens" name="sendtokens"></a> sendTokens
 
 ▸ **sendTokens**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`SendTokensInput`](../modules.md#sendtokensinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="sendtokensmultihop" name="sendtokensmultihop"></a> sendTokensMultiHop
+
+▸ **sendTokensMultiHop**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 

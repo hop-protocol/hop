@@ -205,10 +205,6 @@ export class Hop extends Base {
 
   get populateTransaction() {
     return {
-      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        return this.populateTransaction.sendTokensMultiHop({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId, }, txOverrides)
-      },
-
       sendTokensMultiHop: async ({ fromChainId: originChainId, toChainId: destChainId, fromToken: originToken, toToken: destToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(originChainId)) {
           throw new InputError(`Invalid fromChainId "${originChainId}"`)
@@ -242,7 +238,7 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
-        const nextChainId = '42069' // Hop pHub // TODO: make dynamic
+        const nextChainId = '11155111' // TODO: make dynamic
         const tokenSymbol = 'MOCK' // TODO
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
@@ -323,7 +319,7 @@ export class Hop extends Base {
         return populatedTx
       },
 
-      sendTokensSingleHop: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -436,6 +432,11 @@ export class Hop extends Base {
 
   async sendTokens (input: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.sendTokens(input, txOverrides)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async sendTokensMultiHop (input: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.sendTokensMultiHop(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

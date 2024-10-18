@@ -185,6 +185,7 @@ export function generateMockTransferBonded(): TransferBonded {
     claimId: generateRandomBytes32(),
     to: generateRandomAddress(),
     amount: generateRandomUint256(),
+    bonderFee: generateRandomUint256(),
   }
 }
 

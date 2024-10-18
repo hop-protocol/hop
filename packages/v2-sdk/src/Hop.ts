@@ -289,14 +289,24 @@ export class Hop extends Base {
         }
 
         const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: nextPathId })
+        const nextMaxBonderFee = BigNumber.from('0') // TODO
+
         const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
         const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaim({
           pathId: destPathId
         })
+        const destMaxBonderFee = BigNumber.from('0') // TODO
 
-        const nextHops: HopStruct[] = [
+        const hops: HopStruct[] = [
+          {
+            pathId: nextPathId,
+            maxBonderFee: nextMaxBonderFee,
+            maxTotalSent: nextMaxTotalSent,
+            attestedClaimId: attestedClaimId
+          },
           {
             pathId: destPathId,
+            maxBonderFee: destMaxBonderFee,
             maxTotalSent: destMaxTotalSent,
             attestedClaimId: destAttestedClaimId
           }
@@ -308,9 +318,7 @@ export class Hop extends Base {
           pathId: nextPathId,
           to,
           amount,
-          attestedClaimId,
-          nextHops,
-          maxTotalSent: nextMaxTotalSent,
+          hops,
           fee
         }, txOverrides)
 
@@ -391,9 +399,15 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
+        const maxBonderFee = BigNumber.from('0') // TODO
         const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
 
-        const nextHops: HopStruct[] = []
+        const hops: HopStruct[] = [{
+          pathId,
+          maxBonderFee,
+          maxTotalSent,
+          attestedClaimId
+        }]
 
         const fee = await this.getRailsGateway(toChainId).getFee({ pathId })
 
@@ -401,9 +415,7 @@ export class Hop extends Base {
           pathId,
           to,
           amount,
-          attestedClaimId,
-          nextHops,
-          maxTotalSent,
+          hops,
           fee
         }, txOverrides)
 
@@ -521,8 +533,14 @@ export class Hop extends Base {
     })
 
     const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
+    const maxBonderFee = BigNumber.from('0') // TODO
 
-    const nextHops: HopStruct[] = []
+    const hops: HopStruct[] = [{
+      pathId,
+      attestedClaimId,
+      maxBonderFee,
+      maxTotalSent,
+    }]
 
     const fee = await this.getRailsGateway(toChainId).getFee({ pathId })
 
@@ -530,9 +548,7 @@ export class Hop extends Base {
       pathId,
       to,
       amount,
-      attestedClaimId,
-      nextHops,
-      maxTotalSent,
+      hops,
       fee
     })
 

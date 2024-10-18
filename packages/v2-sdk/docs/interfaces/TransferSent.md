@@ -5,7 +5,6 @@
 ### Properties
 
 - [amountOut](TransferSent.md#amountout)
-- [attestedClaimId](TransferSent.md#attestedclaimid)
 - [nextHops](TransferSent.md#nexthops)
 - [pathId](TransferSent.md#pathid)
 - [to](TransferSent.md#to)
@@ -18,12 +17,6 @@
 ### <a id="amountout" name="amountout"></a> amountOut
 
 • **amountOut**: `BigNumber`
-
-___
-
-### <a id="attestedclaimid" name="attestedclaimid"></a> attestedClaimId
-
-• **attestedClaimId**: `string`
 
 ___
 

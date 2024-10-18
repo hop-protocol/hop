@@ -5,6 +5,7 @@
 ### Properties
 
 - [attestedClaimId](HopStruct.md#attestedclaimid)
+- [maxBonderFee](HopStruct.md#maxbonderfee)
 - [maxTotalSent](HopStruct.md#maxtotalsent)
 - [pathId](HopStruct.md#pathid)
 
@@ -13,6 +14,12 @@
 ### <a id="attestedclaimid" name="attestedclaimid"></a> attestedClaimId
 
 • **attestedClaimId**: `string`
+
+___
+
+### <a id="maxbonderfee" name="maxbonderfee"></a> maxBonderFee
+
+• **maxBonderFee**: `BigNumber`
 
 ___
 

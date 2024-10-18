@@ -51,16 +51,12 @@ export function RailsGatewaySend (props: Props) {
     defaultValue: '',
   })
 
-  const [maxTotalSent, setMaxTotalSent] = useLocalStorageState(`${cacheKey}:maxTotalSent`, {
-    defaultValue: '',
-  })
-
   const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
     defaultValue: '',
   })
 
-  const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
-    defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
+  const [hops, setHops] = useLocalStorageState(`${cacheKey}:hops`, {
+    defaultValue: [{ pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }],
   })
 
   const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
@@ -83,9 +79,7 @@ export function RailsGatewaySend (props: Props) {
       pathId,
       to: toAddress,
       amount,
-      attestedClaimId,
-      nextHops,
-      maxTotalSent,
+      hops,
       fee
     }
     console.log('args', args)
@@ -117,7 +111,7 @@ export function RailsGatewaySend (props: Props) {
   }
 
   function addHop() {
-    setNextHops([...nextHops, { pathId: '', maxTotalSent: '', attestedClaimId: '' }])
+    setHops([...hops, { pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }])
   }
 
   const code = `
@@ -132,9 +126,7 @@ async function main() {
   const pathId = "${pathId}"
   const to = "${toAddress}"
   const amount = "${amount}"
-  const attestedClaimId = "${attestedClaimId}"
-  const nextHops = ${JSON.stringify(nextHops, null, 2)}
-  const maxTotalSent = "${maxTotalSent}"
+  const hops = ${JSON.stringify(hops, null, 2)}
   const fee = "${fee}"
 
   ${hopInstantiateDisplayString}
@@ -142,9 +134,7 @@ async function main() {
     pathId,
     to,
     amount,
-    attestedClaimId,
-    nextHops,
-    maxTotalSent,
+    hops,
     fee
   })
   ${populateTxDataOnly ? (
@@ -217,38 +207,37 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
                   <label>Fee <small><em>(uint256)</em></small> <small><em>Message fee</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={fee} onChange={(event: any) => setFee(event.target.value)} />
               </Box>
 
               <Stepper orientation="vertical">
-                {nextHops.map((hop: any, index: number) => {
-                  const { pathId, maxTotalSent, attestedClaimId } = hop
+                {hops.map((hop: any, index: number) => {
+                  const { pathId, maxTotalSent, maxBonderFee, attestedClaimId } = hop
 
                   function setHopPathId (value: string) {
-                    const newHops = [...nextHops]
+                    const newHops = [...hops]
                     newHops[index].pathId = value
-                    setNextHops(newHops)
+                    setHops(newHops)
+                  }
+
+                  function setHopMaxBonderFee (value: string) {
+                    const newHops = [...hops]
+                    newHops[index].maxBonderFee = value
+                    setHops(newHops)
                   }
 
                   function setHopMaxTotalSent (value: string) {
-                    const newHops = [...nextHops]
+                    const newHops = [...hops]
                     newHops[index].maxTotalSent = value
-                    setNextHops(newHops)
+                    setHops(newHops)
                   }
 
                   function setHopAttestedClaimId  (value: string) {
-                    const newHops = [...nextHops]
+                    const newHops = [...hops]
                     newHops[index].attestedClaimId = value
-                    setNextHops(newHops)
+                    setHops(newHops)
                   }
 
                   return (
@@ -268,6 +257,13 @@ main().catch(console.error)
 
                       <Box mb={2}>
                         <Box mb={1}>
+                          <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
+                        </Box>
+                        <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setHopMaxBonderFee(event.target.value)} />
+                      </Box>
+
+                      <Box mb={2}>
+                        <Box mb={1}>
                           <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
                         </Box>
                         <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setHopMaxTotalSent(event.target.value)} />
@@ -280,12 +276,12 @@ main().catch(console.error)
                         <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setHopAttestedClaimId(event.target.value)} />
                       </Box>
 
-                      {nextHops.length !== 0 && (
+                      {hops.length !== 0 && (
                         <Box mb={2}>
                           <Button onClick={() => {
-                            const newHops = [...nextHops]
+                            const newHops = [...hops]
                             newHops.splice(index, 1)
-                            setNextHops(newHops)
+                            setHops(newHops)
                           }}>Remove</Button>
                         </Box>
                       )}

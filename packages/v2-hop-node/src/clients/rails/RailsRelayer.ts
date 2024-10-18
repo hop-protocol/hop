@@ -15,7 +15,7 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     const chainIds = getChainIdsForPaths(paths)
     for (const chainId of chainIds) {
       const wallet = wallets.get(chainId)
-      this.#railsGateways[chainId] = new RailsGateway(wallet)
+      this.#railsGateways[chainId] = new RailsGateway(chainId, wallet)
     }
   }
 

@@ -1,7 +1,7 @@
 import {
   type RailsFilterInputs,
   EventName as RailsEventName,
-  addDecodedTypesToEvents,
+  addDecodedTypesToEvent,
   getRailsEventFilter
 } from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/index.js'
@@ -44,7 +44,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
   }
 
   protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
-    const decodedEvent = addDecodedTypesToEvents(log)
+    const decodedEvent = addDecodedTypesToEvent(log)
     const eventName = decodedEvent.event!
     return {
       ...decodedEvent,

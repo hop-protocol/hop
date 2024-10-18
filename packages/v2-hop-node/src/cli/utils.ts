@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { ClientName } from '#clients/index.js'
 import { execSync } from 'node:child_process'
 import { initConfigs } from '#config/index.js'
 import type { Command } from 'commander'
@@ -17,10 +18,15 @@ export async function initCLI (parentCommand: Command, childCommand: Command): P
     throw new Error('Client name not found')
   }
 
+  const validClientNames = Object.values(ClientName).map(name => name.toLowerCase())
+  if (!validClientNames.includes(clientName.toLowerCase() as ClientName)) {
+    throw new Error(`Invalid client name: ${clientName}`)
+  }
+
   await initConfigs({
     customConfigPath: config ?? '',
     dryRun: dryRun ?? false,
-    clientName
+    clientName: clientName as ClientName
   })
 }
 

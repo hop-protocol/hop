@@ -14,12 +14,11 @@ import type {
   Overrides,
   providers
 } from 'ethers'
+import { wallets } from '#wallets/index.js'
 import type { RailsPath } from './types.js'
 
-export type PostClaimInput = Omit<PostClaimInputSDK, 'chainId'>
-export type BondInput = Omit<BondInputSDK, 'chainId'>
+export type RailsFilterInputs = GetTransferSentEventFilterInput['indexes'] & GetTransferBondedEventFilterInput['indexes']
 
-export type RailsFilterInputs = GetTransferSentEventFilterInput['indexes'] | GetTransferBondedEventFilterInput['indexes']
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -34,9 +33,9 @@ export enum EventName {
 export class RailsGateway {
   #sdk: RailsGatewaySDK
 
-  constructor (signerOrProvider: Signer | providers.Provider) {
+  constructor (chainId: string, signerOrProvider: Signer | providers.Provider) {
     const signer = signerOrProvider as Signer
-    this.#sdk = new RailsGatewaySDK({ network: 'mainnet', signer })
+    this.#sdk = new RailsGatewaySDK({ chainId, signerOrProvider: signer })
   }
 
   /**
@@ -73,12 +72,7 @@ export class RailsGateway {
 
 
   async getIsPathIdLive (pathId: string): Promise<boolean> {
-    const signer = this.#sdk.getSigner()
-    if (!signer) {
-      throw new Error('Signer not found')
-    }
-    const chainId = (await signer.getChainId()).toString()
-    return this.#sdk.getIsPathIdLive({ chainId, pathId })
+    return this.#sdk.helpers.getIsPathIdLive({ pathId })
   }
 }
 
@@ -86,36 +80,24 @@ export class RailsGateway {
  * Utils
  */
 
-// Does not matter if in utils, just care about this being exported
-// import { RailsGateway, getRailsEventFilter } from '@hop-protocol/v2-sdk'
 export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: EventName, chainId: string, indexes?: T): EventFilter {
-  const gateway = new RailsGatewaySDK({ network: 'mainnet'})
+
+  const wallet = wallets.get(chainId)
+  const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet })
   switch (eventName) {
     case EventName.TransferSent:
-      return gateway.getTransferSentEventFilter({ chainId, indexes })
+      return gateway.getTransferSentEventFilter({ indexes })
     // case EventName.TransferPosted:
     //   return gateway.getTransferPostedEventFilter({ chainId, indexes })
     case EventName.TransferBonded:
-      return gateway.getTransferBondedEventFilter({ chainId, indexes })
+      return gateway.getTransferBondedEventFilter({ indexes })
     default:
       throw new Error(`Unknown event name: ${JSON.stringify(eventName)}`)
   }
 }
 
-export function addDecodedTypesToEvents(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
-  const gateway = new RailsGatewaySDK({ network: 'mainnet'})
-  const decodedEventRes = gateway.addDecodedTypesToEvents([log])
-
-  if (decodedEventRes.length === 0) {
-    throw new Error('Could not decode event')
-  }
-
-  const decodedEvent = decodedEventRes[0]
-  if (typeof decodedEvent === 'undefined') {
-    throw new Error('Could not decode event context')
-  }
-
-  return decodedEvent
+export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
+  return RailsGatewaySDK.addDecodedTypesToEvent(log)
 }
 
 export function getPathId(path: RailsPath): string {

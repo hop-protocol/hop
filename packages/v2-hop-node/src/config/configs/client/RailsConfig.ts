@@ -20,7 +20,7 @@ export class RailsConfig extends ConfigManager {
     for (const path of this.paths) {
       const pathId = Rails.getPathId(path)
       const provider = getRpcProvider(path.srcChainId)
-      const railsGateway = new RailsGateway(provider)
+      const railsGateway = new RailsGateway(path.srcChainId, provider)
       const isLive = await railsGateway.getIsPathIdLive(pathId)
       if (!isLive) {
         throw new Error(`Path is not live: ${pathId}`)

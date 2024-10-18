@@ -22,6 +22,7 @@ export interface ISignerConfig {
   chains: Chains
   calldataValidationClientUrl?: string
   stateValidationClientUrl?: string
+  validationStatusEndpoint?: string
 }
 
 export class SignerConfig extends ConfigManager {
@@ -33,15 +34,17 @@ export class SignerConfig extends ConfigManager {
   static chains: Chains
   static calldataValidationClientUrl: string | undefined
   static stateValidationClientUrl: string | undefined
+  static validationStatusEndpoint: string | undefined
 
   protected static override async init(config: ISignerConfig): Promise<void> {
-    const { network, blocknativeApiKey, bonderPrivateKey, chains, calldataValidationClientUrl, stateValidationClientUrl } = config
+    const { network, blocknativeApiKey, bonderPrivateKey, chains, calldataValidationClientUrl, stateValidationClientUrl, validationStatusEndpoint } = config
     this.network = network
     this.blocknativeApiKey = blocknativeApiKey
     this.bonderPrivateKey = bonderPrivateKey
     this.chains = chains
     this.calldataValidationClientUrl = calldataValidationClientUrl
     this.stateValidationClientUrl = stateValidationClientUrl
+    this.validationStatusEndpoint = validationStatusEndpoint
   }
 
   protected static override async validate(): Promise<void> {
@@ -69,7 +72,7 @@ export class SignerConfig extends ConfigManager {
 
     // Validate URLS
     if (
-      (this.calldataValidationClientUrl && !isValidUrl(this.calldataValidationClientUrl)) ||
+      (this.calldataValidationClientUrl && !isValidUrl(this.calldataValidationClientUrl)) ??
       (this.stateValidationClientUrl && !isValidUrl(this.stateValidationClientUrl))
     ) {
       throw new Error('Invalid validation service urls')

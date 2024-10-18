@@ -311,6 +311,7 @@ export type RailsGatewayConstructorInput = {
 }
 
 export class RailsGateway extends StakingRegistry {
+  static EventName = EventName
   chainId: BigNumberish
 
   constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders }: RailsGatewayConstructorInput) {

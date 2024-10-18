@@ -21,6 +21,7 @@
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
 - [signersOrProviders](RailsGateway.md#signersorproviders)
+- [EventName](RailsGateway.md#eventname)
 
 ### Accessors
 
@@ -232,6 +233,12 @@ ___
 #### Inherited from
 
 StakingRegistry.signersOrProviders
+
+___
+
+### <a id="eventname" name="eventname"></a> EventName
+
+▪ `Static` **EventName**: typeof [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) = `EventName`
 
 ## Accessors
 
@@ -850,7 +857,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `EventName` |
+| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
 
 #### Returns
 
@@ -866,7 +873,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `EventName` |
+| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
 | `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
 
 #### Returns

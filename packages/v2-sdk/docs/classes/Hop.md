@@ -23,6 +23,7 @@
 - [network](Hop.md#network)
 - [railsGateways](Hop.md#railsgateways)
 - [signersOrProviders](Hop.md#signersorproviders)
+- [EventName](Hop.md#eventname)
 
 ### Accessors
 
@@ -179,6 +180,12 @@ ___
 #### Inherited from
 
 Base.signersOrProviders
+
+___
+
+### <a id="eventname" name="eventname"></a> EventName
+
+▪ `Static` **EventName**: typeof [`EventName`](../enums/EventName.md) = `EventName`
 
 ## Accessors
 

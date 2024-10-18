@@ -162,6 +162,7 @@ export type GetTokenContractInput = {
 }
 
 export class Hop extends Base {
+  static EventName = EventName
   private readonly eventFetcher: EventFetcher
   private readonly providers: Record<string, providers.Provider> = {}
   private readonly gasPriceOracle: GasPriceOracle

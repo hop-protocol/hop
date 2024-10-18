@@ -73,7 +73,8 @@ export {
   DistributeFeesInput,
   GetTransferDataHashInput,
   UpdateClaimChainInput,
-  GetBucketIndexInput
+  GetBucketIndexInput,
+  EventName as RailsGatewayEventName
 } from './railsGateway/index.js'
 export {
   BundleCommitted,
@@ -124,7 +125,8 @@ export {
   MessengerConfig,
   RelayMessageData,
   RouteData,
-  ShouldAttemptForwardMessageInput
+  ShouldAttemptForwardMessageInput,
+  EventName as MessengerEventName
 } from './messenger/index.js'
 export {
   ConnectTargetsInput,

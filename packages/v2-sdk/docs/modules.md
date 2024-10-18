@@ -5,6 +5,8 @@
 ### Enumerations
 
 - [EventName](enums/EventName.md)
+- [MessengerEventName](enums/MessengerEventName.md)
+- [RailsGatewayEventName](enums/RailsGatewayEventName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes

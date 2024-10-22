@@ -10,12 +10,14 @@ import type { ClientName } from '../constants.js'
 
 export class RailsRelayer extends Relayer<RailsRelayItem> {
   readonly #railsGateways: Record<string, RailsGateway> = {}
+  readonly #wallets: Record<string, Signer> = {}
 
   constructor (name: ClientName, paths: RailsPath[]) {
     super(name)
     const chainIds = getChainIdsForPaths(paths)
     for (const chainId of chainIds) {
       const wallet = wallets.get(chainId)
+      this.#wallets[chainId] = wallet
       this.#railsGateways[chainId] = new RailsGateway(chainId, wallet)
     }
   }
@@ -90,11 +92,16 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
-    return gateway.bond({
-      pathId,
-      transferId,
-      nextHops
-    }, txOverrides)
+
+    const wallet = this.#wallets[destChainId]
+    if (typeof wallet === 'undefined') {
+      throw new Error(`No wallet found for chainId: ${destChainId}`)
+    }
+
+    // const resp: providers.TransactionRequest = await gateway.populateBond()
+    // TODO: Reintroduce
+    const resp: providers.TransactionRequest = '' as any
+    return wallet.sendTransaction({ ...resp, ...txOverrides })
   }
 
   async #sentPostClaim (relayItem: PostClaimInput): Promise<providers.TransactionResponse> {
@@ -106,23 +113,15 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
 
-    // TODO: RM THIS
-    const temp: any = ''
-    return gateway.bond({
-      pathId,
-      transferId,
-      temp
-    }, txOverrides)
-    // return gateway.postClaim({
-    //   pathId,
-    //   transferId,
-    //   to,
-    //   amount,
-    //   totalSent,
-    //   attestedClaimId,
-    //   attestedTotalClaims,
-    //   nextHopsHash
-    // }, txOverrides)
+    const wallet = this.#wallets[destChainId]
+    if (typeof wallet === 'undefined') {
+      throw new Error(`No wallet found for chainId: ${destChainId}`)
+    }
+
+    // const resp: providers.TransactionRequest = await gateway.populatePostClaim()
+    // TODO: Reintroduce
+    const resp: providers.TransactionRequest = '' as any
+    return wallet.sendTransaction({ ...resp, ...txOverrides })
   }
 
   /**

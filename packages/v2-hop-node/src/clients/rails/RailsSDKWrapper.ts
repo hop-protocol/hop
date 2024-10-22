@@ -58,12 +58,12 @@ export class RailsGateway {
    * Transactional Methods
    */
 
-  async bond (input: BondInput, overrides: Overrides): Promise<providers.TransactionResponse> {
-    return this.#sdk.bond(input as BondInputSDK/*, overrides*/)
+  async populateBond (input: BondInputSDK): Promise<providers.TransactionRequest> {
+    return this.#sdk.populateTransaction.bond(input)
   }
 
-  async postClaim (input: PostClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
-    return this.#sdk.postClaim(input as PostClaimInputSDK/*, overrides*/)
+  async populatePostClaim (input: PostClaimInputSDK): Promise<providers.TransactionRequest> {
+    return this.#sdk.populateTransaction.postClaim(input)
   }
 
   /**

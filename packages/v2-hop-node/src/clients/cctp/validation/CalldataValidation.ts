@@ -32,7 +32,6 @@ export class CalldataValidation extends ValidationClient {
   validateTx (transaction: providers.TransactionRequest): void {
     console.log('CalldataValidation.validateTx', transaction)
     const isValid = this.#isProtocolTx(transaction)
-    console.log('CalldataValidation.validateTx isValid', isValid)
     if (!isValid) {
       throw new Error('Invalid transaction')
     }

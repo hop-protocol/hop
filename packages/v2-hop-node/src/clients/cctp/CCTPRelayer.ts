@@ -99,7 +99,8 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
       errMessage.includes('Nonce already used') ||
       errMessage.includes('handleReceiveMessage() failed')
     ) {
-      throw new Error(`Contract error: ${errMessage}`)
+      this.logger.debug(`Contract error: ${errMessage}`)
+      return true
     }
     return false
   }

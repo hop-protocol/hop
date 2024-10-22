@@ -10,7 +10,7 @@ import type { ChainSlug } from '@hop-protocol/sdk'
  */
 
 export function getUniqueFilterId (eventName: string, chainId: string, contractAddress: string): string {
-  return`${eventName}!${chainId}!${contractAddress}`
+  return`${eventName}:${chainId}:${contractAddress}`
 }
 
 export function getMaxBlockRangePerIndex (chainId: string): number {

@@ -3,7 +3,7 @@ import { OnchainEventIndexerDB } from '#indexer/index.js'
 import { RelayerDB } from '#relayer/index.js'
 import { Logger } from '#logger/index.js'
 import { Argument, Command } from 'commander'
-import { parseString } from '../../utils.js'
+import { getClientNameFromCommand, parseString } from '../../utils.js'
 
 type ShowDBOptions = {
   dbType: DBTypes
@@ -40,10 +40,7 @@ async function run (dbType: DBTypes): Promise<void> {
   }
 
   // The name of the parent command is the name of the DB
-  const name = program.parent?.name()
-  if (!name) {
-    throw new Error('Parent command name is required')
-  }
+  const name = getClientNameFromCommand(program)
 
   switch (dbType) {
     case DBTypes.StateMachine:
@@ -64,23 +61,33 @@ async function dumpStateMachineDB (logger: Logger, name: string, state?: string)
   if (!state) {
     throw new Error('State is required when querying state machine DB')
   }
+
   const db = new StateMachineDB(name)
+  let count = 0
   for await (const [key, value] of db.getItemsInState(state)) {
+    count++
     logger.debug(key, value)
   }
+  logger.debug('Showed all items in state:', state, '. Total:', count)
 }
 
 async function dumpOnchainEventIndexerDB (logger: Logger, name: string) {
   const db = new OnchainEventIndexerDB(name)
+  let count = 0
   for await (const [key, value] of db.iterator()) {
+    count++
     logger.debug(key, value)
   }
+  logger.debug('Showed all items in DB. Total:', count)
 }
 
 async function dumpTxRelayDB (logger: Logger, name: string) {
   const db = new RelayerDB(name)
+  let count = 0
   for await (const [key,] of db.iterator()) {
     // The key is the item itself and the value is simply a boolean indicating existence
+    count++
     logger.debug(key)
   }
+  logger.debug('Showed all items in DB. Total:', count)
 }

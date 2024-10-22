@@ -9,7 +9,7 @@ const cache: Record<string, Signer> = {}
 
 const constructSigner = (networkOrChainId: string, privateKey?: string): Signer => {
   let network = networkOrChainId
-  if (!(networkOrChainId in ChainSlug)) {
+  if (!(Object.values(ChainSlug).includes(networkOrChainId as ChainSlug))) {
     network = getChain(networkOrChainId).slug
   }
   const cacheKey = `${network}`

@@ -1,4 +1,3 @@
-import { SignerConfig } from '../../index.js'
 import { ConfigManager } from '../../ConfigManager.js'
 import { Rails } from '#clients/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
@@ -28,7 +27,6 @@ export class RailsConfig extends ConfigManager {
     }
 
     // Validate that the correct rpcs are supplied
-    const network = SignerConfig.network
     for (const path of this.paths) {
       try {
         const provider = getRpcProvider(path.srcChainId)

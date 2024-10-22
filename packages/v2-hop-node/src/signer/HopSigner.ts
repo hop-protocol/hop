@@ -50,12 +50,12 @@ export class HopSigner extends GasBoostSigner {
 
   async #validateTransaction (transaction: providers.TransactionRequest): Promise<void> {
     if (this.#calldataValidationClient) {
-      this.#calldataValidationClient.validateTransaction(transaction)
+      await this.#calldataValidationClient.validateTransaction(transaction)
     }
 
     if (this.#stateValidationClient) {
       try {
-        await this.#stateValidationClient?.validateTransaction(transaction)
+        await this.#stateValidationClient.validateTransaction(transaction)
       } catch (err) {
         throw new HopSignerError(err.message)
       }
@@ -72,20 +72,16 @@ export class HopSigner extends GasBoostSigner {
       case ClientName.Rails: {
         if (validationType === ValidationType.Calldata) {
           return new Rails.CalldataValidation(validationClientUrl, validationStatusEndpoint)
-        } else if (validationType === ValidationType.State) {
-          return new Rails.StateValidation(validationClientUrl, validationStatusEndpoint)
         } else {
-          throw new Error('Invalid validation type')
+          return new Rails.StateValidation(validationClientUrl, validationStatusEndpoint)
         }
       }
 
       case ClientName.CCTP: {
         if (validationType === ValidationType.Calldata) {
           return new CCTP.CalldataValidation(validationClientUrl, validationStatusEndpoint)
-        } else if (validationType === ValidationType.State) {
-          return new CCTP.StateValidation(validationClientUrl, validationStatusEndpoint)
         } else {
-          throw new Error('Invalid validation type')
+          return new CCTP.StateValidation(validationClientUrl, validationStatusEndpoint)
         }
       }
 

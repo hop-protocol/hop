@@ -1,6 +1,7 @@
 import type { providers } from 'ethers'
 import { ValidationType } from './types.js'
 import type { IValidationClient } from './IValidationClient.js'
+import { promiseTimeout } from '#utils/promiseTimeout.js'
 
 /**
  * A shouldValidate method does not need to exist, as this client expects all transactions to be understood.
@@ -12,11 +13,15 @@ import type { IValidationClient } from './IValidationClient.js'
  * @dev Standard tx validation (nonce, gas, etc.) should be done by the signer, not this validation service.
  */
 
+// TODO: timeout so it doesn't block
+
 export abstract class ValidationClient implements IValidationClient {
   readonly #validationClientUrl: string | undefined
   readonly #validationStatusEndpoint: string | undefined
   readonly #validationType: ValidationType
   readonly #isRemote: boolean
+  // Timeout if the endpoint is unresponsive so that the signer doesn't hang
+  readonly #fetchTimeoutMs = 2_000
 
   protected abstract validateTx(transaction: providers.TransactionRequest): void
 
@@ -76,12 +81,12 @@ export abstract class ValidationClient implements IValidationClient {
     const url = this.#validationClientUrl + '/' + (transaction ? validationUrl : this.#validationStatusEndpoint)
     const body = transaction ? JSON.stringify(transaction) : null
 
-    return fetch(url, {
+    return promiseTimeout(fetch(url, {
       method: 'GET',
       body,
       headers: {
         'Content-Type': 'application/json'
       }
-    })
+    }), this.#fetchTimeoutMs)
   }
 }

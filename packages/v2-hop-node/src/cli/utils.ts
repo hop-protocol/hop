@@ -9,15 +9,10 @@ import type { Command } from 'commander'
  * Initiation
  */
 
-export async function initCLI (parentCommand: Command, childCommand: Command): Promise<void> {
+export async function initCLI (parentCommand: Command): Promise<void> {
   const { config, dryRun } = parentCommand.opts()
 
-  // The client name is always the child command name
-  const clientName = childCommand.name()
-  if (!clientName) {
-    throw new Error('Client name not found')
-  }
-
+  const clientName = getClientNameFromCommand(parentCommand)
   const validClientNames = Object.values(ClientName).map(name => name.toLowerCase())
   if (!validClientNames.includes(clientName.toLowerCase() as ClientName)) {
     throw new Error(`Invalid client name: ${clientName}`)
@@ -86,4 +81,25 @@ ${art}
 
 Version: ${version}
   `
+}
+
+export const getClientNameFromCommand = (command: Command): ClientName => {
+  // The client name is the first argument of the root command, so loop
+  // through the parent commands until the root command is found.
+  let currentCommand: Command | undefined = command
+  while (currentCommand.parent) {
+    currentCommand = currentCommand.parent
+  }
+
+  const clientName = currentCommand.args[0]
+  if (!clientName) {
+    throw new Error('Client name not found')
+  }
+
+  const validClientNames = Object.values(ClientName).map(name => name.toLowerCase())
+  if (!validClientNames.includes(clientName.toLowerCase() as ClientName)) {
+    throw new Error(`Invalid client name: ${clientName}`)
+  }
+
+  return clientName as ClientName
 }

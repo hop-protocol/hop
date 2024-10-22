@@ -6,7 +6,9 @@ import {
   type GetTransferBondedEventFilterInput,
   type PostClaimInput as PostClaimInputSDK,
   type BondInput as BondInputSDK,
-  RailsGateway as RailsGatewaySDK
+  RailsGateway as RailsGatewaySDK,
+  utils as RailsUtils,
+  RailsGatewayEventName
 } from '@hop-protocol/v2-sdk'
 import type {
   EventFilter,
@@ -58,12 +60,12 @@ export class RailsGateway {
    * Transactional Methods
    */
 
-  async populateBond (input: BondInputSDK): Promise<providers.TransactionRequest> {
-    return this.#sdk.populateTransaction.bond(input)
+  async bond (input: BondInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.bond({ ...input, ...overrides })
   }
 
-  async populatePostClaim (input: PostClaimInputSDK): Promise<providers.TransactionRequest> {
-    return this.#sdk.populateTransaction.postClaim(input)
+  async postClaim (input: PostClaimInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.postClaim({ ...input, ...overrides })
   }
 
   /**
@@ -81,19 +83,9 @@ export class RailsGateway {
  */
 
 export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: EventName, chainId: string, indexes?: T): EventFilter {
-
   const wallet = wallets.get(chainId)
   const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet })
-  switch (eventName) {
-    case EventName.TransferSent:
-      return gateway.getTransferSentEventFilter({ indexes })
-    // case EventName.TransferPosted:
-    //   return gateway.getTransferPostedEventFilter({ chainId, indexes })
-    case EventName.TransferBonded:
-      return gateway.getTransferBondedEventFilter({ indexes })
-    default:
-      throw new Error(`Unknown event name: ${JSON.stringify(eventName)}`)
-  }
+  return gateway.getEventFilter(eventName as RailsGatewayEventName, indexes)
 }
 
 export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
@@ -101,7 +93,12 @@ export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecod
 }
 
 export function getPathId(path: RailsPath): string {
-  return ''
+  return RailsUtils.getComputedPathId(
+    path.srcChainId,
+    path.srcToken,
+    path.destChainId,
+    path.destToken
+  )
 }
 
 // The expectation is ContractFunctionRevertedError, not Error, but it is not exported from the SDK,

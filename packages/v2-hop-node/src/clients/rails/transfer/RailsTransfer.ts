@@ -2,12 +2,13 @@ import { RailsTransferDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsTransferStateMachine } from './state-machine/StateMachine.js'
 import type { RailsRelayer } from '../RailsRelayer.js'
 import type { RailsIndexer } from '../RailsIndexer.js'
+import type { ClientName } from '../../constants.js'
 
 export class RailsTransfer {
   readonly #stateMachine: RailsTransferStateMachine
   #started: boolean = false
 
-  constructor (clientName: string, indexer: RailsIndexer, relayer: RailsRelayer) {
+  constructor (clientName: ClientName, indexer: RailsIndexer, relayer: RailsRelayer) {
     const name = `${clientName}Transfer`
 
     // State handler

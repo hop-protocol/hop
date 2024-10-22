@@ -86,7 +86,7 @@ export class HopSigner extends GasBoostSigner {
       }
 
       default:
-        throw new Error('Invalid client name')
+        throw new Error(`Invalid client name: ${String(clientName)}`)
     }
   }
 }

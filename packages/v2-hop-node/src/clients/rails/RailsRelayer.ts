@@ -6,11 +6,12 @@ import { getTxOverrides } from '#utils/getTxOverrides.js'
 import type { BondInput, PostClaimInput, RailsRelayItem } from './types.js'
 import type { providers } from 'ethers'
 import type { RailsPath } from './types.js'
+import type { ClientName } from '../constants.js'
 
 export class RailsRelayer extends Relayer<RailsRelayItem> {
   readonly #railsGateways: Record<string, RailsGateway> = {}
 
-  constructor (name: string, paths: RailsPath[]) {
+  constructor (name: ClientName, paths: RailsPath[]) {
     super(name)
     const chainIds = getChainIdsForPaths(paths)
     for (const chainId of chainIds) {
@@ -104,16 +105,24 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
-    return gateway.postClaim({
+
+    // TODO: RM THIS
+    const temp: any = ''
+    return gateway.bond({
       pathId,
       transferId,
-      to,
-      amount,
-      totalSent,
-      attestedClaimId,
-      attestedTotalClaims,
-      nextHopsHash
+      temp
     }, txOverrides)
+    // return gateway.postClaim({
+    //   pathId,
+    //   transferId,
+    //   to,
+    //   amount,
+    //   totalSent,
+    //   attestedClaimId,
+    //   attestedTotalClaims,
+    //   nextHopsHash
+    // }, txOverrides)
   }
 
   /**

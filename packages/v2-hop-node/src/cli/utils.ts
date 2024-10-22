@@ -13,15 +13,15 @@ export async function initCLI (parentCommand: Command): Promise<void> {
   const { config, dryRun } = parentCommand.opts()
 
   const clientName = getClientNameFromCommand(parentCommand)
-  const validClientNames = Object.values(ClientName).map(name => name.toLowerCase())
-  if (!validClientNames.includes(clientName.toLowerCase() as ClientName)) {
+  const validClientNames = Object.values(ClientName)
+  if (!validClientNames.includes(clientName)) {
     throw new Error(`Invalid client name: ${clientName}`)
   }
 
   await initConfigs({
     customConfigPath: config ?? '',
     dryRun: dryRun ?? false,
-    clientName: clientName as ClientName
+    clientName
   })
 }
 
@@ -96,8 +96,8 @@ export const getClientNameFromCommand = (command: Command): ClientName => {
     throw new Error('Client name not found')
   }
 
-  const validClientNames = Object.values(ClientName).map(name => name.toLowerCase())
-  if (!validClientNames.includes(clientName.toLowerCase() as ClientName)) {
+  const validClientNames = Object.values(ClientName)
+  if (!validClientNames.includes(clientName as ClientName)) {
     throw new Error(`Invalid client name: ${clientName}`)
   }
 

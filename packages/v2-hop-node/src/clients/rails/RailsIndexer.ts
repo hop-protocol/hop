@@ -14,12 +14,13 @@ import {
 import type { RailsPath } from './types.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
+import type { ClientName } from '../constants.js'
 
 type RailsEventIndex = keyof NonNullable<RailsFilterInputs>
 
 export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
 
-  constructor(name: string, paths: RailsPath[]) {
+  constructor(name: ClientName, paths: RailsPath[]) {
     super(name)
 
     this.addEventFilters(paths)

@@ -16,10 +16,12 @@ export async function initConfigs (cliConfig: ICLIConfig): Promise<void> {
 
   // CLI options
   await CLIConfig.initializeConfig(cliConfig)
-  if (cliConfig.clientName.toLowerCase() === ClientName.Rails.toLowerCase()) {
+  if (cliConfig.clientName === ClientName.Rails) {
     await RailsConfig.initializeConfig(customConfig.client.rails)
-  } else if (cliConfig.clientName.toLowerCase() === ClientName.CCTP.toLowerCase()) {
+  } else if (cliConfig.clientName === ClientName.CCTP) {
     await CCTPConfig.initializeConfig(customConfig.client.cctp)
+  } else {
+    throw new Error(`Unsupported client name`)
   }
 }
 

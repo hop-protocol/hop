@@ -716,7 +716,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.bond(pathId, claimId, nextHops)
+        const txData = await contract.populateTransaction.bond(pathId, claimId, bonderFee, nextHops)
 
         return {
           ...txData,

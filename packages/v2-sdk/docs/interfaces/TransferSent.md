@@ -5,7 +5,7 @@
 ### Properties
 
 - [amountOut](TransferSent.md#amountout)
-- [nextHops](TransferSent.md#nexthops)
+- [hops](TransferSent.md#hops)
 - [pathId](TransferSent.md#pathid)
 - [to](TransferSent.md#to)
 - [totalClaims](TransferSent.md#totalclaims)
@@ -20,9 +20,9 @@
 
 ___
 
-### <a id="nexthops" name="nexthops"></a> nextHops
+### <a id="hops" name="hops"></a> hops
 
-• **nextHops**: [`HopStruct`](HopStruct.md)[]
+• **hops**: [`HopStruct`](HopStruct.md)[]
 
 ___
 

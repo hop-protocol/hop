@@ -35,11 +35,6 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
         name: "penalty",
         type: "uint256",
         internalType: "uint256",
@@ -68,11 +63,6 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
         name: "penalty",
         type: "uint256",
         internalType: "uint256",
@@ -99,11 +89,6 @@ const _abi = [
         name: "challenger",
         type: "address",
         internalType: "address",
-      },
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
       },
       {
         name: "penalty",
@@ -170,6 +155,11 @@ const _abi = [
         internalType: "bytes32",
       },
       {
+        name: "bonderFee",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "nextHops",
         type: "tuple[]",
         internalType: "struct Hop[]",
@@ -178,6 +168,11 @@ const _abi = [
             name: "pathId",
             type: "bytes32",
             internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "maxTotalSent",
@@ -228,11 +223,6 @@ const _abi = [
         name: "challenger",
         type: "address",
         internalType: "address",
-      },
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
       },
       {
         name: "lastUpdated",
@@ -318,11 +308,6 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
         name: "penalty",
         type: "uint256",
         internalType: "uint256",
@@ -403,6 +388,35 @@ const _abi = [
   },
   {
     type: "function",
+    name: "getAmountOut",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "attestedClaimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "amountOut",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getBucketIndex",
     inputs: [
       {
@@ -429,11 +443,6 @@ const _abi = [
     type: "function",
     name: "getChallengeId",
     inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
       {
         name: "staker",
         type: "address",
@@ -536,6 +545,11 @@ const _abi = [
             internalType: "bytes32",
           },
           {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "maxTotalSent",
             type: "uint256",
             internalType: "uint256",
@@ -630,11 +644,6 @@ const _abi = [
     name: "getStakedBalance",
     inputs: [
       {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
         name: "staker",
         type: "address",
         internalType: "address",
@@ -693,12 +702,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "attestedClaimId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "nextHops",
+        name: "hops",
         type: "tuple[]",
         internalType: "struct Hop[]",
         components: [
@@ -706,6 +710,11 @@ const _abi = [
             name: "pathId",
             type: "bytes32",
             internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "maxTotalSent",
@@ -734,19 +743,9 @@ const _abi = [
     name: "getWithdrawableBalance",
     inputs: [
       {
-        name: "pathId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "recipient",
+        name: "staker",
         type: "address",
         internalType: "address",
-      },
-      {
-        name: "bucketIndex",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     outputs: [
@@ -763,14 +762,19 @@ const _abi = [
     name: "getWithdrawableBalance",
     inputs: [
       {
-        name: "role",
+        name: "pathId",
         type: "bytes32",
         internalType: "bytes32",
       },
       {
-        name: "staker",
+        name: "recipient",
         type: "address",
         internalType: "address",
+      },
+      {
+        name: "bucketIndex",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
@@ -828,24 +832,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "initRole",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "minStake",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "isClaimValid",
     inputs: [
       {
@@ -872,11 +858,6 @@ const _abi = [
     type: "function",
     name: "isStaked",
     inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
       {
         name: "staker",
         type: "address",
@@ -907,14 +888,8 @@ const _abi = [
   },
   {
     type: "function",
-    name: "minHopStakeForRole",
-    inputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
+    name: "minHopStake",
+    inputs: [],
     outputs: [
       {
         name: "",
@@ -937,11 +912,6 @@ const _abi = [
         name: "challenger",
         type: "address",
         internalType: "address",
-      },
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
       },
       {
         name: "penalty",
@@ -995,6 +965,16 @@ const _abi = [
         internalType: "uint256",
       },
       {
+        name: "maxBonderFee",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "attestedClaimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
         name: "totalSent",
         type: "uint256",
         internalType: "uint256",
@@ -1003,11 +983,6 @@ const _abi = [
         name: "totalClaims",
         type: "uint256",
         internalType: "uint256",
-      },
-      {
-        name: "attestedClaimId",
-        type: "bytes32",
-        internalType: "bytes32",
       },
       {
         name: "nextHopsHash",
@@ -1063,12 +1038,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "attestedClaimId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "nextHops",
+        name: "hops",
         type: "tuple[]",
         internalType: "struct Hop[]",
         components: [
@@ -1076,6 +1046,11 @@ const _abi = [
             name: "pathId",
             type: "bytes32",
             internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "maxTotalSent",
@@ -1088,11 +1063,6 @@ const _abi = [
             internalType: "bytes32",
           },
         ],
-      },
-      {
-        name: "maxTotalSent",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     outputs: [
@@ -1142,13 +1112,31 @@ const _abi = [
   },
   {
     type: "function",
-    name: "stakeHop",
+    name: "signalPreference",
     inputs: [
       {
-        name: "role",
+        name: "pathId",
         type: "bytes32",
         internalType: "bytes32",
       },
+      {
+        name: "feeTier",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "liquidity",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "stakeHop",
+    inputs: [
       {
         name: "staker",
         type: "address",
@@ -1180,11 +1168,6 @@ const _abi = [
     type: "function",
     name: "unstakeHop",
     inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
       {
         name: "amount",
         type: "uint256",
@@ -1221,11 +1204,6 @@ const _abi = [
     type: "function",
     name: "withdraw",
     inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
       {
         name: "staker",
         type: "address",
@@ -1303,6 +1281,37 @@ const _abi = [
   },
   {
     type: "event",
+    name: "BonderPreference",
+    inputs: [
+      {
+        name: "bonder",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "pathId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "feeTier",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "liquidity",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       {
@@ -1344,6 +1353,12 @@ const _abi = [
       },
       {
         name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "bonderFee",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -1392,13 +1407,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "attestedClaimId",
-        type: "bytes32",
-        indexed: false,
-        internalType: "bytes32",
-      },
-      {
-        name: "nextHops",
+        name: "hops",
         type: "tuple[]",
         indexed: false,
         internalType: "struct Hop[]",
@@ -1407,6 +1416,11 @@ const _abi = [
             name: "pathId",
             type: "bytes32",
             internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "maxTotalSent",

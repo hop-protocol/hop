@@ -5,6 +5,8 @@
 ### Enumerations
 
 - [EventName](enums/EventName.md)
+- [MessengerEventName](enums/MessengerEventName.md)
+- [RailsGatewayEventName](enums/RailsGatewayEventName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes
@@ -54,6 +56,7 @@
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
+- [GetAmountOutInput](modules.md#getamountoutinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
@@ -228,6 +231,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `bonderFee` | `BigNumberish` |
 | `claimId` | `string` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
@@ -376,6 +380,20 @@ ___
 | `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
 | `fromChainId` | `BigNumberish` |
+
+___
+
+### <a id="getamountoutinput" name="getamountoutinput"></a> GetAmountOutInput
+
+Ƭ **GetAmountOutInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `pathId` | `string` |
 
 ___
 
@@ -1146,8 +1164,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amountOut` | `BigNumberish` |
-| `attestedClaimId` | `string` |
-| `nextHops` | `HopStruct`[] |
+| `hops` | `HopStruct`[] |
 | `to` | `string` |
 | `totalClaims` | `BigNumberish` |
 | `totalSent` | `BigNumberish` |
@@ -1295,6 +1312,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `attestedClaimId` | `string` |
+| `maxBonderFee` | `BigNumberish` |
 | `maxTotalSent` | `BigNumberish` |
 | `pathId` | `string` |
 
@@ -1338,6 +1356,7 @@ ___
 | :------ | :------ |
 | `amountOut` | `BigNumberish` |
 | `attestedClaimId` | `string` |
+| `maxBonderFee` | `BigNumberish` |
 | `nextHopsHash` | `string` |
 | `pathId` | `string` |
 | `to` | `string` |
@@ -1416,10 +1435,8 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `attestedClaimId` | `string` |
 | `fee` | `BigNumberish` |
-| `maxTotalSent` | `BigNumberish` |
-| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
+| `hops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 | `to` | `string` |
 
@@ -1703,7 +1720,7 @@ ___
 | `formatUSD` | (`amount`: `string` \| `number`) => `string` |
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
-| `getComputedNextHopsHash` | (`nextHops`: `HopStruct`[]) => `string` |
+| `getComputedNextHopsHash` | (`nextHops`: [`HopStruct`](interfaces/HopStruct.md)[]) => `string` |
 | `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
 | `getComputedTransferDataHash` | (`__namedParameters`: `Input`) => `string` |
 | `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |

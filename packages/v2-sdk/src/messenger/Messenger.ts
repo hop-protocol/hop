@@ -256,6 +256,8 @@ export enum EventName {
 export type MessengerConfig = BaseConfig
 
 export class Messenger extends Base {
+  static EventName  = EventName
+
   gasPriceOracle: GasPriceOracle
 
   constructor({ contractAddresses, signersOrProviders }: MessengerConfig) {

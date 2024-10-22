@@ -30,12 +30,14 @@ import type {
 
 export type HopStruct = {
   pathId: PromiseOrValue<BytesLike>;
+  maxBonderFee: PromiseOrValue<BigNumberish>;
   maxTotalSent: PromiseOrValue<BigNumberish>;
   attestedClaimId: PromiseOrValue<BytesLike>;
 };
 
-export type HopStructOutput = [string, BigNumber, string] & {
+export type HopStructOutput = [string, BigNumber, BigNumber, string] & {
   pathId: string;
+  maxBonderFee: BigNumber;
   maxTotalSent: BigNumber;
   attestedClaimId: string;
 };
@@ -43,52 +45,53 @@ export type HopStructOutput = [string, BigNumber, string] & {
 export interface RailsGatewayInterface extends utils.Interface {
   functions: {
     "_settleChallenge(bytes32,bool)": FunctionFragment;
-    "acceptSlash(address,bytes32,uint256,bytes)": FunctionFragment;
-    "addToAppeal(address,address,bytes32,uint256,bytes)": FunctionFragment;
-    "addToChallenge(address,address,bytes32,uint256,bytes)": FunctionFragment;
+    "acceptSlash(address,uint256,bytes)": FunctionFragment;
+    "addToAppeal(address,address,uint256,bytes)": FunctionFragment;
+    "addToChallenge(address,address,uint256,bytes)": FunctionFragment;
     "appealPeriod()": FunctionFragment;
     "batchUpdateClaimChain(bytes32,bytes32[],bytes32)": FunctionFragment;
-    "bond(bytes32,bytes32,(bytes32,uint256,bytes32)[])": FunctionFragment;
+    "bond(bytes32,bytes32,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "challengePeriod()": FunctionFragment;
     "challenges(bytes32)": FunctionFragment;
     "claimFeesFromPath(bytes32,uint256)": FunctionFragment;
     "confirmClaim(bytes32,bytes32)": FunctionFragment;
-    "createChallenge(address,bytes32,uint256,bytes)": FunctionFragment;
+    "createChallenge(address,uint256,bytes)": FunctionFragment;
     "distributeFees(bytes32,address,uint256,bytes32)": FunctionFragment;
     "forceSettleChallenge(bytes32,bool)": FunctionFragment;
     "fullAppeal()": FunctionFragment;
+    "getAmountOut(bytes32,uint256,bytes32)": FunctionFragment;
     "getBucketIndex(bytes32,bytes32)": FunctionFragment;
-    "getChallengeId(bytes32,address,uint256,address,bytes)": FunctionFragment;
+    "getChallengeId(address,uint256,address,bytes)": FunctionFragment;
     "getFee(bytes32)": FunctionFragment;
     "getFeePrice(uint256)": FunctionFragment;
     "getHeadClaim(bytes32)": FunctionFragment;
-    "getNextHopsHash((bytes32,uint256,bytes32)[])": FunctionFragment;
+    "getNextHopsHash((bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "getPathId(uint256,address,uint256,address)": FunctionFragment;
     "getPathInfo(bytes32)": FunctionFragment;
-    "getStakedBalance(bytes32,address)": FunctionFragment;
+    "getStakedBalance(address)": FunctionFragment;
     "getTotalSent(bytes32)": FunctionFragment;
-    "getTransferDataHash(address,uint256,uint256,uint256,bytes32,(bytes32,uint256,bytes32)[])": FunctionFragment;
+    "getTransferDataHash(address,uint256,uint256,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
+    "getWithdrawableBalance(address)": FunctionFragment;
     "getWithdrawableBalance(bytes32,address,uint256)": FunctionFragment;
-    "getWithdrawableBalance(bytes32,address)": FunctionFragment;
     "initPath(address,uint256,address,address,address,uint256)": FunctionFragment;
-    "initRole(bytes32,uint256)": FunctionFragment;
     "isClaimValid(bytes32,bytes32)": FunctionFragment;
-    "isStaked(bytes32,address)": FunctionFragment;
+    "isStaked(address)": FunctionFragment;
     "minChallengeIncrease()": FunctionFragment;
-    "minHopStakeForRole(bytes32)": FunctionFragment;
-    "optimisticallySettleChallenge(address,address,bytes32,uint256,bytes)": FunctionFragment;
+    "minHopStake()": FunctionFragment;
+    "optimisticallySettleChallenge(address,address,uint256,bytes)": FunctionFragment;
     "owner()": FunctionFragment;
-    "postClaim(bytes32,bytes32,address,uint256,uint256,uint256,bytes32,bytes32)": FunctionFragment;
+    "postClaim(bytes32,bytes32,address,uint256,uint256,bytes32,uint256,uint256,bytes32)": FunctionFragment;
     "removeClaim(bytes32,bytes32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "send(bytes32,address,uint256,bytes32,(bytes32,uint256,bytes32)[],uint256)": FunctionFragment;
+    "send(bytes32,address,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "setFeePrice(uint256,uint256)": FunctionFragment;
     "setFeePrices(uint256[],uint256[])": FunctionFragment;
-    "stakeHop(bytes32,address,uint256)": FunctionFragment;
+    "signalPreference(bytes32,uint256,uint256)": FunctionFragment;
+    "stakeHop(address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "unstakeHop(bytes32,uint256)": FunctionFragment;
+    "unstakeHop(uint256)": FunctionFragment;
     "updateClaimChain(bytes32,bytes32,bytes32)": FunctionFragment;
-    "withdraw(bytes32,address)": FunctionFragment;
+    "withdraw(address)": FunctionFragment;
     "withdraw(bytes32,uint256,uint256)": FunctionFragment;
     "withdrawAll(bytes32,uint256)": FunctionFragment;
     "withdrawableEth(address)": FunctionFragment;
@@ -111,6 +114,7 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "distributeFees"
       | "forceSettleChallenge"
       | "fullAppeal"
+      | "getAmountOut"
       | "getBucketIndex"
       | "getChallengeId"
       | "getFee"
@@ -122,14 +126,13 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "getStakedBalance"
       | "getTotalSent"
       | "getTransferDataHash"
+      | "getWithdrawableBalance(address)"
       | "getWithdrawableBalance(bytes32,address,uint256)"
-      | "getWithdrawableBalance(bytes32,address)"
       | "initPath"
-      | "initRole"
       | "isClaimValid"
       | "isStaked"
       | "minChallengeIncrease"
-      | "minHopStakeForRole"
+      | "minHopStake"
       | "optimisticallySettleChallenge"
       | "owner"
       | "postClaim"
@@ -138,11 +141,12 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "send"
       | "setFeePrice"
       | "setFeePrices"
+      | "signalPreference"
       | "stakeHop"
       | "transferOwnership"
       | "unstakeHop"
       | "updateClaimChain"
-      | "withdraw(bytes32,address)"
+      | "withdraw(address)"
       | "withdraw(bytes32,uint256,uint256)"
       | "withdrawAll"
       | "withdrawableEth"
@@ -156,7 +160,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "acceptSlash",
     values: [
       PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
@@ -166,7 +169,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
@@ -176,7 +178,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
@@ -195,7 +196,12 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "bond",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>, HopStruct[]]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      HopStruct[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "challengePeriod",
@@ -217,7 +223,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "createChallenge",
     values: [
       PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
@@ -240,13 +245,20 @@ export interface RailsGatewayInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getAmountOut",
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getBucketIndex",
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "getChallengeId",
     values: [
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
@@ -284,7 +296,7 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getStakedBalance",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalSent",
@@ -297,9 +309,12 @@ export interface RailsGatewayInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
       HopStruct[]
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getWithdrawableBalance(address)",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getWithdrawableBalance(bytes32,address,uint256)",
@@ -308,10 +323,6 @@ export interface RailsGatewayInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>
     ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getWithdrawableBalance(bytes32,address)",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "initPath",
@@ -325,31 +336,26 @@ export interface RailsGatewayInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "initRole",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "isClaimValid",
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "isStaked",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "minChallengeIncrease",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "minHopStakeForRole",
-    values: [PromiseOrValue<BytesLike>]
+    functionFragment: "minHopStake",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "optimisticallySettleChallenge",
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
@@ -363,8 +369,9 @@ export interface RailsGatewayInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
   ): string;
@@ -382,9 +389,7 @@ export interface RailsGatewayInterface extends utils.Interface {
       PromiseOrValue<BytesLike>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      HopStruct[],
-      PromiseOrValue<BigNumberish>
+      HopStruct[]
     ]
   ): string;
   encodeFunctionData(
@@ -396,12 +401,16 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "stakeHop",
+    functionFragment: "signalPreference",
     values: [
       PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "stakeHop",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -409,7 +418,7 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "unstakeHop",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateClaimChain",
@@ -420,8 +429,8 @@ export interface RailsGatewayInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdraw(bytes32,address)",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    functionFragment: "withdraw(address)",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw(bytes32,uint256,uint256)",
@@ -492,6 +501,10 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "fullAppeal", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getAmountOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getBucketIndex",
     data: BytesLike
   ): Result;
@@ -530,15 +543,14 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getWithdrawableBalance(bytes32,address,uint256)",
+    functionFragment: "getWithdrawableBalance(address)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getWithdrawableBalance(bytes32,address)",
+    functionFragment: "getWithdrawableBalance(bytes32,address,uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initPath", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isClaimValid",
     data: BytesLike
@@ -549,7 +561,7 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "minHopStakeForRole",
+    functionFragment: "minHopStake",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -575,6 +587,10 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "setFeePrices",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "signalPreference",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "stakeHop", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -586,7 +602,7 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "withdraw(bytes32,address)",
+    functionFragment: "withdraw(address)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -603,15 +619,31 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "BonderPreference(address,bytes32,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
-    "TransferBonded(bytes32,bytes32,address,uint256)": EventFragment;
-    "TransferSent(bytes32,bytes32,address,uint256,uint256,uint256,bytes32,tuple[])": EventFragment;
+    "TransferBonded(bytes32,bytes32,address,uint256,uint256)": EventFragment;
+    "TransferSent(bytes32,bytes32,address,uint256,uint256,uint256,tuple[])": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "BonderPreference"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBonded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSent"): EventFragment;
 }
+
+export interface BonderPreferenceEventObject {
+  bonder: string;
+  pathId: string;
+  feeTier: BigNumber;
+  liquidity: BigNumber;
+}
+export type BonderPreferenceEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  BonderPreferenceEventObject
+>;
+
+export type BonderPreferenceEventFilter =
+  TypedEventFilter<BonderPreferenceEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -630,9 +662,10 @@ export interface TransferBondedEventObject {
   claimId: string;
   to: string;
   amount: BigNumber;
+  bonderFee: BigNumber;
 }
 export type TransferBondedEvent = TypedEvent<
-  [string, string, string, BigNumber],
+  [string, string, string, BigNumber, BigNumber],
   TransferBondedEventObject
 >;
 
@@ -645,20 +678,10 @@ export interface TransferSentEventObject {
   amountOut: BigNumber;
   totalSent: BigNumber;
   totalClaims: BigNumber;
-  attestedClaimId: string;
-  nextHops: HopStructOutput[];
+  hops: HopStructOutput[];
 }
 export type TransferSentEvent = TypedEvent<
-  [
-    string,
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    string,
-    HopStructOutput[]
-  ],
+  [string, string, string, BigNumber, BigNumber, BigNumber, HopStructOutput[]],
   TransferSentEventObject
 >;
 
@@ -699,7 +722,6 @@ export interface RailsGateway extends BaseContract {
 
     acceptSlash(
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -708,7 +730,6 @@ export interface RailsGateway extends BaseContract {
     addToAppeal(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -717,7 +738,6 @@ export interface RailsGateway extends BaseContract {
     addToChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -735,6 +755,7 @@ export interface RailsGateway extends BaseContract {
     bond(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
+      bonderFee: PromiseOrValue<BigNumberish>,
       nextHops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -748,7 +769,6 @@ export interface RailsGateway extends BaseContract {
       [
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         boolean,
@@ -759,7 +779,6 @@ export interface RailsGateway extends BaseContract {
       ] & {
         staker: string;
         challenger: string;
-        role: string;
         lastUpdated: BigNumber;
         penalty: BigNumber;
         isSettled: boolean;
@@ -784,7 +803,6 @@ export interface RailsGateway extends BaseContract {
 
     createChallenge(
       staker: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -806,6 +824,13 @@ export interface RailsGateway extends BaseContract {
 
     fullAppeal(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getAmountOut(
+      pathId: PromiseOrValue<BytesLike>,
+      amount: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
     getBucketIndex(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -813,7 +838,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<[BigNumber]>;
 
     getChallengeId(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       penalty: PromiseOrValue<BigNumberish>,
       challenger: PromiseOrValue<string>,
@@ -855,7 +879,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<[BigNumber, string, BigNumber, string]>;
 
     getStakedBalance(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -870,21 +893,19 @@ export interface RailsGateway extends BaseContract {
       amountOut: PromiseOrValue<BigNumberish>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
+      hops: HopStruct[],
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    "getWithdrawableBalance(address)"(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     "getWithdrawableBalance(bytes32,address,uint256)"(
       pathId: PromiseOrValue<BytesLike>,
       recipient: PromiseOrValue<string>,
       bucketIndex: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "getWithdrawableBalance(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
-      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -898,12 +919,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    initRole(
-      role: PromiseOrValue<BytesLike>,
-      minStake: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     isClaimValid(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -911,22 +926,17 @@ export interface RailsGateway extends BaseContract {
     ): Promise<[boolean]>;
 
     isStaked(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    minHopStakeForRole(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    minHopStake(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     optimisticallySettleChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -939,9 +949,10 @@ export interface RailsGateway extends BaseContract {
       transferId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amountOut: PromiseOrValue<BigNumberish>,
+      maxBonderFee: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
       nextHopsHash: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -960,9 +971,7 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
-      maxTotalSent: PromiseOrValue<BigNumberish>,
+      hops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -978,8 +987,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    signalPreference(
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     stakeHop(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -991,7 +1006,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<ContractTransaction>;
 
     unstakeHop(
-      role: PromiseOrValue<BytesLike>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -1003,8 +1017,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "withdraw(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
+    "withdraw(address)"(
       staker: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -1036,7 +1049,6 @@ export interface RailsGateway extends BaseContract {
 
   acceptSlash(
     challenger: PromiseOrValue<string>,
-    role: PromiseOrValue<BytesLike>,
     penalty: PromiseOrValue<BigNumberish>,
     slashingData: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1045,7 +1057,6 @@ export interface RailsGateway extends BaseContract {
   addToAppeal(
     staker: PromiseOrValue<string>,
     challenger: PromiseOrValue<string>,
-    role: PromiseOrValue<BytesLike>,
     penalty: PromiseOrValue<BigNumberish>,
     slashingData: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1054,7 +1065,6 @@ export interface RailsGateway extends BaseContract {
   addToChallenge(
     staker: PromiseOrValue<string>,
     challenger: PromiseOrValue<string>,
-    role: PromiseOrValue<BytesLike>,
     penalty: PromiseOrValue<BigNumberish>,
     slashingData: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1072,6 +1082,7 @@ export interface RailsGateway extends BaseContract {
   bond(
     pathId: PromiseOrValue<BytesLike>,
     claimId: PromiseOrValue<BytesLike>,
+    bonderFee: PromiseOrValue<BigNumberish>,
     nextHops: HopStruct[],
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1085,7 +1096,6 @@ export interface RailsGateway extends BaseContract {
     [
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       boolean,
@@ -1096,7 +1106,6 @@ export interface RailsGateway extends BaseContract {
     ] & {
       staker: string;
       challenger: string;
-      role: string;
       lastUpdated: BigNumber;
       penalty: BigNumber;
       isSettled: boolean;
@@ -1121,7 +1130,6 @@ export interface RailsGateway extends BaseContract {
 
   createChallenge(
     staker: PromiseOrValue<string>,
-    role: PromiseOrValue<BytesLike>,
     penalty: PromiseOrValue<BigNumberish>,
     slashingData: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1143,6 +1151,13 @@ export interface RailsGateway extends BaseContract {
 
   fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getAmountOut(
+    pathId: PromiseOrValue<BytesLike>,
+    amount: PromiseOrValue<BigNumberish>,
+    attestedClaimId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getBucketIndex(
     pathId: PromiseOrValue<BytesLike>,
     claimId: PromiseOrValue<BytesLike>,
@@ -1150,7 +1165,6 @@ export interface RailsGateway extends BaseContract {
   ): Promise<BigNumber>;
 
   getChallengeId(
-    role: PromiseOrValue<BytesLike>,
     staker: PromiseOrValue<string>,
     penalty: PromiseOrValue<BigNumberish>,
     challenger: PromiseOrValue<string>,
@@ -1192,7 +1206,6 @@ export interface RailsGateway extends BaseContract {
   ): Promise<[BigNumber, string, BigNumber, string]>;
 
   getStakedBalance(
-    role: PromiseOrValue<BytesLike>,
     staker: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1207,21 +1220,19 @@ export interface RailsGateway extends BaseContract {
     amountOut: PromiseOrValue<BigNumberish>,
     totalSent: PromiseOrValue<BigNumberish>,
     totalClaims: PromiseOrValue<BigNumberish>,
-    attestedClaimId: PromiseOrValue<BytesLike>,
-    nextHops: HopStruct[],
+    hops: HopStruct[],
     overrides?: CallOverrides
   ): Promise<string>;
+
+  "getWithdrawableBalance(address)"(
+    staker: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   "getWithdrawableBalance(bytes32,address,uint256)"(
     pathId: PromiseOrValue<BytesLike>,
     recipient: PromiseOrValue<string>,
     bucketIndex: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "getWithdrawableBalance(bytes32,address)"(
-    role: PromiseOrValue<BytesLike>,
-    staker: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1235,12 +1246,6 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  initRole(
-    role: PromiseOrValue<BytesLike>,
-    minStake: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   isClaimValid(
     pathId: PromiseOrValue<BytesLike>,
     claimId: PromiseOrValue<BytesLike>,
@@ -1248,22 +1253,17 @@ export interface RailsGateway extends BaseContract {
   ): Promise<boolean>;
 
   isStaked(
-    role: PromiseOrValue<BytesLike>,
     staker: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
-  minHopStakeForRole(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
   optimisticallySettleChallenge(
     staker: PromiseOrValue<string>,
     challenger: PromiseOrValue<string>,
-    role: PromiseOrValue<BytesLike>,
     penalty: PromiseOrValue<BigNumberish>,
     slashingData: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1276,9 +1276,10 @@ export interface RailsGateway extends BaseContract {
     transferId: PromiseOrValue<BytesLike>,
     to: PromiseOrValue<string>,
     amountOut: PromiseOrValue<BigNumberish>,
+    maxBonderFee: PromiseOrValue<BigNumberish>,
+    attestedClaimId: PromiseOrValue<BytesLike>,
     totalSent: PromiseOrValue<BigNumberish>,
     totalClaims: PromiseOrValue<BigNumberish>,
-    attestedClaimId: PromiseOrValue<BytesLike>,
     nextHopsHash: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1297,9 +1298,7 @@ export interface RailsGateway extends BaseContract {
     pathId: PromiseOrValue<BytesLike>,
     to: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
-    attestedClaimId: PromiseOrValue<BytesLike>,
-    nextHops: HopStruct[],
-    maxTotalSent: PromiseOrValue<BigNumberish>,
+    hops: HopStruct[],
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1315,8 +1314,14 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  signalPreference(
+    pathId: PromiseOrValue<BytesLike>,
+    feeTier: PromiseOrValue<BigNumberish>,
+    liquidity: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   stakeHop(
-    role: PromiseOrValue<BytesLike>,
     staker: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1328,7 +1333,6 @@ export interface RailsGateway extends BaseContract {
   ): Promise<ContractTransaction>;
 
   unstakeHop(
-    role: PromiseOrValue<BytesLike>,
     amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1340,8 +1344,7 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "withdraw(bytes32,address)"(
-    role: PromiseOrValue<BytesLike>,
+  "withdraw(address)"(
     staker: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1373,7 +1376,6 @@ export interface RailsGateway extends BaseContract {
 
     acceptSlash(
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -1382,7 +1384,6 @@ export interface RailsGateway extends BaseContract {
     addToAppeal(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -1391,7 +1392,6 @@ export interface RailsGateway extends BaseContract {
     addToChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -1409,6 +1409,7 @@ export interface RailsGateway extends BaseContract {
     bond(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
+      bonderFee: PromiseOrValue<BigNumberish>,
       nextHops: HopStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1422,7 +1423,6 @@ export interface RailsGateway extends BaseContract {
       [
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         boolean,
@@ -1433,7 +1433,6 @@ export interface RailsGateway extends BaseContract {
       ] & {
         staker: string;
         challenger: string;
-        role: string;
         lastUpdated: BigNumber;
         penalty: BigNumber;
         isSettled: boolean;
@@ -1458,7 +1457,6 @@ export interface RailsGateway extends BaseContract {
 
     createChallenge(
       staker: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -1480,6 +1478,13 @@ export interface RailsGateway extends BaseContract {
 
     fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAmountOut(
+      pathId: PromiseOrValue<BytesLike>,
+      amount: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getBucketIndex(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -1487,7 +1492,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     getChallengeId(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       penalty: PromiseOrValue<BigNumberish>,
       challenger: PromiseOrValue<string>,
@@ -1529,7 +1533,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<[BigNumber, string, BigNumber, string]>;
 
     getStakedBalance(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1544,21 +1547,19 @@ export interface RailsGateway extends BaseContract {
       amountOut: PromiseOrValue<BigNumberish>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
+      hops: HopStruct[],
       overrides?: CallOverrides
     ): Promise<string>;
+
+    "getWithdrawableBalance(address)"(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     "getWithdrawableBalance(bytes32,address,uint256)"(
       pathId: PromiseOrValue<BytesLike>,
       recipient: PromiseOrValue<string>,
       bucketIndex: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getWithdrawableBalance(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
-      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1572,12 +1573,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    initRole(
-      role: PromiseOrValue<BytesLike>,
-      minStake: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     isClaimValid(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -1585,22 +1580,17 @@ export interface RailsGateway extends BaseContract {
     ): Promise<boolean>;
 
     isStaked(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minHopStakeForRole(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticallySettleChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -1613,9 +1603,10 @@ export interface RailsGateway extends BaseContract {
       transferId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amountOut: PromiseOrValue<BigNumberish>,
+      maxBonderFee: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
       nextHopsHash: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1632,9 +1623,7 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
-      maxTotalSent: PromiseOrValue<BigNumberish>,
+      hops: HopStruct[],
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1650,8 +1639,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    signalPreference(
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     stakeHop(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1663,7 +1658,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<void>;
 
     unstakeHop(
-      role: PromiseOrValue<BytesLike>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1675,8 +1669,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "withdraw(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
+    "withdraw(address)"(
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1701,6 +1694,19 @@ export interface RailsGateway extends BaseContract {
   };
 
   filters: {
+    "BonderPreference(address,bytes32,uint256,uint256)"(
+      bonder?: PromiseOrValue<string> | null,
+      pathId?: PromiseOrValue<BytesLike> | null,
+      feeTier?: PromiseOrValue<BigNumberish> | null,
+      liquidity?: null
+    ): BonderPreferenceEventFilter;
+    BonderPreference(
+      bonder?: PromiseOrValue<string> | null,
+      pathId?: PromiseOrValue<BytesLike> | null,
+      feeTier?: PromiseOrValue<BigNumberish> | null,
+      liquidity?: null
+    ): BonderPreferenceEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
@@ -1710,28 +1716,29 @@ export interface RailsGateway extends BaseContract {
       newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
 
-    "TransferBonded(bytes32,bytes32,address,uint256)"(
+    "TransferBonded(bytes32,bytes32,address,uint256,uint256)"(
       pathId?: PromiseOrValue<BytesLike> | null,
       claimId?: PromiseOrValue<BytesLike> | null,
       to?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
+      bonderFee?: null
     ): TransferBondedEventFilter;
     TransferBonded(
       pathId?: PromiseOrValue<BytesLike> | null,
       claimId?: PromiseOrValue<BytesLike> | null,
       to?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
+      bonderFee?: null
     ): TransferBondedEventFilter;
 
-    "TransferSent(bytes32,bytes32,address,uint256,uint256,uint256,bytes32,tuple[])"(
+    "TransferSent(bytes32,bytes32,address,uint256,uint256,uint256,tuple[])"(
       pathId?: PromiseOrValue<BytesLike> | null,
       transferId?: PromiseOrValue<BytesLike> | null,
       to?: PromiseOrValue<string> | null,
       amountOut?: null,
       totalSent?: null,
       totalClaims?: null,
-      attestedClaimId?: null,
-      nextHops?: null
+      hops?: null
     ): TransferSentEventFilter;
     TransferSent(
       pathId?: PromiseOrValue<BytesLike> | null,
@@ -1740,8 +1747,7 @@ export interface RailsGateway extends BaseContract {
       amountOut?: null,
       totalSent?: null,
       totalClaims?: null,
-      attestedClaimId?: null,
-      nextHops?: null
+      hops?: null
     ): TransferSentEventFilter;
   };
 
@@ -1754,7 +1760,6 @@ export interface RailsGateway extends BaseContract {
 
     acceptSlash(
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1763,7 +1768,6 @@ export interface RailsGateway extends BaseContract {
     addToAppeal(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1772,7 +1776,6 @@ export interface RailsGateway extends BaseContract {
     addToChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1790,6 +1793,7 @@ export interface RailsGateway extends BaseContract {
     bond(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
+      bonderFee: PromiseOrValue<BigNumberish>,
       nextHops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1815,7 +1819,6 @@ export interface RailsGateway extends BaseContract {
 
     createChallenge(
       staker: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1837,6 +1840,13 @@ export interface RailsGateway extends BaseContract {
 
     fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAmountOut(
+      pathId: PromiseOrValue<BytesLike>,
+      amount: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getBucketIndex(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -1844,7 +1854,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     getChallengeId(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       penalty: PromiseOrValue<BigNumberish>,
       challenger: PromiseOrValue<string>,
@@ -1886,7 +1895,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     getStakedBalance(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1901,8 +1909,12 @@ export interface RailsGateway extends BaseContract {
       amountOut: PromiseOrValue<BigNumberish>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
+      hops: HopStruct[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getWithdrawableBalance(address)"(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1910,12 +1922,6 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       recipient: PromiseOrValue<string>,
       bucketIndex: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getWithdrawableBalance(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
-      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1929,12 +1935,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    initRole(
-      role: PromiseOrValue<BytesLike>,
-      minStake: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     isClaimValid(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -1942,22 +1942,17 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     isStaked(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minHopStakeForRole(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticallySettleChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1970,9 +1965,10 @@ export interface RailsGateway extends BaseContract {
       transferId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amountOut: PromiseOrValue<BigNumberish>,
+      maxBonderFee: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
       nextHopsHash: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1991,9 +1987,7 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
-      maxTotalSent: PromiseOrValue<BigNumberish>,
+      hops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -2009,8 +2003,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    signalPreference(
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     stakeHop(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -2022,7 +2022,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     unstakeHop(
-      role: PromiseOrValue<BytesLike>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -2034,8 +2033,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "withdraw(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
+    "withdraw(address)"(
       staker: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -2068,7 +2066,6 @@ export interface RailsGateway extends BaseContract {
 
     acceptSlash(
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -2077,7 +2074,6 @@ export interface RailsGateway extends BaseContract {
     addToAppeal(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -2086,7 +2082,6 @@ export interface RailsGateway extends BaseContract {
     addToChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -2104,6 +2099,7 @@ export interface RailsGateway extends BaseContract {
     bond(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
+      bonderFee: PromiseOrValue<BigNumberish>,
       nextHops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -2129,7 +2125,6 @@ export interface RailsGateway extends BaseContract {
 
     createChallenge(
       staker: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -2151,6 +2146,13 @@ export interface RailsGateway extends BaseContract {
 
     fullAppeal(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getAmountOut(
+      pathId: PromiseOrValue<BytesLike>,
+      amount: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getBucketIndex(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -2158,7 +2160,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getChallengeId(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       penalty: PromiseOrValue<BigNumberish>,
       challenger: PromiseOrValue<string>,
@@ -2200,7 +2201,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getStakedBalance(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2215,8 +2215,12 @@ export interface RailsGateway extends BaseContract {
       amountOut: PromiseOrValue<BigNumberish>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
+      hops: HopStruct[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getWithdrawableBalance(address)"(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2224,12 +2228,6 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       recipient: PromiseOrValue<string>,
       bucketIndex: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getWithdrawableBalance(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
-      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2243,12 +2241,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    initRole(
-      role: PromiseOrValue<BytesLike>,
-      minStake: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     isClaimValid(
       pathId: PromiseOrValue<BytesLike>,
       claimId: PromiseOrValue<BytesLike>,
@@ -2256,7 +2248,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isStaked(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2265,15 +2256,11 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    minHopStakeForRole(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    minHopStake(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticallySettleChallenge(
       staker: PromiseOrValue<string>,
       challenger: PromiseOrValue<string>,
-      role: PromiseOrValue<BytesLike>,
       penalty: PromiseOrValue<BigNumberish>,
       slashingData: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -2286,9 +2273,10 @@ export interface RailsGateway extends BaseContract {
       transferId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amountOut: PromiseOrValue<BigNumberish>,
+      maxBonderFee: PromiseOrValue<BigNumberish>,
+      attestedClaimId: PromiseOrValue<BytesLike>,
       totalSent: PromiseOrValue<BigNumberish>,
       totalClaims: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
       nextHopsHash: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -2307,9 +2295,7 @@ export interface RailsGateway extends BaseContract {
       pathId: PromiseOrValue<BytesLike>,
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      attestedClaimId: PromiseOrValue<BytesLike>,
-      nextHops: HopStruct[],
-      maxTotalSent: PromiseOrValue<BigNumberish>,
+      hops: HopStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2325,8 +2311,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    signalPreference(
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     stakeHop(
-      role: PromiseOrValue<BytesLike>,
       staker: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -2338,7 +2330,6 @@ export interface RailsGateway extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     unstakeHop(
-      role: PromiseOrValue<BytesLike>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -2350,8 +2341,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "withdraw(bytes32,address)"(
-      role: PromiseOrValue<BytesLike>,
+    "withdraw(address)"(
       staker: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

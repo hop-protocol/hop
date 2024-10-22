@@ -21,6 +21,7 @@
 - [l1ChainId](Messenger.md#l1chainid)
 - [network](Messenger.md#network)
 - [signersOrProviders](Messenger.md#signersorproviders)
+- [EventName](Messenger.md#eventname)
 
 ### Accessors
 
@@ -202,6 +203,12 @@ ___
 #### Inherited from
 
 Base.signersOrProviders
+
+___
+
+### <a id="eventname" name="eventname"></a> EventName
+
+▪ `Static` **EventName**: typeof [`MessengerEventName`](../enums/MessengerEventName.md) = `EventName`
 
 ## Accessors
 
@@ -602,7 +609,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `EventName` |
+| `eventName` | [`MessengerEventName`](../enums/MessengerEventName.md) |
 | `chainId` | `BigNumberish` |
 
 #### Returns

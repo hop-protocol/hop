@@ -158,6 +158,7 @@ export function generateMockHopStruct(): HopStruct {
   return {
     pathId: generateRandomBytes32(),
     maxTotalSent: generateRandomUint256(),
+    maxBonderFee: generateRandomUint256(),
     attestedClaimId: generateRandomBytes32()
   }
 }
@@ -173,7 +174,6 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
     amountOut: generateRandomUint256(),
     totalSent: generateRandomUint256(),
     totalClaims: generateRandomUint256(),
-    attestedClaimId: generateRandomBytes32(),
     nextHops: nextHops,
   }
 }
@@ -185,6 +185,7 @@ export function generateMockTransferBonded(): TransferBonded {
     claimId: generateRandomBytes32(),
     to: generateRandomAddress(),
     amount: generateRandomUint256(),
+    bonderFee: generateRandomUint256(),
   }
 }
 

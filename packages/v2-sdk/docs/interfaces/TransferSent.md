@@ -5,8 +5,7 @@
 ### Properties
 
 - [amountOut](TransferSent.md#amountout)
-- [attestedClaimId](TransferSent.md#attestedclaimid)
-- [nextHops](TransferSent.md#nexthops)
+- [hops](TransferSent.md#hops)
 - [pathId](TransferSent.md#pathid)
 - [to](TransferSent.md#to)
 - [totalClaims](TransferSent.md#totalclaims)
@@ -21,15 +20,9 @@
 
 ___
 
-### <a id="attestedclaimid" name="attestedclaimid"></a> attestedClaimId
+### <a id="hops" name="hops"></a> hops
 
-• **attestedClaimId**: `string`
-
-___
-
-### <a id="nexthops" name="nexthops"></a> nextHops
-
-• **nextHops**: [`HopStruct`](HopStruct.md)[]
+• **hops**: [`HopStruct`](HopStruct.md)[]
 
 ___
 

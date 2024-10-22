@@ -50,6 +50,10 @@ export function RailsGatewayPostClaim (props: Props) {
     defaultValue: '',
   })
 
+  const [maxBonderFee, setMaxBonderFee] = useLocalStorageState(`${cacheKey}:maxBonderFee`, {
+    defaultValue: '',
+  })
+
   const [totalClaims, setTotalClaims] = useLocalStorageState(`${cacheKey}:totalClaims`, {
     defaultValue: '',
   })
@@ -83,6 +87,7 @@ export function RailsGatewayPostClaim (props: Props) {
       transferId,
       to: toAddress,
       amountOut,
+      maxBonderFee,
       totalSent,
       totalClaims,
       attestedClaimId,
@@ -129,6 +134,7 @@ async function main() {
   const transferId = "${transferId}"
   const to = "${toAddress}"
   const amountOut = "${amountOut}"
+  const maxBonderFee = "${maxBonderFee}"
   const totalSent = "${totalSent}"
   const totalClaims = "${totalClaims}"
   const attestedClaimId = "${attestedClaimId}"
@@ -140,6 +146,7 @@ async function main() {
     transferId,
     to,
     amountOut,
+    maxBonderFee,
     totalSent,
     totalClaims,
     attestedClaimId,
@@ -211,6 +218,13 @@ main().catch(console.error)
                   <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount out of transfer sent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setMaxBonderFee(event.target.value)} />
               </Box>
 
               <Box mb={2}>

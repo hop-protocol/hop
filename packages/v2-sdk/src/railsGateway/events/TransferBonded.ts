@@ -8,6 +8,7 @@ export interface TransferBonded {
   claimId: string
   to: string
   amount: BigNumber
+  bonderFee: BigNumber
 }
 
 export type TransferBondedIndexes = {
@@ -46,12 +47,14 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     const claimId = parsed.args.claimId.toString()
     const to = parsed.args.to
     const amount = parsed.args.amount
+    const bonderFee = parsed.args.bonderFee
 
     return {
       pathId,
       claimId,
       to,
-      amount
+      amount,
+      bonderFee
     }
   }
 }

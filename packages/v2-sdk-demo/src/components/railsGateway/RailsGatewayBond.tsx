@@ -47,8 +47,12 @@ export function RailsGatewayBond (props: Props) {
     defaultValue: '',
   })
 
+  const [bonderFee, setBonderFee] = useLocalStorageState(`${cacheKey}:bonderFee`, {
+    defaultValue: '',
+  })
+
   const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
-    defaultValue: [{ pathId: '', maxTotalSent: '', attestedClaimId: '' }],
+    defaultValue: [{ pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }],
   })
 
   const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
@@ -70,6 +74,7 @@ export function RailsGatewayBond (props: Props) {
     const args = {
       pathId,
       claimId,
+      bonderFee,
       nextHops,
     }
     console.log('args', args)
@@ -116,7 +121,7 @@ export function RailsGatewayBond (props: Props) {
   }
 
   function addHop() {
-    setNextHops([...nextHops, { pathId: '', maxTotalSent: '', attestedClaimId: '' }])
+    setNextHops([...nextHops, { pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }])
   }
 
   const code = `
@@ -130,12 +135,14 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const claimId = "${claimId}"
+  const bonderFee = "${bonderFee}"
   const nextHops = "${JSON.stringify(nextHops, null, 2)}"
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.bond({
     pathId,
     claimId,
+    bonderFee,
     nextHops
   })
   ${populateTxDataOnly ? (
@@ -199,13 +206,26 @@ main().catch(console.error)
                 <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Bonder Fee <small><em>(uint256)</em></small> <small><em>Bonder fee</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={bonderFee} onChange={(event: any) => setBonderFee(event.target.value)} />
+              </Box>
+
               <Stepper orientation="vertical">
                 {nextHops.map((hop: any, index: number) => {
-                  const { pathId, maxTotalSent, attestedClaimId } = hop
+                  const { pathId, maxBonderFee, maxTotalSent, attestedClaimId } = hop
 
                   function setHopPathId (value: string) {
                     const newHops = [...nextHops]
                     newHops[index].pathId = value
+                    setNextHops(newHops)
+                  }
+
+                  function setMaxBonderFee (value: string) {
+                    const newHops = [...nextHops]
+                    newHops[index].maxBonderFee = value
                     setNextHops(newHops)
                   }
 
@@ -234,6 +254,13 @@ main().catch(console.error)
                           <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
                         </Box>
                         <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setHopPathId(event.target.value)} />
+                      </Box>
+
+                      <Box mb={2}>
+                        <Box mb={1}>
+                          <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
+                        </Box>
+                        <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setMaxBonderFee(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>

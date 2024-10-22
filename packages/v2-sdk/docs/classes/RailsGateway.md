@@ -21,6 +21,7 @@
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
 - [signersOrProviders](RailsGateway.md#signersorproviders)
+- [EventName](RailsGateway.md#eventname)
 
 ### Accessors
 
@@ -44,6 +45,7 @@
 - [createChallenge](RailsGateway.md#createchallenge)
 - [distributeFees](RailsGateway.md#distributefees)
 - [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
+- [getAmountOut](RailsGateway.md#getamountout)
 - [getAppealPeriod](RailsGateway.md#getappealperiod)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
@@ -232,6 +234,12 @@ ___
 #### Inherited from
 
 StakingRegistry.signersOrProviders
+
+___
+
+### <a id="eventname" name="eventname"></a> EventName
+
+▪ `Static` **EventName**: typeof [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) = `EventName`
 
 ## Accessors
 
@@ -576,6 +584,22 @@ StakingRegistry.forceSettleChallenge
 
 ___
 
+### <a id="getamountout" name="getamountout"></a> getAmountOut
+
+▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetAmountOutInput`](../modules.md#getamountoutinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
 ### <a id="getappealperiod" name="getappealperiod"></a> getAppealPeriod
 
 ▸ **getAppealPeriod**(`chainId`): `Promise`\<`any`\>
@@ -850,7 +874,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `EventName` |
+| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
 
 #### Returns
 
@@ -866,7 +890,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `EventName` |
+| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
 | `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
 
 #### Returns

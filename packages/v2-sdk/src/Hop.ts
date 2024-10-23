@@ -239,7 +239,7 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
-        const nextChainId = '11155111' // TODO: make dynamic
+        const nextChainId = '42069' // TODO: make dynamic
         const tokenSymbol = 'MOCK' // TODO
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
@@ -250,7 +250,7 @@ export class Hop extends Base {
           token1: nextToken
         })
 
-        const destPathId = await this.getRailsGateway(originChainId).getPathId({
+        const destPathId = await this.getRailsGateway(nextChainId).getPathId({
           chainId0: nextChainId,
           token0: nextToken,
           chainId1: destChainId,

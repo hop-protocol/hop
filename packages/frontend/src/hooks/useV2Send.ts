@@ -496,7 +496,7 @@ export function useV2Send(): V2SendHook {
   const { priceUsd: tokenPriceUsd } = useTokenPrice(tokenSymbol)
   const fromBalanceUsdDisplay = useMemo(() => {
     if ((amountIn !== '' && amountIn != null) && tokenPriceUsd) {
-      const value = parseFloat(amountIn) * parseFloat(tokenPriceUsd)
+      const value = Number(amountIn) * Number(tokenPriceUsd?.toString())
       return formatUSD(value)
     }
     return ''

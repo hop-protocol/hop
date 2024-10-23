@@ -58,9 +58,7 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
     const filter = railsGateway.getTransferSentEventFilter({
-      indexes: {
-        transferId
-      }
+      transferId
     })
 
     console.log(filter)
@@ -78,11 +76,9 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
     const filter = railsGateway.getTransferSentEventFilter({
-      indexes: {
-        pathId,
-        transferId,
-        to
-      }
+      pathId,
+      transferId,
+      to
     })
 
     console.log(filter)
@@ -111,9 +107,7 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
     const filter = railsGateway.getTransferBondedEventFilter({
-      indexes: {
-        transferId
-      }
+      transferId
     })
 
     console.log(filter)

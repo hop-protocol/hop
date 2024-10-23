@@ -1446,13 +1446,13 @@ ___
 
 ### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
 
-▸ **getTransferBondedEventFilter**(`«destructured»?`): `any`
+▸ **getTransferBondedEventFilter**(`input?`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetTransferBondedEventFilterInput`](../modules.md#gettransferbondedeventfilterinput) |
+| `input` | `TransferBondedIndexes` |
 
 #### Returns
 
@@ -1558,13 +1558,13 @@ ___
 
 ### <a id="gettransfersenteventfilter" name="gettransfersenteventfilter"></a> getTransferSentEventFilter
 
-▸ **getTransferSentEventFilter**(`«destructured»?`): `any`
+▸ **getTransferSentEventFilter**(`input?`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetTransferSentEventFilterInput`](../modules.md#gettransfersenteventfilterinput) |
+| `input` | `TransferSentIndexes` |
 
 #### Returns
 

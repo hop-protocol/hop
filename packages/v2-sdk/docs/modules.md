@@ -494,13 +494,7 @@ ___
 
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
-Ƭ **GetEventFilterInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `indexes?` | `TransferSentIndexes` \| `TransferBondedIndexes` |
+Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes`
 
 ___
 
@@ -1108,13 +1102,7 @@ ___
 
 ### <a id="gettransferbondedeventfilterinput" name="gettransferbondedeventfilterinput"></a> GetTransferBondedEventFilterInput
 
-Ƭ **GetTransferBondedEventFilterInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `indexes?` | `TransferBondedIndexes` |
+Ƭ **GetTransferBondedEventFilterInput**: `TransferBondedIndexes`
 
 ___
 
@@ -1204,13 +1192,7 @@ ___
 
 ### <a id="gettransfersenteventfilterinput" name="gettransfersenteventfilterinput"></a> GetTransferSentEventFilterInput
 
-Ƭ **GetTransferSentEventFilterInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `indexes?` | `TransferSentIndexes` |
+Ƭ **GetTransferSentEventFilterInput**: `TransferSentIndexes`
 
 ___
 

@@ -922,7 +922,7 @@ export class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain)
+    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain, destinationChain)
     const isLiquidityAvailable = availableLiquidity.gte(amountIn)
     const lpFeeBps = BigNumber.from(0)
     const requiredLiquidity = amountIn

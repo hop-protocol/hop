@@ -1655,10 +1655,16 @@ export class HopBridge extends Base {
   }
 
   async #getAvailableLiquidityCctp (
-    sourceChain: TChain
+    sourceChain: TChain,
+    destinationChain: TChain
   ): Promise<BigNumber> {
     const isEnabled = await this.getIsCctpEnabled()
     if (!isEnabled) {
+      return BigNumber.from(0)
+    }
+
+    destinationChain = this.toChainModel(destinationChain)
+    if (ChainSlug.Polygon === destinationChain.slug) {
       return BigNumber.from(0)
     }
 
@@ -1692,7 +1698,7 @@ export class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge({isHTokenSend})) {
-      return this.#getAvailableLiquidityCctp(sourceChain)
+      return this.#getAvailableLiquidityCctp(sourceChain, destinationChain)
     }
 
     sourceChain = this.toChainModel(sourceChain)

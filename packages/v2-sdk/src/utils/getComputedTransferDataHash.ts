@@ -17,7 +17,7 @@ export function getComputedTransferDataHash(
 ): string {
   return ethers.utils.keccak256(
     ethers.utils.defaultAbiCoder.encode(
-      ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes32'],
+      ['address', 'uint256', 'uint256', 'bytes32', 'uint256', 'uint256', 'bytes32'],
       [
         to,
         amountOut,

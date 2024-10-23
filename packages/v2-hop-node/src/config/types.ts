@@ -1,6 +1,6 @@
-import type{ ISharedConfig } from './configs/SharedConfig.js'
-import type { ISignerConfig } from './configs/SignerConfig.js'
-import type { ICLIConfig } from './configs/CLIConfig.js'
+import type{ ISharedConfig } from './configs/shared/SharedConfig.js'
+import type { ISignerConfig } from './configs/signer/SignerConfig.js'
+import type { ICLIConfig } from './configs/cli/CLIConfig.js'
 import type { IRailsConfig } from './configs/client/RailsConfig.js'
 import type { ICCTPConfig } from './configs/client/CCTPConfig.js'
 

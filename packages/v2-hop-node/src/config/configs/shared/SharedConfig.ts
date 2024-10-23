@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { ConfigManager } from '../ConfigManager.js'
+import { ConfigManager } from '../../ConfigManager.js'
 import { mkdirp } from 'mkdirp'
 
 export interface ISharedConfig {

@@ -1,6 +1,6 @@
 import { SyncType } from '#constants/index.js'
 import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
-import { ConfigManager } from '../ConfigManager.js'
+import { ConfigManager } from '../../ConfigManager.js'
 import { providers } from 'ethers'
 import { getChain } from '@hop-protocol/sdk'
 import { isValidUrl } from '#utils/isValidUrl.js'
@@ -20,6 +20,7 @@ export interface ISignerConfig {
   blocknativeApiKey: string
   bonderPrivateKey: string
   chains: Chains
+  // signer
   calldataValidationClientUrl?: string
   stateValidationClientUrl?: string
   validationStatusEndpoint?: string

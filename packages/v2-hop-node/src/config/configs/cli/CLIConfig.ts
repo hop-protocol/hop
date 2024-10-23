@@ -1,5 +1,5 @@
 import type { ClientName } from '#clients/index.js'
-import { ConfigManager } from '../ConfigManager.js'
+import { ConfigManager } from '../../ConfigManager.js'
 
 export interface ICLIConfig {
   customConfigPath: string

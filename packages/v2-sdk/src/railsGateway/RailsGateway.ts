@@ -217,17 +217,11 @@ export type GetTokenContractInput = {
   address: string
 }
 
-export type GetEventFilterInput = {
-  indexes?: TransferSentIndexes | TransferBondedIndexes
-}
+export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes
 
-export type GetTransferSentEventFilterInput = {
-  indexes?: TransferSentIndexes
-}
+export type GetTransferSentEventFilterInput = TransferSentIndexes
 
-export type GetTransferBondedEventFilterInput = {
-  indexes?: TransferBondedIndexes
-}
+export type GetTransferBondedEventFilterInput = TransferBondedIndexes
 
 export type Token = {
   chainId: string
@@ -372,14 +366,14 @@ export class RailsGateway extends StakingRegistry {
     throw new InputError(`event name ${eventName} not found`)
   }
 
-  getTransferSentEventFilter({ indexes = {} }: GetTransferSentEventFilterInput = {}) {
+  getTransferSentEventFilter(input: GetTransferSentEventFilterInput = {}) {
     const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    return eventFetcher.getFilterWithIndexes(indexes)
+    return eventFetcher.getFilterWithIndexes(input)
   }
 
-  getTransferBondedEventFilter({ indexes = {} }: GetTransferBondedEventFilterInput = {}) {
+  getTransferBondedEventFilter(input: GetTransferBondedEventFilterInput = {}) {
     const eventFetcher = this.getEventFetcher(EventName.TransferBonded)
-    return eventFetcher.getFilterWithIndexes(indexes)
+    return eventFetcher.getFilterWithIndexes(input)
   }
 
   addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {

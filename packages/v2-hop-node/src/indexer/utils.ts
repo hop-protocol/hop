@@ -2,7 +2,7 @@ import { getChain } from '@hop-protocol/sdk'
 import { MAX_BLOCK_RANGE_PER_GET_LOG_CALL } from '#constants/index.js'
 import { FinalityService } from '#finality/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import type { ChainSlug } from '@hop-protocol/sdk'
 
 /**
@@ -22,7 +22,7 @@ export async function getIndexerSyncBlockNumber (chainId: string): Promise<numbe
   const chainSlug = getChain(chainId).slug
   const provider = getRpcProvider(chainSlug)
 
-  const syncType = SignerConfig.chains[chainSlug as ChainSlug]?.syncType
+  const syncType = Config.SignerConfig.shared.chains[chainSlug as ChainSlug]?.syncType
   const finalityService = new FinalityService(
     provider,
     chainSlug,

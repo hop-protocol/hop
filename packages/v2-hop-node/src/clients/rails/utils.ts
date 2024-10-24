@@ -1,5 +1,5 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
-import { ClientConfig, SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import { getPathId } from './RailsSDKWrapper.js'
 import type { RailsPath } from './types.js'
 import type { RequiredEventFilter } from '#types/index.js'
@@ -23,7 +23,7 @@ const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, numbe
 
 export function getRailsStartBlockNumber (chainId: string): number {
   const chainSlug = getChain(chainId).slug
-  return (DEFAULT_START_BLOCK_NUMBER as any)[SignerConfig.network as NetworkSlug][chainSlug]
+  return (DEFAULT_START_BLOCK_NUMBER as any)[Config.GlobalConfig.options.network as NetworkSlug][chainSlug]
 }
 
 /**
@@ -60,7 +60,7 @@ export function aggregateFilters(filters: RequiredEventFilter[]): RequiredEventF
  */
 
 export function getPathFromPathId (pathId: string): RailsPath {
-  const paths: RailsPath[] = ClientConfig.RailsConfig.paths
+  const paths: RailsPath[] = Config.ClientConfig.rails.paths
   const path: RailsPath | undefined = paths.find(path => getPathId(path) === pathId)
   if (!path) {
     throw new Error(`Path not found for pathId: ${pathId}`)

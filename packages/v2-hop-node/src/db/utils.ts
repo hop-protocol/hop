@@ -1,10 +1,10 @@
 import path from 'node:path'
-import { SharedConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 import { BigNumber } from 'ethers'
 
 export function getDBPath (dbNameOrLocation: string): string {
-  const dbPath = SharedConfig.dbDir
+  const dbPath = Config.GlobalConfig.options.dbDir
   const pathname = path.resolve(dbPath, dbNameOrLocation)
   mkdirp.sync(pathname.replace(path.basename(pathname), ''))
   return pathname

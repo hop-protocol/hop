@@ -3,7 +3,7 @@ import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
-import { CLIConfig, SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 
 const cache: Record<string, Signer> = {}
 
@@ -25,14 +25,7 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
   const provider = getRpcProvider(network as ChainSlug)
   const wallet = new Wallet(privateKey, provider)
 
-  const validationOptions: ValidationOptions = {
-    clientName: CLIConfig.clientName,
-    validationStatusEndpoint: SignerConfig.validationStatusEndpoint,
-    validationClientUrls: {
-      calldataValidationClientUrl: SignerConfig.calldataValidationClientUrl,
-      stateValidationClientUrl: SignerConfig.stateValidationClientUrl
-    }
-  }
+  const validationOptions: ValidationOptions = Config.SignerConfig.validation
   const signer = new HopSigner(wallet, validationOptions)
   cache[cacheKey] = signer
   return signer
@@ -41,11 +34,11 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
 // lazy instantiate
 export const wallets = {
   has (networkOrChainId: string): boolean {
-    const privateKey = SignerConfig.bonderPrivateKey
+    const privateKey = Config.SignerConfig.shared.bonderPrivateKey
     return !!constructSigner(networkOrChainId, privateKey)
   },
   get (networkOrChainId: string): Signer {
-    const privateKey = SignerConfig.bonderPrivateKey
+    const privateKey = Config.SignerConfig.shared.bonderPrivateKey
     return constructSigner(networkOrChainId, privateKey)
   }
 }

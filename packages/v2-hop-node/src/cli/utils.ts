@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { ClientName } from '#clients/index.js'
 import { execSync } from 'node:child_process'
-import { initConfigs } from '#config/index.js'
+import { Config } from '#config/index.js'
 import type { Command } from 'commander'
 
 /**
@@ -10,19 +10,10 @@ import type { Command } from 'commander'
  */
 
 export async function initCLI (parentCommand: Command): Promise<void> {
-  const { config, dryRun } = parentCommand.opts()
+  const { config: configPath, dryRun } = parentCommand.opts()
 
-  const clientName = getClientNameFromCommand(parentCommand)
-  const validClientNames = Object.values(ClientName)
-  if (!validClientNames.includes(clientName)) {
-    throw new Error(`Invalid client name: ${clientName}`)
-  }
-
-  await initConfigs({
-    customConfigPath: config ?? '',
-    dryRun: dryRun ?? false,
-    clientName
-  })
+  await Config.init(configPath, dryRun)
+  await Config.validateConfig()
 }
 
 /**

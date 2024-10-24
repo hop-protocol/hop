@@ -2,7 +2,7 @@ import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
 import { RelayerDB } from './RelayerDB.js'
 import { isEVMError } from '#gasboost/index.js'
-import { CLIConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
 
@@ -34,7 +34,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
 
   constructor (name: string) {
     this.#db = new RelayerDB(name)
-    this.#dryRun = CLIConfig.dryRun
+    this.#dryRun = Config.GlobalConfig.options.dryRun
     const tag = name + 'Relayer'
     this.logger = new Logger({
       tag,

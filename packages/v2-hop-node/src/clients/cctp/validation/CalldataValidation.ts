@@ -1,4 +1,4 @@
-import { ValidationClient, ValidationType } from '#validation/index.js'
+import type { IValidationClient } from '#validation/index.js'
 import type { providers } from 'ethers'
 
 export enum TxType {
@@ -23,14 +23,10 @@ const functionSignatures = {
   ]
 }
 
-export class CalldataValidation extends ValidationClient {
+export class CalldataValidation implements IValidationClient {
 
-  constructor (validationClientUrl?: string, validationStatusEndpoint?: string) {
-    super(ValidationType.Calldata, validationClientUrl, validationStatusEndpoint)
-  }
-
-  validateTx (transaction: providers.TransactionRequest): void {
-    console.log('CalldataValidation.validateTx', transaction)
+  validateTransaction (transaction: providers.TransactionRequest): void {
+    console.log('CalldataValidation.validateTransaction', transaction)
     const isValid = this.#isProtocolTx(transaction)
     if (!isValid) {
       throw new Error('Invalid transaction')

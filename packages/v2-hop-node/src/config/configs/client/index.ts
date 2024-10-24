@@ -1,20 +1,21 @@
-import { type IRailsConfig, RailsConfig } from './RailsConfig.js'
-import { type ICCTPConfig, CCTPConfig } from './CCTPConfig.js'
+import { type ICCTPClientConfig, validate as validateCCTPClientConfig } from './CCTPClientConfig.js'
+import { type IRailsClientConfig, validate as validateRailsClientConfig } from './RailsClientConfig.js'
 import { ClientName } from '#clients/index.js'
+import { validateRequiredKeys } from '../../utils.js'
 
-interface IClientConfig {
-  [ClientName.Rails]: IRailsConfig
-  [ClientName.CCTP]: ICCTPConfig
+enum ClientConfigName {
+  Rails = ClientName.Rails,
+  CCTP = ClientName.CCTP
 }
 
-const ClientConfig: IClientConfig = {
-  [ClientName.Rails]: RailsConfig,
-  [ClientName.CCTP]: CCTPConfig
+export interface IClientConfig {
+  [ClientConfigName.Rails]: IRailsClientConfig
+  [ClientConfigName.CCTP]: ICCTPClientConfig
 }
 
-export async function initConfigs (config: IClientConfig): Promise<void> {
-  await RailsConfig.initializeConfig(config.rails)
-  await CCTPConfig.initializeConfig(config.cctp)
-}
+export async function validate (config: Partial<IClientConfig>): Promise<void> {
+  validateRequiredKeys<IClientConfig>(config, Object.values(ClientConfigName))
 
-export { ClientConfig }
+  await validateCCTPClientConfig(config[ClientConfigName.CCTP])
+  await validateRailsClientConfig(config[ClientConfigName.Rails])
+}

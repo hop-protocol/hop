@@ -1,42 +1,25 @@
 import { HopSignerError } from './error.js'
 import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
 import { ValidationType } from '#validation/index.js'
-import { ClientName, CCTP, Rails } from '#clients/index.js'
 import type { Signer, providers } from 'ethers'
-import type { IValidationClient } from '#validation/index.js'
+import { type IValidationClient, ValidationClient } from '#validation/index.js'
 
 export interface ValidationOptions {
-  clientName: ClientName
-  validationStatusEndpoint?: string
-  validationClientUrls?: {
-    calldataValidationClientUrl?: string
-    stateValidationClientUrl?: string
-  }
+  calldataValidationClientUrl: string
+  stateValidationClientUrl: string
 }
 
 export class HopSigner extends GasBoostSigner {
-  readonly #calldataValidationClient?: IValidationClient
-  readonly #stateValidationClient?: IValidationClient
+  readonly #calldataValidationClient: IValidationClient
+  readonly #stateValidationClient: IValidationClient
 
-  constructor (signer: Signer, validationOptions?: ValidationOptions) {
+  constructor (signer: Signer, validationOptions: ValidationOptions) {
     super(signer)
 
-    if (validationOptions) {
-      const { clientName, validationClientUrls, validationStatusEndpoint } = validationOptions
+    const { calldataValidationClientUrl, stateValidationClientUrl } = validationOptions
 
-      this.#calldataValidationClient = this.#getValidationClient(
-        clientName,
-        ValidationType.Calldata,
-        validationClientUrls?.calldataValidationClientUrl,
-        validationStatusEndpoint
-      )
-      this.#stateValidationClient = this.#getValidationClient(
-        clientName,
-        ValidationType.State,
-        validationClientUrls?.calldataValidationClientUrl,
-        validationStatusEndpoint
-      )
-    }
+    this.#calldataValidationClient = new ValidationClient(calldataValidationClientUrl, ValidationType.Calldata)
+    this.#stateValidationClient = new ValidationClient(stateValidationClientUrl, ValidationType.State)
   }
 
   override async sendTransaction (transaction: providers.TransactionRequest): Promise<providers.TransactionResponse> {
@@ -59,34 +42,6 @@ export class HopSigner extends GasBoostSigner {
       } catch (err) {
         throw new HopSignerError(err.message)
       }
-    }
-  }
-
-  #getValidationClient(
-    clientName: ClientName,
-    validationType: ValidationType,
-    validationClientUrl?: string,
-    validationStatusEndpoint?: string
-  ): IValidationClient {
-    switch (clientName) {
-      case ClientName.Rails: {
-        if (validationType === ValidationType.Calldata) {
-          return new Rails.CalldataValidation(validationClientUrl, validationStatusEndpoint)
-        } else {
-          return new Rails.StateValidation(validationClientUrl, validationStatusEndpoint)
-        }
-      }
-
-      case ClientName.CCTP: {
-        if (validationType === ValidationType.Calldata) {
-          return new CCTP.CalldataValidation(validationClientUrl, validationStatusEndpoint)
-        } else {
-          return new CCTP.StateValidation(validationClientUrl, validationStatusEndpoint)
-        }
-      }
-
-      default:
-        throw new Error(`Invalid client name: ${String(clientName)}`)
     }
   }
 }

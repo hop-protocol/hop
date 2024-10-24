@@ -1,13 +1,9 @@
-import { ValidationClient, ValidationType } from '#validation/index.js'
+import type { IValidationClient } from '#validation/index.js'
 import type { providers } from 'ethers'
 
-export class StateValidation extends ValidationClient {
+export class StateValidation implements IValidationClient {
 
-  constructor (validationClientUrl?: string, validationStatusEndpoint?: string) {
-    super(ValidationType.State, validationClientUrl, validationStatusEndpoint)
-  }
-
-  async validateTx (transaction: providers.TransactionRequest): Promise<void> {
+  async validateTransaction (transaction: providers.TransactionRequest): Promise<void> {
     // TODO: Add state validation logic
   }
 }

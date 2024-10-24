@@ -1,7 +1,7 @@
 import { program as relayProgram } from './relay.js'
 import { program as showDBProgram } from '../shared/showDB.js'
 import { Rails } from '#clients/index.js'
-import { ClientConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
@@ -23,7 +23,7 @@ async function run (): Promise<never> {
 
   try {
     const clients = Object.values(Rails.RailsClientName)
-    const railsManager = new Rails.Rails(clients, ClientConfig.RailsConfig.paths)
+    const railsManager = new Rails.Rails(clients, Config.ClientConfig.rails.paths)
     await railsManager.start()
     logger.debug('Rails Manager started')
 

@@ -3,7 +3,7 @@ import { program as unrelayedCCTPMessagesProgram } from './unrelayedCCTPMessages
 import { program as showDBProgram } from '../shared/showDB.js'
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { CCTP } from '#clients/index.js'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import { wait } from '#utils/wait.js'
 import { Logger } from '#logger/index.js'
 import { Command } from 'commander'
@@ -41,7 +41,7 @@ const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
 async function run (): Promise<never> {
   const logger = new Logger(program.name())
 
-  const network: NetworkSlug = SignerConfig.network
+  const network: NetworkSlug = Config.GlobalConfig.options.network
   const chains: ChainSlug[] = CHAINS[network]!
   const chainIds: string[] = chains.map(chainSlug => getChain(network, chainSlug).chainId)
 

@@ -41,6 +41,7 @@
 - [getDefaultProvider](HubConnector.md#getdefaultprovider)
 - [getDefaultProviders](HubConnector.md#getdefaultproviders)
 - [getEthersWeb3Signer](HubConnector.md#getethersweb3signer)
+- [getHubChainId](HubConnector.md#gethubchainid)
 - [getHubConnectorContractAddress](HubConnector.md#gethubconnectorcontractaddress)
 - [getProvider](HubConnector.md#getprovider)
 - [getSigner](HubConnector.md#getsigner)
@@ -51,6 +52,7 @@
 - [getSupportedTokenSymbols](HubConnector.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](HubConnector.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](HubConnector.md#gettokenaddressbytokensymbol)
+- [getTokenSymbolByTokenAddress](HubConnector.md#gettokensymbolbytokenaddress)
 - [getTxOverrides](HubConnector.md#gettxoverrides)
 - [sendTransaction](HubConnector.md#sendtransaction)
 - [setContractAddresses](HubConnector.md#setcontractaddresses)
@@ -434,6 +436,20 @@ Base.getEthersWeb3Signer
 
 ___
 
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
@@ -616,6 +632,27 @@ ___
 #### Inherited from
 
 Base.getTokenAddressByTokenSymbol
+
+___
+
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
 
 ___
 

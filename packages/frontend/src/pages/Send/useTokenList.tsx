@@ -211,10 +211,14 @@ export const useTokenList = (selectedChainId = '') => {
     return a.chainName.toLowerCase().localeCompare(b.chainName.toLowerCase())
   })
 
+  const filteredSorted= sorted.filter((item: any) => {
+    return item.chainId?.toString() !== '42069'
+  })
+
   return {
     open,
     search,
-    filteredTokens: sorted,
+    filteredTokens: filteredSorted,
     chainFilter,
     handleOpen: () => setOpen(true),
     handleClose: () => setOpen(false),

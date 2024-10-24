@@ -11,6 +11,7 @@ import { useV2Send } from '#hooks/useV2Send.js'
 import { Alert } from '#components/Alert/index.js'
 import Skeleton from '@mui/material/Skeleton'
 import { ConnectWalletButton } from '#components/Header/ConnectWalletButton.js'
+import { MultiHopStepper } from './MultiHopStepper.js'
 
 interface Token {
   name: string
@@ -57,7 +58,11 @@ export const SendV2: React.FC = () => {
     bonderFeeDisplay,
     bonderFeeUsdDisplay,
     totalFeeDisplay,
-    accountAddress
+    accountAddress,
+    fromTokenBalanceDisplay,
+    toTokenBalanceDisplay,
+    hasEnoughBalance,
+    routeChainIds
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -81,6 +86,10 @@ export const SendV2: React.FC = () => {
   let buttonAction = sendTokens
   let buttonText = isSending ? 'Sending' : 'Send'
   let buttonLoading = isSending
+
+  if (!hasEnoughBalance) {
+    buttonText = 'Insufficient balance'
+  }
 
   if (!fromChainId) {
     buttonText = 'Select a token'
@@ -166,7 +175,7 @@ export const SendV2: React.FC = () => {
               </Box>
             </Box>
             <Box display="flex" justifyContent="center" flexDirection="column">
-              <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                 <TokenListModal
                   value={selectedFromToken}
                   onTokenSelect={(token: Token) => {
@@ -193,7 +202,7 @@ export const SendV2: React.FC = () => {
                     whiteSpace: 'nowrap'
                   }}>Balance: {isLoadingFromTokenBalance ? (
                     <Skeleton animation="wave" width={'20px'} title="loading" />
-                  ) : fromTokenBalanceFormatted}</Typography>
+                  ) : fromTokenBalanceDisplay}</Typography>
                   {showMaxButton && (
                     <MuiButton variant="text" onClick={() => handleMaxClick()} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
                   )}
@@ -276,7 +285,7 @@ export const SendV2: React.FC = () => {
               </Box>
             </Box>
               <Box display="flex" justifyContent="center" flexDirection="column">
-                <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+                <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                   <TokenListModal
                     value={selectedToToken}
                     onTokenSelect={(token: Token) => {
@@ -305,7 +314,7 @@ export const SendV2: React.FC = () => {
                         whiteSpace: 'nowrap'
                       }}>Balance: {isLoadingToTokenBalance ? (
                     <Skeleton animation="wave" width={'20px'} title="loading" />
-                      ) : toTokenBalanceFormatted}</Typography>
+                      ) : toTokenBalanceDisplay}</Typography>
                   </Box>
                 )}
               </Box>
@@ -328,6 +337,10 @@ export const SendV2: React.FC = () => {
             <Box display="inline-flex" sx={{ color: '#4d4d4d' }}>Fee: {bonderFeeDisplay}</Box> <Box display="inline-flex" sx={{ color: '#7d7d7d' }}>({bonderFeeUsdDisplay})</Box>
           </Typography>
         </Box>
+      )}
+
+      {routeChainIds?.length > 0 && (
+        <MultiHopStepper steps={routeChainIds} />
       )}
 
       {!!error && (

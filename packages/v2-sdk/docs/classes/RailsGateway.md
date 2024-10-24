@@ -70,6 +70,7 @@
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
+- [getHubChainId](RailsGateway.md#gethubchainid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
 - [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
@@ -94,6 +95,7 @@
 - [getTokenAddressByTokenSymbol](RailsGateway.md#gettokenaddressbytokensymbol)
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
+- [getTokenSymbolByTokenAddress](RailsGateway.md#gettokensymbolbytokenaddress)
 - [getTotalSent](RailsGateway.md#gettotalsent)
 - [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
@@ -1013,6 +1015,20 @@ ___
 
 ___
 
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+StakingRegistry.getHubChainId
+
+___
+
 ### <a id="getisclaimidvalid" name="getisclaimidvalid"></a> getIsClaimIdValid
 
 ▸ **getIsClaimIdValid**(`«destructured»`): `Promise`\<`boolean`\>
@@ -1425,6 +1441,27 @@ ___
 #### Returns
 
 `Promise`\<[`Token`](../modules.md#token)\>
+
+___
+
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+StakingRegistry.getTokenSymbolByTokenAddress
 
 ___
 

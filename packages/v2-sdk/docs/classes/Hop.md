@@ -47,6 +47,7 @@
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
 - [getEthersWeb3Signer](Hop.md#getethersweb3signer)
 - [getEvents](Hop.md#getevents)
+- [getHubChainId](Hop.md#gethubchainid)
 - [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
 - [getMessenger](Hop.md#getmessenger)
 - [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
@@ -55,6 +56,7 @@
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
 - [getSendData](Hop.md#getsenddata)
+- [getSendDataMultiHop](Hop.md#getsenddatamultihop)
 - [getSendFee](Hop.md#getsendfee)
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
@@ -65,6 +67,7 @@
 - [getSupportedTokenSymbolsByChainId](Hop.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](Hop.md#gettokenaddressbytokensymbol)
 - [getTokenContract](Hop.md#gettokencontract)
+- [getTokenSymbolByTokenAddress](Hop.md#gettokensymbolbytokenaddress)
 - [getTransferIdFromTransactionHash](Hop.md#gettransferidfromtransactionhash)
 - [getTransferStatus](Hop.md#gettransferstatus)
 - [getTxOverrides](Hop.md#gettxoverrides)
@@ -508,6 +511,20 @@ ___
 
 ___
 
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
@@ -621,6 +638,22 @@ ___
 ### <a id="getsenddata" name="getsenddata"></a> getSendData
 
 ▸ **getSendData**(`«destructured»`): `Promise`\<`SendData`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetSendDataInput` |
+
+#### Returns
+
+`Promise`\<`SendData`\>
+
+___
+
+### <a id="getsenddatamultihop" name="getsenddatamultihop"></a> getSendDataMultiHop
+
+▸ **getSendDataMultiHop**(`«destructured»`): `Promise`\<`SendData`\>
 
 #### Parameters
 
@@ -812,6 +845,27 @@ ___
 #### Returns
 
 `Contract`
+
+___
+
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
 
 ___
 

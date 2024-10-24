@@ -239,8 +239,8 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
-        const nextChainId = '42069' // TODO: make dynamic
-        const tokenSymbol = 'MOCK' // TODO
+        const nextChainId = this.getHubChainId()
+        const tokenSymbol = this.getTokenSymbolByTokenAddress(originChainId, originToken)
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
         const nextPathId = await this.getRailsGateway(originChainId).getPathId({
@@ -582,6 +582,29 @@ export class Hop extends Base {
       this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
     ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
+
+    return {
+      amountIn,
+      estimatedReceived,
+      bonderFee,
+      routeChainIds,
+    }
+  }
+
+  async getSendDataMultiHop ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {
+    const hubChainId = this.getHubChainId()
+    const tokenSymbol = this.getTokenSymbolByTokenAddress(fromChainId, fromToken)
+    const hubToken = this.getTokenAddressByTokenSymbol(hubChainId, tokenSymbol)
+    const amountIn = BigNumber.from(amount)
+    const [
+      estimatedReceived,
+      bonderFee
+    ] = await Promise.all([
+      this.getEstimatedReceived({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount, minAmountOut }),
+      this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+    ])
+
+    const routeChainIds = [fromChainId, hubChainId, toChainId].map((id) => id.toString())
 
     return {
       amountIn,

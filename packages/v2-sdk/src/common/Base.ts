@@ -388,6 +388,15 @@ export class Base {
     return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
   }
 
+  getTokenSymbolByTokenAddress (chainId: BigNumberish, tokenAddress: string): string {
+    const tokens = (this.contractAddresses[chainId?.toString()]?.tokens as any) || {}
+    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol] === tokenAddress)
+    if (!tokenSymbol) {
+      throw new Error(`tokenSymbol not found for token address ${tokenAddress} on chainId ${chainId?.toString()}`)
+    }
+    return tokenSymbol
+  }
+
   getChainIdsSupportedByTokenSymbol (tokenSymbol: string): string[] {
     const list : Set<string> = new Set<string>([])
 
@@ -657,5 +666,9 @@ export class Base {
     }
 
     return signer
+  }
+
+  getHubChainId(): string {
+    return '42069'
   }
 }

@@ -54,6 +54,7 @@
 - [getExecutorContractAddress](Messenger.md#getexecutorcontractaddress)
 - [getFeesSentToHubEvents](Messenger.md#getfeessenttohubevents)
 - [getHasAuctionStarted](Messenger.md#gethasauctionstarted)
+- [getHubChainId](Messenger.md#gethubchainid)
 - [getHubMessageBridgeContractAddress](Messenger.md#gethubmessagebridgecontractaddress)
 - [getIsBundleSet](Messenger.md#getisbundleset)
 - [getIsL2TxHashExited](Messenger.md#getisl2txhashexited)
@@ -96,6 +97,7 @@
 - [getSupportedTokenSymbols](Messenger.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](Messenger.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](Messenger.md#gettokenaddressbytokensymbol)
+- [getTokenSymbolByTokenAddress](Messenger.md#gettokensymbolbytokenaddress)
 - [getTxOverrides](Messenger.md#gettxoverrides)
 - [isValidBundleProof](Messenger.md#isvalidbundleproof)
 - [relayMessage](Messenger.md#relaymessage)
@@ -673,6 +675,20 @@ ___
 #### Returns
 
 `Promise`\<`boolean`\>
+
+___
+
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
 
 ___
 
@@ -1364,6 +1380,27 @@ ___
 #### Inherited from
 
 Base.getTokenAddressByTokenSymbol
+
+___
+
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
 
 ___
 

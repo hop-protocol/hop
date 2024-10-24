@@ -249,7 +249,7 @@ export function useV2(): V2Hook {
       throw new Error('Needs token approval')
     }
 
-    const txData = await v2Sdk.populateTransaction.sendTokens({
+    const txData = await v2Sdk.populateTransaction.sendTokensMultiHop({
       fromChainId,
       toChainId,
       fromToken,
@@ -296,7 +296,7 @@ export function useV2(): V2Hook {
       minAmountOut
     } = input
 
-    const data = await v2Sdk.getSendData({
+    const data = await v2Sdk.getSendDataMultiHop({
       fromChainId,
       fromToken,
       toChainId,

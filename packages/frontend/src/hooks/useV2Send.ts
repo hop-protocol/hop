@@ -5,6 +5,7 @@ import { BigNumber, providers, utils, Contract, constants } from 'ethers'
 import { useV2 } from './useV2.js'
 import { Hop, utils as v2Utils  } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
+import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
 import {
   useBalance,
@@ -79,6 +80,7 @@ type V2SendHook = {
   fromBalanceUsdDisplay: string
   toBalanceUsdDisplay: string
   isLoadingNeedsApproval: boolean
+  hasEnoughBalance: boolean
 }
 
 class Token {
@@ -490,8 +492,8 @@ export function useV2Send(): V2SendHook {
 
   const fromTokenBalanceFormatted = fromTokenBalance != null ? formatUnits(fromTokenBalance, fromToken.decimals) : ''
   const toTokenBalanceFormatted = toTokenBalance != null ? formatUnits(toTokenBalance, toToken.decimals) : ''
-  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
-  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
+  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${commafy(fromTokenBalanceFormatted, 5)}` : ''
+  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${commafy(toTokenBalanceFormatted, 5)}` : ''
 
   const { priceUsd: tokenPriceUsd } = useTokenPrice(tokenSymbol)
   const fromBalanceUsdDisplay = useMemo(() => {
@@ -577,6 +579,7 @@ export function useV2Send(): V2SendHook {
     handleMaxClick,
     fromBalanceUsdDisplay,
     toBalanceUsdDisplay,
-    isLoadingNeedsApproval
+    isLoadingNeedsApproval,
+    hasEnoughBalance
   }
 }

@@ -10,4 +10,5 @@ export const chainSlugMap: Record<string, string> = {
   80001: 'polygon', // goerli,
   84532: 'base', // sepolia
   11155420: 'optimism', // sepolia
+  42069: 'hub' // sepolia
 }

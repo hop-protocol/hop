@@ -75,15 +75,21 @@ export class PgDb {
 
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createTable()
-      await this.nonEventTables[event].createIndexes()
     }
 
     for (const event in this.events) {
       await this.events[event].createTable()
-      await this.events[event].createIndexes()
     }
 
     await this.migrationManager.runMigrations(0)
+
+    for (const event in this.nonEventTables) {
+      await this.nonEventTables[event].createIndexes()
+    }
+
+    for (const event in this.events) {
+      await this.events[event].createIndexes()
+    }
   }
 }
 

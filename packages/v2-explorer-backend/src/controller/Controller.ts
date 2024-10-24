@@ -135,7 +135,7 @@ export class Controller {
       const bondedEvents  = await this.getEvents({
         eventName: 'TransferBonded',
         filter: {
-          transferId
+          claimId: transferId
         }
       })
 
@@ -295,6 +295,10 @@ export class Controller {
       item.transferIdTruncated = truncateString(item.transferId, 4)
       item.transferIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.transferId}` // TODO: subdomain env var
     }
+    if (item.claimId ) {
+      item.claimIdTruncated = truncateString(item.claimId, 4)
+      item.claimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.claimId}` // TODO: subdomain env var
+    }
     if (item.pathId) {
       item.pathIdTruncated = truncateString(item.pathId, 4)
     }
@@ -373,7 +377,13 @@ export class Controller {
     if (item.nextHops) {
       item.nextHops = item.nextHops.map((item: any) => this.addEventFields(item))
     }
+    if (item.hops) {
+      item.hops = item.hops.map((item: any) => this.addEventFields(item))
+    }
     // nextHops
+    if (item.maxBonderFee) {
+      item.maxBonderFee = item.maxBonderFee.toString()
+    }
     if (item.maxTotalSent) {
       item.maxTotalSent = item.maxTotalSent.toString()
     }
@@ -559,6 +569,9 @@ export class Controller {
     }
     if (filters.transferId) {
       filters.transferId = filters.transferId.trim()
+    }
+    if (filters.claimId ) {
+      filters.claimId = filters.claimId.trim()
     }
     if (filters.messageId) {
       filters.messageId = filters.messageId.trim()

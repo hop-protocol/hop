@@ -6,5 +6,5 @@ ALTER TABLE transfer_sent_events
     DROP COLUMN IF EXISTS previous_transfer_id;
 
 ALTER TABLE transfer_sent_events
-    ADD COLUMN attested_claim_id CHAR(66) NOT NULL,
-    ADD COLUMN attested_total_claims NUMERIC NOT NULL CHECK (attested_total_claims >= 0);
+    ADD COLUMN IF NOT EXISTS attested_claim_id CHAR(66) NOT NULL,
+    ADD COLUMN IF NOT EXISTS attested_total_claims NUMERIC NOT NULL CHECK (attested_total_claims >= 0);

@@ -297,7 +297,7 @@ export class Messenger extends Base {
   getEventFetcher(eventName: EventName, chainId: BigNumberish) {
     const provider = this.getProvider(chainId)
     if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}, method: getEventFetcher, eventName: ${eventName}`)
     }
 
     let address = this.getSpokeMessageBridgeContractAddress(chainId)
@@ -305,7 +305,7 @@ export class Messenger extends Base {
       address = this.getHubMessageBridgeContractAddress(chainId)
     }
     if (!address) {
-      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}, method: getEventFetcher, eventName: ${eventName}`)
     }
 
     const eventFetcher: Record<EventName, any> = {

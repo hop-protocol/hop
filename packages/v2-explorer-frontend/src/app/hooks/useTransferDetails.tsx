@@ -62,7 +62,7 @@ export const useTransferDetails = (props: any) => {
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const attestedClaimId = event?.attestedClaimId
   const pathId = event?.pathId
-  const nextHops = event?.nextHops
+  const hops = event?.hops
   const sourceTxValue = context?.value
   const sourceTxValueDisplay = `${context?.value ?? ''} (${context?.valueDisplay ?? ''}) (${context?.valueUsdDisplay ?? ''})`
   const sourceTxTransactionHash = context?.transactionHash
@@ -188,6 +188,6 @@ export const useTransferDetails = (props: any) => {
     destinationTxBlockNumber,
     destinationTxTimestampDisplay,
     loading,
-    nextHops
+    hops
   }
 }

@@ -37,10 +37,6 @@ export function TransferSentEvents () {
       value: 'Total Sent',
     },
     {
-      key: 'attestedClaimId',
-      value: 'Attested Claim ID',
-    },
-    {
       key: 'attestedClaims',
       value: 'Attested Claims',
     },
@@ -50,7 +46,7 @@ export function TransferSentEvents () {
     },
     {
       key: 'subtable',
-      value: 'Next Hops',
+      value: 'Hops',
     },
   ]
 
@@ -83,11 +79,6 @@ export function TransferSentEvents () {
         clipboardValue: event.totalSent
       },
       {
-        key: 'attestedClaimId',
-        value: event.attestedClaimIdTruncated,
-        clipboardValue: event.attestedClaimId
-      },
-      {
         key: 'attestedTotalClaims',
         value: event.attestedTotalClaims,
         clipboardValue: event.attestedTotalClaims
@@ -110,6 +101,10 @@ export function TransferSentEvents () {
               value: 'Path ID',
             },
             {
+              key: 'maxBonderFee',
+              value: 'Max Bonder Fee',
+            },
+            {
               key: 'maxTotalSent',
               value: 'Max Total Sent',
             },
@@ -118,27 +113,32 @@ export function TransferSentEvents () {
               value: 'Attested Claim ID',
             },
           ],
-          rows: event.nextHops.map((nextHop: any, i: number) => {
+          rows: event.hops.map((hop: any, i: number) => {
             return [
               {
                 key: 'index',
-                value: nextHop.index
+                value: hop.index
               },
               {
                 key: 'pathId',
-                value: nextHop.pathIdTruncated,
-                valueUrl: `/paths?pathId=${nextHop.pathId}`,
-                clipboardValue: nextHop.pathId
+                value: hop.pathIdTruncated,
+                valueUrl: `/paths?pathId=${hop.pathId}`,
+                clipboardValue: hop.pathId
+              },
+              {
+                key: 'maxBonderFee',
+                value: hop.maxBonderFee,
+                clipboardValue: hop.maxBonderFee
               },
               {
                 key: 'maxTotalSent',
-                value: nextHop.maxTotalSent,
-                clipboardValue: nextHop.maxTotalSent
+                value: hop.maxTotalSent,
+                clipboardValue: hop.maxTotalSent
               },
               {
                 key: 'attestedClaimId',
-                value: nextHop.attestedClaimIdTruncated,
-                clipboardValue: nextHop.attestedClaimId
+                value: hop.attestedClaimIdTruncated,
+                clipboardValue: hop.attestedClaimId
               },
             ]
           })

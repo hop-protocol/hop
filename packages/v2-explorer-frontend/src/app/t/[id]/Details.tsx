@@ -28,7 +28,7 @@ export function Details(props: any) {
     transferRecipientExplorerUrl,
     attestedClaimId,
     pathId,
-    nextHops,
+    hops,
     sourceTxValueDisplay,
     sourceTxTransactionHash,
     sourceTxTransactionExplorerUrl,
@@ -107,7 +107,7 @@ export function Details(props: any) {
           <Typography variant="subtitle1" color="textPrimary">Next Hops</Typography>
         </Box>
 
-        {nextHops.map((nextHop: any, i: number) => {
+        {hops.map((nextHop: any, i: number) => {
           const { pathId, maxTotalSent, attestedClaimId } = nextHop
           return (
             <Box ml={2} mb={4} key={i}>

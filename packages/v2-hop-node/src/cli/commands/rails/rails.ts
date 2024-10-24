@@ -28,7 +28,6 @@ async function run (): Promise<never> {
     logger.debug('Rails Manager started')
 
     // TODO: V2: Better way to run
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       await wait (60_000)
     }

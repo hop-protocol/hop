@@ -102,7 +102,6 @@ export class GasBoostSigner extends Signer {
   }
 
   protected async tilReady (): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.ready) {
         return true

@@ -1,7 +1,7 @@
 import type { BigNumber } from 'ethers'
 import type {
   BondInputSDK,
-  PostClaimInputSDK 
+  PostClaimInputSDK
 } from './RailsSDKWrapper.js'
 
 export enum RailsClientName {

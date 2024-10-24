@@ -34,8 +34,7 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
 // lazy instantiate
 export const wallets = {
   has (networkOrChainId: string): boolean {
-    const privateKey = Config.SignerConfig.shared.bonderPrivateKey
-    return !!constructSigner(networkOrChainId, privateKey)
+    return !!constructSigner(networkOrChainId)
   },
   get (networkOrChainId: string): Signer {
     const privateKey = Config.SignerConfig.shared.bonderPrivateKey

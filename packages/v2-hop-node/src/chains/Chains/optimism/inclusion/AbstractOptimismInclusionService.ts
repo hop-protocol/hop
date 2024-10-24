@@ -119,7 +119,6 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     let currentL1BlockNumInBatch: number = 0
     let numL1BlocksInBatch: number = 0
     const transactionHashes: string[] = []
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       // Parse decoded data
       const encodedTxs: string = '0x' + Buffer.from(remainingBatches).toString('hex')

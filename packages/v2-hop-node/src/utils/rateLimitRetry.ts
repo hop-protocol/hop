@@ -16,7 +16,6 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
     const retry = () => promiseTimeout(fn(...args), RPC_TIMEOUT_SECONDS * 1000)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.

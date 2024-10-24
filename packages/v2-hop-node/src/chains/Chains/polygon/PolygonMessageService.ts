@@ -98,7 +98,6 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   async #tilReady (): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.ready) {
         return true

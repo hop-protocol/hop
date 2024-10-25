@@ -87,10 +87,6 @@ export const SendV2: React.FC = () => {
   let buttonText = isSending ? 'Sending' : 'Send'
   let buttonLoading = isSending
 
-  if (!hasEnoughBalance) {
-    buttonText = 'Insufficient balance'
-  }
-
   if (!fromChainId) {
     buttonText = 'Select a token'
   }
@@ -116,6 +112,11 @@ export const SendV2: React.FC = () => {
     buttonText = 'Checking approval'
   }
 
+  if (!hasEnoughBalance && fromChainId && toChainId) {
+    buttonText = 'Insufficient balance'
+    buttonDisabled = true
+  }
+
   if (isFetchingGetSendData) {
     buttonDisabled = true
     buttonLoading = false
@@ -123,6 +124,8 @@ export const SendV2: React.FC = () => {
   }
 
   const showMaxButton = (fromTokenBalanceFormatted !== '' && tokenSymbol !== 'ETH')
+
+  const needsCounterpart = (!fromChainId && toChainId) || (fromChainId && !toChainId)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
@@ -178,6 +181,7 @@ export const SendV2: React.FC = () => {
               <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                 <TokenListModal
                   value={selectedFromToken}
+                  selectLabel={needsCounterpart ? 'Select chain' : 'Select token'}
                   onTokenSelect={(token: Token) => {
                     console.log('fromToken', token)
                     setSelectedFromToken(token)
@@ -248,7 +252,7 @@ export const SendV2: React.FC = () => {
             <Box display="flex" flexDirection="column">
               <Box>
                 <Box>
-                  <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Destination</Typography>
+                  <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Estimated Received</Typography>
                 </Box>
                 <TextField
                   fullWidth
@@ -288,6 +292,7 @@ export const SendV2: React.FC = () => {
                 <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                   <TokenListModal
                     value={selectedToToken}
+                    selectLabel={needsCounterpart ? 'Select chain' : 'Select token'}
                     onTokenSelect={(token: Token) => {
                       console.log('toToken', token)
                       setSelectedToToken(token)

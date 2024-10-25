@@ -35,9 +35,10 @@ type Props = {
   excludeChainId?: string
   selectedTokenSymbol?: string
   clear?: boolean
+  selectLabel?: boolean
 }
 
-export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value }: Props) => {
+export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value, selectLabel }: Props) => {
   let {
     open,
     search,
@@ -79,7 +80,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
 
   const networkOptions = [
     { value: '', label: 'All Chains', logo: 'https://gist.github.com/user-attachments/assets/7d344fcb-6463-4ae1-a311-c89af12a99ba' },
-    { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
+    // { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
     { value: '11155111', label: 'Ethereum Sepolia', logo: 'https://assets.hop.exchange/logos/ethereum.svg' },
     { value: '84532', label: 'Base Sepolia', logo: 'https://assets.hop.exchange/logos/base.svg' },
     { value: '11155420', label: 'Optimism Sepolia', logo: 'https://assets.hop.exchange/logos/optimism.svg' },
@@ -178,7 +179,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
           <Typography variant="body1" sx={{ color: 'black' }}>{selectedToken.symbol}</Typography>
         </Box>
         ) : (
-          <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>Select token</Typography>
+          <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>{selectLabel ?? 'Select token'}</Typography>
         )}
       </Button>
 

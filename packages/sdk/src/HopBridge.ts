@@ -1019,6 +1019,9 @@ export class HopBridge extends Base {
           this.calcFromHTokenAmountMulticall(destinationChain, [hTokenAmount, bonderFeeRelative, destinationTxFee]),
           this.getBonderFeeAbsolute(sourceChain, destinationChain)
         ]))
+
+        // the bonder fee should be at least the relative fee enforced by the contract
+        adjustedBonderFee = adjustedBonderFee.gt(bonderFeeRelative) ? adjustedBonderFee : bonderFeeRelative
       }
 
       // enforce bonderFeeAbsolute after adjustment

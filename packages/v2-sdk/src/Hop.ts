@@ -143,7 +143,7 @@ export type TransferStatus = {
   state: TransferState
   transferId: string
   transferSentEvent: EthersEventWithDecodedTypes<TransferSent>
-  transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null
+  transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[]
 }
 
 export type CalcAmountOutMinInput = {
@@ -745,46 +745,75 @@ export class Hop extends Base {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const transferSentEvent = await this.getRailsGateway(fromChainId).getTransferSentEventFromTransferId({
+    const originalTransferSentEvent = await this.getRailsGateway(fromChainId).getTransferSentEventFromTransferId({
       transferId
     })
 
-    let transferBondedEvent: EthersEventWithDecodedTypes<TransferBonded> | null = null
+    let transferSentEvent = originalTransferSentEvent
+
+    let transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
+    let originalHops : HopStruct[] = []
 
     if (transferSentEvent) {
       const fromProvider = this.getProvider(fromChainId)
       if (!fromProvider) {
         throw new ConfigError('fromChainId provider not found')
       }
-      const toProvider = this.getProvider(toChainId)
-      if (!toProvider) {
-        throw new ConfigError('toChainId provider not found')
-      }
-      const fromBlock = await fromProvider.getBlock(transferSentEvent.blockNumber)
-      const fromTimestamp = fromBlock.timestamp
-      const earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
 
-      transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
-        transferId,
-        fromBlock: earliestBlock
-      })
+      const { hops } = transferSentEvent.decoded
+      originalHops = hops
+      let currentHopChainId : BigNumberish = fromChainId
+      let fromBlock = await fromProvider.getBlock(transferSentEvent.blockNumber)
+      let currentTransferId = transferId
+      for (const hop of hops) {
+        const { pathId } = hop
+        const toChainId = await this.getCounterpartChainId(currentHopChainId, pathId)
+
+        const toProvider = this.getProvider(toChainId)
+        if (!toProvider) {
+          throw new ConfigError('toChainId provider not found')
+        }
+
+        const fromTimestamp = fromBlock.timestamp
+        const earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
+
+        let transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
+          transferId: currentTransferId,
+          fromBlock: earliestBlock
+        })
+        if (!transferBondedEvent) {
+          break
+        }
+        transferBondedEvents.push(transferBondedEvent)
+        currentHopChainId = toChainId
+        fromBlock = await toProvider.getBlock(transferBondedEvent.blockNumber)
+        transferSentEvent = (await this.getRailsGateway(toChainId).getTransferSentEventFromTransactionHash({
+          transactionHash: transferBondedEvent.transactionHash
+        }))!
+        if (!transferSentEvent) {
+          continue
+        }
+        currentTransferId = transferSentEvent.decoded.transferId
+      }
     }
+
+    let transferBondedEvent = transferBondedEvents[0]
 
     let transferState = TransferState.NotFound
 
-    if (transferSentEvent && !transferBondedEvent) {
+    if (originalTransferSentEvent && transferBondedEvents.length !== originalHops.length) {
       transferState = TransferState.PendingBond
     }
 
-    if (transferSentEvent && transferBondedEvent) {
+    if (originalTransferSentEvent && transferBondedEvents.length === originalHops.length) {
       transferState = TransferState.Bonded
     }
 
     return {
       state: transferState,
-      transferId: transferSentEvent?.decoded.transferId ?? '',
-      transferSentEvent,
-      transferBondedEvent
+      transferId: originalTransferSentEvent?.decoded.transferId ?? '',
+      transferSentEvent: originalTransferSentEvent,
+      transferBondedEvents
     }
   }
 
@@ -802,5 +831,17 @@ export class Hop extends Base {
     }
 
     return instance
+  }
+
+  async getCounterpartChainId (originChainId: BigNumberish, pathId: string): Promise<string> {
+    const pathInfo = await this.getRailsGateway(originChainId).getPathInfo({ pathId })
+    const { counterpartChainId, chainId } = pathInfo
+
+    let toChainId = counterpartChainId
+    if (toChainId === originChainId) {
+      toChainId = chainId
+    }
+
+    return toChainId
   }
 }

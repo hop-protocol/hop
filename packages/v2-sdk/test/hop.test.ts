@@ -1,4 +1,4 @@
-import { Hop } from '#index.js'
+import { Hop, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
@@ -14,7 +14,10 @@ describe('Hop', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const sdk = new Hop({
-    signersOrProviders: Hop.getDefaultProviders('sepolia')
+    signersOrProviders: Object.assign({
+      ...Hop.getDefaultProviders('sepolia'),
+      '11155420': new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+    })
   })
 
   it('should get version', async () => {
@@ -162,10 +165,10 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it.skip('TODO should get transfer status for checkpoint', async () => {
-    const fromChainId = 11155111
-    const toChainId = 11155420
-    const transferId = '0xTODO'
+  it.only('should get transfer status for checkpoint', async () => {
+    const fromChainId = 11155420
+    const toChainId = 84532
+    const transferId = '0x470dfd8beca4cf9565ddcc4cf3c7468cddcea0a381149833580adccdbed438c8'
     const transferStatus = await sdk.getTransferStatus({
       fromChainId,
       toChainId,
@@ -173,7 +176,11 @@ describe('Hop', () => {
     })
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()
-  }, 60 * 1000)
+    expect(transferStatus.transferId).toBe(transferId)
+    expect(transferStatus.state).toBe(TransferState.Bonded)
+    expect(transferStatus.transferSentEvent).toBeDefined()
+    expect(transferStatus.transferBondedEvents.length).toBe(2)
+  }, 10 * 60 * 1000)
 
   it.skip('should get events', async () => {
     const chainId = 11155111

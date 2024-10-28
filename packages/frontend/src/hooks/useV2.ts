@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Hop, Token } from '@hop-protocol/v2-sdk'
 import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 
 type ApproveTokensInput = {
   amount: string
@@ -51,7 +51,7 @@ type GetFeeInput = {
 }
 
 type V2Hook = {
-  approveTokens: (input: ApproveTokensInput) => Promise<providers.TransactionResponse>
+  approveTokens: (input: ApproveTokensInput) => Promise<ethers.providers.TransactionResponse>
   getChainsSupportedByToken: (tokenSymbol: string) => string[]
   getFee: (input: GetFeeInput) => Promise<BigNumber>
   getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
@@ -61,7 +61,7 @@ type V2Hook = {
   getTokenName: (chainId: string, tokenSymbol: string) => Promise<string>
   getTokenInfoByTokenSymbol: (chainId: string, tokenSymbol: string) => Promise<Token>
   getTokenInfoByTokenAddress: (chainId: string, address: string) => Promise<Token>
-  sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
+  sendTokens: (input: SendTokensInput) => Promise<ethers.providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   getSendData: (input: GetSendDataInput) => Promise<any>
@@ -77,7 +77,9 @@ export function useV2(): V2Hook {
 
   const v2Sdk = useMemo(() => {
     const signer = provider?.getSigner()
-    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork))
+    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
+	    '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+    })
     if (connectedNetworkId && signer) {
       providers[connectedNetworkId] = signer
     }
@@ -154,7 +156,7 @@ export function useV2(): V2Hook {
     return needs
   }
 
-  async function approveTokens (input: ApproveTokensInput): Promise<providers.TransactionResponse> {
+  async function approveTokens (input: ApproveTokensInput): Promise<ethers.providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }
@@ -218,7 +220,7 @@ export function useV2(): V2Hook {
     return willFail
   }
 
-  async function sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
+  async function sendTokens (input: SendTokensInput): Promise<ethers.providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }

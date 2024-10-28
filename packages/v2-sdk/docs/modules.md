@@ -1566,7 +1566,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `state` | [`TransferState`](enums/TransferState.md) |
-| `transferBondedEvent` | `EthersEventWithDecodedTypes`\<`TransferBonded`\> \| ``null`` |
+| `transferBondedEvents` | `EthersEventWithDecodedTypes`\<`TransferBonded`\>[] |
 | `transferId` | `string` |
 | `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> |
 

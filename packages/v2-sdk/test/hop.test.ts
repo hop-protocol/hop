@@ -165,7 +165,7 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it.only('should get transfer status for checkpoint', async () => {
+  it('should get transfer status for transferId', async () => {
     const fromChainId = 11155420
     const toChainId = 84532
     const transferId = '0x470dfd8beca4cf9565ddcc4cf3c7468cddcea0a381149833580adccdbed438c8'
@@ -181,6 +181,20 @@ describe('Hop', () => {
     expect(transferStatus.transferSentEvent).toBeDefined()
     expect(transferStatus.transferBondedEvents.length).toBe(2)
   }, 10 * 60 * 1000)
+
+  it.only('should get transfer status for transfer Id - 2', async () => {
+    const fromChainId = 11155420
+    const toChainId = 84532
+    const transferId = '0x7e77249238adda4f7d2b725881339fa6eed7c95c0e493fb65f8e5b68a8574090'
+    const transferStatus = await sdk.getTransferStatus({
+      fromChainId,
+      toChainId,
+      transferId
+    })
+    console.log(transferStatus)
+    expect(transferStatus).toBeDefined()
+  }, 10 * 60 * 1000)
+
 
   it.skip('should get events', async () => {
     const chainId = 11155111

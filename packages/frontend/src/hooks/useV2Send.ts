@@ -7,6 +7,7 @@ import { Hop, utils as v2Utils  } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
 import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
+import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
 import {
   useBalance,
   useFeeConversions,
@@ -81,6 +82,8 @@ type V2SendHook = {
   toBalanceUsdDisplay: string
   isLoadingNeedsApproval: boolean
   hasEnoughBalance: boolean
+  parsedAmountIn: string
+  transferStatus: any
 }
 
 class Token {
@@ -146,6 +149,12 @@ export function useV2Send(): V2SendHook {
   const [isFetchingGetSendData, setIsFetchingGetSendData] = useState<boolean>(false)
   const [isLoadingNeedsApproval, setIsLoadingNeedsApproval] = useState<boolean>(false)
   const accountAddress = address?.toString() ?? null
+  const { transferStatus } = useV2TransferStatus({
+    transactionHash: '0xe34021ab6829980086a80b55e771ce0441b67c5c8b48992d06820c535b3222d8' ?? sendTx?.hash,
+    // transactionHash: sendTx?.hash,
+    fromChainId,
+    toChainId
+  })
 
   useEffect(() => {
     const list = getTokenList()
@@ -216,6 +225,8 @@ export function useV2Send(): V2SendHook {
           }
         }
         setIsLoadingNeedsApproval(false)
+      } else {
+        setNeedsApproval(false)
       }
     }
 
@@ -516,6 +527,7 @@ export function useV2Send(): V2SendHook {
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
   return {
+    parsedAmountIn,
     accountAddress,
     amountIn,
     approveReady,
@@ -580,6 +592,7 @@ export function useV2Send(): V2SendHook {
     fromBalanceUsdDisplay,
     toBalanceUsdDisplay,
     isLoadingNeedsApproval,
-    hasEnoughBalance
+    hasEnoughBalance,
+    transferStatus
   }
 }

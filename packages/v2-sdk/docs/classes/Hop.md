@@ -42,6 +42,7 @@
 - [getConfigStartBlock](Hop.md#getconfigstartblock)
 - [getContractAddresses](Hop.md#getcontractaddresses)
 - [getContractExists](Hop.md#getcontractexists)
+- [getCounterpartChainId](Hop.md#getcounterpartchainid)
 - [getDefaultProvider](Hop.md#getdefaultprovider)
 - [getDefaultProviders](Hop.md#getdefaultproviders)
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
@@ -422,6 +423,23 @@ ___
 #### Inherited from
 
 Base.getContractExists
+
+___
+
+### <a id="getcounterpartchainid" name="getcounterpartchainid"></a> getCounterpartChainId
+
+▸ **getCounterpartChainId**(`originChainId`, `pathId`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `originChainId` | `BigNumberish` |
+| `pathId` | `string` |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 

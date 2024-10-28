@@ -431,7 +431,6 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
   }, 10 * 60 * 1000)
 })
 
-// TODO
 describe.only('Sdk - RailsGateway - e2e - multi hop', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
@@ -463,7 +462,7 @@ describe.only('Sdk - RailsGateway - e2e - multi hop', () => {
 
     const fromProvider = chainProviders[fromChainId]
     const toProvider = chainProviders[toChainId]
-    const nextChainId = '42069'
+    const nextChainId = sdk.getHubChainId()
     const nextProvider = chainProviders[nextChainId]
     const nextToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
 
@@ -534,7 +533,7 @@ describe.only('Sdk - RailsGateway - e2e - multi hop', () => {
     const shouldConfirm2 = true // debug
     const shouldWithdraw2 = true // debug
 
-    let sendTxHash = ''
+    let sendTxHash = '0xe34021ab6829980086a80b55e771ce0441b67c5c8b48992d06820c535b3222d8'
     let bondTxHash = ''
 
     const shouldSend = !sendTxHash // debug

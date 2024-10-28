@@ -62,7 +62,8 @@ export const SendV2: React.FC = () => {
     fromTokenBalanceDisplay,
     toTokenBalanceDisplay,
     hasEnoughBalance,
-    routeChainIds
+    routeChainIds,
+    parsedAmountIn
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -112,7 +113,7 @@ export const SendV2: React.FC = () => {
     buttonText = 'Checking approval'
   }
 
-  if (!hasEnoughBalance && fromChainId && toChainId) {
+  if (!hasEnoughBalance && fromChainId && toChainId && parsedAmountIn !== '0') {
     buttonText = 'Insufficient balance'
     buttonDisabled = true
   }

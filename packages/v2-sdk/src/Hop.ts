@@ -775,7 +775,13 @@ export class Hop extends Base {
         }
 
         const fromTimestamp = fromBlock.timestamp
-        const earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
+        const block = await toProvider.getBlock('latest')
+        let earliestBlock = block.number - 10000
+        try {
+          earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
+        } catch (err: any) {
+          console.log('getBlockNumberFromDate error', err)
+        }
 
         let transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
           transferId: currentTransferId,

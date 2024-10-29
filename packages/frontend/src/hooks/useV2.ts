@@ -78,7 +78,7 @@ export function useV2(): V2Hook {
   const v2Sdk = useMemo(() => {
     const signer = provider?.getSigner()
     const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
-	    '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+      '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
     })
     if (connectedNetworkId && signer) {
       providers[connectedNetworkId] = signer

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { BigNumber, providers, utils, Contract, constants } from 'ethers'
+import { useQuery } from 'react-query'
 import { useV2 } from './useV2.js'
 import { Hop, utils as v2Utils  } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
@@ -36,8 +37,9 @@ export function useV2TransferStatus(props: any): V2SendHook {
   const { address, provider } = useWeb3Context()
   const [transferStatus, setTransferStatus] = useState<any>(null)
 
-  useEffect(() => {
-    async function update() {
+  const { isLoading, data, error } = useQuery(
+    [`transferStatus:${transactionHash}`, fromChainId, toChainId, transactionHash],
+    async () => {
       if (v2Sdk && fromChainId && toChainId && transactionHash) {
           const event = await v2Sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
             transactionHash
@@ -51,17 +53,22 @@ export function useV2TransferStatus(props: any): V2SendHook {
             toChainId,
             transferId
           })
+
           console.log(status)
           setTransferStatus(status)
       } else {
         setTransferStatus(null)
       }
+      return
+    },
+    {
+      enabled: !!(fromChainId && toChainId && transactionHash),
+      refetchInterval: 5 * 1000,
     }
-
-    update().catch(console.error)
-  }, [fromChainId, toChainId, transactionHash])
+  )
 
   return {
+    v2Sdk,
     transferStatus
   }
 }

@@ -150,7 +150,8 @@ export function useV2Send(): V2SendHook {
   const [isLoadingNeedsApproval, setIsLoadingNeedsApproval] = useState<boolean>(false)
   const accountAddress = address?.toString() ?? null
   const { transferStatus } = useV2TransferStatus({
-    transactionHash: '0xe34021ab6829980086a80b55e771ce0441b67c5c8b48992d06820c535b3222d8' ?? sendTx?.hash,
+    // transactionHash: '0xe34021ab6829980086a80b55e771ce0441b67c5c8b48992d06820c535b3222d8',
+    transactionHash: '0x0eae01af6c043416ddb96c824bd14258ba9c8fcf28d2e2da42b85703ff9f6c46',
     // transactionHash: sendTx?.hash,
     fromChainId,
     toChainId

@@ -165,7 +165,7 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it('should get transfer status for transferId', async () => {
+  it.only('should get transfer status for transferId', async () => {
     const fromChainId = 11155420
     const toChainId = 84532
     const transferId = '0x470dfd8beca4cf9565ddcc4cf3c7468cddcea0a381149833580adccdbed438c8'
@@ -174,7 +174,7 @@ describe('Hop', () => {
       toChainId,
       transferId
     })
-    console.log(transferStatus)
+    console.log(JSON.stringify(transferStatus, null, 2))
     expect(transferStatus).toBeDefined()
     expect(transferStatus.transferId).toBe(transferId)
     expect(transferStatus.state).toBe(TransferState.Bonded)
@@ -182,7 +182,7 @@ describe('Hop', () => {
     expect(transferStatus.transferBondedEvents.length).toBe(2)
   }, 10 * 60 * 1000)
 
-  it.only('should get transfer status for transfer Id - 2', async () => {
+  it.skip('should get transfer status for transfer Id - 2', async () => {
     const fromChainId = 11155420
     const toChainId = 84532
     const transferId = '0x7e77249238adda4f7d2b725881339fa6eed7c95c0e493fb65f8e5b68a8574090'

@@ -803,8 +803,6 @@ export class Hop extends Base {
       }
     }
 
-    let transferBondedEvent = transferBondedEvents[0]
-
     let transferState = TransferState.NotFound
 
     if (originalTransferSentEvent && transferBondedEvents.length !== originalHops.length) {
@@ -815,11 +813,22 @@ export class Hop extends Base {
       transferState = TransferState.Bonded
     }
 
+    const bondedEvents = transferBondedEvents.map((event: any) => {
+      const transactionHashExplorerUrl = this.utils.getTransactionHashExplorerUrl(event.transactionHash, event.context.chainId)
+      return {
+        ...event,
+        transactionHashExplorerUrl
+      }
+    })
+
+    const transferEvent : any = originalTransferSentEvent
+    transferEvent.transactionHashExplorerUrl = this.utils.getTransactionHashExplorerUrl(transferEvent.transactionHash, transferEvent.context.chainId)
+
     return {
       state: transferState,
       transferId: originalTransferSentEvent?.decoded.transferId ?? '',
       transferSentEvent: originalTransferSentEvent,
-      transferBondedEvents
+      transferBondedEvents: bondedEvents
     }
   }
 

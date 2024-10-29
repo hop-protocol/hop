@@ -63,7 +63,8 @@ export const SendV2: React.FC = () => {
     toTokenBalanceDisplay,
     hasEnoughBalance,
     routeChainIds,
-    parsedAmountIn
+    parsedAmountIn,
+    transferStatus
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -346,7 +347,7 @@ export const SendV2: React.FC = () => {
       )}
 
       {routeChainIds?.length > 0 && (
-        <MultiHopStepper steps={routeChainIds} />
+        <MultiHopStepper steps={routeChainIds} transferStatus={transferStatus} />
       )}
 
       {!!error && (

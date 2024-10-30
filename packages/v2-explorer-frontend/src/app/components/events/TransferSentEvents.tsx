@@ -29,16 +29,16 @@ export function TransferSentEvents () {
       value: 'Transfer ID',
     },
     {
-      key: 'amount',
-      value: 'Amount',
+      key: 'amountOut',
+      value: 'Amount Out',
     },
     {
       key: 'totalSent',
       value: 'Total Sent',
     },
     {
-      key: 'attestedClaims',
-      value: 'Attested Claims',
+      key: 'totalClaims',
+      value: 'Total Claims',
     },
     {
       key: 'eventChainId',
@@ -69,9 +69,9 @@ export function TransferSentEvents () {
         clipboardValue: event.transferId
       },
       {
-        key: 'amount',
-        value: event.amount,
-        clipboardValue: event.amount
+        key: 'amountOut',
+        value: event.amountOut,
+        clipboardValue: event.amountOut
       },
       {
         key: 'totalSent',
@@ -79,9 +79,9 @@ export function TransferSentEvents () {
         clipboardValue: event.totalSent
       },
       {
-        key: 'attestedTotalClaims',
-        value: event.attestedTotalClaims,
-        clipboardValue: event.attestedTotalClaims
+        key: 'totalClaims',
+        value: event.totalClaims,
+        clipboardValue: event.totalClaims
       },
       {
         key: 'eventChainId',

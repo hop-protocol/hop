@@ -97,7 +97,7 @@ export class TransferSentTable extends EventDb {
         e.total_claims AS "totalClaims",
         ${selectEventContextSql},
         nh.index,
-        nh.path_id AS "pathId",
+        nh.path_id AS "nhPathId",
         nh.max_bonder_fee AS "maxBonderFee",
         nh.max_total_sent AS "maxTotalSent",
         nh.attested_claim_id AS "nhAttestedClaimId"
@@ -165,6 +165,7 @@ export class TransferSentTable extends EventDb {
       // Delete existing hops for the current transferSentEventId
       const deleteSql = `DELETE FROM next_hops WHERE transfer_sent_event_id = $1`
       await t.none(deleteSql, [transferSentEventId])
+      console.log('hops', hops, transferSentEventId)
 
       if (hops && hops.length > 0) {
         let i = 0
@@ -203,7 +204,7 @@ export class TransferSentTable extends EventDb {
       if (item.pathId) {
         const hop = {
           index: item.index,
-          pathId: item.pathId,
+          pathId: item.nhPathId,
           maxBonderFee: BigNumber.from(item.maxBonderFee ?? 0),
           maxTotalSent: BigNumber.from(item.maxTotalSent),
           attestedClaimId: item.nhAttestedClaimId
@@ -241,7 +242,7 @@ export class TransferSentTable extends EventDb {
 
     // delete next hops fields
     delete (data as any).index
-    delete (data as any).pathId
+    delete (data as any).nhPathId
     delete (data as any).maxTotalSent
     delete (data as any).nhAttestedClaimId
 

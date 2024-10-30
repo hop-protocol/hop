@@ -42,8 +42,8 @@ export class TransferBondedTable extends EventDb {
     }
 
     const args = [startTimestamp, endTimestamp, limit, offset]
-    if (filter?.transferId) {
-      args.push(filter.transferId)
+    if (filter?.claimId) {
+      args.push(filter.claimId)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -67,7 +67,7 @@ export class TransferBondedTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND claim_id = $5' : ''}
+        ${filter?.claimId ? 'AND claim_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}

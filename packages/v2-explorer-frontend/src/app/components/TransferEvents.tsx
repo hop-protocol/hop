@@ -63,8 +63,8 @@ export function ExplorerEvents (props: any) {
       value: 'Token',
     },
     {
-      key: 'amount',
-      value: 'Amount',
+      key: 'amountOut',
+      value: 'Amount Out',
     },
     {
       key: 'transferId',
@@ -96,14 +96,14 @@ export function ExplorerEvents (props: any) {
     let status = (
       <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
     )
-    const isBonded = !!event.transferBondedEvent
+    const isBonded = event.transferBondedEvents.length > 0 // TODO
     if (isBonded) {
       status = (
         <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
       )
     }
 
-    const transferAmountDisplay = `${event?.amountDisplay ?? ''} (${event?.amountUsdDisplay ?? ''})`
+    const transferAmountOutDisplay = `${event?.amountOutDisplay ?? ''} (${event?.amountOutUsdDisplay ?? ''})`
 
     return [
       {
@@ -121,9 +121,9 @@ export function ExplorerEvents (props: any) {
         valueUrl: event.token?.tokenExplorerUrl,
       },
       {
-        key: 'amount',
-        value: transferAmountDisplay,
-        clipboardValue: transferAmountDisplay
+        key: 'amountOut',
+        value: transferAmountOutDisplay,
+        clipboardValue: transferAmountOutDisplay
       },
       {
         key: 'transferId',
@@ -150,9 +150,9 @@ export function ExplorerEvents (props: any) {
       },
       {
         key: 'destinationTransactionHash',
-        value: event.transferBondedEvent?.context?.transactionHashTruncated,
-        valueUrl: event.transferBondedEvent?.context?.transactionHashExplorerUrl,
-        clipboardValue: event.transferBondedEvent?.context?.transactionHash
+        value: event.transferBondedEvents[event.transferBondedEvents.length - 1]?.context?.transactionHashTruncated,
+        valueUrl: event.transferBondedEvents[event.transferBondedEvents.length - 1]?.context?.transactionHashExplorerUrl,
+        clipboardValue: event.transferBondedEvents[event.transferBondedEvents.length - 1]?.context?.transactionHash
       },
       {
         key: 'details',

@@ -145,21 +145,44 @@ export class Controller {
       const [pathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       if (pathInfo) {
         const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
-        const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
-        item.tokenPriceUsd = tokenPrice?.priceUsd
-        const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
-        item.ethPriceUsd = ethPrice?.priceUsd
+        if (tokenInfo) {
+          const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
+          item.tokenPriceUsd = tokenPrice?.priceUsd
+          const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
+          item.ethPriceUsd = ethPrice?.priceUsd
+        }
       }
 
-      item.transferBondedEvent = null
-      if (bondedEvents.items.length > 0) {
-        const eventItem = bondedEvents.items[0]
+      item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
         eventItem.token = item.counterpartToken
         eventItem.tokenPriceUsd = item.tokenPriceUsd
         eventItem.ethPriceUsd = item.ethPriceUsd
-        item.transferBondedEvent = this.normalizeEventForApi(eventItem)
+        return this.normalizeEventForApi(eventItem)
+      })
+
+      const chainIdHops: string[] = []
+      let chainId = item.context.chainId
+      for (const hop of item.hops) {
+        const hopPathId = hop.pathId
+        let [hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }})
+        if (!hopPathInfo) {
+          await this.upsertPathInfoIfNotExists({
+            pathId: hopPathId,
+            context: {
+              chainId
+            }
+          })
+        }
+        ([hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }}));
+        if (hopPathInfo) {
+          chainId = hopPathInfo.chainId
+          chainIdHops.push(chainId)
+        }
       }
-      return item
+
+      item.toChainId = chainIdHops[chainIdHops.length - 1]
+
+      return this.normalizeEventForApi(item)
     })
 
     const explorerItems = await Promise.all(promises)

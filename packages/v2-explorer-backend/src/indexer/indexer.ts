@@ -111,7 +111,8 @@ export class Indexer {
   }
 
   async syncEvents (): Promise<any[]> {
-    const l1Events = ['BundleForwarded', 'BundleReceived']
+    // const l1Events = ['BundleForwarded', 'BundleReceived']
+    const l1Events: any[] = []
     const baseEvents = [
       'BundleSet',
       'BundleCommitted',

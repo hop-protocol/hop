@@ -160,6 +160,15 @@ export class Indexer {
       let toBlock = headBlock
       if (syncState?.toBlock) {
         fromBlock = syncState.toBlock as number + 1
+        // if (chainId.toString() === '42069') {
+        //   fromBlock = 866229
+        // }
+        // if (chainId.toString() === '84532') {
+        //   fromBlock = 16943332
+        // }
+        // if (chainId.toString() === '11155420') {
+        //   fromBlock = 18925085
+        // }
         toBlock = headBlock
       }
 

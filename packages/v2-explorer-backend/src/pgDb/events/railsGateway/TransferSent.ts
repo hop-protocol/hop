@@ -130,6 +130,8 @@ export class TransferSentTable extends EventDb {
       args)
 
     const results = getItemsWithContext(items)
+    console.log('rows',  results.length)
+
     // Aggregate hops back into an array
     const itemsWithHops = this.#aggregateHops(results)
     return itemsWithHops.map(item => this.#normalizeDataForGet(item))

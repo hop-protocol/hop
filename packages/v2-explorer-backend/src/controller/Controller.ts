@@ -123,6 +123,57 @@ export class Controller {
     }
   }
 
+  async getBondedEventsForTransferId(
+    transferId: string,
+    processedIds = new Set<string>()
+  ): Promise<any[]> {
+    // Check if this transferId has already been processed
+    if (processedIds.has(transferId)) {
+      return []
+    }
+
+    // Mark the current transferId as processed
+    processedIds.add(transferId)
+
+    const bondedEvents: any[] = []
+
+    // Fetch the bond event for the current transferId (as claimId in TransferBonded)
+    const bondEvents = await this.getEvents({
+      eventName: 'TransferBonded',
+      filter: { claimId: transferId }
+    })
+
+    // Add bond events to the result array
+    bondEvents.items.forEach((bondEvent: any) => {
+      bondEvent.token = bondEvent.counterpartToken
+      bondedEvents.push(this.normalizeEventForApi(bondEvent))
+    })
+
+    if (!bondEvents.items.length) {
+      return bondedEvents
+    }
+
+    const transactionHash = bondEvents.items[0]?.context?.transactionHash
+
+    // Now fetch the new TransferSent event created by each bond event, if any, using its transactionHash
+    const transferSentEvents = await this.getEvents({
+      eventName: 'TransferSent',
+      filter: { transactionHash }
+    })
+
+    for (const transferSentEvent of transferSentEvents.items) {
+      const newTransferId = transferSentEvent.transferId
+
+      // Fetch bond events for each subsequent hop in the chain
+      const hopBondedEvents = await this.getBondedEventsForTransferId(newTransferId, processedIds)
+
+      // Add the hop-bonded events to the result list
+      bondedEvents.push(...hopBondedEvents)
+    }
+
+    return bondedEvents
+  }
+
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
     const { limit = 10, page } = input
@@ -131,13 +182,16 @@ export class Controller {
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
 
     const promises = items.map(async (item: any) => {
-      const { transferId } = item
-      const bondedEvents  = await this.getEvents({
-        eventName: 'TransferBonded',
-        filter: {
-          claimId: transferId
-        }
-      })
+      const { transferId, context: { transactionHash } } = item
+      // const bondedEvents  = await this.getEvents({
+      //   eventName: 'TransferBonded',
+      //   filter: {
+      //     claimId: transferId
+      //   }
+      // })
+
+      // Get all bonded events for the current transferId, following all hops
+      const bondedEvents = await this.getBondedEventsForTransferId(transferId)
 
       await this.upsertPathInfoIfNotExists(item)
       await this.upsertTokenInfoIfNotExists(item)
@@ -153,7 +207,9 @@ export class Controller {
         }
       }
 
-      item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
+      // item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
+      item.transferBondedEvents = bondedEvents.map((eventItem: any) => {
+        console.log('original', transferId, 'claimId', eventItem.claimId, eventItem.pathId)
         eventItem.token = item.counterpartToken
         eventItem.tokenPriceUsd = item.tokenPriceUsd
         eventItem.ethPriceUsd = item.ethPriceUsd
@@ -173,9 +229,13 @@ export class Controller {
             }
           })
         }
-        ([hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }}));
+        ([hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }}))
         if (hopPathInfo) {
-          chainId = hopPathInfo.chainId
+          if (chainId === hopPathInfo.chainId) {
+            chainId = hopPathInfo.counterpartChainId
+          } else {
+            chainId = hopPathInfo.chainId
+          }
           chainIdHops.push(chainId)
         }
       }

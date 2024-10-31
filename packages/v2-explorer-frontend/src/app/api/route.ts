@@ -4,7 +4,7 @@ import NodeCache from 'node-cache'
 
 export const dynamic = 'force-dynamic'
 
-const cache = new NodeCache({ stdTTL: 60, checkperiod: 30 })
+const cache = new NodeCache({ stdTTL: 60, checkperiod: 30 }) // in seconds
 
 export async function GET(request: any) {
   const u = new URL(request.url)
@@ -22,7 +22,7 @@ export async function GET(request: any) {
 
   if (res.ok) {
     // TODO: update cache time depending on response type
-    cache.set(key, data, 30)
+    cache.set(key, data, 5) // seconds
   }
 
   return Response.json(data)

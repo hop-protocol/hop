@@ -41,6 +41,7 @@ export class Base {
   contractAddresses: Addresses
   l1ChainId: number
   batchBlocks: number = 1000
+  explorerApiBaseUrl = 'http://localhost:8000'
 
   signersOrProviders: SignersOrProviders = {}
 

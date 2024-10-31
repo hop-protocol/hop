@@ -16,6 +16,7 @@ import { findTransferSentLog, findTransferSentToL2Log, formatLogArgs } from './i
 import { sigHashes } from '#hooks/useTransaction.js'
 
 export function getTruncatedHash(hash): string {
+  if (!hash) return ''
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
 }
 

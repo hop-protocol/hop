@@ -71,6 +71,8 @@
 - [getTokenSymbolByTokenAddress](Hop.md#gettokensymbolbytokenaddress)
 - [getTransferIdFromTransactionHash](Hop.md#gettransferidfromtransactionhash)
 - [getTransferStatus](Hop.md#gettransferstatus)
+- [getTransferStatusFromApi](Hop.md#gettransferstatusfromapi)
+- [getTransferStatusFromEvents](Hop.md#gettransferstatusfromevents)
 - [getTxOverrides](Hop.md#gettxoverrides)
 - [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
 - [sendTokens](Hop.md#sendtokens)
@@ -906,6 +908,38 @@ ___
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
+
+#### Returns
+
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+___
+
+### <a id="gettransferstatusfromapi" name="gettransferstatusfromapi"></a> getTransferStatusFromApi
+
+▸ **getTransferStatusFromApi**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
+
+#### Returns
+
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+___
+
+### <a id="gettransferstatusfromevents" name="gettransferstatusfromevents"></a> getTransferStatusFromEvents
+
+▸ **getTransferStatusFromEvents**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
 
 #### Parameters
 

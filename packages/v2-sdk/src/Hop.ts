@@ -9,6 +9,7 @@ import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 import { getBlockNumberFromDate } from '@hop-protocol/sdk'
+import { fetchJsonOrThrow } from '@hop-protocol/sdk'
 import memcache from 'memory-cache'
 
 const cache = new memcache.Cache()
@@ -733,6 +734,67 @@ export class Hop extends Base {
   }
 
   async getTransferStatus({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
+    return this.getTransferStatusFromApi({ fromChainId, toChainId, transferId })
+  }
+
+  async getTransferStatusFromApi ({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
+    }
+
+    if (!this.utils.isValidChainId(toChainId)) {
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
+    }
+
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new InputError(`Invalid transferId "${transferId}"`)
+    }
+
+    const url = `${this.explorerApiBaseUrl}/v1/explorer?eventName=explorer&filter%5BtransferId%5D=${transferId}`
+    const json = await fetchJsonOrThrow(url.toString())
+
+    const event = json?.events?.[0]
+    if (!event) {
+      return {
+        state: TransferState.NotFound,
+        transferId,
+        transferSentEvent: null as any,
+        transferBondedEvents: []
+      }
+    }
+
+    const transferSentEvent = {
+      ...event,
+      ...event.context
+    }
+    const transferBondedEvents = transferSentEvent.transferBondedEvents.map((event: any) => {
+      return {
+        ...event,
+        ...event.context
+      }
+    })
+
+    delete transferSentEvent.transferBondedEvents
+
+    let transferState = TransferState.NotFound
+
+    if (event && transferBondedEvents.length !== event.hops.length) {
+      transferState = TransferState.PendingBond
+    }
+
+    if (event && transferBondedEvents.length === event.hops.length) {
+      transferState = TransferState.Bonded
+    }
+
+    return {
+      state: transferState,
+      transferId: event.transferId,
+      transferSentEvent,
+      transferBondedEvents
+    }
+  }
+
+  async getTransferStatusFromEvents ({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }

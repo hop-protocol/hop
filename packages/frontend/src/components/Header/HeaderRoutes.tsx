@@ -34,6 +34,7 @@ export const HeaderRoutes: FC = () => {
   return (
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"
     scrollButtons="auto" className={styles.tabs}>
+      <Tab label="v2" value="/sendv2" />
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pools" />
       <Tab label="Convert" value="/convert" />

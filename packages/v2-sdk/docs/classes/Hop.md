@@ -16,7 +16,6 @@
 
 - [batchBlocks](Hop.md#batchblocks)
 - [contractAddresses](Hop.md#contractaddresses)
-- [explorerApiBaseUrl](Hop.md#explorerapibaseurl)
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
 - [hubConnector](Hop.md#hubconnector)
 - [l1ChainId](Hop.md#l1chainid)
@@ -49,6 +48,7 @@
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
 - [getEthersWeb3Signer](Hop.md#getethersweb3signer)
 - [getEvents](Hop.md#getevents)
+- [getExplorerApiBaseUrl](Hop.md#getexplorerapibaseurl)
 - [getHubChainId](Hop.md#gethubchainid)
 - [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
 - [getMessenger](Hop.md#getmessenger)
@@ -80,6 +80,7 @@
 - [sendTokensMultiHop](Hop.md#sendtokensmultihop)
 - [sendTransaction](Hop.md#sendtransaction)
 - [setContractAddresses](Hop.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](Hop.md#setexplorerapibaseurl)
 - [setProvider](Hop.md#setprovider)
 - [setProviderUrl](Hop.md#setproviderurl)
 - [setProviderUrls](Hop.md#setproviderurls)
@@ -129,16 +130,6 @@ ___
 #### Inherited from
 
 Base.contractAddresses
-
-___
-
-### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
-
-• **explorerApiBaseUrl**: `string`
-
-#### Inherited from
-
-Base.explorerApiBaseUrl
 
 ___
 
@@ -539,6 +530,20 @@ ___
 #### Returns
 
 `Promise`\<`EthersEventWithDecodedTypesAndContext`\<[`AllEventTypes`](../modules.md#alleventtypes)\>[]\>
+
+___
+
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
 
 ___
 
@@ -1074,6 +1079,26 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
 
 ___
 

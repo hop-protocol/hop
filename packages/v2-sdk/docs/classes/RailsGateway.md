@@ -17,7 +17,6 @@
 - [batchBlocks](RailsGateway.md#batchblocks)
 - [chainId](RailsGateway.md#chainid)
 - [contractAddresses](RailsGateway.md#contractaddresses)
-- [explorerApiBaseUrl](RailsGateway.md#explorerapibaseurl)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
@@ -64,6 +63,7 @@
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
 - [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
+- [getExplorerApiBaseUrl](RailsGateway.md#getexplorerapibaseurl)
 - [getFee](RailsGateway.md#getfee)
 - [getFullAppeal](RailsGateway.md#getfullappeal)
 - [getHasSufficientBalance](RailsGateway.md#gethassufficientbalance)
@@ -129,6 +129,7 @@
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](RailsGateway.md#setexplorerapibaseurl)
 - [setProvider](RailsGateway.md#setprovider)
 - [setProviderUrl](RailsGateway.md#setproviderurl)
 - [setProviderUrls](RailsGateway.md#setproviderurls)
@@ -197,16 +198,6 @@ ___
 #### Inherited from
 
 StakingRegistry.contractAddresses
-
-___
-
-### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
-
-• **explorerApiBaseUrl**: `string`
-
-#### Inherited from
-
-StakingRegistry.explorerApiBaseUrl
 
 ___
 
@@ -919,6 +910,20 @@ ___
 #### Returns
 
 `string`[]
+
+___
+
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+StakingRegistry.getExplorerApiBaseUrl
 
 ___
 
@@ -2043,6 +2048,26 @@ ___
 #### Inherited from
 
 StakingRegistry.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+StakingRegistry.setExplorerApiBaseUrl
 
 ___
 

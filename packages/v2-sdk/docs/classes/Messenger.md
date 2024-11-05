@@ -16,7 +16,6 @@
 
 - [batchBlocks](Messenger.md#batchblocks)
 - [contractAddresses](Messenger.md#contractaddresses)
-- [explorerApiBaseUrl](Messenger.md#explorerapibaseurl)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
 - [l1ChainId](Messenger.md#l1chainid)
@@ -53,6 +52,7 @@
 - [getEventFetcher](Messenger.md#geteventfetcher)
 - [getEventNames](Messenger.md#geteventnames)
 - [getExecutorContractAddress](Messenger.md#getexecutorcontractaddress)
+- [getExplorerApiBaseUrl](Messenger.md#getexplorerapibaseurl)
 - [getFeesSentToHubEvents](Messenger.md#getfeessenttohubevents)
 - [getHasAuctionStarted](Messenger.md#gethasauctionstarted)
 - [getHubChainId](Messenger.md#gethubchainid)
@@ -105,6 +105,7 @@
 - [sendMessage](Messenger.md#sendmessage)
 - [sendTransaction](Messenger.md#sendtransaction)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](Messenger.md#setexplorerapibaseurl)
 - [setProvider](Messenger.md#setprovider)
 - [setProviderUrl](Messenger.md#setproviderurl)
 - [setProviderUrls](Messenger.md#setproviderurls)
@@ -160,16 +161,6 @@ ___
 #### Inherited from
 
 Base.contractAddresses
-
-___
-
-### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
-
-• **explorerApiBaseUrl**: `string`
-
-#### Inherited from
-
-Base.explorerApiBaseUrl
 
 ___
 
@@ -654,6 +645,20 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
 
 ___
 
@@ -1525,6 +1530,26 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
 
 ___
 

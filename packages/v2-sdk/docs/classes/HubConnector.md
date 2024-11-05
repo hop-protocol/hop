@@ -16,7 +16,6 @@
 
 - [batchBlocks](HubConnector.md#batchblocks)
 - [contractAddresses](HubConnector.md#contractaddresses)
-- [explorerApiBaseUrl](HubConnector.md#explorerapibaseurl)
 - [gasPriceMultiplier](HubConnector.md#gaspricemultiplier)
 - [l1ChainId](HubConnector.md#l1chainid)
 - [network](HubConnector.md#network)
@@ -42,6 +41,7 @@
 - [getDefaultProvider](HubConnector.md#getdefaultprovider)
 - [getDefaultProviders](HubConnector.md#getdefaultproviders)
 - [getEthersWeb3Signer](HubConnector.md#getethersweb3signer)
+- [getExplorerApiBaseUrl](HubConnector.md#getexplorerapibaseurl)
 - [getHubChainId](HubConnector.md#gethubchainid)
 - [getHubConnectorContractAddress](HubConnector.md#gethubconnectorcontractaddress)
 - [getProvider](HubConnector.md#getprovider)
@@ -57,6 +57,7 @@
 - [getTxOverrides](HubConnector.md#gettxoverrides)
 - [sendTransaction](HubConnector.md#sendtransaction)
 - [setContractAddresses](HubConnector.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](HubConnector.md#setexplorerapibaseurl)
 - [setProvider](HubConnector.md#setprovider)
 - [setProviderUrl](HubConnector.md#setproviderurl)
 - [setProviderUrls](HubConnector.md#setproviderurls)
@@ -104,16 +105,6 @@ ___
 #### Inherited from
 
 Base.contractAddresses
-
-___
-
-### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
-
-• **explorerApiBaseUrl**: `string`
-
-#### Inherited from
-
-Base.explorerApiBaseUrl
 
 ___
 
@@ -447,6 +438,20 @@ Base.getEthersWeb3Signer
 
 ___
 
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
+
+___
+
 ### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
 
 ▸ **getHubChainId**(): `string`
@@ -727,6 +732,26 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
 
 ___
 

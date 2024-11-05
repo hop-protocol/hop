@@ -41,7 +41,8 @@ export class Base {
   contractAddresses: Addresses
   l1ChainId: number
   batchBlocks: number = 1000
-  explorerApiBaseUrl = 'http://localhost:8000'
+  // #explorerApiBaseUrl = 'http://localhost:8000'
+  #explorerApiBaseUrl = 'https://v2-explorer-api-sepolia.hop.exchange'
 
   signersOrProviders: SignersOrProviders = {}
 
@@ -671,5 +672,13 @@ export class Base {
 
   getHubChainId(): string {
     return '42069'
+  }
+
+  getExplorerApiBaseUrl(): string {
+    return this.#explorerApiBaseUrl
+  }
+
+  setExplorerApiBaseUrl(url: string): void {
+    this.#explorerApiBaseUrl = url
   }
 }

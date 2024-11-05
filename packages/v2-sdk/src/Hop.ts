@@ -750,7 +750,7 @@ export class Hop extends Base {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const url = `${this.explorerApiBaseUrl}/v1/explorer?eventName=explorer&filter%5BtransferId%5D=${transferId}`
+    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5BtransferId%5D=${transferId}`
     const json = await fetchJsonOrThrow(url.toString())
 
     const event = json?.events?.[0]

@@ -205,7 +205,7 @@ export const SendV2: FC = () => {
       )}
 
       {routeChainIds?.length > 0 && (
-        <MultiHopStepper steps={routeChainIds} />
+        <MultiHopStepper steps={routeChainIds} transferStatus={null as any }/>
       )}
 
       <Box className={styles.details}>

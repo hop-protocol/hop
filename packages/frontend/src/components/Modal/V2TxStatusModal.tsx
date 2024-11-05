@@ -97,9 +97,9 @@ export function V2TxStatusModal(props: Props) {
         })
 
         setFromCompleted(!!transferStatus.transferSentEvent)
-        setToCompleted(!!transferStatus.transferBondedEvent)
+        setToCompleted(transferStatus.transferBondedEvents.length > 0)
 
-        if (!transferStatus.transferBondedEvent) {
+        if (!transferStatus.transferBondedEvents.length) {
           const provider = v2Sdk.getProvider(fromChainId)
           const blockNumber = await provider.getBlockNumber()
           const { blockNumber: receiptBlockNumber } = await provider.getTransactionReceipt(tx.hash)

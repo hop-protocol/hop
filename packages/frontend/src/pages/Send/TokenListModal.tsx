@@ -35,7 +35,7 @@ type Props = {
   excludeChainId?: string
   selectedTokenSymbol?: string
   clear?: boolean
-  selectLabel?: boolean
+  selectLabel?: string
 }
 
 export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value, selectLabel }: Props) => {

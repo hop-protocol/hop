@@ -17,6 +17,7 @@
 - [batchBlocks](RailsGateway.md#batchblocks)
 - [chainId](RailsGateway.md#chainid)
 - [contractAddresses](RailsGateway.md#contractaddresses)
+- [explorerApiBaseUrl](RailsGateway.md#explorerapibaseurl)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
@@ -196,6 +197,16 @@ ___
 #### Inherited from
 
 StakingRegistry.contractAddresses
+
+___
+
+### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
+
+• **explorerApiBaseUrl**: `string`
+
+#### Inherited from
+
+StakingRegistry.explorerApiBaseUrl
 
 ___
 

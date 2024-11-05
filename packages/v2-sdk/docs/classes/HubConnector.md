@@ -16,6 +16,7 @@
 
 - [batchBlocks](HubConnector.md#batchblocks)
 - [contractAddresses](HubConnector.md#contractaddresses)
+- [explorerApiBaseUrl](HubConnector.md#explorerapibaseurl)
 - [gasPriceMultiplier](HubConnector.md#gaspricemultiplier)
 - [l1ChainId](HubConnector.md#l1chainid)
 - [network](HubConnector.md#network)
@@ -103,6 +104,16 @@ ___
 #### Inherited from
 
 Base.contractAddresses
+
+___
+
+### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
+
+• **explorerApiBaseUrl**: `string`
+
+#### Inherited from
+
+Base.explorerApiBaseUrl
 
 ___
 

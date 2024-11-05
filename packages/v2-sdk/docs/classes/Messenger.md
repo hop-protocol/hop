@@ -16,6 +16,7 @@
 
 - [batchBlocks](Messenger.md#batchblocks)
 - [contractAddresses](Messenger.md#contractaddresses)
+- [explorerApiBaseUrl](Messenger.md#explorerapibaseurl)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
 - [l1ChainId](Messenger.md#l1chainid)
@@ -159,6 +160,16 @@ ___
 #### Inherited from
 
 Base.contractAddresses
+
+___
+
+### <a id="explorerapibaseurl" name="explorerapibaseurl"></a> explorerApiBaseUrl
+
+• **explorerApiBaseUrl**: `string`
+
+#### Inherited from
+
+Base.explorerApiBaseUrl
 
 ___
 

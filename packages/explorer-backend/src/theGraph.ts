@@ -589,7 +589,7 @@ export async function fetchTransferFromL1CompletedsByRecipient (chain: string, r
     const data = await queryFetch(url, query, {
       recipient
     })
-    let events = data.events || []
+    const events = data.events || []
 
     return events
   } catch (err) {

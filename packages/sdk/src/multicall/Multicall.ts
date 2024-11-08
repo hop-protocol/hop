@@ -90,12 +90,12 @@ export class Multicall {
   }
 
   async multicall (chainSlug: ChainSlug | string, options: MulticallOptions[]): Promise<Array<any>> {
-    if (!isValidChainSlug(chainSlug)) {
-      throw new Error(`Invalid chain: ${chainSlug}`)
-    }
+    // if (!isValidChainSlug(chainSlug)) {
+    //   throw new Error(`Invalid chain: ${chainSlug}`)
+    // }
 
-    const provider = this.#getProvider(chainSlug)
-    const multicallAddress = this.#getMulticallAddressForChain(chainSlug)
+    const provider = this.#getProvider(chainSlug as ChainSlug)
+    const multicallAddress = this.#getMulticallAddressForChain(chainSlug as ChainSlug)
     const calls = options.map(({ address, abi, method, args }: MulticallOptions) => {
       const contractInterface = new utils.Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
@@ -143,6 +143,7 @@ export class Multicall {
     if (!isValidChainSlug(chainSlug)) {
       throw new Error(`Invalid chain: ${chainSlug}`)
     }
+
     if (!this.accountAddress) {
       throw new Error('config.accountAddress is required')
     }

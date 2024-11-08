@@ -86,11 +86,11 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
     { value: '11155420', label: 'Optimism Sepolia', logo: 'https://assets.hop.exchange/logos/optimism.svg' },
   ]
 
-  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo
+  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken?.chainId?.toString())?.logo
 
   function renderTokenList(list: any[]) {
       return list.map((token) => {
-        const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
+        const chainLogo = networkOptions.find(option => option.value === token.chainId?.toString())?.logo
         return (
           <ListItem
             button

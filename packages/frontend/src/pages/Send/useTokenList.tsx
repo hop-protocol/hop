@@ -4,6 +4,7 @@ import tokenListJson from './tokenlist.json'
 import { useV2 } from '#hooks/useV2.js'
 import { ethers } from 'ethers'
 import { PriceFeed, utils as v2Utils } from '@hop-protocol/v2-sdk'
+import { Multicall } from '@hop-protocol/sdk'
 
 const { formatUSD } = v2Utils
 
@@ -144,39 +145,98 @@ export const useTokenList = (selectedChainId = '') => {
         setFilteredTokens(filtered)
         return
       }
-      const tokensWithBalanceAndPrice = await Promise.all(
-        filtered.map(async (token) => {
-          try {
-            const priceFeed = new PriceFeed()
-            const railsGateway = v2Sdk.getRailsGateway(token.chainId)
-            const contract = railsGateway.getTokenContract( { address: token.address })
-            const balance = await contract.balanceOf(account)
-            if (balance.eq(0)) {
+
+      // const tokensWithBalanceAndPrice = await Promise.all(
+      //   filtered.map(async (token) => {
+      //     try {
+      //       const priceFeed = new PriceFeed()
+      //       const railsGateway = v2Sdk.getRailsGateway(token.chainId)
+      //       const contract = railsGateway.getTokenContract( { address: token.address })
+      //       const balance = await contract.balanceOf(account)
+      //       if (balance.eq(0)) {
+      //         return {
+      //           ...token,
+      //         }
+      //       }
+      //       const balanceFormatted = ethers.utils.formatUnits(balance, token.decimals)
+      //       const tokenPrice = await priceFeed.getPriceByTokenSymbol(token.symbol)
+      //       const balanceUsd = Number(balanceFormatted) * tokenPrice
+      //       const balanceUsdDisplay = formatUSD(balanceUsd)
+
+      //       return {
+      //         ...token,
+      //         balanceFormatted,
+      //         balanceUsd,
+      //         balanceUsdDisplay,
+      //       }
+      //     } catch (err: any) {
+      //       console.error('fetch error', err)
+      //       return {
+      //         ...token,
+      //       }
+      //     }
+      //   })
+      // )
+
+    const tokensWithBalanceAndPrice = await Promise.all(
+      // Group tokens by chainId to optimize multicall usage
+      Object.entries(
+        filtered.reduce((acc: any, token: any) => {
+          if (!acc[token.chainId]) acc[token.chainId] = []
+          acc[token.chainId].push(token)
+          return acc
+        }, {})
+      ).map(async ([chainId, tokens]: [string, any[]]) => {
+        const chainSlug = v2Sdk.utils.getChainSlug(chainId)
+        try {
+          const multicall = new Multicall({
+            network: 'sepolia',
+            accountAddress: account,
+            chainProviders: {
+              [chainSlug]: v2Sdk.getProvider(chainId),
+            },
+          })
+
+          // Prepare multicall options for token balance calls
+          const calls = tokens.map((token: any) => ({
+            address: token.address,
+            abi: [
+              'function balanceOf(address account) view returns (uint256)'
+            ],
+            method: 'balanceOf',
+            args: [account],
+          }))
+
+          // Execute multicall for all tokens on this chain
+          const results = await multicall.multicall(chainSlug, calls)
+
+          return await Promise.all(
+            results.map(async (result, index) => {
+              const token = tokens[index]
+              if (!result || result[0].eq(0)) return { ...token }
+
+              // Parse and format balance
+              const balanceFormatted = ethers.utils.formatUnits(result[0], token.decimals)
+              const tokenPrice = await (new PriceFeed()).getPriceByTokenSymbol(token.symbol)
+              const balanceUsd = Number(balanceFormatted) * tokenPrice
+              const balanceUsdDisplay = formatUSD(balanceUsd)
+
               return {
                 ...token,
+                balanceFormatted,
+                balanceUsd,
+                balanceUsdDisplay,
               }
-            }
-            const balanceFormatted = ethers.utils.formatUnits(balance, token.decimals)
-            const tokenPrice = await priceFeed.getPriceByTokenSymbol(token.symbol)
-            const balanceUsd = Number(balanceFormatted) * tokenPrice
-            const balanceUsdDisplay = formatUSD(balanceUsd)
+            })
+          )
+        } catch (error) {
+          console.error('fetch error', chainSlug, error)
+          return tokens.map((token) => ({ ...token }))
+        }
+      })
+    )
 
-            return {
-              ...token,
-              balanceFormatted,
-              balanceUsd,
-              balanceUsdDisplay,
-            }
-          } catch (err: any) {
-            console.error('fetch error', err)
-            return {
-              ...token,
-            }
-          }
-        })
-      )
-
-      setFilteredTokens([...tokensWithBalanceAndPrice])
+      setFilteredTokens([...tokensWithBalanceAndPrice.flat()])
     }
 
     update()

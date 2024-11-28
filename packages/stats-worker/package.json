@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/stats-worker",
-  "version": "0.0.17",
+  "version": "0.0.19",
   "description": "Hop Protocol Stats Worker",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",

@@ -167,6 +167,7 @@ export class TransferStats {
 
         this.trackRecentTransferBonds({ lookbackMinutes: 30, pollIntervalMs: 2 * 60 * 1000 }),
         this.trackRecentTransferBonds({ lookbackMinutes: 240, pollIntervalMs: 60 * 60 * 1000, initialDelayMs: 20 * 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 960, pollIntervalMs: 2 * 60 * 60 * 1000, initialDelayMs: 30 * 60 * 1000 }),
 
         this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
       ]

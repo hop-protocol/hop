@@ -512,7 +512,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const isUSDCe = sourceToken?.symbol === 'hUSDC.e' || destToken?.symbol === 'USDC.e'
     if (isUSDCe && destNetwork?.isL1) {
-      setInfo(<>Notice: The USDC.e bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on March 20th, 2024. To transfer hUSDC.e to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
+      setInfo(<>Notice: The USDC.e bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on March 20th, 2024. To transfer hUSDC.e to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. After you have intiated the withdrawal on this page, you must commit the transfer root hash on the <Link href="/#/commit-transfers">Commit Transfers Page</Link> here. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
     } else {
       setInfo(null)
     }

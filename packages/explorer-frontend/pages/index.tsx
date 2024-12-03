@@ -1353,7 +1353,7 @@ const Index: NextPage = (props: any) => {
                               </Tooltip>
                               {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                 <Box ml={2}>
-                                <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.token === 'USDC' ? x.transactionHash : x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
                                 </Box>
                               )}
                             </span>
@@ -1364,7 +1364,7 @@ const Index: NextPage = (props: any) => {
                                 <span>Pending</span>
                                 {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                   <Box ml={2}>
-                                  <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
+                                  <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.token === 'USDC' ? x.transactionHash : x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
                                   </Box>
                                 )}
                               </span>

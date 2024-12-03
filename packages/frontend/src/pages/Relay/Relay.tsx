@@ -122,14 +122,16 @@ export const Relay: FC = () => {
           }
           const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
-          let token = selectedBridge.getTokenSymbol()
+          const token = selectedBridge.getTokenSymbol()
+          let subgraphToken = token
           if (token === 'USDC.e') {
-            token = 'USDC' // it needs to be USDC for graph lookups for USDC.e
+            subgraphToken = 'USDC' // it needs to be USDC for graph lookups for USDC.e
           }
           console.log('reactAppNetwork', reactAppNetwork)
           console.log('l1Wallet', l1Wallet)
           console.log('l2Wallet', l2Wallet)
           console.log('token', token)
+          console.log('subgraphToken', subgraphToken)
           let transferId = transferIdOrTxHash
           const transferStatus = await sdk.getTransferStatus(transferId)
           console.log('transferStatus', transferStatus)
@@ -143,7 +145,7 @@ export const Relay: FC = () => {
           setCommitInfoMsg(`Searching for the commit transaction hash for transfer ID ${transferId}...`)
           let commitTxHash = '' // for debugging
           if (!commitTxHash) {
-            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
+            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, subgraphToken, transferId)
             console.log('event', event)
             commitTxHash = event?.transactionHash
           setCommitInfoMsg('')
@@ -162,7 +164,7 @@ export const Relay: FC = () => {
             setCommitInfoMsg(`Searching for the commit transaction hash for transfer ID ${transferId}...`)
           }
           if (!commitTxHash) {
-            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, token, transferId)
+            const event = await getTransferCommittedEventForTransferId(selectedNetwork.slug, subgraphToken, transferId)
             console.log('event', event)
             commitTxHash = event?.transactionHash
             setCommitInfoMsg(``)
@@ -284,19 +286,19 @@ export const Relay: FC = () => {
           </Button>
         </Box>
       </form>
-      <Box className={styles.notice}>
+      <Box className={styles.notice} mb={2}>
         <Alert severity="error">{error}</Alert>
       </Box>
-      <Box className={styles.notice}>
+      <Box className={styles.notice} mb={2}>
         <Alert severity="success">{success}</Alert>
       </Box>
       {commitTxHashForTransferId && (
-        <Box className={styles.notice}>
+        <Box className={styles.notice} mb={2}>
           <Alert severity="info">Found commit tx hash: {commitTxHashForTransferId}</Alert>
         </Box>
       )}
       {commitInfoMsg && (
-        <Box className={styles.notice}>
+        <Box className={styles.notice} mb={2}>
           <Alert severity="info">{commitInfoMsg}</Alert>
         </Box>
       )}

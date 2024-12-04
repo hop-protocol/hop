@@ -181,7 +181,7 @@ export const useTokenList = (selectedChainId = '') => {
     const tokensWithBalanceAndPrice = await Promise.all(
       // Group tokens by chainId to optimize multicall usage
       Object.entries(
-        filtered.reduce((acc: any, token: any) => {
+        filtered.reduce((acc: Record<string, any[]>, token: any) => {
           if (!acc[token.chainId]) acc[token.chainId] = []
           acc[token.chainId].push(token)
           return acc

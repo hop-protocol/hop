@@ -268,7 +268,7 @@ export class Hop extends Base {
 
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', destPathId)
-          attestedClaimId = await this.getRailsGateway(originChainId).getHeadClaim({
+          attestedClaimId = await this.getRailsGateway(originChainId).getHeadClaimId({
             pathId: nextPathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
@@ -290,11 +290,11 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: nextPathId })
+        const nextMaxTotalSent = await this.getRailsGateway(originChainId).totalSent({ pathId: nextPathId })
         const nextMaxBonderFee = BigNumber.from('0') // TODO
 
-        const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
-        const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaim({
+        const destMaxTotalSent = await this.getRailsGateway(nextChainId).totalSent({ pathId: destPathId })
+        const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
           pathId: destPathId
         })
         const destMaxBonderFee = BigNumber.from('0') // TODO
@@ -314,7 +314,7 @@ export class Hop extends Base {
           }
         ]
 
-        const fee = await this.getRailsGateway(nextChainId).getFee({ pathId: nextPathId })
+        const fee = await this.getRailsGateway(nextChainId).getSendFee({ pathId: nextPathId })
 
         const populatedTx = await this.getRailsGateway(originChainId).populateTransaction.send({
           pathId: nextPathId,
@@ -379,7 +379,7 @@ export class Hop extends Base {
 
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', pathId)
-          attestedClaimId = await this.getRailsGateway(fromChainId).getHeadClaim({
+          attestedClaimId = await this.getRailsGateway(fromChainId).getHeadClaimId({
             pathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
@@ -402,7 +402,7 @@ export class Hop extends Base {
         }
 
         const maxBonderFee = BigNumber.from('0') // TODO
-        const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
+        const maxTotalSent = await this.getRailsGateway(fromChainId).totalSent({ pathId })
 
         const hops: HopStruct[] = [{
           pathId,
@@ -411,7 +411,7 @@ export class Hop extends Base {
           attestedClaimId
         }]
 
-        const fee = await this.getRailsGateway(toChainId).getFee({ pathId })
+        const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
         const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.send({
           pathId,
@@ -508,7 +508,7 @@ export class Hop extends Base {
       token1: toToken
     })
 
-    return gateway.getFee({
+    return gateway.getSendFee({
       pathId
     })
   }
@@ -530,11 +530,11 @@ export class Hop extends Base {
       token1: toToken
     })
 
-    const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaim({
+    const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaimId({
       pathId
     })
 
-    const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
+    const maxTotalSent = await this.getRailsGateway(fromChainId).totalSent({ pathId })
     const maxBonderFee = BigNumber.from('0') // TODO
 
     const hops: HopStruct[] = [{
@@ -544,7 +544,7 @@ export class Hop extends Base {
       maxTotalSent,
     }]
 
-    const fee = await this.getRailsGateway(toChainId).getFee({ pathId })
+    const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
     const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.send({
       pathId,
@@ -565,7 +565,7 @@ export class Hop extends Base {
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
     const rails = await this.getRailsGateway(toChainId)
     const pathId = await rails.getPathId({ chainId0: fromChainId, token0: fromToken, chainId1: toChainId, token1: toToken })
-    const attestedClaimId = await rails.getHeadClaim({
+    const attestedClaimId = await rails.getHeadClaimId({
       pathId
     })
 

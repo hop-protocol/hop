@@ -1,4 +1,5 @@
 # Run:
+# npm i -g typechain @typechain/ethers-v5
 # cd scripts/
 # ./typechain.sh
 

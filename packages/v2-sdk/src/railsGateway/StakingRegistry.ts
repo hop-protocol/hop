@@ -2,9 +2,8 @@ import { Base, BaseConfig } from '#common/index.js'
 import { Contract, ethers, BigNumberish } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
-export type MinHopStakeForRoleInput = {
+export type MinHopStakeInput = {
   chainId: BigNumberish
-  role: string
 }
 
 export type GetChallengesInput = {
@@ -12,34 +11,25 @@ export type GetChallengesInput = {
   challengeId: string
 }
 
-export type GetWithdrawableEthInput = {
-  chainId: BigNumberish
-  address: string
-}
-
 export type RegistryStakeHopInput = {
   chainId: BigNumberish
-  role: string;
   staker: string
   amount: BigNumberish
 }
 
 export type RegistryUnstakeHopInput = {
   chainId: BigNumberish
-  role: string
   amount: ethers.BigNumberish
 }
 
 export type RegistryWithdrawInput = {
   chainId: BigNumberish
-  role: string;
   staker: string
 }
 
 export type CreateChallengeInput = {
   chainId: BigNumberish
   staker: string
-  role: string
   penalty: BigNumberish
   slashingData: string
   challengeEth: BigNumberish // Ether value to send with the transaction
@@ -49,7 +39,6 @@ export type AddToChallengeInput = {
   chainId: BigNumberish
   staker: string
   challenger: string
-  role: string
   penalty: BigNumberish
   slashingData: string
   additionalEth: BigNumberish // Additional Ether value for the challenge
@@ -59,7 +48,6 @@ export type AddToAppealInput = {
   chainId: BigNumberish
   staker: string
   challenger: string
-  role: string
   penalty: BigNumberish
   slashingData: string
   appealEth: BigNumberish // Ether value for the appeal
@@ -67,17 +55,15 @@ export type AddToAppealInput = {
 
 export type OptimisticallySettleChallengeInput = {
   chainId: BigNumberish
-  staker: string;
+  staker: string
   challenger: string
-  role: string;
   penalty: ethers.BigNumberish
   slashingData: string // assuming slashingData is a bytes-like string
 }
 
 export type AcceptSlashInput = {
   chainId: BigNumberish
-  challenger: string;
-  role: string;
+  challenger: string
   penalty: BigNumberish
   slashingData: string
   slashEth: BigNumberish
@@ -91,29 +77,32 @@ export type ForceSettleChallengeInput = {
 
 export type IsStakedInput = {
   chainId: BigNumberish
-  role: string;
   staker: string
 }
 
 export type GetStakedBalanceInput = {
   chainId: BigNumberish
-  role: string
   staker: string
 }
 
 export type GetWithdrawableBalanceInput = {
   chainId: BigNumberish
-  role: string
   staker: string
 }
 
 export type GetChallengeIdInput = {
   chainId: BigNumberish
-  role: string;
   staker: string
-  penalty: BigNumberish;
+  penalty: BigNumberish
   challenger: string
   slashingData: string
+}
+
+export type SignalPreferenceInput = {
+  chainId: BigNumberish
+  pathId: string
+  feeTier: BigNumberish
+  liquidity: BigNumberish
 }
 
 export type StakingRegistryConstructorInput = BaseConfig
@@ -139,61 +128,54 @@ export class StakingRegistry extends Base {
     return StakingRegistry__factory.connect(address, provider)
   }
 
-  async getChallengePeriod (chainId: BigNumberish) {
+  async challengePeriod (chainId: BigNumberish) {
     const contract = this.getStakingRegistryContract(chainId)
     return contract.challengePeriod()
   }
 
-  async getAppealPeriod (chainId: BigNumberish) {
+  async appealPeriod (chainId: BigNumberish) {
     const contract = this.getStakingRegistryContract(chainId)
     return contract.appealPeriod()
   }
 
-  async getMinChallengeIncrease (chainId: BigNumberish) {
+  async minChallengeIncrease (chainId: BigNumberish) {
     const contract = this.getStakingRegistryContract(chainId)
     return contract.minChallengeIncrease()
   }
 
-  async getFullAppeal (chainId: BigNumberish) {
+  async fullAppeal (chainId: BigNumberish) {
     const contract = this.getStakingRegistryContract(chainId)
     return contract.fullAppeal()
   }
 
-  async getMinHopStakeForRole (input: MinHopStakeForRoleInput) {
-    const { chainId, role } = input
+  async challenges (chainId: BigNumberish, challengeId: string) {
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.minHopStakeForRole(role)
+    return contract.challenges(challengeId)
   }
 
-  async getChallenges (input: GetChallengesInput) {
-    const { chainId, challengeId } = input
+  async minHopStake (input: MinHopStakeInput) {
+    const { chainId } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.getChallenges(challengeId)
-  }
-
-  async getWithdrawableEth (input: GetWithdrawableEthInput) {
-    const { chainId, address } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.getWithdrawableEth(address)
+    return contract.minHopStake()
   }
 
   async registryStakeHopPopulatedTx (input: RegistryStakeHopInput) {
-    const { chainId, role, staker } = input
+    const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.stakeHop(role, staker)
+    const txData = await contract.populateTransaction.stakeHop(staker)
     return txData
   }
 
   async registryUnstakeHopPopulatedTx (input: RegistryUnstakeHopInput) {
-    const { chainId, role, amount } = input
+    const { chainId, amount } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.populateTransaction.unstakeHop(role, amount)
+    return contract.populateTransaction.unstakeHop(amount)
   }
 
   async registryWithdrawPopulatedTx (input: RegistryWithdrawInput) {
-    const { chainId, role, staker } = input
+    const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.populateTransaction.withdraw(role, staker)
+    return contract.populateTransaction.withdraw(staker)
   }
 
   async registryStakeHop (input: RegistryStakeHopInput) {
@@ -211,34 +193,41 @@ export class StakingRegistry extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  async createChallenge (input: CreateChallengeInput) {
-    const { chainId, staker, role, penalty, slashingData } = input
+  async signalPreferencePopulatedTx (input: SignalPreferenceInput) {
+    const { chainId, pathId, feeTier, liquidity } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.createChallenge(staker, role, penalty, slashingData, { value: input.challengeEth })
+    const txData = await contract.populateTransaction.signalPreference(pathId, feeTier, liquidity)
+    return txData
+  }
+
+  async createChallenge (input: CreateChallengeInput) {
+    const { chainId, staker, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract(chainId)
+    return contract.createChallenge(staker, penalty, slashingData, { value: input.challengeEth })
   }
 
   async addToChallenge (input: AddToChallengeInput) {
-    const { chainId, staker, challenger, role, penalty, slashingData } = input
+    const { chainId, staker, challenger, penalty, slashingData } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.addToChallenge(staker, challenger, role, penalty, slashingData, { value: input.additionalEth })
+    return contract.addToChallenge(staker, challenger, penalty, slashingData, { value: input.additionalEth })
   }
 
   async addToAppeal (input: AddToAppealInput) {
-    const { chainId, staker, challenger, role, penalty, slashingData } = input
+    const { chainId, staker, challenger, penalty, slashingData } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.addToAppeal(staker, challenger, role, penalty, slashingData, { value: input.appealEth })
+    return contract.addToAppeal(staker, challenger, slashingData, { value: input.appealEth })
   }
 
   async optimisticallySettleChallenge (input: OptimisticallySettleChallengeInput) {
-    const { chainId, staker, challenger, role, penalty, slashingData } = input
+    const { chainId, staker, challenger, penalty, slashingData } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.optimisticallySettleChallenge(staker, challenger, role, penalty, slashingData)
+    return contract.optimisticallySettleChallenge(staker, challenger, penalty, slashingData)
   }
 
   async acceptSlash (input: AcceptSlashInput) {
-    const { chainId, challenger, role, penalty, slashingData } = input
+    const { chainId, challenger, penalty, slashingData } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.acceptSlash(challenger, role, penalty, slashingData, { value: input.slashEth })
+    return contract.acceptSlash(challenger, penalty, slashingData, { value: input.slashEth })
   }
 
   async forceSettleChallenge (input: ForceSettleChallengeInput) {
@@ -248,33 +237,33 @@ export class StakingRegistry extends Base {
   }
 
   async isStaked (input: IsStakedInput) {
-    const { chainId, role, staker } = input
+    const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.isStaked(role, staker)
+    return contract.isStaked(staker)
   }
 
   async getStakedBalance (input: GetStakedBalanceInput) {
-    const { chainId, role, staker } = input
+    const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.getStakedBalance(role, staker)
+    return contract.getStakedBalance(staker)
   }
 
   async getWithdrawableStakeBalance (input: GetWithdrawableBalanceInput) {
-    const { chainId, role, staker } = input
+    const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.getWithdrawableBalance(role, staker)
+    return contract.getWithdrawableBalance(staker)
   }
 
   // Helper function to calculate challengeId which would typically be calculated off-chain
   async getChallengeId (input: GetChallengeIdInput) {
-    const { chainId, role, staker, penalty, challenger, slashingData } = input
+    const { chainId, staker, penalty, challenger, slashingData } = input
     const contract = this.getStakingRegistryContract(chainId)
-    return contract.getChallengeId(role, staker, penalty, challenger, slashingData)
+    return contract.getChallengeId(staker, penalty, challenger, slashingData)
   }
 
-  // Helper function to encode role name into bytes32
-  // This would typically not be part of the contract, but is included for completeness
-  async getRoleForRoleName (roleName: string) {
-    return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(roleName))
+  async signalPreference (input: SignalPreferenceInput) {
+    const populatedTx = await this.signalPreferencePopulatedTx(input)
+    return this.sendTransaction(populatedTx)
   }
 }
+

@@ -50,26 +50,29 @@
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
-- [DistributeFeesInput](modules.md#distributefeesinput)
+- [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
+- [DistributeExcessFeesInput](modules.md#distributeexcessfeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetAmountOutInput](modules.md#getamountoutinput)
+- [GetBatchUpdateFeeInput](modules.md#getbatchupdatefeeinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
+- [GetClaimFeesFeeInput](modules.md#getclaimfeesfeeinput)
 - [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
-- [GetFeeInput](modules.md#getfeeinput)
+- [GetFeePriceInput](modules.md#getfeepriceinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
-- [GetHeadClaimInput](modules.md#getheadclaiminput)
+- [GetHeadClaimIdInput](modules.md#getheadclaimidinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
@@ -127,19 +130,30 @@
 - [HopConstructorInput](modules.md#hopconstructorinput)
 - [HopStructInput](modules.md#hopstructinput)
 - [HubConnectorConfig](modules.md#hubconnectorconfig)
+- [IsValidClaimInput](modules.md#isvalidclaiminput)
+- [IsValidTransferInput](modules.md#isvalidtransferinput)
 - [MessengerConfig](modules.md#messengerconfig)
 - [Path](modules.md#path)
 - [PostClaimInput](modules.md#postclaiminput)
 - [RailsGatewayConstructorInput](modules.md#railsgatewayconstructorinput)
+- [RailsGatewayGetMessageFeeInput](modules.md#railsgatewaygetmessagefeeinput)
+- [RailsGatewayGetSendFeeInput](modules.md#railsgatewaygetsendfeeinput)
 - [RelayMessageData](modules.md#relaymessagedata)
 - [RemoveClaimInput](modules.md#removeclaiminput)
 - [RouteData](modules.md#routedata)
 - [SendInput](modules.md#sendinput)
 - [SendTokensInput](modules.md#sendtokensinput)
+- [SetFeePriceInput](modules.md#setfeepriceinput)
+- [SetFeePricesInput](modules.md#setfeepricesinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
+- [SignalPreferenceInput](modules.md#signalpreferenceinput)
 - [SignersOrProviders](modules.md#signersorproviders)
 - [StakeHopInput](modules.md#stakehopinput)
 - [Token](modules.md#token)
+- [TotalClaimsAtClaimIdInput](modules.md#totalclaimsatclaimidinput)
+- [TotalClaimsInput](modules.md#totalclaimsinput)
+- [TotalConfirmedInput](modules.md#totalconfirmedinput)
+- [TotalSentInput](modules.md#totalsentinput)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
 - [TransferBondedEventInput](modules.md#transferbondedeventinput)
 - [TransferBondedIndexes](modules.md#transferbondedindexes)
@@ -217,7 +231,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `finalTransferId` | `string` |
+| `claimId` | `string` |
 | `pathId` | `string` |
 | `transferDataHashes` | `string`[] |
 
@@ -274,7 +288,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `messageFee` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -307,9 +320,9 @@ ___
 
 ___
 
-### <a id="distributefeesinput" name="distributefeesinput"></a> DistributeFeesInput
+### <a id="distributeclaimedfeesinput" name="distributeclaimedfeesinput"></a> DistributeClaimedFeesInput
 
-Ƭ **DistributeFeesInput**: `Object`
+Ƭ **DistributeClaimedFeesInput**: `Object`
 
 #### Type declaration
 
@@ -319,6 +332,19 @@ ___
 | `lastClaimId` | `string` |
 | `pathId` | `string` |
 | `totalFees` | `BigNumberish` |
+
+___
+
+### <a id="distributeexcessfeesinput" name="distributeexcessfeesinput"></a> DistributeExcessFeesInput
+
+Ƭ **DistributeExcessFeesInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amounts` | `BigNumberish`[] |
+| `recipients` | `string`[] |
 
 ___
 
@@ -397,6 +423,18 @@ ___
 
 ___
 
+### <a id="getbatchupdatefeeinput" name="getbatchupdatefeeinput"></a> GetBatchUpdateFeeInput
+
+Ƭ **GetBatchUpdateFeeInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `length` | `BigNumberish` |
+
+___
+
 ### <a id="getbucketindexinput" name="getbucketindexinput"></a> GetBucketIndexInput
 
 Ƭ **GetBucketIndexInput**: `Object`
@@ -447,6 +485,18 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
+
+___
+
+### <a id="getclaimfeesfeeinput" name="getclaimfeesfeeinput"></a> GetClaimFeesFeeInput
+
+Ƭ **GetClaimFeesFeeInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -512,15 +562,15 @@ ___
 
 ___
 
-### <a id="getfeeinput" name="getfeeinput"></a> GetFeeInput
+### <a id="getfeepriceinput" name="getfeepriceinput"></a> GetFeePriceInput
 
-Ƭ **GetFeeInput**: `Object`
+Ƭ **GetFeePriceInput**: `Object`
 
 #### Type declaration
 
 | Name | Type |
 | :------ | :------ |
-| `pathId` | `string` |
+| `chainId` | `BigNumberish` |
 
 ___
 
@@ -555,9 +605,9 @@ ___
 
 ___
 
-### <a id="getheadclaiminput" name="getheadclaiminput"></a> GetHeadClaimInput
+### <a id="getheadclaimidinput" name="getheadclaimidinput"></a> GetHeadClaimIdInput
 
-Ƭ **GetHeadClaimInput**: `Object`
+Ƭ **GetHeadClaimIdInput**: `Object`
 
 #### Type declaration
 
@@ -1306,6 +1356,32 @@ ___
 
 ___
 
+### <a id="isvalidclaiminput" name="isvalidclaiminput"></a> IsValidClaimInput
+
+Ƭ **IsValidClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
+### <a id="isvalidtransferinput" name="isvalidtransferinput"></a> IsValidTransferInput
+
+Ƭ **IsValidTransferInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
 ### <a id="messengerconfig" name="messengerconfig"></a> MessengerConfig
 
 Ƭ **MessengerConfig**: `BaseConfig`
@@ -1362,6 +1438,30 @@ ___
 | `network?` | `string` |
 | `signerOrProvider?` | `Signer` \| `providers.Provider` |
 | `signersOrProviders?` | `SignersOrProviders` |
+
+___
+
+### <a id="railsgatewaygetmessagefeeinput" name="railsgatewaygetmessagefeeinput"></a> RailsGatewayGetMessageFeeInput
+
+Ƭ **RailsGatewayGetMessageFeeInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="railsgatewaygetsendfeeinput" name="railsgatewaygetsendfeeinput"></a> RailsGatewayGetSendFeeInput
+
+Ƭ **RailsGatewayGetSendFeeInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -1443,6 +1543,32 @@ ___
 
 ___
 
+### <a id="setfeepriceinput" name="setfeepriceinput"></a> SetFeePriceInput
+
+Ƭ **SetFeePriceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `feePrice` | `BigNumberish` |
+
+___
+
+### <a id="setfeepricesinput" name="setfeepricesinput"></a> SetFeePricesInput
+
+Ƭ **SetFeePricesInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainIds` | `BigNumberish`[] |
+| `feePrices` | `BigNumberish`[] |
+
+___
+
 ### <a id="shouldattemptforwardmessageinput" name="shouldattemptforwardmessageinput"></a> ShouldAttemptForwardMessageInput
 
 Ƭ **ShouldAttemptForwardMessageInput**: `Object`
@@ -1453,6 +1579,21 @@ ___
 | :------ | :------ |
 | `bundleCommittedEvent` | `BundleCommitted` |
 | `fromChainId` | `BigNumberish` |
+
+___
+
+### <a id="signalpreferenceinput" name="signalpreferenceinput"></a> SignalPreferenceInput
+
+Ƭ **SignalPreferenceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `feeTier` | `BigNumberish` |
+| `liquidity` | `BigNumberish` |
+| `pathId` | `string` |
 
 ___
 
@@ -1475,7 +1616,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `role` | `string` |
 | `staker?` | `string` |
 
 ___
@@ -1493,6 +1633,55 @@ ___
 | `decimals` | `number` |
 | `name` | `string` |
 | `symbol` | `string` |
+
+___
+
+### <a id="totalclaimsatclaimidinput" name="totalclaimsatclaimidinput"></a> TotalClaimsAtClaimIdInput
+
+Ƭ **TotalClaimsAtClaimIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
+### <a id="totalclaimsinput" name="totalclaimsinput"></a> TotalClaimsInput
+
+Ƭ **TotalClaimsInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="totalconfirmedinput" name="totalconfirmedinput"></a> TotalConfirmedInput
+
+Ƭ **TotalConfirmedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="totalsentinput" name="totalsentinput"></a> TotalSentInput
+
+Ƭ **TotalSentInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -1601,7 +1790,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `role` | `string` |
 
 ___
 
@@ -1613,7 +1801,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `headTransferId` | `string` |
+| `claimId` | `string` |
 | `pathId` | `string` |
 | `transferDataHash` | `string` |
 
@@ -1646,7 +1834,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `bucketIndex` | `number` |
+| `claimId` | `string` |
 | `pathId` | `string` |
 
 ___
@@ -1659,7 +1847,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `role` | `string` |
+| `staker` | `string` |
 
 ___
 
@@ -1672,7 +1860,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `bucketIndex` | `number` |
+| `claimId` | `string` |
 | `pathId` | `string` |
 
 ___
@@ -1685,7 +1873,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `bucketIndex` | `number` |
+| `claimId` | `string` |
 | `pathId` | `string` |
 | `recipient` | `string` |
 

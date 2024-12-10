@@ -95,5 +95,14 @@ export {
   TransferBondedIndexes,
   TransferSent,
   TransferSentEventFetcher,
-  TransferSentIndexes
+  TransferSentIndexes,
+  ClaimPosted,
+  ClaimPostedEventFetcher,
+  ClaimPostedIndexes,
+  ClaimChainUpdated,
+  ClaimChainUpdatedEventFetcher,
+  ClaimChainUpdatedIndexes,
+  BonderPreference,
+  BonderPreferenceEventFetcher,
+  BonderPreferenceIndexes
 } from './events/index.js'

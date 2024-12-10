@@ -11,6 +11,9 @@
 
 ### Classes
 
+- [BonderPreferenceEventFetcher](classes/BonderPreferenceEventFetcher.md)
+- [ClaimChainUpdatedEventFetcher](classes/ClaimChainUpdatedEventFetcher.md)
+- [ClaimPostedEventFetcher](classes/ClaimPostedEventFetcher.md)
 - [ConfigError](classes/ConfigError.md)
 - [ContractFunctionRevertedError](classes/ContractFunctionRevertedError.md)
 - [CustomError](classes/CustomError.md)
@@ -25,10 +28,13 @@
 
 ### Interfaces
 
+- [BonderPreference](interfaces/BonderPreference.md)
 - [BundleCommitted](interfaces/BundleCommitted.md)
 - [BundleForwarded](interfaces/BundleForwarded.md)
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
+- [ClaimChainUpdated](interfaces/ClaimChainUpdated.md)
+- [ClaimPosted](interfaces/ClaimPosted.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
 - [HopStruct](interfaces/HopStruct.md)
 - [MessageBundled](interfaces/MessageBundled.md)
@@ -45,9 +51,12 @@
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
 - [BatchUpdateClaimChainInput](modules.md#batchupdateclaimchaininput)
 - [BondInput](modules.md#bondinput)
+- [BonderPreferenceIndexes](modules.md#bonderpreferenceindexes)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
+- [ClaimChainUpdatedIndexes](modules.md#claimchainupdatedindexes)
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
+- [ClaimPostedIndexes](modules.md#claimpostedindexes)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
@@ -252,6 +261,20 @@ ___
 
 ___
 
+### <a id="bonderpreferenceindexes" name="bonderpreferenceindexes"></a> BonderPreferenceIndexes
+
+Ƭ **BonderPreferenceIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder?` | `string` |
+| `feeTier?` | `BigNumber` |
+| `pathId?` | `string` |
+
+___
+
 ### <a id="bundleproof" name="bundleproof"></a> BundleProof
 
 Ƭ **BundleProof**: `Object`
@@ -280,6 +303,19 @@ ___
 
 ___
 
+### <a id="claimchainupdatedindexes" name="claimchainupdatedindexes"></a> ClaimChainUpdatedIndexes
+
+Ƭ **ClaimChainUpdatedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId?` | `string` |
+| `pathId?` | `string` |
+
+___
+
 ### <a id="claimfeesfrompathinput" name="claimfeesfrompathinput"></a> ClaimFeesFromPathInput
 
 Ƭ **ClaimFeesFromPathInput**: `Object`
@@ -289,6 +325,19 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
+
+___
+
+### <a id="claimpostedindexes" name="claimpostedindexes"></a> ClaimPostedIndexes
+
+Ƭ **ClaimPostedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId?` | `string` |
+| `pathId?` | `string` |
 
 ___
 

@@ -90,6 +90,15 @@ export {
   IsValidTransferInput,
   SetFeePriceInput,
   SetFeePricesInput,
+  ClaimPosted,
+  ClaimPostedEventFetcher,
+  ClaimPostedIndexes,
+  ClaimChainUpdated,
+  ClaimChainUpdatedEventFetcher,
+  ClaimChainUpdatedIndexes,
+  BonderPreference,
+  BonderPreferenceEventFetcher,
+  BonderPreferenceIndexes
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

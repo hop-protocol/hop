@@ -122,7 +122,7 @@ export const Relay: FC = () => {
           }
           const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
-          let token = selectedBridge.getTokenSymbol()
+          const token = selectedBridge.getTokenSymbol()
           let subgraphToken = token
           if (token === 'USDC.e') {
             subgraphToken = 'USDC' // it needs to be USDC for graph lookups for USDC.e

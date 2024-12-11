@@ -84,6 +84,7 @@ export function useV2(): V2Hook {
       providers[connectedNetworkId] = signer
     }
     const hop = new Hop({
+      network: reactAppNetwork,
       signersOrProviders: providers
     })
     return hop

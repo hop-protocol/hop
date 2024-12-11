@@ -31,6 +31,7 @@ export enum EventName {
 }
 
 export type HopConstructorInput = {
+  network?: string,
   batchBlocks?: number,
   contractAddresses?: Addresses
   signersOrProviders: SignersOrProviders
@@ -177,7 +178,7 @@ export class Hop extends Base {
     }
 
     const { signersOrProviders } = options
-    super({ signersOrProviders })
+    super({ signersOrProviders, network: options.network })
 
     if (Object.keys(signersOrProviders).length < 2) {
       throw new ConfigError('At least 2 providers are needed for instantiation. Please provide a source provider and destination provider.')

@@ -387,6 +387,7 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
+    console.log('getTokenAddressByTokenSymbol', chainId, tokenSymbol, this.contractAddresses)
     return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
   }
 

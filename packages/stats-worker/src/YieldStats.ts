@@ -328,7 +328,12 @@ class YieldStats {
           break
         }
       }
-      if (areAllChainsMissing) {
+      // Temp fix to handle times when transfers don't occur for more than 24h
+      const lowTransferCountToken = 'rETH'
+      if (
+        areAllChainsMissing &&
+        token !== lowTransferCountToken
+      ) {
         delete yieldData.pools[token]
         delete yieldData.optimalYield[token]
         if (yieldData.stakingRewards?.[token]) {

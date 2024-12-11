@@ -294,7 +294,7 @@ export const Relay: FC = () => {
       </Box>
       {commitTxHashForTransferId && (
         <Box className={styles.notice} mb={2}>
-          <Alert severity="info">Found commit tx hash: {commitTxHashForTransferId}</Alert>
+          <Alert severity="info">Found commit tx hash:<br /><br /><strong>{commitTxHashForTransferId}</strong><br /><br />This is the hash that is used to prove/finalize the exit transaction.</Alert>
         </Box>
       )}
       {commitInfoMsg && (

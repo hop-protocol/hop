@@ -11,6 +11,9 @@ import { MessageExecutedEvents } from './events/MessageExecutedEvents'
 import { MessageSentEvents } from './events/MessageSentEvents'
 import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
+import { ClaimPostedEvents } from './events/ClaimPostedEvents'
+import { ClaimChainUpdatedEvents } from './events/ClaimChainUpdatedEvents'
+import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
 
 export function Events () {
   const tables = [
@@ -22,7 +25,10 @@ export function Events () {
     <MessageExecutedEvents key="MessageExecutedEvents" />,
     <MessageSentEvents key="MessageSentEvents" />,
     <TransferSentEvents key="TransferSentEvents" />,
-    <TransferBondedEvents key="TransferBondedEvents" />
+    <TransferBondedEvents key="TransferBondedEvents" />,
+    <ClaimPostedEvents key="ClaimPostedEvents" />,
+    <ClaimChainUpdatedEvents key="ClaimChainUpdatedEvents" />,
+    <BonderPreferenceEvents key="BonderPreferenceEvents" />
   ]
 
   return (

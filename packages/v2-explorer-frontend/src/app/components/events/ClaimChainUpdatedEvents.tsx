@@ -7,9 +7,9 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function TransferBondedEvents () {
-  const eventName = 'TransferBonded'
-  const [filterBy, setFilterBy] = useState('claimId')
+export function ClaimChainUpdatedEvents () {
+  const eventName = 'ClaimChainUpdated'
+  const [filterBy, setFilterBy] = useState('pathId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
@@ -28,16 +28,12 @@ export function TransferBondedEvents () {
       value: 'Path ID',
     },
     {
-      key: 'claimId',
-      value: 'Claim ID',
+      key: 'headClaimId',
+      value: 'Head Claim ID',
     },
     {
-      key: 'amount',
-      value: 'Amount',
-    },
-    {
-      key: 'bonderFee',
-      value: 'Bonder Fee',
+      key: 'length',
+      value: 'Length',
     },
     {
       key: 'eventChainId',
@@ -59,25 +55,14 @@ export function TransferBondedEvents () {
         clipboardValue: event.context.transactionHash
       },
       {
-        key: 'pathId',
-        value: event.pathIdTruncated,
-        valueUrl: `/paths?pathId=${event.pathId}`,
-        clipboardValue: event.pathId
+        key: 'headClaimId',
+        value: event.headClaimIdTruncated,
+        clipboardValue: event.headClaimId
       },
       {
-        key: 'claimId',
-        value: event.claimIdTruncated,
-        clipboardValue: event.claimId
-      },
-      {
-        key: 'amount',
-        value: event.amount,
-        clipboardValue: event.amount
-      },
-      {
-        key: 'bonderFee',
-        value: event.bonderFee,
-        clipboardValue: event.bonderFee
+        key: 'length',
+        value: event.length,
+        clipboardValue: event.length
       },
       {
         key: 'eventChainId',
@@ -102,8 +87,8 @@ export function TransferBondedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'claimId'}>Claim ID</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
+              <MenuItem value={'headClaimId'}>Head Claim ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>

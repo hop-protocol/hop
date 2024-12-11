@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function TransferBondedEvents () {
-  const eventName = 'TransferBonded'
+export function ClaimPostedEvents () {
+  const eventName = 'ClaimPosted'
   const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
@@ -30,14 +30,6 @@ export function TransferBondedEvents () {
     {
       key: 'claimId',
       value: 'Claim ID',
-    },
-    {
-      key: 'amount',
-      value: 'Amount',
-    },
-    {
-      key: 'bonderFee',
-      value: 'Bonder Fee',
     },
     {
       key: 'eventChainId',
@@ -68,16 +60,6 @@ export function TransferBondedEvents () {
         key: 'claimId',
         value: event.claimIdTruncated,
         clipboardValue: event.claimId
-      },
-      {
-        key: 'amount',
-        value: event.amount,
-        clipboardValue: event.amount
-      },
-      {
-        key: 'bonderFee',
-        value: event.bonderFee,
-        clipboardValue: event.bonderFee
       },
       {
         key: 'eventChainId',

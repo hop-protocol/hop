@@ -7,9 +7,9 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function TransferBondedEvents () {
-  const eventName = 'TransferBonded'
-  const [filterBy, setFilterBy] = useState('claimId')
+export function BonderPreferenceEvents () {
+  const eventName = 'BonderPreference'
+  const [filterBy, setFilterBy] = useState('bonder')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
@@ -24,20 +24,20 @@ export function TransferBondedEvents () {
       value: 'Transaction Hash'
     },
     {
+      key: 'bonder',
+      value: 'Bonder',
+    },
+    {
       key: 'pathId',
       value: 'Path ID',
     },
     {
-      key: 'claimId',
-      value: 'Claim ID',
+      key: 'feeTier',
+      value: 'Fee Tier',
     },
     {
-      key: 'amount',
-      value: 'Amount',
-    },
-    {
-      key: 'bonderFee',
-      value: 'Bonder Fee',
+      key: 'liquidity',
+      value: 'Liquidity',
     },
     {
       key: 'eventChainId',
@@ -59,25 +59,25 @@ export function TransferBondedEvents () {
         clipboardValue: event.context.transactionHash
       },
       {
+        key: 'bonder',
+        value: event.bonderTruncated,
+        clipboardValue: event.bonder
+      },
+      {
         key: 'pathId',
         value: event.pathIdTruncated,
         valueUrl: `/paths?pathId=${event.pathId}`,
         clipboardValue: event.pathId
       },
       {
-        key: 'claimId',
-        value: event.claimIdTruncated,
-        clipboardValue: event.claimId
+        key: 'feeTier',
+        value: event.feeTier,
+        clipboardValue: event.feeTier
       },
       {
-        key: 'amount',
-        value: event.amount,
-        clipboardValue: event.amount
-      },
-      {
-        key: 'bonderFee',
-        value: event.bonderFee,
-        clipboardValue: event.bonderFee
+        key: 'liquidity',
+        value: event.liquidity,
+        clipboardValue: event.liquidity
       },
       {
         key: 'eventChainId',
@@ -102,8 +102,9 @@ export function TransferBondedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'claimId'}>Claim ID</MenuItem>
+              <MenuItem value={'bonder'}>Bonder</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
+              <MenuItem value={'feeTier'}>Fee Tier</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>

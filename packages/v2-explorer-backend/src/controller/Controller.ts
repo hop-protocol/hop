@@ -382,6 +382,10 @@ export class Controller {
       item.claimIdTruncated = truncateString(item.claimId, 4)
       item.claimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.claimId}` // TODO: subdomain env var
     }
+    if (item.headClaimId ) {
+      item.headClaimIdTruncated = truncateString(item.headClaimId, 4)
+      item.headClaimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.headClaimId}` // TODO: subdomain env var
+    }
     if (item.pathId) {
       item.pathIdTruncated = truncateString(item.pathId, 4)
     }
@@ -405,6 +409,9 @@ export class Controller {
       if (item.toChainId) {
         item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.toChainId)
       }
+    }
+    if (item.bonder) {
+      item.bonderTruncated = truncateString(item.bonder, 4)
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
@@ -679,6 +686,9 @@ export class Controller {
     }
     if (filters.to) {
       filters.to = checksumAddress(filters.to.trim())
+    }
+    if (filters.bonder) {
+      filters.bonder = checksumAddress(filters.bonder.trim())
     }
     if (filters.address) {
       filters.address = checksumAddress(filters.address.trim())

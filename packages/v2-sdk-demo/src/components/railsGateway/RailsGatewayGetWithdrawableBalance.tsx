@@ -33,7 +33,7 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
     defaultValue: '',
   })
 
-  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -53,7 +53,7 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
       const args = {
         pathId,
         recipient,
-        bucketIndex: Number(bucketIndex)
+        claimId
       }
       console.log('args', args)
       const balance = await sdk.getRailsGateway(fromChainId).getWithdrawableBalance(args)
@@ -71,13 +71,13 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const pathId = "${pathId}"
   const recipient = "${recipient}"
-  const bucketIndex = ${bucketIndex}
+  const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
   const fee = await hop.getRailsGateway('${fromChainId}').getWithdrawableBalance({
     pathId,
     recipient,
-    bucketIndex
+    claimId
   })
   console.log(fee)
 }
@@ -127,9 +127,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
+                  <label>Claim ID <small><em>(uint256)</em></small> <small><em>Claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={event => setBucketIndex(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={claimId} onChange={event => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

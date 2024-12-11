@@ -38,7 +38,7 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -61,7 +61,7 @@ export function RailsGatewayWithdraw (props: Props) {
     const args = {
       pathId,
       amount,
-      bucketIndex: Number(bucketIndex)
+      claimId
     }
     console.log('args', args)
     const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdraw(args)
@@ -103,13 +103,13 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const amount = "${amount}"
-  const bucketIndex = ${bucketIndex}
+  const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdraw({
     pathId,
     amount,
-    bucketIndex
+    claimId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -167,9 +167,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
+                  <label>Claim ID <small><em>(uint256)</em></small> <small><em>Claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={(event: any) => setBucketIndex(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

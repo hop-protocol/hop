@@ -77,8 +77,8 @@ export function RailsGatewayGetTransferId (props: Props) {
       }
 
       console.log('args', args)
-      const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
-      setTransferId(transferId)
+      // const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
+      // setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
       setError(err.message)

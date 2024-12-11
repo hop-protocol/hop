@@ -46,7 +46,7 @@ export function RailsGatewayGetFee (props: Props) {
         pathId
       }
       console.log('args', args)
-      const fee = await sdk.getRailsGateway(fromChainId).getFee(args)
+      const fee = await sdk.getRailsGateway(fromChainId).getSendFee(args)
       setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
@@ -62,7 +62,7 @@ async function main() {
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const fee = await hop.getRailsGateway('${fromChainId}').getFee({
+  const fee = await hop.getRailsGateway('${fromChainId}').getSendFee({
     pathId
   })
   console.log(fee)

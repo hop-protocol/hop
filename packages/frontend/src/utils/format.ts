@@ -83,6 +83,8 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg = `A WalletConnect error occurred. This may be an issue with the Wallet you are using. Error: ${errMsg}`
   } else if (errMsg.includes('wrong network connected')) {
     errMsg = `Please check your wallet is connected to the correct network ${network?.slug ?? ''} and try again. Error: ${errMsg}`
+  } else if (errMsg.includes('withdrawal has not been proven by proof submitter address yet')) {
+    errMsg = `Please make sure that the same account that submitted the prove transaction is submitting this finalize transaction. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

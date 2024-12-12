@@ -801,7 +801,14 @@ export class HopBridge extends Base {
   public async commitTransfers (sourceChain: TChain, destinationChain: TChain) {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    const l2Bridge = await this.getL2Bridge(sourceChain)
+    let l2Bridge = await this.getL2Bridge(sourceChain)
+    if (sourceChain.slug === ChainSlug.Polygon) {
+      const address = this.getConfigAddresses(this.tokenSymbol, sourceChain)?.l2MessengerProxy
+      if (address) {
+        const provider = await this.getSignerOrProvider(sourceChain)
+        l2Bridge = L2_Bridge__factory.connect(address, provider)
+      }
+    }
     return l2Bridge.commitTransfers(destinationChain.chainId)
   }
 

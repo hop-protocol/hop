@@ -57,6 +57,7 @@ export class Controller {
 
   constructor () {
     this.sdk = new Hop({
+      network: network,
       signersOrProviders: Hop.getDefaultProviders(network)
     })
     this.sdk.setProviderUrls(rpcUrls)

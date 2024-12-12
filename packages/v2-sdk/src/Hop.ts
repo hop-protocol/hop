@@ -184,7 +184,7 @@ export class Hop extends Base {
       throw new ConfigError('At least 2 providers are needed for instantiation. Please provide a source provider and destination provider.')
     }
 
-    const sharedConfig = { contractAddresses: this.contractAddresses, signersOrProviders: this.signersOrProviders }
+    const sharedConfig = { contractAddresses: this.contractAddresses, signersOrProviders: this.signersOrProviders, network: this.network }
     this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.gasPriceOracle = new GasPriceOracle(this.network)
@@ -901,6 +901,7 @@ export class Hop extends Base {
     let instance = cache.get(key) as RailsGateway
     if (!instance) {
       instance = new RailsGateway({
+        network: this.network,
         chainId,
         signerOrProvider: this.signersOrProviders[chainId]
       })

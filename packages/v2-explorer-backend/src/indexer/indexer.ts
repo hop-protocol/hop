@@ -42,6 +42,7 @@ export class Indexer {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
     this.sdk = new Hop({
+      network: network,
       batchBlocks: 10_000,
       contractAddresses: options?.sdkContractAddresses,
       signersOrProviders: Hop.getDefaultProviders(network)

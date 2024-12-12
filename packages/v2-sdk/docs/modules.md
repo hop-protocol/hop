@@ -1380,6 +1380,7 @@ ___
 | :------ | :------ |
 | `batchBlocks?` | `number` |
 | `contractAddresses?` | `Addresses` |
+| `network?` | `string` |
 | `signersOrProviders` | `SignersOrProviders` |
 
 ___

@@ -22,11 +22,10 @@ import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
-import TollIcon from '@mui/icons-material/Toll'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
-import { useTokenList } from './useTokenList'
-import { CustomTokenListManager } from './CustomTokenListManager'
+import { useTokenList } from './useTokenList.js'
+import { CustomTokenListManager } from './CustomTokenListManager.js'
 
 type Props = {
   onTokenSelect: (token: any) => void

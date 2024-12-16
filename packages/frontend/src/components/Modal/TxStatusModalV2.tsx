@@ -27,7 +27,7 @@ type Props = {
   onClose?: () => void
 }
 
-export function V2TxStatusModal(props: Props) {
+export function TxStatusModalV2 (props: Props) {
   const styles = useTxStatusStyles()
   const { onClose, v2Sdk, tx, token, fromChain, toChain } = props
   const [fromCompleted, setFromCompleted] = useState(false)
@@ -89,7 +89,13 @@ export function V2TxStatusModal(props: Props) {
         const event = await v2Sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
           transactionHash: tx.hash
         })
-        const { transferId } = event?.decoded
+        if (!event) {
+          return
+        }
+        if (!event.decoded) {
+          return
+        }
+        const { transferId } = event.decoded
         const transferStatus = await v2Sdk.getTransferStatus({
           fromChainId,
           toChainId,

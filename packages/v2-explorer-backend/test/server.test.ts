@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { app } from '#server/index.js'
 
-describe.skip('Server', () => {
+describe('Server', () => {
   it('/v1/explorer', async () => {
     const res = await request(app).get('/v1/explorer').send()
     const { events } = res.body

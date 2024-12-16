@@ -30,6 +30,9 @@ export class ClaimChainUpdatedTable extends EventDb {
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_claim_chain_updated_events_event_context_id ON claim_chain_updated_events (event_context_id);'
     )
+    await this.db.query(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_chain_updated_events_head_claim_id ON claim_chain_updated_events (head_claim_id);'
+    )
   }
 
   override async getItems (opts: any = {}) {
@@ -92,7 +95,7 @@ export class ClaimChainUpdatedTable extends EventDb {
       INSERT INTO
         claim_chain_updated_events
       (
-        id, event_context_id, path_id, head_laim_id, length
+        id, event_context_id, path_id, head_claim_id, length
       )
       VALUES ${'(${id}, ${contextId}, ${pathId}, ${headClaimId}, ${length})'}
       ON CONFLICT (head_claim_id)

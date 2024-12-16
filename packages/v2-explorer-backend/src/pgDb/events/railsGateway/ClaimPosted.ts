@@ -1,5 +1,4 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { BigNumber } from 'ethers'
 import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
@@ -27,6 +26,9 @@ export class ClaimPostedTable extends EventDb {
     )
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_claim_posted_events_event_context_id ON claim_posted_events (event_context_id);'
+    )
+    await this.db.query(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_posted_events_path_id_and_claim_id ON claim_posted_events (path_id, claim_id);'
     )
   }
 
@@ -92,7 +94,7 @@ export class ClaimPostedTable extends EventDb {
         id, event_context_id, path_id, claim_id
       )
       VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId})'}
-      ON CONFLICT (claim_id)
+      ON CONFLICT (path_id, claim_id)
       ${'DO UPDATE SET claim_id = ${claimId}, path_id = ${pathId}'}
     `
 

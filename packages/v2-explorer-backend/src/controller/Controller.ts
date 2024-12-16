@@ -194,54 +194,58 @@ export class Controller {
       // Get all bonded events for the current transferId, following all hops
       const bondedEvents = await this.getBondedEventsForTransferId(transferId)
 
-      await this.upsertPathInfoIfNotExists(item)
-      await this.upsertTokenInfoIfNotExists(item)
+      try {
+        await this.upsertPathInfoIfNotExists(item)
+        await this.upsertTokenInfoIfNotExists(item)
 
-      const [pathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
-      if (pathInfo) {
-        const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
-        if (tokenInfo) {
-          const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
-          item.tokenPriceUsd = tokenPrice?.priceUsd
-          const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
-          item.ethPriceUsd = ethPrice?.priceUsd
-        }
-      }
-
-      // item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
-      item.transferBondedEvents = bondedEvents.map((eventItem: any) => {
-        console.log('original', transferId, 'claimId', eventItem.claimId, eventItem.pathId)
-        eventItem.token = item.counterpartToken
-        eventItem.tokenPriceUsd = item.tokenPriceUsd
-        eventItem.ethPriceUsd = item.ethPriceUsd
-        return this.normalizeEventForApi(eventItem)
-      })
-
-      const chainIdHops: string[] = []
-      let chainId = item.context.chainId
-      for (const hop of item.hops) {
-        const hopPathId = hop.pathId
-        let [hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }})
-        if (!hopPathInfo) {
-          await this.upsertPathInfoIfNotExists({
-            pathId: hopPathId,
-            context: {
-              chainId
-            }
-          })
-        }
-        ([hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }}))
-        if (hopPathInfo) {
-          if (chainId === hopPathInfo.chainId) {
-            chainId = hopPathInfo.counterpartChainId
-          } else {
-            chainId = hopPathInfo.chainId
+        const [pathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
+        if (pathInfo) {
+          const [tokenInfo] = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: item.context.chainId, address: pathInfo.token }})
+          if (tokenInfo) {
+            const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenInfo.symbol, item.context.blockTimestamp)
+            item.tokenPriceUsd = tokenPrice?.priceUsd
+            const ethPrice = await this.pgDb.priceTable.getClosestPrice('ETH', item.context.blockTimestamp)
+            item.ethPriceUsd = ethPrice?.priceUsd
           }
-          chainIdHops.push(chainId)
         }
-      }
 
-      item.toChainId = chainIdHops[chainIdHops.length - 1]
+        // item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
+        item.transferBondedEvents = bondedEvents.map((eventItem: any) => {
+          console.log('original', transferId, 'claimId', eventItem.claimId, eventItem.pathId)
+          eventItem.token = item.counterpartToken
+          eventItem.tokenPriceUsd = item.tokenPriceUsd
+          eventItem.ethPriceUsd = item.ethPriceUsd
+          return this.normalizeEventForApi(eventItem)
+        })
+
+        const chainIdHops: string[] = []
+        let chainId = item.context.chainId
+        for (const hop of item.hops) {
+          const hopPathId = hop.pathId
+          let [hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }})
+          if (!hopPathInfo) {
+            await this.upsertPathInfoIfNotExists({
+              pathId: hopPathId,
+              context: {
+                chainId
+              }
+            })
+          }
+          ([hopPathInfo] = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: hopPathId, chainId: chainId }}))
+          if (hopPathInfo) {
+            if (chainId === hopPathInfo.chainId) {
+              chainId = hopPathInfo.counterpartChainId
+            } else {
+              chainId = hopPathInfo.chainId
+            }
+            chainIdHops.push(chainId)
+          }
+        }
+
+        item.toChainId = chainIdHops[chainIdHops.length - 1]
+      } catch (err: any) {
+        console.error(`getExplorerEventsForApi, filter: ${JSON.stringify(filter)}, error: ${err.message}`)
+      }
 
       return this.normalizeEventForApi(item)
     })

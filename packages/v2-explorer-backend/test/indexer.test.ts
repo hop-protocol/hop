@@ -1,6 +1,6 @@
 import { Indexer } from '#indexer/index.js'
 
-describe.skip('Indexer', () => {
+describe('Indexer', () => {
   it('should sync events to db', async () => {
     const dbPath = `/tmp/test/testdb/${Date.now()}`
     const indexerConfig = {
@@ -29,21 +29,21 @@ describe.skip('Indexer', () => {
     }
     const indexer = new Indexer(indexerConfig)
 
-    const items = await indexer.db.messageSentEventsDb.getFromRange({ gt: 0 })
+    const items = await indexer.pgDb.events.MessageSent.getItems({ page: 0 })
     expect(items.length).toBe(0)
 
     const chainId = 420
-    let syncState = await indexer.db.messageSentEventsDb.getSyncState(chainId)
+    let syncState = await indexer.eventsToSync.MessageSent.getSyncState(chainId)
     expect(syncState).toBeNull()
     expect(syncState).toBeNull()
 
     indexer.start()
     await indexer.waitForSyncIndex(1)
 
-    const updatedItems = await indexer.db.messageSentEventsDb.getFromRange({ gt: 0 })
+    const updatedItems = await indexer.pgDb.events.MessageSent.getItems({ page: 0 })
     expect(updatedItems.length).toBeGreaterThan(1)
 
-    syncState = await indexer.db.messageSentEventsDb.getSyncState(chainId)
+    syncState = await indexer.eventsToSync.MessageSent.getSyncState(chainId)
     expect(syncState?.fromBlock).toBe(indexerConfig.startBlocks[chainId])
     expect(syncState?.toBlock).toBe(indexerConfig.endBlocks[chainId])
   }, 10 * 60 * 1000)

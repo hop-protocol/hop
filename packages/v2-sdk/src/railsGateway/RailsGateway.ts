@@ -365,13 +365,13 @@ export class RailsGateway extends StakingRegistry {
   static EventName = EventName
   chainId: BigNumberish
 
-  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders }: RailsGatewayConstructorInput) {
+  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network }: RailsGatewayConstructorInput) {
     super({
       contractAddresses,
       signersOrProviders: {
         [chainId?.toString()]: signerOrProvider!
       },
-      network: RailsGateway.deriveNetwork(chainId)
+      network: network ?? RailsGateway.deriveNetwork(chainId)
     })
     this.chainId = chainId
   }

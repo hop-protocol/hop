@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid'
 export interface TransferBonded extends BaseType {
   pathId: string
   claimId: string
+  to: string
   amount: BigNumber
   bonderFee: BigNumber
 }
@@ -16,6 +17,7 @@ export class TransferBondedTable extends EventDb {
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
         claim_id CHAR(66) NOT NULL UNIQUE,
+        "to" CHAR(42) NOT NULL, -- Ethereum address
         amount NUMERIC NOT NULL CHECK (amount >= 0),
         bonder_fee NUMERIC NOT NULL CHECK (bonder_fee >= 0),
         ${eventContextIdCreationSql}
@@ -56,6 +58,7 @@ export class TransferBondedTable extends EventDb {
       `SELECT
         path_id AS "pathId",
         claim_id AS "claimId",
+        "to",
         amount,
         bonder_fee AS "bonderFee",
         ${selectEventContextSql}
@@ -82,24 +85,24 @@ export class TransferBondedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, claimId, amount, bonderFee, context } = this.#normalizeDataForPut(item)
+    const { pathId, claimId, to, amount, bonderFee, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, claimId, amount, bonderFee
+      id: uuid(), contextId, pathId, claimId, to, amount, bonderFee
     }
     const sql = `
       INSERT INTO
         transfer_bonded_events
       (
-        id, event_context_id, path_id, claim_id, amount, bonder_fee
+        id, event_context_id, path_id, claim_id, "to", amount, bonder_fee
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId}, ${amount}, ${bonderFee})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId}, ${to}, ${amount}, ${bonderFee})'}
       ON CONFLICT (claim_id)
-      ${'DO UPDATE SET claim_id = ${claimId}, path_id = ${pathId}, amount = ${amount}, bonder_fee = ${bonderFee}'}
+      ${'DO UPDATE SET claim_id = ${claimId}, "to" = ${to}, path_id = ${pathId}, amount = ${amount}, bonder_fee = ${bonderFee}'}
     `
 
     await this.db.tx(async (t: any) => {

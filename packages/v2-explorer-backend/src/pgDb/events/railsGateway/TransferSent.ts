@@ -245,6 +245,7 @@ export class TransferSentTable extends EventDb {
     // delete next hops fields
     delete (data as any).index
     delete (data as any).nhPathId
+    delete (data as any).maxBonderFee
     delete (data as any).maxTotalSent
     delete (data as any).nhAttestedClaimId
 

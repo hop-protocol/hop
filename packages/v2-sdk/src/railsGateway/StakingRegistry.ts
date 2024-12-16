@@ -108,8 +108,9 @@ export type SignalPreferenceInput = {
 export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
-  constructor ({ contractAddresses, signersOrProviders }: StakingRegistryConstructorInput) {
+  constructor ({ contractAddresses, signersOrProviders, network }: StakingRegistryConstructorInput) {
     super({
+      network,
       contractAddresses,
       signersOrProviders
     })

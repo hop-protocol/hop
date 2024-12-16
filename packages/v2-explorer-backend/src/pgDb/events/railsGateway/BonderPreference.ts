@@ -35,6 +35,12 @@ export class BonderPreferenceTable extends EventDb {
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_bonder_preference_events_event_context_id ON bonder_preference_events (event_context_id);'
     )
+    await this.db.query(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_preference_events_unique ON bonder_preference_events (bonder);' // TODO
+    )
+    // await this.db.query(
+    //   'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_preference_events_unique ON bonder_preference_events (bonder, fee_tier, liquidity, path_id);'
+    // )
   }
 
   override async getItems (opts: any = {}) {
@@ -100,6 +106,7 @@ export class BonderPreferenceTable extends EventDb {
     const args = {
       id: uuid(), contextId, pathId, bonder, feeTier, liquidity
     }
+    // TODO: on conflict
     const sql = `
       INSERT INTO
         bonder_preference_events
@@ -107,7 +114,7 @@ export class BonderPreferenceTable extends EventDb {
         id, event_context_id, path_id, bonder, fee_tier, liquidity
       )
       VALUES ${'(${id}, ${contextId}, ${pathId}, ${bonder}, ${feeTier}, ${liquidity})'}
-      ON CONFLICT (claim_id)
+      ON CONFLICT (bonder)
       ${'DO UPDATE SET bonder = ${bonder}, path_id = ${pathId}, fee_tier = ${feeTier}, liquidity = ${liquidity}'}
     `
 

@@ -9,11 +9,37 @@ import { MessageSentTable } from '#pgDb/events/messenger/MessageSent.js'
 import { BundleCommittedTable } from '#pgDb/events/messenger/BundleCommitted.js'
 import { TransferBondedTable } from '#pgDb/events/railsGateway/TransferBonded.js'
 import { TransferSentTable } from '#pgDb/events/railsGateway/TransferSent.js'
+import { ClaimPostedTable } from '#pgDb/events/railsGateway/ClaimPosted.js'
+import { ClaimChainUpdatedTable } from '#pgDb/events/railsGateway/ClaimChainUpdated.js'
+import { BonderPreferenceTable } from '#pgDb/events/railsGateway/BonderPreference.js'
 import { PathTable } from '#pgDb/paths/index.js'
 import { PriceTable } from '#pgDb/prices/index.js'
 import { TokenTable } from '#pgDb/tokens/index.js'
 import { postgresConfig } from '#config/index.js'
-import { generateMockBundleCommitted, generateMockEventContext, generateRandomInt, generateMockTransferSent, generateMockTransferBonded, generateRandomAddress, generateRandomUint256, generateMockBundleForwarded, generateMockBundleReceived, generateMockBundleSet, generateMockFeesSentToHub, generateMockMessageBundled, generateMockMessageExecuted, generateMockMessageSent, generateRandomBytes32, generateMockPath, generateMockToken, generateRandomString, generateMockPrice } from '#utils/mockDataGenerator.js'
+import {
+  generateMockBundleCommitted,
+  generateMockEventContext,
+  generateRandomInt,
+  generateMockTransferSent,
+  generateMockTransferBonded,
+  generateRandomAddress,
+  generateRandomUint256,
+  generateMockBundleForwarded,
+  generateMockBundleReceived,
+  generateMockBundleSet,
+  generateMockFeesSentToHub,
+  generateMockMessageBundled,
+  generateMockMessageExecuted,
+  generateMockMessageSent,
+  generateRandomBytes32,
+  generateMockPath,
+  generateMockToken,
+  generateRandomString,
+  generateMockPrice,
+  generateMockBonderPreference,
+  generateMockClaimPosted,
+  generateMockClaimChainUpdated
+} from '#utils/mockDataGenerator.js'
 import { deterministicStringify } from '#utils/deterministicStringify.js'
 
 describe.only('Db', () => {
@@ -46,7 +72,6 @@ describe.only('Db', () => {
     })
     describe('BundleForwardedTable', () => {
       it('should put, get, and update data', async () => {
-        console.log('yoo')
         const table = new BundleForwardedTable(db)
         const event = generateMockBundleForwarded()
         const context = generateMockEventContext()
@@ -244,7 +269,7 @@ describe.only('Db', () => {
         const data = { ...event, context }
         await table.upsertItem(data)
 
-        const items = await table.getItems({ filter: { transferId: data.transferId }})
+        const items = await table.getItems({ filter: { claimId: data.claimId }})
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
 
         const updatedData = Object.assign({}, data, {
@@ -253,7 +278,7 @@ describe.only('Db', () => {
 
         await table.upsertItem(updatedData)
 
-        const newItems = await table.getItems({ filter: { transferId: data.transferId }})
+        const newItems = await table.getItems({ filter: { claimId: data.claimId }})
         expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
       }, 60 * 1000)
     })
@@ -268,7 +293,16 @@ describe.only('Db', () => {
       await table.upsertItem(data)
 
       const items = await table.getItems({ filter: { pathId: data.pathId }})
-      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+      const item = items[0]
+
+      delete (item as any).tokenDecimals // not used
+      delete (item as any).tokenSymbol // not used
+      delete (item as any).tokenName // not used
+      delete (item as any).counterpartTokenDecimals // not used
+      delete (item as any).counterpartTokenSymbol // not used
+      delete (item as any).counterpartTokenName // not used
+
+      expect(deterministicStringify(item)).toEqual(deterministicStringify(data))
 
       const updatedData = Object.assign({}, data, {
         chainId: generateRandomInt().toString()
@@ -277,7 +311,16 @@ describe.only('Db', () => {
       await table.upsertItem(updatedData)
 
       const newItems = await table.getItems({ filter: { pathId: data.pathId }})
-      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+      const newUpdatedData = newItems[0]
+
+      delete (newUpdatedData as any).tokenDecimals // not used
+      delete (newUpdatedData as any).tokenSymbol // not used
+      delete (newUpdatedData as any).tokenName // not used
+      delete (newUpdatedData as any).counterpartTokenDecimals // not used
+      delete (newUpdatedData as any).counterpartTokenSymbol // not used
+      delete (newUpdatedData as any).counterpartTokenName // not used
+
+      expect(deterministicStringify(newUpdatedData)).toEqual(deterministicStringify(updatedData))
     }, 60 * 1000)
   })
 
@@ -320,6 +363,78 @@ describe.only('Db', () => {
       await table.upsertItem(updatedData)
 
       const newItems = await table.getItems({ filter: { address: data.address }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
+
+  describe('ClaimPosted', () => {
+    it('should put, get, and update data', async () => {
+      const table = new ClaimPostedTable(db)
+
+      const event = generateMockClaimPosted()
+
+      const context = generateMockEventContext()
+      delete (context as any).eventName // not used
+      delete (context as any).chainSlug // not used
+
+      const data = { ...event, context }
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { claimId: data.claimId }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+    }, 60 * 1000)
+  })
+
+  describe('ClaimChainUpdated', () => {
+    it('should put, get, and update data', async () => {
+      const table = new ClaimChainUpdatedTable(db)
+
+      const event = generateMockClaimChainUpdated()
+
+      const context = generateMockEventContext()
+      delete (context as any).eventName // not used
+      delete (context as any).chainSlug // not used
+
+      const data = { ...event, context }
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { headClaimId: data.headClaimId }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        length: generateRandomUint256()
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { headClaimId: data.headClaimId }})
+      expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
+    }, 60 * 1000)
+  })
+
+  describe('BonderPreference', () => {
+    it('should put, get, and update data', async () => {
+      const table = new BonderPreferenceTable(db)
+
+      const event = generateMockBonderPreference()
+
+      const context = generateMockEventContext()
+      delete (context as any).eventName // not used
+      delete (context as any).chainSlug // not used
+
+      const data = { ...event, context }
+      await table.upsertItem(data)
+
+      const items = await table.getItems({ filter: { bonder: data.bonder }})
+      expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
+
+      const updatedData = Object.assign({}, data, {
+        feeTier: generateRandomUint256()
+      })
+
+      await table.upsertItem(updatedData)
+
+      const newItems = await table.getItems({ filter: { bonder: data.bonder }})
       expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
     }, 60 * 1000)
   })

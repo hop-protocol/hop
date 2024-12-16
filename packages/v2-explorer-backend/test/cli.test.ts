@@ -25,7 +25,7 @@ describe('cli', () => {
         './bin/relayer',
         'worker',
         '--dry',
-        '--server',
+        '--api-server',
         '--indexer-poll-seconds',
         '10',
         '--skip-main'
@@ -35,10 +35,8 @@ describe('cli', () => {
       console.log('opts', opts)
 
       expect(opts.dry).toBe(true)
-      expect(opts.server).toBe(true)
+      expect(opts.apiServer).toBe(true)
       expect(opts.indexerPollSeconds).toBe(10)
-      expect(opts.exitBundlePollSeconds).toBe(20)
-      expect(opts.exitBundleRetryDelaySeconds).toBe(60)
     })
     it.skip('should start without error', async () => {
       const result = await cli(['worker', '--server'])

@@ -142,7 +142,7 @@ describe.only('Db', () => {
         expect(deterministicStringify(newItems[0])).toEqual(deterministicStringify(updatedData))
       }, 60 * 1000)
     })
-    describe.skip('FeesSentToHub', () => {
+    describe('FeesSentToHub', () => {
       it('should put, get, and update data', async () => {
         const table = new FeesSentToHubTable(db)
         const event = generateMockFeesSentToHub()

@@ -1,13 +1,16 @@
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { db } from '#db/index.js'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, RailsGateway } from '@hop-protocol/v2-sdk'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
 import { chainNames, network, rpcUrls } from '#config/index.js'
 import { formatToUSD } from '#utils/formatToUSD.js'
 
 const { formatUnits, getAddress: ethersChecksumAddress } = utils
+
+const sdkCache = new Map<string, any>()
+const cachedItems = new Map<string, any[]>()
 
 function getChainLabel(chainId: string) {
   const chainName = chainNames[chainId] ?? ''
@@ -94,34 +97,25 @@ export class Controller {
     }
   }
 
-  async getMessengerExplorerEventsForApi (input: any): Promise<any> {
+  async getMessengerExplorerEventsForApi(input: any): Promise<any> {
     const { limit = 10, page } = input
     const filter = this.normalizeFilters(input.filter)
 
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'MessageSent', page })
-
-    const promises = items.map(async (item: any) => {
+    const explorerItems = await Promise.all(items.map(async (item: any) => {
       const { messageId } = item
-      const messageExecutedEvent = await this.getEvents({
+      const messageExecutedPromise = this.getEvents({
         eventName: 'MessageExecuted',
-        filter: {
-          messageId
-        }
+        filter: { messageId }
       })
 
-      item.messageExecutedEvent = null
-      if (messageExecutedEvent.items.length > 0) {
-        item.messageExecutedEvent = messageExecutedEvent.items[0]
-      }
-      return item
-    })
+      const [messageExecuted] = await Promise.all([messageExecutedPromise])
 
-    const explorerItems = await Promise.all(promises)
+      item.messageExecutedEvent = messageExecuted.items.length > 0 ? messageExecuted.items[0] : null
+      return this.normalizeEventForApi(item)
+    }))
 
-    return {
-      items: explorerItems.map((item: any) => this.normalizeEventForApi(item)),
-      hasNextPage
-    }
+    return { items: explorerItems, hasNextPage }
   }
 
   async getBondedEventsForTransferId(
@@ -131,6 +125,10 @@ export class Controller {
     // Check if this transferId has already been processed
     if (processedIds.has(transferId)) {
       return []
+    }
+
+    if (cachedItems.has(transferId)) {
+      return cachedItems.get(transferId)!
     }
 
     // Mark the current transferId as processed
@@ -171,6 +169,8 @@ export class Controller {
       // Add the hop-bonded events to the result list
       bondedEvents.push(...hopBondedEvents)
     }
+
+    cachedItems.set(transferId, bondedEvents)
 
     return bondedEvents
   }
@@ -258,12 +258,19 @@ export class Controller {
     }
   }
 
+  getRailsGateway(chainId: string): RailsGateway {
+    if (!sdkCache.has(chainId)) {
+      sdkCache.set(chainId, this.sdk.getRailsGateway(chainId))
+    }
+    return sdkCache.get(chainId)
+  }
+
   async upsertPathInfoIfNotExists (item: any) {
     if (!item.toChainId && item.pathId) {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.sdk.getRailsGateway(item.context.chainId).getPathInfo({ pathId: item.pathId })
+        pathInfo = await this.getRailsGateway(item.context.chainId).getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -286,7 +293,7 @@ export class Controller {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.sdk.getRailsGateway(item.toChainId).getPathInfo({ pathId: item.pathId })
+        pathInfo = await this.getRailsGateway(item.toChainId).getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -319,7 +326,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.sdk.getRailsGateway(chainId).getTokenInfo({ address: tokenAddress })
+        tokenInfo = await this.getRailsGateway(chainId).getTokenInfo({ address: tokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -350,7 +357,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.sdk.getRailsGateway(counterpartChainId).getTokenInfo({ address: counterpartTokenAddress })
+        tokenInfo = await this.getRailsGateway(counterpartChainId).getTokenInfo({ address: counterpartTokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -372,51 +379,33 @@ export class Controller {
     return item
   }
 
-  addEventFields (item: any) {
-    if (item.messageId) {
-      item.messageIdTruncated = truncateString(item.messageId, 4)
-    }
-    if (item.checkpoint) {
-      item.checkpointTruncated = truncateString(item.checkpoint, 4)
-    }
+  addEventFields(item: any) {
+    if (!item) return item
+
+    const fieldsToTruncate = [
+      'messageId', 'checkpoint', 'transferId', 'claimId', 'headClaimId',
+      'pathId', 'bundleId', 'bundleRoot', 'attestedClaimId', 'relayer',
+      'from', 'to', 'bonder'
+    ]
+    fieldsToTruncate.forEach(field => {
+      if (item[field]) {
+        item[`${field}Truncated`] = truncateString(item[field], 4)
+      }
+    })
+
     if (item.transferId) {
-      item.transferIdTruncated = truncateString(item.transferId, 4)
       item.transferIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.transferId}` // TODO: subdomain env var
     }
     if (item.claimId ) {
-      item.claimIdTruncated = truncateString(item.claimId, 4)
       item.claimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.claimId}` // TODO: subdomain env var
     }
     if (item.headClaimId ) {
-      item.headClaimIdTruncated = truncateString(item.headClaimId, 4)
       item.headClaimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.headClaimId}` // TODO: subdomain env var
     }
-    if (item.pathId) {
-      item.pathIdTruncated = truncateString(item.pathId, 4)
-    }
-    if (item.bundleId) {
-      item.bundleIdTruncated = truncateString(item.bundleId, 4)
-    }
-    if (item.bundleRoot) {
-      item.bundleRootTruncated = truncateString(item.bundleRoot, 4)
-    }
-    if (item.attestedClaimId) {
-      item.attestedClaimIdTruncated = truncateString(item.attestedClaimId, 4)
-    }
-    if (item.relayer) {
-      item.relayerTruncated = truncateString(item.relayer, 4)
-    }
-    if (item.from) {
-      item.fromTruncated = truncateString(item.from, 4)
-    }
     if (item.to) {
-      item.toTruncated = truncateString(item.to, 4)
       if (item.toChainId) {
         item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.toChainId)
       }
-    }
-    if (item.bonder) {
-      item.bonderTruncated = truncateString(item.bonder, 4)
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
@@ -638,75 +627,28 @@ export class Controller {
       return {}
     }
 
-    if (filters.eventChainId) {
-      filters.eventChainId = filters.eventChainId.toString().trim()
-    }
-    if (filters.chainId) {
-      filters.chainId = filters.chainId.toString().trim()
-    }
-    if (filters.fromChainId) {
-      filters.fromChainId = filters.fromChainId.toString().trim()
-    }
-    if (filters.toChainId) {
-      filters.toChainId = filters.toChainId.toString().trim()
-    }
     if (filters.token) {
       filters.token = filters.token.trim()
       if (filters.token.startsWith('0x')) {
         filters.token = checksumAddress(filters.token)
       }
     }
-    if (filters.counterpartToken) {
-      filters.counterpartToken = checksumAddress(filters.counterpartToken.trim())
-    }
-    if (filters.pathId) {
-      filters.pathId = filters.pathId.trim()
-    }
-    if (filters.transferId) {
-      filters.transferId = filters.transferId.trim()
-    }
-    if (filters.claimId ) {
-      filters.claimId = filters.claimId.trim()
-    }
-    if (filters.messageId) {
-      filters.messageId = filters.messageId.trim()
-    }
-    if (filters.bundleId) {
-      filters.bundleId = filters.bundleId.trim()
-    }
-    if (filters.bundleRoot) {
-      filters.bundleRoot = filters.bundleRoot.trim()
-    }
-    if (filters.transactionHash) {
-      filters.transactionHash = filters.transactionHash.trim()
-    }
-    if (filters.attestedClaimId) {
-      filters.attestedClaimId = filters.attestedClaimId.trim()
-    }
-    if (filters.relayer) {
-      filters.relayer = checksumAddress(filters.relayer.trim())
-    }
-    if (filters.from) {
-      filters.from = checksumAddress(filters.from.trim())
-    }
-    if (filters.to) {
-      filters.to = checksumAddress(filters.to.trim())
-    }
-    if (filters.bonder) {
-      filters.bonder = checksumAddress(filters.bonder.trim())
-    }
-    if (filters.address) {
-      filters.address = checksumAddress(filters.address.trim())
-    }
-    if (filters.account) {
-      filters.account = checksumAddress(filters.account.trim())
-    }
-    if (filters.recipient) {
-      filters.recipient = checksumAddress(filters.recipient.trim())
-    }
-    if (filters.symbol) {
-      filters.symbol = filters.symbol.trim()
-    }
+
+    const fieldsToTrim = [
+      'eventChainId', 'chainId', 'fromChainId', 'toChainId', 'token',
+      'counterpartToken', 'pathId', 'transferId', 'claimId', 'messageId',
+      'bundleId', 'bundleRoot', 'transactionHash', 'attestedClaimId',
+      'symbol'
+    ]
+
+    fieldsToTrim.forEach(field => {
+      if (filters[field]) {
+        filters[field] = filters[field].toString().trim()
+        if (['counterpartToken', 'relayer', 'from', 'to', 'bonder', 'address', 'account', 'recipient'].includes(field)) {
+          filters[field] = checksumAddress(filters[field])
+        }
+      }
+    })
 
     return filters
   }

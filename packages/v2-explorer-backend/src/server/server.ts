@@ -6,6 +6,7 @@ import { port } from '#config/index.js'
 import { responseCache } from './responseCache.js'
 
 export const app : Express = express()
+const controller = new Controller()
 
 app.enable('trust proxy')
 app.use(cors())
@@ -31,7 +32,6 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     if (limit > 10) {
       throw new Error('limit must be less than 10')
     }
-    const controller = new Controller()
     const { items, hasNextPage } = await controller.getExplorerEventsForApi({
       limit,
       filter,
@@ -46,8 +46,6 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     res.json({ error: err.message })
   }
 })
-
-const controller = new Controller()
 
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {

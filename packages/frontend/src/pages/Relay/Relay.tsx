@@ -122,7 +122,7 @@ export const Relay: FC = () => {
           }
           const l1Wallet = await sdk.getSignerOrProvider(l1Network.slug)
           const l2Wallet = await sdk.getSignerOrProvider(selectedNetwork.slug)
-          let token = selectedBridge.getTokenSymbol()
+          const token = selectedBridge.getTokenSymbol()
           let subgraphToken = token
           if (token === 'USDC.e') {
             subgraphToken = 'USDC' // it needs to be USDC for graph lookups for USDC.e
@@ -294,7 +294,7 @@ export const Relay: FC = () => {
       </Box>
       {commitTxHashForTransferId && (
         <Box className={styles.notice} mb={2}>
-          <Alert severity="info">Found commit tx hash: {commitTxHashForTransferId}</Alert>
+          <Alert severity="info">Found commit tx hash:<br /><br /><strong>{commitTxHashForTransferId}</strong><br /><br />This is the hash that is used to prove/finalize the exit transaction.</Alert>
         </Box>
       )}
       {commitInfoMsg && (

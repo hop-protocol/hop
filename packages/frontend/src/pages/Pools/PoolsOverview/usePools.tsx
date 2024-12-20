@@ -103,7 +103,7 @@ export function usePools () {
             withdrawLink,
             canClaim: false,
             canStake: false,
-            isPoolDeprecated: tokenModel.symbol === 'USDC.e',
+            isPoolDeprecated: tokenModel.symbol === 'USDC.e' || tokenModel.symbol === 'MAGIC',
             hasStakingContract: false,
             claimLink,
             stakeLink,

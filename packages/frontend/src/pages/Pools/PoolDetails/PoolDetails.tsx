@@ -260,7 +260,7 @@ export function PoolDetails () {
                       token1ImageUrl={hopToken?.imageUrl}
                       token1MaxBn={token1Max}
                       token1Symbol={hopTokenSymbolDisplay}
-                      tokenDecimals={canonicalToken!.decimals}
+                      tokenDecimals={canonicalToken?.decimals}
                       totalAmount={totalAmount}
                       walletConnected={walletConnected}
                   />}

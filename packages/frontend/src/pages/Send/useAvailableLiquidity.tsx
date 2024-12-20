@@ -31,7 +31,7 @@ const useAvailableLiquidity = (
     async () => {
       if (sourceChain && destinationChain && tokenSymbol) {
 
-        const isDeprecatedRoute = sourceChain && destinationChain && ['USDC', 'USDC.e'].includes(tokenSymbol) && !bridge?.getIsSupportedCctpRoute(sourceChain, destinationChain)
+        const isDeprecatedRoute = sourceChain && destinationChain && ['USDC', 'USDC.e', 'MAGIC'].includes(tokenSymbol) && !bridge?.getIsSupportedCctpRoute(sourceChain, destinationChain)
         if (isDeprecatedRoute) {
           return BigNumber.from(0)
         }

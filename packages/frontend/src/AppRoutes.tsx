@@ -12,6 +12,7 @@ const Convert = lazy(() => import(/* webpackChunkName: "Convert" */ '#pages/Conv
 const Stats = lazy(() => import(/* webpackChunkName: "Stats" */ '#pages/Stats/index.js'))
 const Withdraw = lazy(() => import(/* webpackChunkName: "Withdraw" */ '#pages/Withdraw/index.js'))
 const Relay = lazy(() => import(/* webpackChunkName: "Relay" */ '#pages/Relay/index.js'))
+const CommitTransfers = lazy(() => import(/* webpackChunkName: "CommitTransfers" */ '#pages/CommitTransfers/index.js'))
 const Faucet = lazy(() => import(/* webpackChunkName: "Faucet" */ '#pages/Faucet/index.js'))
 const Health = lazy(() => import(/* webpackChunkName: "Health" */ '#pages/Health/index.js'))
 const Rewards = lazy(() => import(/* webpackChunkName: "Rewards" */ '#pages/Rewards/index.js'))
@@ -61,6 +62,7 @@ const AppRoutes: FC = () => {
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/withdraw" element={<Withdraw />} />
                   <Route path="/relay" element={<Relay />} />
+                  <Route path="/commit-transfers" element={<CommitTransfers />} />
                   <Route path="/health" element={<Health />} />
                   <Route path="/faucet" element={<Faucet />} />
                   <Route path="/claim/*" element={<Claim />} />

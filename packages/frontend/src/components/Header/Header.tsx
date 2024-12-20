@@ -125,7 +125,7 @@ export const Header: FC = () => {
       setDisplayBalance(_displayBalance)
       setConnectedNetwork(network)
     } catch (err) {
-      logger.error(err)
+      logger.error('Header update balance error:', err)
       setDisplayBalance('')
     }
   }

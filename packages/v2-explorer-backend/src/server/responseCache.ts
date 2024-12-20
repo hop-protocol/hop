@@ -3,10 +3,12 @@ import { responseCacheDurationMs } from '#config/index.js'
 
 const responseCacheEnabled = responseCacheDurationMs > 0
 
+const cache = new mcache.Cache()
+
 export function responseCache (req: any, res: any, next: any) {
   const urlKey = req.originalUrl || req.url
   const key = `__express__${urlKey}`
-  const cachedBody = mcache.get(key)
+  const cachedBody = cache.get(key)
   if (cachedBody && responseCacheEnabled) {
     // console.log('cache hit:', key)
     res.send(cachedBody)
@@ -19,7 +21,7 @@ export function responseCache (req: any, res: any, next: any) {
       const parsed = JSON.parse(body)
       if (parsed.data && responseCacheEnabled) {
         // console.log('cached:', key)
-        mcache.put(key, body, responseCacheDurationMs)
+        cache.put(key, body, responseCacheDurationMs)
       }
     } catch (err) { }
     res.sendResponse(body)

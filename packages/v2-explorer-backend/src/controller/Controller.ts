@@ -193,6 +193,7 @@ export class Controller {
 
       // Get all bonded events for the current transferId, following all hops
       const bondedEvents = await this.getBondedEventsForTransferId(transferId)
+      item.transferBondedEvents = []
 
       try {
         await this.upsertPathInfoIfNotExists(item)
@@ -209,7 +210,6 @@ export class Controller {
           }
         }
 
-        // item.transferBondedEvents = bondedEvents.items.map((eventItem: any) => {
         item.transferBondedEvents = bondedEvents.map((eventItem: any) => {
           console.log('original', transferId, 'claimId', eventItem.claimId, eventItem.pathId)
           eventItem.token = item.counterpartToken

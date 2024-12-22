@@ -1,4 +1,4 @@
-import { ExplorerEvents } from './components/TransferEvents'
+import { ExplorerEvents } from './components/ExplorerEvents'
 import { fetchEvents } from './hooks/fetchEvents'
 import { Suspense } from 'react'
 

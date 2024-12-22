@@ -126,10 +126,10 @@ export function Table (props: Props) {
                   </>
                 )}
                 {rows.map((row: Row[], i: number) => {
-                  return <>
+                  return <React.Fragment key={i}>
                     <TableRow key={i}>
                       {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
-                        const allowClick = onRowClick && !(col.valueUrl || col.clipboardValue)
+                        const allowClick = !!onRowClick
                         const cellKey = `${i}${j}`
                         return (
                           <TableCell key={j} title={col.hoverTitle || col.clipboardValue || col.value}
@@ -151,9 +151,16 @@ export function Table (props: Props) {
                                   col.button ? (
                                     <Button
                                       endIcon={<ArrowForwardIcon />}
-                                      href={col.valueUrl}>{col.value}</Button>
+                                      href={col.valueUrl}
+                                      onClick={(event) => event.stopPropagation()} // Prevent row click
+                                      >{col.value}</Button>
                                   ) : (
-                                  <Link href={col.valueUrl} target="_blank" rel="noreferrer">
+                                  <Link
+                                    href={col.valueUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()} // Prevent row click
+                                  >
                                     <Typography variant="body2">{col.value}</Typography>
                                   </Link>
                                   )
@@ -166,7 +173,9 @@ export function Table (props: Props) {
                               {col.clipboardValue != null && (
                                 <Box ml={0.5}>
                                   <CopyToClipboard text={col.clipboardValue}
-                                    onCopy={event => handleCopy(col.clipboardValue!, cellKey)}>
+                                    onCopy={event => {
+                                      handleCopy(col.clipboardValue!, cellKey)
+                                    }}>
                                     <Typography variant="body2" style={{ cursor: 'pointer' }}>
                                       {copiedKey === cellKey ? '✅' : '📋'}
                                     </Typography>
@@ -245,7 +254,7 @@ export function Table (props: Props) {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
 
                 })}
               </TableBody>

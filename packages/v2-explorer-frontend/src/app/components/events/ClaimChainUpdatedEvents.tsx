@@ -55,6 +55,11 @@ export function ClaimChainUpdatedEvents () {
         clipboardValue: event.context.transactionHash
       },
       {
+        key: 'pathId',
+        value: event.pathIdTruncated,
+        clipboardValue: event.pathId
+      },
+      {
         key: 'headClaimId',
         value: event.headClaimIdTruncated,
         clipboardValue: event.headClaimId

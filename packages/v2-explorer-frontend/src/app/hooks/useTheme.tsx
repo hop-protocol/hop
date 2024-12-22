@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles'
-import { darkTheme, lightTheme } from './theme'
+import { darkTheme, lightTheme } from '@/app/theme/theme'
 import { useQueryParams } from '@/app/hooks/useQueryParams'
 
 const ThemeContext = createContext(null)

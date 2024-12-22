@@ -6,7 +6,7 @@
 
 - [attestedClaimId](HopStruct.md#attestedclaimid)
 - [maxBonderFee](HopStruct.md#maxbonderfee)
-- [maxTotalSent](HopStruct.md#maxtotalsent)
+- [minAmountOut](HopStruct.md#minamountout)
 - [pathId](HopStruct.md#pathid)
 
 ## Properties
@@ -23,9 +23,9 @@ ___
 
 ___
 
-### <a id="maxtotalsent" name="maxtotalsent"></a> maxTotalSent
+### <a id="minamountout" name="minamountout"></a> minAmountOut
 
-• **maxTotalSent**: `BigNumber`
+• **minAmountOut**: `BigNumber`
 
 ___
 

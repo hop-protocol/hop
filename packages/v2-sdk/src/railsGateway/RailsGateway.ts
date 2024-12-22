@@ -1,4 +1,4 @@
-import { TxOverrides, SignersOrProviders } from '#common/index.js'
+import { Base, BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
@@ -61,7 +61,6 @@ export type GetPathInfoInput = {
 }
 
 export type SendInput = {
-  pathId: string
   to: string
   amount: BigNumberish
   hops: HopStructInput[]
@@ -99,12 +98,12 @@ export type PostClaimInput = {
 
 export type RemoveClaimInput = {
   pathId: string
-  transferId: string
+  claimId: string
 }
 
 export type ConfirmClaimInput = {
   pathId: string
-  transferId: string
+  claimId: string
 }
 
 export type GetTransferIdInput = {
@@ -118,12 +117,6 @@ export type GetTransferIdInput = {
 }
 
 export type WithdrawInput = {
-  pathId: string
-  amount: BigNumberish
-  claimId: string
-}
-
-export type WithdrawAllInput = {
   pathId: string
   claimId: string
 }
@@ -177,34 +170,21 @@ export type GetFeePriceInput = {
   chainId: BigNumberish
 }
 
-export type TotalClaimsInput = {
+export type GetTotalClaimsInput = {
   pathId: string
 }
 
-export type TotalClaimsAtClaimIdInput = {
+export type GetTotalClaimsAtClaimIdInput = {
   pathId: string
   claimId: string
 }
 
-export type TotalConfirmedInput = {
+export type GetTotalConfirmedInput = {
   pathId: string
 }
 
 export type GetBatchUpdateFeeInput = {
   length: BigNumberish
-}
-
-export type StakeHopInput = {
-  staker?: string
-  amount: BigNumberish
-}
-
-export type UnstakeHopInput = {
-  amount: BigNumberish
-}
-
-export type WithdrawHopInput = {
-  staker: string
 }
 
 export type GetTransferSentEventFromTransactionReceiptInput = {
@@ -261,11 +241,11 @@ export type Token = {
 export type HopStructInput = {
   pathId: string
   maxBonderFee: BigNumberish
-  maxTotalSent: BigNumberish
+  minAmountOut: BigNumberish
   attestedClaimId: string
 }
 
-export type TotalSentInput = {
+export type GetTotalSentInput = {
   pathId: string
 }
 
@@ -288,7 +268,7 @@ export type GetIsPathIdLiveInput = {
 export type BatchUpdateClaimChainInput = {
   pathId: string
   transferDataHashes: string[]
-  claimId: string
+  finalTransferId: string
 }
 
 export type ClaimFeesFromPathInput = {
@@ -303,6 +283,7 @@ export type DistributeClaimedFeesInput = {
 }
 
 export type DistributeExcessFeesInput = {
+  pathId: string
   recipients: string[]
   amounts: BigNumberish[]
 }
@@ -352,6 +333,10 @@ export type SetFeePricesInput = {
   feePrices: BigNumberish[]
 }
 
+export type GetPathVaultInput = {
+  pathId: string
+}
+
 export type RailsGatewayConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -361,7 +346,9 @@ export type RailsGatewayConstructorInput = {
   signerOrProvider?: Signer | providers.Provider
 }
 
-export class RailsGateway extends StakingRegistry {
+export type StakingRegistryConstructorInput = BaseConfig
+
+export class RailsGateway extends Base {
   static EventName = EventName
   chainId: BigNumberish
 
@@ -689,17 +676,17 @@ export class RailsGateway extends StakingRegistry {
   }
 
 
-  async totalClaims ({ pathId }: TotalClaimsInput): Promise<BigNumber> {
+  async getTotalClaims ({ pathId }: GetTotalClaimsInput): Promise<BigNumber> {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathid "${pathId}"`)
     }
 
     const contract = await this.getRailsGatewayContract()
-    const totalClaims = await contract.totalClaims(pathId)
+    const totalClaims = await contract.getTotalClaims(pathId)
     return totalClaims
   }
 
-  async totalClaimsAtClaimId ({ pathId, claimId }: TotalClaimsAtClaimIdInput): Promise<BigNumber> {
+  async getTotalClaimsAtClaimId ({ pathId, claimId }: GetTotalClaimsAtClaimIdInput): Promise<BigNumber> {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathid "${pathId}"`)
     }
@@ -709,23 +696,23 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract()
-    const totalClaims = await contract.totalClaimsAtClaimId(pathId)
+    const totalClaims = await contract.getTotalClaimsAtClaimId(pathId)
     return totalClaims
   }
 
-  async totalConfirmed ({ pathId }: TotalConfirmedInput): Promise<BigNumber> {
+  async getTotalConfirmed ({ pathId }: GetTotalConfirmedInput): Promise<BigNumber> {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathid "${pathId}"`)
     }
 
     const contract = await this.getRailsGatewayContract()
-    const totalConfirmed = await contract.totalConfirmed(pathId)
+    const totalConfirmed = await contract.getTotalConfirmed(pathId)
     return totalConfirmed
   }
 
   get populateTransaction() {
     return {
-      send: async ({ pathId, to, amount, hops = [], fee }: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      send: async ({ to, amount, hops = [], fee }: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -734,10 +721,6 @@ export class RailsGateway extends StakingRegistry {
 
         if (!this.utils.isValidAddress(to)) {
           throw new InputError(`Invalid "to" address "${to}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
         if (!this.utils.isValidNumericValue(amount)) {
@@ -761,8 +744,8 @@ export class RailsGateway extends StakingRegistry {
             throw new InputError(`Invalid maxBonderFee "${hop.maxBonderFee}"`)
           }
 
-          if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
-            throw new InputError(`Invalid maxTotalSent "${hop.maxTotalSent}"`)
+          if (!this.utils.isValidNumericValue(hop.minAmountOut)) {
+            throw new InputError(`Invalid minAmountOut "${hop.minAmountOut}"`)
           }
 
           if (hop.attestedClaimId) {
@@ -776,7 +759,7 @@ export class RailsGateway extends StakingRegistry {
 
         const contract = await this.getRailsGatewayContract()
 
-        const txData = await contract.populateTransaction.send(pathId, to, amount, hops, {
+        const txData = await contract.populateTransaction.send(to, amount, hops, {
           value: fee
         })
 
@@ -847,8 +830,8 @@ export class RailsGateway extends StakingRegistry {
             throw new InputError(`Invalid pathId "${hop.pathId}"`)
           }
 
-          if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
-            throw new InputError(`Invalid maxTotalSent "${hop.maxTotalSent}"`)
+          if (!this.utils.isValidNumericValue(hop.minAmountOut)) {
+            throw new InputError(`Invalid minAmountOut "${hop.minAmountOut}"`)
           }
 
           if (!this.utils.isValidNumericValue(hop.maxBonderFee)) {
@@ -955,61 +938,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      removeClaim: async ({ pathId, transferId }: RemoveClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferID "${transferId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.removeClaim(pathId, transferId)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      withdraw: async ({ pathId, amount, claimId }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid amount "${amount}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction['withdraw(bytes32,uint256,bytes32)'](pathId, amount, claimId)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      withdrawAll: async ({ pathId, claimId }: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      removeClaim: async ({ pathId, claimId }: RemoveClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -1025,7 +954,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.withdrawAll(pathId, claimId)
+        const txData = await contract.populateTransaction.removeClaim(pathId, claimId)
 
         return {
           ...txData,
@@ -1034,164 +963,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      confirmClaim: async ({ pathId, transferId }: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.confirmClaim(pathId, transferId)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      approveStakeHop: async ({ staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!staker) {
-          staker = (await this.getSignerAddress(chainId)) as string
-        }
-
-        if (!staker) {
-          throw new InputError('Staker address not set')
-        }
-
-        if (!this.utils.isValidAddress(staker)) {
-          throw new InputError(`Invalid staker "${staker}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid amount "${amount}"`)
-        }
-
-        const hopTokenContract = await this.getHopTokenContract()
-        const address = this.getRailsGatewayContractAddress()
-        const txData = await hopTokenContract.populateTransaction.approve(address, amount)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      stakeHop: async ({ staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!staker) {
-          staker = (await this.getSignerAddress(chainId)) as string
-        }
-
-        if (!staker) {
-          throw new InputError('Staker address not set')
-        }
-
-        if (!this.utils.isValidAddress(staker)) {
-          throw new InputError(`Invalid staker "${staker}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid amount "${amount}"`)
-        }
-
-        const minRequired = await this.minHopStake({ chainId })
-        const balance = await this.getHopBalance(staker)
-
-        if (balance.lt(amount)) {
-          throw new InsufficientBalanceError(`Insufficient balance to stake ${amount.toString()} HOP`)
-        }
-
-        if (balance.lt(minRequired)) {
-          throw new InsufficientBalanceError(`Insufficient balance to stake ${minRequired.toString()} HOP`)
-        }
-
-        const txData = await this.registryStakeHopPopulatedTx({ chainId, staker, amount })
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      unstakeHop: async ({ amount }: UnstakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amount)) {
-          throw new InputError(`Invalid amount "${amount}"`)
-        }
-
-        const staker = await this.getSignerAddress(chainId)
-        if (!staker) {
-          throw new InputError('Staker address not set')
-        }
-        const balance = await this.getWithdrawableStakeBalance({ chainId: this.chainId, staker })
-
-        if (balance.lt(amount)) {
-          throw new InsufficientBalanceError('Insufficient balance to unstake')
-        }
-
-        const txData = await this.registryUnstakeHopPopulatedTx({ chainId, amount })
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      withdrawHop: async ({ staker }: WithdrawHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!staker) {
-          staker = (await this.getSignerAddress(chainId))!
-        }
-
-        if (!staker) {
-          throw new InputError('Staker address not set')
-        }
-
-        const txData = await this.registryWithdrawPopulatedTx({ chainId, staker })
-
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      batchUpdateClaimChain: async ({ pathId, transferDataHashes, claimId }: BatchUpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      withdraw: async ({ pathId, claimId }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -1204,6 +976,56 @@ export class RailsGateway extends StakingRegistry {
 
         if (!this.utils.isValidBytes32(claimId)) {
           throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsGatewayContract()
+        const txData = await contract.populateTransaction.withdraw(pathId, claimId)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      confirmClaim: async ({ pathId, claimId }: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(pathId)) {
+          throw new InputError(`Invalid pathId "${pathId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsGatewayContract()
+        const txData = await contract.populateTransaction.confirmClaim(pathId, claimId)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      batchUpdateClaimChain: async ({ pathId, transferDataHashes, finalTransferId }: BatchUpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(pathId)) {
+          throw new InputError(`Invalid pathId "${pathId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(finalTransferId)) {
+          throw new InputError(`Invalid finalTransferId "${finalTransferId}"`)
         }
 
         if (!transferDataHashes || !Array.isArray(transferDataHashes)) {
@@ -1214,8 +1036,12 @@ export class RailsGateway extends StakingRegistry {
           throw new InputError('One or more transferDataHashes values is invalid')
         }
 
+        if (!this.utils.isValidBytes32(finalTransferId)) {
+          throw new InputError(`Invalid finalTransferId "${finalTransferId}"`)
+        }
+
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.batchUpdateClaimChain(pathId, transferDataHashes, claimId)
+        const txData = await contract.populateTransaction.batchUpdateClaimChain(pathId, transferDataHashes, finalTransferId)
 
         return {
           ...txData,
@@ -1278,11 +1104,15 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      distributeExcessFees: async ({ recipients, amounts }: DistributeExcessFeesInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      distributeExcessFees: async ({ pathId, recipients, amounts }: DistributeExcessFeesInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(pathId)) {
+          throw new InputError(`Invalid pathId "${pathId}"`)
         }
 
         if (!Array.isArray(recipients)) {
@@ -1306,7 +1136,7 @@ export class RailsGateway extends StakingRegistry {
         }
 
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.distributeExcessFees(recipients, amounts)
+        const txData = await contract.populateTransaction.distributeExcessFees(pathId, recipients, amounts)
 
         return {
           ...txData,
@@ -1538,12 +1368,14 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async send (input: SendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const { pathId, amount } = input
+    const { amount, hops } = input
     const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId "${chainId}"`)
     }
+
+    const pathId = hops?.[0]?.pathId
 
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathId "${pathId}"`)
@@ -1601,11 +1433,6 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async withdrawAll (input: WithdrawAllInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdrawAll(input, txOverrides)
-    return this.sendTransaction(populatedTx)
-  }
-
   async getHeadClaimId ({ pathId }: GetHeadClaimIdInput): Promise<string> {
     const chainId = this.chainId
 
@@ -1619,21 +1446,6 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract()
     return contract.getHeadClaimId(pathId)
-  }
-
-  async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.stakeHop(input)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async unstakeHop (input: UnstakeHopInput): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.unstakeHop(input)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async withdrawHop (input: WithdrawHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdrawHop(input, txOverrides)
-    return this.sendTransaction(populatedTx)
   }
 
   async getWithdrawableBalance ({ pathId, recipient, claimId }: WithdrawableBalanceInput): Promise<BigNumber> {
@@ -1658,7 +1470,7 @@ export class RailsGateway extends StakingRegistry {
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const balance = await contract['getWithdrawableBalance(bytes32,address,bytes32)'](pathId, recipient, claimId)
+      const balance = await contract.getWithdrawableBalance(pathId, recipient, claimId)
       return balance
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
@@ -2016,7 +1828,7 @@ export class RailsGateway extends StakingRegistry {
     }
   }
 
-  async totalSent ({ pathId }: TotalSentInput): Promise<BigNumber> {
+  async getTotalSent ({ pathId }: GetTotalSentInput): Promise<BigNumber> {
     const chainId = this.chainId
 
     if (!chainId || !this.utils.isValidChainId(chainId)) {
@@ -2030,7 +1842,7 @@ export class RailsGateway extends StakingRegistry {
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const totalSent = await contract.totalSent(pathId)
+      const totalSent = await contract.getTotalSent(pathId)
       return totalSent
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
@@ -2122,6 +1934,28 @@ export class RailsGateway extends StakingRegistry {
 
     const contract = await this.getRailsGatewayContract()
     return contract.getNextHopsHash(nextHops)
+  }
+
+  async getPathVault ({ pathId }: GetPathVaultInput ): Promise<string> {
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract()
+    return contract.getPathVault(pathId)
+  }
+
+  async getStakingRegistryContractAddress() {
+    const contract = await this.getRailsGatewayContract()
+    return contract.stakingRegistry()
+  }
+
+  async getStakingRegistry() {
+    return new StakingRegistry({
+      contractAddresses: this.contractAddresses,
+      signersOrProviders: this.signersOrProviders,
+      network: this.network
+    })
   }
 
   static getComputedNextHopsHash ({ nextHops }: GetNextHopsHashInput): string {

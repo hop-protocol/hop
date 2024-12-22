@@ -35,9 +35,9 @@ export {
   GetClaimFeesFeeInput,
   GetFeePriceInput,
   GetBatchUpdateFeeInput,
-  TotalClaimsInput,
-  TotalClaimsAtClaimIdInput,
-  TotalConfirmedInput,
+  GetTotalClaimsInput,
+  GetTotalClaimsAtClaimIdInput,
+  GetTotalConfirmedInput,
   GetHasSufficientBalanceInput,
   GetHeadClaimIdInput,
   GetIsClaimIdValidInput,
@@ -80,11 +80,9 @@ export {
   TransferSentIndexes,
   UnstakeHopInput,
   UpdateClaimChainInput,
-  WithdrawAllInput,
-  WithdrawHopInput,
   WithdrawInput,
   WithdrawableBalanceInput,
-  TotalSentInput,
+  GetTotalSentInput,
   SignalPreferenceInput,
   IsValidClaimInput,
   IsValidTransferInput,
@@ -98,7 +96,8 @@ export {
   ClaimChainUpdatedIndexes,
   BonderPreference,
   BonderPreferenceEventFetcher,
-  BonderPreferenceIndexes
+  BonderPreferenceIndexes,
+  GetPathVaultInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

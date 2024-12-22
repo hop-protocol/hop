@@ -11,18 +11,18 @@ export type GetChallengesInput = {
   challengeId: string
 }
 
-export type RegistryStakeHopInput = {
+export type StakeHopInput = {
   chainId: BigNumberish
   staker: string
   amount: BigNumberish
 }
 
-export type RegistryUnstakeHopInput = {
+export type UnstakeHopInput = {
   chainId: BigNumberish
   amount: ethers.BigNumberish
 }
 
-export type RegistryWithdrawInput = {
+export type WithdrawStakeInput = {
   chainId: BigNumberish
   staker: string
 }
@@ -90,6 +90,11 @@ export type GetWithdrawableBalanceInput = {
   staker: string
 }
 
+export type WithdrawableEthInput = {
+  chainId: BigNumberish
+  address: string
+}
+
 export type GetChallengeIdInput = {
   chainId: BigNumberish
   staker: string
@@ -105,6 +110,10 @@ export type SignalPreferenceInput = {
   liquidity: BigNumberish
 }
 
+export type HopTokenInput = {
+  chainId: BigNumberish
+}
+
 export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
@@ -117,7 +126,7 @@ export class StakingRegistry extends Base {
   }
 
   getStakingRegistryAddress (chainId: BigNumberish): string {
-    return this.getConfigAddress(chainId, 'railsGateway')
+    return this.getConfigAddress(chainId, 'stakingRegistry')
   }
 
   getStakingRegistryContract (chainId: BigNumberish): Contract {
@@ -160,37 +169,37 @@ export class StakingRegistry extends Base {
     return contract.minHopStake()
   }
 
-  async registryStakeHopPopulatedTx (input: RegistryStakeHopInput) {
+  async stakeHopPopulatedTx (input: StakeHopInput) {
     const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
     const txData = await contract.populateTransaction.stakeHop(staker)
     return txData
   }
 
-  async registryUnstakeHopPopulatedTx (input: RegistryUnstakeHopInput) {
+  async unstakeHopPopulatedTx (input: UnstakeHopInput) {
     const { chainId, amount } = input
     const contract = this.getStakingRegistryContract(chainId)
     return contract.populateTransaction.unstakeHop(amount)
   }
 
-  async registryWithdrawPopulatedTx (input: RegistryWithdrawInput) {
+  async withdrawStakePopulatedTx (input: WithdrawStakeInput) {
     const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
     return contract.populateTransaction.withdraw(staker)
   }
 
-  async registryStakeHop (input: RegistryStakeHopInput) {
-    const populatedTx = await this.registryStakeHopPopulatedTx(input)
+  async stakeHop (input: StakeHopInput) {
+    const populatedTx = await this.stakeHopPopulatedTx(input)
     return this.sendTransaction(populatedTx)
   }
 
-  async registryUnstakeHop (input: RegistryUnstakeHopInput) {
-    const populatedTx = await this.registryUnstakeHopPopulatedTx(input)
+  async unstakeHop (input: UnstakeHopInput) {
+    const populatedTx = await this.unstakeHopPopulatedTx(input)
     return this.sendTransaction(populatedTx)
   }
 
-  async registryWithdraw (input: RegistryWithdrawInput) {
-    const populatedTx = await this.registryWithdrawPopulatedTx(input)
+  async withdrawStake (input: WithdrawStakeInput) {
+    const populatedTx = await this.withdrawStakePopulatedTx(input)
     return this.sendTransaction(populatedTx)
   }
 
@@ -249,10 +258,22 @@ export class StakingRegistry extends Base {
     return contract.getStakedBalance(staker)
   }
 
-  async getWithdrawableStakeBalance (input: GetWithdrawableBalanceInput) {
+  async getWithdrawableBalance (input: GetWithdrawableBalanceInput) {
     const { chainId, staker } = input
     const contract = this.getStakingRegistryContract(chainId)
     return contract.getWithdrawableBalance(staker)
+  }
+
+  async withdrawableEth (input: WithdrawableEthInput) {
+    const { chainId, address } = input
+    const contract = this.getStakingRegistryContract(chainId)
+    return contract.withdrawableEth(address)
+  }
+
+  async hopToken (input: HopTokenInput) {
+    const { chainId } = input
+    const contract = this.getStakingRegistryContract(chainId)
+    return contract.hopToken()
   }
 
   // Helper function to calculate challengeId which would typically be calculated off-chain

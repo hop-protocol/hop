@@ -4,7 +4,7 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, Path, TransferBonded, TransferSent, HopStruct, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
+import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
@@ -291,26 +291,26 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMaxTotalSent = await this.getRailsGateway(originChainId).totalSent({ pathId: nextPathId })
+        const nextMinAmountOut = BigNumber.from('0') // TODO
         const nextMaxBonderFee = BigNumber.from('0') // TODO
 
-        const destMaxTotalSent = await this.getRailsGateway(nextChainId).totalSent({ pathId: destPathId })
+        const destMinAmountOut = BigNumber.from('0') // TODO
         const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
           pathId: destPathId
         })
         const destMaxBonderFee = BigNumber.from('0') // TODO
 
-        const hops: HopStruct[] = [
+        const hops: HopStructInput[] = [
           {
             pathId: nextPathId,
             maxBonderFee: nextMaxBonderFee,
-            maxTotalSent: nextMaxTotalSent,
+            minAmountOut: nextMinAmountOut,
             attestedClaimId: attestedClaimId
           },
           {
             pathId: destPathId,
             maxBonderFee: destMaxBonderFee,
-            maxTotalSent: destMaxTotalSent,
+            minAmountOut: destMinAmountOut,
             attestedClaimId: destAttestedClaimId
           }
         ]
@@ -318,7 +318,6 @@ export class Hop extends Base {
         const fee = await this.getRailsGateway(nextChainId).getSendFee({ pathId: nextPathId })
 
         const populatedTx = await this.getRailsGateway(originChainId).populateTransaction.send({
-          pathId: nextPathId,
           to,
           amount,
           hops,
@@ -403,19 +402,17 @@ export class Hop extends Base {
         }
 
         const maxBonderFee = BigNumber.from('0') // TODO
-        const maxTotalSent = await this.getRailsGateway(fromChainId).totalSent({ pathId })
 
-        const hops: HopStruct[] = [{
+        const hops: HopStructInput[] = [{
           pathId,
           maxBonderFee,
-          maxTotalSent,
+          minAmountOut,
           attestedClaimId
         }]
 
         const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
         const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.send({
-          pathId,
           to,
           amount,
           hops,
@@ -535,20 +532,18 @@ export class Hop extends Base {
       pathId
     })
 
-    const maxTotalSent = await this.getRailsGateway(fromChainId).totalSent({ pathId })
     const maxBonderFee = BigNumber.from('0') // TODO
 
-    const hops: HopStruct[] = [{
+    const hops: HopStructInput[] = [{
       pathId,
       attestedClaimId,
       maxBonderFee,
-      maxTotalSent,
+      minAmountOut,
     }]
 
     const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
     const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.send({
-      pathId,
       to,
       amount,
       hops,
@@ -815,7 +810,7 @@ export class Hop extends Base {
     let transferSentEvent = originalTransferSentEvent
 
     let transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
-    let originalHops : HopStruct[] = []
+    let originalHops : HopStructInput[] = []
 
     if (transferSentEvent) {
       const fromProvider = this.getProvider(fromChainId)

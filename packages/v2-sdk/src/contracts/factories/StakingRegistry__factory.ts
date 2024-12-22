@@ -11,597 +11,534 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "constructor",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
+        name: "_hopToken",
         type: "address",
+        internalType: "contract IERC20",
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferred",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "challengeId",
-        type: "bytes32",
-      },
-      {
-        internalType: "bool",
-        name: "challengeWon",
-        type: "bool",
-      },
-    ],
-    name: "_settleChallenge",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "challenger",
-        type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "penalty",
+        name: "_challengePeriod",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bytes",
-        name: "slashingData",
-        type: "bytes",
+        name: "_appealPeriod",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_minChallengeIncrease",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_fullAppeal",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_minHopStake",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "acceptSlash",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "challenger",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
         name: "penalty",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bytes",
         name: "slashingData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
     name: "addToAppeal",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "address",
         name: "staker",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "challenger",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
         name: "penalty",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bytes",
         name: "slashingData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
     name: "addToChallenge",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "appealPeriod",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "challengePeriod",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    name: "challenges",
-    outputs: [
-      {
-        internalType: "address",
         name: "staker",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "challenger",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "lastUpdated",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
         name: "penalty",
         type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "isSettled",
-        type: "bool",
-      },
-      {
-        internalType: "bool",
-        name: "isAppealed",
-        type: "bool",
-      },
-      {
         internalType: "uint256",
-        name: "challengeEth",
-        type: "uint256",
       },
       {
+        name: "slashingData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "appealPeriod",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
         internalType: "uint256",
-        name: "appealEth",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "winner",
-        type: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "penalty",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "slashingData",
-        type: "bytes",
-      },
-    ],
-    name: "createChallenge",
+    type: "function",
+    name: "challengePeriod",
+    inputs: [],
     outputs: [
       {
-        internalType: "bytes32",
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "createChallenge",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
         name: "",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "forceSettleChallenge",
     inputs: [
       {
-        internalType: "bytes32",
         name: "challengeId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "bool",
         name: "challengeWon",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "forceSettleChallenge",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "fullAppeal",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getChallengeId",
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
         name: "staker",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "penalty",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "challenger",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes",
         name: "slashingData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "getChallengeId",
     outputs: [
       {
-        internalType: "bytes32",
         name: "",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     stateMutability: "pure",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "getStakedBalance",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "getWithdrawableBalance",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "minStake",
-        type: "uint256",
-      },
-    ],
-    name: "initRole",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-    ],
-    name: "isStaked",
+    name: "hopToken",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
+        name: "",
+        type: "address",
+        internalType: "contract IERC20",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isStaked",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "minChallengeIncrease",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    name: "minHopStakeForRole",
+    type: "function",
+    name: "minHopStake",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "optimisticallySettleChallenge",
     inputs: [
       {
-        internalType: "address",
         name: "staker",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "challenger",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
         name: "penalty",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bytes",
         name: "slashingData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "optimisticallySettleChallenge",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "owner",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "renounceOwnership",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "signalPreference",
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
+        name: "pathId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "address",
-        name: "staker",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
+        name: "feeTier",
         type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "liquidity",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "stakeHop",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "stakeHop",
     inputs: [
       {
+        name: "staker",
+        type: "address",
         internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "transferOwnership",
+    inputs: [
+      {
         name: "newOwner",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "unstakeHop",
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "unstakeHop",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "withdrawStake",
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
         name: "staker",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "withdraw",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "withdrawableEth",
     inputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "withdrawableEth",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
-];
+  {
+    type: "event",
+    name: "BonderPreference",
+    inputs: [
+      {
+        name: "bonder",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "pathId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "feeTier",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "liquidity",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OwnershipTransferred",
+    inputs: [
+      {
+        name: "previousOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+] as const;
 
 export class StakingRegistry__factory {
   static readonly abi = _abi;

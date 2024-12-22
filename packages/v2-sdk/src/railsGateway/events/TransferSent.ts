@@ -16,7 +16,7 @@ export interface TransferSent {
 export interface HopStruct {
   pathId: string
   maxBonderFee: BigNumber
-  maxTotalSent: BigNumber
+  minAmountOut: BigNumber
   attestedClaimId: string
 }
 
@@ -62,7 +62,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
       return {
         pathId: hop.pathId.toString(),
         maxBonderFee: hop.maxBonderFee,
-        maxTotalSent: hop.maxTotalSent,
+        minAmountOut: hop.minAmountOut,
         attestedClaimId: hop.attestedClaimId.toString()
       }
     })

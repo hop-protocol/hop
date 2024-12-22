@@ -112,6 +112,7 @@
 - [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
+- [GetPathVaultInput](modules.md#getpathvaultinput)
 - [GetRelayFeeInput](modules.md#getrelayfeeinput)
 - [GetRelayMessageDataFromTransactionHashInput](modules.md#getrelaymessagedatafromtransactionhashinput)
 - [GetRelayMessagePopulatedTxInput](modules.md#getrelaymessagepopulatedtxinput)
@@ -122,6 +123,10 @@
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
+- [GetTotalClaimsAtClaimIdInput](modules.md#gettotalclaimsatclaimidinput)
+- [GetTotalClaimsInput](modules.md#gettotalclaimsinput)
+- [GetTotalConfirmedInput](modules.md#gettotalconfirmedinput)
+- [GetTotalSentInput](modules.md#gettotalsentinput)
 - [GetTransferBondedEventFilterInput](modules.md#gettransferbondedeventfilterinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
@@ -159,10 +164,6 @@
 - [SignersOrProviders](modules.md#signersorproviders)
 - [StakeHopInput](modules.md#stakehopinput)
 - [Token](modules.md#token)
-- [TotalClaimsAtClaimIdInput](modules.md#totalclaimsatclaimidinput)
-- [TotalClaimsInput](modules.md#totalclaimsinput)
-- [TotalConfirmedInput](modules.md#totalconfirmedinput)
-- [TotalSentInput](modules.md#totalsentinput)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
 - [TransferBondedEventInput](modules.md#transferbondedeventinput)
 - [TransferBondedIndexes](modules.md#transferbondedindexes)
@@ -173,8 +174,6 @@
 - [UnstakeHopInput](modules.md#unstakehopinput)
 - [UpdateClaimChainInput](modules.md#updateclaimchaininput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
-- [WithdrawAllInput](modules.md#withdrawallinput)
-- [WithdrawHopInput](modules.md#withdrawhopinput)
 - [WithdrawInput](modules.md#withdrawinput)
 - [WithdrawableBalanceInput](modules.md#withdrawablebalanceinput)
 
@@ -240,7 +239,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `claimId` | `string` |
+| `finalTransferId` | `string` |
 | `pathId` | `string` |
 | `transferDataHashes` | `string`[] |
 
@@ -349,8 +348,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimId` | `string` |
 | `pathId` | `string` |
-| `transferId` | `string` |
 
 ___
 
@@ -393,6 +392,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amounts` | `BigNumberish`[] |
+| `pathId` | `string` |
 | `recipients` | `string`[] |
 
 ___
@@ -1061,6 +1061,18 @@ ___
 
 ___
 
+### <a id="getpathvaultinput" name="getpathvaultinput"></a> GetPathVaultInput
+
+Ƭ **GetPathVaultInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
 ### <a id="getrelayfeeinput" name="getrelayfeeinput"></a> GetRelayFeeInput
 
 Ƭ **GetRelayFeeInput**: `Object`
@@ -1196,6 +1208,55 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
+
+___
+
+### <a id="gettotalclaimsatclaimidinput" name="gettotalclaimsatclaimidinput"></a> GetTotalClaimsAtClaimIdInput
+
+Ƭ **GetTotalClaimsAtClaimIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
+### <a id="gettotalclaimsinput" name="gettotalclaimsinput"></a> GetTotalClaimsInput
+
+Ƭ **GetTotalClaimsInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="gettotalconfirmedinput" name="gettotalconfirmedinput"></a> GetTotalConfirmedInput
+
+Ƭ **GetTotalConfirmedInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="gettotalsentinput" name="gettotalsentinput"></a> GetTotalSentInput
+
+Ƭ **GetTotalSentInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -1395,7 +1456,7 @@ ___
 | :------ | :------ |
 | `attestedClaimId` | `string` |
 | `maxBonderFee` | `BigNumberish` |
-| `maxTotalSent` | `BigNumberish` |
+| `minAmountOut` | `BigNumberish` |
 | `pathId` | `string` |
 
 ___
@@ -1540,8 +1601,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimId` | `string` |
 | `pathId` | `string` |
-| `transferId` | `string` |
 
 ___
 
@@ -1569,7 +1630,6 @@ ___
 | `amount` | `BigNumberish` |
 | `fee` | `BigNumberish` |
 | `hops` | [`HopStructInput`](modules.md#hopstructinput)[] |
-| `pathId` | `string` |
 | `to` | `string` |
 
 ___
@@ -1666,7 +1726,8 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `staker?` | `string` |
+| `chainId` | `BigNumberish` |
+| `staker` | `string` |
 
 ___
 
@@ -1683,55 +1744,6 @@ ___
 | `decimals` | `number` |
 | `name` | `string` |
 | `symbol` | `string` |
-
-___
-
-### <a id="totalclaimsatclaimidinput" name="totalclaimsatclaimidinput"></a> TotalClaimsAtClaimIdInput
-
-Ƭ **TotalClaimsAtClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="totalclaimsinput" name="totalclaimsinput"></a> TotalClaimsInput
-
-Ƭ **TotalClaimsInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="totalconfirmedinput" name="totalconfirmedinput"></a> TotalConfirmedInput
-
-Ƭ **TotalConfirmedInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="totalsentinput" name="totalsentinput"></a> TotalSentInput
-
-Ƭ **TotalSentInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
 
 ___
 
@@ -1839,7 +1851,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
+| `amount` | `ethers.BigNumberish` |
+| `chainId` | `BigNumberish` |
 
 ___
 
@@ -1876,31 +1889,6 @@ ___
 
 ___
 
-### <a id="withdrawallinput" name="withdrawallinput"></a> WithdrawAllInput
-
-Ƭ **WithdrawAllInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="withdrawhopinput" name="withdrawhopinput"></a> WithdrawHopInput
-
-Ƭ **WithdrawHopInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `staker` | `string` |
-
-___
-
 ### <a id="withdrawinput" name="withdrawinput"></a> WithdrawInput
 
 Ƭ **WithdrawInput**: `Object`
@@ -1909,7 +1897,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `amount` | `BigNumberish` |
 | `claimId` | `string` |
 | `pathId` | `string` |
 

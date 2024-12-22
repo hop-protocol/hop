@@ -2,7 +2,7 @@
 
 ## Hierarchy
 
-- `StakingRegistry`
+- `Base`
 
   ↳ **`RailsGateway`**
 
@@ -31,30 +31,20 @@
 
 ### Methods
 
-- [acceptSlash](RailsGateway.md#acceptslash)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
-- [addToAppeal](RailsGateway.md#addtoappeal)
-- [addToChallenge](RailsGateway.md#addtochallenge)
-- [appealPeriod](RailsGateway.md#appealperiod)
 - [batchUpdateClaimChain](RailsGateway.md#batchupdateclaimchain)
 - [bond](RailsGateway.md#bond)
-- [challengePeriod](RailsGateway.md#challengeperiod)
-- [challenges](RailsGateway.md#challenges)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
-- [createChallenge](RailsGateway.md#createchallenge)
 - [distributeClaimedFees](RailsGateway.md#distributeclaimedfees)
 - [distributeExcessFees](RailsGateway.md#distributeexcessfees)
-- [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
-- [fullAppeal](RailsGateway.md#fullappeal)
 - [getAmountOut](RailsGateway.md#getamountout)
 - [getBatchUpdateFee](RailsGateway.md#getbatchupdatefee)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
-- [getChallengeId](RailsGateway.md#getchallengeid)
 - [getClaimFeesFee](RailsGateway.md#getclaimfeesfee)
 - [getColorForChainId](RailsGateway.md#getcolorforchainid)
 - [getConfigAddress](RailsGateway.md#getconfigaddress)
@@ -81,6 +71,7 @@
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
+- [getPathVault](RailsGateway.md#getpathvault)
 - [getProvider](RailsGateway.md#getprovider)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
@@ -90,9 +81,8 @@
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
-- [getStakedBalance](RailsGateway.md#getstakedbalance)
-- [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
-- [getStakingRegistryContract](RailsGateway.md#getstakingregistrycontract)
+- [getStakingRegistry](RailsGateway.md#getstakingregistry)
+- [getStakingRegistryContractAddress](RailsGateway.md#getstakingregistrycontractaddress)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
@@ -100,6 +90,10 @@
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
 - [getTokenSymbolByTokenAddress](RailsGateway.md#gettokensymbolbytokenaddress)
+- [getTotalClaims](RailsGateway.md#gettotalclaims)
+- [getTotalClaimsAtClaimId](RailsGateway.md#gettotalclaimsatclaimid)
+- [getTotalConfirmed](RailsGateway.md#gettotalconfirmed)
+- [getTotalSent](RailsGateway.md#gettotalsent)
 - [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
@@ -116,20 +110,9 @@
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [getUpdateFee](RailsGateway.md#getupdatefee)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
-- [getWithdrawableStakeBalance](RailsGateway.md#getwithdrawablestakebalance)
-- [isStaked](RailsGateway.md#isstaked)
 - [isValidClaim](RailsGateway.md#isvalidclaim)
 - [isValidTransfer](RailsGateway.md#isvalidtransfer)
-- [minChallengeIncrease](RailsGateway.md#minchallengeincrease)
-- [minHopStake](RailsGateway.md#minhopstake)
-- [optimisticallySettleChallenge](RailsGateway.md#optimisticallysettlechallenge)
 - [postClaim](RailsGateway.md#postclaim)
-- [registryStakeHop](RailsGateway.md#registrystakehop)
-- [registryStakeHopPopulatedTx](RailsGateway.md#registrystakehoppopulatedtx)
-- [registryUnstakeHop](RailsGateway.md#registryunstakehop)
-- [registryUnstakeHopPopulatedTx](RailsGateway.md#registryunstakehoppopulatedtx)
-- [registryWithdraw](RailsGateway.md#registrywithdraw)
-- [registryWithdrawPopulatedTx](RailsGateway.md#registrywithdrawpopulatedtx)
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
@@ -141,19 +124,9 @@
 - [setProviderUrl](RailsGateway.md#setproviderurl)
 - [setProviderUrls](RailsGateway.md#setproviderurls)
 - [setProviders](RailsGateway.md#setproviders)
-- [signalPreference](RailsGateway.md#signalpreference)
-- [signalPreferencePopulatedTx](RailsGateway.md#signalpreferencepopulatedtx)
-- [stakeHop](RailsGateway.md#stakehop)
 - [throwError](RailsGateway.md#throwerror)
-- [totalClaims](RailsGateway.md#totalclaims)
-- [totalClaimsAtClaimId](RailsGateway.md#totalclaimsatclaimid)
-- [totalConfirmed](RailsGateway.md#totalconfirmed)
-- [totalSent](RailsGateway.md#totalsent)
-- [unstakeHop](RailsGateway.md#unstakehop)
 - [updateClaimChain](RailsGateway.md#updateclaimchain)
 - [withdraw](RailsGateway.md#withdraw)
-- [withdrawAll](RailsGateway.md#withdrawall)
-- [withdrawHop](RailsGateway.md#withdrawhop)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
@@ -184,7 +157,7 @@
 
 #### Overrides
 
-StakingRegistry.constructor
+Base.constructor
 
 ## Properties
 
@@ -194,7 +167,7 @@ StakingRegistry.constructor
 
 #### Inherited from
 
-StakingRegistry.batchBlocks
+Base.batchBlocks
 
 ___
 
@@ -210,7 +183,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.contractAddresses
+Base.contractAddresses
 
 ___
 
@@ -220,7 +193,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.gasPriceMultiplier
+Base.gasPriceMultiplier
 
 ___
 
@@ -230,7 +203,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.l1ChainId
+Base.l1ChainId
 
 ___
 
@@ -240,7 +213,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.network
+Base.network
 
 ___
 
@@ -250,7 +223,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.signersOrProviders
+Base.signersOrProviders
 
 ___
 
@@ -293,7 +266,6 @@ ___
 | :------ | :------ |
 | `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `batchUpdateClaimChain` | (`__namedParameters`: [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
@@ -305,12 +277,8 @@ ___
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrices` | (`__namedParameters`: [`SetFeePricesInput`](../modules.md#setfeepricesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAll` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -351,29 +319,9 @@ ___
 
 #### Inherited from
 
-StakingRegistry.utils
+Base.utils
 
 ## Methods
-
-### <a id="acceptslash" name="acceptslash"></a> acceptSlash
-
-▸ **acceptSlash**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AcceptSlashInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.acceptSlash
-
-___
 
 ### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
 
@@ -439,66 +387,6 @@ ___
 
 ___
 
-### <a id="addtoappeal" name="addtoappeal"></a> addToAppeal
-
-▸ **addToAppeal**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AddToAppealInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.addToAppeal
-
-___
-
-### <a id="addtochallenge" name="addtochallenge"></a> addToChallenge
-
-▸ **addToChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AddToChallengeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.addToChallenge
-
-___
-
-### <a id="appealperiod" name="appealperiod"></a> appealPeriod
-
-▸ **appealPeriod**(`chainId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.appealPeriod
-
-___
-
 ### <a id="batchupdateclaimchain" name="batchupdateclaimchain"></a> batchUpdateClaimChain
 
 ▸ **batchUpdateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -530,47 +418,6 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="challengeperiod" name="challengeperiod"></a> challengePeriod
-
-▸ **challengePeriod**(`chainId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.challengePeriod
-
-___
-
-### <a id="challenges" name="challenges"></a> challenges
-
-▸ **challenges**(`chainId`, `challengeId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `challengeId` | `string` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.challenges
 
 ___
 
@@ -608,26 +455,6 @@ ___
 
 ___
 
-### <a id="createchallenge" name="createchallenge"></a> createChallenge
-
-▸ **createChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `CreateChallengeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.createChallenge
-
-___
-
 ### <a id="distributeclaimedfees" name="distributeclaimedfees"></a> distributeClaimedFees
 
 ▸ **distributeClaimedFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -659,46 +486,6 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="forcesettlechallenge" name="forcesettlechallenge"></a> forceSettleChallenge
-
-▸ **forceSettleChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `ForceSettleChallengeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.forceSettleChallenge
-
-___
-
-### <a id="fullappeal" name="fullappeal"></a> fullAppeal
-
-▸ **fullAppeal**(`chainId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.fullAppeal
 
 ___
 
@@ -766,27 +553,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getChainIdsSupportedByTokenSymbol
-
-___
-
-### <a id="getchallengeid" name="getchallengeid"></a> getChallengeId
-
-▸ **getChallengeId**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetChallengeIdInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getChallengeId
+Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
@@ -822,7 +589,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getColorForChainId
+Base.getColorForChainId
 
 ___
 
@@ -843,7 +610,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getConfigAddress
+Base.getConfigAddress
 
 ___
 
@@ -863,7 +630,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getConfigStartBlock
+Base.getConfigStartBlock
 
 ___
 
@@ -877,7 +644,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getContractAddresses
+Base.getContractAddresses
 
 ___
 
@@ -898,7 +665,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getContractExists
+Base.getContractExists
 
 ___
 
@@ -918,7 +685,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProvider
+Base.getDefaultProvider
 
 ___
 
@@ -932,7 +699,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProviders
+Base.getDefaultProviders
 
 ___
 
@@ -952,7 +719,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getEthersWeb3Signer
+Base.getEthersWeb3Signer
 
 ___
 
@@ -1009,7 +776,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getExplorerApiBaseUrl
+Base.getExplorerApiBaseUrl
 
 ___
 
@@ -1107,7 +874,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getHubChainId
+Base.getHubChainId
 
 ___
 
@@ -1201,6 +968,22 @@ ___
 
 ___
 
+### <a id="getpathvault" name="getpathvault"></a> getPathVault
+
+▸ **getPathVault**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetPathVaultInput`](../modules.md#getpathvaultinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="getprovider" name="getprovider"></a> getProvider
 
 ▸ **getProvider**(`chainId`): ``null`` \| `Provider`
@@ -1217,7 +1000,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getProvider
+Base.getProvider
 
 ___
 
@@ -1283,7 +1066,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSigner
+Base.getSigner
 
 ___
 
@@ -1303,7 +1086,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerAddress
+Base.getSignerAddress
 
 ___
 
@@ -1323,7 +1106,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerOrProvider
+Base.getSignerOrProvider
 
 ___
 
@@ -1343,67 +1126,27 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerProviderChainId
+Base.getSignerProviderChainId
 
 ___
 
-### <a id="getstakedbalance" name="getstakedbalance"></a> getStakedBalance
+### <a id="getstakingregistry" name="getstakingregistry"></a> getStakingRegistry
 
-▸ **getStakedBalance**(`input`): `Promise`\<`any`\>
+▸ **getStakingRegistry**(): `Promise`\<`StakingRegistry`\>
 
-#### Parameters
+#### Returns
 
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetStakedBalanceInput` |
+`Promise`\<`StakingRegistry`\>
+
+___
+
+### <a id="getstakingregistrycontractaddress" name="getstakingregistrycontractaddress"></a> getStakingRegistryContractAddress
+
+▸ **getStakingRegistryContractAddress**(): `Promise`\<`any`\>
 
 #### Returns
 
 `Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getStakedBalance
-
-___
-
-### <a id="getstakingregistryaddress" name="getstakingregistryaddress"></a> getStakingRegistryAddress
-
-▸ **getStakingRegistryAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`string`
-
-#### Inherited from
-
-StakingRegistry.getStakingRegistryAddress
-
-___
-
-### <a id="getstakingregistrycontract" name="getstakingregistrycontract"></a> getStakingRegistryContract
-
-▸ **getStakingRegistryContract**(`chainId`): `Contract`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Contract`
-
-#### Inherited from
-
-StakingRegistry.getStakingRegistryContract
 
 ___
 
@@ -1417,7 +1160,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedChainIds
+Base.getSupportedChainIds
 
 ___
 
@@ -1431,7 +1174,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedTokenSymbols
+Base.getSupportedTokenSymbols
 
 ___
 
@@ -1451,7 +1194,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedTokenSymbolsByChainId
+Base.getSupportedTokenSymbolsByChainId
 
 ___
 
@@ -1472,7 +1215,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getTokenAddressByTokenSymbol
+Base.getTokenAddressByTokenSymbol
 
 ___
 
@@ -1525,7 +1268,71 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getTokenSymbolByTokenAddress
+Base.getTokenSymbolByTokenAddress
+
+___
+
+### <a id="gettotalclaims" name="gettotalclaims"></a> getTotalClaims
+
+▸ **getTotalClaims**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalClaimsInput`](../modules.md#gettotalclaimsinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalclaimsatclaimid" name="gettotalclaimsatclaimid"></a> getTotalClaimsAtClaimId
+
+▸ **getTotalClaimsAtClaimId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalClaimsAtClaimIdInput`](../modules.md#gettotalclaimsatclaimidinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalconfirmed" name="gettotalconfirmed"></a> getTotalConfirmed
+
+▸ **getTotalConfirmed**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalConfirmedInput`](../modules.md#gettotalconfirmedinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalsent" name="gettotalsent"></a> getTotalSent
+
+▸ **getTotalSent**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalSentInput`](../modules.md#gettotalsentinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1754,7 +1561,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getTxOverrides
+Base.getTxOverrides
 
 ___
 
@@ -1781,46 +1588,6 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
-
-___
-
-### <a id="getwithdrawablestakebalance" name="getwithdrawablestakebalance"></a> getWithdrawableStakeBalance
-
-▸ **getWithdrawableStakeBalance**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetWithdrawableBalanceInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getWithdrawableStakeBalance
-
-___
-
-### <a id="isstaked" name="isstaked"></a> isStaked
-
-▸ **isStaked**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `IsStakedInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.isStaked
 
 ___
 
@@ -1856,66 +1623,6 @@ ___
 
 ___
 
-### <a id="minchallengeincrease" name="minchallengeincrease"></a> minChallengeIncrease
-
-▸ **minChallengeIncrease**(`chainId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.minChallengeIncrease
-
-___
-
-### <a id="minhopstake" name="minhopstake"></a> minHopStake
-
-▸ **minHopStake**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `MinHopStakeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.minHopStake
-
-___
-
-### <a id="optimisticallysettlechallenge" name="optimisticallysettlechallenge"></a> optimisticallySettleChallenge
-
-▸ **optimisticallySettleChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `OptimisticallySettleChallengeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.optimisticallySettleChallenge
-
-___
-
 ### <a id="postclaim" name="postclaim"></a> postClaim
 
 ▸ **postClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -1930,126 +1637,6 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="registrystakehop" name="registrystakehop"></a> registryStakeHop
-
-▸ **registryStakeHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryStakeHopInput` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryStakeHop
-
-___
-
-### <a id="registrystakehoppopulatedtx" name="registrystakehoppopulatedtx"></a> registryStakeHopPopulatedTx
-
-▸ **registryStakeHopPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryStakeHopInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryStakeHopPopulatedTx
-
-___
-
-### <a id="registryunstakehop" name="registryunstakehop"></a> registryUnstakeHop
-
-▸ **registryUnstakeHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryUnstakeHopInput` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryUnstakeHop
-
-___
-
-### <a id="registryunstakehoppopulatedtx" name="registryunstakehoppopulatedtx"></a> registryUnstakeHopPopulatedTx
-
-▸ **registryUnstakeHopPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryUnstakeHopInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryUnstakeHopPopulatedTx
-
-___
-
-### <a id="registrywithdraw" name="registrywithdraw"></a> registryWithdraw
-
-▸ **registryWithdraw**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryWithdrawInput` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryWithdraw
-
-___
-
-### <a id="registrywithdrawpopulatedtx" name="registrywithdrawpopulatedtx"></a> registryWithdrawPopulatedTx
-
-▸ **registryWithdrawPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryWithdrawInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryWithdrawPopulatedTx
 
 ___
 
@@ -2105,7 +1692,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.sendTransaction
+Base.sendTransaction
 
 ___
 
@@ -2125,7 +1712,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setContractAddresses
+Base.setContractAddresses
 
 ___
 
@@ -2145,7 +1732,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setExplorerApiBaseUrl
+Base.setExplorerApiBaseUrl
 
 ___
 
@@ -2200,7 +1787,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProvider
+Base.setProvider
 
 ___
 
@@ -2221,7 +1808,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviderUrl
+Base.setProviderUrl
 
 ___
 
@@ -2241,7 +1828,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviderUrls
+Base.setProviderUrls
 
 ___
 
@@ -2261,63 +1848,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviders
-
-___
-
-### <a id="signalpreference" name="signalpreference"></a> signalPreference
-
-▸ **signalPreference**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`SignalPreferenceInput`](../modules.md#signalpreferenceinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.signalPreference
-
-___
-
-### <a id="signalpreferencepopulatedtx" name="signalpreferencepopulatedtx"></a> signalPreferencePopulatedTx
-
-▸ **signalPreferencePopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`SignalPreferenceInput`](../modules.md#signalpreferenceinput) |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.signalPreferencePopulatedTx
-
-___
-
-### <a id="stakehop" name="stakehop"></a> stakeHop
-
-▸ **stakeHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`StakeHopInput`](../modules.md#stakehopinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
+Base.setProviders
 
 ___
 
@@ -2337,87 +1868,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.throwError
-
-___
-
-### <a id="totalclaims" name="totalclaims"></a> totalClaims
-
-▸ **totalClaims**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`TotalClaimsInput`](../modules.md#totalclaimsinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
-### <a id="totalclaimsatclaimid" name="totalclaimsatclaimid"></a> totalClaimsAtClaimId
-
-▸ **totalClaimsAtClaimId**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`TotalClaimsAtClaimIdInput`](../modules.md#totalclaimsatclaimidinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
-### <a id="totalconfirmed" name="totalconfirmed"></a> totalConfirmed
-
-▸ **totalConfirmed**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`TotalConfirmedInput`](../modules.md#totalconfirmedinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
-### <a id="totalsent" name="totalsent"></a> totalSent
-
-▸ **totalSent**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`TotalSentInput`](../modules.md#totalsentinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
-### <a id="unstakehop" name="unstakehop"></a> unstakeHop
-
-▸ **unstakeHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`UnstakeHopInput`](../modules.md#unstakehopinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
+Base.throwError
 
 ___
 
@@ -2447,40 +1898,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="withdrawall" name="withdrawall"></a> withdrawAll
-
-▸ **withdrawAll**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="withdrawhop" name="withdrawhop"></a> withdrawHop
-
-▸ **withdrawHop**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`WithdrawHopInput`](../modules.md#withdrawhopinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -2601,7 +2018,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProvider
+Base.getDefaultProvider
 
 ___
 
@@ -2621,7 +2038,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProviders
+Base.getDefaultProviders
 
 ___
 

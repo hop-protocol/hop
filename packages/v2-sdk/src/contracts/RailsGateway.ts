@@ -30,39 +30,28 @@ import type {
 export type HopStruct = {
   pathId: BytesLike;
   maxBonderFee: BigNumberish;
-  maxTotalSent: BigNumberish;
+  minAmountOut: BigNumberish;
   attestedClaimId: BytesLike;
 };
 
 export type HopStructOutput = [string, BigNumber, BigNumber, string] & {
   pathId: string;
   maxBonderFee: BigNumber;
-  maxTotalSent: BigNumber;
+  minAmountOut: BigNumber;
   attestedClaimId: string;
 };
 
 export interface RailsGatewayInterface extends utils.Interface {
   functions: {
-    "_settleChallenge(bytes32,bool)": FunctionFragment;
-    "acceptSlash(address,uint256,bytes)": FunctionFragment;
-    "addToAppeal(address,address,uint256,bytes)": FunctionFragment;
-    "addToChallenge(address,address,uint256,bytes)": FunctionFragment;
-    "appealPeriod()": FunctionFragment;
     "batchUpdateClaimChain(bytes32,bytes32[],bytes32)": FunctionFragment;
     "bond(bytes32,bytes32,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
-    "challengePeriod()": FunctionFragment;
-    "challenges(bytes32)": FunctionFragment;
     "claimFeesFromPath(bytes32)": FunctionFragment;
     "confirmClaim(bytes32,bytes32)": FunctionFragment;
-    "createChallenge(address,uint256,bytes)": FunctionFragment;
     "distributeClaimedFees(bytes32,address,uint256,bytes32)": FunctionFragment;
-    "distributeExcessFees(address[],uint256[])": FunctionFragment;
-    "forceSettleChallenge(bytes32,bool)": FunctionFragment;
-    "fullAppeal()": FunctionFragment;
+    "distributeExcessFees(bytes32,address[],uint256[])": FunctionFragment;
     "getAmountOut(bytes32,uint256,bytes32)": FunctionFragment;
     "getBatchUpdateFee(uint256)": FunctionFragment;
     "getBucketIndex(bytes32,bytes32)": FunctionFragment;
-    "getChallengeId(address,uint256,address,bytes)": FunctionFragment;
     "getClaimFeesFee(bytes32)": FunctionFragment;
     "getFeePrice(uint256)": FunctionFragment;
     "getHeadClaimId(bytes32)": FunctionFragment;
@@ -70,65 +59,40 @@ export interface RailsGatewayInterface extends utils.Interface {
     "getNextHopsHash((bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "getPathId(uint256,address,uint256,address)": FunctionFragment;
     "getPathInfo(bytes32)": FunctionFragment;
+    "getPathVault(bytes32)": FunctionFragment;
     "getRemoveFee()": FunctionFragment;
     "getSendFee(bytes32)": FunctionFragment;
-    "getStakedBalance(address)": FunctionFragment;
+    "getTotalClaims(bytes32)": FunctionFragment;
+    "getTotalClaimsAtClaimId(bytes32,bytes32)": FunctionFragment;
+    "getTotalConfirmed(bytes32)": FunctionFragment;
     "getTotalSent(bytes32)": FunctionFragment;
     "getTransferDataHash(address,uint256,uint256,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "getUpdateFee()": FunctionFragment;
     "getWithdrawableBalance(bytes32,address,bytes32)": FunctionFragment;
-    "getWithdrawableBalance(address)": FunctionFragment;
     "initPath(address,uint256,address,address,address,uint256)": FunctionFragment;
-    "isStaked(address)": FunctionFragment;
     "isValidClaim(bytes32,bytes32)": FunctionFragment;
     "isValidTransfer(bytes32,bytes32)": FunctionFragment;
-    "minChallengeIncrease()": FunctionFragment;
-    "minHopStake()": FunctionFragment;
-    "optimisticallySettleChallenge(address,address,uint256,bytes)": FunctionFragment;
-    "owner()": FunctionFragment;
     "postClaim(bytes32,bytes32,address,uint256,uint256,bytes32,uint256,uint256,bytes32)": FunctionFragment;
     "removeClaim(bytes32,bytes32)": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "send(bytes32,address,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
+    "send(address,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "setFeePrice(uint256,uint256)": FunctionFragment;
     "setFeePrices(uint256[],uint256[])": FunctionFragment;
-    "signalPreference(bytes32,uint256,uint256)": FunctionFragment;
-    "stakeHop(address,uint256)": FunctionFragment;
-    "totalClaims(bytes32)": FunctionFragment;
-    "totalClaimsAtClaimId(bytes32,bytes32)": FunctionFragment;
-    "totalConfirmed(bytes32)": FunctionFragment;
-    "totalSent(bytes32)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "unstakeHop(uint256)": FunctionFragment;
+    "stakingRegistry()": FunctionFragment;
     "updateClaimChain(bytes32,bytes32,bytes32)": FunctionFragment;
-    "withdraw(address)": FunctionFragment;
-    "withdraw(bytes32,uint256,bytes32)": FunctionFragment;
-    "withdrawAll(bytes32,bytes32)": FunctionFragment;
-    "withdrawableEth(address)": FunctionFragment;
+    "withdraw(bytes32,bytes32)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "_settleChallenge"
-      | "acceptSlash"
-      | "addToAppeal"
-      | "addToChallenge"
-      | "appealPeriod"
       | "batchUpdateClaimChain"
       | "bond"
-      | "challengePeriod"
-      | "challenges"
       | "claimFeesFromPath"
       | "confirmClaim"
-      | "createChallenge"
       | "distributeClaimedFees"
       | "distributeExcessFees"
-      | "forceSettleChallenge"
-      | "fullAppeal"
       | "getAmountOut"
       | "getBatchUpdateFee"
       | "getBucketIndex"
-      | "getChallengeId"
       | "getClaimFeesFee"
       | "getFeePrice"
       | "getHeadClaimId"
@@ -136,63 +100,29 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "getNextHopsHash"
       | "getPathId"
       | "getPathInfo"
+      | "getPathVault"
       | "getRemoveFee"
       | "getSendFee"
-      | "getStakedBalance"
+      | "getTotalClaims"
+      | "getTotalClaimsAtClaimId"
+      | "getTotalConfirmed"
       | "getTotalSent"
       | "getTransferDataHash"
       | "getUpdateFee"
-      | "getWithdrawableBalance(bytes32,address,bytes32)"
-      | "getWithdrawableBalance(address)"
+      | "getWithdrawableBalance"
       | "initPath"
-      | "isStaked"
       | "isValidClaim"
       | "isValidTransfer"
-      | "minChallengeIncrease"
-      | "minHopStake"
-      | "optimisticallySettleChallenge"
-      | "owner"
       | "postClaim"
       | "removeClaim"
-      | "renounceOwnership"
       | "send"
       | "setFeePrice"
       | "setFeePrices"
-      | "signalPreference"
-      | "stakeHop"
-      | "totalClaims"
-      | "totalClaimsAtClaimId"
-      | "totalConfirmed"
-      | "totalSent"
-      | "transferOwnership"
-      | "unstakeHop"
+      | "stakingRegistry"
       | "updateClaimChain"
-      | "withdraw(address)"
-      | "withdraw(bytes32,uint256,bytes32)"
-      | "withdrawAll"
-      | "withdrawableEth"
+      | "withdraw"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "_settleChallenge",
-    values: [BytesLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "acceptSlash",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addToAppeal",
-    values: [string, string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addToChallenge",
-    values: [string, string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "appealPeriod",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "batchUpdateClaimChain",
     values: [BytesLike, BytesLike[], BytesLike]
@@ -200,14 +130,6 @@ export interface RailsGatewayInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "bond",
     values: [BytesLike, BytesLike, BigNumberish, HopStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "challengePeriod",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "challenges",
-    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "claimFeesFromPath",
@@ -218,24 +140,12 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "createChallenge",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "distributeClaimedFees",
     values: [BytesLike, string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "distributeExcessFees",
-    values: [string[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "forceSettleChallenge",
-    values: [BytesLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fullAppeal",
-    values?: undefined
+    values: [BytesLike, string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountOut",
@@ -248,10 +158,6 @@ export interface RailsGatewayInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getBucketIndex",
     values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChallengeId",
-    values: [string, BigNumberish, string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getClaimFeesFee",
@@ -282,6 +188,10 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getPathVault",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRemoveFee",
     values?: undefined
   ): string;
@@ -290,8 +200,16 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getStakedBalance",
-    values: [string]
+    functionFragment: "getTotalClaims",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalClaimsAtClaimId",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalConfirmed",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalSent",
@@ -306,18 +224,13 @@ export interface RailsGatewayInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getWithdrawableBalance(bytes32,address,bytes32)",
+    functionFragment: "getWithdrawableBalance",
     values: [BytesLike, string, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getWithdrawableBalance(address)",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "initPath",
     values: [string, BigNumberish, string, string, string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "isStaked", values: [string]): string;
   encodeFunctionData(
     functionFragment: "isValidClaim",
     values: [BytesLike, BytesLike]
@@ -326,19 +239,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "isValidTransfer",
     values: [BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "minChallengeIncrease",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minHopStake",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "optimisticallySettleChallenge",
-    values: [string, string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "postClaim",
     values: [
@@ -358,12 +258,8 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "send",
-    values: [BytesLike, string, BigNumberish, HopStruct[]]
+    values: [string, BigNumberish, HopStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeePrice",
@@ -374,98 +270,29 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "signalPreference",
-    values: [BytesLike, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "stakeHop",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalClaims",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalClaimsAtClaimId",
-    values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalConfirmed",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalSent",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "unstakeHop",
-    values: [BigNumberish]
+    functionFragment: "stakingRegistry",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "updateClaimChain",
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdraw(address)",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdraw(bytes32,uint256,bytes32)",
-    values: [BytesLike, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAll",
+    functionFragment: "withdraw",
     values: [BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawableEth",
-    values: [string]
-  ): string;
 
-  decodeFunctionResult(
-    functionFragment: "_settleChallenge",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "acceptSlash",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addToAppeal",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addToChallenge",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "appealPeriod",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "batchUpdateClaimChain",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "bond", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "challengePeriod",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "challenges", data: BytesLike): Result;
-  decodeFunctionResult(
     functionFragment: "claimFeesFromPath",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "confirmClaim",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createChallenge",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -477,11 +304,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "forceSettleChallenge",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "fullAppeal", data: BytesLike): Result;
-  decodeFunctionResult(
     functionFragment: "getAmountOut",
     data: BytesLike
   ): Result;
@@ -491,10 +313,6 @@ export interface RailsGatewayInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getBucketIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getChallengeId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -523,12 +341,24 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getPathVault",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getRemoveFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getSendFee", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getStakedBalance",
+    functionFragment: "getTotalClaims",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalClaimsAtClaimId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalConfirmed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -544,15 +374,10 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getWithdrawableBalance(bytes32,address,bytes32)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getWithdrawableBalance(address)",
+    functionFragment: "getWithdrawableBalance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initPath", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "isStaked", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isValidClaim",
     data: BytesLike
@@ -561,26 +386,9 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "isValidTransfer",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "minChallengeIncrease",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minHopStake",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "optimisticallySettleChallenge",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "postClaim", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeClaim",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
@@ -593,79 +401,27 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "signalPreference",
+    functionFragment: "stakingRegistry",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "stakeHop", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalClaims",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalClaimsAtClaimId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalConfirmed",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "totalSent", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "unstakeHop", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateClaimChain",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdraw(address)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdraw(bytes32,uint256,bytes32)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawableEth",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
-    "BonderPreference(address,bytes32,uint256,uint256)": EventFragment;
     "ClaimChainUpdated(bytes32,bytes32,uint256)": EventFragment;
     "ClaimPosted(bytes32,bytes32)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
     "TransferBonded(bytes32,bytes32,address,uint256,uint256)": EventFragment;
     "TransferSent(bytes32,bytes32,address,uint256,uint256,uint256,(bytes32,uint256,uint256,bytes32)[])": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "BonderPreference"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ClaimChainUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ClaimPosted"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBonded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSent"): EventFragment;
 }
-
-export interface BonderPreferenceEventObject {
-  bonder: string;
-  pathId: string;
-  feeTier: BigNumber;
-  liquidity: BigNumber;
-}
-export type BonderPreferenceEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber],
-  BonderPreferenceEventObject
->;
-
-export type BonderPreferenceEventFilter =
-  TypedEventFilter<BonderPreferenceEvent>;
 
 export interface ClaimChainUpdatedEventObject {
   pathId: string;
@@ -690,18 +446,6 @@ export type ClaimPostedEvent = TypedEvent<
 >;
 
 export type ClaimPostedEventFilter = TypedEventFilter<ClaimPostedEvent>;
-
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface TransferBondedEventObject {
   pathId: string;
@@ -760,37 +504,6 @@ export interface RailsGateway extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    _settleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    appealPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     batchUpdateClaimChain(
       pathId: BytesLike,
       transferDataHashes: BytesLike[],
@@ -806,35 +519,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    challengePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    challenges(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        boolean,
-        boolean,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        staker: string;
-        challenger: string;
-        lastUpdated: BigNumber;
-        penalty: BigNumber;
-        isSettled: boolean;
-        isAppealed: boolean;
-        challengeEth: BigNumber;
-        appealEth: BigNumber;
-        winner: string;
-      }
-    >;
-
     claimFeesFromPath(
       pathId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
@@ -842,15 +526,8 @@ export interface RailsGateway extends BaseContract {
 
     confirmClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
     distributeClaimedFees(
@@ -862,18 +539,11 @@ export interface RailsGateway extends BaseContract {
     ): Promise<ContractTransaction>;
 
     distributeExcessFees(
+      pathId: BytesLike,
       recipients: string[],
       amounts: BigNumberish[],
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
-
-    forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    fullAppeal(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAmountOut(
       pathId: BytesLike,
@@ -892,14 +562,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     getClaimFeesFee(
       pathId: BytesLike,
@@ -939,6 +601,11 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, string, BigNumber, string]>;
 
+    getPathVault(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getRemoveFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getSendFee(
@@ -946,8 +613,19 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getStakedBalance(
-      staker: string,
+    getTotalClaims(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getTotalClaimsAtClaimId(
+      pathId: BytesLike,
+      claimId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getTotalConfirmed(
+      pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -967,15 +645,10 @@ export interface RailsGateway extends BaseContract {
 
     getUpdateFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getWithdrawableBalance(bytes32,address,bytes32)"(
+    getWithdrawableBalance(
       pathId: BytesLike,
       recipient: string,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "getWithdrawableBalance(address)"(
-      staker: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -989,8 +662,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<[boolean]>;
-
     isValidClaim(
       pathId: BytesLike,
       claimId: BytesLike,
@@ -1002,20 +673,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    minChallengeIncrease(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    minHopStake(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<[string]>;
 
     postClaim(
       pathId: BytesLike,
@@ -1032,16 +689,11 @@ export interface RailsGateway extends BaseContract {
 
     removeClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     send(
-      pathId: BytesLike,
       to: string,
       amount: BigNumberish,
       hops: HopStruct[],
@@ -1060,49 +712,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    totalClaims(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    totalClaimsAtClaimId(
-      pathId: BytesLike,
-      claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    totalConfirmed(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    totalSent(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
+    stakingRegistry(overrides?: CallOverrides): Promise<[string]>;
 
     updateClaimChain(
       pathId: BytesLike,
@@ -1111,60 +721,12 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    "withdraw(address)"(
-      staker: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    "withdraw(bytes32,uint256,bytes32)"(
-      pathId: BytesLike,
-      amount: BigNumberish,
-      claimId: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    withdrawAll(
+    withdraw(
       pathId: BytesLike,
       claimId: BytesLike,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
   };
-
-  _settleChallenge(
-    challengeId: BytesLike,
-    challengeWon: boolean,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  acceptSlash(
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  addToAppeal(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  addToChallenge(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  appealPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
   batchUpdateClaimChain(
     pathId: BytesLike,
@@ -1181,35 +743,6 @@ export interface RailsGateway extends BaseContract {
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
-  challenges(
-    arg0: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      boolean,
-      boolean,
-      BigNumber,
-      BigNumber,
-      string
-    ] & {
-      staker: string;
-      challenger: string;
-      lastUpdated: BigNumber;
-      penalty: BigNumber;
-      isSettled: boolean;
-      isAppealed: boolean;
-      challengeEth: BigNumber;
-      appealEth: BigNumber;
-      winner: string;
-    }
-  >;
-
   claimFeesFromPath(
     pathId: BytesLike,
     overrides?: PayableOverrides & { from?: string }
@@ -1217,15 +750,8 @@ export interface RailsGateway extends BaseContract {
 
   confirmClaim(
     pathId: BytesLike,
-    transferId: BytesLike,
+    claimId: BytesLike,
     overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  createChallenge(
-    staker: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
   distributeClaimedFees(
@@ -1237,18 +763,11 @@ export interface RailsGateway extends BaseContract {
   ): Promise<ContractTransaction>;
 
   distributeExcessFees(
+    pathId: BytesLike,
     recipients: string[],
     amounts: BigNumberish[],
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
-
-  forceSettleChallenge(
-    challengeId: BytesLike,
-    challengeWon: boolean,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
   getAmountOut(
     pathId: BytesLike,
@@ -1267,14 +786,6 @@ export interface RailsGateway extends BaseContract {
     claimId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  getChallengeId(
-    staker: string,
-    penalty: BigNumberish,
-    challenger: string,
-    slashingData: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   getClaimFeesFee(
     pathId: BytesLike,
@@ -1311,12 +822,25 @@ export interface RailsGateway extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[BigNumber, string, BigNumber, string]>;
 
+  getPathVault(pathId: BytesLike, overrides?: CallOverrides): Promise<string>;
+
   getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   getSendFee(pathId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-  getStakedBalance(
-    staker: string,
+  getTotalClaims(
+    pathId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getTotalClaimsAtClaimId(
+    pathId: BytesLike,
+    claimId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getTotalConfirmed(
+    pathId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1336,15 +860,10 @@ export interface RailsGateway extends BaseContract {
 
   getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getWithdrawableBalance(bytes32,address,bytes32)"(
+  getWithdrawableBalance(
     pathId: BytesLike,
     recipient: string,
     claimId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "getWithdrawableBalance(address)"(
-    staker: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1358,8 +877,6 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  isStaked(staker: string, overrides?: CallOverrides): Promise<boolean>;
-
   isValidClaim(
     pathId: BytesLike,
     claimId: BytesLike,
@@ -1371,20 +888,6 @@ export interface RailsGateway extends BaseContract {
     claimId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
-
-  minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
-
-  optimisticallySettleChallenge(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  owner(overrides?: CallOverrides): Promise<string>;
 
   postClaim(
     pathId: BytesLike,
@@ -1401,16 +904,11 @@ export interface RailsGateway extends BaseContract {
 
   removeClaim(
     pathId: BytesLike,
-    transferId: BytesLike,
+    claimId: BytesLike,
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
   send(
-    pathId: BytesLike,
     to: string,
     amount: BigNumberish,
     hops: HopStruct[],
@@ -1429,43 +927,7 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  signalPreference(
-    pathId: BytesLike,
-    feeTier: BigNumberish,
-    liquidity: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  stakeHop(
-    staker: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  totalClaims(pathId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-  totalClaimsAtClaimId(
-    pathId: BytesLike,
-    claimId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  totalConfirmed(
-    pathId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  totalSent(pathId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  unstakeHop(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
+  stakingRegistry(overrides?: CallOverrides): Promise<string>;
 
   updateClaimChain(
     pathId: BytesLike,
@@ -1474,58 +936,13 @@ export interface RailsGateway extends BaseContract {
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  "withdraw(address)"(
-    staker: string,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  "withdraw(bytes32,uint256,bytes32)"(
-    pathId: BytesLike,
-    amount: BigNumberish,
-    claimId: BytesLike,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  withdrawAll(
+  withdraw(
     pathId: BytesLike,
     claimId: BytesLike,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
-
-  withdrawableEth(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    _settleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    appealPeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
     batchUpdateClaimChain(
       pathId: BytesLike,
       transferDataHashes: BytesLike[],
@@ -1541,35 +958,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
-    challenges(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        boolean,
-        boolean,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        staker: string;
-        challenger: string;
-        lastUpdated: BigNumber;
-        penalty: BigNumber;
-        isSettled: boolean;
-        isAppealed: boolean;
-        challengeEth: BigNumber;
-        appealEth: BigNumber;
-        winner: string;
-      }
-    >;
-
     claimFeesFromPath(
       pathId: BytesLike,
       overrides?: CallOverrides
@@ -1577,16 +965,9 @@ export interface RailsGateway extends BaseContract {
 
     confirmClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     distributeClaimedFees(
       pathId: BytesLike,
@@ -1597,18 +978,11 @@ export interface RailsGateway extends BaseContract {
     ): Promise<void>;
 
     distributeExcessFees(
+      pathId: BytesLike,
       recipients: string[],
       amounts: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<void>;
-
-    forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAmountOut(
       pathId: BytesLike,
@@ -1627,14 +1001,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     getClaimFeesFee(
       pathId: BytesLike,
@@ -1674,6 +1040,8 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, string, BigNumber, string]>;
 
+    getPathVault(pathId: BytesLike, overrides?: CallOverrides): Promise<string>;
+
     getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSendFee(
@@ -1681,8 +1049,19 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getStakedBalance(
-      staker: string,
+    getTotalClaims(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalClaimsAtClaimId(
+      pathId: BytesLike,
+      claimId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalConfirmed(
+      pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1702,15 +1081,10 @@ export interface RailsGateway extends BaseContract {
 
     getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getWithdrawableBalance(bytes32,address,bytes32)"(
+    getWithdrawableBalance(
       pathId: BytesLike,
       recipient: string,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getWithdrawableBalance(address)"(
-      staker: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1724,8 +1098,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<boolean>;
-
     isValidClaim(
       pathId: BytesLike,
       claimId: BytesLike,
@@ -1737,20 +1109,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
-
-    optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
 
     postClaim(
       pathId: BytesLike,
@@ -1767,14 +1125,11 @@ export interface RailsGateway extends BaseContract {
 
     removeClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     send(
-      pathId: BytesLike,
       to: string,
       amount: BigNumberish,
       hops: HopStruct[],
@@ -1793,43 +1148,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    totalClaims(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalClaimsAtClaimId(
-      pathId: BytesLike,
-      claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalConfirmed(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSent(pathId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    unstakeHop(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    stakingRegistry(overrides?: CallOverrides): Promise<string>;
 
     updateClaimChain(
       pathId: BytesLike,
@@ -1838,44 +1157,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "withdraw(address)"(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "withdraw(bytes32,uint256,bytes32)"(
-      pathId: BytesLike,
-      amount: BigNumberish,
-      claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawAll(
+    withdraw(
       pathId: BytesLike,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdrawableEth(
-      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   filters: {
-    "BonderPreference(address,bytes32,uint256,uint256)"(
-      bonder?: string | null,
-      pathId?: BytesLike | null,
-      feeTier?: BigNumberish | null,
-      liquidity?: null
-    ): BonderPreferenceEventFilter;
-    BonderPreference(
-      bonder?: string | null,
-      pathId?: BytesLike | null,
-      feeTier?: BigNumberish | null,
-      liquidity?: null
-    ): BonderPreferenceEventFilter;
-
     "ClaimChainUpdated(bytes32,bytes32,uint256)"(
       pathId?: BytesLike | null,
       headClaimId?: BytesLike | null,
@@ -1895,15 +1184,6 @@ export interface RailsGateway extends BaseContract {
       pathId?: BytesLike | null,
       claimId?: BytesLike | null
     ): ClaimPostedEventFilter;
-
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
 
     "TransferBonded(bytes32,bytes32,address,uint256,uint256)"(
       pathId?: BytesLike | null,
@@ -1941,37 +1221,6 @@ export interface RailsGateway extends BaseContract {
   };
 
   estimateGas: {
-    _settleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    appealPeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
     batchUpdateClaimChain(
       pathId: BytesLike,
       transferDataHashes: BytesLike[],
@@ -1987,10 +1236,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
-    challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
-    challenges(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
     claimFeesFromPath(
       pathId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
@@ -1998,15 +1243,8 @@ export interface RailsGateway extends BaseContract {
 
     confirmClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
     distributeClaimedFees(
@@ -2018,18 +1256,11 @@ export interface RailsGateway extends BaseContract {
     ): Promise<BigNumber>;
 
     distributeExcessFees(
+      pathId: BytesLike,
       recipients: string[],
       amounts: BigNumberish[],
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
-
-    forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAmountOut(
       pathId: BytesLike,
@@ -2046,14 +1277,6 @@ export interface RailsGateway extends BaseContract {
     getBucketIndex(
       pathId: BytesLike,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2095,6 +1318,11 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPathVault(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSendFee(
@@ -2102,8 +1330,19 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getStakedBalance(
-      staker: string,
+    getTotalClaims(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalClaimsAtClaimId(
+      pathId: BytesLike,
+      claimId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalConfirmed(
+      pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2123,15 +1362,10 @@ export interface RailsGateway extends BaseContract {
 
     getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getWithdrawableBalance(bytes32,address,bytes32)"(
+    getWithdrawableBalance(
       pathId: BytesLike,
       recipient: string,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getWithdrawableBalance(address)"(
-      staker: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2145,8 +1379,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     isValidClaim(
       pathId: BytesLike,
       claimId: BytesLike,
@@ -2158,20 +1390,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
-
-    optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     postClaim(
       pathId: BytesLike,
@@ -2188,16 +1406,11 @@ export interface RailsGateway extends BaseContract {
 
     removeClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     send(
-      pathId: BytesLike,
       to: string,
       amount: BigNumberish,
       hops: HopStruct[],
@@ -2216,46 +1429,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    totalClaims(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalClaimsAtClaimId(
-      pathId: BytesLike,
-      claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalConfirmed(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSent(pathId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
+    stakingRegistry(overrides?: CallOverrides): Promise<BigNumber>;
 
     updateClaimChain(
       pathId: BytesLike,
@@ -2264,62 +1438,14 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
-    "withdraw(address)"(
-      staker: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    "withdraw(bytes32,uint256,bytes32)"(
-      pathId: BytesLike,
-      amount: BigNumberish,
-      claimId: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    withdrawAll(
+    withdraw(
       pathId: BytesLike,
       claimId: BytesLike,
       overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    _settleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    appealPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     batchUpdateClaimChain(
       pathId: BytesLike,
       transferDataHashes: BytesLike[],
@@ -2335,13 +1461,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    challengePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    challenges(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     claimFeesFromPath(
       pathId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
@@ -2349,15 +1468,8 @@ export interface RailsGateway extends BaseContract {
 
     confirmClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
     distributeClaimedFees(
@@ -2369,18 +1481,11 @@ export interface RailsGateway extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     distributeExcessFees(
+      pathId: BytesLike,
       recipients: string[],
       amounts: BigNumberish[],
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
-
-    forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    fullAppeal(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAmountOut(
       pathId: BytesLike,
@@ -2397,14 +1502,6 @@ export interface RailsGateway extends BaseContract {
     getBucketIndex(
       pathId: BytesLike,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2446,6 +1543,11 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getPathVault(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getRemoveFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getSendFee(
@@ -2453,8 +1555,19 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getStakedBalance(
-      staker: string,
+    getTotalClaims(
+      pathId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalClaimsAtClaimId(
+      pathId: BytesLike,
+      claimId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalConfirmed(
+      pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2474,15 +1587,10 @@ export interface RailsGateway extends BaseContract {
 
     getUpdateFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getWithdrawableBalance(bytes32,address,bytes32)"(
+    getWithdrawableBalance(
       pathId: BytesLike,
       recipient: string,
       claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getWithdrawableBalance(address)"(
-      staker: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2496,11 +1604,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    isStaked(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     isValidClaim(
       pathId: BytesLike,
       claimId: BytesLike,
@@ -2512,22 +1615,6 @@ export interface RailsGateway extends BaseContract {
       claimId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    minChallengeIncrease(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    minHopStake(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     postClaim(
       pathId: BytesLike,
@@ -2544,16 +1631,11 @@ export interface RailsGateway extends BaseContract {
 
     removeClaim(
       pathId: BytesLike,
-      transferId: BytesLike,
+      claimId: BytesLike,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
     send(
-      pathId: BytesLike,
       to: string,
       amount: BigNumberish,
       hops: HopStruct[],
@@ -2572,49 +1654,7 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    totalClaims(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalClaimsAtClaimId(
-      pathId: BytesLike,
-      claimId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalConfirmed(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalSent(
-      pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
+    stakingRegistry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     updateClaimChain(
       pathId: BytesLike,
@@ -2623,27 +1663,10 @@ export interface RailsGateway extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    "withdraw(address)"(
-      staker: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    "withdraw(bytes32,uint256,bytes32)"(
-      pathId: BytesLike,
-      amount: BigNumberish,
-      claimId: BytesLike,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAll(
+    withdraw(
       pathId: BytesLike,
       claimId: BytesLike,
       overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -512,8 +512,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const isUSDCe = sourceToken?.symbol === 'hUSDC.e' || destToken?.symbol === 'USDC.e'
     const isMagic = sourceToken?.symbol === 'hMAGIC'
-    if (isUSDCe && destNetwork?.isL1) {
-      setInfo(<>Notice: The USDC.e bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on March 20th, 2024. To transfer hUSDC.e to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. Please visit the <Link target="_blank" rel="noopener noreferrer" href="https://docs.hop.exchange/basics/USDC.e-manual-withdrawals">docs</Link> for more details. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
+    const showInfo = (isUSDCe || isMagic) && destNetwork?.isL1
+    if (showInfo) {
+      setInfo(<>Notice: The {sourceToken?.symbol} bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on {isUSDCe ? 'March 20th, 2024' : 'December 2024'}. To transfer {sourceToken?.symbol} to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. Please visit the <Link target="_blank" rel="noopener noreferrer" href="https://docs.hop.exchange/basics/usdce-manual-withdrawals">docs</Link> for more details. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
     } else {
       setInfo(null)
     }

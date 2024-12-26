@@ -17,7 +17,7 @@
 | Lib/App | Current Version | Description |
 | --- | --- |  --- |
 [@hop-protocol/v2-sdk](packages/v2-sdk) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-sdk.svg)](https://badge.fury.io/js/) | V2 TypeScript Hop SDK |
-[@hop-protocol/v2-hop-node](packages/v-2hop-node) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-hop-node.svg)](https://badge.fury.io/js/) | TypeScript Hop Node |
+[@hop-protocol/v2-hop-node](packages/v2-hop-node) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-hop-node.svg)](https://badge.fury.io/js/) | TypeScript Hop Node |
 
 ## Quickstart
 

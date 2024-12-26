@@ -50,6 +50,7 @@
 - [removeAllListeners](FallbackProvider.md#removealllisteners)
 - [removeListener](FallbackProvider.md#removelistener)
 - [resolveName](FallbackProvider.md#resolvename)
+- [send](FallbackProvider.md#send)
 - [sendTransaction](FallbackProvider.md#sendtransaction)
 - [tryProvider](FallbackProvider.md#tryprovider)
 - [waitForTransaction](FallbackProvider.md#waitfortransaction)
@@ -59,13 +60,17 @@
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new FallbackProvider**(`providers`)
+• **new FallbackProvider**(`providers`): [`FallbackProvider`](FallbackProvider.md)
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `providers` | `any`[] |
+
+#### Returns
+
+[`FallbackProvider`](FallbackProvider.md)
 
 ## Properties
 
@@ -122,18 +127,18 @@ ___
 
 ### <a id="call" name="call"></a> call
 
-▸ **call**(`transaction`, `blockTag?`): `Promise`<`string`\>
+▸ **call**(`transaction`, `blockTag?`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `transaction` | `Deferrable`<`TransactionRequest`\> |
-| `blockTag?` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `transaction` | `Deferrable`\<`TransactionRequest`\> |
+| `blockTag?` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -143,11 +148,11 @@ ___
 
 ### <a id="detectnetwork" name="detectnetwork"></a> detectNetwork
 
-▸ **detectNetwork**(): `Promise`<`Network`\>
+▸ **detectNetwork**(): `Promise`\<`Network`\>
 
 #### Returns
 
-`Promise`<`Network`\>
+`Promise`\<`Network`\>
 
 ___
 
@@ -174,17 +179,17 @@ ___
 
 ### <a id="estimategas" name="estimategas"></a> estimateGas
 
-▸ **estimateGas**(`transaction`): `Promise`<`BigNumber`\>
+▸ **estimateGas**(`transaction`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `transaction` | `Deferrable`<`TransactionRequest`\> |
+| `transaction` | `Deferrable`\<`TransactionRequest`\> |
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -194,7 +199,7 @@ ___
 
 ### <a id="getavatar" name="getavatar"></a> getAvatar
 
-▸ **getAvatar**(`address`): `Promise`<`string`\>
+▸ **getAvatar**(`address`): `Promise`\<`string`\>
 
 #### Parameters
 
@@ -204,24 +209,24 @@ ___
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 ___
 
 ### <a id="getbalance" name="getbalance"></a> getBalance
 
-▸ **getBalance**(`addressOrName`, `blockTag?`): `Promise`<`BigNumber`\>
+▸ **getBalance**(`addressOrName`, `blockTag?`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `addressOrName` | `string` \| `Promise`<`string`\> |
-| `blockTag?` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `addressOrName` | `string` \| `Promise`\<`string`\> |
+| `blockTag?` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -231,17 +236,17 @@ ___
 
 ### <a id="getblock" name="getblock"></a> getBlock
 
-▸ **getBlock**(`blockHashOrBlockTag`): `Promise`<`Block`\>
+▸ **getBlock**(`blockHashOrBlockTag`): `Promise`\<`Block`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `blockHashOrBlockTag` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `blockHashOrBlockTag` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`Block`\>
+`Promise`\<`Block`\>
 
 #### Implementation of
 
@@ -251,11 +256,11 @@ ___
 
 ### <a id="getblocknumber" name="getblocknumber"></a> getBlockNumber
 
-▸ **getBlockNumber**(): `Promise`<`number`\>
+▸ **getBlockNumber**(): `Promise`\<`number`\>
 
 #### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 #### Implementation of
 
@@ -265,17 +270,17 @@ ___
 
 ### <a id="getblockwithtransactions" name="getblockwithtransactions"></a> getBlockWithTransactions
 
-▸ **getBlockWithTransactions**(`blockHashOrBlockTag`): `Promise`<`BlockWithTransactions`\>
+▸ **getBlockWithTransactions**(`blockHashOrBlockTag`): `Promise`\<`BlockWithTransactions`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `blockHashOrBlockTag` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `blockHashOrBlockTag` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`BlockWithTransactions`\>
+`Promise`\<`BlockWithTransactions`\>
 
 #### Implementation of
 
@@ -285,18 +290,18 @@ ___
 
 ### <a id="getcode" name="getcode"></a> getCode
 
-▸ **getCode**(`addressOrName`, `blockTag?`): `Promise`<`string`\>
+▸ **getCode**(`addressOrName`, `blockTag?`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `addressOrName` | `string` \| `Promise`<`string`\> |
-| `blockTag?` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `addressOrName` | `string` \| `Promise`\<`string`\> |
+| `blockTag?` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -306,11 +311,11 @@ ___
 
 ### <a id="getfeedata" name="getfeedata"></a> getFeeData
 
-▸ **getFeeData**(): `Promise`<`any`\>
+▸ **getFeeData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 #### Implementation of
 
@@ -320,11 +325,11 @@ ___
 
 ### <a id="getgasprice" name="getgasprice"></a> getGasPrice
 
-▸ **getGasPrice**(): `Promise`<`BigNumber`\>
+▸ **getGasPrice**(): `Promise`\<`BigNumber`\>
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -334,7 +339,7 @@ ___
 
 ### <a id="getlogs" name="getlogs"></a> getLogs
 
-▸ **getLogs**(`filter`): `Promise`<`Log`[]\>
+▸ **getLogs**(`filter`): `Promise`\<`Log`[]\>
 
 #### Parameters
 
@@ -344,7 +349,7 @@ ___
 
 #### Returns
 
-`Promise`<`Log`[]\>
+`Promise`\<`Log`[]\>
 
 #### Implementation of
 
@@ -354,11 +359,11 @@ ___
 
 ### <a id="getnetwork" name="getnetwork"></a> getNetwork
 
-▸ **getNetwork**(): `Promise`<`Network`\>
+▸ **getNetwork**(): `Promise`\<`Network`\>
 
 #### Returns
 
-`Promise`<`Network`\>
+`Promise`\<`Network`\>
 
 #### Implementation of
 
@@ -368,7 +373,7 @@ ___
 
 ### <a id="getresolver" name="getresolver"></a> getResolver
 
-▸ **getResolver**(`address`): `Promise`<`string`\>
+▸ **getResolver**(`address`): `Promise`\<`string`\>
 
 #### Parameters
 
@@ -378,25 +383,25 @@ ___
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 ___
 
 ### <a id="getstorageat" name="getstorageat"></a> getStorageAt
 
-▸ **getStorageAt**(`addressOrName`, `position`, `blockTag?`): `Promise`<`string`\>
+▸ **getStorageAt**(`addressOrName`, `position`, `blockTag?`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `addressOrName` | `string` \| `Promise`<`string`\> |
-| `position` | `BigNumberish` \| `Promise`<`BigNumberish`\> |
-| `blockTag?` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `addressOrName` | `string` \| `Promise`\<`string`\> |
+| `position` | `BigNumberish` \| `Promise`\<`BigNumberish`\> |
+| `blockTag?` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -406,7 +411,7 @@ ___
 
 ### <a id="gettransaction" name="gettransaction"></a> getTransaction
 
-▸ **getTransaction**(`transactionHash`): `Promise`<`TransactionResponse`\>
+▸ **getTransaction**(`transactionHash`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
@@ -416,7 +421,7 @@ ___
 
 #### Returns
 
-`Promise`<`TransactionResponse`\>
+`Promise`\<`TransactionResponse`\>
 
 #### Implementation of
 
@@ -426,18 +431,18 @@ ___
 
 ### <a id="gettransactioncount" name="gettransactioncount"></a> getTransactionCount
 
-▸ **getTransactionCount**(`addressOrName`, `blockTag?`): `Promise`<`number`\>
+▸ **getTransactionCount**(`addressOrName`, `blockTag?`): `Promise`\<`number`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `addressOrName` | `string` \| `Promise`<`string`\> |
-| `blockTag?` | `BlockTag` \| `Promise`<`BlockTag`\> |
+| `addressOrName` | `string` \| `Promise`\<`string`\> |
+| `blockTag?` | `BlockTag` \| `Promise`\<`BlockTag`\> |
 
 #### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 #### Implementation of
 
@@ -447,7 +452,7 @@ ___
 
 ### <a id="gettransactionreceipt" name="gettransactionreceipt"></a> getTransactionReceipt
 
-▸ **getTransactionReceipt**(`transactionHash`): `Promise`<`TransactionReceipt`\>
+▸ **getTransactionReceipt**(`transactionHash`): `Promise`\<`TransactionReceipt`\>
 
 #### Parameters
 
@@ -457,7 +462,7 @@ ___
 
 #### Returns
 
-`Promise`<`TransactionReceipt`\>
+`Promise`\<`TransactionReceipt`\>
 
 #### Implementation of
 
@@ -507,17 +512,17 @@ ___
 
 ### <a id="lookupaddress" name="lookupaddress"></a> lookupAddress
 
-▸ **lookupAddress**(`address`): `Promise`<`string`\>
+▸ **lookupAddress**(`address`): `Promise`\<``null`` \| `string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `address` | `string` \| `Promise`<`string`\> |
+| `address` | `string` \| `Promise`\<`string`\> |
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<``null`` \| `string`\>
 
 #### Implementation of
 
@@ -631,17 +636,17 @@ ___
 
 ### <a id="resolvename" name="resolvename"></a> resolveName
 
-▸ **resolveName**(`name`): `Promise`<`string`\>
+▸ **resolveName**(`name`): `Promise`\<``null`` \| `string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `name` | `string` \| `Promise`<`string`\> |
+| `name` | `string` \| `Promise`\<`string`\> |
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<``null`` \| `string`\>
 
 #### Implementation of
 
@@ -649,19 +654,36 @@ providers.Provider.resolveName
 
 ___
 
-### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+### <a id="send" name="send"></a> send
 
-▸ **sendTransaction**(`signedTransaction`): `Promise`<`TransactionResponse`\>
+▸ **send**(`method`, `params`): `Promise`\<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `signedTransaction` | `string` \| `Promise`<`string`\> |
+| `method` | `string` |
+| `params` | `any` |
 
 #### Returns
 
-`Promise`<`TransactionResponse`\>
+`Promise`\<`any`\>
+
+___
+
+### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`signedTransaction`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signedTransaction` | `string` \| `Promise`\<`string`\> |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 #### Implementation of
 
@@ -671,7 +693,7 @@ ___
 
 ### <a id="tryprovider" name="tryprovider"></a> tryProvider
 
-▸ **tryProvider**(`fn`): `Promise`<`any`\>
+▸ **tryProvider**(`fn`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -681,13 +703,13 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="waitfortransaction" name="waitfortransaction"></a> waitForTransaction
 
-▸ **waitForTransaction**(`transactionHash`, `confirmations?`, `timeout?`): `Promise`<`TransactionReceipt`\>
+▸ **waitForTransaction**(`transactionHash`, `confirmations?`, `timeout?`): `Promise`\<`TransactionReceipt`\>
 
 #### Parameters
 
@@ -699,7 +721,7 @@ ___
 
 #### Returns
 
-`Promise`<`TransactionReceipt`\>
+`Promise`\<`TransactionReceipt`\>
 
 #### Implementation of
 
@@ -709,7 +731,7 @@ ___
 
 ### <a id="fromurls" name="fromurls"></a> fromUrls
 
-▸ `Static` **fromUrls**(`urls`): [`FallbackProvider`](FallbackProvider.md)
+▸ **fromUrls**(`urls`): [`FallbackProvider`](FallbackProvider.md)
 
 #### Parameters
 

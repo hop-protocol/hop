@@ -1,5 +1,7 @@
 # Enumeration: NetworkSlug
 
+Networks
+
 ## Table of contents
 
 ### Enumeration Members

@@ -151,7 +151,7 @@ export const CommitTransfers: FC = () => {
         <Typography variant="h4">Commit Transfers</Typography>
       </Box>
       <Box mb={4} justifyItems="center" style={{ opacity: 0.7 }}>
-        <Typography variant="body1">This is to commit the transfer root hash which is necessary for manually withdrawals.</Typography>
+        <Typography variant="body1">This is to commit the transfer root hash which is necessary for manual withdrawals.</Typography>
       </Box>
       <form className={styles.form} onSubmit={handleSubmit}>
         <Box>

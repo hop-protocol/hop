@@ -45,7 +45,7 @@
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new RetryProvider**(`url?`, `network?`)
+• **new RetryProvider**(`url?`, `network?`): [`RetryProvider`](RetryProvider.md)
 
 #### Parameters
 
@@ -53,6 +53,10 @@
 | :------ | :------ |
 | `url?` | `string` \| `ConnectionInfo` |
 | `network?` | `Networkish` |
+
+#### Returns
+
+[`RetryProvider`](RetryProvider.md)
 
 #### Inherited from
 
@@ -62,21 +66,21 @@ providers.StaticJsonRpcProvider.constructor
 
 ### <a id="call" name="call"></a> call
 
-• **call**: (...`args`: [transaction: Deferrable<TransactionRequest\>, blockTag?: BlockTag \| Promise<BlockTag\>]) => `Promise`<`string`\>
+• **call**: (...`args`: [transaction: Deferrable\<TransactionRequest\>, blockTag?: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<`string`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [transaction: Deferrable<TransactionRequest\>, blockTag?: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [transaction: Deferrable\<TransactionRequest\>, blockTag?: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -90,21 +94,21 @@ ___
 
 ### <a id="estimategas" name="estimategas"></a> estimateGas
 
-• **estimateGas**: (...`args`: [transaction: Deferrable<TransactionRequest\>]) => `Promise`<`BigNumber`\>
+• **estimateGas**: (...`args`: [transaction: Deferrable\<TransactionRequest\>]) => `Promise`\<`BigNumber`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`\<`BigNumber`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [transaction: Deferrable<TransactionRequest\>] |
+| `...args` | [transaction: Deferrable\<TransactionRequest\>] |
 
 ##### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -118,11 +122,11 @@ ___
 
 ### <a id="getavatar" name="getavatar"></a> getAvatar
 
-• **getAvatar**: (...`args`: [nameOrAddress: string]) => `Promise`<`string`\>
+• **getAvatar**: (...`args`: [nameOrAddress: string]) => `Promise`\<`string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<`string`\>
 
 ##### Parameters
 
@@ -132,7 +136,7 @@ ___
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Overrides
 
@@ -142,21 +146,21 @@ ___
 
 ### <a id="getbalance" name="getbalance"></a> getBalance
 
-• **getBalance**: (...`args`: [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>]) => `Promise`<`BigNumber`\>
+• **getBalance**: (...`args`: [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`BigNumber`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`\<`BigNumber`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -170,21 +174,21 @@ ___
 
 ### <a id="getblock" name="getblock"></a> getBlock
 
-• **getBlock**: (...`args`: [blockHashOrBlockTag: BlockTag \| Promise<BlockTag\>]) => `Promise`<`Block`\>
+• **getBlock**: (...`args`: [blockHashOrBlockTag: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`Block`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`Block`\>
+▸ (`...args`): `Promise`\<`Block`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [blockHashOrBlockTag: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [blockHashOrBlockTag: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`Block`\>
+`Promise`\<`Block`\>
 
 #### Implementation of
 
@@ -198,11 +202,11 @@ ___
 
 ### <a id="getblocknumber" name="getblocknumber"></a> getBlockNumber
 
-• **getBlockNumber**: (...`args`: []) => `Promise`<`number`\>
+• **getBlockNumber**: (...`args`: []) => `Promise`\<`number`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`number`\>
+▸ (`...args`): `Promise`\<`number`\>
 
 ##### Parameters
 
@@ -212,7 +216,7 @@ ___
 
 ##### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 #### Implementation of
 
@@ -226,21 +230,21 @@ ___
 
 ### <a id="getblockwithtransactions" name="getblockwithtransactions"></a> getBlockWithTransactions
 
-• **getBlockWithTransactions**: (...`args`: [blockHashOrBlockTag: BlockTag \| Promise<BlockTag\>]) => `Promise`<`BlockWithTransactions`\>
+• **getBlockWithTransactions**: (...`args`: [blockHashOrBlockTag: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`BlockWithTransactions`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`BlockWithTransactions`\>
+▸ (`...args`): `Promise`\<`BlockWithTransactions`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [blockHashOrBlockTag: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [blockHashOrBlockTag: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`BlockWithTransactions`\>
+`Promise`\<`BlockWithTransactions`\>
 
 #### Implementation of
 
@@ -254,21 +258,21 @@ ___
 
 ### <a id="getcode" name="getcode"></a> getCode
 
-• **getCode**: (...`args`: [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>]) => `Promise`<`string`\>
+• **getCode**: (...`args`: [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<`string`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -282,11 +286,11 @@ ___
 
 ### <a id="getgasprice" name="getgasprice"></a> getGasPrice
 
-• **getGasPrice**: (...`args`: []) => `Promise`<`BigNumber`\>
+• **getGasPrice**: (...`args`: []) => `Promise`\<`BigNumber`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`\<`BigNumber`\>
 
 ##### Parameters
 
@@ -296,7 +300,7 @@ ___
 
 ##### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 #### Implementation of
 
@@ -310,21 +314,21 @@ ___
 
 ### <a id="getlogs" name="getlogs"></a> getLogs
 
-• **getLogs**: (...`args`: [filter: Filter \| FilterByBlockHash \| Promise<Filter \| FilterByBlockHash\>]) => `Promise`<`Log`[]\>
+• **getLogs**: (...`args`: [filter: Filter \| FilterByBlockHash \| Promise\<Filter \| FilterByBlockHash\>]) => `Promise`\<`Log`[]\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`Log`[]\>
+▸ (`...args`): `Promise`\<`Log`[]\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [filter: Filter \| FilterByBlockHash \| Promise<Filter \| FilterByBlockHash\>] |
+| `...args` | [filter: Filter \| FilterByBlockHash \| Promise\<Filter \| FilterByBlockHash\>] |
 
 ##### Returns
 
-`Promise`<`Log`[]\>
+`Promise`\<`Log`[]\>
 
 #### Implementation of
 
@@ -338,11 +342,11 @@ ___
 
 ### <a id="getnetwork" name="getnetwork"></a> getNetwork
 
-• **getNetwork**: (...`args`: []) => `Promise`<`Network`\>
+• **getNetwork**: (...`args`: []) => `Promise`\<`Network`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`Network`\>
+▸ (`...args`): `Promise`\<`Network`\>
 
 ##### Parameters
 
@@ -352,7 +356,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Network`\>
+`Promise`\<`Network`\>
 
 #### Implementation of
 
@@ -366,21 +370,21 @@ ___
 
 ### <a id="getstorageat" name="getstorageat"></a> getStorageAt
 
-• **getStorageAt**: (...`args`: [addressOrName: string \| Promise<string\>, position: BigNumberish \| Promise<BigNumberish\>, blockTag?: BlockTag \| Promise<BlockTag\>]) => `Promise`<`string`\>
+• **getStorageAt**: (...`args`: [addressOrName: string \| Promise\<string\>, position: BigNumberish \| Promise\<BigNumberish\>, blockTag?: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<`string`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [addressOrName: string \| Promise<string\>, position: BigNumberish \| Promise<BigNumberish\>, blockTag?: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [addressOrName: string \| Promise\<string\>, position: BigNumberish \| Promise\<BigNumberish\>, blockTag?: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Implementation of
 
@@ -394,21 +398,21 @@ ___
 
 ### <a id="gettransaction" name="gettransaction"></a> getTransaction
 
-• **getTransaction**: (...`args`: [transactionHash: string \| Promise<string\>]) => `Promise`<`TransactionResponse`\>
+• **getTransaction**: (...`args`: [transactionHash: string \| Promise\<string\>]) => `Promise`\<`TransactionResponse`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`TransactionResponse`\>
+▸ (`...args`): `Promise`\<`TransactionResponse`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [transactionHash: string \| Promise<string\>] |
+| `...args` | [transactionHash: string \| Promise\<string\>] |
 
 ##### Returns
 
-`Promise`<`TransactionResponse`\>
+`Promise`\<`TransactionResponse`\>
 
 #### Implementation of
 
@@ -422,21 +426,21 @@ ___
 
 ### <a id="gettransactioncount" name="gettransactioncount"></a> getTransactionCount
 
-• **getTransactionCount**: (...`args`: [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>]) => `Promise`<`number`\>
+• **getTransactionCount**: (...`args`: [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>]) => `Promise`\<`number`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`number`\>
+▸ (`...args`): `Promise`\<`number`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [addressOrName: string \| Promise<string\>, blockTag?: BlockTag \| Promise<BlockTag\>] |
+| `...args` | [addressOrName: string \| Promise\<string\>, blockTag?: BlockTag \| Promise\<BlockTag\>] |
 
 ##### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 #### Implementation of
 
@@ -450,21 +454,21 @@ ___
 
 ### <a id="gettransactionreceipt" name="gettransactionreceipt"></a> getTransactionReceipt
 
-• **getTransactionReceipt**: (...`args`: [transactionHash: string \| Promise<string\>]) => `Promise`<`TransactionReceipt`\>
+• **getTransactionReceipt**: (...`args`: [transactionHash: string \| Promise\<string\>]) => `Promise`\<`TransactionReceipt`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`TransactionReceipt`\>
+▸ (`...args`): `Promise`\<`TransactionReceipt`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [transactionHash: string \| Promise<string\>] |
+| `...args` | [transactionHash: string \| Promise\<string\>] |
 
 ##### Returns
 
-`Promise`<`TransactionReceipt`\>
+`Promise`\<`TransactionReceipt`\>
 
 #### Implementation of
 
@@ -478,21 +482,21 @@ ___
 
 ### <a id="lookupaddress" name="lookupaddress"></a> lookupAddress
 
-• **lookupAddress**: (...`args`: [address: string \| Promise<string\>]) => `Promise`<`string`\>
+• **lookupAddress**: (...`args`: [address: string \| Promise\<string\>]) => `Promise`\<``null`` \| `string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<``null`` \| `string`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [address: string \| Promise<string\>] |
+| `...args` | [address: string \| Promise\<string\>] |
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<``null`` \| `string`\>
 
 #### Implementation of
 
@@ -506,21 +510,21 @@ ___
 
 ### <a id="resolvename" name="resolvename"></a> resolveName
 
-• **resolveName**: (...`args`: [name: string \| Promise<string\>]) => `Promise`<`string`\>
+• **resolveName**: (...`args`: [name: string \| Promise\<string\>]) => `Promise`\<``null`` \| `string`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`\<``null`` \| `string`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [name: string \| Promise<string\>] |
+| `...args` | [name: string \| Promise\<string\>] |
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<``null`` \| `string`\>
 
 #### Implementation of
 
@@ -534,21 +538,21 @@ ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-• **sendTransaction**: (...`args`: [signedTransaction: string \| Promise<string\>]) => `Promise`<`TransactionResponse`\>
+• **sendTransaction**: (...`args`: [signedTransaction: string \| Promise\<string\>]) => `Promise`\<`TransactionResponse`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`TransactionResponse`\>
+▸ (`...args`): `Promise`\<`TransactionResponse`\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...args` | [signedTransaction: string \| Promise<string\>] |
+| `...args` | [signedTransaction: string \| Promise\<string\>] |
 
 ##### Returns
 
-`Promise`<`TransactionResponse`\>
+`Promise`\<`TransactionResponse`\>
 
 #### Implementation of
 
@@ -562,7 +566,7 @@ providers.StaticJsonRpcProvider.sendTransaction
 
 ### <a id="perform" name="perform"></a> perform
 
-▸ **perform**(`method`, `params`): `Promise`<`any`\>
+▸ **perform**(`method`, `params`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -573,7 +577,7 @@ providers.StaticJsonRpcProvider.sendTransaction
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 #### Overrides
 

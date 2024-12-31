@@ -106,7 +106,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     // The limit is set on RLP decoding, so all batches that can be decoded in MAX_RLP_BYTES_PER_CHANNEL will
     // be accepted ven if the size of the channel is greater than MAX_RLP_BYTES_PER_CHANNEL. The exact requirement
     // is that length(input) <= MAX_RLP_BYTES_PER_CHANNEL.
-    // https://github.com/ethereum-optimism/optimism/blob/develop/specs/derivation.md#channel-format
+    // https://github.com/ethereum-optimism/optimism/blob/master/specs/derivation.md#channel-format
     const maxOutputLength = 10_000_000
     const channelCompressed: Buffer = Buffer.concat([frameData])
     return zlib.inflateSync(channelCompressed, { maxOutputLength })

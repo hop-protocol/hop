@@ -2,6 +2,7 @@ import { Hop, HopStruct, TransferState } from '#index.js'
 import { providers, Wallet, utils, BigNumber } from 'ethers'
 import dotenv from 'dotenv'
 import { getComputedTransferDataHash, getComputedTransferId, getInitialId } from '#utils/index.js'
+import { addresses } from '#addresses/sepolia.js'
 
 dotenv.config()
 
@@ -10,7 +11,7 @@ const { parseUnits } = utils
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 export const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY ?? ''
 
-describe('Sdk - Hop - e2e', () => {
+describe.only('Sdk - Hop - e2e', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -20,9 +21,9 @@ describe('Sdk - Hop - e2e', () => {
 
     // ----------------
     const fromChainId = '11155111'
-    const fromToken = '0x90C1d7021D027c5665413074f34a8bACb3a57688'
+    const fromToken = addresses[fromChainId].tokens.MOCK
     const toChainId = '84532'
-    const toToken = '0x90C1d7021D027c5665413074f34a8bACb3a57688'
+    const toToken = addresses[toChainId].tokens.MOCK
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
@@ -431,7 +432,7 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - multi hop', () => {
+describe('Sdk - RailsGateway - e2e - multi hop', () => {
   it('should do an end to end test', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)

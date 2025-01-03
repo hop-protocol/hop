@@ -34,7 +34,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -56,7 +56,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
   async function getSendTxData() {
     const args = {
       pathId,
-      transferId
+      claimId
     }
     console.log('args', args)
     const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.confirmClaim(args)
@@ -96,12 +96,12 @@ import { ethers } from 'ethers'
 
 async function main() {
   const pathId = "${pathId}"
-  const transferId = "${transferId}"
+  const claimId = "${claimId}"
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.confirmClaim({
     pathId,
-    transferId
+    claimId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -154,7 +154,7 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>The transfer ID of the claim</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

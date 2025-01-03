@@ -157,7 +157,7 @@ export function generateMockMessageSent(): MessageSent {
 export function generateMockHopStruct(): HopStruct {
   return {
     pathId: generateRandomBytes32(),
-    maxTotalSent: generateRandomUint256(),
+    minAmountOut: generateRandomUint256(),
     maxBonderFee: generateRandomUint256(),
     attestedClaimId: generateRandomBytes32()
   }

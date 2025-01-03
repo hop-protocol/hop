@@ -106,11 +106,11 @@ export const WithdrawV2: FC = () => {
 
       const confirmClaimTx = await railsGateway.confirmClaim({
         pathId: transferSentEvent.decoded.pathId,
-        transferId: transferSentEvent.decoded.transferId
+        claimId: transferSentEvent.decoded.transferId
       })
       setConfirmClaimTxHash(confirmClaimTx.hash)
       await postClaimTx.wait()
-      const withdrawTx = await railsGateway.withdrawAll({
+      const withdrawTx = await railsGateway.withdraw({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.hops[0].attestedClaimId
       })

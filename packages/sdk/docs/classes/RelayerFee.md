@@ -14,13 +14,17 @@
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new RelayerFee**()
+• **new RelayerFee**(): [`RelayerFee`](RelayerFee.md)
+
+#### Returns
+
+[`RelayerFee`](RelayerFee.md)
 
 ## Methods
 
 ### <a id="getrelaycost" name="getrelaycost"></a> getRelayCost
 
-▸ `Static` **getRelayCost**(`network`, `chain`, `token`): `Promise`<`BigNumber`\>
+▸ **getRelayCost**(`network`, `chain`, `token`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
@@ -32,6 +36,6 @@
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 The cost of in Wei

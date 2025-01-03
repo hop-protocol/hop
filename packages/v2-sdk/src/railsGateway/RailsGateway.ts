@@ -1821,7 +1821,7 @@ export class RailsGateway extends Base {
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const valid = await contract.isClaimValid(pathId, claimId)
+      const valid = await contract.isValidClaim(pathId, claimId)
       return valid
     } catch (err: unknown) {
       return this.throwError(err) as boolean

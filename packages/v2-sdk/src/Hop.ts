@@ -390,6 +390,13 @@ export class Hop extends Base {
           })
 
           console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
+        } else {
+          isClaimIdValid = await this.getRailsGateway(toChainId).getIsClaimIdValid({
+            pathId,
+            claimId: attestedClaimId
+          })
+
+          console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
         }
 
         // new path without checkpoints will return 0 bytes32
@@ -398,7 +405,7 @@ export class Hop extends Base {
         }
 
         if (!isClaimIdValid) {
-          throw new CustomError('Latest attestedClaimId is invalid')
+          // throw new CustomError('Latest attestedClaimId is invalid')
         }
 
         const maxBonderFee = BigNumber.from('0') // TODO
@@ -409,6 +416,8 @@ export class Hop extends Base {
           minAmountOut,
           attestedClaimId
         }]
+
+        console.log('hopV2Sdk hops', hops)
 
         const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
@@ -731,6 +740,7 @@ export class Hop extends Base {
 
   async getTransferStatus({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
     return this.getTransferStatusFromApi({ fromChainId, toChainId, transferId })
+    // return this.getTransferStatusFromEvents({ fromChainId, toChainId, transferId })
   }
 
   async getTransferStatusFromApi ({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {

@@ -26,13 +26,17 @@
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new PriceFeed**(`apiKeysMap?`)
+• **new PriceFeed**(`apiKeysMap?`): [`PriceFeed`](PriceFeed.md)
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `apiKeysMap` | `ApiKeys` |
+| `apiKeysMap` | [`PriceFeedApiKeys`](../modules.md#pricefeedapikeys) |
+
+#### Returns
+
+[`PriceFeed`](PriceFeed.md)
 
 ## Properties
 
@@ -48,7 +52,7 @@ ___
 
 ### <a id="apikeys" name="apikeys"></a> apiKeys
 
-• **apiKeys**: `ApiKeys` = `{}`
+• **apiKeys**: [`PriceFeedApiKeys`](../modules.md#pricefeedapikeys) = `{}`
 
 ___
 
@@ -72,7 +76,7 @@ ___
 
 ### <a id="_getpricebytokensymbol" name="_getpricebytokensymbol"></a> \_getPriceByTokenSymbol
 
-▸ **_getPriceByTokenSymbol**(`tokenSymbol`): `Promise`<`number`\>
+▸ **_getPriceByTokenSymbol**(`tokenSymbol`): `Promise`\<`number`\>
 
 #### Parameters
 
@@ -82,7 +86,7 @@ ___
 
 #### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 ___
 
@@ -105,7 +109,7 @@ ___
 
 ### <a id="getpricebytokensymbol" name="getpricebytokensymbol"></a> getPriceByTokenSymbol
 
-▸ **getPriceByTokenSymbol**(`tokenSymbol`): `Promise`<`any`\>
+▸ **getPriceByTokenSymbol**(`tokenSymbol`): `Promise`\<`number`\>
 
 #### Parameters
 
@@ -115,7 +119,7 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`number`\>
 
 ___
 
@@ -143,7 +147,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `apiKeysMap` | `ApiKeys` |
+| `apiKeysMap` | [`PriceFeedApiKeys`](../modules.md#pricefeedapikeys) |
 
 #### Returns
 

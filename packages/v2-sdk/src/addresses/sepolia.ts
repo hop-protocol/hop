@@ -11,6 +11,7 @@ export const addresses: Addresses = {
     dispatcher: '0x633e8AB656adc4Ae3aAbbE2494B42a4Da8586858',
     transporter: '0xbAa5d5E1DDAAcD5a3fA816d5d66d0e7a50e097F8',
     executor: '0x4283CE82aa0F08661b58e3c34F2bB18318bc17CD',
+    stakingRegistry: '',
     tokens: {
       MOCK: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
       USDC: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
@@ -24,6 +25,8 @@ export const addresses: Addresses = {
     dispatcher: '0x633e8AB656adc4Ae3aAbbE2494B42a4Da8586858',
     transporter: '0xbAa5d5E1DDAAcD5a3fA816d5d66d0e7a50e097F8',
     executor: '0x4283CE82aa0F08661b58e3c34F2bB18318bc17CD',
+    stakingRegistry: '0xbc4387425E2eDAf51E770f6F8c4fAd28352Bca64',
+    hopToken: '0x9F6aCfA39A080d42E80db32F601F70894158039E',
     tokens: {
       MOCK: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
       USDC: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'
@@ -37,6 +40,7 @@ export const addresses: Addresses = {
     dispatcher: '0x633e8AB656adc4Ae3aAbbE2494B42a4Da8586858',
     transporter: '0xbAa5d5E1DDAAcD5a3fA816d5d66d0e7a50e097F8',
     executor: '0x4283CE82aa0F08661b58e3c34F2bB18318bc17CD',
+    stakingRegistry: '',
     tokens: {
       MOCK: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
       USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
@@ -50,6 +54,7 @@ export const addresses: Addresses = {
     dispatcher: '0x633e8AB656adc4Ae3aAbbE2494B42a4Da8586858',
     transporter: '0xbAa5d5E1DDAAcD5a3fA816d5d66d0e7a50e097F8',
     executor: '0x4283CE82aa0F08661b58e3c34F2bB18318bc17CD',
+    stakingRegistry: '',
     tokens: {
       MOCK: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
       USDC: '0x36d3f5501Ef2BA0ea329c46C5A4a463C163e1ff0'

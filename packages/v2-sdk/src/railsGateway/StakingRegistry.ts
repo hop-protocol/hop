@@ -1,6 +1,8 @@
-import { Base, BaseConfig } from '#common/index.js'
-import { Contract, ethers, BigNumberish } from 'ethers'
+import { Base, BaseConfig, TxOverrides } from '#common/index.js'
+import { Contract, ethers, BigNumberish, providers } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
+import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
+import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 
 export type MinHopStakeInput = {
   chainId: BigNumberish
@@ -170,10 +172,13 @@ export class StakingRegistry extends Base {
   }
 
   async stakeHopPopulatedTx (input: StakeHopInput) {
-    const { chainId, staker } = input
+    const { chainId, staker, amount } = input
     const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.stakeHop(staker)
-    return txData
+    const txData = await contract.populateTransaction.stakeHop(staker, amount)
+    return {
+      ...txData,
+      chainId: Number(chainId)
+    }
   }
 
   async unstakeHopPopulatedTx (input: UnstakeHopInput) {
@@ -286,6 +291,60 @@ export class StakingRegistry extends Base {
   async signalPreference (input: SignalPreferenceInput) {
     const populatedTx = await this.signalPreferencePopulatedTx(input)
     return this.sendTransaction(populatedTx)
+  }
+
+  async getNeedsApprovalForStake ({ chainId, amount, account }: any): Promise<boolean> {
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(amount)) {
+      throw new InputError(`Invalid amount "${amount}"`)
+    }
+
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+    }
+    const tokenAddress = await this.hopToken({ chainId })
+    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+    const spender = this.getStakingRegistryAddress(chainId)
+    account ??= (await this.getSignerAddress(chainId))!
+    if (!account) {
+      throw new InputError('signer not set')
+    }
+    const approved = await tokenContract.allowance(account, spender)
+    return approved.lt(amount)
+  }
+
+  async approveStake (input: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.approveStakePopulatedTx(input, txOverrides)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async approveStakePopulatedTx ({ chainId, amount }: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> {
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(amount)) {
+      throw new InputError(`Invalid amount "${amount}"`)
+    }
+
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+    }
+    const tokenAddress = await this.hopToken({ chainId })
+    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+    const address = this.getStakingRegistryAddress(chainId)
+    const txData = await tokenContract.populateTransaction.approve(address, amount)
+
+    return {
+      ...txData,
+      ...txOverrides,
+      chainId: Number(chainId)
+    }
   }
 }
 

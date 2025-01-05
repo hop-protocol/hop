@@ -6,12 +6,31 @@ import { addresses } from '#addresses/sepolia.js'
 
 dotenv.config()
 
-const { parseUnits } = utils
+const { parseUnits, formatUnits } = utils
 
 export const privateKey = process.env.PRIVATE_KEY ?? ''
 export const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY ?? ''
 
-describe.only('Sdk - Hop - e2e', () => {
+const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
+const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+
+const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
+const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
+
+const optimismRpcUrl = process.env.OPTIMISM_RPC_PROVIDER ?? 'https://sepolia.optimism.io'
+const optimismProvider = new providers.StaticJsonRpcProvider(optimismRpcUrl)
+
+const hubRpcUrl = process.env.HUB_RPC_PROVIDER ?? 'http://hub-testnet.rpc.hop.exchange'
+const hubProvider = new providers.StaticJsonRpcProvider(hubRpcUrl)
+
+const chainProviders = {
+  '11155111': ethereumProvider,
+  '84532': baseProvider,
+  '11155420': optimismProvider,
+  '42069': hubProvider
+}
+
+describe.skip('Sdk - Hop - e2e', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -132,34 +151,20 @@ describe.only('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
+describe.only('Sdk - RailsGateway - e2e - one hop', () => {
   it('should do an end to end test', async () => {
-    const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
-    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-
-    const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
-    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-
-    const hubRpcUrl = process.env.HUB_RPC_PROVIDER ?? 'http://hub-testnet.rpc.hop.exchange'
-    const hubProvider = new providers.StaticJsonRpcProvider(hubRpcUrl)
-
     // ----------------
-    const fromChainId = '42069'
-    const fromToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
-    const toChainId = '84532'
-    const toToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
+    const fromChainId = '84532'
+    const fromToken = addresses[fromChainId]!.tokens!.MOCK!
+    const toChainId = '11155420'
+    const toToken = addresses[toChainId]!.tokens!.MOCK!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
-
-    const chainProviders: any = {
-      '11155111': ethereumProvider,
-      '84532': baseProvider,
-      '42069': hubProvider
-    }
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
     const sdk = new Hop({
+      network: 'sepolia',
       signersOrProviders: {
         [fromChainId]: senderSigner.connect(chainProviders[fromChainId]),
         [toChainId]: bonderSigner.connect(chainProviders[toChainId])
@@ -198,7 +203,7 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
       await approveTx.wait()
     }
 
-    const attestedClaimId  = await sdk.getRailsGateway(toChainId).getHeadClaimId({
+    const attestedClaimId  = await sdk.getRailsGateway(fromChainId).getHeadClaimId({
       pathId
     })
 
@@ -217,12 +222,12 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
 
     const hops: HopStructInput[] = [{
       pathId,
-      attestedClaimId: blankAttestedClaimId,
+      attestedClaimId,
       minAmountOut,
       maxBonderFee
     }]
 
-    let sendTxHash = ''
+    let sendTxHash = '0xb10cf2887fecb5e6a7ae0cdba32d270bfc6f1fa07823f7c912b90e9ad452d70c'
     const shouldSend = !sendTxHash // debug
     let sendTx: any
     if (shouldSend) {
@@ -265,10 +270,44 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
 
     // console.log('events', events)
 
+    const stakingRegistry = sdk.getRailsGateway(toChainId).getStakingRegistry()
+    const bonderAddress = await bonderSigner.getAddress()
+    const stakedBalance = await stakingRegistry.getStakedBalance({ chainId: toChainId, staker: bonderAddress })
+    console.log('stakedBalance:', formatUnits(stakedBalance, 18))
+
+    const hopTokenAddress = await sdk.getRailsGateway(toChainId).getHopTokenAddress()
+    console.log('hopTokenAddress:', hopTokenAddress)
+
+    const minHopStake = await stakingRegistry.minHopStake({ chainId: toChainId })
+    console.log('minHopStake:', formatUnits(minHopStake, 18))
+    let shouldStake = stakedBalance.lt(minHopStake)
+    if (shouldStake) {
+      const needsStakeApproval = await stakingRegistry.getNeedsApprovalForStake({
+        chainId: toChainId,
+        amount: minHopStake,
+        account: bonderAddress
+      })
+
+      console.log('needsStakeApproval:', needsStakeApproval)
+
+      if (needsStakeApproval) {
+        const stakeApproveTx = await stakingRegistry.approveStake({
+          chainId: toChainId,
+          amount: minHopStake
+        })
+
+        console.log('stake approval tx:', stakeApproveTx.hash)
+        await stakeApproveTx.wait()
+      }
+
+      const stakeTx = await stakingRegistry.stakeHop({ chainId: toChainId, amount: minHopStake, staker: bonderAddress })
+      console.log('stakeTx:', stakeTx.hash)
+      await stakeTx.wait()
+    }
+
     const shouldBatchUpdateClaimChain = false // debug
     if (shouldBatchUpdateClaimChain) {
-      const pathId = ''
-      const claimId = ''
+      const claimId = transferSentEvent.decoded.transferId
 
       console.log('calling batchUpdateClaimChain')
 
@@ -300,8 +339,8 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
     const headTransferId = await sdk.getRailsGateway(toChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
     console.log('headTransferId:', headTransferId)
 
-    const couterchainHeadTransferId = await sdk.getRailsGateway(fromChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
-    console.log('counterchain headTransferId:', couterchainHeadTransferId)
+    const counterchainHeadTransferId = await sdk.getRailsGateway(fromChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
+    console.log('counterchain headTransferId:', counterchainHeadTransferId)
 
     const shouldUpdateClaimChain = true // debug
     if (shouldUpdateClaimChain) {
@@ -449,18 +488,6 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
 
 describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
   it('should do an end to end test', async () => {
-    const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
-    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-
-    const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
-    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-
-    const optimismRpcUrl = process.env.OPTIMISM_RPC_PROVIDER ?? 'https://sepolia.optimism.io'
-    const optimismProvider = new providers.StaticJsonRpcProvider(optimismRpcUrl)
-
-    const hubRpcUrl = process.env.HUB_RPC_PROVIDER ?? 'http://hub-testnet.rpc.hop.exchange'
-    const hubProvider = new providers.StaticJsonRpcProvider(hubRpcUrl)
-
     // ----------------
     const fromChainId = '11155420'
     const fromToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
@@ -469,18 +496,11 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
-    const chainProviders: any = {
-      '11155111': ethereumProvider,
-      '84532': baseProvider,
-      '11155420': optimismProvider,
-      '42069': hubProvider
-    }
-
     const fromProvider = chainProviders[fromChainId]
     const toProvider = chainProviders[toChainId]
-    const nextChainId = '42059'
+    const nextChainId = '42069'
     const nextProvider = chainProviders[nextChainId]
-    const nextToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
+    const nextToken = addresses[nextChainId]!.tokens!.MOCK!
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)

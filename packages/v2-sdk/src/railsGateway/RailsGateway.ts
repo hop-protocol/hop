@@ -1163,9 +1163,11 @@ export class RailsGateway extends Base {
 
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.updateClaimChain(pathId, transferDataHash, claimId)
+        const fee = await this.getUpdateFee()
 
         return {
           ...txData,
+          value: fee,
           ...txOverrides,
           chainId: Number(chainId)
         }
@@ -1480,12 +1482,12 @@ export class RailsGateway extends Base {
   async getHopTokenAddress (): Promise<string> {
     const chainId = this.chainId
 
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
+    const tokenAddress = this.getConfigAddress(chainId, 'hopToken')
+    if (!tokenAddress) {
+      throw new Error(`HOP token address config not found for chain ${chainId}`)
     }
 
-    const contract = await this.getRailsGatewayContract()
-    return contract.hopToken()
+    return tokenAddress
   }
 
   async getMinBonderStake (): Promise<BigNumber> {
@@ -1950,7 +1952,7 @@ export class RailsGateway extends Base {
     return contract.stakingRegistry()
   }
 
-  async getStakingRegistry() {
+  getStakingRegistry() {
     return new StakingRegistry({
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,

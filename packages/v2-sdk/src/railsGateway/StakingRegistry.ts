@@ -1,36 +1,27 @@
 import { Base, BaseConfig, TxOverrides } from '#common/index.js'
-import { Contract, ethers, BigNumberish, providers } from 'ethers'
+import { Contract, ethers, Signer, BigNumberish, providers } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 
-export type MinHopStakeInput = {
-  chainId: BigNumberish
-}
-
 export type GetChallengesInput = {
-  chainId: BigNumberish
   challengeId: string
 }
 
 export type StakeHopInput = {
-  chainId: BigNumberish
   staker: string
   amount: BigNumberish
 }
 
 export type UnstakeHopInput = {
-  chainId: BigNumberish
   amount: ethers.BigNumberish
 }
 
 export type WithdrawStakeInput = {
-  chainId: BigNumberish
   staker: string
 }
 
 export type CreateChallengeInput = {
-  chainId: BigNumberish
   staker: string
   penalty: BigNumberish
   slashingData: string
@@ -38,7 +29,6 @@ export type CreateChallengeInput = {
 }
 
 export type AddToChallengeInput = {
-  chainId: BigNumberish
   staker: string
   challenger: string
   penalty: BigNumberish
@@ -47,7 +37,6 @@ export type AddToChallengeInput = {
 }
 
 export type AddToAppealInput = {
-  chainId: BigNumberish
   staker: string
   challenger: string
   penalty: BigNumberish
@@ -56,7 +45,6 @@ export type AddToAppealInput = {
 }
 
 export type OptimisticallySettleChallengeInput = {
-  chainId: BigNumberish
   staker: string
   challenger: string
   penalty: ethers.BigNumberish
@@ -64,7 +52,6 @@ export type OptimisticallySettleChallengeInput = {
 }
 
 export type AcceptSlashInput = {
-  chainId: BigNumberish
   challenger: string
   penalty: BigNumberish
   slashingData: string
@@ -72,33 +59,27 @@ export type AcceptSlashInput = {
 }
 
 export type ForceSettleChallengeInput = {
-  chainId: BigNumberish
   challengeId: string
   challengeWon: boolean
 }
 
 export type IsStakedInput = {
-  chainId: BigNumberish
   staker: string
 }
 
 export type GetStakedBalanceInput = {
-  chainId: BigNumberish
   staker: string
 }
 
 export type GetWithdrawableBalanceInput = {
-  chainId: BigNumberish
   staker: string
 }
 
 export type WithdrawableEthInput = {
-  chainId: BigNumberish
   address: string
 }
 
 export type GetChallengeIdInput = {
-  chainId: BigNumberish
   staker: string
   penalty: BigNumberish
   challenger: string
@@ -106,33 +87,39 @@ export type GetChallengeIdInput = {
 }
 
 export type SignalPreferenceInput = {
-  chainId: BigNumberish
   pathId: string
   feeTier: BigNumberish
   liquidity: BigNumberish
 }
 
-export type HopTokenInput = {
+export type StakingRegistryConstructorInput = BaseConfig & {
   chainId: BigNumberish
+  signerOrProvider?: Signer | providers.Provider
 }
 
-export type StakingRegistryConstructorInput = BaseConfig
-
 export class StakingRegistry extends Base {
-  constructor ({ contractAddresses, signersOrProviders, network }: StakingRegistryConstructorInput) {
+  chainId: BigNumberish
+
+  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network }: StakingRegistryConstructorInput) {
     super({
       network,
       contractAddresses,
-      signersOrProviders
+      signersOrProviders: {
+        [chainId?.toString()]: signerOrProvider!
+      },
     })
+
+    this.chainId = chainId
   }
 
-  getStakingRegistryAddress (chainId: BigNumberish): string {
+  getStakingRegistryAddress (): string {
+    const chainId = this.chainId
     return this.getConfigAddress(chainId, 'stakingRegistry')
   }
 
-  getStakingRegistryContract (chainId: BigNumberish): Contract {
-    const address = this.getStakingRegistryAddress(chainId)
+  getStakingRegistryContract (): Contract {
+    const chainId = this.chainId
+    const address = this.getStakingRegistryAddress()
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId?.toString()}`)
@@ -140,211 +127,251 @@ export class StakingRegistry extends Base {
     return StakingRegistry__factory.connect(address, provider)
   }
 
-  async challengePeriod (chainId: BigNumberish) {
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.challengePeriod()
-  }
-
-  async appealPeriod (chainId: BigNumberish) {
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.appealPeriod()
-  }
-
-  async minChallengeIncrease (chainId: BigNumberish) {
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.minChallengeIncrease()
-  }
-
-  async fullAppeal (chainId: BigNumberish) {
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.fullAppeal()
-  }
-
-  async challenges (chainId: BigNumberish, challengeId: string) {
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.challenges(challengeId)
-  }
-
-  async minHopStake (input: MinHopStakeInput) {
-    const { chainId } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.minHopStake()
-  }
-
-  async stakeHopPopulatedTx (input: StakeHopInput) {
-    const { chainId, staker, amount } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.stakeHop(staker, amount)
+  get populateTransaction() {
     return {
-      ...txData,
-      chainId: Number(chainId)
+      stakeHop: async ({ staker, amount }: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const contract = this.getStakingRegistryContract()
+        const txData = await contract.populateTransaction.stakeHop(staker, amount)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      unstakeHop: async ({ amount }: UnstakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const contract = this.getStakingRegistryContract()
+        const txData = contract.populateTransaction.unstakeHop(amount)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      withdrawStake: async ({ staker }: WithdrawStakeInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const contract = this.getStakingRegistryContract()
+        const txData = await contract.populateTransaction.withdraw(staker)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      signalPreference: async ({ pathId, feeTier, liquidity }: SignalPreferenceInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+        const contract = this.getStakingRegistryContract()
+        const txData = await contract.populateTransaction.signalPreference(pathId, feeTier, liquidity)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      },
+
+      approveStake: async ({ amount }: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const tokenAddress = await this.hopToken()
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+        const address = this.getStakingRegistryAddress()
+        const txData = await tokenContract.populateTransaction.approve(address, amount)
+
+        return {
+          ...txData,
+          ...txOverrides,
+          chainId: Number(chainId)
+        }
+      }
     }
   }
 
-  async unstakeHopPopulatedTx (input: UnstakeHopInput) {
-    const { chainId, amount } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.populateTransaction.unstakeHop(amount)
+  get helpers() {
+    return {
+      getNeedsApprovalForStake: async ({ amount, account }: any): Promise<boolean> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(amount)) {
+          throw new InputError(`Invalid amount "${amount}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const tokenAddress = await this.hopToken()
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+        const spender = this.getStakingRegistryAddress()
+        account ??= (await this.getSignerAddress(chainId))!
+        if (!account) {
+          throw new InputError('signer not set')
+        }
+        const approved = await tokenContract.allowance(account, spender)
+        return approved.lt(amount)
+      },
+
+      approveStake: async (input: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {
+        const populatedTx = await this.populateTransaction.approveStake(input, txOverrides)
+        return this.sendTransaction(populatedTx)
+      }
+    }
   }
 
-  async withdrawStakePopulatedTx (input: WithdrawStakeInput) {
-    const { chainId, staker } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    return contract.populateTransaction.withdraw(staker)
+  async challengePeriod () {
+    const contract = this.getStakingRegistryContract()
+    return contract.challengePeriod()
   }
 
-  async stakeHop (input: StakeHopInput) {
-    const populatedTx = await this.stakeHopPopulatedTx(input)
-    return this.sendTransaction(populatedTx)
+  async appealPeriod () {
+    const contract = this.getStakingRegistryContract()
+    return contract.appealPeriod()
   }
 
-  async unstakeHop (input: UnstakeHopInput) {
-    const populatedTx = await this.unstakeHopPopulatedTx(input)
-    return this.sendTransaction(populatedTx)
+  async minChallengeIncrease () {
+    const contract = this.getStakingRegistryContract()
+    return contract.minChallengeIncrease()
   }
 
-  async withdrawStake (input: WithdrawStakeInput) {
-    const populatedTx = await this.withdrawStakePopulatedTx(input)
-    return this.sendTransaction(populatedTx)
+  async fullAppeal () {
+    const contract = this.getStakingRegistryContract()
+    return contract.fullAppeal()
   }
 
-  async signalPreferencePopulatedTx (input: SignalPreferenceInput) {
-    const { chainId, pathId, feeTier, liquidity } = input
-    const contract = this.getStakingRegistryContract(chainId)
-    const txData = await contract.populateTransaction.signalPreference(pathId, feeTier, liquidity)
-    return txData
+  async challenges (challengeId: string) {
+    const contract = this.getStakingRegistryContract()
+    return contract.challenges(challengeId)
+  }
+
+  async minHopStake () {
+    const contract = this.getStakingRegistryContract()
+    return contract.minHopStake()
   }
 
   async createChallenge (input: CreateChallengeInput) {
-    const { chainId, staker, penalty, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.createChallenge(staker, penalty, slashingData, { value: input.challengeEth })
   }
 
   async addToChallenge (input: AddToChallengeInput) {
-    const { chainId, staker, challenger, penalty, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker, challenger, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.addToChallenge(staker, challenger, penalty, slashingData, { value: input.additionalEth })
   }
 
   async addToAppeal (input: AddToAppealInput) {
-    const { chainId, staker, challenger, penalty, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker, challenger, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.addToAppeal(staker, challenger, slashingData, { value: input.appealEth })
   }
 
   async optimisticallySettleChallenge (input: OptimisticallySettleChallengeInput) {
-    const { chainId, staker, challenger, penalty, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker, challenger, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.optimisticallySettleChallenge(staker, challenger, penalty, slashingData)
   }
 
   async acceptSlash (input: AcceptSlashInput) {
-    const { chainId, challenger, penalty, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { challenger, penalty, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.acceptSlash(challenger, penalty, slashingData, { value: input.slashEth })
   }
 
   async forceSettleChallenge (input: ForceSettleChallengeInput) {
-    const { chainId, challengeId, challengeWon } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { challengeId, challengeWon } = input
+    const contract = this.getStakingRegistryContract()
     return contract.forceSettleChallenge(challengeId, challengeWon)
   }
 
   async isStaked (input: IsStakedInput) {
-    const { chainId, staker } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker } = input
+    const contract = this.getStakingRegistryContract()
     return contract.isStaked(staker)
   }
 
   async getStakedBalance (input: GetStakedBalanceInput) {
-    const { chainId, staker } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker } = input
+    const contract = this.getStakingRegistryContract()
     return contract.getStakedBalance(staker)
   }
 
   async getWithdrawableBalance (input: GetWithdrawableBalanceInput) {
-    const { chainId, staker } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker } = input
+    const contract = this.getStakingRegistryContract()
     return contract.getWithdrawableBalance(staker)
   }
 
   async withdrawableEth (input: WithdrawableEthInput) {
-    const { chainId, address } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { address } = input
+    const contract = this.getStakingRegistryContract()
     return contract.withdrawableEth(address)
   }
 
-  async hopToken (input: HopTokenInput) {
-    const { chainId } = input
-    const contract = this.getStakingRegistryContract(chainId)
+  async hopToken () {
+    const contract = this.getStakingRegistryContract()
     return contract.hopToken()
   }
 
-  // Helper function to calculate challengeId which would typically be calculated off-chain
   async getChallengeId (input: GetChallengeIdInput) {
-    const { chainId, staker, penalty, challenger, slashingData } = input
-    const contract = this.getStakingRegistryContract(chainId)
+    const { staker, penalty, challenger, slashingData } = input
+    const contract = this.getStakingRegistryContract()
     return contract.getChallengeId(staker, penalty, challenger, slashingData)
   }
 
-  async signalPreference (input: SignalPreferenceInput) {
-    const populatedTx = await this.signalPreferencePopulatedTx(input)
+  async stakeHop (input: StakeHopInput, txOverrides: TxOverrides = {}) {
+    const populatedTx = await this.populateTransaction.stakeHop(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async getNeedsApprovalForStake ({ chainId, amount, account }: any): Promise<boolean> {
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidNumericValue(amount)) {
-      throw new InputError(`Invalid amount "${amount}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
-    }
-    const tokenAddress = await this.hopToken({ chainId })
-    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const spender = this.getStakingRegistryAddress(chainId)
-    account ??= (await this.getSignerAddress(chainId))!
-    if (!account) {
-      throw new InputError('signer not set')
-    }
-    const approved = await tokenContract.allowance(account, spender)
-    return approved.lt(amount)
-  }
-
-  async approveStake (input: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.approveStakePopulatedTx(input, txOverrides)
+  async unstakeHop (input: UnstakeHopInput, txOverrides: TxOverrides = {}) {
+    const populatedTx = await this.populateTransaction.unstakeHop(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
-  async approveStakePopulatedTx ({ chainId, amount }: any, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> {
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
+  async withdrawStake (input: WithdrawStakeInput, txOverrides: TxOverrides = {}) {
+    const populatedTx = await this.populateTransaction.withdrawStake(input, txOverrides)
+    return this.sendTransaction(populatedTx)
+  }
 
-    if (!this.utils.isValidNumericValue(amount)) {
-      throw new InputError(`Invalid amount "${amount}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
-    }
-    const tokenAddress = await this.hopToken({ chainId })
-    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-    const address = this.getStakingRegistryAddress(chainId)
-    const txData = await tokenContract.populateTransaction.approve(address, amount)
-
-    return {
-      ...txData,
-      ...txOverrides,
-      chainId: Number(chainId)
-    }
+  async signalPreference (input: SignalPreferenceInput, txOverrides: TxOverrides = {}) {
+    const populatedTx = await this.populateTransaction.signalPreference(input, txOverrides)
+    return this.sendTransaction(populatedTx)
   }
 }
 

@@ -1132,11 +1132,11 @@ ___
 
 ### <a id="getstakingregistry" name="getstakingregistry"></a> getStakingRegistry
 
-▸ **getStakingRegistry**(): `Promise`\<`StakingRegistry`\>
+▸ **getStakingRegistry**(): `StakingRegistry`
 
 #### Returns
 
-`Promise`\<`StakingRegistry`\>
+`StakingRegistry`
 
 ___
 

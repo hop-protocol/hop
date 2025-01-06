@@ -282,7 +282,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     console.log('minHopStake:', formatUnits(minHopStake, 18))
     let shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
-      const needsStakeApproval = await stakingRegistry.getNeedsApprovalForStake({
+      const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
         chainId: toChainId,
         amount: minHopStake,
         account: bonderAddress
@@ -291,8 +291,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       console.log('needsStakeApproval:', needsStakeApproval)
 
       if (needsStakeApproval) {
-        const stakeApproveTx = await stakingRegistry.approveStake({
-          chainId: toChainId,
+        const stakeApproveTx = await stakingRegistry.helpers.approveStake({
           amount: minHopStake
         })
 
@@ -300,7 +299,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
         await stakeApproveTx.wait()
       }
 
-      const stakeTx = await stakingRegistry.stakeHop({ chainId: toChainId, amount: minHopStake, staker: bonderAddress })
+      const stakeTx = await stakingRegistry.stakeHop({ amount: minHopStake, staker: bonderAddress })
       console.log('stakeTx:', stakeTx.hash)
       await stakeTx.wait()
     }

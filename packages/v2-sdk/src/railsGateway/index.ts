@@ -76,7 +76,6 @@ export {
   GetStakedBalanceInput,
   GetWithdrawableBalanceInput,
   IsStakedInput,
-  MinHopStakeInput,
   OptimisticallySettleChallengeInput,
   StakeHopInput,
   UnstakeHopInput,

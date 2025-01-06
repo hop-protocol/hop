@@ -1954,6 +1954,7 @@ export class RailsGateway extends Base {
 
   getStakingRegistry() {
     return new StakingRegistry({
+      chainId: this.chainId,
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,
       network: this.network

@@ -1700,7 +1700,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `feeTier` | `BigNumberish` |
 | `liquidity` | `BigNumberish` |
 | `pathId` | `string` |
@@ -1726,7 +1725,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chainId` | `BigNumberish` |
 | `staker` | `string` |
 
 ___
@@ -1852,7 +1850,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `ethers.BigNumberish` |
-| `chainId` | `BigNumberish` |
 
 ___
 

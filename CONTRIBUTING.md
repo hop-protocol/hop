@@ -2,7 +2,7 @@
 
 # Hop Monorepo
 
-We welcome contributations for bug fixes and performance improvements.
+We welcome contributions for bug fixes and performance improvements.
 
 Please open an issue for any feature requests to discuss it with the maintainers.
 

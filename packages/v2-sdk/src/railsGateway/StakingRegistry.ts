@@ -104,9 +104,7 @@ export class StakingRegistry extends Base {
     super({
       network,
       contractAddresses,
-      signersOrProviders: {
-        [chainId?.toString()]: signerOrProvider!
-      },
+      signersOrProviders
     })
 
     this.chainId = chainId

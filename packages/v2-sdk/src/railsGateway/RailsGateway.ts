@@ -368,7 +368,6 @@ export class RailsGateway extends Base {
   }
 
   getEventFetcher(eventName: EventName) {
-    console.log('here0000', this.network, this.chainId)
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {

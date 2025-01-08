@@ -111,10 +111,8 @@ describe.skip('Sdk - Hop - e2e', () => {
       pathId
     })
 
-    let sendTxHash = '0x357a2913bbefe217f97d9f0befffa90b22d9a6cd7bd2c856c3a1f57626e79593' // debug
+    let sendTxHash = '' // debug
     const shouldSend = !sendTxHash // debug
-    // send tx: 0xea40c292f18def26120f5a1b464fa5a5624440c219edd31f4d79484d8ccd6644
-    // let sendTxHash = '' // debug
     if (shouldSend) {
       const sendTx = await sdk.sendTokens({
         fromChainId,
@@ -151,15 +149,26 @@ describe.skip('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - one hop', () => {
+describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
-    const fromChainId = '84532'
+    const fromChainId = '11155111'
     const fromToken = addresses[fromChainId]!.tokens!.MOCK!
-    const toChainId = '11155420'
+    const toChainId = '84532'
+
     const toToken = addresses[toChainId]!.tokens!.MOCK!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
+
+    const shouldUpdateClaimChain = true // debug
+    const shouldPostClaim = true // debug
+    const shouldBond = true // debug
+    const shouldExecute = true // debug
+    const shouldConfirm = true // debug
+    const shouldWithdraw = true // debug
+
+    let sendTxHash = ''
+    let bondTxHash = ''
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -227,7 +236,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       maxBonderFee
     }]
 
-    let sendTxHash = '0xb10cf2887fecb5e6a7ae0cdba32d270bfc6f1fa07823f7c912b90e9ad452d70c'
     const shouldSend = !sendTxHash // debug
     let sendTx: any
     if (shouldSend) {
@@ -272,13 +280,13 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     const stakingRegistry = sdk.getRailsGateway(toChainId).getStakingRegistry()
     const bonderAddress = await bonderSigner.getAddress()
-    const stakedBalance = await stakingRegistry.getStakedBalance({ chainId: toChainId, staker: bonderAddress })
+    const stakedBalance = await stakingRegistry.getStakedBalance({ staker: bonderAddress })
     console.log('stakedBalance:', formatUnits(stakedBalance, 18))
 
     const hopTokenAddress = await sdk.getRailsGateway(toChainId).getHopTokenAddress()
     console.log('hopTokenAddress:', hopTokenAddress)
 
-    const minHopStake = await stakingRegistry.minHopStake({ chainId: toChainId })
+    const minHopStake = await stakingRegistry.minHopStake()
     console.log('minHopStake:', formatUnits(minHopStake, 18))
     let shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
@@ -341,7 +349,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const counterchainHeadTransferId = await sdk.getRailsGateway(fromChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
     console.log('counterchain headTransferId:', counterchainHeadTransferId)
 
-    const shouldUpdateClaimChain = true // debug
     if (shouldUpdateClaimChain) {
       console.log('calling updateClaimChain')
       const updateClaimChainTx = await sdk.getRailsGateway(toChainId).updateClaimChain({
@@ -354,7 +361,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       await updateClaimChainTx.wait()
     }
 
-    const shouldPostClaim = true // debug
     if (shouldPostClaim) {
       console.log('calling postClaim')
       const postClaimTx = await sdk.getRailsGateway(toChainId).postClaim({
@@ -396,7 +402,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     console.log('isBonded:', isBonded)
 
-    const shouldBond = true // debug
     let bondTx: any
     if (shouldBond) {
       console.log('calling bond')
@@ -417,8 +422,9 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     console.log('isClaimed:', isClaimed)
 
-    // let bondTxHash = '0x24610103e13feebcfb10ed5fbf91e06e6a96caeff4a7b5973962250a6fb286f7' // bondTx.hash
-    let bondTxHash = bondTx.hash
+    if (!bondTxHash) {
+      bondTxHash = bondTx.hash
+    }
     const lastBond = await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
       transactionHash: bondTxHash
     })
@@ -439,7 +445,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     console.log('MessageSent event:', messageSentEvent)
 
-    const shouldExecute = true // debug
     if (shouldExecute) {
       console.log('calling execute')
       const executeTx = await sdk.messenger.execute({
@@ -455,7 +460,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       await executeTx.wait()
     }
 
-    const shouldConfirm = true // debug
     if (shouldConfirm) {
       console.log('calling confirmClaim')
       const confirmTx = await sdk.getRailsGateway(toChainId).confirmClaim({
@@ -467,7 +471,6 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       await confirmTx.wait()
     }
 
-    const shouldWithdraw = true // debug
     if (shouldWithdraw) {
       console.log('calling withdraw')
       const withdrawTx = await sdk.getRailsGateway(toChainId).withdraw({

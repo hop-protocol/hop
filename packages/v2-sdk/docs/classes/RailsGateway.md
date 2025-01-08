@@ -1142,11 +1142,11 @@ ___
 
 ### <a id="getstakingregistrycontractaddress" name="getstakingregistrycontractaddress"></a> getStakingRegistryContractAddress
 
-▸ **getStakingRegistryContractAddress**(): `Promise`\<`any`\>
+▸ **getStakingRegistryContractAddress**(): `Promise`\<`string`\>
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`string`\>
 
 ___
 

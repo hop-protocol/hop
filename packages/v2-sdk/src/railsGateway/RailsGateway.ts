@@ -1946,12 +1946,12 @@ export class RailsGateway extends Base {
     return contract.getPathVault(pathId)
   }
 
-  async getStakingRegistryContractAddress() {
+  async getStakingRegistryContractAddress(): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.stakingRegistry()
   }
 
-  getStakingRegistry() {
+  getStakingRegistry(): StakingRegistry {
     return new StakingRegistry({
       chainId: this.chainId,
       contractAddresses: this.contractAddresses,

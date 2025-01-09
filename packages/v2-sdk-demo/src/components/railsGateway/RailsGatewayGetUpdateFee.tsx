@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
@@ -15,8 +16,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetAppealPeriod(props: Props) {
-  const cacheKey = 'stakingRegistryGetAppealPeriod'
+export function RailsGatewayGetUpdateFee (props: Props) {
+  const cacheKey = 'railsGatewayGetUpdateFee'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -24,7 +25,7 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [appealPeriod, setAppealPeriod] = useLocalStorageState(`${cacheKey}:appealPeriod`, {
+  const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
     defaultValue: '',
   })
 
@@ -35,10 +36,10 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setAppealPeriod('')
+      setFee('')
       setLoading(true)
-      const period = await sdk.getRailsGateway(fromChainId).getStakingRegistry().appealPeriod()
-      setAppealPeriod(period?.toString())
+      const fee = await sdk.getRailsGateway(fromChainId).getUpdateFee()
+      setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -51,8 +52,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   ${hopInstantiateDisplayString}
-  const appealPeriod = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().appealPeriod()
-  console.log(appealPeriod)
+  const fee = await hop.getRailsGateway('${fromChainId}').getUpdateFee()
+  console.log(fee)
 }
 
 main().catch(console.error)
@@ -68,10 +69,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Appeal Period</Typography>
+        <Typography variant="h5">Rails Gateway - Get Update Fee</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get appeal period</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Update Fee for updating Claim Chain</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +80,13 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to read from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Appeal Period</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Fee</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +95,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!appealPeriod && (
+          {!!fee && (
             <Box mb={4}>
-              <Alert severity="info">{appealPeriod}</Alert>
+              <Alert severity="info">{fee}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +114,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetAppealPeriod
+export default RailsGatewayGetUpdateFee

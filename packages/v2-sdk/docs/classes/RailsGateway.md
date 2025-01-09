@@ -82,7 +82,7 @@
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
 - [getStakingRegistry](RailsGateway.md#getstakingregistry)
-- [getStakingRegistryContractAddress](RailsGateway.md#getstakingregistrycontractaddress)
+- [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
@@ -1140,9 +1140,9 @@ ___
 
 ___
 
-### <a id="getstakingregistrycontractaddress" name="getstakingregistrycontractaddress"></a> getStakingRegistryContractAddress
+### <a id="getstakingregistryaddress" name="getstakingregistryaddress"></a> getStakingRegistryAddress
 
-▸ **getStakingRegistryContractAddress**(): `Promise`\<`string`\>
+▸ **getStakingRegistryAddress**(): `Promise`\<`string`\>
 
 #### Returns
 

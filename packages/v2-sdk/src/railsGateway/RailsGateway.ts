@@ -293,7 +293,7 @@ export type GetTransferDataHashInput = {
   amountOut: BigNumberish
   totalSent: BigNumberish
   totalClaims: BigNumberish
-  hops: HopStruct[]
+  hops: HopStructInput[]
 }
 
 export type UpdateClaimChainInput = {
@@ -1946,7 +1946,7 @@ export class RailsGateway extends Base {
     return contract.getPathVault(pathId)
   }
 
-  async getStakingRegistryContractAddress(): Promise<string> {
+  async getStakingRegistryAddress(): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.stakingRegistry()
   }

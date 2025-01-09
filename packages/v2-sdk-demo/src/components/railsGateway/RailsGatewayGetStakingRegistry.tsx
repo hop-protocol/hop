@@ -15,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetAppealPeriod(props: Props) {
-  const cacheKey = 'stakingRegistryGetAppealPeriod'
+export function RailsGatewayGetStakingRegistry (props: Props) {
+  const cacheKey = 'railsGatewayGetStakingRegistry'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -24,7 +24,8 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [appealPeriod, setAppealPeriod] = useLocalStorageState(`${cacheKey}:appealPeriod`, {
+  const [stakingRegistry, setStakingRegistry] =
+    useLocalStorageState(`${cacheKey}:stakingRegistry`, {
     defaultValue: '',
   })
 
@@ -35,10 +36,9 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setAppealPeriod('')
       setLoading(true)
-      const period = await sdk.getRailsGateway(fromChainId).getStakingRegistry().appealPeriod()
-      setAppealPeriod(period?.toString())
+      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistryAddress()
+      setStakingRegistry(address)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -51,8 +51,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   ${hopInstantiateDisplayString}
-  const appealPeriod = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().appealPeriod()
-  console.log(appealPeriod)
+  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistryAddress()
+  console.log(address)
 }
 
 main().catch(console.error)
@@ -68,10 +68,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Appeal Period</Typography>
+        <Typography variant="h5">Rails Gateway - Get Staking Registry</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get appeal period</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Staking Registry address</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +79,13 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to read from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>The chain to use</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Appeal Period</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Staking Registry</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +94,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!appealPeriod && (
+          {!!stakingRegistry && (
             <Box mb={4}>
-              <Alert severity="info">{appealPeriod}</Alert>
+              <Alert severity="info">{stakingRegistry}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +113,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetAppealPeriod
+export default RailsGatewayGetStakingRegistry

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
@@ -16,8 +16,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetFee (props: Props) {
-  const cacheKey = 'railsGatewayGetFee'
+export function RailsGatewayGetPathIdLive (props: Props) {
+  const cacheKey = 'railsGatewayGetPathIdLive'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -25,11 +25,15 @@ export function RailsGatewayGetFee (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
+  const [toChainId, setToChainId] = useLocalStorageState(`${cacheKey}:toChainId`, {
+    defaultValue: defaultChainIds.to,
+  })
+
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
 
-  const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
+  const [pathIdLive, setPathIdLive] = useLocalStorageState(`${cacheKey}:pathIdLive`, {
     defaultValue: '',
   })
 
@@ -40,14 +44,14 @@ export function RailsGatewayGetFee (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setFee('')
+      setPathId('')
       setLoading(true)
       const args = {
         pathId
       }
       console.log('args', args)
-      const fee = await sdk.getRailsGateway(fromChainId).getSendFee(args)
-      setFee(fee?.toString())
+      const live = await sdk.getRailsGateway(fromChainId).helpers.getIsPathIdLive(args)
+      setPathIdLive(`${live}`)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -62,10 +66,10 @@ async function main() {
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const fee = await hop.getRailsGateway('${fromChainId}').getSendFee({
+  const isLive = await hop.getRailsGateway('${fromChainId}').helpers.getIsPathIdLive({
     pathId
   })
-  console.log(fee)
+  console.log(isLive)
 }
 
 main().catch(console.error)
@@ -81,10 +85,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Fee</Typography>
+        <Typography variant="h5">Rails Gateway - Get Is Path ID Live</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway Fee</Typography>
+        <Typography variant="subtitle1">Check if Rails Gateway Path ID is live (enabled)</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -92,19 +96,20 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>The chain to check path ID</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>The path ID hex string</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>The path ID</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Fee</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Check</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -113,9 +118,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!fee && (
+          {!!pathIdLive && (
             <Box mb={4}>
-              <Alert severity="info">{fee}</Alert>
+              <Alert severity="info">{pathIdLive}</Alert>
             </Box>
           )}
         </Box>
@@ -132,4 +137,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayGetFee
+export default RailsGatewayGetPathIdLive

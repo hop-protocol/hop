@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
@@ -15,8 +16,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetAppealPeriod(props: Props) {
-  const cacheKey = 'stakingRegistryGetAppealPeriod'
+export function RailsGatewayGetBucketIndex (props: Props) {
+  const cacheKey = 'railsGatewayGetBucketIndex'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -24,7 +25,15 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [appealPeriod, setAppealPeriod] = useLocalStorageState(`${cacheKey}:appealPeriod`, {
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
+  })
+
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
+    defaultValue: '',
+  })
+
+  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
     defaultValue: '',
   })
 
@@ -35,10 +44,16 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setAppealPeriod('')
+      setBucketIndex('')
       setLoading(true)
-      const period = await sdk.getRailsGateway(fromChainId).getStakingRegistry().appealPeriod()
-      setAppealPeriod(period?.toString())
+      const args = {
+        pathId,
+        claimId
+      }
+
+      console.log('args', args)
+      const index = await sdk.getRailsGateway(fromChainId).getBucketIndex(args)
+      setBucketIndex(`${index}`)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -50,9 +65,15 @@ export function StakingRegistryGetAppealPeriod(props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
+  const pathId = "${pathId}"
+  const claimId = "${claimId}"
+
   ${hopInstantiateDisplayString}
-  const appealPeriod = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().appealPeriod()
-  console.log(appealPeriod)
+  const bucketIndex = await hop.getRailsGateway('${fromChainId}').getBucketIndex({
+    pathId,
+    claimId
+  })
+  console.log(bucketIndex)
 }
 
 main().catch(console.error)
@@ -68,10 +89,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Appeal Period</Typography>
+        <Typography variant="h5">Rails Gateway - Get Bucket Index</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get appeal period</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Bucket Index</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +100,25 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to read from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to check on</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Path ID<small><em>(bytes32)</em></small> <small><em>The path ID</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={event => setClaimId(event.target.value)} />
+              </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Appeal Period</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Bucket Index</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +127,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!appealPeriod && (
+          {!!bucketIndex && (
             <Box mb={4}>
-              <Alert severity="info">{appealPeriod}</Alert>
+              <Alert severity="info">{bucketIndex}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +146,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetAppealPeriod
+export default RailsGatewayGetBucketIndex

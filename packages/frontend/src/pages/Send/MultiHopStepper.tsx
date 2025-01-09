@@ -20,7 +20,7 @@ export function MultiHopStepper(props: Props) {
   const { v2Sdk } = useV2()
 
   const items = steps.map((chainId: string, i: number) => {
-    let obj: any = {}
+    const obj: any = {}
 
     if (i === 0) {
       if (transferStatus?.transferSentEvent) {

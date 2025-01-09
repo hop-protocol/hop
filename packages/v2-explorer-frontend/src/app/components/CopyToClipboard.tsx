@@ -11,7 +11,9 @@ export function CopyToClipboard(props: Props) {
   const { onCopy, text, children } = props
   return (
     <CopyToClipboardLib text={text} onCopy={onCopy}>
-      {children}
+      <div onClick={(event) => event.stopPropagation()} style={{ display: 'inline-block' }}>
+        {children}
+      </div>
     </CopyToClipboardLib>
   )
 }

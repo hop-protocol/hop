@@ -132,5 +132,18 @@ export const chains: Chains = {
     etherscanApiUrl: 'https://api-zkevm.polygonscan.com',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
+  },
+  hub: {
+    ...sharedChain.hub,
+    chainId: '42069',
+    parentChainId: '1',
+    publicRpcUrl: '',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: [],
+    multicall: '',
+    subgraphUrl: '',
+    etherscanApiUrl: '',
+    isRollup: true,
+    txOverrides: {}
   }
 }

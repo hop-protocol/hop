@@ -15,7 +15,7 @@ export function getComputedNextHopsHash(nextHops: HopStruct[]): string {
     // Encode the current hop and combine it with the previous hash
     const encodedHop = utils.defaultAbiCoder.encode(
       ['bytes32', 'uint256', 'uint256', 'bytes32'],
-      [hop.pathId, hop.maxBonderFee, hop.maxTotalSent, hop.attestedClaimId]
+      [hop.pathId, hop.maxBonderFee, hop.minAmountOut, hop.attestedClaimId]
     )
 
     nextHopsHash = utils.keccak256(utils.defaultAbiCoder.encode(['bytes', 'bytes32'], [encodedHop, nextHopsHash]))

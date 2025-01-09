@@ -22,11 +22,10 @@ import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
-import TollIcon from '@mui/icons-material/Toll'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
-import { useTokenList } from './useTokenList'
-import { CustomTokenListManager } from './CustomTokenListManager'
+import { useTokenList } from './useTokenList.js'
+import { CustomTokenListManager } from './CustomTokenListManager.js'
 
 type Props = {
   onTokenSelect: (token: any) => void
@@ -86,11 +85,11 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
     { value: '11155420', label: 'Optimism Sepolia', logo: 'https://assets.hop.exchange/logos/optimism.svg' },
   ]
 
-  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo
+  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken?.chainId?.toString())?.logo
 
   function renderTokenList(list: any[]) {
       return list.map((token) => {
-        const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
+        const chainLogo = networkOptions.find(option => option.value === token.chainId?.toString())?.logo
         return (
           <ListItem
             button

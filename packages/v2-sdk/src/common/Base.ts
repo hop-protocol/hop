@@ -215,6 +215,7 @@ export class Base {
     if (signer.provider) {
       const connectedChainId = (await signer.getChainId()).toString()
       if (connectedChainId !== chainId) {
+        console.warn('connectedChainId', connectedChainId, 'desiredChainId', chainId)
         return null
       }
       return signer
@@ -313,6 +314,7 @@ export class Base {
     }
 
     if (!transactionRequest.to) {
+      console.warn('transactionRequest:', transactionRequest)
       throw new Error('tx "to" address is required')
     }
 
@@ -326,11 +328,13 @@ export class Base {
     }
 
     if (!signer) {
-      throw new Error('signer is required')
+      console.warn('signersOrProviders', this.signersOrProviders)
+      console.warn('customSigner', customSigner)
+      throw new Error(`signer is required, not set for chain "${chainId}"`)
     }
 
     if (!signer.provider) {
-      throw new Error('signer provider is required')
+      throw new Error(`signer provider is required, not set for chain "${chainId}"`)
     }
 
     await this.utils.switchChain(chainId, signer.provider)
@@ -387,6 +391,7 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
+    console.log('getTokenAddressByTokenSymbol', chainId, tokenSymbol, this.contractAddresses)
     return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
   }
 

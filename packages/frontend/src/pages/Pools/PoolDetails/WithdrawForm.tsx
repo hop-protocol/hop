@@ -75,22 +75,28 @@ export function WithdrawForm(props: any) {
   const [priceImpact, setPriceImpact] = useState<number | undefined>()
 
   useEffect(() => {
+    if (tokenDecimals === undefined) {
+      return
+    }
     const value = Number(amount)
     const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
     setAmountSliderValue(sliderValue)
-  }, [amount])
+  }, [amount, tokenDecimals])
 
   useEffect(() => {
     updateDisplayAmount()
   }, [])
 
   useEffect(() => {
+    if (tokenDecimals === undefined) {
+      return
+    }
     try {
       setAmountBN(utils.parseUnits((amount || 0).toString(), tokenDecimals))
     } catch (err) {
     }
-  }, [amount])
+  }, [amount, tokenDecimals])
 
   useEffect(() => {
     let isSubscribed = true
@@ -137,6 +143,9 @@ export function WithdrawForm(props: any) {
     if (!token1AmountBn) {
       return
     }
+    if (tokenDecimals === undefined) {
+      return
+    }
     const _amount0 = Number(utils.formatUnits(token0AmountBn, tokenDecimals))
     const _amount1 = Number(utils.formatUnits(token1AmountBn, tokenDecimals))
     const _amount0Percent = _amount0 * percent / 100
@@ -155,6 +164,9 @@ export function WithdrawForm(props: any) {
   }
 
   function handleAmountSliderChange (percent: number) {
+    if (tokenDecimals === undefined) {
+      return
+    }
     const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const _amount = (_balance ?? 0) * (percent / 100)
     setAmount(_amount.toFixed(5))
@@ -164,6 +176,9 @@ export function WithdrawForm(props: any) {
   }
 
   function handleMaxClick (_value: BigNumber) {
+    if (tokenDecimals === undefined) {
+      return
+    }
     setAmount(utils.formatUnits(_value.toString(), tokenDecimals))
     setAmountBN(_value)
   }
@@ -220,7 +235,7 @@ export function WithdrawForm(props: any) {
     )
   }
 
-  const maxBalanceFormatted = `${formatTokenDecimalString(maxBalance, tokenDecimals, 4)}`
+  const maxBalanceFormatted = tokenDecimals !== null ? `${formatTokenDecimalString(maxBalance, tokenDecimals, 4)}` : ''
 
   return (
     <Box>

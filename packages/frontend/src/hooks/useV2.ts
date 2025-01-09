@@ -79,6 +79,7 @@ export function useV2(): V2Hook {
     const signer = provider?.getSigner()
     const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
       '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+      // '11155420': new ethers.providers.StaticJsonRpcProvider('https://optimism-sepolia.drpc.org')
     })
     if (connectedNetworkId && signer) {
       providers[connectedNetworkId] = signer
@@ -104,12 +105,15 @@ export function useV2(): V2Hook {
   }
 
   async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
+    console.log('getTokenInfoByTokenAddress', chainId, address)
     const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }
 
   async function getTokenInfoByTokenSymbol (chainId: string, tokenSymbol: string): Promise<Token> {
+    console.log('getTokenInfoByTokenSymbol', chainId, tokenSymbol)
     const address = getTokenAddress(chainId, tokenSymbol)
+    console.log('address', address)
     const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }

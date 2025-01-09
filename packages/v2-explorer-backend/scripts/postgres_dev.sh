@@ -1,8 +1,9 @@
 #!/bin/bash
 
-#rm -rf /tmp/tempdb
+rm -rf /tmp/tempdb
 # docker create network=mynetwork
 
+#docker volume remove pgdata
 docker volume create pgdata
 
 docker run --net=host --rm --name pg -v pgdata:/var/lib/postgresql/data -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:16

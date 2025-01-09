@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
-import { useTheme } from '@/app/theme/useTheme'
+import { useTheme } from '@/app/hooks/useTheme'
 import { useRouter } from 'next/navigation'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'

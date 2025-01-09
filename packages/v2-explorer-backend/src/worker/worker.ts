@@ -15,6 +15,7 @@ export class Worker {
 
   constructor (options: Options = {}) {
     this.sdk = new Hop({
+      network: network,
       signersOrProviders: Hop.getDefaultProviders(network)
     })
 

@@ -820,7 +820,7 @@ export function useSend(): SendResponseProps {
       return true
     }
 
-    if (fromNetwork && toNetwork && selectedBridge && ['USDC', 'USDC.e'].includes(fromToken?.symbol) && !selectedBridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)) {
+    if (fromNetwork && toNetwork && selectedBridge && ['USDC', 'USDC.e', 'MAGIC'].includes(fromToken?.symbol) && !selectedBridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)) {
       return true
     }
 

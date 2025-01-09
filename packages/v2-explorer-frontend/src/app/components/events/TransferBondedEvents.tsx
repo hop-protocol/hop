@@ -75,7 +75,7 @@ export function TransferBondedEvents () {
         clipboardValue: event.amount
       },
       {
-        key: 'bonder Fee',
+        key: 'bonderFee',
         value: event.bonderFee,
         clipboardValue: event.bonderFee
       },

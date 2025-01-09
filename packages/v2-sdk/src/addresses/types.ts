@@ -13,6 +13,8 @@ export interface ChainConfig {
   dispatcher?: string
   executor?: string
   transporter?: string
+  stakingRegistry?: string
+  hopToken?: string
   tokens?: TokenAddresses
 }
 

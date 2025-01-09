@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
-import { useFetchTokens } from './useFetchTokens'
+import { useFetchTokens } from '@/app/hooks/useFetchTokens'
 import { Table } from '@/app/components/Table'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'

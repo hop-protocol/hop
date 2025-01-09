@@ -67,9 +67,10 @@ class HopConvertOption extends ConvertOption {
       recipient = customRecipient
     }
 
-    // note: usdc.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
-    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
-    if (isUsdceWithdrawal) {
+    // note: USDC.E out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    // note: MAGIC out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    const isDeprecatedRouteWithdrawal = ['USDC.e', 'MAGIC'].includes(l1TokenSymbol) && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
+    if (isDeprecatedRouteWithdrawal) {
       if (BigNumber.from(bonderFee ?? 0).eq(0)) {
         const isHTokenSend = true
         const relativeFee = await bridge.getBonderFeeRelative(amountIn, sourceNetwork?.slug, destNetwork?.slug, isHTokenSend)
@@ -121,10 +122,10 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
-    const isUsdceWithdrawal = token.symbol === 'hUSDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+    const isDeprecatedRouteWithdrawal = ['hUSDC.e', 'hMAGIC'].includes(token.symbol) && destNetwork?.slug === ChainSlug.Ethereum
 
     // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
-    if (isUsdceWithdrawal) {
+    if (isDeprecatedRouteWithdrawal) {
       totalFee = BigNumber.from(0)
     }
 
@@ -133,7 +134,7 @@ class HopConvertOption extends ConvertOption {
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
 
       // note: bypass liquidity check since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time.
-      if (isUsdceWithdrawal) {
+      if (isDeprecatedRouteWithdrawal) {
         warning = ''
       }
     }

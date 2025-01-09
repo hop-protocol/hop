@@ -1,6 +1,6 @@
 'use client'
 import React, { Suspense } from 'react'
-import { useTheme } from './theme/useTheme'
+import { useTheme } from '@/app/hooks/useTheme'
 import Box from '@mui/material/Box'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'

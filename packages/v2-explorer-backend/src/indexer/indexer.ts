@@ -42,6 +42,7 @@ export class Indexer {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
     this.sdk = new Hop({
+      network: network,
       batchBlocks: 10_000,
       contractAddresses: options?.sdkContractAddresses,
       signersOrProviders: Hop.getDefaultProviders(network)
@@ -79,7 +80,10 @@ export class Indexer {
       MessageExecuted: new SyncStateDb(dbPath, 'MessageExecuted'),
       MessageSent: new SyncStateDb(dbPath, 'MessageSent'),
       TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
-      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded')
+      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded'),
+      ClaimPosted: new SyncStateDb(dbPath, 'ClaimPosted'),
+      ClaimChainUpdated: new SyncStateDb(dbPath, 'ClaimChainUpdated'),
+      BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
     }
   }
 
@@ -112,7 +116,7 @@ export class Indexer {
 
   async syncEvents (): Promise<any[]> {
     // const l1Events = ['BundleForwarded', 'BundleReceived']
-    const l1Events: any[] = []
+    const l1Events: any[] = ['BonderPreference']
     const baseEvents = [
       'BundleSet',
       'BundleCommitted',
@@ -121,7 +125,9 @@ export class Indexer {
       'MessageExecuted',
       'MessageSent',
       'TransferSent',
-      'TransferBonded'
+      'TransferBonded',
+      'ClaimPosted',
+      'ClaimChainUpdated',
     ]
 
     const _events: any[] = []

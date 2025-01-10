@@ -406,6 +406,9 @@ export class Controller {
       if (item.toChainId) {
         item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.toChainId)
       }
+      if (!item.toChainId && item.context?.chainId) {
+        item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.context.chainId)
+      }
     }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
@@ -450,6 +453,14 @@ export class Controller {
       item.amountOutUsd = Number(item.amountOutFormatted) * Number(item.tokenPriceUsd)
       item.amountOutUsdDisplay = `${formatToUSD(item.amountOutUsd.toFixed(2))} USD`
     }
+    if (item.bonderFee != null && item.token) {
+      item.bonderFeeFormatted = formatUnits(item.bonderFee, item.token.decimals)
+      item.bonderFeeDisplay = `${item.bonderFeeFormatted} ${item.token.symbol}`
+    }
+    if (item.bonderFee != null && item.bonderFeeFormatted != null && item.tokenPriceUsd != null) {
+      item.bonderFeeUsd = Number(item.bonderFeeFormatted) * Number(item.tokenPriceUsd)
+      item.bonderFeeUsdDisplay = `${formatToUSD(item.bonderFeeUsd.toFixed(2))} USD`
+    }
     if (item.attestationFee != null) {
       item.attestationFeeFormatted = formatUnits(item.attestationFee, 18)
       item.attestationFeeDisplay = `${item.attestationFeeFormatted} ETH`
@@ -463,6 +474,13 @@ export class Controller {
     }
     if (item.hops) {
       item.hops = item.hops.map((item: any) => this.addEventFields(item))
+    }
+    if (item.minAmountOut) {
+      item.minAmountOut = item.minAmountOut.toString()
+    }
+    if (item.minAmountOut != null && item.minAmountOutFormatted != null && item.tokenPriceUsd != null) {
+      item.minAmountOutUsd = Number(item.minAmountOutFormatted) * Number(item.tokenPriceUsd)
+      item.minAmountOutUsdDisplay = `${formatToUSD(item.minAmountOutUsd.toFixed(2))} USD`
     }
     // nextHops
     if (item.maxBonderFee) {

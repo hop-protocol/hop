@@ -45,10 +45,10 @@ export const useTransferDetails = (props: any) => {
     }
   }, [eventDetails])
 
-  const bondedEvent = event?.transferBondedEvent
+  const bondedEvent = event?.transferBondedEvents?.[event?.transferBondedEvents?.length - 1]
   const token = event?.token
   const context = event?.context
-  const destinationContext = event?.transferBondedEvent?.context
+  const destinationContext = bondedEvent?.context
   const tokenDecimals = token?.decimals
   const tokenSymbol = token?.symbol
   const tokenName = token?.name
@@ -56,11 +56,13 @@ export const useTransferDetails = (props: any) => {
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
-  const attestedClaimTotalSent = event?.totalSent
-  const attestedClaimTotalSentDisplay = formatDisplay(attestedClaimTotalSent, tokenDecimals, tokenSymbol)
+  const transferAmountOut = event?.amountOut
+  const transferAmountOutDisplay = `${event?.amountOut ?? ''} (${event?.amountOutDisplay ?? ''}) (${event?.amountOutUsdDisplay ?? ''})`
+  const totalSent = event?.totalSent
+  const totalSentDisplay = formatDisplay(totalSent, tokenDecimals, tokenSymbol)
+  const totalClaims = event?.totalClaims
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
-  const attestedClaimId = event?.attestedClaimId
   const pathId = event?.pathId
   const hops = event?.hops
   const sourceTxValue = context?.value
@@ -93,8 +95,14 @@ export const useTransferDetails = (props: any) => {
   const destinationChainImageUrl = event?.toChainImageUrl
   const destinationTransactionHash = destinationContext?.transactionHash
   const destinationTransactionExplorerUrl = destinationContext?.transactionHashExplorerUrl
-  const destinationAmountOut = bondedEvent?.amountOut
-  const destinationAmountOutDisplay = bondedEvent ? `${bondedEvent?.amountOut} (${bondedEvent?.amountOutDisplay}) (${bondedEvent?.amountOutUsdDisplay})` : null
+  const destinationPathId = bondedEvent?.pathId
+  const destinationTo = bondedEvent?.to
+  const destinationToExplorerUrl = event?.toExplorerUrl
+  const destinationClaimId = bondedEvent?.claimId
+  const destinationAmountOut = bondedEvent?.amount
+  const destinationAmountDisplay = bondedEvent ? `${bondedEvent?.amount} (${bondedEvent?.amountDisplay}) (${bondedEvent?.amountUsdDisplay})` : null
+  const destinationBonderFee = bondedEvent?.bonderFee
+  const destinationBonderFeeDisplay = bondedEvent ? `${bondedEvent?.bonderFee} (${bondedEvent?.bonderFeeDisplay}) (${bondedEvent?.bonderFeeUsdDisplay})` : null
   const destinationTxFromDisplay = destinationContext?.from
   const destinationTxFromExplorerUrl = destinationContext?.fromExplorerUrl
   const destinationTxToDisplay = destinationContext?.to
@@ -134,11 +142,13 @@ export const useTransferDetails = (props: any) => {
     tokenSymbol,
     transferAmount,
     transferAmountDisplay,
-    attestedClaimTotalSent,
-    attestedClaimTotalSentDisplay,
+    transferAmountOut,
+    transferAmountOutDisplay,
+    totalSent,
+    totalSentDisplay,
+    totalClaims,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestedClaimId,
     pathId,
     sourceTxValue,
     sourceTxValueDisplay,
@@ -170,7 +180,7 @@ export const useTransferDetails = (props: any) => {
     destinationChainImageUrl,
     destinationTransactionHash,
     destinationTransactionExplorerUrl,
-    destinationAmountOutDisplay,
+    destinationAmountDisplay,
     destinationTxFromDisplay,
     destinationTxFromExplorerUrl,
     destinationTxToDisplay,
@@ -187,7 +197,13 @@ export const useTransferDetails = (props: any) => {
     destinationTxNonce,
     destinationTxBlockNumber,
     destinationTxTimestampDisplay,
+    destinationBonderFee,
+    destinationBonderFeeDisplay,
+    destinationTo,
+    destinationClaimId,
+    destinationPathId,
     loading,
+    destinationToExplorerUrl,
     hops
   }
 }

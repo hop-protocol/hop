@@ -105,8 +105,8 @@ export function TransferSentEvents () {
               value: 'Max Bonder Fee',
             },
             {
-              key: 'maxTotalSent',
-              value: 'Max Total Sent',
+              key: 'minAmountOut',
+              value: 'Min Amount Out',
             },
             {
               key: 'attestedClaimId',
@@ -131,9 +131,9 @@ export function TransferSentEvents () {
                 clipboardValue: hop.maxBonderFee
               },
               {
-                key: 'maxTotalSent',
-                value: hop.maxTotalSent,
-                clipboardValue: hop.maxTotalSent
+                key: 'minAmountOut',
+                value: hop.minAmountOut,
+                clipboardValue: hop.minAmountOut
               },
               {
                 key: 'attestedClaimId',

@@ -7,7 +7,7 @@ export interface HopStruct {
   index?: number
   pathId: string
   maxBonderFee: BigNumber
-  maxTotalSent: BigNumber
+  minAmountOut: BigNumber
   attestedClaimId: string
 }
 
@@ -40,7 +40,7 @@ export class TransferSentTable extends EventDb {
       "index" INTEGER NOT NULL CHECK ("index" >= 0),
       path_id CHAR(66) NOT NULL,
       max_bonder_fee  NUMERIC NOT NULL CHECK (max_bonder_fee >= 0),
-      max_total_sent NUMERIC NOT NULL CHECK (max_total_sent >= 0),
+      min_amount_out NUMERIC NOT NULL CHECK (min_amount_out >= 0),
       attested_claim_id CHAR(66) NOT NULL
     )`)
   }
@@ -99,7 +99,7 @@ export class TransferSentTable extends EventDb {
         nh.index,
         nh.path_id AS "nhPathId",
         nh.max_bonder_fee AS "maxBonderFee",
-        nh.max_total_sent AS "maxTotalSent",
+        nh.min_amount_out AS "minAmountOut",
         nh.attested_claim_id AS "nhAttestedClaimId"
       FROM
         transfer_sent_events e
@@ -178,15 +178,15 @@ export class TransferSentTable extends EventDb {
             transferSentEventId,
             pathId: hop.pathId,
             maxBonderFee: hop.maxBonderFee.toString(),
-            maxTotalSent: hop.maxTotalSent.toString(),
+            minAmountOut: hop.minAmountOut.toString(),
             attestedClaimId: hop.attestedClaimId
           }
           const hopSql = `
             INSERT INTO next_hops
             (
-              id, transfer_sent_event_id, "index", path_id, max_bonder_fee, max_total_sent, attested_claim_id
+              id, transfer_sent_event_id, "index", path_id, max_bonder_fee, min_amount_out, attested_claim_id
             )
-            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxBonderFee}, ${maxTotalSent}, ${attestedClaimId})'}
+            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxBonderFee}, ${minAmountOut}, ${attestedClaimId})'}
           `
           await t.none(hopSql, hopArgs)
           i++
@@ -208,7 +208,7 @@ export class TransferSentTable extends EventDb {
           index: item.index,
           pathId: item.nhPathId,
           maxBonderFee: BigNumber.from(item.maxBonderFee ?? 0),
-          maxTotalSent: BigNumber.from(item.maxTotalSent),
+          minAmountOut: BigNumber.from(item.minAmountOut),
           attestedClaimId: item.nhAttestedClaimId
         }
         map.get(item.transferId).hops.push(hop)
@@ -230,8 +230,8 @@ export class TransferSentTable extends EventDb {
     if (data.maxBonderFee && typeof data.maxBonderFee === 'string') {
       data.maxBonderFee = BigNumber.from(data.maxBonderFee)
     }
-    if (data.maxTotalSent && typeof data.maxTotalSent === 'string') {
-      data.maxTotalSent = BigNumber.from(data.maxTotalSent)
+    if (data.minAmountOut && typeof data.minAmountOut === 'string') {
+      data.minAmountOut = BigNumber.from(data.minAmountOut)
     }
     return data
   }
@@ -246,7 +246,7 @@ export class TransferSentTable extends EventDb {
     delete (data as any).index
     delete (data as any).nhPathId
     delete (data as any).maxBonderFee
-    delete (data as any).maxTotalSent
+    delete (data as any).minAmountOut
     delete (data as any).nhAttestedClaimId
 
     if (data.amountOut && typeof data.amountOut === 'string') {

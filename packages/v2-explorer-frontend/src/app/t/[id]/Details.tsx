@@ -20,13 +20,14 @@ import { useRouter } from 'next/navigation'
 
 export function Details(props: any) {
   const { initialEventDetails } = props
+  console.log(initialEventDetails)
   const {
     transferId,
     statusDisplay,
-    attestedClaimTotalSentDisplay,
+    totalSentDisplay,
+    totalClaims,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestedClaimId,
     pathId,
     hops,
     sourceTxValueDisplay,
@@ -52,7 +53,7 @@ export function Details(props: any) {
     destinationChainImageUrl,
     destinationTransactionHash,
     destinationTransactionExplorerUrl,
-    destinationAmountOutDisplay,
+    destinationAmountDisplay,
     destinationTxFromDisplay,
     destinationTxFromExplorerUrl,
     destinationTxToDisplay,
@@ -68,8 +69,14 @@ export function Details(props: any) {
     destinationTxGasPriceDisplay,
     destinationTxNonce,
     destinationTxBlockNumber,
-    transferAmountDisplay,
-    destinationTxTimestampDisplay
+    transferAmountOutDisplay,
+    destinationTxTimestampDisplay,
+    destinationBonderFee,
+    destinationBonderFeeDisplay,
+    destinationClaimId,
+    destinationTo,
+    destinationToExplorerUrl,
+    destinationPathId,
   } = useTransferDetails({ initialEventDetails })
   const router = useRouter()
   function navigateBack() {
@@ -95,28 +102,30 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} />
               <DetailRow loading={loading} label="Origin Chain" value={sourceTxChainDisplay} imageUrl={sourceTxChainImageUrl} />
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
-              <DetailRow loading={loading} label="Transfer Amount" value={transferAmountDisplay} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
-              <DetailRow loading={loading} label="Transfer Attested Claim ID" value={attestedClaimId} />
-              <DetailRow loading={loading} label="Transfer Attested Claim Total Sent" value={attestedClaimTotalSentDisplay} />
+              <DetailRow loading={loading} label="Event Path ID" value={pathId} />
+              <DetailRow loading={loading} label="Event Amount Out" value={transferAmountOutDisplay} />
+              <DetailRow loading={loading} label="Event Total Sent" value={totalSentDisplay} />
+              <DetailRow loading={loading} label="Event Total Claims" value={totalClaims} />
             </TableBody>
           </Table>
         </TableContainer>
 
         <Box mt={2} mb={2}>
-          <Typography variant="subtitle1" color="textPrimary">Next Hops</Typography>
+          <Typography variant="subtitle1" color="textPrimary">Hops</Typography>
         </Box>
 
         {hops.map((nextHop: any, i: number) => {
-          const { pathId, maxTotalSent, attestedClaimId } = nextHop
+          const { pathId, maxBonderFee, minAmountOut, attestedClaimId} = nextHop
           return (
             <Box ml={2} mb={4} key={i}>
               <TableContainer>
                 <Table width="100%">
                   <TableBody>
-                    <DetailRow label={i+1} value=" " />
+                    <DetailRow label={`Hop #${i+1}`} value=" " />
                     <DetailRow label="Path ID" value={pathId} />
-                    <DetailRow label="Max Total Sent" value={maxTotalSent} />
+                    <DetailRow label="Max Bonder Fee" value={maxBonderFee} />
+                    <DetailRow label="Min Amount Out" value={minAmountOut} />
                     <DetailRow label="Attested Claim ID" value={attestedClaimId} />
                   </TableBody>
                 </Table>
@@ -153,10 +162,14 @@ export function Details(props: any) {
         <TableContainer>
           <Table width="100%">
             <TableBody>
+              <DetailRow loading={loading} label="Destination Claim ID" value={destinationClaimId} />
               <DetailRow loading={loading} label="Destination Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
               <DetailRow loading={loading} label="Destination Token" value={destinationTokenDisplay} link={destinationTokenExplorerUrl} />
               <DetailRow loading={loading} label="Destination Timestamp" value={destinationTxTimestampDisplay} />
-              <DetailRow loading={loading} label="Destination Transfer Amount Out" value={destinationAmountOutDisplay} />
+              <DetailRow loading={loading} label="Destination Transfer Amount" value={destinationAmountDisplay} />
+              <DetailRow loading={loading} label="Destination Bonder Fee" value={destinationBonderFeeDisplay} />
+              <DetailRow loading={loading} label="Destination Recipient" value={destinationTo} link={destinationToExplorerUrl} />
+              <DetailRow loading={loading} label="Destination Path ID" value={destinationPathId} />
               <DetailRow loading={loading} label="Destination Transaction Hash" value={destinationTransactionHash} link={destinationTransactionExplorerUrl} />
               <DetailRow loading={loading} label="Destination Transaction Status" value={destinationTxStatusDisplay} />
               <DetailRow loading={loading} label="Destination Transaction From Address (Bonder)" value={destinationTxFromDisplay} link={destinationTxFromExplorerUrl} />

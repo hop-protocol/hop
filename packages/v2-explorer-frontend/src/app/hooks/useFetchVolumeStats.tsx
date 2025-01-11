@@ -2,14 +2,16 @@ import { useQuery } from 'react-query'
 import { apiUrl } from '@/app/config'
 
 type VolumeStats = {
-  totalVolume: {
-    totalUsd: number
-    totalUsdDisplay: string
+  stats: {
+    totalVolume: {
+      totalUsd: number
+      totalUsdDisplay: string
+    }
+    tokenVolumes: Record<string, {
+      totalUsd: number
+      totalUsdDisplay: string
+    }>
   }
-  tokenVolumes: Record<string, {
-    totalUsd: number
-    totalUsdDisplay: string
-  }>
 }
 
 const fetchVolumeStats = async (): Promise<VolumeStats> => {

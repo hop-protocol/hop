@@ -3,7 +3,7 @@ import { useFetchVolumeStats } from '../../hooks/useFetchVolumeStats'
 import { Box, Typography } from '@mui/material'
 
 export const TotalVolumeStats: React.FC = () => {
-  const { volumeStats, loading, error } = useFetchVolumeStats({})
+  const { volumeStats, loading, error } = useFetchVolumeStats()
 
   if (loading || error) {
     return null

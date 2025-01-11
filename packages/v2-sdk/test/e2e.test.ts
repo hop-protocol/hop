@@ -149,7 +149,7 @@ describe.skip('Sdk - Hop - e2e', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
+describe('Sdk - RailsGateway - e2e - one hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
     const fromChainId = '11155111'
@@ -291,7 +291,6 @@ describe.skip('Sdk - RailsGateway - e2e - one hop', () => {
     let shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-        chainId: toChainId,
         amount: minHopStake,
         account: bonderAddress
       })

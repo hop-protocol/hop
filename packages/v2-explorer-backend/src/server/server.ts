@@ -151,6 +151,19 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
+  try {
+    let { filter } = req.query
+    const stats = await controller.getTransferVolumeStatsForApi({
+      filter
+    })
+    res.status(200).json({ stats })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

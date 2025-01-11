@@ -52,6 +52,23 @@ type TokensApiInput = {
   filter: any
 }
 
+type TransferVolumeStatsApiInput = {
+  startTimestamp?: number
+  endTimestamp?: number
+  filter?: any
+}
+
+type TransferVolumeStatsApiResult = {
+  totalVolume: {
+    totalUsd: number
+    totalUsdDisplay: string
+  }
+  tokenVolumes: Record<string, {
+    totalUsd: number
+    totalUsdDisplay: string
+  }>
+}
+
 export class Controller {
   db: any = db
   pgDb = pgDb
@@ -211,7 +228,6 @@ export class Controller {
         }
 
         item.transferBondedEvents = bondedEvents.map((eventItem: any) => {
-          console.log('original', transferId, 'claimId', eventItem.claimId, eventItem.pathId)
           eventItem.token = item.counterpartToken
           eventItem.tokenPriceUsd = item.tokenPriceUsd
           eventItem.ethPriceUsd = item.ethPriceUsd
@@ -669,5 +685,43 @@ export class Controller {
     })
 
     return filters
+  }
+
+  async getTransferVolumeStatsForApi(input: TransferVolumeStatsApiInput): Promise<TransferVolumeStatsApiResult> {
+    const results = await this.pgDb.events['TransferSent'].getVolumeStats(input)
+
+    let totalUsd = 0
+    const tokenVolumes: Record<string, {
+      totalUsd: number
+      totalUsdDisplay: string
+    }> = {}
+
+    for (const result of results) {
+      const tokenPrice = await this.pgDb.priceTable.getClosestPrice(result.tokenSymbol, input.endTimestamp)
+      if (tokenPrice) {
+        const volumeFormatted = formatUnits(result.totalVolume, result.tokenDecimals)
+        const usdValue = Number(volumeFormatted) * Number(tokenPrice.priceUsd)
+
+        totalUsd += usdValue
+        if (!tokenVolumes[result.tokenSymbol]) {
+          tokenVolumes[result.tokenSymbol] = {
+            totalUsd: 0,
+            totalUsdDisplay: ''
+          }
+        }
+        tokenVolumes[result.tokenSymbol].totalUsd += usdValue
+        tokenVolumes[result.tokenSymbol].totalUsdDisplay = `${formatToUSD(tokenVolumes[result.tokenSymbol].totalUsd.toFixed(2))} USD`
+      }
+    }
+
+    const totalUsdDisplay = `${formatToUSD(totalUsd.toFixed(2))} USD`
+
+    return {
+      totalVolume: {
+        totalUsd,
+        totalUsdDisplay
+      },
+      tokenVolumes
+    }
   }
 }

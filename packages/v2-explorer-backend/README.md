@@ -22,6 +22,24 @@ npm start
 npm test
 ```
 
+Example test environment variables
+
+```bash
+NETWORK=sepolia
+
+# single rpc url for a chain
+RPC_URL_11155111=https://1rpc.io/sepolia
+
+# multiple fallback urls for a chain
+RPC_URL_11155420_0=https://sepolia.optimism.io
+RPC_URL_11155420_1=https://optimism-sepolia.drpc.org
+
+# local sync state db path
+DB_PATH=/tmp/tempdb
+
+COINGECKO_API_KEY=CG-123...
+```
+
 ## Documentation
 
 ### API

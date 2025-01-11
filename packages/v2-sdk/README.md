@@ -76,6 +76,14 @@ Run github action build locally with [act](https://github.com/nektos/act):
 npm test
 ```
 
+Example test environment variables
+
+```bash
+PRIVATE_KEY=123...
+BONDER_PRIVATE_KEY=789...
+ETHEREUM_RPC_PROVIDER=https://1rpc.io/sepolia
+```
+
 ## License
 
 [MIT](LICENSE)

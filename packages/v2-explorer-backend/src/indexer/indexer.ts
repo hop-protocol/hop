@@ -48,6 +48,9 @@ export class Indexer {
       signersOrProviders: Hop.getDefaultProviders(network)
     })
     this.sdk.setProviderUrls(rpcUrls)
+
+    // console.log('sdk providers', this.sdk.signersOrProviders)
+
     this.priceFeed = new PriceFeed({
       coingecko: coingeckoApiKey
     })

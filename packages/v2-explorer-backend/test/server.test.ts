@@ -381,4 +381,14 @@ describe('Server', () => {
     expect(price.priceUsdDisplay).toBeTruthy()
     expect(price.timestampRelative).toBeTruthy()
   }, 10 * 60 * 1000)
+  it.only('/v1/stats/volume', async () => {
+    const res = await request(app).get('/v1/stats/volume').send()
+    const { stats } = res.body
+    console.log(JSON.stringify(stats, null, 2))
+    expect(stats).toBeTruthy()
+    expect(stats.totalVolume).toBeTruthy()
+    expect(stats.totalVolume.totalUsd).toBeTruthy()
+    expect(stats.totalVolume.totalUsdDisplay).toBeTruthy()
+    expect(stats.tokenVolumes).toBeTruthy()
+  }, 10 * 60 * 1000)
 })

@@ -11,6 +11,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@/app/hooks/useTheme'
 import { useRouter } from 'next/navigation'
+import { TotalVolumeStats } from './stats/TotalVolumeStats'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
@@ -89,6 +90,7 @@ export function Header () {
             <Tab label="Prices" value="prices" />
           </Tabs>
         </Box>
+        <TotalVolumeStats />
       </Box>
       <Box>
         <IconButton onClick={toggleTheme} title="Toggle theme color mode">

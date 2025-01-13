@@ -21,6 +21,17 @@ export interface TransferSent extends BaseType {
   hops: HopStruct[]
 }
 
+type VolumeStatsInput = {
+  startTimestamp?: number
+  endTimestamp?: number
+}
+
+type VolumeStatsResult = {
+  tokenSymbol: string
+  tokenDecimals: number
+  totalVolume: string
+}
+
 export class TransferSentTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfer_sent_events (
@@ -274,5 +285,34 @@ export class TransferSentTable extends EventDb {
     }
 
     return data
+  }
+
+  async getVolumeStats(opts: VolumeStatsInput = {}): Promise<VolumeStatsResult> {
+    const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000) } = opts
+
+    const args = [startTimestamp, endTimestamp]
+
+    const query = `
+      SELECT
+        t.symbol AS "tokenSymbol",
+        t.decimals AS "tokenDecimals",
+        SUM(e.amount_out) AS "totalVolume"
+      FROM
+        transfer_sent_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
+      JOIN
+        paths p ON e.path_id = p.path_id
+      JOIN
+        tokens t ON p.token = t.address
+      WHERE
+        ec.block_timestamp >= $1
+        AND ec.block_timestamp <= $2
+      GROUP BY
+        t.symbol, t.decimals
+    `
+
+    const results = await this.db.any(query, args)
+    return results
   }
 }

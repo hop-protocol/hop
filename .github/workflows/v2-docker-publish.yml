@@ -2,26 +2,18 @@ name: Publish Packages to Docker Hub
 on:
   push:
     branches:
-      - staging
-      - production
+      - v2
     paths:
-      - 'packages/hop-node/**'
-      - 'packages/api/**'
-      - 'packages/explorer-backend/**'
-      - 'packages/stats-worker/**'
-      - 'packages/v2-hop-node/**'
+      - 'packages/v2-explorer-backend/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
-#@dev Do not cache node_modules. It takes longer to inject/extract the cache than to install the dependencies.
-# https://github.com/reproducible-containers/buildkit-cache-dance/issues/13#issuecomment-1921725152
-
 jobs:
   publishable-packages:
-    name: Check for package that can be published
+    name: Check for v2 packages that can be published
     uses: ./.github/workflows/publishable-packages.yml
     with:
-      package-names: 'hop-node:api:explorer-backend:stats-worker:v2-hop-node'
+      package-names: 'v2-explorer-backend'
 
   publish-docker:
     name: Publish Docker
@@ -47,12 +39,7 @@ jobs:
       - name: Set Docker Tags
         id: set-docker-tag
         run: |
-          # Modify any discrepancies in the package name vs the image name
-          if [ "${{ matrix.package-name }}" == "api" ]; then
-            echo "IMAGE_NAME=hopprotocol/hop-api" >> $GITHUB_OUTPUT
-          else
-            echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
-          fi
+          echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
 
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0

@@ -72,6 +72,29 @@ export type ApproveSendInput = {
   amount: BigNumberish
 }
 
+export type DecodedSendInputData = {
+  to: string
+  amount: string
+  hops: Array<{
+    pathId: string
+    maxBonderFee: string
+    minAmountOut: string
+    attestedClaimId: string
+  }>
+}
+
+export type DecodedBondInputData = {
+  pathId: string
+  claimId: string
+  bonderFee: string
+  nextHops: Array<{
+    pathId: string
+    maxBonderFee: string
+    minAmountOut: string
+    attestedClaimId: string
+  }>
+}
+
 export type BondInput = {
   pathId: string
   claimId: string
@@ -1234,6 +1257,10 @@ export class RailsGateway extends Base {
 
   get helpers() {
     return {
+      getAbi(): typeof RailsGateway__factory.abi {
+        return RailsGateway__factory.abi
+      },
+
       getNeedsApprovalForSend: async ({ pathId, amount, account }: GetNeedsApprovalForSendInput): Promise<boolean> => {
         const chainId = this.chainId
 
@@ -1364,6 +1391,35 @@ export class RailsGateway extends Base {
 
       getComputedNextHopsHash: ({ nextHops }: GetNextHopsHashInput): string => {
         return RailsGateway.getComputedNextHopsHash({ nextHops })
+      },
+
+      decodeSendTxInputData: async (data: string): Promise<DecodedSendInputData> => {
+        const iface = new utils.Interface(RailsGateway__factory.abi)
+        const decodedData = iface.decodeFunctionData('send', data)
+        const { to, amount } = decodedData
+        const hops = decodedData.hops.map(({ pathId, maxBonderFee, minAmountOut, attestedClaimId }: HopStruct) => {
+          return { pathId, maxBonderFee, minAmountOut, attestedClaimId }
+        })
+        return {
+          to,
+          amount,
+          hops
+        }
+      },
+
+      decodeBondTxInputData: async (data: string): Promise<DecodedBondInputData> => {
+        const iface = new utils.Interface(RailsGateway__factory.abi)
+        const decodedData = iface.decodeFunctionData('bond', data)
+        const { pathId, claimId, bonderFee } = decodedData
+        const nextHops = decodedData.nextHops.map(({ pathId, maxBonderFee, minAmountOut, attestedClaimId }: HopStruct) => {
+          return { pathId, maxBonderFee, minAmountOut, attestedClaimId }
+        })
+        return {
+          pathId,
+          claimId,
+          bonderFee,
+          nextHops
+        }
       }
     }
   }

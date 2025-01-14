@@ -568,7 +568,7 @@ export class Hop extends Base {
   }
 
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
-    const rails = await this.getRailsGateway(toChainId)
+    const rails = this.getRailsGateway(toChainId)
     const pathId = await rails.getPathId({ chainId0: fromChainId, token0: fromToken, chainId1: toChainId, token1: toToken })
     const attestedClaimId = await rails.getHeadClaimId({
       pathId
@@ -819,7 +819,7 @@ export class Hop extends Base {
 
     let transferSentEvent = originalTransferSentEvent
 
-    let transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
+    const transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
     let originalHops : HopStructInput[] = []
 
     if (transferSentEvent) {
@@ -851,7 +851,7 @@ export class Hop extends Base {
           console.log('getBlockNumberFromDate error', err)
         }
 
-        let transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
+        const transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
           transferId: currentTransferId,
           fromBlock: earliestBlock
         })

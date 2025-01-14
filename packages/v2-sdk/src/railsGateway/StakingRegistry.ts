@@ -3,7 +3,7 @@ import { Contract, ethers, Signer, BigNumber, BigNumberish, providers } from 'et
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { ERC20Mintable__factory } from '#contracts/factories/ERC20Mintable__factory.js'
-import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
+import { ConfigError, InputError } from '#error/index.js'
 
 export type GetChallengesInput = {
   challengeId: string

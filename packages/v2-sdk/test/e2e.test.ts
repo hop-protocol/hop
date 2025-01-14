@@ -1,7 +1,7 @@
 import { Hop, HopStructInput, TransferState } from '#index.js'
 import { providers, Wallet, utils, BigNumber } from 'ethers'
 import dotenv from 'dotenv'
-import { getComputedTransferDataHash, getComputedTransferId, getInitialId } from '#utils/index.js'
+import { getComputedTransferDataHash } from '#utils/index.js'
 import { addresses } from '#addresses/sepolia.js'
 
 dotenv.config()
@@ -288,7 +288,7 @@ describe('Sdk - RailsGateway - e2e - one hop', () => {
 
     const minHopStake = await stakingRegistry.minHopStake()
     console.log('minHopStake:', formatUnits(minHopStake, 18))
-    let shouldStake = stakedBalance.lt(minHopStake)
+    const shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
         amount: minHopStake,
@@ -802,7 +802,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       await approveTx.wait()
     }
 
-    let bondTxHash2 = ''
+    const bondTxHash2 = ''
     const shouldBond2 = !bondTxHash2 // debug
     let bondTx2: any
     if (shouldBond2) {
@@ -910,7 +910,7 @@ async function updateClaimChain(sdk: any, transferSentEvent: any, fromChainId: s
   })
 
   while (index < transferDataHashes.length - 1) {
-    const item = transferDataHashes[index + 1];
+    const item = transferDataHashes[index + 1]
 
     const transferDataHash = await sdk.getRailsGateway(fromChainId).getTransferDataHash({
       to: item.to,
@@ -932,6 +932,6 @@ async function updateClaimChain(sdk: any, transferSentEvent: any, fromChainId: s
     console.log('updateClaimChainTx tx', index, updateClaimChainTx.hash)
     await updateClaimChainTx.wait()
 
-    index++;
+    index++
   }
 }

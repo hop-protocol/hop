@@ -1,4 +1,4 @@
-import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
+import { Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 

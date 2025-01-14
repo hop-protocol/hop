@@ -192,7 +192,27 @@ export class Indexer {
           console.error('event db found in pgDb', event.context.eventName)
           continue
         }
-        await this.pgDb.events[event.context.eventName].upsertItem({ ...event.decoded, context: event.context })
+
+        const upsertData = { ...event.decoded, context: event.context }
+
+        // TODO: better way of handling this
+        if (event.context.eventName === 'TransferSent') {
+          try {
+            const dataDecoded = await this.sdk.getRailsGateway(chainId).helpers.decodeSendTxInputData(event.context.data)
+            upsertData.context.dataDecoded = dataDecoded
+          } catch (err: any) {
+            console.warn('decodeSendTxInputData error', err)
+          }
+        } else if (event.context.eventName === 'TransferBonded') {
+          try {
+            const dataDecoded = await this.sdk.getRailsGateway(chainId).helpers.decodeBondTxInputData(event.context.data)
+            upsertData.context.dataDecoded = dataDecoded
+          } catch (err: any) {
+            console.warn('decodeSendTxInputData error', err)
+          }
+        }
+
+        await this.pgDb.events[event.context.eventName].upsertItem(upsertData)
         await _db.putSyncState(chainId, { fromBlock, toBlock })
         _events.push(event)
       }

@@ -20,7 +20,8 @@ export const selectEventContextSql = `
   ec.gas_used AS "context.gasUsed",
   ec.gas_price AS "context.gasPrice",
   ec.status AS "context.status",
-  ec.data AS "context.data"
+  ec.data AS "context.data",
+  ec.data_decoded AS "context.dataDecoded"
 `
 
 export function getItemsWithContext (items: any[]) {
@@ -41,7 +42,8 @@ export function getItemsWithContext (items: any[]) {
       gasUsed: x['context.gasUsed'],
       gasPrice: Math.round(x['context.gasPrice']).toString(), // TODO: remove Math.round and toString
       status: x['context.status'],
-      data: x['context.data']
+      data: x['context.data'],
+      dataDecoded: x['context.dataDecoded'],
     }
 
     // Omit the properties that begin with 'context' from x
@@ -80,14 +82,15 @@ export function getInsertEventContextSqlData (context: any) {
     gasUsed: context.gasUsed,
     gasPrice: context.gasPrice,
     status: context.status,
-    data: context.data
+    data: context.data,
+    dataDecoded: context.dataDecoded,
   }
 
   const insertEventContextSql = `
     INSERT INTO event_context (
-      id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, status, data
+      id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, status, data, data_decoded
     )
-    VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data})'}
+    VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data}, ${dataDecoded})'}
     ON CONFLICT (chain_id, transaction_hash, log_index)
     ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}'}
   `

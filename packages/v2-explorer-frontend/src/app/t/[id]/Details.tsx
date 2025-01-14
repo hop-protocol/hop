@@ -102,20 +102,20 @@ export function Details(props: any) {
         <TableContainer>
           <Table width="100%">
             <TableBody>
-              <DetailRow loading={loading} label="Source Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
-              <DetailRow loading={loading} label="Source Transaction Hash" value={sourceTx.transactionHash} link={sourceTx.transactionExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction Status" value={sourceTx.statusDisplay} />
-              <DetailRow loading={loading} label="Source Transaction From Address" value={sourceTx.from} link={sourceTx.fromExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction To Address" value={sourceTx.to} link={sourceTx.toExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction Value" value={sourceTx.valueDisplay} />
-              <DetailRow loading={loading} label="Source Transaction Gas Limit" value={sourceTx.gasLimit} />
-              <DetailRow loading={loading} label="Source Transaction Gas Used" value={sourceTx.gasUsed} />
-              <DetailRow loading={loading} label="Source Transaction Gas Price" value={sourceTx.gasPriceDisplay} />
-              <DetailRow loading={loading} label="Source Transaction Nonce" value={sourceTx.nonce} />
-              <DetailRow loading={loading} label="Source Transaction Block Number" value={sourceTx.blockNumber} />
-              <DetailRow loading={loading} label="Source Transaction Calldata" value={sourceTx.data} maxWidth={300} />
+              <DetailRow loading={loading} label="Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
+              <DetailRow loading={loading} label="Hash" value={sourceTx.transactionHash} link={sourceTx.transactionExplorerUrl} />
+              <DetailRow loading={loading} label="Status" value={sourceTx.statusDisplay} />
+              <DetailRow loading={loading} label="From Address" value={sourceTx.from} link={sourceTx.fromExplorerUrl} />
+              <DetailRow loading={loading} label="To Address" value={sourceTx.to} link={sourceTx.toExplorerUrl} />
+              <DetailRow loading={loading} label="Value" value={sourceTx.valueDisplay} />
+              <DetailRow loading={loading} label="Gas Limit" value={sourceTx.gasLimit} />
+              <DetailRow loading={loading} label="Gas Used" value={sourceTx.gasUsed} />
+              <DetailRow loading={loading} label="Gas Price" value={sourceTx.gasPriceDisplay} />
+              <DetailRow loading={loading} label="Nonce" value={sourceTx.nonce} />
+              <DetailRow loading={loading} label="Block Number" value={sourceTx.blockNumber} />
+              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} maxWidth={300} />
               {!!sourceTx.dataDecoded && (
-                <DetailRow loading={loading} label="Source Transaction Decoded Calldata" value={<pre>{JSON.stringify(sourceTx.dataDecoded, null, 2)}</pre>} maxWidth={200} />
+                <DetailRow loading={loading} label="Decoded Calldata" value={<pre style={{ overflow: 'auto' }}>{JSON.stringify(sourceTx.dataDecoded, null, 2)}</pre>} maxWidth={300} />
               )}
             </TableBody>
           </Table>
@@ -126,6 +126,7 @@ export function Details(props: any) {
 
       const {
         data,
+        dataDecoded,
         blockTimestamp,
         blockTimestampRelative,
         timestampDisplay,
@@ -173,17 +174,20 @@ export function Details(props: any) {
                     <DetailRow loading={loading} label="Bonder Fee" value={bonderFeeDisplay} />
                     <DetailRow loading={loading} label="Recipient" value={to} link={toExplorerUrl} />
                     <DetailRow loading={loading} label="Path ID" value={pathId} />
-                    <DetailRow loading={loading} label="Transaction Hash" value={transactionHash} link={transactionExplorerUrl} />
-                    <DetailRow loading={loading} label="Transaction Status" value={statusDisplay} />
+                    <DetailRow loading={loading} label="Hash" value={transactionHash} link={transactionExplorerUrl} />
+                    <DetailRow loading={loading} label="Status" value={statusDisplay} />
                     <DetailRow loading={loading} label="From Address (Bonder)" value={fromDisplay} link={fromExplorerUrl} />
                     <DetailRow loading={loading} label="To Address" value={txTo} link={txToExplorerUrl} />
-                    <DetailRow loading={loading} label="Transaction Value" value={valueDisplay} />
+                    <DetailRow loading={loading} label="Value" value={valueDisplay} />
                     <DetailRow loading={loading} label="Gas Limit" value={gasLimit} />
                     <DetailRow loading={loading} label="Gas Used" value={gasUsed} />
                     <DetailRow loading={loading} label="Gas Price" value={gasPriceDisplay} />
                     <DetailRow loading={loading} label="Nonce" value={nonce} />
                     <DetailRow loading={loading} label="Block Number" value={blockNumber} />
                     <DetailRow loading={loading} label="Calldata" value={data} maxWidth={300} />
+                    {!!dataDecoded && (
+                      <DetailRow loading={loading} label="Decoded Calldata" value={<pre style={{ overflow: 'auto' }}>{JSON.stringify(dataDecoded, null, 2)}</pre>} maxWidth={300} />
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>

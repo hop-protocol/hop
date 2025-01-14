@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid'
+import { stringifyBigNumbers } from '#utils/stringifyBigNumbers.js'
 
 export const eventContextIdCreationSql = `
   event_context_id TEXT NOT NULL,
@@ -83,7 +84,7 @@ export function getInsertEventContextSqlData (context: any) {
     gasPrice: context.gasPrice,
     status: context.status,
     data: context.data,
-    dataDecoded: context.dataDecoded,
+    dataDecoded: stringifyBigNumbers(context.dataDecoded),
   }
 
   const insertEventContextSql = `
@@ -92,7 +93,7 @@ export function getInsertEventContextSqlData (context: any) {
     )
     VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data}, ${dataDecoded})'}
     ON CONFLICT (chain_id, transaction_hash, log_index)
-    ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}'}
+    ${'DO UPDATE SET log_index = ${logIndex}, chain_id = ${chainId}, transaction_hash = ${transactionHash}, transaction_index = ${transactionIndex}, block_number = ${blockNumber}, block_timestamp = ${blockTimestamp}, from_address = ${from}, to_address = ${to}, value = ${value}, nonce = ${nonce}, gas_limit = ${gasLimit}, gas_used = ${gasUsed}, gas_price = ${gasPrice}, status = ${status}, data = ${data}, data_decoded = ${dataDecoded}'}
   `
 
   return {

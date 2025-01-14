@@ -114,6 +114,9 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Source Transaction Nonce" value={sourceTx.nonce} />
               <DetailRow loading={loading} label="Source Transaction Block Number" value={sourceTx.blockNumber} />
               <DetailRow loading={loading} label="Source Transaction Calldata" value={sourceTx.data} maxWidth={300} />
+              {!!sourceTx.dataDecoded && (
+                <DetailRow loading={loading} label="Source Transaction Decoded Calldata" value={<pre>{JSON.stringify(sourceTx.dataDecoded, null, 2)}</pre>} maxWidth={200} />
+              )}
             </TableBody>
           </Table>
         </TableContainer>

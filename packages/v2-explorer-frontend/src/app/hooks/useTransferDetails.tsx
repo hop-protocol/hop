@@ -100,6 +100,7 @@ export const useTransferDetails = (props: any) => {
         : null,
     blockNumber: context?.blockNumber,
     data: context?.data,
+    dataDecoded: context?.dataDecoded,
     tokenAddress: token?.address,
     tokenDisplay: tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null,
     tokenExplorerUrl: token?.tokenExplorerUrl,
@@ -116,6 +117,7 @@ export const useTransferDetails = (props: any) => {
 
     return {
       data: destinationContext?.data,
+      dataDecoded: destinationContext?.dataDecoded,
       blockTimestamp: destinationContext?.blockTimestamp,
       blockTimestampRelative: destinationContext?.blockTimestampRelative,
       timestampDisplay: formatField(destinationContext?.blockTimestamp, (timestamp) =>

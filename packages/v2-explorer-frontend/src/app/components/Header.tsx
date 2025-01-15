@@ -62,6 +62,8 @@ export function Header () {
     navigate(routes[newValue])
   }
 
+  const logoImage = dark ? logoDark : logo
+
   return (
     <Box width="100%" mb={4} display="flex" justifyContent="space-between">
       <Box display="flex" className={styles.container}>
@@ -70,7 +72,7 @@ export function Header () {
             <Typography variant="h4" color="textPrimary">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <Box mr={1}>
-                <img src={dark ? logoDark : logo} alt="Hop" />
+                <img src={logoImage} alt="Hop" />
                 </Box><Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
               </Box>
             </Typography>
@@ -90,7 +92,7 @@ export function Header () {
             <Tab label="Prices" value="prices" />
           </Tabs>
         </Box>
-        <TotalVolumeStats />
+      <TotalVolumeStats />
       </Box>
       <Box>
         <IconButton onClick={toggleTheme} title="Toggle theme color mode">

@@ -11,7 +11,7 @@ export const TotalVolumeStats: React.FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Typography variant="body2" gutterBottom>
+      <Typography variant="body2" gutterBottom color="secondary">
         Total Volume
       </Typography>
       <Typography variant="body1" color="primary">

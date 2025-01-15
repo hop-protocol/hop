@@ -4,6 +4,7 @@ import { useTheme } from '@/app/hooks/useTheme'
 import Box from '@mui/material/Box'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
+import { LoadingText } from '@/app/components/LoadingText'
 
 const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
 const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg'
@@ -11,12 +12,15 @@ const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-
 export function SiteWrapper ({ children }: any) {
   const { theme, dark } = useTheme()
 
+  const backgroundImage = dark ? bgImageDark : bgImage;
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingText />}>
       <div
         style={{
           alignItems: 'stretch',
-          backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundColor: dark ? 'rgb(39, 35, 50)' : 'inherit',
           // backgroundColor: theme?.palette?.background?.default,
           backgroundSize: '120%',
           transition: 'background 0.15s ease-out',

@@ -6,13 +6,42 @@ import { useQueryParams } from '@/app/hooks/useQueryParams'
 
 const ThemeContext = createContext(null)
 
-export const ThemeProvider = ({ children }: any) => {
+function setCookie(name: string, value: string, days?: number): void {
+  let expires = ''
+  if (days) {
+    const date = new Date()
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
+    expires = `; expires=${date.toUTCString()}`
+  }
+  document.cookie = `${name}=${value || ''}${expires}; path=/`
+}
+
+function getCookie(name: string): string | null {
+  const nameEQ = `${name}=`
+  const cookies = document.cookie.split(';')
+  for (let i = 0; i < cookies.length; i++) {
+    let c = cookies[i].trim()
+    if (c.startsWith(nameEQ)) {
+      return c.substring(nameEQ.length, c.length)
+    }
+  }
+  return null
+}
+
+export const ThemeProvider = ({ children, initialTheme }: any) => {
   const { queryParams, updateQueryParams } = useQueryParams()
 
   const [dark, setDark] = useState(() => {
     try {
       if (queryParams.theme) {
         return queryParams.theme === 'dark'
+      }
+      if (initialTheme) {
+        return initialTheme === 'dark'
+      }
+      const cookie = getCookie('theme')
+      if (cookie) {
+        return cookie === 'dark'
       }
       const cached = localStorage.getItem('darkMode')
       if (typeof cached === 'string') {
@@ -29,9 +58,18 @@ export const ThemeProvider = ({ children }: any) => {
   }
 
   useEffect(() => {
+      const cookie = getCookie('theme')
+      if (cookie) {
+        setDark(cookie === 'dark')
+      }
+      // updateQueryParams({ theme: undefined })
+  }, [])
+
+  useEffect(() => {
     try {
-      updateQueryParams({ theme: dark ? 'dark' : 'light' })
-      localStorage.setItem('darkMode', `${dark}`)
+      setCookie('theme', dark ? 'dark' : 'light', 7)
+      // localStorage.setItem('darkMode', `${dark}`)
+      // updateQueryParams({ theme: dark ? 'dark' : 'light' })
     } catch (err) {
       // console.error(err)
     }

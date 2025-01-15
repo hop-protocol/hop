@@ -40,10 +40,10 @@ export function ExplorerEvents (props: any) {
   })
 
   useEffect(() => {
-    if (clientEvents.length) {
+    if (clientEvents?.length) {
       setEvents(clientEvents)
     }
-    if (!clientEvents.length && (events.length !== clientEvents.length && !clientEventsLoading)) {
+    if (!clientEvents?.length && (events?.length !== clientEvents?.length && !clientEventsLoading)) {
       setEvents([])
     }
     setLoading(false)
@@ -92,11 +92,11 @@ export function ExplorerEvents (props: any) {
     },
   ]
 
-  const rows = events.map((event: any) => {
+  const rows = events?.map((event: any) => {
     let status = (
       <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
     )
-    const isBonded = event.transferBondedEvents.length > 0 // TODO
+    const isBonded = event.transferBondedEvents?.length > 0 // TODO
     if (isBonded) {
       status = (
         <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />

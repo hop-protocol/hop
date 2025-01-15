@@ -116,7 +116,7 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Gas Price" value={sourceTx.gasPriceDisplay} />
               <DetailRow loading={loading} label="Nonce" value={sourceTx.nonce} />
               <DetailRow loading={loading} label="Block Number" value={sourceTx.blockNumber} />
-              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} />
+              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} maxWidth={600} />
               {!!sourceTx.dataDecoded && (
                 <DetailRow loading={loading} label="Decoded Calldata" value={
                   <DecodedSendDataTable data={sourceTx.dataDecoded} />
@@ -189,7 +189,7 @@ export function Details(props: any) {
                     <DetailRow loading={loading} label="Gas Price" value={gasPriceDisplay} />
                     <DetailRow loading={loading} label="Nonce" value={nonce} />
                     <DetailRow loading={loading} label="Block Number" value={blockNumber} />
-                    <DetailRow loading={loading} label="Calldata" value={data} maxWidth={300} />
+                    <DetailRow loading={loading} label="Calldata" value={data} maxWidth={600} />
                     {!!dataDecoded && (
                       <DetailRow loading={loading} label="Decoded Calldata" value={
                         <DecodedBondDataTable data={dataDecoded} />

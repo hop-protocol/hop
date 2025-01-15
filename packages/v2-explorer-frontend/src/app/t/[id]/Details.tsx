@@ -46,12 +46,12 @@ export function Details(props: any) {
   }
 
   return (
-    <Box>
-      <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
+    <Box width="100%" maxWidth="1200px">
+      <Box mb={4} ml={2} width="100%" display="flex" justifyContent="flex-start">
         <IconButton onClick={navigateBack} aria-label="back">
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" color="textPrimary">Transfer Details</Typography>
+        <Typography variant="h4" color="textPrimary">Transfer Details</Typography>
       </Box>
 
       <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }} >

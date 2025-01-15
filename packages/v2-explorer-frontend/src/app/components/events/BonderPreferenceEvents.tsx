@@ -93,7 +93,7 @@ export function BonderPreferenceEvents () {
 
   return (
     <Box>
-      <Table title={`${eventName} Events`} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
+      <Table title={<><strong>{eventName}</strong> Events</>} titleVariant="h5" headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>
           <Typography variant="body1" color="secondary">Filter</Typography>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Token Prices',
 }
 
-export default async function DetailsPage() {
+export default async function PricesPage() {
 
   return (
     <Suspense fallback={<LoadingText />}>

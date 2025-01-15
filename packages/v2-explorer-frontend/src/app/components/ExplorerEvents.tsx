@@ -177,7 +177,7 @@ export function ExplorerEvents (props: any) {
   }
 
   return (
-    <Box width="100%" maxWidth="2000px" m="0 auto">
+    <Box width="100%" maxWidth="2800px" m="0 auto">
       <Table title={'Transfers'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} minWidth={'2100px'} filters={
         <Box display="flex" justifyContent="flex-end" alignItems="center">
           <Box mr={2}>

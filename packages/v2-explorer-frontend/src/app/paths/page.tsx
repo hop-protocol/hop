@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Paths',
 }
 
-export default async function DetailsPage() {
+export default async function PathsPage() {
 
   return (
     <Suspense fallback={<LoadingText />}>

@@ -26,7 +26,11 @@ export function SiteWrapper ({ children }: any) {
           transition: 'background 0.15s ease-out',
           minHeight: '100vh'
         }}>
-        <Box p={4} m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+        <Box
+          sx={{
+            p: { xs: 2, sm: 4 },
+          }}
+            m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <Header />
           {children}
           <Footer />

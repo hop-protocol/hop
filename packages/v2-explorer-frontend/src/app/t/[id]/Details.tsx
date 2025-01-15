@@ -13,6 +13,8 @@ import Paper from '@mui/material/Paper'
 import { makeStyles } from '@mui/styles'
 import { useTransferDetails } from '@/app/hooks/useTransferDetails'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
+import { DecodedSendDataTable } from '@/app/components/DecodedData/DecodedSendDataTable'
+import { DecodedBondDataTable } from '@/app/components/DecodedData/DecodedBondDataTable'
 import { DetailRow } from './DetailRow'
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -47,14 +49,15 @@ export function Details(props: any) {
 
   return (
     <Box width="100%" maxWidth="1200px">
-      <Box mb={4} ml={2} width="100%" display="flex" justifyContent="flex-start">
+      <Box mb={4} ml={0} width="100%" display="flex" justifyContent="flex-start">
         <IconButton onClick={navigateBack} aria-label="back">
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h4" color="textPrimary">Transfer Details</Typography>
       </Box>
 
-      <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }} >
+      <Paper elevation={0} style={{ padding: 8, marginBottom: 16, background: 'transparent' }}
+      >
         <TableContainer>
           <Table width="100%">
             <TableBody>
@@ -113,9 +116,11 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Gas Price" value={sourceTx.gasPriceDisplay} />
               <DetailRow loading={loading} label="Nonce" value={sourceTx.nonce} />
               <DetailRow loading={loading} label="Block Number" value={sourceTx.blockNumber} />
-              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} maxWidth={300} />
+              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} />
               {!!sourceTx.dataDecoded && (
-                <DetailRow loading={loading} label="Decoded Calldata" value={<pre style={{ overflow: 'auto' }}>{JSON.stringify(sourceTx.dataDecoded, null, 2)}</pre>} maxWidth={300} />
+                <DetailRow loading={loading} label="Decoded Calldata" value={
+                  <DecodedSendDataTable data={sourceTx.dataDecoded} />
+                } />
               )}
             </TableBody>
           </Table>
@@ -186,7 +191,9 @@ export function Details(props: any) {
                     <DetailRow loading={loading} label="Block Number" value={blockNumber} />
                     <DetailRow loading={loading} label="Calldata" value={data} maxWidth={300} />
                     {!!dataDecoded && (
-                      <DetailRow loading={loading} label="Decoded Calldata" value={<pre style={{ overflow: 'auto' }}>{JSON.stringify(dataDecoded, null, 2)}</pre>} maxWidth={300} />
+                      <DetailRow loading={loading} label="Decoded Calldata" value={
+                        <DecodedBondDataTable data={dataDecoded} />
+                      } />
                     )}
                   </TableBody>
                 </Table>

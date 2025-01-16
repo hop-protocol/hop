@@ -24,7 +24,8 @@ const useStyles = makeStyles((theme: any) => ({
       [theme.breakpoints.down('md')]: {
         display: 'flex',
         marginTop: '1rem',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        alignItems: 'flex-start'
       }
     },
     '& > div > div': {
@@ -33,7 +34,8 @@ const useStyles = makeStyles((theme: any) => ({
       }
     },
     [theme.breakpoints.down('md')]: {
-      flexDirection: 'column'
+      flexDirection: 'column',
+      alignItems: 'flex-start'
     }
   }
 }))
@@ -54,7 +56,7 @@ export type Row = {
 }
 
 type Props = {
-  title: string
+  title: string | JSX.Element
   headers: Header[]
   rows: Row[][]
   showNextButton: boolean
@@ -66,10 +68,11 @@ type Props = {
   onRowClick?: any
   filters?: any
   minWidth?: string
+  titleVariant?: string
 }
 
 export function Table (props: Props) {
-  const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick, minWidth = '0px' } = props
+  const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick, minWidth = '0px', titleVariant = 'h4' } = props
   const styles = useStyles()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
@@ -87,11 +90,11 @@ export function Table (props: Props) {
   return (
     <Box>
       <Box mb={2} display="flex" alignItems="center" justifyContent="space-between" className={styles.titleContainer}>
-        <Typography variant="h4" color="textPrimary">{title}</Typography>
+        <Typography variant={titleVariant as any} color="textPrimary">{title}</Typography>
         {props.filters ? props.filters : null}
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between">
-        <Box width="100%" mr={4}>
+        <Box width="100%" mr={4} overflow="auto">
           <TableContainer>
             <_Table width="100%" style={{ minWidth }}>
               <TableHead>

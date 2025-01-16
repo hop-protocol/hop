@@ -32,8 +32,8 @@ export function Events () {
   ]
 
   return (
-    <Box>
-      <Typography variant="h3" color="textPrimary">Events</Typography>
+    <Box width="100%" maxWidth="2000px">
+      <Typography variant="h4" color="textPrimary">Events</Typography>
       <Box width="100%" mt={2} mb={6} display="flex" flexDirection="column">
         <Box mb={8}>
           <Box width="100%" maxWidth="2000px" m="0 auto">

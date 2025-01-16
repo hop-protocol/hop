@@ -12,9 +12,9 @@ const queryClient = new QueryClient({
   }
 })
 
-export function Providers({ children }: any) {
+export function Providers({ children, initialTheme  }: any) {
   return (
-    <CustomThemeProvider>
+    <CustomThemeProvider initialTheme={initialTheme}>
       <QueryClientProvider client={queryClient}>
         <SiteWrapper>
           {children}

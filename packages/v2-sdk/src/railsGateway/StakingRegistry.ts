@@ -1,9 +1,17 @@
-import { Base, BaseConfig, TxOverrides } from '#common/index.js'
+import { Base, BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
+import { Addresses } from '#addresses/types.js'
 import { Contract, ethers, Signer, BigNumber, BigNumberish, providers } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { ERC20Mintable__factory } from '#contracts/factories/ERC20Mintable__factory.js'
 import { ConfigError, InputError } from '#error/index.js'
+import { BonderPreference, BonderPreferenceEventFetcher, BonderPreferenceIndexes } from '#railsGateway/events/BonderPreference.js'
+
+export type EventFetcher = BonderPreferenceEventFetcher
+
+export enum EventName {
+  BonderPreference = 'BonderPreference'
+}
 
 export type GetChallengesInput = {
   challengeId: string
@@ -107,7 +115,11 @@ export type MintInput = {
   amount: BigNumberish
 }
 
-export type StakingRegistryConstructorInput = BaseConfig & {
+export type StakingRegistryConstructorInput = {
+  network?: string
+  gasPriceMultiplier?: number
+  signersOrProviders?: SignersOrProviders
+  contractAddresses?: Addresses
   chainId: BigNumberish
   signerOrProvider?: Signer | providers.Provider
 }
@@ -116,6 +128,10 @@ export class StakingRegistry extends Base {
   chainId: BigNumberish
 
   constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network }: StakingRegistryConstructorInput) {
+    signersOrProviders ??= {}
+    if (signerOrProvider) {
+      signersOrProviders[chainId?.toString()] = signerOrProvider
+    }
     super({
       network,
       contractAddresses,
@@ -441,6 +457,38 @@ export class StakingRegistry extends Base {
   async signalPreference (input: SignalPreferenceInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.signalPreference(input, txOverrides)
     return this.sendTransaction(populatedTx)
+  }
+
+  getEventFetcher(eventName: EventName) {
+    const chainId = this.chainId
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const address = this.getStakingRegistryAddress()
+    if (!address) {
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
+    }
+
+    const eventFetcher: Record<EventName, any> = {
+      [EventName.BonderPreference]: BonderPreferenceEventFetcher,
+    }
+
+    const EventFetcherClass = eventFetcher[eventName]
+    if (!EventFetcherClass) {
+      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
+    }
+
+    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
+  }
+
+  getEventNames (): string[] {
+    return StakingRegistry.getEventNames()
+  }
+
+  static getEventNames (): string[] {
+    return Object.keys(EventName).sort()
   }
 }
 

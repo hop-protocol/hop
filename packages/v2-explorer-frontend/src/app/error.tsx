@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { Suspense } from 'react'
+import { LoadingText } from '@/app/components/LoadingText'
 
 export const metadata: Metadata = {
   title: 'Error'
@@ -23,7 +24,7 @@ export default function ErrorPage ({
   }, [error])
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingText />}>
       <Box>
         <Box mb={4}>
           <Typography variant="subtitle1" color="textPrimary">

@@ -81,7 +81,7 @@ export function Paths () {
   }
 
   return (
-    <Box>
+    <Box width="100%" maxWidth="1200px">
       <Table title={'Paths'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>

@@ -118,8 +118,7 @@ export class Indexer {
   }
 
   async syncEvents (): Promise<any[]> {
-    // const l1Events = ['BundleForwarded', 'BundleReceived']
-    const l1Events: any[] = ['BonderPreference']
+    const l1Events = ['BundleForwarded', 'BundleReceived']
     const baseEvents = [
       'BundleSet',
       'BundleCommitted',
@@ -131,11 +130,12 @@ export class Indexer {
       'TransferBonded',
       'ClaimPosted',
       'ClaimChainUpdated',
+      'BonderPreference'
     ]
 
     const _events: any[] = []
 
-    for (const _chainId in this.chainIds) {
+    const promises = Object.keys(this.chainIds).map(async (_chainId: string) => {
       const chainId = Number(_chainId)
       const isL1 = this.getIsL1(chainId)
       let _db: any
@@ -150,7 +150,7 @@ export class Indexer {
       }
 
       if (!_db) {
-        continue
+        return
       }
 
       const syncState = await _db.getSyncState(chainId)
@@ -159,7 +159,7 @@ export class Indexer {
       const provider = this.sdk.getProvider(chainId)
       if (!provider) {
         console.error('provider not found for chainId', chainId)
-        continue
+        return
       }
       let fromBlock = this.startBlocks[chainId]
       let headBlock = await provider.getBlockNumber()
@@ -173,7 +173,7 @@ export class Indexer {
         //   fromBlock = 866229
         // }
         // if (chainId.toString() === '84532') {
-        //   fromBlock = 16943332
+        //   fromBlock = 20620236
         // }
         // if (chainId.toString() === '11155420') {
         //   fromBlock = 18925085
@@ -183,7 +183,7 @@ export class Indexer {
 
       console.log('get', eventNames, 'chainId', chainId, 'fromBlock', fromBlock, 'toBlock', toBlock)
       const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })
-      console.log('events', eventNames, events.length)
+      console.log('events', eventNames, events.length, fromBlock, toBlock, chainId)
       for (const event of events) {
         console.log('event', event)
 
@@ -217,7 +217,9 @@ export class Indexer {
         _events.push(event)
       }
       await _db.putSyncState(chainId, { fromBlock, toBlock })
-    }
+    })
+
+    await Promise.all(promises)
 
     return _events
   }

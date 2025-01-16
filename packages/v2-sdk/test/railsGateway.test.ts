@@ -469,6 +469,7 @@ describe('RailsGateway', () => {
   it('should get event names', async () => {
     const eventNames = RailsGateway.getEventNames()
     expect(eventNames.length > 0).toBeTruthy()
+    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
   })
   it.skip('should get transfer sent events', async () => {
     const chainId = 11155111

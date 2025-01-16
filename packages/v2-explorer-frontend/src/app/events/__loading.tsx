@@ -14,7 +14,7 @@ export default function Loading() {
   return (
     <Box sx={{ width: '100%', maxWidth: '900px' }}>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
-        <Typography variant="h3" color="textPrimary">Events</Typography>
+        <Typography variant="h4" color="textPrimary">Events</Typography>
       </Box>
       <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }}>
         <Box sx={{ width: '400px' }}>

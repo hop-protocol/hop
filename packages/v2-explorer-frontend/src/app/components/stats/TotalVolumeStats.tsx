@@ -11,10 +11,10 @@ export const TotalVolumeStats: React.FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Typography variant="body2" gutterBottom>
+      <Typography variant="h5" gutterBottom color="secondary">
         Total Volume
       </Typography>
-      <Typography variant="body1" color="primary">
+      <Typography variant="h4" color="primary">
         {volumeStats?.stats?.totalVolume?.totalUsdDisplay ?? ''}
       </Typography>
     </Box>

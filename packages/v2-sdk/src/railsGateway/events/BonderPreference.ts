@@ -1,6 +1,6 @@
 import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
-import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
+import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
 // event from RailsGateway
 export interface BonderPreference {
@@ -18,8 +18,8 @@ export type BonderPreferenceIndexes = {
 
 export class BonderPreferenceEventFetcher extends Event<BonderPreference> {
   override eventName = 'BonderPreference'
-  override abi = RailsGateway__factory.abi
-  override factory = RailsGateway__factory
+  override abi = StakingRegistry__factory.abi
+  override factory = StakingRegistry__factory
 
   getBonderFilter (bonder: string): EventFilter {
     return this.getFilterWithIndexes({ bonder })

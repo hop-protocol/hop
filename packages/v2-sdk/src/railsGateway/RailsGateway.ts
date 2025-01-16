@@ -7,6 +7,8 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
+import { ClaimPosted, ClaimPostedEventFetcher, ClaimPostedIndexes } from '#railsGateway/events/ClaimPosted.js'
+import { ClaimChainUpdated, ClaimChainUpdatedEventFetcher, ClaimChainUpdatedIndexes } from '#railsGateway/events/ClaimChainUpdated.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -16,11 +18,13 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimChainUpdatedEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
+  ClaimPosted = 'ClaimPosted',
+  ClaimChainUpdated = 'ClaimChainUpdated',
 }
 
 export type GetEventsInput = {
@@ -369,8 +373,6 @@ export type RailsGatewayConstructorInput = {
   signerOrProvider?: Signer | providers.Provider
 }
 
-export type StakingRegistryConstructorInput = BaseConfig
-
 export class RailsGateway extends Base {
   static EventName = EventName
   chainId: BigNumberish
@@ -404,7 +406,9 @@ export class RailsGateway extends Base {
 
     const eventFetcher: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher
+      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
+      [EventName.ClaimChainUpdated]: ClaimChainUpdatedEventFetcher,
     }
 
     const EventFetcherClass = eventFetcher[eventName]
@@ -2041,7 +2045,7 @@ export class RailsGateway extends Base {
   }
 
   static getEventNames (): string[] {
-    return Object.keys(EventName)
+    return Object.keys(EventName).sort()
   }
 
   static getTransferSentEventSignature (): string {

@@ -675,6 +675,8 @@ export class Hop extends Base {
         subclass = this.messenger
       } else if (this.getRailsGateway(chainId).getEventNames().includes(name)) {
         subclass = this.getRailsGateway(chainId)
+      } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
+        subclass = this.getRailsGateway(chainId).getStakingRegistry()
       }
 
       if (subclass) {

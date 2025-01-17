@@ -34,6 +34,27 @@ describe('StakingRegistry', () => {
   })
 })
 
+  // it.only('should get HOP balance', async () => {
+  //   const chainId = 11155111
+  //   const address = await signer.getAddress()
+  //   const railsGateway = new RailsGateway({
+  //     chainId,
+  //     signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+  //   })
+  //   const balance = await railsGateway.getHopBalance(address)
+  //   expect(balance).toBeDefined()
+  // })
+
+  // it.only('should get min bonder stake', async () => {
+  //   const chainId = 11155111
+  //   const railsGateway = new RailsGateway({
+  //     chainId,
+  //     signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+  //   })
+  //   const amount = await railsGateway.getMinBonderStake()
+  //   expect(amount).toBeDefined()
+  // })
+
 
   // it.skip('TODO should initiate stake hop approval tx', async () => {
   //   const chainId = 11155111

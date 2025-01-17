@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@hop-protocol/sdk": "workspace:*",
+    "@jest/globals": "29.7.0",
     "buffer": "6.0.3",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",

@@ -153,7 +153,7 @@ describe.only('Db', () => {
         const data = { ...event, context }
         await table.upsertItem(data)
 
-        const items = await table.getItems()
+        const items = await table.getItems({ amount: data.amount })
         expect(deterministicStringify(items[0])).toEqual(deterministicStringify(data))
       }, 60 * 1000)
     })

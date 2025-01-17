@@ -13,6 +13,8 @@ import { ConfigError, InputError, InsufficientBalanceError, InsufficientApproval
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
 import { getComputedNextHopsHash } from '../utils/getComputedNextHopsHash.js'
+import { getComputedTransferId } from '../utils/getComputedTransferId.js'
+import { getComputedTransferDataHash, GetComputedTransferDataHashInput } from '../utils/getComputedTransferDataHash.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -134,13 +136,8 @@ export type ConfirmClaimInput = {
 }
 
 export type GetTransferIdInput = {
-  pathId: string
-  to: string
-  adjustedAmount: BigNumberish
-  minAmountOut: BigNumberish
-  totalSent: BigNumberish
-  nonce: BigNumberish
-  attestedCheckpoint: string
+  previousTransferId: string
+  transferDataHash: string
 }
 
 export type WithdrawInput = {
@@ -1376,25 +1373,44 @@ export class RailsGateway extends Base {
         const contract = await this.getRailsGatewayContract()
 
         try {
-          const pathInfoArray = await contract.getPathInfo(pathId)
+          const pathInfo = await this.getPathInfo({ pathId })
 
-          const pathChainId = pathInfoArray[0].toString()
-          const pathToken = pathInfoArray[1]
-          const counterpartChainId = pathInfoArray[2].toString()
-          const counterpartToken = checksumAddress(pathInfoArray[3])
+          const pathChainId = pathInfo.chainId.toString()
+          const pathToken = pathInfo.token
+          const counterpartChainId = pathInfo.counterpartChainId.toString()
+          const counterpartToken = pathInfo.counterpartToken
 
           if (pathChainId !== '0' && counterpartChainId !== '0' && pathToken !== constants.AddressZero && counterpartToken !== constants.AddressZero) {
             return true
           }
         } catch (err: unknown) {
+          if (err instanceof InputError) {
+            return false
+          }
+
           return this.throwError(err) as boolean
         }
 
         return false
       },
 
-      getComputedNextHopsHash: ({ nextHops }: GetNextHopsHashInput): string => {
-        return RailsGateway.getComputedNextHopsHash({ nextHops })
+      getComputedNextHopsHash: (input: GetNextHopsHashInput): string => {
+        return RailsGateway.getComputedNextHopsHash(input)
+      },
+
+      getComputedTransferDataHash: (input: GetComputedTransferDataHashInput): string => {
+        return getComputedTransferDataHash(input)
+      },
+
+      getComputedTransferId : ({ previousTransferId, transferDataHash }: GetTransferIdInput): string => {
+        if (!this.utils.isValidBytes32(previousTransferId)) {
+          throw new InputError(`Invalid previousTransferId "${previousTransferId}"`)
+        }
+        if (!this.utils.isValidBytes32(transferDataHash)) {
+          throw new InputError(`Invalid transferDataHash "${transferDataHash}"`)
+        }
+
+        return getComputedTransferId(previousTransferId, transferDataHash)
       },
 
       decodeSendTxInputData: async (data: string): Promise<DecodedSendInputData> => {

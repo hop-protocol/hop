@@ -1030,7 +1030,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `nextHops` | `HopStruct`[] |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 
 ___
 
@@ -1919,7 +1919,7 @@ ___
 | `formatUSD` | (`amount`: `string` \| `number`) => `string` |
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
-| `getComputedNextHopsHash` | (`nextHops`: [`HopStruct`](interfaces/HopStruct.md)[]) => `string` |
+| `getComputedNextHopsHash` | (`nextHops`: `HopStructInput`[]) => `string` |
 | `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
 | `getComputedTransferDataHash` | (`__namedParameters`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |

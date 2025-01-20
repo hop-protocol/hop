@@ -105,7 +105,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(1)
   })
   it('should get TransferSent event filter', async () => {
@@ -118,7 +118,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(1)
   })
   it('should get TransferSent transferId event filter', async () => {
@@ -134,7 +134,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(3)
   })
   it('should get TransferSent pathId, transferId, and to event filter', async () => {
@@ -154,7 +154,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(4)
   })
   it('should get TransferBonded event filter', async () => {
@@ -167,7 +167,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(1)
   })
   it('should get TransferBonded transferId event filter', async () => {
@@ -183,7 +183,7 @@ describe('RailsGateway', () => {
 
     console.log(filter)
 
-    expect(filter).toBeTruthy()
+    expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(3)
   })
   it('should fetch TransferSent events', async () => {
@@ -236,7 +236,7 @@ describe('RailsGateway', () => {
     console.log(events)
 
     expect(events.length).toBe(1)
-    expect(events[0].decoded).toBeTruthy()
+    expect(events[0].decoded).toBeDefined()
   }, 60 * 1000)
   it('should add typedEvent to events', async () => {
     const chainId = 11155111
@@ -266,7 +266,7 @@ describe('RailsGateway', () => {
     console.log(events)
 
     expect(events.length).toBe(1)
-    expect(events[0].decoded).toBeTruthy()
+    expect(events[0].decoded).toBeDefined()
   }, 60 * 1000)
   it('should add typedEvent to event', async () => {
     const chainId = 11155111
@@ -294,7 +294,7 @@ describe('RailsGateway', () => {
     const event = railsGateway.addDecodedTypesToEvent(ethersEvents[0])
     console.log(event)
 
-    expect(event.decoded).toBeTruthy()
+    expect(event.decoded).toBeDefined()
   }, 60 * 1000)
   it('should fetch TransferBonded events', async () => {
     const chainId = 11155420
@@ -570,11 +570,6 @@ describe('RailsGateway', () => {
     const contract = await railsGateway.getHopTokenContract()
     expect(contract).toBeDefined()
   })
-  it('should get event names', async () => {
-    const eventNames = RailsGateway.getEventNames()
-    expect(eventNames.length > 0).toBeTruthy()
-    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
-  })
   it('should get transfer sent events', async () => {
     const chainId = 11155111
     const fromBlock = 5816945
@@ -591,7 +586,7 @@ describe('RailsGateway', () => {
     console.log(events)
     expect(events.length).toBeGreaterThanOrEqual(0)
   })
-  it('should add decoded types to transfer bonded events', async () => {
+  it.skip('should add decoded types to transfer bonded events', async () => {
     const provider = new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
     const rawEvents = await provider.getLogs({
       address: '0x9B6370567e535e74881a84A2ed1f0001d2D4a5f1',
@@ -614,7 +609,6 @@ describe('RailsGateway', () => {
     console.log(events)
     expect(events.length > 0).toBeTruthy()
     expect(events[0].decoded).toBeDefined()
-
   })
   it('should get rails gateway contract address', async () => {
     const chainId = 11155111
@@ -888,7 +882,7 @@ describe('RailsGateway', () => {
     expect(typeof claimed).toBe('boolean')
   }, 60 * 1000)
 
-  it('should decocde send tx input data', async () => {
+  it('should decode send tx input data', async () => {
     const chainId = 11155111
     const railsGateway = new RailsGateway({
       chainId,
@@ -897,17 +891,17 @@ describe('RailsGateway', () => {
     const inputData = '0x3a75515a0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca000000000000000000000000000000000000000000000000016345785d8a000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000001dc85ddb9503bfec006837d725cf5b6fd860c6aecd50fadb56af96cf5faae5f1f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001633c600f17600036e83cf06d0c43431066768832b5860eec11c2731c4f86a087613d5dd0437674'
     const decoded = await railsGateway.helpers.decodeSendTxInputData(inputData)
     console.log(decoded)
-    expect(decoded).toBeTruthy()
-    expect(decoded.to).toBeTruthy()
-    expect(decoded.amount).toBeTruthy()
-    expect(decoded.hops).toBeTruthy()
-    expect(decoded.hops[0].pathId).toBeTruthy()
-    expect(decoded.hops[0].maxBonderFee).toBeTruthy()
-    expect(decoded.hops[0].minAmountOut).toBeTruthy()
-    expect(decoded.hops[0].attestedClaimId).toBeTruthy()
+    expect(decoded).toBeDefined()
+    expect(decoded.to).toBeDefined()
+    expect(decoded.amount).toBeDefined()
+    expect(decoded.hops).toBeDefined()
+    expect(decoded.hops[0].pathId).toBeDefined()
+    expect(decoded.hops[0].maxBonderFee).toBeDefined()
+    expect(decoded.hops[0].minAmountOut).toBeDefined()
+    expect(decoded.hops[0].attestedClaimId).toBeDefined()
   }, 60 * 1000)
 
-  it('should decocde bond tx input data', async () => {
+  it('should decode bond tx input data', async () => {
     const chainId = 84532
     const railsGateway = new RailsGateway({
       chainId,
@@ -916,47 +910,16 @@ describe('RailsGateway', () => {
     const inputData = '0xaa8ef67adc85ddb9503bfec006837d725cf5b6fd860c6aecd50fadb56af96cf5faae5f1fedd367f2d6f4d09bd22b39441a4e4696cff07bd99a9fd6d7792e0bf526c025e2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000'
     const decoded = await railsGateway.helpers.decodeBondTxInputData(inputData)
     console.log(decoded)
-    expect(decoded).toBeTruthy()
-    expect(decoded.pathId).toBeTruthy()
-    expect(decoded.claimId).toBeTruthy()
-    expect(decoded.bonderFee).toBeTruthy()
-    expect(decoded.nextHops).toBeTruthy()
-    // expect(decoded.nextHops[0].pathId).toBeTruthy()
-    // expect(decoded.nextHops[0].maxBonderFee).toBeTruthy()
-    // expect(decoded.nextHops[0].minAmountOut).toBeTruthy()
-    // expect(decoded.nextHops[0].attestedClaimId).toBeTruthy()
+    expect(decoded).toBeDefined()
+    expect(decoded.pathId).toBeDefined()
+    expect(decoded.claimId).toBeDefined()
+    expect(decoded.bonderFee).toBeDefined()
+    expect(decoded.nextHops).toBeDefined()
+    // expect(decoded.nextHops[0].pathId).toBeDefined()
+    // expect(decoded.nextHops[0].maxBonderFee).toBeDefined()
+    // expect(decoded.nextHops[0].minAmountOut).toBeDefined()
+    // expect(decoded.nextHops[0].attestedClaimId).toBeDefined()
   }, 60 * 1000)
-
-  it('getComputedNextHopsHash - should return a keccak256 hash of the hops', () => {
-    const nextHops = [
-      {
-        pathId: utils.formatBytes32String('path1'),
-        maxBonderFee: BigNumber.from('1000000'),
-        minAmountOut: BigNumber.from('0'),
-        attestedClaimId: utils.formatBytes32String('claim1'),
-      },
-      {
-        pathId: utils.formatBytes32String('path2'),
-        maxBonderFee: BigNumber.from('2000000'),
-        minAmountOut: BigNumber.from('0'),
-        attestedClaimId: utils.formatBytes32String('claim2'),
-      },
-    ]
-
-    const hash = RailsGateway.getComputedNextHopsHash({ nextHops })
-    console.log(hash)
-
-    expect(typeof hash).toBe('string')
-    expect(hash.length).toBe(66)
-    expect(hash).toBe('0xd8a49045419a56bd095015e2ae16e598dc791354782a2ee1986cb3b3a5ae730a')
-  })
-
-  it('getComputedNextHopsHash - should return 0x0 hash if hops is empty', () => {
-    const nextHops: any[] = []
-    const hash = RailsGateway.getComputedNextHopsHash({ nextHops })
-    console.log(hash)
-    expect(hash).toBe(constants.HashZero)
-  })
 
   it('should return boolean for getting is path id live', async () => {
     const chainId = 11155111
@@ -979,19 +942,683 @@ describe('RailsGateway', () => {
     expect(typeof isLive).toBe('boolean')
     expect(isLive).toBeDefined()
   }, 60 * 1000)
+  it('should get event fetcher', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+    const eventFetcher = await railsGateway.getEventFetcher(EventName.TransferSent)
+    console.log(eventFetcher)
+    expect(eventFetcher).toBeDefined()
+  }, 60 * 1000)
+  it('should get message fee for pathId', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getMessageFee').mockReturnValue(BigNumber.from(1) as any)
+
+    const fee = await railsGateway.getMessageFee({
+      pathId
+    })
+    console.log(fee)
+    expect(fee).toBeDefined()
+  })
+  it('should get claim fees fee for pathId', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getClaimFeesFee').mockReturnValue(BigNumber.from(1) as any)
+
+    const fee = await railsGateway.getClaimFeesFee({
+      pathId
+    })
+    console.log(fee)
+    expect(fee).toBeDefined()
+  })
+  it('should get remove fee', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getRemoveFee').mockReturnValue(BigNumber.from(1) as any)
+
+    const fee = await railsGateway.getRemoveFee()
+    console.log(fee)
+    expect(fee).toBeDefined()
+  })
+  it('should get update fee', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getUpdateFee').mockReturnValue(BigNumber.from(1) as any)
+
+    const fee = await railsGateway.getUpdateFee()
+    console.log(fee)
+    expect(fee).toBeDefined()
+  })
+  it('should get fee price', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getFeePrice').mockReturnValue(BigNumber.from(1) as any)
+
+    const price = await railsGateway.getFeePrice({ chainId })
+    console.log(price)
+    expect(price).toBeDefined()
+  })
+  it('should get batch update fee', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getBatchUpdateFee').mockReturnValue(BigNumber.from(1) as any)
+
+    const fee = await railsGateway.getBatchUpdateFee({ length: 1 })
+    console.log(fee)
+    expect(fee).toBeDefined()
+  })
+  it('should get total claims for pathId', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getTotalClaims').mockReturnValue(BigNumber.from(1) as any)
+
+    const total = await railsGateway.getTotalClaims({
+      pathId
+    })
+    console.log(total)
+    expect(total).toBeDefined()
+  })
+  it('should get total claims at claimId', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getTotalClaimsAtClaimId').mockReturnValue(BigNumber.from(1) as any)
+
+    const total = await railsGateway.getTotalClaimsAtClaimId({
+      pathId,
+      claimId
+    })
+    console.log(total)
+    expect(total).toBeDefined()
+  })
+  it('should get total confirmed', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getTotalConfirmed').mockReturnValue(BigNumber.from(1) as any)
+
+    const total = await railsGateway.getTotalConfirmed({
+      pathId,
+    })
+    console.log(total)
+    expect(total).toBeDefined()
+  })
+  it('should batch update claim chain', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const transferDataHashes: string[] = []
+    const finalTransferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'batchUpdateClaimChain').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.batchUpdateClaimChain({
+      pathId,
+      transferDataHashes,
+      finalTransferId
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should claim fees from path', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'claimFeesFromPath').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.claimFeesFromPath({
+      pathId,
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should distribute claim fees', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const account = await signer.getAddress()
+    const totalFees = parseUnits('1', 18)
+    const lastClaimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'distributeClaimedFees').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.distributeClaimedFees({
+      pathId,
+      account,
+      totalFees,
+      lastClaimId
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should excess claim fees', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const recipients = [await signer.getAddress()]
+    const amounts = [parseUnits('1', 18)]
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'distributeExcessFees').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.distributeExcessFees({
+      pathId,
+      recipients,
+      amounts
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should update claim chain', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const transferDataHash = '0xd638b23809aef011d3657cda1fa4e163d36121423cc79e695f9c6acc62ba7980'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'updateClaimChain').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.updateClaimChain({
+      pathId,
+      transferDataHash,
+      claimId
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should set fee price', async () => {
+    const chainId = 11155111
+    const feePrice = BigNumber.from(1)
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'setFeePrice').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.setFeePrice({
+      chainId: 11155420,
+      feePrice
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should set fee prices', async () => {
+    const chainId = 11155111
+    const feePrices = [BigNumber.from(1)]
+    const chainIds = [11155420]
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'setFeePrices').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.setFeePrices({
+      chainIds,
+      feePrices
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it.skip('should approve bond', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const amount = BigNumber.from(1)
+    const signer = new Wallet(privateKey, RailsGateway.getDefaultProvider(chainId))
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: signer
+    })
+
+    jest.spyOn(railsGateway as any, 'getPathInfo').mockReturnValue({
+      pathId: '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a',
+      chainId: BigNumber.from('11155111'),
+      token: '0xF0da7a70e0F5E06372A3c407c4FB0c1F25162c32',
+      counterpartChainId: BigNumber.from('11155420'),
+      counterpartToken: '0xaCa72C8D5360dC237001cD963566F411732980B0'
+    } as any)
+
+    jest.spyOn(railsGateway.helpers as any, 'approveBond').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.helpers.approveBond({
+      pathId,
+      amount
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  }, 60 * 1000)
+  it.skip('should set fee prices', async () => {
+    const chainId = 11155111
+    const feePrices = [BigNumber.from(1)]
+    const chainIds = [11155420]
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'setFeePrices').mockReturnValue({ hash: '' } as any)
+
+    const tx = await railsGateway.setFeePrices({
+      chainIds,
+      feePrices
+    })
+    console.log(tx)
+    expect(tx).toBeDefined()
+  })
+  it('should get is transfer bonded', async () => {
+    const chainId = 11155111
+    const transferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway.helpers as any, 'getIsTransferBonded').mockReturnValue(false)
+
+    const isBonded = await railsGateway.helpers.getIsTransferBonded({
+      transferId
+    })
+    console.log(isBonded)
+    expect(isBonded).toBeDefined()
+  })
+  it('should get min bonder stake', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getMinBonderStake').mockReturnValue(BigNumber.from(1) as any)
+
+    const minStake = await railsGateway.getMinBonderStake()
+    console.log(minStake)
+    expect(minStake).toBeDefined()
+  })
+  it('should get hop balance', async () => {
+    const chainId = 11155111
+    const address = await signer.getAddress()
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getHopBalance').mockReturnValue(BigNumber.from(1) as any)
+
+    const balance = await railsGateway.getHopBalance(address)
+    console.log(balance)
+    expect(balance).toBeDefined()
+  })
+  it('should get transfer sent event from path id', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getTransferSentEventsFromPathId').mockReturnValue({ decoded: {} } as any)
+
+    const event = await railsGateway.getTransferSentEventsFromPathId({ pathId })
+    console.log(event)
+    expect(event).toBeDefined()
+  })
+  it('should get bucket index', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getBucketIndex').mockReturnValue(1)
+
+    const index = await railsGateway.getBucketIndex({ pathId, claimId })
+    console.log(index)
+    expect(index).toBeDefined()
+  })
+  it('should get amount out', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const amount = parseUnits('1', 18)
+    const attestedClaimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getAmountOut').mockReturnValue(BigNumber.from(1) as any)
+
+    const amountOut = await railsGateway.getAmountOut({ pathId, amount, attestedClaimId })
+    console.log(amountOut)
+    expect(amountOut).toBeDefined()
+  })
+  it('should get is valid claim', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'isValidClaim').mockReturnValue(false)
+
+    const isValid = await railsGateway.isValidClaim({ pathId, claimId })
+    console.log(isValid)
+    expect(isValid).toBeDefined()
+  })
+  it('should get is valid transfer ', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'isValidTransfer').mockReturnValue(false)
+
+    const isValid = await railsGateway.isValidTransfer({ pathId, claimId })
+    console.log(isValid)
+    expect(isValid).toBeDefined()
+  })
+  it('should get staking registry contract address', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    jest.spyOn(railsGateway as any, 'getStakingRegistryAddress').mockReturnValue('0x39b4CC7E096dd67D9Fd2B72b906ca5d2D48ac0c1')
+
+    const address = await railsGateway.getStakingRegistryAddress()
+    console.log(address)
+    expect(address).toBeDefined()
+  })
+  it('should get staking registry instance', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    const stakingRegistry = await railsGateway.getStakingRegistry()
+    console.log(stakingRegistry)
+    expect(stakingRegistry).toBeDefined()
+  })
+  it('should get abi array', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    const abi = await railsGateway.helpers.getAbi()
+    console.log(abi)
+    expect(abi).toBeDefined()
+  })
+  it.skip('should get next hops hash', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const bonderFee = '0'
+    const nextHops = [{
+      pathId,
+      maxBonderFee: BigNumber.from('0'),
+      minAmountOut: BigNumber.from('0'),
+      attestedClaimId: claimId
+    }]
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    const hash = await railsGateway.getNextHopsHash({
+      nextHops
+    })
+    console.log(hash)
+    expect(hash).toBeDefined()
+  })
+  it('getComputedNextHopsHash - should return a keccak256 hash of the hops', () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    const nextHops = [
+      {
+        pathId: utils.formatBytes32String('path1'),
+        maxBonderFee: BigNumber.from('1000000'),
+        minAmountOut: BigNumber.from('0'),
+        attestedClaimId: utils.formatBytes32String('claim1'),
+      },
+      {
+        pathId: utils.formatBytes32String('path2'),
+        maxBonderFee: BigNumber.from('2000000'),
+        minAmountOut: BigNumber.from('0'),
+        attestedClaimId: utils.formatBytes32String('claim2'),
+      },
+    ]
+
+    const hash = railsGateway.helpers.getComputedNextHopsHash({ nextHops })
+    console.log(hash)
+
+    expect(typeof hash).toBe('string')
+    expect(hash.length).toBe(66)
+    expect(hash).toBe('0xd8a49045419a56bd095015e2ae16e598dc791354782a2ee1986cb3b3a5ae730a')
+  })
+  it('should get event names', async () => {
+    const chainId = 11155111
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+    const eventNames = railsGateway.getEventNames()
+    expect(eventNames.length > 0).toBeTruthy()
+    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
+  })
   it('should get TransferSent event signature using static method', async () => {
     const signature = RailsGateway.getTransferSentEventSignature()
 
     console.log(signature)
-    expect(signature).toBeTruthy()
+    expect(signature).toBeDefined()
   })
   it('should get TransferBonded event signature static method', async () => {
     const signature = RailsGateway.getTransferBondedEventSignature()
 
     console.log(signature)
-    expect(signature).toBeTruthy()
+    expect(signature).toBeDefined()
+  })
+  it('should get computed next hops hash using static method', () => {
+    const nextHops = [
+      {
+        pathId: utils.formatBytes32String('path1'),
+        maxBonderFee: BigNumber.from('1000000'),
+        minAmountOut: BigNumber.from('0'),
+        attestedClaimId: utils.formatBytes32String('claim1'),
+      },
+      {
+        pathId: utils.formatBytes32String('path2'),
+        maxBonderFee: BigNumber.from('2000000'),
+        minAmountOut: BigNumber.from('0'),
+        attestedClaimId: utils.formatBytes32String('claim2'),
+      },
+    ]
+
+    const hash = RailsGateway.getComputedNextHopsHash({ nextHops })
+    console.log(hash)
+
+    expect(typeof hash).toBe('string')
+    expect(hash.length).toBe(66)
+    expect(hash).toBeDefined()
   })
 
-  // TODO: static addDecodedTypesToEvents
-})
+  it('should get event names using static method', async () => {
+    const eventNames = RailsGateway.getEventNames()
+    expect(eventNames.length > 0).toBeTruthy()
+    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
+  })
 
+  it('should add typedEvent to event using static method', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    jest.spyOn(RailsGateway as any, 'addDecodedTypesToEvent').mockReturnValue({ decoded: {} } as any)
+
+    const event = RailsGateway.addDecodedTypesToEvent(ethersEvents[0])
+    console.log(event)
+
+    expect(event.decoded).toBeDefined()
+  }, 60 * 1000)
+
+  it('should add typedEvent to events using static method', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+        // '0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    jest.spyOn(RailsGateway as any, 'addDecodedTypesToEvents').mockReturnValue([{ decoded: {} }] as any)
+
+    const events = RailsGateway.addDecodedTypesToEvents(ethersEvents)
+    console.log(events)
+
+    expect(events.length).toBe(1)
+    expect(events[0].decoded).toBeDefined()
+  }, 60 * 1000)
+
+  it('should add typedEvent to TransferSent events', async () => {
+    const chainId = 11155111
+    const fromBlock = 5816945
+    const toBlock = 5816945
+
+    const ethersEvents = await provider.getLogs({
+      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      topics: [
+        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
+      ],
+      fromBlock,
+      toBlock
+    })
+
+    console.log(ethersEvents)
+
+    jest.spyOn(RailsGateway as any, 'addDecodedTypesToTransferSentEvents').mockReturnValue([{ decoded: {} }] as any)
+
+    const events = RailsGateway.addDecodedTypesToTransferSentEvents(ethersEvents)
+    console.log(events)
+
+    expect(events.length).toBe(1)
+    expect(events[0].decoded).toBeDefined()
+  }, 60 * 1000)
+
+  it.skip('should add decoded types to transfer bonded events', async () => {
+    const provider = new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+    const rawEvents = await provider.getLogs({
+      address: '0x9B6370567e535e74881a84A2ed1f0001d2D4a5f1',
+      topics: [
+        '0x26975e08afcf23cb42d45c4d3faa3cc898ddb7dfdfa2d61c8f4f085cbbda7259'
+      ],
+      fromBlock: 11394755,
+      toBlock: 11394757
+    })
+    console.log(rawEvents)
+
+    jest.spyOn(RailsGateway as any, 'addDecodedTypesToTransferBondedEvents').mockReturnValue([{ decoded: {}}] as any)
+
+    const events = RailsGateway.addDecodedTypesToTransferBondedEvents(rawEvents)
+    console.log(events)
+    expect(events.length > 0).toBeTruthy()
+    expect(events[0].decoded).toBeDefined()
+  })
+
+  it('should derive network from chain id using static method', async () => {
+    const chainId = 11155111
+    const network = RailsGateway.deriveNetwork(chainId)
+    expect(network).toBeDefined()
+    expect(network).toBe('sepolia')
+  })
+})

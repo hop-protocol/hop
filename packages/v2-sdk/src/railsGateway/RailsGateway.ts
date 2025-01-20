@@ -282,7 +282,7 @@ export type GetIsTransferClaimedInput = {
 }
 
 export type GetNextHopsHashInput = {
-  nextHops: HopStruct[]
+  nextHops: HopStructInput[]
 }
 
 export type GetIsPathIdLiveInput = {
@@ -389,7 +389,7 @@ export class RailsGateway extends Base {
     return RailsGateway.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName) {
+  getEventFetcher(eventName: EventName): any { // TODO: return type
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -2041,7 +2041,14 @@ export class RailsGateway extends Base {
       throw new InputError('Invalid nextHops')
     }
 
-    return getComputedNextHopsHash(nextHops)
+    return getComputedNextHopsHash(nextHops.map(hop => {
+      return {
+        pathId: hop.pathId,
+        maxBonderFee: BigNumber.from(hop.maxBonderFee?.toString()),
+        minAmountOut: BigNumber.from(hop.minAmountOut?.toString()),
+        attestedClaimId: hop.attestedClaimId
+      }
+    }))
   }
 
   static deriveNetwork (chainId: BigNumberish): string {

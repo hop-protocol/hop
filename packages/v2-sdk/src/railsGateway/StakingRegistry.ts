@@ -115,6 +115,18 @@ export type MintInput = {
   amount: BigNumberish
 }
 
+export type Challenge = {
+  staker: string
+  challenger: string
+  lastUpdated: BigNumber
+  penalty: BigNumber
+  isSettled: boolean
+  isAppealed: boolean
+  challengeEth: BigNumber
+  appealEth: BigNumber
+  winner: string
+}
+
 export type StakingRegistryConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -338,7 +350,7 @@ export class StakingRegistry extends Base {
     return contract.fullAppeal()
   }
 
-  async challenges (challengeId: string) {
+  async challenges (challengeId: string): Promise<Challenge> {
     const contract = this.getStakingRegistryContract()
     return contract.challenges(challengeId)
   }
@@ -355,15 +367,15 @@ export class StakingRegistry extends Base {
   }
 
   async addToChallenge (input: AddToChallengeInput): Promise<providers.TransactionResponse> {
-    const { staker, challenger, penalty, slashingData } = input
+    const { staker, challenger, penalty, slashingData, additionalEth } = input
     const contract = this.getStakingRegistryContract()
-    return contract.addToChallenge(staker, challenger, penalty, slashingData, { value: input.additionalEth })
+    return contract.addToChallenge(staker, challenger, penalty, slashingData, { value: additionalEth })
   }
 
   async addToAppeal (input: AddToAppealInput): Promise<providers.TransactionResponse> {
-    const { staker, challenger, penalty, slashingData } = input
+    const { staker, challenger, penalty, slashingData, appealEth } = input
     const contract = this.getStakingRegistryContract()
-    return contract.addToAppeal(staker, challenger, slashingData, { value: input.appealEth })
+    return contract.addToAppeal(staker, challenger, slashingData, { value: appealEth })
   }
 
   async optimisticallySettleChallenge (input: OptimisticallySettleChallengeInput) {
@@ -373,9 +385,9 @@ export class StakingRegistry extends Base {
   }
 
   async acceptSlash (input: AcceptSlashInput): Promise<providers.TransactionResponse> {
-    const { challenger, penalty, slashingData } = input
+    const { challenger, penalty, slashingData, slashEth } = input
     const contract = this.getStakingRegistryContract()
-    return contract.acceptSlash(challenger, penalty, slashingData, { value: input.slashEth })
+    return contract.acceptSlash(challenger, penalty, slashingData, { value: slashEth })
   }
 
   async forceSettleChallenge (input: ForceSettleChallengeInput): Promise<providers.TransactionResponse> {

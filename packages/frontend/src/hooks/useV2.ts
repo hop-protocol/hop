@@ -77,7 +77,9 @@ export function useV2(): V2Hook {
 
   const v2Sdk = useMemo(() => {
     const signer = provider?.getSigner()
-    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
+    //const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
+    const providers = Object.assign({}, Hop.getDefaultProviders('sepolia'), {
+      '11155111': new ethers.providers.StaticJsonRpcProvider('https://1rpc.io/sepolia'),
       '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
       // '11155420': new ethers.providers.StaticJsonRpcProvider('https://optimism-sepolia.drpc.org')
     })
@@ -85,7 +87,8 @@ export function useV2(): V2Hook {
       providers[connectedNetworkId] = signer
     }
     const hop = new Hop({
-      network: reactAppNetwork,
+      //network: reactAppNetwork,
+      network: 'sepolia',
       signersOrProviders: providers
     })
     return hop
@@ -303,7 +306,8 @@ export function useV2(): V2Hook {
       minAmountOut
     } = input
 
-    const data = await v2Sdk.getSendDataMultiHop({
+    // const data = await v2Sdk.getSendDataMultiHop({
+    const data = await v2Sdk.getSendData({
       fromChainId,
       fromToken,
       toChainId,

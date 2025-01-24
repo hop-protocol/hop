@@ -27,6 +27,7 @@ type V2SendHook = {
   bonderFeeUsdDisplay: string
   chains: any[]
   error: string
+  estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
   estimatedReceivedUsdDisplay: string
   fromChain: any
@@ -538,6 +539,7 @@ export function useV2Send(): V2SendHook {
     bonderFeeUsdDisplay,
     chains,
     error,
+    estimatedReceived,
     estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
     estimatedReceivedUsdDisplay,
     fromChain,

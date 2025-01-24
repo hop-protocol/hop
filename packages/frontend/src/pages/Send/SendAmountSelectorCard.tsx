@@ -12,10 +12,17 @@ import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { toTokenDisplay } from '#utils/index.js'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 
+interface TokenInterface {
+  address: string
+  decimals: number
+  isNativeToken?: boolean
+  symbol: string
+}
+
 type Props = {
   value?: string
   label: string
-  token?: Token
+  token?: TokenInterface
   onChange?: (value: string) => void
   fromNetwork?: Network
   toNetwork?: Network
@@ -108,7 +115,6 @@ const SendAmountSelectorCard: FC<Props> = props => {
   if (tokenSymbol === 'MATIC' && selectedNetwork?.slug === ChainSlug.Polygon) {
     tokenSymbol = 'POL'
   }
-
 
   return (
     <Card className={styles.root}>

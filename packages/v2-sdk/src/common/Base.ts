@@ -391,8 +391,12 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
-    console.log('getTokenAddressByTokenSymbol', chainId, tokenSymbol, this.contractAddresses)
-    return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    console.log('hopV2Sdk: getTokenAddressByTokenSymbol', chainId, tokenSymbol, address)
+    if (!address) {
+      console.log('hopV2Sdk: getTokenAddressByTokenSymbol', this.network, chainId, tokenSymbol, JSON.stringify(this.contractAddresses))
+    }
+    return address
   }
 
   getTokenSymbolByTokenAddress (chainId: BigNumberish, tokenAddress: string): string {

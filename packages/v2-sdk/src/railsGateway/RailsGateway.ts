@@ -1817,6 +1817,8 @@ export class RailsGateway extends Base {
       }
     }
 
+    console.log('hopV2Sdk: getTokenInfo', { chainId, address })
+
     const contract = this.getTokenContract({ address })
 
     const [name, symbol, decimals] = await Promise.all([
@@ -1824,6 +1826,8 @@ export class RailsGateway extends Base {
       contract.symbol(),
       contract.decimals()
     ])
+
+    console.log('hopV2Sdk: getTokenInfo response', { chainId, address, name, symbol, decimals })
 
     const response = {
       chainId: this.chainId.toString(),

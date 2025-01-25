@@ -58,6 +58,7 @@ export class Transaction extends EventEmitter {
   from?: string | undefined = undefined
   to?: string | undefined = undefined
   safeTx?: GatewayTransactionDetails
+  isV2: boolean = false
 
   constructor({
     hash,
@@ -75,6 +76,7 @@ export class Transaction extends EventEmitter {
     from,
     to,
     safeTx,
+    isV2 = false,
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -98,6 +100,7 @@ export class Transaction extends EventEmitter {
     this.to = to
     this.token = token ?? null
     this.safeTx = safeTx
+    this.isV2 = isV2 ?? false
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
       const funcSig = txResponse?.data?.slice(0, 10)

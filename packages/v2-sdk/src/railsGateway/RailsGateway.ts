@@ -577,6 +577,7 @@ export class RailsGateway extends Base {
       const pathId = await contract.getPathId(chainId0, token0, chainId1, token1)
       return pathId
     } catch (err: unknown) {
+      console.warn('getPathId error', err, { chainId0, token0, chainId1, token1 }, this.getProvider(this.chainId))
       return this.throwError(err) as string
     }
   }

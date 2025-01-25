@@ -67,18 +67,20 @@ type V2Hook = {
   getSendData: (input: GetSendDataInput) => Promise<any>
   v2Sdk: Hop | null
   account: string
+  networkSlug: string
 }
 
 export function useV2(): V2Hook {
   const { address, provider, connectedNetworkId } = useWeb3Context()
+  const networkSlug = 'sepolia' // reactAppNetwork
   const signer = provider?.getSigner()
 
   const account = address?.toString()
 
   const v2Sdk = useMemo(() => {
     const signer = provider?.getSigner()
-    //const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork), {
-    const providers = Object.assign({}, Hop.getDefaultProviders('sepolia'), {
+    //const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
+    const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
       '11155111': new ethers.providers.StaticJsonRpcProvider('https://1rpc.io/sepolia'),
       '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
       // '11155420': new ethers.providers.StaticJsonRpcProvider('https://optimism-sepolia.drpc.org')
@@ -87,8 +89,7 @@ export function useV2(): V2Hook {
       providers[connectedNetworkId] = signer
     }
     const hop = new Hop({
-      //network: reactAppNetwork,
-      network: 'sepolia',
+      network: networkSlug,
       signersOrProviders: providers
     })
     return hop
@@ -259,7 +260,8 @@ export function useV2(): V2Hook {
       throw new Error('Needs token approval')
     }
 
-    const txData = await v2Sdk.populateTransaction.sendTokensMultiHop({
+    // const txData = await v2Sdk.populateTransaction.sendTokensMultiHop({
+    const txData = await v2Sdk.populateTransaction.sendTokens({
       fromChainId,
       toChainId,
       fromToken,
@@ -342,6 +344,7 @@ export function useV2(): V2Hook {
   }
 
   return {
+    networkSlug,
     approveTokens,
     getChainsSupportedByToken,
     getFee,

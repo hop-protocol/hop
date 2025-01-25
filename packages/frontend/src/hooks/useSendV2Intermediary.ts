@@ -132,7 +132,6 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
         token.destinationChainId === sendV1.toNetwork.chainId.toString()
     )
   }, [sendV1.fromToken, sendV1.fromNetwork, sendV1.toNetwork])
-  console.log('isTokenEligibleForV2', isTokenEligibleForV2)
 
   // Determine which version has the best rate
   const useV2ForBestRate = useMemo(() => {
@@ -142,12 +141,13 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       sendV2.estimatedReceived instanceof BigNumber
     ) {
       // Compare BigNumber values
-      return sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
+      const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
+      console.log('useV2', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
+      // return useV2
+      return true // for testing
     }
     return false
   }, [isTokenEligibleForV2, sendV1.estimatedReceived, sendV2.estimatedReceived])
-
-  console.log('useV2ForBestRate', useV2ForBestRate, sendV1.estimatedReceived?.toString(), sendV2.estimatedReceived?.toString())
 
   // Select the appropriate source based on eligibility and best rate
   const selectedSource = isTokenEligibleForV2
@@ -310,11 +310,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
         : getValue(sendV1, 'feeRefundTokenSymbol', '')
       : getValue(sendV1, 'feeRefundTokenSymbol', ''),
 
-    fromAmountInputChangeHandler: isTokenEligibleForV2
-      ? useV2ForBestRate
-        ? () => {} // Placeholder: Define or map to v2 equivalent if exists
-        : getValue(sendV1, 'fromAmountInputChangeHandler', () => {})
-      : getValue(sendV1, 'fromAmountInputChangeHandler', () => {}),
+    fromAmountInputChangeHandler: getValue(sendV1, 'fromAmountInputChangeHandler', () => {}),
 
     fromBalance: isTokenEligibleForV2
       ? useV2ForBestRate
@@ -344,7 +340,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     handleApprove: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? sendV2.approveTokens
+        ? sendV2.handleApprove
         : sendV1.handleApprove
       : sendV1.handleApprove,
 
@@ -374,7 +370,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     isApproveButtonActive: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? false // Placeholder or map to v2 equivalent if exists
+        ? getValue(sendV2, 'approveReady', false)
         : getValue(sendV1, 'isApproveButtonActive', false)
       : getValue(sendV1, 'isApproveButtonActive', false),
 
@@ -554,7 +550,14 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     tx: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'sendTx', undefined) ? new Transaction({ ...sendV2.sendTx } as any) : undefined
+        ? getValue(sendV2, 'sendTx', undefined) ? new Transaction({
+          isV2: true,
+          ...sendV2.sendTx,
+          networkName: sendV2.fromChain?.slug,
+          destNetworkName: sendV2.toChain?.slug,
+          // destTxHash:
+          token: sendV2.fromToken,
+        } as any) : undefined
         : getValue(sendV1, 'tx', undefined)
       : getValue(sendV1, 'tx', undefined),
 

@@ -3,11 +3,11 @@
 import { useSend } from '#hooks/useSend.js'
 import { useV2Send } from '#hooks/useV2Send.js'
 import { ReactNode, useMemo, useEffect } from 'react'
-import { providers, BigNumber } from 'ethers'
+import { BigNumber } from 'ethers'
 
 // Importing types from their respective model files
 import { Address } from '#models/Address.js'
-import { Token, HopBridge } from '@hop-protocol/sdk' // Ensure both are imported from the same SDK
+import { HopBridge } from '@hop-protocol/sdk' // Ensure both are imported from the same SDK
 import { Network } from '#models/Network.js'
 import { DisabledRoute } from '#config/disabled.js'
 import { Transaction } from '#models/Transaction.js'
@@ -121,6 +121,28 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
   const sendV1 = useSend()
   const sendV2 = useV2Send()
 
+  useEffect(() => {
+    // for testing
+    async function update() {
+      const hash = ''
+      const chainId = ''
+
+      // const hash = '0xe0ff8a31f0b2c7cba9f3250481e009f621451905d20175ce4885d8a220827234'
+      // const chainId = '11155111'
+
+      // const hash = '0xb10cf2887fecb5e6a7ae0cdba32d270bfc6f1fa07823f7c912b90e9ad452d70c'
+      // const chainId = '84532'
+
+      if (hash) {
+        const provider = sendV2.v2Sdk?.getProvider(chainId)
+        const _tx = await provider.getTransaction(hash)
+        sendV2.setSendTx(_tx)
+      }
+    }
+
+    update().catch(console.error)
+  }, [sendV2.v2Sdk])
+
   // Helper function to check if a token is eligible for v2
   const isTokenEligibleForV2 = useMemo(() => {
     if (!sendV1.fromToken || !sendV1.fromNetwork || !sendV1.toNetwork) return false
@@ -142,7 +164,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     ) {
       // Compare BigNumber values
       const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
-      console.log('useV2', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
+      console.log('useSendV2Intermediary useV2 estimatedReceived', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
       // return useV2
       return true // for testing
     }
@@ -551,8 +573,9 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     tx: isTokenEligibleForV2
       ? useV2ForBestRate
         ? getValue(sendV2, 'sendTx', undefined) ? new Transaction({
-          isV2: true,
+          v2Sdk: sendV2.v2Sdk,
           ...sendV2.sendTx,
+          fromChainId: sendV2.fromChainId,
           networkName: sendV2.fromChain?.slug,
           destNetworkName: sendV2.toChain?.slug,
           // destTxHash:

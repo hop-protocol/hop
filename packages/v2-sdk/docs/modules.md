@@ -1407,9 +1407,10 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
-| `toChainId` | `BigNumberish` |
-| `transferId` | `string` |
+| `fromChainId?` | `BigNumberish` |
+| `toChainId?` | `BigNumberish` |
+| `transactionHash?` | `string` |
+| `transferId?` | `string` |
 
 ___
 

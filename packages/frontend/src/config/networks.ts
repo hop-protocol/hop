@@ -33,6 +33,8 @@ export function getNetworks(networkSlug: string) {
     } catch (err: any) {
       console.warn('getNetworks error', err, networkSlug, key)
     }
+
+    return null
   })
   .filter(Boolean)
 }

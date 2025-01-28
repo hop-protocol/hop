@@ -23,65 +23,69 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   const provider = useMemo(() => {
     if (!chain) return
-    const _provider = sdk.getChainProvider(chain)
+    const _provider = transaction?.isV2 ? transaction.v2Sdk?.getProvider(transaction?.fromChainId) : sdk.getChainProvider(chain)
     return _provider
   }, [chain])
 
   const updateTxStatus = useCallback(async () => {
-    if (!provider || !transaction?.hash || !chain) {
-      setCompleted(false)
-      return
-    }
-
-    // Return quickly if already completed
-    if (completed) {
-      return
-    }
-
-    const txHash = transaction.hash
-    const cacheKey = `txReceipt:${txHash}`
-
-    // Load local storage
-    let tx: any = loadState(cacheKey)
-
-    if (!tx) {
-      tx = await provider.getTransactionReceipt(txHash)
-
-      if (tx) {
-        saveState(cacheKey, tx)
-      } else {
-        logger.warn(`Could not get tx receipt: ${txHash}`)
+    try {
+      if (!provider || !transaction?.hash || !chain) {
+        setCompleted(false)
+        return
       }
-    }
 
-    const waitConfirmations = getNetworkWaitConfirmations(chain as string)
-    setNetworkConfirmations(waitConfirmations)
+      // Return quickly if already completed
+      if (completed) {
+        return
+      }
 
-    const txResponse = await transaction.getTransaction()
-    if (!txResponse && transaction.from) {
-      const txCount = await provider.getTransactionCount(transaction.from)
-      if (transaction.nonce && txCount > transaction.nonce) {
-        const matchingTxs = await getRecentTransactionsByFromAddress(provider, transaction.from)
-        if (matchingTxs.length) {
-          const match = find(matchingTxs, ['nonce', transaction.nonce])
-          if (match) {
-            return updateTransaction(transaction, {
-              hash: match.hash,
-              pendingDestinationConfirmation: true,
-              replaced: transaction.hash,
-            })
-          }
+      const txHash = transaction.hash
+      const cacheKey = `txReceipt:${txHash}`
+
+      // Load local storage
+      let tx: any = loadState(cacheKey)
+
+      if (!tx) {
+        tx = await provider.getTransactionReceipt(txHash)
+
+        if (tx) {
+          saveState(cacheKey, tx)
+        } else {
+          logger.warn(`Could not get tx receipt: ${txHash}`)
         }
-        return setReplaced(transaction)
       }
-    }
 
-    setConfirmations(txResponse?.confirmations)
+      const waitConfirmations = getNetworkWaitConfirmations(chain as string)
+      setNetworkConfirmations(waitConfirmations)
 
-    const isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string)
-    if (isFinalized) {
-      setCompleted(true)
-      updateTransaction(transaction, { pending: false })
+      const txResponse = await transaction.getTransaction()
+      if (!txResponse && transaction.from) {
+        const txCount = await provider.getTransactionCount(transaction.from)
+        if (transaction.nonce && txCount > transaction.nonce) {
+          const matchingTxs = await getRecentTransactionsByFromAddress(provider, transaction.from)
+          if (matchingTxs.length) {
+            const match = find(matchingTxs, ['nonce', transaction.nonce])
+            if (match) {
+              return updateTransaction(transaction, {
+                hash: match.hash,
+                pendingDestinationConfirmation: true,
+                replaced: transaction.hash,
+              })
+            }
+          }
+          return setReplaced(transaction)
+        }
+      }
+
+      setConfirmations(txResponse?.confirmations)
+
+      const isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string, provider)
+      if (isFinalized) {
+        setCompleted(true)
+        updateTransaction(transaction, { pending: false })
+      }
+    } catch (err: any) {
+      console.error('updateTxStatus error', err)
     }
   }, [transactions, transaction, provider])
 

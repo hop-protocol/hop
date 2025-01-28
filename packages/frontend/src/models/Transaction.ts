@@ -1,5 +1,6 @@
 import logger from '#logger/index.js'
 import { ChainSlug, Hop, Token, getChainSlugFromName } from '@hop-protocol/sdk'
+import { Hop as HopV2, TransferState } from '@hop-protocol/v2-sdk'
 import { EventEmitter } from 'events'
 import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
 import {
@@ -35,6 +36,9 @@ interface ContructorArgs {
   from?: string | undefined
   to?: string | undefined
   safeTx?: GatewayTransactionDetails
+  isV2?: boolean
+  v2Sdk?: HopV2
+  fromChainId?: number
 }
 
 export class Transaction extends EventEmitter {
@@ -59,6 +63,8 @@ export class Transaction extends EventEmitter {
   to?: string | undefined = undefined
   safeTx?: GatewayTransactionDetails
   isV2: boolean = false
+  v2Sdk: HopV2
+  fromChainId: number
 
   constructor({
     hash,
@@ -76,7 +82,9 @@ export class Transaction extends EventEmitter {
     from,
     to,
     safeTx,
-    isV2 = false,
+    isV2,
+    v2Sdk,
+    fromChainId,
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -89,7 +97,6 @@ export class Transaction extends EventEmitter {
       this.destProvider = getProviderByNetworkName(destNetworkName)
     }
 
-    this.provider = getProviderByNetworkName(networkName)
     this.timestampMs = timestampMs ?? Date.now()
     this.pending = pending
     this.transferId = transferId
@@ -100,47 +107,77 @@ export class Transaction extends EventEmitter {
     this.to = to
     this.token = token ?? null
     this.safeTx = safeTx
-    this.isV2 = isV2 ?? false
+    this.v2Sdk = v2Sdk
+    this.isV2 = isV2 || !!v2Sdk
+    this.fromChainId = fromChainId
 
-    this.getTransaction().then((txResponse: providers.TransactionResponse) => {
-      const funcSig = txResponse?.data?.slice(0, 10)
-      this.methodName = sigHashes[funcSig]
-    })
+    if (this.isV2) {
+      this.provider = this.v2Sdk.getProvider(this.fromChainId)
+      this.checkV2TransferStatus()
+    } else {
+      this.provider = getProviderByNetworkName(networkName)
+      this.getTransaction().then((txResponse: providers.TransactionResponse) => {
+        const funcSig = txResponse?.data?.slice(0, 10)
+        this.methodName = sigHashes[funcSig]
+      })
 
-    this.receipt().then(async (receipt: providers.TransactionReceipt) => {
-      if (!receipt) {
-        return
+      this.receipt().then(async (receipt: providers.TransactionReceipt) => {
+        if (!receipt) {
+          return
+        }
+        const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
+        this.blockNumber = receipt.blockNumber
+        const block = await this.provider.getBlock(receipt.blockNumber)
+        this.timestampMs = block ? block.timestamp * 1000 : 1000
+
+        if (tsDetails?.chainId) {
+          this.destNetworkName = networkIdToSlug(tsDetails.chainId)
+          this.destProvider = getProviderByNetworkName(this.destNetworkName)
+        }
+
+        // Source: L2
+        if (tsDetails?.transferId) {
+          this.transferId = tsDetails.transferId
+        }
+
+        const isFinalized = await getIsTxFinalized(receipt.blockNumber, this.networkName)
+        this.status = !!receipt.status
+        if (receipt.status === 1 && isFinalized) {
+          this.pending = false
+        }
+        this.emit('pending', false, this)
+      })
+      if (typeof isCanonicalTransfer === 'boolean') {
+        this.isCanonicalTransfer = isCanonicalTransfer
       }
-      const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
-      this.blockNumber = receipt.blockNumber
-      const block = await this.provider.getBlock(receipt.blockNumber)
-      this.timestampMs = block ? block.timestamp * 1000 : 1000
 
-      if (tsDetails?.chainId) {
-        this.destNetworkName = networkIdToSlug(tsDetails.chainId)
-        this.destProvider = getProviderByNetworkName(this.destNetworkName)
+      if (this.pendingDestinationConfirmation && this.destNetworkName) {
+        const sdk = new Hop(reactAppNetwork)
+        this.checkIsTransferIdSpent(sdk)
       }
+    }
+  }
 
-      // Source: L2
-      if (tsDetails?.transferId) {
-        this.transferId = tsDetails.transferId
-      }
-
-      const isFinalized = await getIsTxFinalized(receipt.blockNumber, this.networkName)
-      this.status = !!receipt.status
-      if (receipt.status === 1 && isFinalized) {
-        this.pending = false
-      }
-      this.emit('pending', false, this)
-    })
-    if (typeof isCanonicalTransfer === 'boolean') {
-      this.isCanonicalTransfer = isCanonicalTransfer
+  async checkV2TransferStatus() {
+    if (!this.isV2) {
+      return
     }
 
-    if (this.pendingDestinationConfirmation && this.destNetworkName) {
-      const sdk = new Hop(reactAppNetwork)
-      this.checkIsTransferIdSpent(sdk)
+    try {
+      // attempt getting transfer status from explorer api
+      const transferStatus = await this.v2Sdk.getTransferStatus({
+        fromChainId: this.fromChainId,
+        transactionHash: this.hash
+      })
+      if (transferStatus?.state === TransferState.Bonded) {
+        this.destTxHash = transferStatus.transferBondedEvents[transferStatus?.transferBondedEvents?.length - 1].transactionHash
+        this.setPendingDestinationConfirmed()
+        return true
+      }
+    } catch (err: any) {
+      logger.error('Transaction Model checkV2TransferStatus error:', err)
     }
+    return false
   }
 
   get explorerLink(): string {
@@ -182,6 +219,9 @@ export class Transaction extends EventEmitter {
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {
+    if (this.isV2) {
+      return this.checkV2TransferStatus()
+    }
     if (
       !(
         this.provider &&
@@ -341,6 +381,7 @@ export class Transaction extends EventEmitter {
       nonce,
       from,
       to,
+      isV2
     } = this
     return {
       hash,
@@ -358,6 +399,7 @@ export class Transaction extends EventEmitter {
       nonce,
       from,
       to,
+      isV2
     }
   }
 
@@ -377,6 +419,7 @@ export class Transaction extends EventEmitter {
       nonce,
       from,
       to,
+      isV2
     } = obj
     return new Transaction({
       hash,
@@ -393,6 +436,7 @@ export class Transaction extends EventEmitter {
       nonce,
       from,
       to,
+      isV2
     })
   }
 }

@@ -8,7 +8,7 @@ import logger from '#logger/index.js'
 import { BigNumber, utils } from 'ethers'
 import { LargeTextField } from '#components/LargeTextField/index.js'
 import { NetworkSelector } from '#components/NetworkSelector/index.js'
-import { Token, ChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { toTokenDisplay } from '#utils/index.js'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 

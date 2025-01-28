@@ -130,8 +130,19 @@ export type GetTransferIdFromTransactionHashInput = {
 }
 
 export type GetTransferStatusInput = {
+  transferId?: string
+  transactionHash?: string
+  fromChainId?: BigNumberish
+  toChainId?: BigNumberish
+}
+
+export type GetTransferStatusFromEventsInput = {
+  transferId: string
   fromChainId: BigNumberish
   toChainId: BigNumberish
+}
+
+export type GetTransferStatusFromApiInput = {
   transferId: string
 }
 
@@ -740,20 +751,17 @@ export class Hop extends Base {
     return Hop.calcAmountOutMin({ amountOut, slippageTolerance })
   }
 
-  async getTransferStatus({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
-    return this.getTransferStatusFromApi({ fromChainId, toChainId, transferId })
+  async getTransferStatus({ fromChainId, toChainId, transferId, transactionHash }: GetTransferStatusInput): Promise<TransferStatus> {
+    transferId = (transactionHash && fromChainId) ? await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash }) : undefined
+    if (!transferId) {
+      throw new InputError('transferId missing or not found')
+    }
+
+    return this.getTransferStatusFromApi({ transferId })
     // return this.getTransferStatusFromEvents({ fromChainId, toChainId, transferId })
   }
 
-  async getTransferStatusFromApi ({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
-    if (!this.utils.isValidChainId(fromChainId)) {
-      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
-    }
-
-    if (!this.utils.isValidChainId(toChainId)) {
-      throw new InputError(`Invalid toChainId "${toChainId}"`)
-    }
-
+  async getTransferStatusFromApi ({ transferId }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
     if (!this.utils.isValidBytes32(transferId)) {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
@@ -802,7 +810,7 @@ export class Hop extends Base {
     }
   }
 
-  async getTransferStatusFromEvents ({ fromChainId, toChainId, transferId }: GetTransferStatusInput): Promise<TransferStatus> {
+  async getTransferStatusFromEvents ({ fromChainId, toChainId, transferId }: GetTransferStatusFromEventsInput): Promise<TransferStatus> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }

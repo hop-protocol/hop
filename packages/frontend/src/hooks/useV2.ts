@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { Hop, Token } from '@hop-protocol/v2-sdk'
-import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { BigNumber, ethers } from 'ethers'
 

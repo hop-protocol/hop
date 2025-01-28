@@ -945,7 +945,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
+| `«destructured»` | `GetTransferStatusFromApiInput` |
 
 #### Returns
 
@@ -961,7 +961,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
+| `«destructured»` | `GetTransferStatusFromEventsInput` |
 
 #### Returns
 

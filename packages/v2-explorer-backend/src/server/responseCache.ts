@@ -10,7 +10,7 @@ export function responseCache (req: any, res: any, next: any) {
   const key = `__express__${urlKey}`
   const cachedBody = cache.get(key)
   if (cachedBody && responseCacheEnabled) {
-    // console.log('cache hit:', key)
+    console.log('cache hit:', key)
     res.send(cachedBody)
     return
   }

@@ -51,6 +51,10 @@ export function ExplorerEvents (props: any) {
 
   const headers = [
     {
+      key: 'index',
+      value: '#',
+    },
+    {
       key: 'status',
       value: 'Status',
     },
@@ -92,7 +96,7 @@ export function ExplorerEvents (props: any) {
     },
   ]
 
-  const rows = events?.map((event: any) => {
+  const rows = events?.map((event: any, index: number) => {
     let status = (
       <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
     )
@@ -106,6 +110,10 @@ export function ExplorerEvents (props: any) {
     const transferAmountOutDisplay = `${event?.amountOutDisplay ?? ''} (${event?.amountOutUsdDisplay ?? ''})`
 
     return [
+      {
+        key: 'index',
+        value: index+1
+      },
       {
         key: 'status',
         value: status,

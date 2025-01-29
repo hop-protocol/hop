@@ -107,6 +107,7 @@ export class Controller {
     const items = await this.pgDb.events[eventName].getItems({ limit, filter, page })
     const itemsNext = await this.pgDb.events[eventName].getItems({ limit, filter, page: Number(page) + 1 })
     const hasNextPage = itemsNext.length > 0
+    console.log('getEvents', eventName, items.length, limit, page)
 
     return {
       items: items.map((item: any) => this.normalizeEventForApi(item)),

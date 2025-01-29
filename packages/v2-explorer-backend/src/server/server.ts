@@ -155,7 +155,7 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   try {
-    let { filter } = req.query
+    const { filter } = req.query
     const stats = await controller.getTransferVolumeStatsForApi({
       filter
     })

@@ -689,7 +689,7 @@ export class Controller {
   }
 
   async getTransferVolumeStatsForApi(input: TransferVolumeStatsApiInput): Promise<TransferVolumeStatsApiResult> {
-    const results = await this.pgDb.events['TransferSent'].getVolumeStats(input)
+    const results = await this.pgDb.events.TransferSent.getVolumeStats(input)
 
     let totalUsd = 0
     const tokenVolumes: Record<string, {

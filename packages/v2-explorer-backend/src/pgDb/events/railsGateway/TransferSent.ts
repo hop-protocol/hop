@@ -144,7 +144,7 @@ export class TransferSentTable extends EventDb {
       LEFT OUTER JOIN
         next_hops nh ON ft.id = nh.transfer_sent_event_id
       ORDER BY
-        ft."context.blockTimestamp" DESC`
+        ft."context.blockTimestamp" DESC`,
       args)
 
     const results = getItemsWithContext(items)

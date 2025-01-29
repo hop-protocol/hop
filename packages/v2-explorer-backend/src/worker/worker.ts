@@ -4,6 +4,7 @@ import { network } from '#config/index.js'
 
 export type Options = {
   indexerPollSeconds?: number
+  skipChainIds?: string[]
 }
 
 export const defaultPollSeconds = 10
@@ -26,7 +27,8 @@ export class Worker {
 
     this.indexer = new Indexer({
       pollIntervalSeconds: options.indexerPollSeconds,
-      startBlocks
+      startBlocks,
+      skipChainIds: options.skipChainIds
     })
   }
 

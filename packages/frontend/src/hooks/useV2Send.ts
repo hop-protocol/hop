@@ -8,6 +8,7 @@ import { formatError } from '#utils/format.js'
 import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
 import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
+import { getNetworks } from '#config/networks.js'
 import {
   useBalance,
   useFeeConversions,
@@ -27,6 +28,7 @@ type V2SendHook = {
   bonderFeeUsdDisplay: string
   chains: any[]
   error: string
+  estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
   estimatedReceivedUsdDisplay: string
   fromChain: any
@@ -112,11 +114,13 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
   const {
-    networks,
     txConfirm
   } = useApp()
+  const networks = useMemo(() => {
+    return getNetworks(networkSlug)
+  }, [networkSlug])
   const { address, provider } = useWeb3Context()
   const [sendTx, setSendTx] = useState<providers.TransactionResponse | null>(null)
   const [approvalTx, setApprovalTx] = useState<providers.TransactionResponse | null>(null)
@@ -538,6 +542,7 @@ export function useV2Send(): V2SendHook {
     bonderFeeUsdDisplay,
     chains,
     error,
+    estimatedReceived,
     estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
     estimatedReceivedUsdDisplay,
     fromChain,

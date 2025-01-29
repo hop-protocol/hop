@@ -1,8 +1,8 @@
 import React, { ChangeEvent, ReactNode, useEffect, useMemo, useState } from 'react'
 import logger from '#logger/index.js'
-import useAvailableLiquidity from './useAvailableLiquidity.js'
+import useAvailableLiquidity from '#hooks/useAvailableLiquidity.js'
 import useIsSmartContractWallet from '#hooks/useIsSmartContractWallet.js'
-import useSendData from '#pages/Send/useSendData.js'
+import useSendData from '#hooks/useSendData.js'
 import { Address } from '#models/Address.js'
 import { BigNumber, utils } from 'ethers'
 import { ChainSlug, HopBridge, Token } from '@hop-protocol/sdk'
@@ -31,7 +31,7 @@ import { getTransferTimeString } from '#utils/getTransferTimeString.js'
 import { isMainnet, showRewards } from '#config/index.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
-import { useSendTransaction } from './useSendTransaction'
+import { useSendTransaction } from '#hooks/useSendTransaction.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 
 export type SendResponseProps = {
@@ -47,6 +47,7 @@ export type SendResponseProps = {
   destinationTxFeeUsdDisplay: string
   disabledTx: DisabledRoute | undefined
   error: string
+  estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
   estimatedReceivedUsdDisplay: string
   feeRefundDisplay: string
@@ -444,7 +445,7 @@ export function useSend(): SendResponseProps {
       }
     }
     setSlippageToleranceTooLowWarning(isLow)
-  }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
+  }, [slippageTolerance, toTokenAmount, fromTokenAmount])
 
   useEffect(() => {
     const isUSDCe = fromToken?.symbol === 'USDC.e'
@@ -888,6 +889,7 @@ export function useSend(): SendResponseProps {
     destinationTxFeeUsdDisplay,
     disabledTx,
     error,
+    estimatedReceived,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
     feeRefundDisplay,

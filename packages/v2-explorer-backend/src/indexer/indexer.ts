@@ -19,6 +19,7 @@ type Options = {
   endBlocks?: EndBlocks // used for testing
   pollIntervalSeconds?: number
   sdkContractAddresses?: any
+  skipChainIds?: string[]
 }
 
 export const defaultPollSeconds = 10
@@ -29,6 +30,7 @@ export class Indexer {
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
   chainIds: Record<string, boolean> = {}
+  skipChainIds: string[] = []
   priceFeed: PriceFeed
 
   paused: boolean = false
@@ -72,6 +74,10 @@ export class Indexer {
     if (options?.dbPath) {
       this.db.setDbPath(options.dbPath)
     }
+    if (Array.isArray(options?.skipChainIds)) {
+      this.skipChainIds = options.skipChainIds
+    }
+    console.log('indexer skipChainIds', this.skipChainIds)
 
     this.eventsToSync = {
       BundleCommitted: new SyncStateDb(dbPath, 'BundleCommitted'),
@@ -135,8 +141,10 @@ export class Indexer {
 
     const _events: any[] = []
 
-    const promises = Object.keys(this.chainIds).map(async (_chainId: string) => {
-      const chainId = Number(_chainId)
+    const promises = Object.keys(this.chainIds).map(async (chainId: string) => {
+      if (this.skipChainIds.includes(chainId)) {
+        return
+      }
       const isL1 = this.getIsL1(chainId)
       let _db: any
       let eventNames: string[] = []
@@ -169,13 +177,13 @@ export class Indexer {
       let toBlock = headBlock
       if (syncState?.toBlock) {
         fromBlock = syncState.toBlock as number + 1
-        // if (chainId.toString() === '42069') {
+        // if (chainId === '42069') {
         //   fromBlock = 866229
         // }
-        // if (chainId.toString() === '84532') {
+        // if (chainId === '84532') {
         //   fromBlock = 20620236
         // }
-        // if (chainId.toString() === '11155420') {
+        // if (chainId === '11155420') {
         //   fromBlock = 18925085
         // }
         toBlock = headBlock
@@ -242,8 +250,8 @@ export class Indexer {
     return this.waitForSyncIndex(syncIndex)
   }
 
-  getIsL1 (chainId: number) {
-    return chainId === 5 || chainId === 1 || chainId === 11155111
+  getIsL1 (chainId: string) {
+    return chainId === '5' || chainId === '1' || chainId === '11155111'
   }
 
   async pollPrices () {

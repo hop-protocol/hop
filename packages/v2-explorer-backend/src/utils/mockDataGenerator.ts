@@ -44,8 +44,8 @@ export function generateRandomGwei() {
 }
 
 // Function to generate mock EventContext
-export function generateMockEventContext(eventName: string = ''): EventContext {
-  const context: EventContext = {
+export function generateMockEventContext(eventName: string = ''): EventContext & { dataDecoded?: any } {
+  const context: EventContext & { dataDecoded?: any } = {
     // BaseEventContext fields
     eventName,
     chainSlug: generateRandomString(10),
@@ -65,7 +65,8 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
     gasLimit: generateRandomInt(21_000, 1_000_000),
     gasUsed: generateRandomInt(21_000, 1_000_000),
     gasPrice: generateRandomGwei(),
-    data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join('') // Random hex data
+    data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join(''), // Random hex data
+    dataDecoded: null
   }
 
   return context

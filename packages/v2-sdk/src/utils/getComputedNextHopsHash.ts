@@ -2,11 +2,15 @@ import { utils, constants } from 'ethers'
 import { HopStruct } from '../railsGateway/events/TransferSent.js'
 
 export function getComputedNextHopsHash(nextHops: HopStruct[]): string {
-  if (!nextHops || !Array.isArray(nextHops) || nextHops.length === 0) {
+  if (!nextHops || !Array.isArray(nextHops)) {
     throw new Error('Invalid nextHops')
   }
 
   let nextHopsHash = constants.HashZero
+
+  if (nextHops.length === 0) {
+    return nextHopsHash
+  }
 
   // Loop through the hops in reverse order (excluding the first one, like Solidity)
   for (let i = nextHops.length - 1; i > 0; i--) {

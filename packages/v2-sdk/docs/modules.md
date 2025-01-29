@@ -1030,7 +1030,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `nextHops` | `HopStruct`[] |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 
 ___
 
@@ -1340,13 +1340,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `adjustedAmount` | `BigNumberish` |
-| `attestedCheckpoint` | `string` |
-| `minAmountOut` | `BigNumberish` |
-| `nonce` | `BigNumberish` |
-| `pathId` | `string` |
-| `to` | `string` |
-| `totalSent` | `BigNumberish` |
+| `previousTransferId` | `string` |
+| `transferDataHash` | `string` |
 
 ___
 
@@ -1412,9 +1407,10 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
-| `toChainId` | `BigNumberish` |
-| `transferId` | `string` |
+| `fromChainId?` | `BigNumberish` |
+| `toChainId?` | `BigNumberish` |
+| `transactionHash?` | `string` |
+| `transferId?` | `string` |
 
 ___
 
@@ -1926,7 +1922,7 @@ ___
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
 | `getComputedNextHopsHash` | (`nextHops`: [`HopStruct`](interfaces/HopStruct.md)[]) => `string` |
 | `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
-| `getComputedTransferDataHash` | (`__namedParameters`: `Input`) => `string` |
+| `getComputedTransferDataHash` | (`__namedParameters`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |
 | `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |
 | `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |

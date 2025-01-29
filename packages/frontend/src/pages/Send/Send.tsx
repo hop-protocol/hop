@@ -18,7 +18,8 @@ import { FeeRefund } from './FeeRefund.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
 import { useApp } from '#contexts/AppContext/index.js'
-import { useSend } from '#pages/Send/useSend.js'
+// import { useSend } from '#hooks/useSend.js'
+import { useSendV2Intermediary } from '#hooks/useSendV2Intermediary.js'
 import { useSendStyles } from './useSendStyles.js'
 import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
 
@@ -91,7 +92,7 @@ const Send: FC = () => {
     transferTimeDisplay,
     tx,
     warning,
-  } = useSend()
+  } = useSendV2Intermediary()
 
   const isFromPol = fromNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
   const isToPol = toNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC

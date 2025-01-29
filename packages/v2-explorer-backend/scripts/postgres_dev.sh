@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf /tmp/tempdb
+#rm -rf /tmp/tempdb
 # docker create network=mynetwork
 
 #docker volume remove pgdata

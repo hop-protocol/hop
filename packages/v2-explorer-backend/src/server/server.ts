@@ -8,6 +8,8 @@ import { responseCache } from './responseCache.js'
 export const app : Express = express()
 const controller = new Controller()
 
+const maxPageSize = 100
+
 app.enable('trust proxy')
 app.use(cors())
 app.use(express.json({ limit: '500kb' }))
@@ -29,8 +31,8 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getExplorerEventsForApi({
       limit,
@@ -57,8 +59,8 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getEventsForApi({
       eventName,
@@ -83,8 +85,8 @@ app.get('/v1/paths', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getPathsForApi({
       limit,
@@ -108,8 +110,8 @@ app.get('/v1/tokens', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getTokensForApi({
       limit,
@@ -133,8 +135,8 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getTokenPricesForApi({
       limit,

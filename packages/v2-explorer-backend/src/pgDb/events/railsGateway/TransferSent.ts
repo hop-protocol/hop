@@ -99,53 +99,63 @@ export class TransferSentTable extends EventDb {
     }
 
     const items = await this.db.any(
-      `SELECT
-        e.path_id AS "pathId",
-        e.transfer_id AS "transferId",
-        e."to",
-        e.amount_out AS "amountOut",
-        e.total_sent AS "totalSent",
-        e.total_claims AS "totalClaims",
-        ${selectEventContextSql},
+      `WITH filtered_transfers AS (
+        SELECT
+          e.id,
+          e.path_id AS "pathId",
+          e.transfer_id AS "transferId",
+          e."to",
+          e.amount_out AS "amountOut",
+          e.total_sent AS "totalSent",
+          e.total_claims AS "totalClaims",
+          ${selectEventContextSql}
+        FROM
+          transfer_sent_events e
+        JOIN
+          event_context ec ON e.event_context_id = ec.id
+        LEFT OUTER JOIN
+          transfer_bonded_events tbe ON e.transfer_id = tbe.claim_id
+        WHERE
+          ec.block_timestamp >= $1
+          AND ec.block_timestamp <= $2
+          ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
+          ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+          ${filter?.account ? 'AND ec.from_address = $5' : ''}
+          ${filter?.recipient ? 'AND e."to" = $5' : ''}
+          ${filter?.bonded != null ? 'AND tbe.claim_id IS NOT NULL' : ''}
+          ${filter?.pending != null ? 'AND tbe.claim_id IS NULL' : ''}
+          ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
+          ${filter?.attestedClaimId ? 'AND EXISTS (SELECT 1 FROM next_hops nh WHERE nh.transfer_sent_event_id = e.id AND nh.attested_claim_id = $5)' : ''}
+          ${filter?.pathId != null ? 'AND EXISTS (SELECT 1 FROM next_hops nh WHERE nh.transfer_sent_event_id = e.id AND nh.path_id = $5)' : ''}
+        ORDER BY
+          ec.block_timestamp DESC
+        LIMIT $3
+        OFFSET $4
+      )
+      SELECT
+        ft.*,
         nh.index,
         nh.path_id AS "nhPathId",
         nh.max_bonder_fee AS "maxBonderFee",
         nh.min_amount_out AS "minAmountOut",
         nh.attested_claim_id AS "nhAttestedClaimId"
       FROM
-        transfer_sent_events e
-      JOIN
-        event_context ec ON e.event_context_id = ec.id
+        filtered_transfers ft
       LEFT OUTER JOIN
-        next_hops nh ON e.id = nh.transfer_sent_event_id
-      LEFT OUTER JOIN
-        transfer_bonded_events tbe ON e.transfer_id = tbe.claim_id
-      WHERE
-        ec.block_timestamp >= $1
-        AND
-        ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
-        ${filter?.attestedClaimId ? 'AND nh.attested_claim_id = $5' : ''}
-        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
-        ${filter?.account ? 'AND ec.from_address = $5' : ''}
-        ${filter?.recipient ? 'AND e."to" = $5' : ''}
-        ${filter?.bonded != null ? 'AND tbe.claim_id IS NOT NULL' : ''}
-        ${filter?.pending != null ? 'AND tbe.claim_id IS NULL' : ''}
-        ${filter?.pathId != null ? 'AND nh.path_id = $5' : ''}
-        ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
+        next_hops nh ON ft.id = nh.transfer_sent_event_id
       ORDER BY
-        ec.block_timestamp
-      DESC
-      LIMIT $3
-      OFFSET $4`,
+        ft."context.blockTimestamp" DESC`
       args)
 
     const results = getItemsWithContext(items)
-    console.log('rows',  results.length)
+    console.log('TransferSent rows',  results.length)
 
     // Aggregate hops back into an array
     const itemsWithHops = this.#aggregateHops(results)
-    return itemsWithHops.map(item => this.#normalizeDataForGet(item))
+    const normalizedItems = itemsWithHops.map(item => this.#normalizeDataForGet(item))
+    console.log('TransferSent itemsWithHops', normalizedItems.length)
+
+    return normalizedItems
   }
 
   override async upsertItem (item: any) {

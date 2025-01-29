@@ -14,7 +14,7 @@ export async function GET(request: any) {
     console.log('cache hit', key)
     return Response.json(data)
   }
-  const isAllEvents = u.searchParams.get('pathname') === '/explorer'
+  const isAllEvents = u.searchParams.get('pathname') === '/events'
   const isExplorerEvents = u.searchParams.get('pathname') === '/explorer'
   const cacheTimeSeconds = isAllEvents ? 60 : isExplorerEvents ? 10 : 5
 

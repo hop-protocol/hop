@@ -2,6 +2,7 @@ import { Worker } from '#worker/index.js'
 import { actionHandler, parseBool, parseNumber, root } from './shared/index.js'
 import { server } from '#server/index.js'
 import { wait } from '#utils/wait.js'
+import { skipChainIds } from '#config/index.js'
 
 export const workerProgram = root
   .command('worker')
@@ -37,7 +38,8 @@ async function main (source: any) {
   }
 
   const worker = new Worker({
-    indexerPollSeconds
+    indexerPollSeconds,
+    skipChainIds
   })
 
   await worker.start()

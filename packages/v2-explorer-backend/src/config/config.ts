@@ -22,6 +22,7 @@ export const responseCacheDurationMs = Number(process.env.RESPONSE_CACHE_DURATIO
 export const defaultConfigDir = `${os.homedir()}/.v2-explorer-backend`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
+export const skipChainIds = process.env.SKIP_CHAIN_IDS ? process.env.SKIP_CHAIN_IDS.split(',') : []
 
 export const postgresConfig = {
   user: process.env.POSTGRES_USER || 'postgres',

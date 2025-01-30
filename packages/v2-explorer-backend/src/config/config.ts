@@ -37,12 +37,15 @@ console.log(postgresConfig)
 export const chainNames: any = {
   1: 'Ethereum (Mainnet)',
   10: 'Optimism (Mainnet)',
-  420: 'Optimism (Goerli)',
-  5: 'Ethereum (Goerli)',
+  8453: 'Base (Mainnet)',
+  42161: 'Arbitrum (Mainnet)',
+  324: 'zkSync (Mainnet)',
+  42069: 'Hub Chain (Sepolia)',
   11155111: 'Ethereum (Sepolia)',
   84532: 'Base (Sepolia)',
   11155420: 'Optimism (Sepolia)',
-  421614: 'Arbitrum (Sepolia)'
+  421614: 'Arbitrum (Sepolia)',
+  300: 'zkSync (Sepolia)',
 }
 
 export const rpcUrls: Record<string, string[]> = {}

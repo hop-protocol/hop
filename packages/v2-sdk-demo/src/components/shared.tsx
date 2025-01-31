@@ -1,4 +1,4 @@
-import { useApp } from '../hooks/useApp'
+import { useApp } from '../hooks/useApp.js'
 
 export function useShared() {
   const { network, chainIds, defaultChainIds } = useApp()

@@ -1,1 +1,1 @@
-export { walletConnectProjectId } from './config'
+export { walletConnectProjectId } from './config.js'

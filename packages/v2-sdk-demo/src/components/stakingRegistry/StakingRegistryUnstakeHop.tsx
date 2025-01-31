@@ -2,17 +2,17 @@ import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { useShared } from '../shared'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -54,8 +54,8 @@ export function StakingRegistryUnstakeHop (props: Props) {
       amount,
     }
     console.log('args', args)
-    const railsGateway = await sdk.getRailsGateway(fromChainId)
-    const stakingRegistry = await railsGateway.getStakingRegistry()
+    const railsGateway = sdk.getRailsGateway(fromChainId)
+    const stakingRegistry = railsGateway.getStakingRegistry()
     const txData = await stakingRegistry.populateTransaction.unstakeHop(args)
     return txData
   }

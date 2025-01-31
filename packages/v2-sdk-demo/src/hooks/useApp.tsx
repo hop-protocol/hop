@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { useLocalStorageState } from '../hooks/useLocalStorageState'
+import { useLocalStorageState } from '../hooks/useLocalStorageState.js'
 
 export function useApp() {
   const [network, setNetwork] = useLocalStorageState('network', {

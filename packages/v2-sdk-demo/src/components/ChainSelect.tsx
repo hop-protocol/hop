@@ -1,6 +1,6 @@
 import React from 'react'
-import { CustomSelect } from './CustomSelect'
-import { CustomMenuItem } from './CustomMenuItem'
+import { CustomSelect } from './CustomSelect.js'
+import { CustomMenuItem } from './CustomMenuItem.js'
 
 export type Chain = {
   chainId: string

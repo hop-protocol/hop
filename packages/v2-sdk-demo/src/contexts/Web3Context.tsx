@@ -21,7 +21,7 @@ import { MetaMask } from '@web3-react/metamask'
 import { GnosisSafe } from '@web3-react/gnosis-safe'
 import type { Connector } from '@web3-react/types'
 import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
-import { useApp } from '../hooks/useApp'
+import { useApp } from '../hooks/useApp.js'
 
 type ChainInfo = {
   chainId: number

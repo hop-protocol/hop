@@ -8,7 +8,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { useShared } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -18,6 +18,7 @@ export function HopCalcAmountOutMin (props: Props) {
   const cacheKey = 'hopCalcAmountOutMin'
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString } = useShared()
   const [copied, setCopied] = useState(false)
   const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
     defaultValue: '',

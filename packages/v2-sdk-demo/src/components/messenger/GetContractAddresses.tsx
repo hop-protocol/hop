@@ -6,7 +6,7 @@ import { Syntax } from '../Syntax'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { HighlightedButton } from '../HighlightedButton'
-import { hopInstantiateDisplayString } from '../shared'
+import { useShared } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -15,6 +15,7 @@ type Props = {
 export function GetContractAddresses (props: Props) {
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString } = useShared()
   const [copied, setCopied] = useState(false)
   const [output, setOutput] = useState(JSON.stringify(sdk?.getContractAddresses() ?? null, null, 2))
 

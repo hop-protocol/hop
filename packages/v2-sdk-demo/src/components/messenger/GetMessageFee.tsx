@@ -7,9 +7,8 @@ import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { HighlightedButton } from '../HighlightedButton'
 import { ChainSelect } from '../ChainSelect'
-import { defaultChainIds, chainIds } from '../../config'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { useShared } from '../shared'
 
 type Props = {
   sdk: Hop
@@ -19,6 +18,7 @@ export function GetMessageFee (props: Props) {
   const cacheKey = 'getMessageFee'
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,
   })

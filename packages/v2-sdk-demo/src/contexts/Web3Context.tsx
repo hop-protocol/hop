@@ -13,7 +13,7 @@ import CoinbaseWalletLogo from '../assets/logos/coinbasewallet.svg'
 import { providers } from 'ethers'
 import { useWeb3React } from '@web3-react/core'
 import { NetworkSlug, getChains } from '@hop-protocol/sdk'
-import { isMainnet, reactAppNetwork, walletConnectProjectId } from '../config/index.js'
+import { walletConnectProjectId } from '../config/index.js'
 import capitalize from 'lodash/capitalize'
 import { Web3ReactHooks, initializeConnector } from '@web3-react/core'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
@@ -21,6 +21,7 @@ import { MetaMask } from '@web3-react/metamask'
 import { GnosisSafe } from '@web3-react/gnosis-safe'
 import type { Connector } from '@web3-react/types'
 import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
+import { useApp } from '../hooks/useApp'
 
 type ChainInfo = {
   chainId: number
@@ -53,8 +54,8 @@ function getIcon(connector: Connector) {
   return ''
 }
 
-function getWeb3Chains(): ChainInfo[] {
-  const chains = getChains(reactAppNetwork as NetworkSlug)
+function getWeb3Chains(network: string): ChainInfo[] {
+  const chains = getChains(network as NetworkSlug)
   const items: ChainInfo[] = []
 
   for (const chain of chains) {
@@ -64,8 +65,9 @@ function getWeb3Chains(): ChainInfo[] {
     const isL1 = chain.isL1
     let rpcUrl = chain.publicRpcUrl
     let name = `${chain.name}`
+    const isMainnet = network === NetworkSlug.Mainnet
     if (!isMainnet) {
-      name = `${name} ${capitalize(reactAppNetwork)}`
+      name = `${name} ${capitalize(network)}`
     }
 
     // Note: This are overrides for when adding network to wallet
@@ -88,85 +90,96 @@ function getWeb3Chains(): ChainInfo[] {
   return items
 }
 
-const [metaMask, metaMaskHooks] = initializeConnector<MetaMask>((actions) => new MetaMask({ actions }))
-const [gnosisSafe, gnosisSafeHooks] = initializeConnector<GnosisSafe>((actions) => new GnosisSafe({
-  actions,
-  options: {
-    allowedDomains: [
-      /^https:\/\/gnosis-safe\.io$/,
-      /^https:\/\/app\.safe\.global$/,
-      /^https:\/\/safe\.global$/,
-      /^https:\/\/wallet\.ambire\.com$/
-    ]
+function getConnectors(network: string): any {
+  const [metaMask, metaMaskHooks] = initializeConnector<MetaMask>((actions) => new MetaMask({ actions }))
+  const [gnosisSafe, gnosisSafeHooks] = initializeConnector<GnosisSafe>((actions) => new GnosisSafe({
+    actions,
+    options: {
+      allowedDomains: [
+        /^https:\/\/gnosis-safe\.io$/,
+        /^https:\/\/app\.safe\.global$/,
+        /^https:\/\/safe\.global$/,
+        /^https:\/\/wallet\.ambire\.com$/
+      ]
+    }
+  }))
+
+  const [coinbaseWallet, coinbaseWalletHooks] = initializeConnector<CoinbaseWallet>(
+    (actions) =>
+      new CoinbaseWallet({
+        actions,
+        options: {
+          url: getWeb3Chains(network).filter((chain) => chain.isL1).map((chain) => chain.rpcUrl)[0],
+          appName: 'Hop Protocol',
+        },
+      })
+  )
+
+  const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnectV2>(
+    (actions) =>
+      new WalletConnectV2({
+        actions,
+        options: {
+          projectId: walletConnectProjectId,
+          chains: getWeb3Chains(network).filter((chain) => chain.isL1).map((chain) => chain.chainId),
+          optionalChains: getWeb3Chains(network).filter((chain) => !chain.isL1).map((chain) => chain.chainId),
+          showQrModal: true,
+          metadata: {
+            name: 'Hop Protocol',
+            description: 'Cross-chain bridge',
+            url: 'https://app.hop.exchange',
+            icons: ['https://app.hop.exchange/favicon.ico'],
+          }
+        },
+      })
+  )
+
+  const connectors: [MetaMask | WalletConnectV2 | CoinbaseWallet | GnosisSafe, Web3ReactHooks][] = [
+    [metaMask, metaMaskHooks],
+    [walletConnectV2, walletConnectV2Hooks],
+    [coinbaseWallet, coinbaseWalletHooks],
+    [gnosisSafe, gnosisSafeHooks]
+  ]
+
+  const connectorMap = {
+    metamask: metaMask,
+    walletconnect: walletConnectV2,
+    coinbasewallet: coinbaseWallet,
+    gnosissafe: gnosisSafe
   }
-}))
 
-const [coinbaseWallet, coinbaseWalletHooks] = initializeConnector<CoinbaseWallet>(
-  (actions) =>
-    new CoinbaseWallet({
-      actions,
-      options: {
-        url: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.rpcUrl)[0],
-        appName: 'Hop Protocol',
-      },
-    })
-)
+  const walletOptions = [
+    {
+      id: 'metamask',
+      name: 'MetaMask',
+      icon: MetaMaskLogo
+    },
+    {
+      id: 'walletconnect',
+      name: 'WalletConnect',
+      icon: WalletConnectLogo
+    },
+    {
+      id: 'coinbasewallet',
+      name: 'Coinbase Wallet',
+      icon: CoinbaseWalletLogo
+    },
+    {
+      id: 'gnosissafe',
+      name: 'Gnosis Safe',
+      icon: GnosisSafeLogo
+    }
+  ]
 
-const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnectV2>(
-  (actions) =>
-    new WalletConnectV2({
-      actions,
-      options: {
-        projectId: walletConnectProjectId,
-        chains: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.chainId),
-        optionalChains: getWeb3Chains().filter((chain) => !chain.isL1).map((chain) => chain.chainId),
-        showQrModal: true,
-        metadata: {
-          name: 'Hop Protocol',
-          description: 'Cross-chain bridge',
-          url: 'https://app.hop.exchange',
-          icons: ['https://app.hop.exchange/favicon.ico'],
-        }
-      },
-    })
-)
-
-export const connectors: [MetaMask | WalletConnectV2 | CoinbaseWallet | GnosisSafe, Web3ReactHooks][] = [
-  [metaMask, metaMaskHooks],
-  [walletConnectV2, walletConnectV2Hooks],
-  [coinbaseWallet, coinbaseWalletHooks],
-  [gnosisSafe, gnosisSafeHooks]
-]
-
-const connectorMap = {
-  metamask: metaMask,
-  walletconnect: walletConnectV2,
-  coinbasewallet: coinbaseWallet,
-  gnosissafe: gnosisSafe
+  return {
+    connectors,
+    connectorMap,
+    walletOptions,
+  }
 }
 
-const walletOptions = [
-  {
-    id: 'metamask',
-    name: 'MetaMask',
-    icon: MetaMaskLogo
-  },
-  {
-    id: 'walletconnect',
-    name: 'WalletConnect',
-    icon: WalletConnectLogo
-  },
-  {
-    id: 'coinbasewallet',
-    name: 'Coinbase Wallet',
-    icon: CoinbaseWalletLogo
-  },
-  {
-    id: 'gnosissafe',
-    name: 'Gnosis Safe',
-    icon: GnosisSafeLogo
-  }
-]
+export const { connectors, connectorMap, walletOptions } = getConnectors('sepolia')
+
 
 export type Props = {
   provider: providers.Web3Provider | undefined
@@ -192,6 +205,7 @@ export type Props = {
 const Web3Context = createContext<Props | undefined>(undefined)
 
 const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const { network } = useApp()
   const [provider, setProvider] = useState<providers.Web3Provider | undefined>()
   const [walletName, setWalletName] = useState<string>('')
   const [walletIcon, setWalletIcon] = useState<string>('')
@@ -364,7 +378,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         // this attempts to add chain if it can't switch to it
         if (err.code === chainNotAddedErrorCode) {
-          const chainInfo = getWeb3Chains().find(chain => chain.chainId === wantChainId)
+          const chainInfo = getWeb3Chains(network).find(chain => chain.chainId === wantChainId)
           if (!chainInfo) {
             throw new Error(`chain info not found for chainId ${wantChainId}`)
           }

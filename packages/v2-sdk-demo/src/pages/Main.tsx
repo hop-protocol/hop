@@ -8,10 +8,10 @@ import { HighlightedButton } from '../components/HighlightedButton'
 import Typography from '@mui/material/Typography'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { useApp } from '../hooks/useApp'
 import { useStyles } from '../components/useStyles'
+import { NetworkSelect } from '../components/NetworkSelect'
 import { useWeb3Context } from '../contexts/Web3Context'
-import { network } from '../config'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -85,16 +85,7 @@ export function Main () {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [balance, setBalance] = useState('-')
-  const [sdk, setSdk] = useState(() => {
-    return new Hop({
-      network,
-      signersOrProviders: Hop.getDefaultProviders(network)
-    })
-  })
-
-  useEffect(() => {
-    (window as any).sdk = sdk
-  }, [sdk])
+  const { network, sdk, setNetwork } = useApp()
 
   const updateBalance = async () => {
     try {
@@ -233,13 +224,16 @@ export function Main () {
                 View Explorer
               </Button>
             </Box>
+            <Box ml={4}>
+              <NetworkSelect network={network} setNetwork={setNetwork} />
+            </Box>
             {!address && (
               <Box ml={4}>
                 <HighlightedButton onClick={requestWallet} variant="contained">Connect a Wallet</HighlightedButton>
               </Box>
             )}
             {!!address && (
-              <Box>
+              <Box ml={4}>
                 <Button onClick={disconnectWallet}>disconnect</Button>
               </Box>
             )}

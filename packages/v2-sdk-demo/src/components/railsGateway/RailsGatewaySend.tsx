@@ -15,10 +15,9 @@ import { HighlightedButton } from '../HighlightedButton'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Signer } from 'ethers'
 import { Syntax } from '../Syntax'
-import { defaultChainIds, chainIds } from '../../config'
-import { hopInstantiateDisplayString } from '../shared'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useStyles } from '../useStyles'
+import { useShared } from '../shared'
 
 type Props = {
   signer?: Signer
@@ -30,6 +29,7 @@ export function RailsGatewaySend (props: Props) {
   const cacheKey = 'railsGatewaySend'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,

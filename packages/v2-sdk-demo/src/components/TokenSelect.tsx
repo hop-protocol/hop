@@ -1,7 +1,6 @@
 import React from 'react'
 import { CustomSelect } from './CustomSelect'
 import { CustomMenuItem } from './CustomMenuItem'
-import { network } from '../config'
 
 export type Token = {
   symbol: string
@@ -11,6 +10,7 @@ export type Props = {
   value: string
   tokens: string[]
   onChange: (token: Token) => void
+  network: string
 }
 
 // TODO: pull from a token list
@@ -39,7 +39,7 @@ sepolia: {
 // <TokenSelect value={'USDC'} tokens={['USDC', 'MOCK']} onChange={value => console.log('value', value)} />
 
 export function TokenSelect(props: Props) {
-  const { value, tokens, onChange } = props
+  const { value, tokens, onChange, network } = props
 
   function handleChange (event: any) {
     onChange(tokenListByChain[network][event.target.value])

@@ -780,14 +780,14 @@ ___
 
 ### <a id="calcfromhtokenamountmulticall" name="calcfromhtokenamountmulticall"></a> calcFromHTokenAmountMulticall
 
-▸ **calcFromHTokenAmountMulticall**(`chain`, `amountIns`): `Promise`\<`BigNumber`[]\>
+▸ **calcFromHTokenAmountMulticall**(`chain`, `amounting, amount ins`): `Promise`\<`BigNumber`[]\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chain` | [`TChain`](../modules.md#tchain) |
-| `amountIns` | `BigNumberish`[] |
+| `amounting, amount ins` | `BigNumberish`[] |
 
 #### Returns
 
@@ -797,14 +797,14 @@ ___
 
 ### <a id="calctohtokenamountmulticall" name="calctohtokenamountmulticall"></a> calcToHTokenAmountMulticall
 
-▸ **calcToHTokenAmountMulticall**(`chain`, `amountIns`): `Promise`\<`BigNumber`[]\>
+▸ **calcToHTokenAmountMulticall**(`chain`, `amounting, amount ins`): `Promise`\<`BigNumber`[]\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chain` | [`TChain`](../modules.md#tchain) |
-| `amountIns` | `BigNumberish`[] |
+| `amounting, amount ins` | `BigNumberish`[] |
 
 #### Returns
 
@@ -814,14 +814,14 @@ ___
 
 ### <a id="calcuniswapswapamountout" name="calcuniswapswapamountout"></a> calcUniswapSwapAmountOut
 
-▸ **calcUniswapSwapAmountOut**(`sourceChain`, `amountIn`): `Promise`\<`BigNumber`\>
+▸ **calcUniswapSwapAmountOut**(`sourceChain`, `amounting, amount in`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `amountIn` | `BigNumber` |
+| `amounting, amount in` | `BigNumber` |
 
 #### Returns
 
@@ -1306,14 +1306,14 @@ ___
 
 ### <a id="getammdata" name="getammdata"></a> getAmmData
 
-▸ **getAmmData**(`chain`, `amountIn`, `isToHToken`, `slippageTolerance`): `Promise`\<`any`\>
+▸ **getAmmData**(`chain`, `amounting, amount in`, `isToHToken`, `slippageTolerance`): `Promise`\<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `chain` | [`TChain`](../modules.md#tchain) |
-| `amountIn` | `BigNumberish` |
+| `amounting, amount in` | `BigNumberish` |
 | `isToHToken` | `boolean` |
 | `slippageTolerance` | `number` |
 
@@ -1479,13 +1479,13 @@ ___
 
 ### <a id="getbonderfeerelative" name="getbonderfeerelative"></a> getBonderFeeRelative
 
-▸ **getBonderFeeRelative**(`amountIn`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`BigNumber`\>
+▸ **getBonderFeeRelative**(`amounting, amount in`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
-| `amountIn` | `BigNumberish` | `undefined` |
+| `amounting, amount in` | `BigNumberish` | `undefined` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `destinationChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `isHTokenSend` | `boolean` | `false` |
@@ -2165,13 +2165,13 @@ ___
 
 ### <a id="getfeeandamountoutmindata" name="getfeeandamountoutmindata"></a> getFeeAndAmountOutMinData
 
-▸ **getFeeAndAmountOutMinData**(`amountIn`, `sourceChain`, `destinationChain`, `slippageTolerance`): `Promise`\<`FeeAndAmountOutMinData`\>
+▸ **getFeeAndAmountOutMinData**(`amounting, amount in`, `sourceChain`, `destinationChain`, `slippageTolerance`): `Promise`\<`FeeAndAmountOutMinData`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `amountIn` | `BigNumberish` |
+| `amounting, amount in` | `BigNumberish` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) |
 | `destinationChain` | [`TChain`](../modules.md#tchain) |
 | `slippageTolerance` | `number` |
@@ -2680,13 +2680,13 @@ ___
 
 ### <a id="getlpfees" name="getlpfees"></a> getLpFees
 
-▸ **getLpFees**(`amountIn`, `sourceChain`, `destinationChain`): `BigNumber`
+▸ **getLpFees**(`amounting, amount in`, `sourceChain`, `destinationChain`): `BigNumber`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `amountIn` | `BigNumberish` |
+| `amounting, amount in` | `BigNumberish` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) |
 | `destinationChain` | [`TChain`](../modules.md#tchain) |
 
@@ -2926,13 +2926,13 @@ ___
 
 ### <a id="getsenddata" name="getsenddata"></a> getSendData
 
-▸ **getSendData**(`amountIn`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`any`\>
+▸ **getSendData**(`amounting, amount in`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`any`\>
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
-| `amountIn` | `BigNumberish` | `undefined` |
+| `amounting, amount in` | `BigNumberish` | `undefined` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `destinationChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `isHTokenSend` | `boolean` | `false` |
@@ -3220,13 +3220,13 @@ ___
 
 ### <a id="gettotalfee" name="gettotalfee"></a> getTotalFee
 
-▸ **getTotalFee**(`amountIn`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`BigNumber`\>
+▸ **getTotalFee**(`amounting, amount in`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
-| `amountIn` | `BigNumberish` | `undefined` |
+| `amounting, amount in` | `BigNumberish` | `undefined` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `destinationChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `isHTokenSend` | `boolean` | `false` |

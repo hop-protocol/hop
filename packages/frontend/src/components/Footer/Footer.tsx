@@ -130,11 +130,6 @@ export const Footer = () => {
             <Typography variant="subtitle2">Forum</Typography>
           </StyledLink>
         </Box>
-        <Box ml={'1.6rem'}>
-          <StyledLink href={careersUrl} opacity={0.6}>
-            <Typography variant="subtitle2">Careers</Typography>
-          </StyledLink>
-        </Box>
       </Box>
     </Box>
   )

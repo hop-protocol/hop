@@ -9,7 +9,6 @@ import twitter from '../../assets/logos/twitter.svg?react' // eslint-disable-lin
 import { StyledLink } from '#components/Link/StyledLink.js'
 import { SvgImg } from '#components/ui/SvgImg.js'
 import {
-  careersUrl,
   discordUrl,
   docsUrl,
   faqUrl,

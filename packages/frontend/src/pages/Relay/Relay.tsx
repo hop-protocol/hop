@@ -187,7 +187,10 @@ export const Relay: FC = () => {
             console.log('receipt', receipt)
           } catch (err: any) {
             console.error(err)
-            throw new Error(`Failed to relay commit transfer tx on ${l1Network.slug}. Error: ${err.message}. You may need to wait a few more hours to relay this transfer.`)
+            if ([ChainSlug.Arbitrum, ChainSlug.Nova, ChainSlug.Optimism].includes(selectedNetwork?.slug as ChainSlug)) {
+              throw new Error(`Failed to relay commit transfer tx on ${l1Network.name}. You may need to wait until the challenge period on ${selectedNetwork.name} (~7 days after the commit tx) has ended to relay this transfer. Your funds are safe. Error: ${err.message}. `)
+            }
+            throw new Error(`Failed to relay commit transfer tx on ${l1Network.name}. You may need to wait a few more hours to relay this transfer. Your funds are safe. Error: ${err.message}. `)
           }
           setLoading(false)
           resolve(null)
@@ -294,7 +297,7 @@ export const Relay: FC = () => {
       </Box>
       {commitTxHashForTransferId && (
         <Box className={styles.notice} mb={2}>
-          <Alert severity="info">Found commit tx hash:<br /><br /><strong>{commitTxHashForTransferId}</strong><br /><br />This is the hash that is used to prove/finalize the exit transaction.</Alert>
+          <Alert severity="info">Found commit tx hash:<br /><br /><strong>{commitTxHashForTransferId}</strong><br /><br />This is the hash that is used to {selectedNetwork?.slug === ChainSlug.Optimism ? 'prove/finalize' : 'finalize'} the exit transaction.</Alert>
         </Box>
       )}
       {commitInfoMsg && (

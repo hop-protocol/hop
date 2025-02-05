@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import discord from '../../assets/logos/discord.svg?react' // eslint-disable-line n/no-missing-import
 import github from '../../assets/logos/github.svg?react' // eslint-disable-line n/no-missing-import
 import medium from '../../assets/logos/medium.svg?react' // eslint-disable-line n/no-missing-import
-import twitter from '../../assets/logos/twitter.svg?react' // eslint-disable-line n/no-missing-import
+import twitter from '../../assets/logos/twitter-x.svg?react' // eslint-disable-line n/no-missing-import
 import { StyledLink } from '#components/Link/StyledLink.js'
 import { SvgImg } from '#components/ui/SvgImg.js'
 import {

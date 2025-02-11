@@ -166,6 +166,22 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/contract-state', responseCache, async (req: any, res: any) => {
+  try {
+    const { filter, chainIds } = req.query
+    const data = await controller.getContractState({
+      filter,
+      chainIds
+    })
+    res.status(200).json({
+      data
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

@@ -725,4 +725,89 @@ export class Controller {
       tokenVolumes
     }
   }
+
+  async getContractState({ chainIds, filters }: any = {}): Promise<any> {
+    chainIds ??= this.sdk.getSupportedChainIds()
+    const result: any = {}
+
+    const paths = await this.pgDb.nonEventTables.Path.getItems({ limit: 100 })
+    // console.log('paths', paths)
+    const pathIds = paths.map((path: any) => path.pathId).slice(0, 10)
+
+    for (const chainId of chainIds) {
+      if (chainId === '42069') { // TODO
+        continue
+      }
+
+      try {
+        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const [
+          railsGatewayContractAddress,
+          removeFee,
+          updateFee,
+          stakingRegistryAddress
+        ] = await Promise.all([
+          railsGateway.getRailsGatewayContractAddress(),
+          railsGateway.getRemoveFee(),
+          railsGateway.getUpdateFee(),
+          railsGateway.getStakingRegistryAddress()
+        ])
+
+        result[chainId] = {
+          railsGatewayContractAddress,
+          removeFee: removeFee.toString(),
+          updateFee: updateFee.toString(),
+          stakingRegistryAddress
+        }
+
+        for (const pathId of pathIds) {
+          if (pathId) {
+            const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
+            console.log('isLive', isLive, pathId)
+            if (!isLive) {
+              continue
+            }
+            const [
+              headClaimId,
+              pathVault,
+              sendFee,
+              messageFee,
+              claimFeesFee,
+              totalClaims,
+              totalConfirmed,
+              totalSent
+            ] = await Promise.all([
+              railsGateway.getHeadClaimId({ pathId }),
+              railsGateway.getPathVault({ pathId }),
+              railsGateway.getSendFee({ pathId }),
+              railsGateway.getMessageFee({ pathId }),
+              railsGateway.getClaimFeesFee({ pathId }),
+              railsGateway.getTotalClaims({ pathId }),
+              railsGateway.getTotalConfirmed({ pathId }),
+              railsGateway.getTotalSent({ pathId })
+            ])
+            // railsGateway.getFeePrice({ chainId }),
+            // getTotalClaimsAtClaimId({ pathId, claimId })
+            // getBucketIndex({ pathId, claimId })
+
+            result[chainId] = {
+              ...result[chainId],
+              headClaimId,
+              pathVault,
+              sendFee: sendFee.toString(),
+              messageFee: messageFee.toString(),
+              claimFeesFee: claimFeesFee.toString(),
+              totalClaims: totalClaims.toString(),
+              totalConfirmed: totalConfirmed.toString(),
+              totalSent: totalSent.toString()
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error(`getContractState, chainId: ${chainId}, error: ${err.message}`)
+      }
+    }
+
+    return result
+  }
 }

@@ -1566,22 +1566,6 @@ export class RailsGateway extends Base {
     return tokenAddress
   }
 
-  async getMinBonderStake (): Promise<BigNumber> {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    const contract = await this.getRailsGatewayContract()
-
-    try {
-      const minStake = await contract.minBonderStake()
-      return minStake
-    } catch (err: unknown) {
-      return this.throwError(err) as BigNumber
-    }
-  }
-
   async getHopBalance (address?: string | null): Promise<BigNumber> {
     const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {

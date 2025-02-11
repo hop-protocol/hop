@@ -73,4 +73,11 @@ describe('Controller', () => {
     expect(result2.messageId).toBe(messageId)
     expect(result2.context.transactionHash).toBe(transactionHash)
   })
+
+  it('should get contract state', async () => {
+    const controller = new Controller()
+    const state = await controller.getContractState()
+    console.log(JSON.stringify(state, null, 2))
+    expect(state).toBeDefined()
+  }, 60 * 1000)
 })

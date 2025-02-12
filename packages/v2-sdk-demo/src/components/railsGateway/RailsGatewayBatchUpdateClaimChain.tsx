@@ -8,17 +8,16 @@ import StepContent from '@mui/material/StepContent'
 import StepLabel from '@mui/material/StepLabel'
 import Stepper from '@mui/material/Stepper'
 import Typography from '@mui/material/Typography'
-import { ChainSelect } from '../ChainSelect'
+import { ChainSelect } from '../ChainSelect.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { CustomTextField } from '../CustomTextField'
-import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField.js'
+import { HighlightedButton } from '../HighlightedButton.js'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Signer } from 'ethers'
-import { Syntax } from '../Syntax'
-import { defaultChainIds, chainIds } from '../../config'
-import { hopInstantiateDisplayString } from '../shared'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useStyles } from '../useStyles.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -30,6 +29,7 @@ export function RailsGatewayBatchUpdateClaimChain (props: Props) {
   const cacheKey = 'railsGatewayBatchUpdateClaimChain'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,

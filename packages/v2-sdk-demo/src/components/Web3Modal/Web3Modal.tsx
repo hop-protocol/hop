@@ -4,9 +4,9 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
-import { Modal } from '../Modal/Modal'
-import { useWeb3ModalStyles } from './useWeb3ModalStyles'
-import { useWeb3Context } from '../../contexts/Web3Context'
+import { Modal } from '../Modal/Modal.js'
+import { useWeb3ModalStyles } from './useWeb3ModalStyles.js'
+import { useWeb3Context } from '../../contexts/Web3Context.js'
 
 export function Web3Modal () {
   const styles = useWeb3ModalStyles()

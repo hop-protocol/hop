@@ -413,11 +413,15 @@ export class Controller {
     if (item.transferId) {
       item.transferIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.transferId}` // TODO: subdomain env var
     }
+    if (item.pathId) {
+      item.pathIdTruncated = truncateString(item.pathId, 4)
+    }
     if (item.claimId ) {
       item.claimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.claimId}` // TODO: subdomain env var
     }
     if (item.headClaimId ) {
       item.headClaimIdExplorerUrl = `https://v2-explorer.hop.exchange/t/${item.headClaimId}` // TODO: subdomain env var
+      item.headClaimIdTruncated = truncateString(item.headClaimId, 4)
     }
     if (item.to) {
       if (item.toChainId) {
@@ -536,6 +540,70 @@ export class Controller {
     if (item.context?.value != null && item.context?.valueFormatted != null && item.ethPriceUsd != null) {
       item.context.valueUsd = Number(item.context.valueFormatted) * Number(item.ethPriceUsd)
       item.context.valueUsdDisplay = `${formatToUSD(item.context.valueUsd.toFixed(2))} USD`
+    }
+    if (item.sendFee != null) {
+      item.sendFeeFormatted = formatUnits(item.sendFee, 18)
+      item.sendFeeDisplay = `${item.sendFeeFormatted} ETH`
+    }
+    if (item.messageFee != null) {
+      item.messageFeeFormatted = formatUnits(item.messageFee, 18)
+      item.messageFeeDisplay = `${item.messageFeeFormatted} ETH`
+    }
+    if (item.removeFee != null) {
+      item.removeFeeFormatted = formatUnits(item.removeFee, 18)
+      item.removeFeeDisplay = `${item.removeFeeFormatted} ETH`
+    }
+    if (item.updateFee != null) {
+      item.updateFeeFormatted = formatUnits(item.updateFee, 18)
+      item.updateFeeDisplay = `${item.updateFeeFormatted} ETH`
+    }
+    if (item.claimFeesFee != null) {
+      item.claimFeesFeeFormatted = formatUnits(item.claimFeesFee, 18)
+      item.claimFeesFeeDisplay = `${item.claimFeesFeeFormatted} ETH`
+    }
+    if (item.updatedFee != null) {
+      item.updatedFeeFormatted = formatUnits(item.updatedFee, 18)
+      item.updatedFeeDisplay = `${item.updatedFeeFormatted} ETH`
+    }
+    if (item.railsGatewayAddress) {
+      item.railsGatewayAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.railsGatewayAddress, item.context.chainId)
+      item.railsGatewayAddressTruncated = truncateString(item.railsGatewayAddress, 4)
+    }
+    if (item.stakingRegistryAddress) {
+      item.stakingRegistryAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.stakingRegistryAddress, item.context.chainId)
+      item.stakingRegistryAddressTruncated = truncateString(item.stakingRegistryAddress, 4)
+    }
+    if (item.hopToken) {
+      item.hopTokenExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.hopToken, item.context.chainId)
+      item.hopTokenTruncated = truncateString(item.hopToken, 4)
+    }
+    if (item.pathVault) {
+      item.pathVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathVault, item.context.chainId)
+      item.pathVaultTruncated = truncateString(item.pathVault, 4)
+    }
+    if (item.totalClaims != null) {
+      item.totalClaimsFormatted = formatUnits(item.totalClaims, 18)
+      item.totalClaimsDisplay = `${item.totalClaimsFormatted} ETH`
+    }
+    if (item.totalConfirmed != null) {
+      item.totalConfirmedFormatted = formatUnits(item.totalConfirmed, 18)
+      item.totalConfirmedDisplay = `${item.totalConfirmedFormatted} ETH`
+    }
+    if (item.totalSent != null) {
+      item.totalSentFormatted = formatUnits(item.totalSent, 18)
+      item.totalSentDisplay = `${item.totalSentFormatted} ETH`
+    }
+    if (item.minChallengeIncrease != null) {
+      item.minChallengeIncreaseFormatted = formatUnits(item.minChallengeIncrease, 18)
+      item.minChallengeIncreaseDisplay = `${item.minChallengeIncreaseFormatted} ETH`
+    }
+    if (item.fullAppeal != null) {
+      item.fullAppealFormatted = formatUnits(item.fullAppeal, 18)
+      item.fullAppealDisplay = `${item.fullAppealFormatted} ETH`
+    }
+    if (item.minHopStake != null) {
+      item.minHopStakeFormatted = formatUnits(item.minHopStake, 18)
+      item.minHopStakeDisplay = `${item.minHopStakeFormatted} ETH`
     }
 
     return item
@@ -724,5 +792,178 @@ export class Controller {
       },
       tokenVolumes
     }
+  }
+
+  async getContractState({ chainIds, filters }: any = {}): Promise<any> {
+    const result: any = {}
+    const [
+      railsGatewayState,
+      stakingRegistryState
+    ] = await Promise.all([
+      this.getRailsGatewayContractState({ chainIds, filters }),
+      this.getStakingRegistryContractState()
+    ])
+
+    for (const chainId in railsGatewayState) {
+      if (!result[chainId]) {
+        result[chainId] = {}
+      }
+      result[chainId] = {
+        ...result[chainId],
+        railsGateway: railsGatewayState[chainId],
+      }
+    }
+
+    for (const chainId in stakingRegistryState) {
+      if (!result[chainId]) {
+        result[chainId] = {}
+      }
+      result[chainId] = {
+        ...result[chainId],
+        stakingRegistry: stakingRegistryState[chainId],
+      }
+    }
+
+    return result
+  }
+
+  async getRailsGatewayContractState({ chainIds, filters }: any = {}): Promise<any> {
+    chainIds ??= this.sdk.getSupportedChainIds()
+    const result: any = {}
+
+    const paths = await this.pgDb.nonEventTables.Path.getItems({ limit: 100 })
+    // console.log('paths', paths)
+    const pathIds = paths.map((path: any) => path.pathId).slice(0, 10)
+
+    for (const chainId of chainIds) {
+      if (chainId === '42069') { // TODO
+        continue
+      }
+
+      try {
+        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const [
+          railsGatewayAddress,
+          removeFee,
+          updateFee,
+          stakingRegistryAddress
+        ] = await Promise.all([
+          railsGateway.getRailsGatewayContractAddress(),
+          railsGateway.getRemoveFee(),
+          railsGateway.getUpdateFee(),
+          railsGateway.getStakingRegistryContractAddress()
+        ])
+
+        result[chainId] = this.addEventFields({
+          railsGatewayAddress,
+          removeFee: removeFee.toString(),
+          updateFee: updateFee.toString(),
+          stakingRegistryAddress,
+          context: { chainId }
+        })
+
+        for (const pathId of pathIds) {
+          if (pathId) {
+            const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
+            console.log('isLive', isLive, pathId)
+            if (!isLive) {
+              continue
+            }
+
+            const [
+              headClaimId,
+              pathVault,
+              sendFee,
+              messageFee,
+              claimFeesFee,
+              totalClaims,
+              totalConfirmed,
+              totalSent
+            ] = await Promise.all([
+              railsGateway.getHeadClaimId({ pathId }),
+              railsGateway.getPathVault({ pathId }),
+              railsGateway.getSendFee({ pathId }),
+              railsGateway.getMessageFee({ pathId }),
+              railsGateway.getClaimFeesFee({ pathId }),
+              railsGateway.getTotalClaims({ pathId }),
+              railsGateway.getTotalConfirmed({ pathId }),
+              railsGateway.getTotalSent({ pathId })
+            ])
+            // railsGateway.getFeePrice({ chainId }),
+            // getTotalClaimsAtClaimId({ pathId, claimId })
+            // getBucketIndex({ pathId, claimId })
+
+            if (!result[chainId].paths) {
+              result[chainId].paths = {}
+            }
+
+            result[chainId].paths[pathId] = this.addEventFields({
+              pathId,
+              headClaimId,
+              pathVault,
+              sendFee: sendFee.toString(),
+              messageFee: messageFee.toString(),
+              claimFeesFee: claimFeesFee.toString(),
+              totalClaims: totalClaims.toString(),
+              totalConfirmed: totalConfirmed.toString(),
+              totalSent: totalSent.toString(),
+              context: { chainId }
+            })
+          }
+        }
+      } catch (err: any) {
+        console.error(`getContractState, chainId: ${chainId}, error: ${err.message}`)
+      }
+    }
+
+    return result
+  }
+
+  async getStakingRegistryContractState(): Promise<any> {
+    const chainIds = this.sdk.getSupportedChainIds()
+    const result: any = {}
+
+    for (const chainId of chainIds) {
+      try {
+        if (chainId === '42069') { // TODO
+          continue
+        }
+
+        const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+        const [
+          stakingRegistryAddress,
+          challengePeriod,
+          appealPeriod,
+          minChallengeIncrease,
+          fullAppeal,
+          minHopStake,
+          hopToken
+        ] = await Promise.all([
+          stakingRegistry.getStakingRegistryContractAddress(),
+          stakingRegistry.challengePeriod(),
+          stakingRegistry.appealPeriod(),
+          stakingRegistry.minChallengeIncrease(),
+          stakingRegistry.fullAppeal(),
+          stakingRegistry.minHopStake(),
+          stakingRegistry.hopToken()
+        ])
+
+        result[chainId] = this.addEventFields({
+          ...result[chainId],
+          stakingRegistryAddress,
+          challengePeriod: challengePeriod.toString(),
+          appealPeriod: appealPeriod.toString(),
+          minChallengeIncrease: minChallengeIncrease.toString(),
+          fullAppeal: fullAppeal.toString(),
+          minHopStake: minHopStake.toString(),
+          hopToken,
+          context: { chainId }
+        })
+      } catch (err: any) {
+        console.error(`getStakingRegistryContractState, chainId: ${chainId}, error: ${err.message}`)
+      }
+    }
+
+    return result
   }
 }

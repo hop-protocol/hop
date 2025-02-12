@@ -1,6 +1,6 @@
 import React from 'react'
-import { CustomSelect } from './CustomSelect'
-import { CustomMenuItem } from './CustomMenuItem'
+import { CustomSelect } from './CustomSelect.js'
+import { CustomMenuItem } from './CustomMenuItem.js'
 
 export type Chain = {
   chainId: string
@@ -16,12 +16,15 @@ export type Props = {
 const labels: Record<string, string> = {
   1: 'Ethereum (Mainnet)',
   10: 'Optimism (Mainnet)',
-  420: 'Optimism (Goerli)',
-  5: 'Ethereum (Goerli)',
+  8453: 'Base (Mainnet)',
+  42161: 'Arbitrum (Mainnet)',
+  324: 'zkSync (Mainnet)',
   84532: 'Base (Sepolia)',
   11155111: 'Ethereum (Sepolia)',
   11155420: 'Optimism (Sepolia)',
-  42069: 'Hop Hub (Sepolia)'
+  421614: 'Arbitrum (Sepolia)',
+  42069: 'Hop Hub (Sepolia)',
+  300: 'zkSync (Sepolia)',
 }
 
 export function ChainSelect(props: Props) {

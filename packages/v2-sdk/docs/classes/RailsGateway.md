@@ -67,7 +67,6 @@
 - [getHubChainId](RailsGateway.md#gethubchainid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
 - [getMessageFee](RailsGateway.md#getmessagefee)
-- [getMinBonderStake](RailsGateway.md#getminbonderstake)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
@@ -82,7 +81,7 @@
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
 - [getStakingRegistry](RailsGateway.md#getstakingregistry)
-- [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
+- [getStakingRegistryContractAddress](RailsGateway.md#getstakingregistrycontractaddress)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
@@ -915,16 +914,6 @@ ___
 
 ___
 
-### <a id="getminbonderstake" name="getminbonderstake"></a> getMinBonderStake
-
-▸ **getMinBonderStake**(): `Promise`\<`BigNumber`\>
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
 ### <a id="getnexthopshash" name="getnexthopshash"></a> getNextHopsHash
 
 ▸ **getNextHopsHash**(`«destructured»`): `Promise`\<`string`\>
@@ -1145,9 +1134,9 @@ ___
 
 ___
 
-### <a id="getstakingregistryaddress" name="getstakingregistryaddress"></a> getStakingRegistryAddress
+### <a id="getstakingregistrycontractaddress" name="getstakingregistrycontractaddress"></a> getStakingRegistryContractAddress
 
-▸ **getStakingRegistryAddress**(): `Promise`\<`string`\>
+▸ **getStakingRegistryContractAddress**(): `Promise`\<`string`\>
 
 #### Returns
 

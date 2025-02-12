@@ -381,7 +381,7 @@ describe('Server', () => {
     expect(price.priceUsdDisplay).toBeTruthy()
     expect(price.timestampRelative).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.only('/v1/stats/volume', async () => {
+  it('/v1/stats/volume', async () => {
     const res = await request(app).get('/v1/stats/volume').send()
     const { stats } = res.body
     console.log(JSON.stringify(stats, null, 2))
@@ -390,5 +390,11 @@ describe('Server', () => {
     expect(stats.totalVolume.totalUsd).toBeTruthy()
     expect(stats.totalVolume.totalUsdDisplay).toBeTruthy()
     expect(stats.tokenVolumes).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it.only('/v1/contract-state', async () => {
+    const res = await request(app).get('/v1/contract-state').send()
+    const { data } = res.body
+    console.log(JSON.stringify(res.body, null, 2))
+    expect(data).toBeTruthy()
   }, 10 * 60 * 1000)
 })

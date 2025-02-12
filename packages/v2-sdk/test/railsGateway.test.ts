@@ -1389,9 +1389,9 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    jest.spyOn(railsGateway as any, 'getStakingRegistryAddress').mockReturnValue('0x39b4CC7E096dd67D9Fd2B72b906ca5d2D48ac0c1')
+    jest.spyOn(railsGateway as any, 'getStakingRegistryContractAddress').mockReturnValue('0x39b4CC7E096dd67D9Fd2B72b906ca5d2D48ac0c1')
 
-    const address = await railsGateway.getStakingRegistryAddress()
+    const address = await railsGateway.getStakingRegistryContractAddress()
     console.log(address)
     expect(address).toBeDefined()
   })

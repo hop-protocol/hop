@@ -16,7 +16,8 @@ export function ContractStates() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8000/v1/contract-state')
+    //fetch('http://localhost:8000/v1/contract-state')
+    fetch('https://v2-explorer-api-sepolia.hop.exchange/v1/contract-state')
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)

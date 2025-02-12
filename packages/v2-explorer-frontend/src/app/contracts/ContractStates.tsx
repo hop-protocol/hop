@@ -29,7 +29,7 @@ export function ContractStates() {
         // { data: { chainId: { railsGateway: { ... }, stakingRegistry: { ... } } }, lastUpdated: '...' }
         const stateData = json.data
         // Transform the object into an array of records.
-        const formattedData = Object.entries(stateData).map(([chainId, details]) => ({
+        const formattedData = Object.entries(stateData).map(([chainId, details]: any) => ({
           chainId,
           ...details,
         }))

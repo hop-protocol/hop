@@ -153,14 +153,14 @@ export class StakingRegistry extends Base {
     this.chainId = chainId
   }
 
-  getStakingRegistryAddress (): string {
+  getStakingRegistryContractAddress (): string {
     const chainId = this.chainId
     return this.getConfigAddress(chainId, 'stakingRegistry')
   }
 
   getStakingRegistryContract (): Contract {
     const chainId = this.chainId
-    const address = this.getStakingRegistryAddress()
+    const address = this.getStakingRegistryContractAddress()
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId?.toString()}`)
@@ -247,7 +247,7 @@ export class StakingRegistry extends Base {
 
         const tokenAddress = await this.hopToken()
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const address = this.getStakingRegistryAddress()
+        const address = this.getStakingRegistryContractAddress()
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
@@ -278,7 +278,7 @@ export class StakingRegistry extends Base {
 
         const tokenAddress = await this.hopToken()
         const tokenContract = ERC20Mintable__factory.connect(tokenAddress, provider)
-        const address = this.getStakingRegistryAddress()
+        const address = this.getStakingRegistryContractAddress()
         const txData = await tokenContract.populateTransaction.mint(to, amount)
 
         return {
@@ -309,7 +309,7 @@ export class StakingRegistry extends Base {
 
         const tokenAddress = await this.hopToken()
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const spender = this.getStakingRegistryAddress()
+        const spender = this.getStakingRegistryContractAddress()
         account ??= (await this.getSignerAddress(chainId))!
         if (!account) {
           throw new InputError('signer not set')
@@ -478,7 +478,7 @@ export class StakingRegistry extends Base {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
-    const address = this.getStakingRegistryAddress()
+    const address = this.getStakingRegistryContractAddress()
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }

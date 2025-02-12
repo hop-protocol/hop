@@ -48,7 +48,7 @@ describe('StakingRegistry', () => {
       signerOrProvider: signer,
     })
 
-    const address = await stakingRegistry.getStakingRegistryAddress()
+    const address = await stakingRegistry.getStakingRegistryContractAddress()
     console.log(address)
     expect(address).toBeDefined()
   })

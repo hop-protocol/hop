@@ -3,7 +3,7 @@ import express, { Express } from 'express'
 import { Controller } from '#controller/index.js'
 import { ipRateLimitMiddleware } from './rateLimit.js'
 import { port } from '#config/index.js'
-import { responseCache } from './responseCache.js'
+import { responseCache, responseCacheHandler } from './responseCache.js'
 
 export const app : Express = express()
 const controller = new Controller()
@@ -166,7 +166,7 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   }
 })
 
-app.get('/v1/contract-state', responseCache, async (req: any, res: any) => {
+app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
     const { filter, chainIds } = req.query
     const data = await controller.getContractState({
@@ -174,7 +174,8 @@ app.get('/v1/contract-state', responseCache, async (req: any, res: any) => {
       chainIds
     })
     res.status(200).json({
-      data
+      data,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)

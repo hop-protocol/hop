@@ -112,7 +112,7 @@ export function Header () {
             <Tab label="Paths" value="paths" />
             <Tab label="Prices" value="prices" />
             <Tab label="Stats" value="stats" />
-            <Tab label="Contracts" value="contracts" />
+            <Tab label="Contract States" value="contracts" />
           </Tabs>
         </Box>
       </Box>

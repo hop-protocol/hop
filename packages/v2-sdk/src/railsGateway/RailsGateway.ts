@@ -2011,7 +2011,7 @@ export class RailsGateway extends Base {
     return contract.getPathVault(pathId)
   }
 
-  async getStakingRegistryAddress(): Promise<string> {
+  async getStakingRegistryContractAddress(): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.stakingRegistry()
   }

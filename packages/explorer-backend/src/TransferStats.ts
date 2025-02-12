@@ -1388,10 +1388,10 @@ export class TransferStats {
               deadline = Number(decoded?.args?.deadline.toString())
             }
             for (const _token of enabledTokens) {
-              const _addreses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
+              const _addresses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
-                _addreses?.l2AmmWrapper?.toLowerCase() === log.address?.toLowerCase() ||
-                _addreses?.l2Bridge?.toLowerCase() === log.address?.toLowerCase()
+                _addresses?.l2AmmWrapper?.toLowerCase() === log.address?.toLowerCase() ||
+                _addresses?.l2Bridge?.toLowerCase() === log.address?.toLowerCase()
               ) {
                 token = _token
               }
@@ -1409,9 +1409,9 @@ export class TransferStats {
               deadline = Number(decoded?.args?.deadline.toString())
             }
             for (const _token of enabledTokens) {
-              const _addreses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
+              const _addresses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
-                _addreses?.l1Bridge?.toLowerCase() === log.address?.toLowerCase()
+                _addresses?.l1Bridge?.toLowerCase() === log.address?.toLowerCase()
               ) {
                 token = _token
               }

@@ -1,6 +1,8 @@
 require('dotenv').config()
 const wait = require('wait')
 
+const apiBaseUrl = 'https://explorer-api.hop.exchange'
+// const apiBaseUrl = 'http://localhost:8000'
 const rateLimitToken = process.env.RATE_LIMIT_TOKEN
 const token = process.argv[2] ?? ''
 console.log('rateLimitToken set', !!rateLimitToken)
@@ -13,13 +15,14 @@ async function main () {
     if (page === 2) {
       break
     }
-    const url0 = `https://explorer-api.hop.exchange/v1/transfers?page=${page}&bonded=pending&rate_limit_token=${rateLimitToken}&token=${token}`
+    const url0 = `${apiBaseUrl}/v1/transfers?page=${page}&bonded=pending&rate_limit_token=${rateLimitToken}&token=${token}`
     const response0 = await fetch(url0)
     const json0 = await response0.json()
     const transferIds = json0.data.map(transfer => transfer.transferId)
+    // const transferIds = json0.data.map(transfer => transfer.transactionHash)
     console.log(transferIds.length)
     for (const transferId of transferIds) {
-      const url = `https://explorer-api.hop.exchange/v1/transfers?transferId=${transferId}&refresh=true&rate_limit_token=${rateLimitToken}`
+      const url = `${apiBaseUrl}/v1/transfers?transferId=${transferId}&refresh=true&rate_limit_token=${rateLimitToken}`
 
       console.log(url)
 

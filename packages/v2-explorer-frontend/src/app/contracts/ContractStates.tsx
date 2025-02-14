@@ -1,22 +1,27 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import { apiUrl, networkSlug, appApiHost } from '@/app/config'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableContainer from '@mui/material/TableContainer'
-import { DetailRow } from './DetailRow' // Adjust the import path as needed
+import { DetailRow } from './DetailRow'
 
 export function ContractStates() {
-  // Local state for our fetched data.
   const [contractState, setContractState] = useState<any[]>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8000/v1/contract-state')
+    const hostname = typeof window === 'undefined' ? appApiHost : window.location.host
+    const protocol = hostname.includes('localhost') ? 'http' : 'https'
+
+    const pathname = `/contract-state`
+    const url = `${protocol}://${hostname}/api/?pathname=${pathname}`
+    fetch(url)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
@@ -25,15 +30,7 @@ export function ContractStates() {
       })
       .then((json) => {
         console.log('json', json)
-        // Assume the response is in the format:
-        // { data: { chainId: { railsGateway: { ... }, stakingRegistry: { ... } } }, lastUpdated: '...' }
-        const stateData = json.data
-        // Transform the object into an array of records.
-        const formattedData = Object.entries(stateData).map(([chainId, details]) => ({
-          chainId,
-          ...details,
-        }))
-        setContractState(formattedData)
+        setContractState(Object.values(json.data))
         setLastUpdated(json.lastUpdated)
         setLoading(false)
       })
@@ -43,14 +40,12 @@ export function ContractStates() {
       })
   }, [])
 
-  // Define the fields (and labels) for each section.
-  // For each field, if a block explorer link exists it is assumed to be stored
-  // on the same object with the "ExplorerUrl" suffix.
   const railsGatewayFields = [
     { key: 'railsGatewayAddress', label: 'Gateway Address' },
     { key: 'removeFee', label: 'Remove Fee' },
     { key: 'updateFee', label: 'Update Fee' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
+    { key: 'pathIdsCount', label: 'Path Ids (Count)' },
   ]
 
   const pathsFields = [
@@ -67,8 +62,8 @@ export function ContractStates() {
 
   const stakingRegistryFields = [
     { key: 'stakingRegistryAddress', label: 'Registry Address' },
-    { key: 'challengePeriod', label: 'Challenge Period' },
-    { key: 'appealPeriod', label: 'Appeal Period' },
+    { key: 'challengePeriod', label: 'Challenge Period (Seconds)' },
+    { key: 'appealPeriod', label: 'Appeal Period (Seconds)' },
     { key: 'minChallengeIncrease', label: 'Min Challenge Increase' },
     { key: 'fullAppeal', label: 'Full Appeal' },
     { key: 'minHopStake', label: 'Min Hop Stake' },
@@ -93,7 +88,6 @@ export function ContractStates() {
 
   return (
     <Box width="100%" maxWidth="1200px" p={2}>
-      {/* Header: Title on the left, Last Updated aligned right */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">
           Contract States
@@ -105,13 +99,10 @@ export function ContractStates() {
 
       {contractState.map((contract) => (
         <Paper key={contract.chainId} elevation={2} sx={{ mb: 4, p: 2 }}>
-          {/* Basic Contract Info */}
           <Typography variant="h5" gutterBottom>
-            {contract.chainId} –{' '}
             {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
           </Typography>
 
-          {/* Rails Gateway Data */}
           <Typography variant="h6" gutterBottom>
             Rails Gateway
           </Typography>
@@ -143,7 +134,6 @@ export function ContractStates() {
             </Table>
           </TableContainer>
 
-          {/* Paths – nested data from railsGateway */}
           {contract.railsGateway?.paths && (
             <>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -182,7 +172,6 @@ export function ContractStates() {
             </>
           )}
 
-          {/* Staking Registry Data */}
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Staking Registry
           </Typography>

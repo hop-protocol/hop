@@ -94,4 +94,12 @@ describe('Controller', () => {
     console.log(JSON.stringify(state, null, 2))
     expect(state).toBeDefined()
   }, 60 * 1000)
+
+  it('should get path details', async () => {
+    const controller = new Controller()
+    const pathId = '0x18433c98c6e93aba3535f6176d504772595c2908ae0bce70b3beb08cd09f580e'
+    const state = await controller.getPathDetailsState({ pathId })
+    console.log(JSON.stringify(state, null, 2))
+    expect(state).toBeDefined()
+  }, 60 * 1000)
 })

@@ -183,6 +183,25 @@ app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: a
   }
 })
 
+app.get('/v1/path-details', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { pathId } = req.query
+    if (!pathId) {
+      throw new Error('pathId is required')
+    }
+    const data = await controller.getPathDetailsState({
+      pathId
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

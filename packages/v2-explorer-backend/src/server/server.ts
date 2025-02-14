@@ -168,10 +168,30 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
-    const { filter, chainIds } = req.query
+    const { filter, chainIds, includePathIds } = req.query
     const data = await controller.getContractState({
       filter,
-      chainIds
+      chainIds,
+      includePathIds
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/path-details', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { pathId } = req.query
+    if (!pathId) {
+      throw new Error('pathId is required')
+    }
+    const data = await controller.getPathDetailsState({
+      pathId
     })
     res.status(200).json({
       data,

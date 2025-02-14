@@ -603,7 +603,7 @@ export class Controller {
     }
     if (item.minHopStake != null) {
       item.minHopStakeFormatted = formatUnits(item.minHopStake, 18)
-      item.minHopStakeDisplay = `${item.minHopStakeFormatted} ETH`
+      item.minHopStakeDisplay = `${item.minHopStakeFormatted} HOP`
     }
 
     return item
@@ -794,13 +794,13 @@ export class Controller {
     }
   }
 
-  async getContractState({ chainIds, filters }: any = {}): Promise<any> {
+  async getContractState({ chainIds, filters, includePathIds }: any = {}): Promise<any> {
     const result: any = {}
     const [
       railsGatewayState,
       stakingRegistryState
     ] = await Promise.all([
-      this.getRailsGatewayContractState({ chainIds, filters }),
+      this.getRailsGatewayContractState({ chainIds, filters, includePathIds }),
       this.getStakingRegistryContractState()
     ])
 
@@ -827,13 +827,13 @@ export class Controller {
     return result
   }
 
-  async getRailsGatewayContractState({ chainIds, filters }: any = {}): Promise<any> {
+  async getRailsGatewayContractState({ chainIds, filters, includePathIds }: any = {}): Promise<any> {
     chainIds ??= this.sdk.getSupportedChainIds()
     const result: any = {}
 
     const paths = await this.pgDb.nonEventTables.Path.getItems({ limit: 100 })
     // console.log('paths', paths)
-    const pathIds = paths.map((path: any) => path.pathId).slice(0, 10)
+    const pathIds = includePathIds ? paths.map((path: any) => path.pathId) : []
 
     for (const chainId of chainIds) {
       if (chainId === '42069') { // TODO
@@ -855,6 +855,7 @@ export class Controller {
         ])
 
         result[chainId] = this.addEventFields({
+          chainId,
           railsGatewayAddress,
           removeFee: removeFee.toString(),
           updateFee: updateFee.toString(),
@@ -862,53 +863,55 @@ export class Controller {
           context: { chainId }
         })
 
-        for (const pathId of pathIds) {
-          if (pathId) {
-            const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
-            console.log('isLive', isLive, pathId)
-            if (!isLive) {
-              continue
+        if (includePathIds) {
+          for (const pathId of pathIds) {
+            if (pathId) {
+              const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
+              console.log('isLive', isLive, pathId)
+              if (!isLive) {
+                continue
+              }
+
+              const [
+                headClaimId,
+                pathVault,
+                sendFee,
+                messageFee,
+                claimFeesFee,
+                totalClaims,
+                totalConfirmed,
+                totalSent
+              ] = await Promise.all([
+                railsGateway.getHeadClaimId({ pathId }),
+                railsGateway.getPathVault({ pathId }),
+                railsGateway.getSendFee({ pathId }),
+                railsGateway.getMessageFee({ pathId }),
+                railsGateway.getClaimFeesFee({ pathId }),
+                railsGateway.getTotalClaims({ pathId }),
+                railsGateway.getTotalConfirmed({ pathId }),
+                railsGateway.getTotalSent({ pathId })
+              ])
+              // railsGateway.getFeePrice({ chainId }),
+              // getTotalClaimsAtClaimId({ pathId, claimId })
+              // getBucketIndex({ pathId, claimId })
+
+              if (!result[chainId].paths) {
+                result[chainId].paths = {}
+              }
+
+              result[chainId].paths[pathId] = this.addEventFields({
+                pathId,
+                headClaimId,
+                pathVault,
+                sendFee: sendFee.toString(),
+                messageFee: messageFee.toString(),
+                claimFeesFee: claimFeesFee.toString(),
+                totalClaims: totalClaims.toString(),
+                totalConfirmed: totalConfirmed.toString(),
+                totalSent: totalSent.toString(),
+                context: { chainId }
+              })
             }
-
-            const [
-              headClaimId,
-              pathVault,
-              sendFee,
-              messageFee,
-              claimFeesFee,
-              totalClaims,
-              totalConfirmed,
-              totalSent
-            ] = await Promise.all([
-              railsGateway.getHeadClaimId({ pathId }),
-              railsGateway.getPathVault({ pathId }),
-              railsGateway.getSendFee({ pathId }),
-              railsGateway.getMessageFee({ pathId }),
-              railsGateway.getClaimFeesFee({ pathId }),
-              railsGateway.getTotalClaims({ pathId }),
-              railsGateway.getTotalConfirmed({ pathId }),
-              railsGateway.getTotalSent({ pathId })
-            ])
-            // railsGateway.getFeePrice({ chainId }),
-            // getTotalClaimsAtClaimId({ pathId, claimId })
-            // getBucketIndex({ pathId, claimId })
-
-            if (!result[chainId].paths) {
-              result[chainId].paths = {}
-            }
-
-            result[chainId].paths[pathId] = this.addEventFields({
-              pathId,
-              headClaimId,
-              pathVault,
-              sendFee: sendFee.toString(),
-              messageFee: messageFee.toString(),
-              claimFeesFee: claimFeesFee.toString(),
-              totalClaims: totalClaims.toString(),
-              totalConfirmed: totalConfirmed.toString(),
-              totalSent: totalSent.toString(),
-              context: { chainId }
-            })
           }
         }
       } catch (err: any) {
@@ -950,6 +953,7 @@ export class Controller {
 
         result[chainId] = this.addEventFields({
           ...result[chainId],
+          chainId,
           stakingRegistryAddress,
           challengePeriod: challengePeriod.toString(),
           appealPeriod: appealPeriod.toString(),
@@ -961,6 +965,78 @@ export class Controller {
         })
       } catch (err: any) {
         console.error(`getStakingRegistryContractState, chainId: ${chainId}, error: ${err.message}`)
+      }
+    }
+
+    return result
+  }
+
+  async getPathDetailsState({ pathId }: any = {}): Promise<any> {
+    const chainIds = this.sdk.getSupportedChainIds()
+    const result: any = {}
+
+    const paths = await this.pgDb.nonEventTables.Path.getItems({ limit: 100 })
+    // console.log('paths', paths)
+
+    for (const chainId of chainIds) {
+      if (chainId === '42069') { // TODO
+        continue
+      }
+
+      try {
+        const railsGateway = this.sdk.getRailsGateway(chainId)
+
+        const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
+        console.log('isLive', isLive, pathId)
+        if (!isLive) {
+          continue
+        }
+
+        const [
+          headClaimId,
+          pathVault,
+          sendFee,
+          messageFee,
+          claimFeesFee,
+          totalClaims,
+          totalConfirmed,
+          totalSent
+        ] = await Promise.all([
+          railsGateway.getHeadClaimId({ pathId }),
+          railsGateway.getPathVault({ pathId }),
+          railsGateway.getSendFee({ pathId }),
+          railsGateway.getMessageFee({ pathId }),
+          railsGateway.getClaimFeesFee({ pathId }),
+          railsGateway.getTotalClaims({ pathId }),
+          railsGateway.getTotalConfirmed({ pathId }),
+          railsGateway.getTotalSent({ pathId })
+        ])
+        // railsGateway.getFeePrice({ chainId }),
+        // getTotalClaimsAtClaimId({ pathId, claimId })
+        // getBucketIndex({ pathId, claimId })
+
+        if (!result[chainId]) {
+          result[chainId] = {}
+        }
+        if (!result[chainId].paths) {
+          result[chainId].paths = {}
+        }
+
+        result[chainId] = this.addEventFields({
+          chainId,
+          pathId,
+          headClaimId,
+          pathVault,
+          sendFee: sendFee.toString(),
+          messageFee: messageFee.toString(),
+          claimFeesFee: claimFeesFee.toString(),
+          totalClaims: totalClaims.toString(),
+          totalConfirmed: totalConfirmed.toString(),
+          totalSent: totalSent.toString(),
+          context: { chainId }
+        })
+      } catch (err: any) {
+        console.error(`getContractState, chainId: ${chainId}, error: ${err.message}`)
       }
     }
 

@@ -31,6 +31,8 @@ export function Details(props: any) {
     { key: 'totalClaims', label: 'Total Claims' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
+    { key: 'tokenLabel', label: 'Token Name' },
+    { key: 'tokenAddress', label: 'Token Address' },
   ]
 
   if (loading) {
@@ -62,9 +64,22 @@ export function Details(props: any) {
               <Table>
                 <TableBody>
                   {pathsFields.map((field) => {
-                    const rawValue = path[field.key] || ''
+                    let rawValue = path[field.key] || ''
                     let displayValue = path[field.key + 'Display'] || ''
-                    const link = path[field.key + 'ExplorerUrl'] || ''
+                    let link = path[field.key + 'ExplorerUrl'] || ''
+
+                    if (field.key === 'tokenLabel') {
+                      displayValue = path.token.name
+                      link = ''
+                      rawValue = path.token.symbol
+                    }
+
+                    if (field.key === 'tokenAddress') {
+                      displayValue = path.token.address
+                      link = path.token.tokenExplorerUrl
+                      rawValue = path.token.address
+                    }
+
                     return (
                       <DetailRow
                         key={field.key}

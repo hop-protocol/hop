@@ -160,7 +160,7 @@ export function Table (props: Props) {
                                   ) : (
                                   <Link
                                     href={col.valueUrl}
-                                    target="_blank"
+                                    target={col.valueUrl?.startsWith('/') ? '_self' : '_blank'}
                                     rel="noreferrer"
                                     onClick={(event) => event.stopPropagation()} // Prevent row click
                                   >

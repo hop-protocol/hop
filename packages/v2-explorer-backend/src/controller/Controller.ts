@@ -581,17 +581,17 @@ export class Controller {
       item.pathVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathVault, item.context.chainId)
       item.pathVaultTruncated = truncateString(item.pathVault, 4)
     }
-    if (item.totalClaims != null) {
-      item.totalClaimsFormatted = formatUnits(item.totalClaims, 18)
-      item.totalClaimsDisplay = `${item.totalClaimsFormatted} ETH`
+    if (item.totalClaims != null && item.token?.decimals != null) {
+      item.totalClaimsFormatted = formatUnits(item.totalClaims, item.token.decimals)
+      item.totalClaimsDisplay = `${item.totalClaimsFormatted} ${item.token.symbol}`
     }
-    if (item.totalConfirmed != null) {
-      item.totalConfirmedFormatted = formatUnits(item.totalConfirmed, 18)
-      item.totalConfirmedDisplay = `${item.totalConfirmedFormatted} ETH`
+    if (item.totalConfirmed != null && item.token?.decimals != null) {
+      item.totalConfirmedFormatted = formatUnits(item.totalConfirmed, item.token.decimals)
+      item.totalConfirmedDisplay = `${item.totalConfirmedFormatted} ${item.token.symbol}`
     }
-    if (item.totalSent != null) {
-      item.totalSentFormatted = formatUnits(item.totalSent, 18)
-      item.totalSentDisplay = `${item.totalSentFormatted} ETH`
+    if (item.totalSent != null && item.token?.decimals != null) {
+      item.totalSentFormatted = formatUnits(item.totalSent, item.token.decimals)
+      item.totalSentDisplay = `${item.totalSentFormatted} ${item.token.symbol}`
     }
     if (item.minChallengeIncrease != null) {
       item.minChallengeIncreaseFormatted = formatUnits(item.minChallengeIncrease, 18)
@@ -794,13 +794,13 @@ export class Controller {
     }
   }
 
-  async getContractState({ chainIds, filters, includePathIds }: any = {}): Promise<any> {
+  async getContractState({ chainIds, filters }: any = {}): Promise<any> {
     const result: any = {}
     const [
       railsGatewayState,
       stakingRegistryState
     ] = await Promise.all([
-      this.getRailsGatewayContractState({ chainIds, filters, includePathIds }),
+      this.getRailsGatewayContractState({ chainIds, filters }),
       this.getStakingRegistryContractState()
     ])
 
@@ -827,13 +827,9 @@ export class Controller {
     return result
   }
 
-  async getRailsGatewayContractState({ chainIds, filters, includePathIds }: any = {}): Promise<any> {
+  async getRailsGatewayContractState({ chainIds, filters }: any = {}): Promise<any> {
     chainIds ??= this.sdk.getSupportedChainIds()
     const result: any = {}
-
-    const paths = await this.pgDb.nonEventTables.Path.getItems({ limit: 100 })
-    // console.log('paths', paths)
-    const pathIds = includePathIds ? paths.map((path: any) => path.pathId) : []
 
     for (const chainId of chainIds) {
       if (chainId === '42069') { // TODO
@@ -854,66 +850,20 @@ export class Controller {
           railsGateway.getStakingRegistryContractAddress()
         ])
 
+        const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { chainId }, limit: 100 })
+        // console.log('paths', paths)
+        const pathIds = paths.map((path: any) => path.pathId)
+
         result[chainId] = this.addEventFields({
           chainId,
+          pathIds,
+          pathIdsCount: pathIds.length,
           railsGatewayAddress,
           removeFee: removeFee.toString(),
           updateFee: updateFee.toString(),
           stakingRegistryAddress,
           context: { chainId }
         })
-
-        if (includePathIds) {
-          for (const pathId of pathIds) {
-            if (pathId) {
-              const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
-              console.log('isLive', isLive, pathId)
-              if (!isLive) {
-                continue
-              }
-
-              const [
-                headClaimId,
-                pathVault,
-                sendFee,
-                messageFee,
-                claimFeesFee,
-                totalClaims,
-                totalConfirmed,
-                totalSent
-              ] = await Promise.all([
-                railsGateway.getHeadClaimId({ pathId }),
-                railsGateway.getPathVault({ pathId }),
-                railsGateway.getSendFee({ pathId }),
-                railsGateway.getMessageFee({ pathId }),
-                railsGateway.getClaimFeesFee({ pathId }),
-                railsGateway.getTotalClaims({ pathId }),
-                railsGateway.getTotalConfirmed({ pathId }),
-                railsGateway.getTotalSent({ pathId })
-              ])
-              // railsGateway.getFeePrice({ chainId }),
-              // getTotalClaimsAtClaimId({ pathId, claimId })
-              // getBucketIndex({ pathId, claimId })
-
-              if (!result[chainId].paths) {
-                result[chainId].paths = {}
-              }
-
-              result[chainId].paths[pathId] = this.addEventFields({
-                pathId,
-                headClaimId,
-                pathVault,
-                sendFee: sendFee.toString(),
-                messageFee: messageFee.toString(),
-                claimFeesFee: claimFeesFee.toString(),
-                totalClaims: totalClaims.toString(),
-                totalConfirmed: totalConfirmed.toString(),
-                totalSent: totalSent.toString(),
-                context: { chainId }
-              })
-            }
-          }
-        }
       } catch (err: any) {
         console.error(`getContractState, chainId: ${chainId}, error: ${err.message}`)
       }
@@ -1022,6 +972,19 @@ export class Controller {
           result[chainId].paths = {}
         }
 
+        await this.upsertTokenInfoIfNotExists({ pathId, context: { chainId }})
+
+        const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { chainId, pathId }})
+        const pathInfo = pathInfos?.[0]
+        let tokenInfo : any
+        console.log('pathInfo', pathInfo)
+        if (pathInfo) {
+          const { token: tokenAddress } = pathInfo
+          const tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
+          tokenInfo = tokenInfos?.[0]
+        }
+        console.log('tokenInfo', tokenInfo)
+
         result[chainId] = this.addEventFields({
           chainId,
           pathId,
@@ -1033,10 +996,11 @@ export class Controller {
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
-          context: { chainId }
+          context: { chainId },
+          token: tokenInfo
         })
       } catch (err: any) {
-        console.error(`getContractState, chainId: ${chainId}, error: ${err.message}`)
+        console.error(`getPathDetailsState, chainId: ${chainId}, error: ${err.message}`)
       }
     }
 

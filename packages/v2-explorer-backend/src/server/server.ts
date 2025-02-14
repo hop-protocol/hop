@@ -168,11 +168,10 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
-    const { filter, chainIds, includePathIds } = req.query
+    const { filter, chainIds } = req.query
     const data = await controller.getContractState({
       filter,
-      chainIds,
-      includePathIds
+      chainIds
     })
     res.status(200).json({
       data,

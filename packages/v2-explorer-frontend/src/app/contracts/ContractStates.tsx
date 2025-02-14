@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import { apiUrl, networkSlug, appApiHost } from '@/app/config'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
@@ -15,8 +16,12 @@ export function ContractStates() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    // fetch('https://v2-explorer-api-sepolia.hop.exchange/v1/contract-state')
-    fetch('http://localhost:8000/v1/contract-state')
+    const hostname = typeof window === 'undefined' ? appApiHost : window.location.host
+    const protocol = hostname.includes('localhost') ? 'http' : 'https'
+
+    const pathname = `/contract-state`
+    const url = `${protocol}://${hostname}/api/?pathname=${pathname}`
+    fetch(url)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
@@ -40,6 +45,7 @@ export function ContractStates() {
     { key: 'removeFee', label: 'Remove Fee' },
     { key: 'updateFee', label: 'Update Fee' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
+    { key: 'pathIdsCount', label: 'Path Ids (Count)' },
   ]
 
   const pathsFields = [

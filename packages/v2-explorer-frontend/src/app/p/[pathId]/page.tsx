@@ -9,11 +9,8 @@ export const metadata: Metadata = {
   title: 'Path Details',
 }
 
-export default async function DetailsPage() {
-  const heads = headers()
-  const pathname = heads.get('x-current-path')
-  const parts = pathname?.split('/')
-  const pathId = parts?.[2]
+export default async function DetailsPage({ params }: { params: { pathId: string } }) {
+  const pathId = params.pathId
 
   const pathDetails = await fetchPathDetails({
     pathId

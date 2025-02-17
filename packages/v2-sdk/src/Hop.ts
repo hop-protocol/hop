@@ -196,7 +196,6 @@ export class Hop extends Base {
     }
 
     const sharedConfig = { contractAddresses: this.contractAddresses, signersOrProviders: this.signersOrProviders, network: this.network }
-    this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.gasPriceOracle = new GasPriceOracle(this.network)
   }
@@ -205,8 +204,21 @@ export class Hop extends Base {
     return '0.0.1' // TODO
   }
 
-  getMessenger() {
-    return this.messenger
+  getMessenger(chainId: BigNumberish):Messenger {
+    chainId = chainId?.toString()
+    const key = `Messenger:${chainId}`
+    let instance = cache.get(key) as Messenger
+    if (!instance) {
+      instance = new Messenger({
+        network: this.network,
+        chainId,
+        signerOrProvider: this.signersOrProviders[chainId]
+      })
+
+      cache.put(key, instance)
+    }
+
+    return instance
   }
 
   getHubConnectorContractAddress (chainId: BigNumberish): string {

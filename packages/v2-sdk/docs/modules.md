@@ -74,7 +74,6 @@
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
 - [GetClaimFeesFeeInput](modules.md#getclaimfeesfeeinput)
 - [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
-- [GetEstimatedTxCostForForwardMessageInput](modules.md#getestimatedtxcostforforwardmessageinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
@@ -146,7 +145,7 @@
 - [HubConnectorConfig](modules.md#hubconnectorconfig)
 - [IsValidClaimInput](modules.md#isvalidclaiminput)
 - [IsValidTransferInput](modules.md#isvalidtransferinput)
-- [MessengerConfig](modules.md#messengerconfig)
+- [MessengerConstructorInput](modules.md#messengerconstructorinput)
 - [Path](modules.md#path)
 - [PostClaimInput](modules.md#postclaiminput)
 - [RailsGatewayConstructorInput](modules.md#railsgatewayconstructorinput)
@@ -454,7 +453,6 @@ ___
 | :------ | :------ |
 | `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
-| `fromChainId` | `BigNumberish` |
 
 ___
 
@@ -519,7 +517,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -532,7 +529,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -566,18 +562,6 @@ ___
 
 ___
 
-### <a id="getestimatedtxcostforforwardmessageinput" name="getestimatedtxcostforforwardmessageinput"></a> GetEstimatedTxCostForForwardMessageInput
-
-Ƭ **GetEstimatedTxCostForForwardMessageInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-___
-
 ### <a id="geteventcontextinput" name="geteventcontextinput"></a> GetEventContextInput
 
 Ƭ **GetEventContextInput**: `Object`
@@ -586,7 +570,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `event` | `EthersEvent` |
 
 ___
@@ -676,7 +659,6 @@ ___
 | :------ | :------ |
 | `bundleId` | `string` |
 | `fromChainId` | `BigNumberish` |
-| `toChainId` | `BigNumberish` |
 
 ___
 
@@ -701,7 +683,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -714,9 +695,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `messageId` | `string` |
-| `toChainId` | `BigNumberish` |
 
 ___
 
@@ -764,7 +743,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `toChainId` | `BigNumberish` |
 
 ___
@@ -790,7 +768,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -803,7 +780,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -816,7 +792,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -829,7 +804,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -843,7 +817,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `bundleId` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -855,7 +828,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -868,7 +840,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -881,7 +852,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `toChainId` | `BigNumberish` |
 
 ___
@@ -894,7 +864,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -908,7 +877,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `bundleId` | `string` |
-| `chainId` | `BigNumberish` |
 
 ___
 
@@ -920,7 +888,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -933,7 +900,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -946,7 +912,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `receipt` | `providers.TransactionReceipt` |
 
 ___
@@ -959,7 +924,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `messageId` | `string` |
 
 ___
@@ -972,7 +936,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1081,7 +1044,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `toAddress` | `string` |
 | `toCalldata` | `string` |
 | `toChainId` | `BigNumberish` |
@@ -1096,7 +1058,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
 
 ___
@@ -1114,7 +1075,6 @@ ___
 | `fromChainId` | `BigNumberish` |
 | `toAddress` | `string` |
 | `toCalldata` | `string` |
-| `toChainId` | `BigNumberish` |
 
 ___
 
@@ -1127,7 +1087,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `bundleCommittedEvent` | `BundleCommitted` |
-| `fromChainId` | `BigNumberish` |
 
 ___
 
@@ -1139,7 +1098,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `toChainId` | `BigNumberish` |
 
 ___
@@ -1167,7 +1125,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
 | `toAddress` | `string` |
 | `toCalldata` | `string` |
 | `toChainId` | `BigNumberish` |
@@ -1182,8 +1139,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `fromChainId` | `BigNumberish` |
-| `toChainId` | `BigNumberish` |
+| `spokeChainId` | `BigNumberish` |
 
 ___
 
@@ -1423,7 +1379,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `bundleCommittedEvent` | `BundleCommitted` |
-| `fromChainId` | `BigNumberish` |
 
 ___
 
@@ -1489,9 +1444,20 @@ ___
 
 ___
 
-### <a id="messengerconfig" name="messengerconfig"></a> MessengerConfig
+### <a id="messengerconstructorinput" name="messengerconstructorinput"></a> MessengerConstructorInput
 
-Ƭ **MessengerConfig**: `BaseConfig`
+Ƭ **MessengerConstructorInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `contractAddresses?` | `Addresses` |
+| `gasPriceMultiplier?` | `number` |
+| `network?` | `string` |
+| `signerOrProvider?` | `Signer` \| `providers.Provider` |
+| `signersOrProviders?` | `SignersOrProviders` |
 
 ___
 

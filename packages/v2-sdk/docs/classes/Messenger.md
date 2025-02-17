@@ -15,6 +15,7 @@
 ### Properties
 
 - [batchBlocks](Messenger.md#batchblocks)
+- [chainId](Messenger.md#chainid)
 - [contractAddresses](Messenger.md#contractaddresses)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
@@ -111,6 +112,7 @@
 - [setProviderUrls](Messenger.md#setproviderurls)
 - [setProviders](Messenger.md#setproviders)
 - [throwError](Messenger.md#throwerror)
+- [deriveNetwork](Messenger.md#derivenetwork)
 - [getBundleCommittedEventSignature](Messenger.md#getbundlecommittedeventsignature)
 - [getBundleForwardedEventSignature](Messenger.md#getbundleforwardedeventsignature)
 - [getBundleReceivedEventSignature](Messenger.md#getbundlereceivedeventsignature)
@@ -132,7 +134,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `BaseConfig` |
+| `«destructured»` | [`MessengerConstructorInput`](../modules.md#messengerconstructorinput) |
 
 #### Returns
 
@@ -151,6 +153,12 @@ Base.constructor
 #### Inherited from
 
 Base.batchBlocks
+
+___
+
+### <a id="chainid" name="chainid"></a> chainId
+
+• **chainId**: `BigNumberish`
 
 ___
 
@@ -571,13 +579,7 @@ ___
 
 ### <a id="getestimatedtxcostforforwardmessage" name="getestimatedtxcostforforwardmessage"></a> getEstimatedTxCostForForwardMessage
 
-▸ **getEstimatedTxCostForForwardMessage**(`«destructured»`): `Promise`\<`number`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetEstimatedTxCostForForwardMessageInput`](../modules.md#getestimatedtxcostforforwardmessageinput) |
+▸ **getEstimatedTxCostForForwardMessage**(): `Promise`\<`number`\>
 
 #### Returns
 
@@ -607,14 +609,13 @@ ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`, `chainId`): `any`
+▸ **getEventFetcher**(`eventName`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `eventName` | [`MessengerEventName`](../enums/MessengerEventName.md) |
-| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -634,13 +635,7 @@ ___
 
 ### <a id="getexecutorcontractaddress" name="getexecutorcontractaddress"></a> getExecutorContractAddress
 
-▸ **getExecutorContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getExecutorContractAddress**(): `string`
 
 #### Returns
 
@@ -710,13 +705,7 @@ ___
 
 ### <a id="gethubmessagebridgecontractaddress" name="gethubmessagebridgecontractaddress"></a> getHubMessageBridgeContractAddress
 
-▸ **getHubMessageBridgeContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHubMessageBridgeContractAddress**(): `string`
 
 #### Returns
 
@@ -1316,13 +1305,7 @@ ___
 
 ### <a id="getspokemessagebridgecontractaddress" name="getspokemessagebridgecontractaddress"></a> getSpokeMessageBridgeContractAddress
 
-▸ **getSpokeMessageBridgeContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getSpokeMessageBridgeContractAddress**(): `string`
 
 #### Returns
 
@@ -1652,6 +1635,22 @@ ___
 #### Inherited from
 
 Base.throwError
+
+___
+
+### <a id="derivenetwork" name="derivenetwork"></a> deriveNetwork
+
+▸ **deriveNetwork**(`chainId`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`
 
 ___
 

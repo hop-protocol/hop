@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { RailsGateway, EventName } from '#railsGateway/index.js'
-import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
+import { providers, Wallet, utils, BigNumber } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
 
@@ -683,7 +683,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const transferId = await railsGateway.helpers.getComputedTransferId({ previousTransferId, transferDataHash })
+    const transferId = railsGateway.helpers.getComputedTransferId({ previousTransferId, transferDataHash })
     console.log(transferId)
     expect(transferId).toBeDefined()
   })
@@ -701,7 +701,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const transferDataHash = await railsGateway.helpers.getComputedTransferDataHash({
+    const transferDataHash = railsGateway.helpers.getComputedTransferDataHash({
       to,
       amountOut,
       maxBonderFee,
@@ -1280,19 +1280,6 @@ describe('RailsGateway', () => {
     console.log(isBonded)
     expect(isBonded).toBeDefined()
   })
-  it('should get min bonder stake', async () => {
-    const chainId = 11155111
-    const railsGateway = new RailsGateway({
-      chainId,
-      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
-    })
-
-    jest.spyOn(railsGateway as any, 'getMinBonderStake').mockReturnValue(BigNumber.from(1) as any)
-
-    const minStake = await railsGateway.getMinBonderStake()
-    console.log(minStake)
-    expect(minStake).toBeDefined()
-  })
   it('should get hop balance', async () => {
     const chainId = 11155111
     const address = await signer.getAddress()
@@ -1402,7 +1389,7 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    const stakingRegistry = await railsGateway.getStakingRegistry()
+    const stakingRegistry = railsGateway.getStakingRegistry()
     console.log(stakingRegistry)
     expect(stakingRegistry).toBeDefined()
   })
@@ -1413,7 +1400,7 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    const abi = await railsGateway.helpers.getAbi()
+    const abi = railsGateway.helpers.getAbi()
     console.log(abi)
     expect(abi).toBeDefined()
   })

@@ -14,6 +14,7 @@ describe('Hop', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const sdk = new Hop({
+    network: 'sepolia',
     signersOrProviders: Object.assign({
       ...Hop.getDefaultProviders('sepolia'),
       '11155420': new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
@@ -30,7 +31,7 @@ describe('Hop', () => {
   })
 
   it('should get messenger instance', async () => {
-    expect(sdk.getMessenger()).toBeDefined()
+    expect(sdk.getMessenger(11155111)).toBeDefined()
   })
 
   it.skip('TODO should get hub connector contract address', async () => {
@@ -165,10 +166,10 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it.only('should get transfer status for transferId', async () => {
+  it('should get transfer status for transferId', async () => {
     const fromChainId = 11155420
     const toChainId = 84532
-    const transferId = '0x470dfd8beca4cf9565ddcc4cf3c7468cddcea0a381149833580adccdbed438c8'
+    const transferId = '0x90a3e365254d2b06002d290c96998dcbf00ec07c2d4ea15e39e3aba52d70be3a'
     const transferStatus = await sdk.getTransferStatus({
       fromChainId,
       toChainId,

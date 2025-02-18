@@ -1,4 +1,4 @@
-import { Base, BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
+import { Base, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
 import { BigNumber, BigNumberish, providers, utils, Event as EthersEvent, Signer } from 'ethers'
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'

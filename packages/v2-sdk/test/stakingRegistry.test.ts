@@ -179,6 +179,22 @@ describe('StakingRegistry', () => {
     expect(address).toBeDefined()
   })
 
+  it('should get window size', async () => {
+    const chainId = 11155111
+    const provider = StakingRegistry.getDefaultProvider(chainId)
+    const signer = new Wallet(privateKey, provider)
+    const stakingRegistry = new StakingRegistry({
+      chainId,
+      signerOrProvider: signer,
+    })
+
+    jest.spyOn(stakingRegistry as any, 'windowSize').mockReturnValue(1)
+
+    const windowSize = await stakingRegistry.windowSize()
+    console.log(windowSize)
+    expect(windowSize).toBeDefined()
+  })
+
   it('should get is staked', async () => {
     const chainId = 11155111
     const provider = StakingRegistry.getDefaultProvider(chainId)

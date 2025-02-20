@@ -451,6 +451,11 @@ export class StakingRegistry extends Base {
     return contract.getChallengeId(staker, penalty, challenger, slashingData)
   }
 
+  async windowSize (): Promise<string> {
+    const contract = this.getStakingRegistryContract()
+    return contract.windowSize()
+  }
+
   async stakeHop (input: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.stakeHop(input, txOverrides)
     return this.sendTransaction(populatedTx)

@@ -41,6 +41,10 @@ export function RailsGatewayGetPathId (props: Props) {
     defaultValue: '',
   })
 
+  const [initialReserve, setInitialReserve] = useLocalStorageState(`${cacheKey}:initialReserve`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -55,6 +59,7 @@ export function RailsGatewayGetPathId (props: Props) {
         token0: fromToken,
         chainId1: toChainId,
         token1: toToken,
+        initialReserve
       }
       console.log('args', args)
       const pathId = await sdk.getRailsGateway(fromChainId).getPathId(args)
@@ -74,13 +79,15 @@ async function main() {
   const token0 = "${fromToken}"
   const chainId1 = "${toChainId}"
   const token1 = "${toToken}"
+  const initialReserve = "${initialReserve}"
 
   ${hopInstantiateDisplayString}
   const pathId = await hop.getRailsGateway('${fromChainId}').getPathId({
     chainId0,
     token0,
     chainId1,
-    token1
+    token1,
+    initialReserve
   })
   console.log(pathId)
 }
@@ -130,6 +137,12 @@ main().catch(console.error)
                   <label>To Token <small><em>(address)</em></small> <small><em>Destination chain token address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toToken} onChange={event => setToToken(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Initial Reserve <small><em>(uint256)</em></small> <small><em>Initial reserve on the path</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={initialReserve} onChange={event => setInitialReserve(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

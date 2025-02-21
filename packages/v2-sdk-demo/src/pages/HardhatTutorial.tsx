@@ -169,8 +169,7 @@ export function HardhatTutorial () {
       }
       const sdk = new Hop()
       const isExited = await sdk.messenger.getIsL2TxHashExited({
-        transactionHash: greetingTxOnOptimism,
-        fromChainId: 420
+        transactionHash: greetingTxOnOptimism
       })
       return isExited
     },
@@ -437,7 +436,6 @@ export function HardhatTutorial () {
     } as any) // TODO
 
     const messageFee1 = await sdk.messenger.getMessageFee({
-      fromChainId: chainId,
       toChainId: chainId === 5 ? 420 : 5
     })
     console.log('fee', messageFee1.toString())
@@ -528,9 +526,9 @@ export function HardhatTutorial () {
       fromAddress,
       toCalldata,
       toChainId
-    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ chainId: fromChainId, transactionHash: greetingTxOnOptimism })
+    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ transactionHash: greetingTxOnOptimism })
 
-    const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof })
+    const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, fromAddress, toAddress, toCalldata, bundleProof })
     if (!txData) {
       throw new Error('expected txData')
     }

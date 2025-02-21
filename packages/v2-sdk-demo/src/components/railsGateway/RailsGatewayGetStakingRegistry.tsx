@@ -37,7 +37,7 @@ export function RailsGatewayGetStakingRegistry (props: Props) {
     try {
       setError('')
       setLoading(true)
-      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistryAddress()
+      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistryContractAddress()
       setStakingRegistry(address)
     } catch (err: any) {
       console.error(err)
@@ -51,7 +51,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   ${hopInstantiateDisplayString}
-  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistryAddress()
+  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistryContractAddress()
   console.log(address)
 }
 

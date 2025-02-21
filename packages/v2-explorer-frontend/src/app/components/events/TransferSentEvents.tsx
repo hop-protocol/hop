@@ -29,16 +29,12 @@ export function TransferSentEvents () {
       value: 'Transfer ID',
     },
     {
-      key: 'amountOut',
+      key: 'amount',
       value: 'Amount Out',
     },
     {
-      key: 'totalSent',
-      value: 'Total Sent',
-    },
-    {
-      key: 'totalClaims',
-      value: 'Total Claims',
+      key: 'sourcePool',
+      value: 'Source Pool',
     },
     {
       key: 'eventChainId',
@@ -69,9 +65,9 @@ export function TransferSentEvents () {
         clipboardValue: event.transferId
       },
       {
-        key: 'amountOut',
-        value: event.amountOut,
-        clipboardValue: event.amountOut
+        key: 'amount',
+        value: event.amount,
+        clipboardValue: event.amount
       },
       {
         key: 'totalSent',
@@ -105,8 +101,8 @@ export function TransferSentEvents () {
               value: 'Max Bonder Fee',
             },
             {
-              key: 'minAmountOut',
-              value: 'Min Amount Out',
+              key: 'maxTotalSent',
+              value: 'Max Total Sent',
             },
             {
               key: 'attestedClaimId',
@@ -131,9 +127,9 @@ export function TransferSentEvents () {
                 clipboardValue: hop.maxBonderFee
               },
               {
-                key: 'minAmountOut',
-                value: hop.minAmountOut,
-                clipboardValue: hop.minAmountOut
+                key: 'maxTotalSent',
+                value: hop.maxTotalSent,
+                clipboardValue: hop.maxTotalSent
               },
               {
                 key: 'attestedClaimId',

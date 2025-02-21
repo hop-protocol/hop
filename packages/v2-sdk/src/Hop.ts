@@ -268,18 +268,22 @@ export class Hop extends Base {
         const tokenSymbol = this.getTokenSymbolByTokenAddress(originChainId, originToken)
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
+        const initialReserve = 10_000 // TODO
+
         const nextPathId = await this.getRailsGateway(originChainId).getPathId({
           chainId0: originChainId,
           token0: originToken,
           chainId1: nextChainId,
-          token1: nextToken
+          token1: nextToken,
+          initialReserve
         })
 
         const destPathId = await this.getRailsGateway(nextChainId).getPathId({
           chainId0: nextChainId,
           token0: nextToken,
           chainId1: destChainId,
-          token1: destToken
+          token1: destToken,
+          initialReserve
         })
 
         let isClaimIdValid = false
@@ -314,10 +318,10 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMinAmountOut = BigNumber.from('0') // TODO
+        const nextMaxTotalSent = BigNumber.from('0') // TODO
         const nextMaxBonderFee = BigNumber.from('0') // TODO
 
-        const destMinAmountOut = BigNumber.from('0') // TODO
+        const destMaxTotalSent = BigNumber.from('0') // TODO
         const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
           pathId: destPathId
         })
@@ -327,13 +331,13 @@ export class Hop extends Base {
           {
             pathId: nextPathId,
             maxBonderFee: nextMaxBonderFee,
-            minAmountOut: nextMinAmountOut,
+            maxTotalSent: nextMaxTotalSent,
             attestedClaimId: attestedClaimId
           },
           {
             pathId: destPathId,
             maxBonderFee: destMaxBonderFee,
-            minAmountOut: destMinAmountOut,
+            maxTotalSent: destMaxTotalSent,
             attestedClaimId: destAttestedClaimId
           }
         ]
@@ -385,11 +389,14 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
+        const initialReserve = 10_000 // TODO
+
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
           token0: fromToken,
           chainId1: toChainId,
-          token1: toToken
+          token1: toToken,
+          initialReserve
         })
 
         let isClaimIdValid = false
@@ -432,13 +439,13 @@ export class Hop extends Base {
         }
 
         const maxBonderFee = BigNumber.from('0') // TODO
+        const maxTotalSent = BigNumber.from('0') // TODO
 
         const hops: HopStructInput[] = [{
           pathId,
           maxBonderFee,
-          minAmountOut,
-          attestedClaimId
-        }]
+          maxTotalSent,
+          attestedClaimId        }]
 
         console.log('hopV2Sdk hops', hops)
 
@@ -457,11 +464,14 @@ export class Hop extends Base {
       },
 
       approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const initialReserve = BigNumber.from('0') // TODO
+
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
           token0: fromToken,
           chainId1: toChainId,
-          token1: toToken
+          token1: toToken,
+          initialReserve
         })
 
         const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.approveSend({
@@ -491,11 +501,14 @@ export class Hop extends Base {
 
   async getNeedsApprovalForSendTokens (input: GetNeedsApprovalForSendTokensInput): Promise<boolean> {
     const { fromChainId, fromToken, toChainId, toToken, amount, account } = input
+
+    const initialReserve = BigNumber.from('0') // TODO
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
     console.log('hopV2Sdk: getPathId', pathId)
     return this.getRailsGateway(fromChainId).helpers.getNeedsApprovalForSend({ pathId, amount, account })
@@ -530,12 +543,14 @@ export class Hop extends Base {
   }
 
   async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
+    const initialReserve = BigNumber.from('0') // TODO
     const gateway = this.getRailsGateway(fromChainId)
     const pathId = await gateway.getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
 
     return gateway.getSendFee({
@@ -553,11 +568,13 @@ export class Hop extends Base {
     minAmountOut,
     from
   }: WillSendTokensFailInput): Promise<boolean> {
+    const initialReserve = BigNumber.from('0') // TODO
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
 
     const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaimId({
@@ -565,12 +582,13 @@ export class Hop extends Base {
     })
 
     const maxBonderFee = BigNumber.from('0') // TODO
+    const maxTotalSent = BigNumber.from('0') // TODO
 
     const hops: HopStructInput[] = [{
       pathId,
       attestedClaimId,
       maxBonderFee,
-      minAmountOut,
+      maxTotalSent
     }]
 
     const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
@@ -591,13 +609,21 @@ export class Hop extends Base {
   }
 
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+    const initialReserve = BigNumber.from('0') // TODO
     const rails = this.getRailsGateway(toChainId)
-    const pathId = await rails.getPathId({ chainId0: fromChainId, token0: fromToken, chainId1: toChainId, token1: toToken })
+    const pathId = await rails.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken,
+      initialReserve
+    })
     const attestedClaimId = await rails.getHeadClaimId({
       pathId
     })
 
-    const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId })
+    const sourcePool = await rails.getSourcePool({ pathId, attestedClaimId })
+    const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     return amountOut
   }
 

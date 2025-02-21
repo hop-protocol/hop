@@ -39,18 +39,27 @@
 - [bond](RailsGateway.md#bond)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
+- [defaultTokenFee](RailsGateway.md#defaulttokenfee)
+- [dispatcher](RailsGateway.md#dispatcher)
 - [distributeClaimedFees](RailsGateway.md#distributeclaimedfees)
 - [distributeExcessFees](RailsGateway.md#distributeexcessfees)
+- [executor](RailsGateway.md#executor)
+- [feeOracle](RailsGateway.md#feeoracle)
+- [gateways](RailsGateway.md#gateways)
 - [getAmountOut](RailsGateway.md#getamountout)
 - [getBatchUpdateFee](RailsGateway.md#getbatchupdatefee)
+- [getBucket](RailsGateway.md#getbucket)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
+- [getClaim](RailsGateway.md#getclaim)
 - [getClaimFeesFee](RailsGateway.md#getclaimfeesfee)
+- [getClaimId](RailsGateway.md#getclaimid)
 - [getColorForChainId](RailsGateway.md#getcolorforchainid)
 - [getConfigAddress](RailsGateway.md#getconfigaddress)
 - [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
 - [getContractAddresses](RailsGateway.md#getcontractaddresses)
 - [getContractExists](RailsGateway.md#getcontractexists)
+- [getCounterpartChainId](RailsGateway.md#getcounterpartchainid)
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders)
 - [getEthersWeb3Signer](RailsGateway.md#getethersweb3signer)
@@ -59,6 +68,9 @@
 - [getEventNames](RailsGateway.md#geteventnames)
 - [getExplorerApiBaseUrl](RailsGateway.md#getexplorerapibaseurl)
 - [getFeePrice](RailsGateway.md#getfeeprice)
+- [getFeeVault](RailsGateway.md#getfeevault)
+- [getHardConfirmedBucketIndex](RailsGateway.md#gethardconfirmedbucketindex)
+- [getHardConfirmedClaimId](RailsGateway.md#gethardconfirmedclaimid)
 - [getHasSufficientBalance](RailsGateway.md#gethassufficientbalance)
 - [getHeadClaimId](RailsGateway.md#getheadclaimid)
 - [getHopBalance](RailsGateway.md#gethopbalance)
@@ -66,6 +78,7 @@
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
 - [getHubChainId](RailsGateway.md#gethubchainid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
+- [getLastBondedClaimId](RailsGateway.md#getlastbondedclaimid)
 - [getMessageFee](RailsGateway.md#getmessagefee)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
@@ -75,11 +88,13 @@
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
 - [getRemoveFee](RailsGateway.md#getremovefee)
+- [getRemovedBalance](RailsGateway.md#getremovedbalance)
 - [getSendFee](RailsGateway.md#getsendfee)
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
+- [getSourcePool](RailsGateway.md#getsourcepool)
 - [getStakingRegistry](RailsGateway.md#getstakingregistry)
 - [getStakingRegistryContractAddress](RailsGateway.md#getstakingregistrycontractaddress)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
@@ -89,16 +104,19 @@
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
 - [getTokenSymbolByTokenAddress](RailsGateway.md#gettokensymbolbytokenaddress)
+- [getTokenVault](RailsGateway.md#gettokenvault)
 - [getTotalClaims](RailsGateway.md#gettotalclaims)
 - [getTotalClaimsAtClaimId](RailsGateway.md#gettotalclaimsatclaimid)
 - [getTotalConfirmed](RailsGateway.md#gettotalconfirmed)
 - [getTotalSent](RailsGateway.md#gettotalsent)
+- [getTotalWithdrawableAtClaimId](RailsGateway.md#gettotalwithdrawableatclaimid)
 - [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
 - [getTransferBondedEvents](RailsGateway.md#gettransferbondedevents)
 - [getTransferDataHash](RailsGateway.md#gettransferdatahash)
+- [getTransferIndex](RailsGateway.md#gettransferindex)
 - [getTransferSentEventFilter](RailsGateway.md#gettransfersenteventfilter)
 - [getTransferSentEventFromTransactionHash](RailsGateway.md#gettransfersenteventfromtransactionhash)
 - [getTransferSentEventFromTransactionReceipt](RailsGateway.md#gettransfersenteventfromtransactionreceipt)
@@ -109,23 +127,39 @@
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [getUpdateFee](RailsGateway.md#getupdatefee)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
+- [getWithdrawn](RailsGateway.md#getwithdrawn)
+- [initChain](RailsGateway.md#initchain)
+- [initPath](RailsGateway.md#initpath)
+- [isPathInitialized](RailsGateway.md#ispathinitialized)
 - [isValidClaim](RailsGateway.md#isvalidclaim)
 - [isValidTransfer](RailsGateway.md#isvalidtransfer)
+- [postAndBond](RailsGateway.md#postandbond)
+- [postAndWithdraw](RailsGateway.md#postandwithdraw)
 - [postClaim](RailsGateway.md#postclaim)
+- [pushClaim](RailsGateway.md#pushclaim)
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
+- [setDefaultTokenFee](RailsGateway.md#setdefaulttokenfee)
 - [setExplorerApiBaseUrl](RailsGateway.md#setexplorerapibaseurl)
+- [setFeeOracle](RailsGateway.md#setfeeoracle)
 - [setFeePrice](RailsGateway.md#setfeeprice)
 - [setFeePrices](RailsGateway.md#setfeeprices)
 - [setProvider](RailsGateway.md#setprovider)
 - [setProviderUrl](RailsGateway.md#setproviderurl)
 - [setProviderUrls](RailsGateway.md#setproviderurls)
 - [setProviders](RailsGateway.md#setproviders)
+- [setSendFeeGas](RailsGateway.md#setsendfeegas)
+- [setStakingRegistry](RailsGateway.md#setstakingregistry)
+- [setUpdateFeeGas](RailsGateway.md#setupdatefeegas)
 - [throwError](RailsGateway.md#throwerror)
 - [updateClaimChain](RailsGateway.md#updateclaimchain)
+- [updateDefaultTokenFee](RailsGateway.md#updatedefaulttokenfee)
+- [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdraw](RailsGateway.md#withdraw)
+- [withdrawBonds](RailsGateway.md#withdrawbonds)
+- [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
@@ -276,13 +310,18 @@ ___
 | `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `distributeClaimedFees` | (`__namedParameters`: [`DistributeClaimedFeesInput`](../modules.md#distributeclaimedfeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `distributeExcessFees` | (`__namedParameters`: [`DistributeExcessFeesInput`](../modules.md#distributeexcessfeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postAndBond` | (`__namedParameters`: [`PostAndBondInput`](../modules.md#postandbondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postAndWithdraw` | (`__namedParameters`: [`PostAndWithdrawInput`](../modules.md#postandwithdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `pushClaim` | (`__namedParameters`: [`PushClaimInput`](../modules.md#pushclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrices` | (`__namedParameters`: [`SetFeePricesInput`](../modules.md#setfeepricesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawBonds` | (`__namedParameters`: [`WithdrawBondsInput`](../modules.md#withdrawbondsinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawClaim` | (`__namedParameters`: [`WithdrawClaimInput`](../modules.md#withdrawclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -459,6 +498,26 @@ ___
 
 ___
 
+### <a id="defaulttokenfee" name="defaulttokenfee"></a> defaultTokenFee
+
+▸ **defaultTokenFee**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="dispatcher" name="dispatcher"></a> dispatcher
+
+▸ **dispatcher**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="distributeclaimedfees" name="distributeclaimedfees"></a> distributeClaimedFees
 
 ▸ **distributeClaimedFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -493,6 +552,42 @@ ___
 
 ___
 
+### <a id="executor" name="executor"></a> executor
+
+▸ **executor**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="feeoracle" name="feeoracle"></a> feeOracle
+
+▸ **feeOracle**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="gateways" name="gateways"></a> gateways
+
+▸ **gateways**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetGatewaysInput` |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="getamountout" name="getamountout"></a> getAmountOut
 
 ▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -522,6 +617,22 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="getbucket" name="getbucket"></a> getBucket
+
+▸ **getBucket**(`«destructured»`): `Promise`\<[`Bucket`](../modules.md#bucket)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetBucketInput`](../modules.md#getbucketinput) |
+
+#### Returns
+
+`Promise`\<[`Bucket`](../modules.md#bucket)\>
 
 ___
 
@@ -561,6 +672,22 @@ Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
+### <a id="getclaim" name="getclaim"></a> getClaim
+
+▸ **getClaim**(`«destructured»`): `Promise`\<[`Claim`](../modules.md#claim)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetClaimInput`](../modules.md#getclaiminput) |
+
+#### Returns
+
+`Promise`\<[`Claim`](../modules.md#claim)\>
+
+___
+
 ### <a id="getclaimfeesfee" name="getclaimfeesfee"></a> getClaimFeesFee
 
 ▸ **getClaimFeesFee**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -574,6 +701,22 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="getclaimid" name="getclaimid"></a> getClaimId
+
+▸ **getClaimId**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetClaimIdInput`](../modules.md#getclaimidinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -670,6 +813,22 @@ ___
 #### Inherited from
 
 Base.getContractExists
+
+___
+
+### <a id="getcounterpartchainid" name="getcounterpartchainid"></a> getCounterpartChainId
+
+▸ **getCounterpartChainId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetCounterpartChainIdInput`](../modules.md#getcounterpartchainidinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -800,6 +959,54 @@ ___
 
 ___
 
+### <a id="getfeevault" name="getfeevault"></a> getFeeVault
+
+▸ **getFeeVault**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetFeeVaultInput`](../modules.md#getfeevaultinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="gethardconfirmedbucketindex" name="gethardconfirmedbucketindex"></a> getHardConfirmedBucketIndex
+
+▸ **getHardConfirmedBucketIndex**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetHardConfirmedBucketIndexInput`](../modules.md#gethardconfirmedbucketindexinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gethardconfirmedclaimid" name="gethardconfirmedclaimid"></a> getHardConfirmedClaimId
+
+▸ **getHardConfirmedClaimId**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetHardConfirmedClaimIdInput`](../modules.md#gethardconfirmedclaimidinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="gethassufficientbalance" name="gethassufficientbalance"></a> getHasSufficientBalance
 
 ▸ **getHasSufficientBalance**(`«destructured»`): `Promise`\<`boolean`\>
@@ -895,6 +1102,22 @@ ___
 #### Returns
 
 `Promise`\<`boolean`\>
+
+___
+
+### <a id="getlastbondedclaimid" name="getlastbondedclaimid"></a> getLastBondedClaimId
+
+▸ **getLastBondedClaimId**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetLastBondedClaimIdInput`](../modules.md#getlastbondedclaimidinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -1028,6 +1251,22 @@ ___
 
 ___
 
+### <a id="getremovedbalance" name="getremovedbalance"></a> getRemovedBalance
+
+▸ **getRemovedBalance**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetRemovedBalanceInput`](../modules.md#getremovedbalanceinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
 ### <a id="getsendfee" name="getsendfee"></a> getSendFee
 
 ▸ **getSendFee**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -1121,6 +1360,22 @@ ___
 #### Inherited from
 
 Base.getSignerProviderChainId
+
+___
+
+### <a id="getsourcepool" name="getsourcepool"></a> getSourcePool
+
+▸ **getSourcePool**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetSourcePoolInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1266,6 +1521,16 @@ Base.getTokenSymbolByTokenAddress
 
 ___
 
+### <a id="gettokenvault" name="gettokenvault"></a> getTokenVault
+
+▸ **getTokenVault**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="gettotalclaims" name="gettotalclaims"></a> getTotalClaims
 
 ▸ **getTotalClaims**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -1323,6 +1588,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `«destructured»` | [`GetTotalSentInput`](../modules.md#gettotalsentinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalwithdrawableatclaimid" name="gettotalwithdrawableatclaimid"></a> getTotalWithdrawableAtClaimId
+
+▸ **getTotalWithdrawableAtClaimId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalWithdrawableAtClaimIdInput`](../modules.md#gettotalwithdrawableatclaimidinput) |
 
 #### Returns
 
@@ -1423,6 +1704,22 @@ ___
 #### Returns
 
 `Promise`\<`string`\>
+
+___
+
+### <a id="gettransferindex" name="gettransferindex"></a> getTransferIndex
+
+▸ **getTransferIndex**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTransferIndexInput`](../modules.md#gettransferindexinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1577,11 +1874,79 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`WithdrawableBalanceInput`](../modules.md#withdrawablebalanceinput) |
+| `«destructured»` | [`GetWithdrawableBalanceInput`](../modules.md#getwithdrawablebalanceinput) |
 
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="getwithdrawn" name="getwithdrawn"></a> getWithdrawn
+
+▸ **getWithdrawn**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetWithdrawnInput`](../modules.md#getwithdrawninput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="initchain" name="initchain"></a> initChain
+
+▸ **initChain**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+ADMIN FUNCTIONS
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`InitChainInput`](../modules.md#initchaininput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="initpath" name="initpath"></a> initPath
+
+▸ **initPath**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`InitPathInput`](../modules.md#initpathinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="ispathinitialized" name="ispathinitialized"></a> isPathInitialized
+
+▸ **isPathInitialized**(`«destructured»`): `Promise`\<`boolean`\>
+
+/END ADMIN FUNCTIONS
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`IsPathInitializedInput`](../modules.md#ispathinitializedinput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
 
 ___
 
@@ -1617,6 +1982,40 @@ ___
 
 ___
 
+### <a id="postandbond" name="postandbond"></a> postAndBond
+
+▸ **postAndBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PostAndBondInput`](../modules.md#postandbondinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="postandwithdraw" name="postandwithdraw"></a> postAndWithdraw
+
+▸ **postAndWithdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PostAndWithdrawInput`](../modules.md#postandwithdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="postclaim" name="postclaim"></a> postClaim
 
 ▸ **postClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -1626,6 +2025,23 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`PostClaimInput`](../modules.md#postclaiminput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="pushclaim" name="pushclaim"></a> pushClaim
+
+▸ **pushClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PushClaimInput`](../modules.md#pushclaiminput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -1710,6 +2126,22 @@ Base.setContractAddresses
 
 ___
 
+### <a id="setdefaulttokenfee" name="setdefaulttokenfee"></a> setDefaultTokenFee
+
+▸ **setDefaultTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetDefaultTokenFeeInput`](../modules.md#setdefaulttokenfeeinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
 
 ▸ **setExplorerApiBaseUrl**(`url`): `void`
@@ -1727,6 +2159,22 @@ ___
 #### Inherited from
 
 Base.setExplorerApiBaseUrl
+
+___
+
+### <a id="setfeeoracle" name="setfeeoracle"></a> setFeeOracle
+
+▸ **setFeeOracle**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetFeeOracleInput`](../modules.md#setfeeoracleinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -1846,6 +2294,54 @@ Base.setProviders
 
 ___
 
+### <a id="setsendfeegas" name="setsendfeegas"></a> setSendFeeGas
+
+▸ **setSendFeeGas**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetSendFeeGasInput`](../modules.md#setsendfeegasinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setstakingregistry" name="setstakingregistry"></a> setStakingRegistry
+
+▸ **setStakingRegistry**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetStakingRegistryInput`](../modules.md#setstakingregistryinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setupdatefeegas" name="setupdatefeegas"></a> setUpdateFeeGas
+
+▸ **setUpdateFeeGas**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetUpdateFeeGasInput`](../modules.md#setupdatefeegasinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="throwerror" name="throwerror"></a> throwError
 
 ▸ **throwError**(`err`): `unknown`
@@ -1883,6 +2379,38 @@ ___
 
 ___
 
+### <a id="updatedefaulttokenfee" name="updatedefaulttokenfee"></a> updateDefaultTokenFee
+
+▸ **updateDefaultTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`UpdateDefaultTokenFeeInput`](../modules.md#updatedefaulttokenfeeinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="updatetokenfee" name="updatetokenfee"></a> updateTokenFee
+
+▸ **updateTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`UpdateTokenFeeInput`](../modules.md#updatetokenfeeinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="withdraw" name="withdraw"></a> withdraw
 
 ▸ **withdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -1892,6 +2420,40 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="withdrawbonds" name="withdrawbonds"></a> withdrawBonds
+
+▸ **withdrawBonds**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`WithdrawBondsInput`](../modules.md#withdrawbondsinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="withdrawclaim" name="withdrawclaim"></a> withdrawClaim
+
+▸ **withdrawClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`WithdrawClaimInput`](../modules.md#withdrawclaiminput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns

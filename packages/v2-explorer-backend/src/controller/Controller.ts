@@ -946,8 +946,8 @@ export class Controller {
           headClaimId,
           pathVault,
           sendFee,
-          messageFee,
-          claimFeesFee,
+          // messageFee,
+          // claimFeesFee,
           totalClaims,
           totalConfirmed,
           totalSent
@@ -955,8 +955,8 @@ export class Controller {
           railsGateway.getHeadClaimId({ pathId }),
           railsGateway.getPathVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
-          railsGateway.getMessageFee({ pathId }),
-          railsGateway.getClaimFeesFee({ pathId }),
+          // railsGateway.getMessageFee({ chainId }), // TODO
+          // railsGateway.getClaimFeesFee({ pathId }), // TODO
           railsGateway.getTotalClaims({ pathId }),
           railsGateway.getTotalConfirmed({ pathId }),
           railsGateway.getTotalSent({ pathId })
@@ -991,8 +991,8 @@ export class Controller {
           headClaimId,
           pathVault,
           sendFee: sendFee.toString(),
-          messageFee: messageFee.toString(),
-          claimFeesFee: claimFeesFee.toString(),
+          // messageFee: messageFee.toString(),
+          // claimFeesFee: claimFeesFee.toString(),
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),

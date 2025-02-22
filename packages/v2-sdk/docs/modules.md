@@ -12,7 +12,6 @@
 ### Classes
 
 - [BonderPreferenceEventFetcher](classes/BonderPreferenceEventFetcher.md)
-- [ClaimChainUpdatedEventFetcher](classes/ClaimChainUpdatedEventFetcher.md)
 - [ClaimPostedEventFetcher](classes/ClaimPostedEventFetcher.md)
 - [ConfigError](classes/ConfigError.md)
 - [ContractFunctionRevertedError](classes/ContractFunctionRevertedError.md)
@@ -33,7 +32,6 @@
 - [BundleForwarded](interfaces/BundleForwarded.md)
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
-- [ClaimChainUpdated](interfaces/ClaimChainUpdated.md)
 - [ClaimPosted](interfaces/ClaimPosted.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
 - [HopStruct](interfaces/HopStruct.md)
@@ -56,7 +54,6 @@
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
 - [Claim](modules.md#claim)
-- [ClaimChainUpdatedIndexes](modules.md#claimchainupdatedindexes)
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ClaimPostedIndexes](modules.md#claimpostedindexes)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
@@ -364,19 +361,6 @@ ___
 | `totalAddedToBucketMaxConfirmed` | `BigNumber` |
 | `totalAttested` | `BigNumber` |
 | `totalClaims` | `BigNumber` |
-
-___
-
-### <a id="claimchainupdatedindexes" name="claimchainupdatedindexes"></a> ClaimChainUpdatedIndexes
-
-Ƭ **ClaimChainUpdatedIndexes**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId?` | `string` |
-| `pathId?` | `string` |
 
 ___
 

@@ -8,7 +8,6 @@ import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
 import { ClaimPostedEventFetcher } from '#railsGateway/events/ClaimPosted.js'
-import { ClaimChainUpdatedEventFetcher } from '#railsGateway/events/ClaimChainUpdated.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -20,13 +19,12 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimChainUpdatedEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
   ClaimPosted = 'ClaimPosted',
-  ClaimChainUpdated = 'ClaimChainUpdated',
 }
 
 export type GetEventsInput = {
@@ -582,7 +580,7 @@ export class RailsGateway extends Base {
   async initPath ({ token, counterpartChainId, counterpartToken, initialReserve }: InitPathInput): Promise<providers.TransactionResponse> {
     if (!this.utils.isValidAddress(token)) {
       throw new InputError(`Invalid token "${token}"`)
-    } 
+    }
 
     if (!this.utils.isValidChainId(counterpartChainId)) {
       throw new InputError(`Invalid counterpartChainId "${counterpartChainId}"`)
@@ -714,7 +712,6 @@ export class RailsGateway extends Base {
       [EventName.TransferSent]: TransferSentEventFetcher,
       [EventName.TransferBonded]: TransferBondedEventFetcher,
       [EventName.ClaimPosted]: ClaimPostedEventFetcher,
-      [EventName.ClaimChainUpdated]: ClaimChainUpdatedEventFetcher,
     }
 
     const EventFetcherClass = eventFetcher[eventName]

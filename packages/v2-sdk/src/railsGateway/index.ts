@@ -125,9 +125,6 @@ export {
   ClaimPosted,
   ClaimPostedEventFetcher,
   ClaimPostedIndexes,
-  ClaimChainUpdated,
-  ClaimChainUpdatedEventFetcher,
-  ClaimChainUpdatedIndexes,
   BonderPreference,
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes

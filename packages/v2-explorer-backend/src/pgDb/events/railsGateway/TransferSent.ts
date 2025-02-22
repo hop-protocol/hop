@@ -7,7 +7,7 @@ export interface HopStruct {
   index?: number
   pathId: string
   maxBonderFee: BigNumber
-  minAmountOut: BigNumber
+  maxTotalSent: BigNumber
   attestedClaimId: string
 }
 
@@ -15,9 +15,8 @@ export interface TransferSent extends BaseType {
   pathId: string
   transferId: string
   to: string
-  amountOut: BigNumber
-  totalSent: BigNumber
-  totalClaims: BigNumber
+  amount: BigNumber
+  sourcePool: BigNumber
   hops: HopStruct[]
 }
 
@@ -39,9 +38,8 @@ export class TransferSentTable extends EventDb {
         path_id CHAR(66) NOT NULL,
         transfer_id CHAR(66) NOT NULL UNIQUE,
         "to" CHAR(42) NOT NULL, -- Ethereum address
-        amount_out NUMERIC NOT NULL CHECK (amount_out >= 0),
-        total_sent NUMERIC NOT NULL CHECK (total_sent >= 0),
-        total_claims NUMERIC NOT NULL CHECK (total_claims >= 0),
+        amount NUMERIC NOT NULL CHECK (amount >= 0),
+        source_pool NUMERIC NOT NULL CHECK (source_pool >= 0),
         ${eventContextIdCreationSql}
     )`)
 
@@ -51,7 +49,7 @@ export class TransferSentTable extends EventDb {
       "index" INTEGER NOT NULL CHECK ("index" >= 0),
       path_id CHAR(66) NOT NULL,
       max_bonder_fee  NUMERIC NOT NULL CHECK (max_bonder_fee >= 0),
-      min_amount_out NUMERIC NOT NULL CHECK (min_amount_out >= 0),
+      max_total_sent NUMERIC NOT NULL CHECK (max_total_sent >= 0),
       attested_claim_id CHAR(66) NOT NULL
     )`)
   }
@@ -105,9 +103,8 @@ export class TransferSentTable extends EventDb {
           e.path_id AS "pathId",
           e.transfer_id AS "transferId",
           e."to",
-          e.amount_out AS "amountOut",
-          e.total_sent AS "totalSent",
-          e.total_claims AS "totalClaims",
+          e.amount AS "amount",
+          e.source_pool AS "sourcePool",
           ${selectEventContextSql}
         FROM
           transfer_sent_events e
@@ -137,7 +134,7 @@ export class TransferSentTable extends EventDb {
         nh.index,
         nh.path_id AS "nhPathId",
         nh.max_bonder_fee AS "maxBonderFee",
-        nh.min_amount_out AS "minAmountOut",
+        nh.max_total_sent AS "maxTotalSent",
         nh.attested_claim_id AS "nhAttestedClaimId"
       FROM
         filtered_transfers ft
@@ -159,24 +156,24 @@ export class TransferSentTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, transferId, to, amountOut, totalSent, totalClaims, context, hops } = this.#normalizeDataForPut(item)
+    const { pathId, transferId, to, amount, sourcePool, context, hops } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, transferId, to, amountOut, totalSent, totalClaims
+      id: uuid(), contextId, pathId, transferId, to, amount, sourcePool
     }
     const sql = `
       INSERT INTO
         transfer_sent_events
       (
-        id, event_context_id, path_id, transfer_id, "to", amount_out, total_sent, total_claims
+        id, event_context_id, path_id, transfer_id, "to", amount, source_pool
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${to}, ${amountOut}, ${totalSent}, ${totalClaims})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${to}, ${amount}, ${sourcePool})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET path_id = ${pathId}, transfer_id = ${transferId}, "to" = ${to}, amount_out = ${amountOut}, total_sent = ${totalSent}, total_claims = ${totalClaims}'}
+      ${'DO UPDATE SET path_id = ${pathId}, transfer_id = ${transferId}, "to" = ${to}, amount = ${amount}, source_pool = ${sourcePool}'}
       RETURNING id;
     `
 
@@ -199,15 +196,15 @@ export class TransferSentTable extends EventDb {
             transferSentEventId,
             pathId: hop.pathId,
             maxBonderFee: hop.maxBonderFee.toString(),
-            minAmountOut: hop.minAmountOut.toString(),
+            maxTotalSent: hop.maxTotalSent.toString(),
             attestedClaimId: hop.attestedClaimId
           }
           const hopSql = `
             INSERT INTO next_hops
             (
-              id, transfer_sent_event_id, "index", path_id, max_bonder_fee, min_amount_out, attested_claim_id
+              id, transfer_sent_event_id, "index", path_id, max_bonder_fee, max_total_sent, attested_claim_id
             )
-            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxBonderFee}, ${minAmountOut}, ${attestedClaimId})'}
+            VALUES ${'(${id}, ${transferSentEventId}, ${index}, ${pathId}, ${maxBonderFee}, ${maxTotalSent}, ${attestedClaimId})'}
           `
           await t.none(hopSql, hopArgs)
           i++
@@ -229,7 +226,7 @@ export class TransferSentTable extends EventDb {
           index: item.index,
           pathId: item.nhPathId,
           maxBonderFee: BigNumber.from(item.maxBonderFee ?? 0),
-          minAmountOut: BigNumber.from(item.minAmountOut),
+          maxTotalSent: BigNumber.from(item.maxTotalSent),
           attestedClaimId: item.nhAttestedClaimId
         }
         map.get(item.transferId).hops.push(hop)
@@ -251,8 +248,8 @@ export class TransferSentTable extends EventDb {
     if (data.maxBonderFee && typeof data.maxBonderFee === 'string') {
       data.maxBonderFee = BigNumber.from(data.maxBonderFee)
     }
-    if (data.minAmountOut && typeof data.minAmountOut === 'string') {
-      data.minAmountOut = BigNumber.from(data.minAmountOut)
+    if (data.maxTotalSent && typeof data.maxTotalSent === 'string') {
+      data.maxTotalSent = BigNumber.from(data.maxTotalSent)
     }
     return data
   }
@@ -267,31 +264,27 @@ export class TransferSentTable extends EventDb {
     delete (data as any).index
     delete (data as any).nhPathId
     delete (data as any).maxBonderFee
-    delete (data as any).minAmountOut
+    delete (data as any).maxTotalSent
     delete (data as any).nhAttestedClaimId
 
-    if (data.amountOut && typeof data.amountOut === 'string') {
-      data.amountOut = BigNumber.from(data.amountOut)
+    if (data.amount && typeof data.amount === 'string') {
+      data.amount = BigNumber.from(data.amount)
     }
-    if (data.totalSent && typeof data.totalSent === 'string') {
-      data.totalSent = BigNumber.from(data.totalSent)
+
+    if (data.sourcePool && typeof data.sourcePool === 'string') {
+      data.sourcePool = BigNumber.from(data.sourcePool)
     }
-    if (data.totalClaims && typeof data.totalClaims === 'string') {
-      data.totalClaims = BigNumber.from(data.totalClaims)
-    }
+
     return data
   }
 
   #normalizeDataForPut (putData: Partial<TransferSent>): Partial<TransferSent> {
     const data = Object.assign({}, putData) as any
-    if (data.amountOut && typeof data.amountOut !== 'string') {
-      data.amountOut = data.amountOut.toString()
+    if (data.amount && typeof data.amount !== 'string') {
+      data.amount = data.amount.toString()
     }
-    if (data.totalSent && typeof data.totalSent !== 'string') {
-      data.totalSent = data.totalSent.toString()
-    }
-    if (data.totalClaims && typeof data.totalClaims !== 'string') {
-      data.totalClaims = data.totalClaims.toString()
+    if (data.sourcePool && typeof data.sourcePool !== 'string') {
+      data.sourcePool = data.sourcePool.toString()
     }
 
     return data

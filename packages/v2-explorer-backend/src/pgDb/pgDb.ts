@@ -10,7 +10,6 @@ import { MessageSentTable } from './events/messenger/MessageSent.js'
 import { TransferSentTable } from './events/railsGateway/TransferSent.js'
 import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { ClaimPostedTable } from './events/railsGateway/ClaimPosted.js'
-import { ClaimChainUpdatedTable } from './events/railsGateway/ClaimChainUpdated.js'
 import { BonderPreferenceTable } from './events/railsGateway/BonderPreference.js'
 import { PriceTable } from './prices/index.js'
 import { PathTable } from './paths/index.js'
@@ -58,7 +57,6 @@ export class PgDb {
       TransferSent: new TransferSentTable(this.db),
       TransferBonded: new TransferBondedTable(this.db),
       ClaimPosted: new ClaimPostedTable(this.db),
-      ClaimChainUpdated: new ClaimChainUpdatedTable(this.db),
       BonderPreference: new BonderPreferenceTable(this.db),
     }
 

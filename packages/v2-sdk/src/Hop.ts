@@ -5,6 +5,7 @@ import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
+import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
@@ -19,6 +20,8 @@ export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | Bund
 export enum EventName {
   TransferSent = RailsGatewayEventName.TransferSent,
   TransferBonded = RailsGatewayEventName.TransferBonded,
+  ClaimPosted = RailsGatewayEventName.ClaimPosted,
+  BonderPreference = StakingRegistryEventName.BonderPreference,
 
   BundleCommitted = MessengerEventName.BundleCommitted,
   BundleForwarded = MessengerEventName.BundleForwarded,
@@ -714,14 +717,14 @@ export class Hop extends Base {
     const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
 
     const allEventNames = [
-      ...this.messenger.getEventNames(),
+      ...this.getMessenger(chainId).getEventNames(),
       ...this.getRailsGateway(chainId).getEventNames()
     ]
 
     for (const name of eventNames) {
       let subclass: any = null
-      if (this.messenger.getEventNames().includes(name)) {
-        subclass = this.messenger
+      if (this.getMessenger(chainId).getEventNames().includes(name)) {
+        subclass = this.getMessenger(chainId)
       } else if (this.getRailsGateway(chainId).getEventNames().includes(name)) {
         subclass = this.getRailsGateway(chainId)
       } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
@@ -750,11 +753,11 @@ export class Hop extends Base {
 
   override setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
     super.setProviderUrls(signersOrProviders)
-    this.messenger.setProviderUrls(signersOrProviders)
     this.hubConnector.setProviderUrls(signersOrProviders)
 
     for (const chainId in signersOrProviders) {
       this.getRailsGateway(chainId).setProviderUrls(signersOrProviders)
+      this.getMessenger(chainId).setProviderUrls(signersOrProviders)
     }
   }
 

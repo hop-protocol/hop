@@ -125,6 +125,12 @@ export {
   ClaimPosted,
   ClaimPostedEventFetcher,
   ClaimPostedIndexes,
+  ClaimReadded,
+  ClaimReaddedEventFetcher,
+  ClaimReaddedIndexes,
+  ClaimRemoved,
+  ClaimRemovedEventFetcher,
+  ClaimRemovedIndexes,
   BonderPreference,
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes

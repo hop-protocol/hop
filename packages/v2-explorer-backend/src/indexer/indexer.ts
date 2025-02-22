@@ -91,6 +91,8 @@ export class Indexer {
       TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
       TransferBonded: new SyncStateDb(dbPath, 'TransferBonded'),
       ClaimPosted: new SyncStateDb(dbPath, 'ClaimPosted'),
+      ClaimReadded: new SyncStateDb(dbPath, 'ClaimReadded'),
+      ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
       BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
     }
   }
@@ -134,6 +136,8 @@ export class Indexer {
       'TransferSent',
       'TransferBonded',
       'ClaimPosted',
+      'ClaimReadded',
+      'ClaimRemoved',
       'BonderPreference'
     ]
 

@@ -13,6 +13,8 @@
 
 - [BonderPreferenceEventFetcher](classes/BonderPreferenceEventFetcher.md)
 - [ClaimPostedEventFetcher](classes/ClaimPostedEventFetcher.md)
+- [ClaimReaddedEventFetcher](classes/ClaimReaddedEventFetcher.md)
+- [ClaimRemovedEventFetcher](classes/ClaimRemovedEventFetcher.md)
 - [ConfigError](classes/ConfigError.md)
 - [ContractFunctionRevertedError](classes/ContractFunctionRevertedError.md)
 - [CustomError](classes/CustomError.md)
@@ -33,6 +35,8 @@
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
 - [ClaimPosted](interfaces/ClaimPosted.md)
+- [ClaimReadded](interfaces/ClaimReadded.md)
+- [ClaimRemoved](interfaces/ClaimRemoved.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
 - [HopStruct](interfaces/HopStruct.md)
 - [MessageBundled](interfaces/MessageBundled.md)
@@ -56,6 +60,8 @@
 - [Claim](modules.md#claim)
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ClaimPostedIndexes](modules.md#claimpostedindexes)
+- [ClaimReaddedIndexes](modules.md#claimreaddedindexes)
+- [ClaimRemovedIndexes](modules.md#claimremovedindexes)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
@@ -379,6 +385,32 @@ ___
 ### <a id="claimpostedindexes" name="claimpostedindexes"></a> ClaimPostedIndexes
 
 Ƭ **ClaimPostedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId?` | `string` |
+| `pathId?` | `string` |
+
+___
+
+### <a id="claimreaddedindexes" name="claimreaddedindexes"></a> ClaimReaddedIndexes
+
+Ƭ **ClaimReaddedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId?` | `string` |
+| `pathId?` | `string` |
+
+___
+
+### <a id="claimremovedindexes" name="claimremovedindexes"></a> ClaimRemovedIndexes
+
+Ƭ **ClaimRemovedIndexes**: `Object`
 
 #### Type declaration
 

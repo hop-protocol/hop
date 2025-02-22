@@ -21,6 +21,8 @@ export enum EventName {
   TransferSent = RailsGatewayEventName.TransferSent,
   TransferBonded = RailsGatewayEventName.TransferBonded,
   ClaimPosted = RailsGatewayEventName.ClaimPosted,
+  ClaimReadded = RailsGatewayEventName.ClaimReadded,
+  ClaimRemoved = RailsGatewayEventName.ClaimRemoved,
   BonderPreference = StakingRegistryEventName.BonderPreference,
 
   BundleCommitted = MessengerEventName.BundleCommitted,

@@ -7,9 +7,9 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function ClaimChainUpdatedEvents () {
-  const eventName = 'ClaimChainUpdated'
-  const [filterBy, setFilterBy] = useState('pathId')
+export function ClaimReaddedEvents () {
+  const eventName = 'ClaimReadded'
+  const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
@@ -28,12 +28,8 @@ export function ClaimChainUpdatedEvents () {
       value: 'Path ID',
     },
     {
-      key: 'headClaimId',
-      value: 'Head Claim ID',
-    },
-    {
-      key: 'length',
-      value: 'Length',
+      key: 'claimId',
+      value: 'Claim ID',
     },
     {
       key: 'eventChainId',
@@ -57,17 +53,13 @@ export function ClaimChainUpdatedEvents () {
       {
         key: 'pathId',
         value: event.pathIdTruncated,
+        valueUrl: `/paths?pathId=${event.pathId}`,
         clipboardValue: event.pathId
       },
       {
-        key: 'headClaimId',
-        value: event.headClaimIdTruncated,
-        clipboardValue: event.headClaimId
-      },
-      {
-        key: 'length',
-        value: event.length,
-        clipboardValue: event.length
+        key: 'claimId',
+        value: event.claimIdTruncated,
+        clipboardValue: event.claimId
       },
       {
         key: 'eventChainId',
@@ -92,8 +84,8 @@ export function ClaimChainUpdatedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
+              <MenuItem value={'claimId'}>Claim ID</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
-              <MenuItem value={'headClaimId'}>Head Claim ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>

@@ -8,6 +8,8 @@ import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
 import { ClaimPostedEventFetcher } from '#railsGateway/events/ClaimPosted.js'
+import { ClaimReaddedEventFetcher } from '#railsGateway/events/ClaimReadded.js'
+import { ClaimRemovedEventFetcher } from '#railsGateway/events/ClaimRemoved.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -19,12 +21,14 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
   ClaimPosted = 'ClaimPosted',
+  ClaimReadded = 'ClaimReadded',
+  ClaimRemoved = 'ClaimRemoved',
 }
 
 export type GetEventsInput = {
@@ -712,6 +716,8 @@ export class RailsGateway extends Base {
       [EventName.TransferSent]: TransferSentEventFetcher,
       [EventName.TransferBonded]: TransferBondedEventFetcher,
       [EventName.ClaimPosted]: ClaimPostedEventFetcher,
+      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
+      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
     }
 
     const EventFetcherClass = eventFetcher[eventName]

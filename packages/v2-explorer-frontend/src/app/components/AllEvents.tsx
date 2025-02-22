@@ -12,7 +12,8 @@ import { MessageSentEvents } from './events/MessageSentEvents'
 import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
 import { ClaimPostedEvents } from './events/ClaimPostedEvents'
-import { ClaimChainUpdatedEvents } from './events/ClaimChainUpdatedEvents'
+import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
+import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
 import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
 
 export function Events () {
@@ -27,7 +28,8 @@ export function Events () {
     <TransferSentEvents key="TransferSentEvents" />,
     <TransferBondedEvents key="TransferBondedEvents" />,
     <ClaimPostedEvents key="ClaimPostedEvents" />,
-    <ClaimChainUpdatedEvents key="ClaimChainUpdatedEvents" />,
+    <ClaimReaddedEvents key="ClaimReaddedEvents" />,
+    <ClaimRemovedEvents key="ClaimRemovedEvents" />,
     <BonderPreferenceEvents key="BonderPreferenceEvents" />
   ]
 

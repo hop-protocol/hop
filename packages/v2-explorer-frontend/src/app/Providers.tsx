@@ -1,7 +1,7 @@
 "use client";
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { ThemeProvider as CustomThemeProvider } from './theme/useTheme'
+import { ThemeProvider as CustomThemeProvider } from '@/app/hooks/useTheme'
 import { SiteWrapper } from './SiteWrapper'
 
 const queryClient = new QueryClient({
@@ -12,9 +12,9 @@ const queryClient = new QueryClient({
   }
 })
 
-export function Providers({ children }: any) {
+export function Providers({ children, initialTheme  }: any) {
   return (
-    <CustomThemeProvider>
+    <CustomThemeProvider initialTheme={initialTheme}>
       <QueryClientProvider client={queryClient}>
         <SiteWrapper>
           {children}

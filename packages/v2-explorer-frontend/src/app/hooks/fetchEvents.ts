@@ -1,4 +1,4 @@
-import { apiUrl } from '@/app/config'
+import { apiUrl, appApiHost } from '@/app/config'
 
 export async function fetchEvents (options: any = {}) {
   try {
@@ -20,9 +20,12 @@ export async function fetchEvents (options: any = {}) {
     }
 
     // const url = `${apiUrl}/v1${pathname}?limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
-    const hostname = typeof window === 'undefined' ? 'localhost:3000' : window.location.host
+
+    const hostname = typeof window === 'undefined' ? appApiHost : window.location.host
     const protocol = hostname.includes('localhost') ? 'http' : 'https'
+
     const url = `${protocol}://${hostname}/api/?pathname=${pathname}&limit=${limit || 10}&page=${page || 1}&eventName=${eventName}${filterString || ''}`
+    console.log('fetchEvents url', url)
     const res = await fetch(url)
     const json = await res.json()
     if (json.error) {

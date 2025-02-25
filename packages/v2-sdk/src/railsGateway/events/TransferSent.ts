@@ -7,9 +7,8 @@ export interface TransferSent {
   pathId: string
   transferId: string
   to: string
-  amountOut: BigNumber
-  totalSent: BigNumber
-  totalClaims: BigNumber
+  amount: BigNumber
+  sourcePool: BigNumber
   hops: HopStruct[]
 }
 
@@ -55,10 +54,9 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
     const to = parsed.args.to
-    const amountOut = parsed.args.amountOut
-    const totalSent = parsed.args.totalSent
-    const totalClaims = parsed.args.totalClaims
-    const hops = parsed.args.hops.map((hop: any) => {
+    const amount = parsed.args.amount
+    const sourcePool = parsed.args.sourcePool
+    const hops = parsed.args.hops.map((hop: any): HopStruct => {
       return {
         pathId: hop.pathId.toString(),
         maxBonderFee: hop.maxBonderFee,
@@ -71,9 +69,8 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
       pathId,
       transferId,
       to,
-      amountOut,
-      totalSent,
-      totalClaims,
+      amount,
+      sourcePool,
       hops
     }
   }

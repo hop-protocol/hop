@@ -43,7 +43,7 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
           {loading ? (
             <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
           ) : (
-            link ? (
+            (link && value) ? (
               <CopyToClipboardText text={value}>
                 <Link href={link} target="_blank" rel="noreferrer">
                   {value}

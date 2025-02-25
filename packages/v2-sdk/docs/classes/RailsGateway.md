@@ -2,7 +2,7 @@
 
 ## Hierarchy
 
-- `StakingRegistry`
+- `Base`
 
   ↳ **`RailsGateway`**
 
@@ -31,77 +31,91 @@
 
 ### Methods
 
-- [acceptSlash](RailsGateway.md#acceptslash)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
-- [addToAppeal](RailsGateway.md#addtoappeal)
-- [addToChallenge](RailsGateway.md#addtochallenge)
-- [batchUpdateClaimChain](RailsGateway.md#batchupdateclaimchain)
 - [bond](RailsGateway.md#bond)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
-- [createChallenge](RailsGateway.md#createchallenge)
-- [distributeFees](RailsGateway.md#distributefees)
-- [forceSettleChallenge](RailsGateway.md#forcesettlechallenge)
+- [defaultTokenFee](RailsGateway.md#defaulttokenfee)
+- [dispatcher](RailsGateway.md#dispatcher)
+- [distributeClaimedFees](RailsGateway.md#distributeclaimedfees)
+- [distributeExcessFees](RailsGateway.md#distributeexcessfees)
+- [executor](RailsGateway.md#executor)
+- [feeOracle](RailsGateway.md#feeoracle)
+- [gateways](RailsGateway.md#gateways)
 - [getAmountOut](RailsGateway.md#getamountout)
-- [getAppealPeriod](RailsGateway.md#getappealperiod)
+- [getBatchUpdateFee](RailsGateway.md#getbatchupdatefee)
+- [getBucket](RailsGateway.md#getbucket)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
-- [getChallengeId](RailsGateway.md#getchallengeid)
-- [getChallengePeriod](RailsGateway.md#getchallengeperiod)
-- [getChallenges](RailsGateway.md#getchallenges)
+- [getClaim](RailsGateway.md#getclaim)
+- [getClaimFeesFee](RailsGateway.md#getclaimfeesfee)
+- [getClaimId](RailsGateway.md#getclaimid)
 - [getColorForChainId](RailsGateway.md#getcolorforchainid)
 - [getConfigAddress](RailsGateway.md#getconfigaddress)
 - [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
 - [getContractAddresses](RailsGateway.md#getcontractaddresses)
 - [getContractExists](RailsGateway.md#getcontractexists)
+- [getCounterpartChainId](RailsGateway.md#getcounterpartchainid)
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders)
 - [getEthersWeb3Signer](RailsGateway.md#getethersweb3signer)
 - [getEventFetcher](RailsGateway.md#geteventfetcher)
 - [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
-- [getFee](RailsGateway.md#getfee)
-- [getFullAppeal](RailsGateway.md#getfullappeal)
+- [getExplorerApiBaseUrl](RailsGateway.md#getexplorerapibaseurl)
+- [getFeePrice](RailsGateway.md#getfeeprice)
+- [getFeeVault](RailsGateway.md#getfeevault)
+- [getHardConfirmedBucketIndex](RailsGateway.md#gethardconfirmedbucketindex)
+- [getHardConfirmedClaimId](RailsGateway.md#gethardconfirmedclaimid)
 - [getHasSufficientBalance](RailsGateway.md#gethassufficientbalance)
-- [getHeadClaim](RailsGateway.md#getheadclaim)
+- [getHeadClaimId](RailsGateway.md#getheadclaimid)
 - [getHopBalance](RailsGateway.md#gethopbalance)
 - [getHopTokenAddress](RailsGateway.md#gethoptokenaddress)
 - [getHopTokenContract](RailsGateway.md#gethoptokencontract)
+- [getHubChainId](RailsGateway.md#gethubchainid)
 - [getIsClaimIdValid](RailsGateway.md#getisclaimidvalid)
-- [getMinBonderStake](RailsGateway.md#getminbonderstake)
-- [getMinChallengeIncrease](RailsGateway.md#getminchallengeincrease)
-- [getMinHopStakeForRole](RailsGateway.md#getminhopstakeforrole)
+- [getLastBondedClaimId](RailsGateway.md#getlastbondedclaimid)
+- [getMessageFee](RailsGateway.md#getmessagefee)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
+- [getPathVault](RailsGateway.md#getpathvault)
 - [getProvider](RailsGateway.md#getprovider)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
-- [getRoleForRoleName](RailsGateway.md#getroleforrolename)
+- [getRemoveFee](RailsGateway.md#getremovefee)
+- [getRemovedBalance](RailsGateway.md#getremovedbalance)
+- [getSendFee](RailsGateway.md#getsendfee)
 - [getSigner](RailsGateway.md#getsigner)
 - [getSignerAddress](RailsGateway.md#getsigneraddress)
 - [getSignerOrProvider](RailsGateway.md#getsignerorprovider)
 - [getSignerProviderChainId](RailsGateway.md#getsignerproviderchainid)
-- [getStakedBalance](RailsGateway.md#getstakedbalance)
-- [getStakingRegistryAddress](RailsGateway.md#getstakingregistryaddress)
-- [getStakingRegistryContract](RailsGateway.md#getstakingregistrycontract)
+- [getSourcePool](RailsGateway.md#getsourcepool)
+- [getStakingRegistry](RailsGateway.md#getstakingregistry)
+- [getStakingRegistryContractAddress](RailsGateway.md#getstakingregistrycontractaddress)
 - [getSupportedChainIds](RailsGateway.md#getsupportedchainids)
 - [getSupportedTokenSymbols](RailsGateway.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](RailsGateway.md#gettokenaddressbytokensymbol)
 - [getTokenContract](RailsGateway.md#gettokencontract)
 - [getTokenInfo](RailsGateway.md#gettokeninfo)
+- [getTokenSymbolByTokenAddress](RailsGateway.md#gettokensymbolbytokenaddress)
+- [getTokenVault](RailsGateway.md#gettokenvault)
+- [getTotalClaims](RailsGateway.md#gettotalclaims)
+- [getTotalClaimsAtClaimId](RailsGateway.md#gettotalclaimsatclaimid)
+- [getTotalConfirmed](RailsGateway.md#gettotalconfirmed)
 - [getTotalSent](RailsGateway.md#gettotalsent)
+- [getTotalWithdrawableAtClaimId](RailsGateway.md#gettotalwithdrawableatclaimid)
 - [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
 - [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
 - [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
 - [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
 - [getTransferBondedEvents](RailsGateway.md#gettransferbondedevents)
 - [getTransferDataHash](RailsGateway.md#gettransferdatahash)
-- [getTransferId](RailsGateway.md#gettransferid)
+- [getTransferIndex](RailsGateway.md#gettransferindex)
 - [getTransferSentEventFilter](RailsGateway.md#gettransfersenteventfilter)
 - [getTransferSentEventFromTransactionHash](RailsGateway.md#gettransfersenteventfromtransactionhash)
 - [getTransferSentEventFromTransactionReceipt](RailsGateway.md#gettransfersenteventfromtransactionreceipt)
@@ -110,33 +124,40 @@
 - [getTransferSentEventsFromPathId](RailsGateway.md#gettransfersenteventsfrompathid)
 - [getTransferSentEventsInBatches](RailsGateway.md#gettransfersenteventsinbatches)
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
+- [getUpdateFee](RailsGateway.md#getupdatefee)
 - [getWithdrawableBalance](RailsGateway.md#getwithdrawablebalance)
-- [getWithdrawableEth](RailsGateway.md#getwithdrawableeth)
-- [getWithdrawableStakeBalance](RailsGateway.md#getwithdrawablestakebalance)
-- [isStaked](RailsGateway.md#isstaked)
-- [optimisticallySettleChallenge](RailsGateway.md#optimisticallysettlechallenge)
+- [getWithdrawn](RailsGateway.md#getwithdrawn)
+- [initChain](RailsGateway.md#initchain)
+- [initPath](RailsGateway.md#initpath)
+- [isPathInitialized](RailsGateway.md#ispathinitialized)
+- [isValidClaim](RailsGateway.md#isvalidclaim)
+- [isValidTransfer](RailsGateway.md#isvalidtransfer)
+- [postAndBond](RailsGateway.md#postandbond)
+- [postAndWithdraw](RailsGateway.md#postandwithdraw)
 - [postClaim](RailsGateway.md#postclaim)
-- [registryStakeHop](RailsGateway.md#registrystakehop)
-- [registryStakeHopPopulatedTx](RailsGateway.md#registrystakehoppopulatedtx)
-- [registryUnstakeHop](RailsGateway.md#registryunstakehop)
-- [registryUnstakeHopPopulatedTx](RailsGateway.md#registryunstakehoppopulatedtx)
-- [registryWithdraw](RailsGateway.md#registrywithdraw)
-- [registryWithdrawPopulatedTx](RailsGateway.md#registrywithdrawpopulatedtx)
+- [pushClaim](RailsGateway.md#pushclaim)
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
 - [setContractAddresses](RailsGateway.md#setcontractaddresses)
+- [setDefaultTokenFee](RailsGateway.md#setdefaulttokenfee)
+- [setExplorerApiBaseUrl](RailsGateway.md#setexplorerapibaseurl)
+- [setFeeOracle](RailsGateway.md#setfeeoracle)
+- [setFeePrice](RailsGateway.md#setfeeprice)
+- [setFeePrices](RailsGateway.md#setfeeprices)
 - [setProvider](RailsGateway.md#setprovider)
 - [setProviderUrl](RailsGateway.md#setproviderurl)
 - [setProviderUrls](RailsGateway.md#setproviderurls)
 - [setProviders](RailsGateway.md#setproviders)
-- [stakeHop](RailsGateway.md#stakehop)
+- [setSendFeeGas](RailsGateway.md#setsendfeegas)
+- [setStakingRegistry](RailsGateway.md#setstakingregistry)
+- [setUpdateFeeGas](RailsGateway.md#setupdatefeegas)
 - [throwError](RailsGateway.md#throwerror)
-- [unstakeHop](RailsGateway.md#unstakehop)
-- [updateClaimChain](RailsGateway.md#updateclaimchain)
+- [updateDefaultTokenFee](RailsGateway.md#updatedefaulttokenfee)
+- [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdraw](RailsGateway.md#withdraw)
-- [withdrawAll](RailsGateway.md#withdrawall)
-- [withdrawHop](RailsGateway.md#withdrawhop)
+- [withdrawBonds](RailsGateway.md#withdrawbonds)
+- [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
@@ -167,7 +188,7 @@
 
 #### Overrides
 
-StakingRegistry.constructor
+Base.constructor
 
 ## Properties
 
@@ -177,7 +198,7 @@ StakingRegistry.constructor
 
 #### Inherited from
 
-StakingRegistry.batchBlocks
+Base.batchBlocks
 
 ___
 
@@ -193,7 +214,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.contractAddresses
+Base.contractAddresses
 
 ___
 
@@ -203,7 +224,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.gasPriceMultiplier
+Base.gasPriceMultiplier
 
 ___
 
@@ -213,7 +234,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.l1ChainId
+Base.l1ChainId
 
 ___
 
@@ -223,7 +244,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.network
+Base.network
 
 ___
 
@@ -233,7 +254,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.signersOrProviders
+Base.signersOrProviders
 
 ___
 
@@ -255,12 +276,19 @@ ___
 | :------ | :------ |
 | `approveBond` | (`input`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
 | `approveSend` | (`input`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
-| `getComputedNextHopsHash` | (`__namedParameters`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
+| `decodeBondTxInputData` | (`data`: `string`) => `Promise`\<`DecodedBondInputData`\> |
+| `decodeSendTxInputData` | (`data`: `string`) => `Promise`\<`DecodedSendInputData`\> |
+| `getComputedNextHopsHash` | (`input`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
+| `getComputedTransferDataHash` | (`input`: `GetComputedTransferDataHashInput`) => `string` |
+| `getComputedTransferId` | (`__namedParameters`: [`GetTransferIdInput`](../modules.md#gettransferidinput)) => `string` |
+| `getInitialReserve` | (`__namedParameters`: `GetInitialReserveInput`) => `Promise`\<`BigNumber`\> |
+| `getInitialReserveByTokenSymbol` | (`__namedParameters`: `GetInitialReserveByTokenSymbolInput`) => `Promise`\<`BigNumber`\> |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
+| `getAbi` | () => readonly [\{ `inputs`: readonly [\{ `internalType`: ``"contract StakingRegistry"`` ; `name`: ``"_stakingRegistry"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``"_dispatcher"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``"_executor"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_feeOracle"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"feeDistributor"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"_defaultTokenFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_tokenFeeRecipient"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sendFeeGas"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"updateFeeGas"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"constructor"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"bond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"claimFeesFromPath"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"confirmClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"defaultTokenFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"dispatcher"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"account"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalFees"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"lastClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"distributeClaimedFees"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address[]"`` ; `name`: ``"recipients"`` ; `type`: ``"address[]"``  }, \{ `internalType`: ``"uint256[]"`` ; `name`: ``"amounts"`` ; `type`: ``"uint256[]"``  }] ; `name`: ``"distributeExcessFees"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"executor"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"feeOracle"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `name`: ``"gateways"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getAmountOut"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"length"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getBatchUpdateFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getBucket"`` ; `outputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"completedAt"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"finalClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAttested"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxConfirmed"`` ; `type`: ``"uint256"``  }] ; `internalType`: ``"struct Bucket"`` ; `name`: ``"bucket"`` ; `type`: ``"tuple"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getBucketIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getClaim"`` ; `outputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"createdAt"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalClaims"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAttested"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAddedToBucketMaxConfirmed"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bondedOrWithdrawnBy"`` ; `type`: ``"address"``  }] ; `internalType`: ``"struct Claim"`` ; `name`: ``"claim"`` ; `type`: ``"tuple"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getClaimFeesFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getCounterpartChainId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getFeePrice"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getFeeVault"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHardConfirmedBucketIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHardConfirmedClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHeadClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"headCheckpoint"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getLastBondedClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getMessageFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"messageFee"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"getNextHopsHash"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId0"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token0"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"chainId1"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token1"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getPathId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getPathInfo"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getRemoveFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getRemovedBalance"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSendFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSourcePool"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTokenVault"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalClaims"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalClaimsAtClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalConfirmed"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalSent"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalWithdrawableAtClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"getTransferDataHash"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getTransferId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTransferIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getUpdateFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"recipient"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getWithdrawableBalance"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getWithdrawn"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"gateway"`` ; `type`: ``"address"``  }] ; `name`: ``"initChain"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"initPath"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isPathInitialized"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isValidClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isValidTransfer"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"owner"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"postAndBond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"postAndWithdraw"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"pushClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"removeClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"renounceOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"send"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"newFeeOracle"`` ; `type`: ``"address"``  }] ; `name`: ``"setFeeOracle"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"feePrice"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setFeePrice"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256[]"`` ; `name`: ``"chainIds"`` ; `type`: ``"uint256[]"``  }, \{ `internalType`: ``"uint256[]"`` ; `name`: ``"prices"`` ; `type`: ``"uint256[]"``  }] ; `name`: ``"setFeePrices"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"gas"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setSendFeeGas"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract StakingRegistry"`` ; `name`: ``"newStakingRegistry"`` ; `type`: ``"address"``  }] ; `name`: ``"setStakingRegistry"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"gas"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setUpdateFeeGas"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"stakingRegistry"`` ; `outputs`: readonly [\{ `internalType`: ``"contract StakingRegistry"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"transferOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawBonds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimPosted"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimReadded"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimRemoved"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"previousOwner"`` ; `type`: ``"address"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"OwnershipTransferred"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"TransferBonded"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `indexed`: ``false`` ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"TransferSent"`` ; `type`: ``"event"``  }] |
 
 ___
 
@@ -276,21 +304,22 @@ ___
 | :------ | :------ |
 | `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `approveStakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `batchUpdateClaimChain` | (`__namedParameters`: [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `distributeFees` | (`__namedParameters`: [`DistributeFeesInput`](../modules.md#distributefeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `distributeClaimedFees` | (`__namedParameters`: [`DistributeClaimedFeesInput`](../modules.md#distributeclaimedfeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `distributeExcessFees` | (`__namedParameters`: [`DistributeExcessFeesInput`](../modules.md#distributeexcessfeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postAndBond` | (`__namedParameters`: [`PostAndBondInput`](../modules.md#postandbondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postAndWithdraw` | (`__namedParameters`: [`PostAndWithdrawInput`](../modules.md#postandwithdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `pushClaim` | (`__namedParameters`: [`PushClaimInput`](../modules.md#pushclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `stakeHop` | (`__namedParameters`: [`StakeHopInput`](../modules.md#stakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `unstakeHop` | (`__namedParameters`: [`UnstakeHopInput`](../modules.md#unstakehopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `setFeePrices` | (`__namedParameters`: [`SetFeePricesInput`](../modules.md#setfeepricesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawAll` | (`__namedParameters`: [`WithdrawAllInput`](../modules.md#withdrawallinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdrawHop` | (`__namedParameters`: [`WithdrawHopInput`](../modules.md#withdrawhopinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawBonds` | (`__namedParameters`: [`WithdrawBondsInput`](../modules.md#withdrawbondsinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `withdrawClaim` | (`__namedParameters`: [`WithdrawClaimInput`](../modules.md#withdrawclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
 ___
 
@@ -331,29 +360,9 @@ ___
 
 #### Inherited from
 
-StakingRegistry.utils
+Base.utils
 
 ## Methods
-
-### <a id="acceptslash" name="acceptslash"></a> acceptSlash
-
-▸ **acceptSlash**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AcceptSlashInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.acceptSlash
-
-___
 
 ### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
 
@@ -419,63 +428,6 @@ ___
 
 ___
 
-### <a id="addtoappeal" name="addtoappeal"></a> addToAppeal
-
-▸ **addToAppeal**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AddToAppealInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.addToAppeal
-
-___
-
-### <a id="addtochallenge" name="addtochallenge"></a> addToChallenge
-
-▸ **addToChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `AddToChallengeInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.addToChallenge
-
-___
-
-### <a id="batchupdateclaimchain" name="batchupdateclaimchain"></a> batchUpdateClaimChain
-
-▸ **batchUpdateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
 ### <a id="bond" name="bond"></a> bond
 
 ▸ **bond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -527,35 +479,35 @@ ___
 
 ___
 
-### <a id="createchallenge" name="createchallenge"></a> createChallenge
+### <a id="defaulttokenfee" name="defaulttokenfee"></a> defaultTokenFee
 
-▸ **createChallenge**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `CreateChallengeInput` |
+▸ **defaultTokenFee**(): `Promise`\<`BigNumber`\>
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.createChallenge
+`Promise`\<`BigNumber`\>
 
 ___
 
-### <a id="distributefees" name="distributefees"></a> distributeFees
+### <a id="dispatcher" name="dispatcher"></a> dispatcher
 
-▸ **distributeFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **dispatcher**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="distributeclaimedfees" name="distributeclaimedfees"></a> distributeClaimedFees
+
+▸ **distributeClaimedFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`DistributeFeesInput`](../modules.md#distributefeesinput) |
+| `input` | [`DistributeClaimedFeesInput`](../modules.md#distributeclaimedfeesinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -564,23 +516,56 @@ ___
 
 ___
 
-### <a id="forcesettlechallenge" name="forcesettlechallenge"></a> forceSettleChallenge
+### <a id="distributeexcessfees" name="distributeexcessfees"></a> distributeExcessFees
 
-▸ **forceSettleChallenge**(`input`): `Promise`\<`any`\>
+▸ **distributeExcessFees**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ForceSettleChallengeInput` |
+| `input` | [`DistributeExcessFeesInput`](../modules.md#distributeexcessfeesinput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`TransactionResponse`\>
 
-#### Inherited from
+___
 
-StakingRegistry.forceSettleChallenge
+### <a id="executor" name="executor"></a> executor
+
+▸ **executor**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="feeoracle" name="feeoracle"></a> feeOracle
+
+▸ **feeOracle**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="gateways" name="gateways"></a> gateways
+
+▸ **gateways**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetGatewaysInput` |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -600,23 +585,35 @@ ___
 
 ___
 
-### <a id="getappealperiod" name="getappealperiod"></a> getAppealPeriod
+### <a id="getbatchupdatefee" name="getbatchupdatefee"></a> getBatchUpdateFee
 
-▸ **getAppealPeriod**(`chainId`): `Promise`\<`any`\>
+▸ **getBatchUpdateFee**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `«destructured»` | [`GetBatchUpdateFeeInput`](../modules.md#getbatchupdatefeeinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`BigNumber`\>
 
-#### Inherited from
+___
 
-StakingRegistry.getAppealPeriod
+### <a id="getbucket" name="getbucket"></a> getBucket
+
+▸ **getBucket**(`«destructured»`): `Promise`\<[`Bucket`](../modules.md#bucket)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetBucketInput`](../modules.md#getbucketinput) |
+
+#### Returns
+
+`Promise`\<[`Bucket`](../modules.md#bucket)\>
 
 ___
 
@@ -652,67 +649,55 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getChainIdsSupportedByTokenSymbol
+Base.getChainIdsSupportedByTokenSymbol
 
 ___
 
-### <a id="getchallengeid" name="getchallengeid"></a> getChallengeId
+### <a id="getclaim" name="getclaim"></a> getClaim
 
-▸ **getChallengeId**(`input`): `Promise`\<`any`\>
+▸ **getClaim**(`«destructured»`): `Promise`\<[`Claim`](../modules.md#claim)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetChallengeIdInput` |
+| `«destructured»` | [`GetClaimInput`](../modules.md#getclaiminput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getChallengeId
+`Promise`\<[`Claim`](../modules.md#claim)\>
 
 ___
 
-### <a id="getchallengeperiod" name="getchallengeperiod"></a> getChallengePeriod
+### <a id="getclaimfeesfee" name="getclaimfeesfee"></a> getClaimFeesFee
 
-▸ **getChallengePeriod**(`chainId`): `Promise`\<`any`\>
+▸ **getClaimFeesFee**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `«destructured»` | [`GetClaimFeesFeeInput`](../modules.md#getclaimfeesfeeinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getChallengePeriod
+`Promise`\<`BigNumber`\>
 
 ___
 
-### <a id="getchallenges" name="getchallenges"></a> getChallenges
+### <a id="getclaimid" name="getclaimid"></a> getClaimId
 
-▸ **getChallenges**(`input`): `Promise`\<`any`\>
+▸ **getClaimId**(`«destructured»`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetChallengesInput` |
+| `«destructured»` | [`GetClaimIdInput`](../modules.md#getclaimidinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getChallenges
+`Promise`\<`string`\>
 
 ___
 
@@ -732,7 +717,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getColorForChainId
+Base.getColorForChainId
 
 ___
 
@@ -753,7 +738,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getConfigAddress
+Base.getConfigAddress
 
 ___
 
@@ -773,7 +758,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getConfigStartBlock
+Base.getConfigStartBlock
 
 ___
 
@@ -787,7 +772,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getContractAddresses
+Base.getContractAddresses
 
 ___
 
@@ -808,7 +793,23 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getContractExists
+Base.getContractExists
+
+___
+
+### <a id="getcounterpartchainid" name="getcounterpartchainid"></a> getCounterpartChainId
+
+▸ **getCounterpartChainId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetCounterpartChainIdInput`](../modules.md#getcounterpartchainidinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -828,7 +829,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProvider
+Base.getDefaultProvider
 
 ___
 
@@ -842,7 +843,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProviders
+Base.getDefaultProviders
 
 ___
 
@@ -862,7 +863,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getEthersWeb3Signer
+Base.getEthersWeb3Signer
 
 ___
 
@@ -909,15 +910,29 @@ ___
 
 ___
 
-### <a id="getfee" name="getfee"></a> getFee
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
 
-▸ **getFee**(`«destructured»`): `Promise`\<`BigNumber`\>
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
+
+___
+
+### <a id="getfeeprice" name="getfeeprice"></a> getFeePrice
+
+▸ **getFeePrice**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetFeeInput`](../modules.md#getfeeinput) |
+| `«destructured»` | [`GetFeePriceInput`](../modules.md#getfeepriceinput) |
 
 #### Returns
 
@@ -925,23 +940,51 @@ ___
 
 ___
 
-### <a id="getfullappeal" name="getfullappeal"></a> getFullAppeal
+### <a id="getfeevault" name="getfeevault"></a> getFeeVault
 
-▸ **getFullAppeal**(`chainId`): `Promise`\<`any`\>
+▸ **getFeeVault**(`«destructured»`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `BigNumberish` |
+| `«destructured»` | [`GetFeeVaultInput`](../modules.md#getfeevaultinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`string`\>
 
-#### Inherited from
+___
 
-StakingRegistry.getFullAppeal
+### <a id="gethardconfirmedbucketindex" name="gethardconfirmedbucketindex"></a> getHardConfirmedBucketIndex
+
+▸ **getHardConfirmedBucketIndex**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetHardConfirmedBucketIndexInput`](../modules.md#gethardconfirmedbucketindexinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gethardconfirmedclaimid" name="gethardconfirmedclaimid"></a> getHardConfirmedClaimId
+
+▸ **getHardConfirmedClaimId**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetHardConfirmedClaimIdInput`](../modules.md#gethardconfirmedclaimidinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -961,15 +1004,15 @@ ___
 
 ___
 
-### <a id="getheadclaim" name="getheadclaim"></a> getHeadClaim
+### <a id="getheadclaimid" name="getheadclaimid"></a> getHeadClaimId
 
-▸ **getHeadClaim**(`«destructured»`): `Promise`\<`string`\>
+▸ **getHeadClaimId**(`«destructured»`): `Promise`\<`string`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetHeadClaimInput`](../modules.md#getheadclaiminput) |
+| `«destructured»` | [`GetHeadClaimIdInput`](../modules.md#getheadclaimidinput) |
 
 #### Returns
 
@@ -1013,6 +1056,20 @@ ___
 
 ___
 
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="getisclaimidvalid" name="getisclaimidvalid"></a> getIsClaimIdValid
 
 ▸ **getIsClaimIdValid**(`«destructured»`): `Promise`\<`boolean`\>
@@ -1029,53 +1086,35 @@ ___
 
 ___
 
-### <a id="getminbonderstake" name="getminbonderstake"></a> getMinBonderStake
+### <a id="getlastbondedclaimid" name="getlastbondedclaimid"></a> getLastBondedClaimId
 
-▸ **getMinBonderStake**(): `Promise`\<`BigNumber`\>
+▸ **getLastBondedClaimId**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetLastBondedClaimIdInput`](../modules.md#getlastbondedclaimidinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="getmessagefee" name="getmessagefee"></a> getMessageFee
+
+▸ **getMessageFee**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`RailsGatewayGetMessageFeeInput`](../modules.md#railsgatewaygetmessagefeeinput) |
 
 #### Returns
 
 `Promise`\<`BigNumber`\>
-
-___
-
-### <a id="getminchallengeincrease" name="getminchallengeincrease"></a> getMinChallengeIncrease
-
-▸ **getMinChallengeIncrease**(`chainId`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getMinChallengeIncrease
-
-___
-
-### <a id="getminhopstakeforrole" name="getminhopstakeforrole"></a> getMinHopStakeForRole
-
-▸ **getMinHopStakeForRole**(`input`): `Promise`\<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `MinHopStakeForRoleInput` |
-
-#### Returns
-
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getMinHopStakeForRole
 
 ___
 
@@ -1127,6 +1166,22 @@ ___
 
 ___
 
+### <a id="getpathvault" name="getpathvault"></a> getPathVault
+
+▸ **getPathVault**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetPathVaultInput`](../modules.md#getpathvaultinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="getprovider" name="getprovider"></a> getProvider
 
 ▸ **getProvider**(`chainId`): ``null`` \| `Provider`
@@ -1143,7 +1198,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getProvider
+Base.getProvider
 
 ___
 
@@ -1167,23 +1222,45 @@ ___
 
 ___
 
-### <a id="getroleforrolename" name="getroleforrolename"></a> getRoleForRoleName
+### <a id="getremovefee" name="getremovefee"></a> getRemoveFee
 
-▸ **getRoleForRoleName**(`roleName`): `Promise`\<`string`\>
+▸ **getRemoveFee**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="getremovedbalance" name="getremovedbalance"></a> getRemovedBalance
+
+▸ **getRemovedBalance**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `roleName` | `string` |
+| `«destructured»` | [`GetRemovedBalanceInput`](../modules.md#getremovedbalanceinput) |
 
 #### Returns
 
-`Promise`\<`string`\>
+`Promise`\<`BigNumber`\>
 
-#### Inherited from
+___
 
-StakingRegistry.getRoleForRoleName
+### <a id="getsendfee" name="getsendfee"></a> getSendFee
+
+▸ **getSendFee**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`RailsGatewayGetSendFeeInput`](../modules.md#railsgatewaygetsendfeeinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1203,7 +1280,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSigner
+Base.getSigner
 
 ___
 
@@ -1223,7 +1300,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerAddress
+Base.getSignerAddress
 
 ___
 
@@ -1243,7 +1320,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerOrProvider
+Base.getSignerOrProvider
 
 ___
 
@@ -1263,67 +1340,43 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSignerProviderChainId
+Base.getSignerProviderChainId
 
 ___
 
-### <a id="getstakedbalance" name="getstakedbalance"></a> getStakedBalance
+### <a id="getsourcepool" name="getsourcepool"></a> getSourcePool
 
-▸ **getStakedBalance**(`input`): `Promise`\<`any`\>
+▸ **getSourcePool**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetStakedBalanceInput` |
+| `«destructured»` | `GetSourcePoolInput` |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getStakedBalance
+`Promise`\<`BigNumber`\>
 
 ___
 
-### <a id="getstakingregistryaddress" name="getstakingregistryaddress"></a> getStakingRegistryAddress
+### <a id="getstakingregistry" name="getstakingregistry"></a> getStakingRegistry
 
-▸ **getStakingRegistryAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getStakingRegistry**(): `StakingRegistry`
 
 #### Returns
 
-`string`
-
-#### Inherited from
-
-StakingRegistry.getStakingRegistryAddress
+`StakingRegistry`
 
 ___
 
-### <a id="getstakingregistrycontract" name="getstakingregistrycontract"></a> getStakingRegistryContract
+### <a id="getstakingregistrycontractaddress" name="getstakingregistrycontractaddress"></a> getStakingRegistryContractAddress
 
-▸ **getStakingRegistryContract**(`chainId`): `Contract`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getStakingRegistryContractAddress**(): `Promise`\<`string`\>
 
 #### Returns
 
-`Contract`
-
-#### Inherited from
-
-StakingRegistry.getStakingRegistryContract
+`Promise`\<`string`\>
 
 ___
 
@@ -1337,7 +1390,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedChainIds
+Base.getSupportedChainIds
 
 ___
 
@@ -1351,7 +1404,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedTokenSymbols
+Base.getSupportedTokenSymbols
 
 ___
 
@@ -1371,7 +1424,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getSupportedTokenSymbolsByChainId
+Base.getSupportedTokenSymbolsByChainId
 
 ___
 
@@ -1392,7 +1445,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getTokenAddressByTokenSymbol
+Base.getTokenAddressByTokenSymbol
 
 ___
 
@@ -1428,6 +1481,85 @@ ___
 
 ___
 
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
+
+___
+
+### <a id="gettokenvault" name="gettokenvault"></a> getTokenVault
+
+▸ **getTokenVault**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="gettotalclaims" name="gettotalclaims"></a> getTotalClaims
+
+▸ **getTotalClaims**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalClaimsInput`](../modules.md#gettotalclaimsinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalclaimsatclaimid" name="gettotalclaimsatclaimid"></a> getTotalClaimsAtClaimId
+
+▸ **getTotalClaimsAtClaimId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalClaimsAtClaimIdInput`](../modules.md#gettotalclaimsatclaimidinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalconfirmed" name="gettotalconfirmed"></a> getTotalConfirmed
+
+▸ **getTotalConfirmed**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalConfirmedInput`](../modules.md#gettotalconfirmedinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
 ### <a id="gettotalsent" name="gettotalsent"></a> getTotalSent
 
 ▸ **getTotalSent**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -1436,7 +1568,23 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `GetTotalSentInput` |
+| `«destructured»` | [`GetTotalSentInput`](../modules.md#gettotalsentinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettotalwithdrawableatclaimid" name="gettotalwithdrawableatclaimid"></a> getTotalWithdrawableAtClaimId
+
+▸ **getTotalWithdrawableAtClaimId**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTotalWithdrawableAtClaimIdInput`](../modules.md#gettotalwithdrawableatclaimidinput) |
 
 #### Returns
 
@@ -1540,19 +1688,19 @@ ___
 
 ___
 
-### <a id="gettransferid" name="gettransferid"></a> getTransferId
+### <a id="gettransferindex" name="gettransferindex"></a> getTransferIndex
 
-▸ **getTransferId**(`«destructured»`): `Promise`\<`string`\>
+▸ **getTransferIndex**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`GetTransferIdInput`](../modules.md#gettransferidinput) |
+| `«destructured»` | [`GetTransferIndexInput`](../modules.md#gettransferindexinput) |
 
 #### Returns
 
-`Promise`\<`string`\>
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1685,7 +1833,17 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getTxOverrides
+Base.getTxOverrides
+
+___
+
+### <a id="getupdatefee" name="getupdatefee"></a> getUpdateFee
+
+▸ **getUpdateFee**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1697,7 +1855,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`WithdrawableBalanceInput`](../modules.md#withdrawablebalanceinput) |
+| `«destructured»` | [`GetWithdrawableBalanceInput`](../modules.md#getwithdrawablebalanceinput) |
 
 #### Returns
 
@@ -1705,83 +1863,137 @@ ___
 
 ___
 
-### <a id="getwithdrawableeth" name="getwithdrawableeth"></a> getWithdrawableEth
+### <a id="getwithdrawn" name="getwithdrawn"></a> getWithdrawn
 
-▸ **getWithdrawableEth**(`input`): `Promise`\<`any`\>
+▸ **getWithdrawn**(`«destructured»`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetWithdrawableEthInput` |
+| `«destructured»` | [`GetWithdrawnInput`](../modules.md#getwithdrawninput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getWithdrawableEth
+`Promise`\<`BigNumber`\>
 
 ___
 
-### <a id="getwithdrawablestakebalance" name="getwithdrawablestakebalance"></a> getWithdrawableStakeBalance
+### <a id="initchain" name="initchain"></a> initChain
 
-▸ **getWithdrawableStakeBalance**(`input`): `Promise`\<`any`\>
+▸ **initChain**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+ADMIN FUNCTIONS
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `GetWithdrawableBalanceInput` |
+| `«destructured»` | [`InitChainInput`](../modules.md#initchaininput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.getWithdrawableStakeBalance
+`Promise`\<`TransactionResponse`\>
 
 ___
 
-### <a id="isstaked" name="isstaked"></a> isStaked
+### <a id="initpath" name="initpath"></a> initPath
 
-▸ **isStaked**(`input`): `Promise`\<`any`\>
+▸ **initPath**(`«destructured»`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `IsStakedInput` |
+| `«destructured»` | [`InitPathInput`](../modules.md#initpathinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
-
-#### Inherited from
-
-StakingRegistry.isStaked
+`Promise`\<`TransactionResponse`\>
 
 ___
 
-### <a id="optimisticallysettlechallenge" name="optimisticallysettlechallenge"></a> optimisticallySettleChallenge
+### <a id="ispathinitialized" name="ispathinitialized"></a> isPathInitialized
 
-▸ **optimisticallySettleChallenge**(`input`): `Promise`\<`any`\>
+▸ **isPathInitialized**(`«destructured»`): `Promise`\<`boolean`\>
+
+/END ADMIN FUNCTIONS
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `OptimisticallySettleChallengeInput` |
+| `«destructured»` | [`IsPathInitializedInput`](../modules.md#ispathinitializedinput) |
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`boolean`\>
 
-#### Inherited from
+___
 
-StakingRegistry.optimisticallySettleChallenge
+### <a id="isvalidclaim" name="isvalidclaim"></a> isValidClaim
+
+▸ **isValidClaim**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`IsValidClaimInput`](../modules.md#isvalidclaiminput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="isvalidtransfer" name="isvalidtransfer"></a> isValidTransfer
+
+▸ **isValidTransfer**(`«destructured»`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`IsValidClaimInput`](../modules.md#isvalidclaiminput) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
+### <a id="postandbond" name="postandbond"></a> postAndBond
+
+▸ **postAndBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PostAndBondInput`](../modules.md#postandbondinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="postandwithdraw" name="postandwithdraw"></a> postAndWithdraw
+
+▸ **postAndWithdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PostAndWithdrawInput`](../modules.md#postandwithdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -1802,123 +2014,20 @@ ___
 
 ___
 
-### <a id="registrystakehop" name="registrystakehop"></a> registryStakeHop
+### <a id="pushclaim" name="pushclaim"></a> pushClaim
 
-▸ **registryStakeHop**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **pushClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `RegistryStakeHopInput` |
+| `input` | [`PushClaimInput`](../modules.md#pushclaiminput) |
+| `txOverrides` | `TxOverrides` |
 
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryStakeHop
-
-___
-
-### <a id="registrystakehoppopulatedtx" name="registrystakehoppopulatedtx"></a> registryStakeHopPopulatedTx
-
-▸ **registryStakeHopPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryStakeHopInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryStakeHopPopulatedTx
-
-___
-
-### <a id="registryunstakehop" name="registryunstakehop"></a> registryUnstakeHop
-
-▸ **registryUnstakeHop**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryUnstakeHopInput` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryUnstakeHop
-
-___
-
-### <a id="registryunstakehoppopulatedtx" name="registryunstakehoppopulatedtx"></a> registryUnstakeHopPopulatedTx
-
-▸ **registryUnstakeHopPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryUnstakeHopInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryUnstakeHopPopulatedTx
-
-___
-
-### <a id="registrywithdraw" name="registrywithdraw"></a> registryWithdraw
-
-▸ **registryWithdraw**(`input`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryWithdrawInput` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-#### Inherited from
-
-StakingRegistry.registryWithdraw
-
-___
-
-### <a id="registrywithdrawpopulatedtx" name="registrywithdrawpopulatedtx"></a> registryWithdrawPopulatedTx
-
-▸ **registryWithdrawPopulatedTx**(`input`): `Promise`\<`PopulatedTransaction`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `RegistryWithdrawInput` |
-
-#### Returns
-
-`Promise`\<`PopulatedTransaction`\>
-
-#### Inherited from
-
-StakingRegistry.registryWithdrawPopulatedTx
 
 ___
 
@@ -1974,7 +2083,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.sendTransaction
+Base.sendTransaction
 
 ___
 
@@ -1994,7 +2103,93 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setContractAddresses
+Base.setContractAddresses
+
+___
+
+### <a id="setdefaulttokenfee" name="setdefaulttokenfee"></a> setDefaultTokenFee
+
+▸ **setDefaultTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetDefaultTokenFeeInput`](../modules.md#setdefaulttokenfeeinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
+
+___
+
+### <a id="setfeeoracle" name="setfeeoracle"></a> setFeeOracle
+
+▸ **setFeeOracle**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetFeeOracleInput`](../modules.md#setfeeoracleinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setfeeprice" name="setfeeprice"></a> setFeePrice
+
+▸ **setFeePrice**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`SetFeePriceInput`](../modules.md#setfeepriceinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setfeeprices" name="setfeeprices"></a> setFeePrices
+
+▸ **setFeePrices**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`SetFeePricesInput`](../modules.md#setfeepricesinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -2015,7 +2210,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProvider
+Base.setProvider
 
 ___
 
@@ -2036,7 +2231,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviderUrl
+Base.setProviderUrl
 
 ___
 
@@ -2056,7 +2251,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviderUrls
+Base.setProviderUrls
 
 ___
 
@@ -2076,19 +2271,51 @@ ___
 
 #### Inherited from
 
-StakingRegistry.setProviders
+Base.setProviders
 
 ___
 
-### <a id="stakehop" name="stakehop"></a> stakeHop
+### <a id="setsendfeegas" name="setsendfeegas"></a> setSendFeeGas
 
-▸ **stakeHop**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **setSendFeeGas**(`«destructured»`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`StakeHopInput`](../modules.md#stakehopinput) |
+| `«destructured»` | [`SetSendFeeGasInput`](../modules.md#setsendfeegasinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setstakingregistry" name="setstakingregistry"></a> setStakingRegistry
+
+▸ **setStakingRegistry**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetStakingRegistryInput`](../modules.md#setstakingregistryinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="setupdatefeegas" name="setupdatefeegas"></a> setUpdateFeeGas
+
+▸ **setUpdateFeeGas**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetUpdateFeeGasInput`](../modules.md#setupdatefeegasinput) |
 
 #### Returns
 
@@ -2112,19 +2339,19 @@ ___
 
 #### Inherited from
 
-StakingRegistry.throwError
+Base.throwError
 
 ___
 
-### <a id="unstakehop" name="unstakehop"></a> unstakeHop
+### <a id="updatedefaulttokenfee" name="updatedefaulttokenfee"></a> updateDefaultTokenFee
 
-▸ **unstakeHop**(`input`): `Promise`\<`TransactionResponse`\>
+▸ **updateDefaultTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`UnstakeHopInput`](../modules.md#unstakehopinput) |
+| `«destructured»` | [`UpdateDefaultTokenFeeInput`](../modules.md#updatedefaulttokenfeeinput) |
 
 #### Returns
 
@@ -2132,16 +2359,15 @@ ___
 
 ___
 
-### <a id="updateclaimchain" name="updateclaimchain"></a> updateClaimChain
+### <a id="updatetokenfee" name="updatetokenfee"></a> updateTokenFee
 
-▸ **updateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **updateTokenFee**(`«destructured»`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput) |
-| `txOverrides` | `TxOverrides` |
+| `«destructured»` | [`UpdateTokenFeeInput`](../modules.md#updatetokenfeeinput) |
 
 #### Returns
 
@@ -2166,15 +2392,15 @@ ___
 
 ___
 
-### <a id="withdrawall" name="withdrawall"></a> withdrawAll
+### <a id="withdrawbonds" name="withdrawbonds"></a> withdrawBonds
 
-▸ **withdrawAll**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawBonds**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`WithdrawAllInput`](../modules.md#withdrawallinput) |
+| `input` | [`WithdrawBondsInput`](../modules.md#withdrawbondsinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -2183,15 +2409,15 @@ ___
 
 ___
 
-### <a id="withdrawhop" name="withdrawhop"></a> withdrawHop
+### <a id="withdrawclaim" name="withdrawclaim"></a> withdrawClaim
 
-▸ **withdrawHop**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **withdrawClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`WithdrawHopInput`](../modules.md#withdrawhopinput) |
+| `input` | [`WithdrawClaimInput`](../modules.md#withdrawclaiminput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -2312,7 +2538,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProvider
+Base.getDefaultProvider
 
 ___
 
@@ -2332,7 +2558,7 @@ ___
 
 #### Inherited from
 
-StakingRegistry.getDefaultProviders
+Base.getDefaultProviders
 
 ___
 

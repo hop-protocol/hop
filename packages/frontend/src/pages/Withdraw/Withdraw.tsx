@@ -154,7 +154,7 @@ export const Withdraw: FC = () => {
               if (data) {
                 const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
                 if (nonceUsed) {
-                  reject(new Error('The withdrawal for this transfer has already been processed'))
+                  reject(new Error('The withdrawal for this transfer has already been processed. The funds should have been received at the destination. No further action is required.'))
                   return
                 }
                 await txConfirm?.show({

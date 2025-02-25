@@ -13,6 +13,8 @@ import Paper from '@mui/material/Paper'
 import { makeStyles } from '@mui/styles'
 import { useTransferDetails } from '@/app/hooks/useTransferDetails'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
+import { DecodedSendDataTable } from '@/app/components/DecodedData/DecodedSendDataTable'
+import { DecodedBondDataTable } from '@/app/components/DecodedData/DecodedBondDataTable'
 import { DetailRow } from './DetailRow'
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -20,56 +22,24 @@ import { useRouter } from 'next/navigation'
 
 export function Details(props: any) {
   const { initialEventDetails } = props
+  console.log(initialEventDetails)
   const {
     transferId,
     statusDisplay,
-    attestedClaimTotalSentDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestedClaimId,
     pathId,
-    nextHops,
-    sourceTxValueDisplay,
-    sourceTxTransactionHash,
-    sourceTxTransactionExplorerUrl,
-    sourceTxGasLimit,
-    sourceTxNonce,
-    sourceTxGasUsed,
-    sourceTxGasPriceDisplay,
-    sourceTxFrom,
-    sourceTxChainDisplay,
-    sourceTxChainImageUrl,
-    sourceTxFromExplorerUrl,
-    sourceTxTo,
-    sourceTxToExplorerUrl,
-    sourceTokenDisplay,
-    sourceTokenExplorerUrl,
-    sourceTxStatusDisplay,
-    sourceTxTimestampDisplay,
-    sourceTxBlockNumber,
-    sourceTxData,
+    hops,
+    sourceTx,
     destinationChainDisplay,
     destinationChainImageUrl,
-    destinationTransactionHash,
-    destinationTransactionExplorerUrl,
-    destinationAmountOutDisplay,
-    destinationTxFromDisplay,
-    destinationTxFromExplorerUrl,
-    destinationTxToDisplay,
-    destinationTxToExplorerUrl,
-    destinationTokenDisplay,
-    destinationTokenExplorerUrl,
-    destinationTxData,
     loading,
-    destinationTxStatusDisplay,
-    destinationTxValueDisplay,
-    destinationTxGasLimit,
-    destinationTxGasUsed,
-    destinationTxGasPriceDisplay,
-    destinationTxNonce,
-    destinationTxBlockNumber,
     transferAmountDisplay,
-    destinationTxTimestampDisplay
+    sourcePoolDisplay,
+    sourceTokenAddress,
+    sourceTokenDisplay,
+    sourceTokenExplorerUrl,
+    destinationTxs
   } = useTransferDetails({ initialEventDetails })
   const router = useRouter()
   function navigateBack() {
@@ -77,45 +47,47 @@ export function Details(props: any) {
   }
 
   return (
-    <Box>
-      <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
+    <Box width="100%" maxWidth="1200px">
+      <Box mb={4} ml={0} width="100%" display="flex" justifyContent="flex-start">
         <IconButton onClick={navigateBack} aria-label="back">
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" color="textPrimary">Transfer Details</Typography>
+        <Typography variant="h4" color="textPrimary">Transfer Details</Typography>
       </Box>
 
-      <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }} >
+      <Paper elevation={0} style={{ padding: 8, marginBottom: 16, background: 'transparent' }}
+      >
         <TableContainer>
           <Table width="100%">
             <TableBody>
               <DetailRow loading={loading} label="Transfer ID" value={transferId} />
               <DetailRow loading={loading} label="Status" value={statusDisplay} />
-              <DetailRow loading={loading} label="Created" value={sourceTxTimestampDisplay} />
+              <DetailRow loading={loading} label="Created" value={sourceTx.timestampDisplay} />
               <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} />
-              <DetailRow loading={loading} label="Origin Chain" value={sourceTxChainDisplay} imageUrl={sourceTxChainImageUrl} />
+              <DetailRow loading={loading} label="Origin Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
-              <DetailRow loading={loading} label="Transfer Amount" value={transferAmountDisplay} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
-              <DetailRow loading={loading} label="Transfer Attested Claim ID" value={attestedClaimId} />
-              <DetailRow loading={loading} label="Transfer Attested Claim Total Sent" value={attestedClaimTotalSentDisplay} />
+              <DetailRow loading={loading} label="Event Path ID" value={pathId} />
+              <DetailRow loading={loading} label="Event Amount" value={transferAmountDisplay} />
+              <DetailRow loading={loading} label="Event Source Pool" value={sourcePoolDisplay} />
             </TableBody>
           </Table>
         </TableContainer>
 
         <Box mt={2} mb={2}>
-          <Typography variant="subtitle1" color="textPrimary">Next Hops</Typography>
+          <Typography variant="subtitle1" color="textPrimary">Hops</Typography>
         </Box>
 
-        {nextHops.map((nextHop: any, i: number) => {
-          const { pathId, maxTotalSent, attestedClaimId } = nextHop
+        {hops.map((nextHop: any, i: number) => {
+          const { pathId, maxBonderFee, maxTotalSent, attestedClaimId} = nextHop
           return (
             <Box ml={2} mb={4} key={i}>
               <TableContainer>
                 <Table width="100%">
                   <TableBody>
-                    <DetailRow label={i+1} value=" " />
+                    <DetailRow label={`Hop #${i+1}`} value=" " />
                     <DetailRow label="Path ID" value={pathId} />
+                    <DetailRow label="Max Bonder Fee" value={maxBonderFee} />
                     <DetailRow label="Max Total Sent" value={maxTotalSent} />
                     <DetailRow label="Attested Claim ID" value={attestedClaimId} />
                   </TableBody>
@@ -131,47 +103,103 @@ export function Details(props: any) {
         <TableContainer>
           <Table width="100%">
             <TableBody>
-              <DetailRow loading={loading} label="Source Chain" value={sourceTxChainDisplay} imageUrl={sourceTxChainImageUrl} />
-              <DetailRow loading={loading} label="Source Transaction Hash" value={sourceTxTransactionHash} link={sourceTxTransactionExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction Status" value={sourceTxStatusDisplay} />
-              <DetailRow loading={loading} label="Source Transaction From Address" value={sourceTxFrom} link={sourceTxFromExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction To Address" value={sourceTxTo} link={sourceTxToExplorerUrl} />
-              <DetailRow loading={loading} label="Source Transaction Value" value={sourceTxValueDisplay} />
-              <DetailRow loading={loading} label="Source Transaction Gas Limit" value={sourceTxGasLimit} />
-              <DetailRow loading={loading} label="Source Transaction Gas Used" value={sourceTxGasUsed} />
-              <DetailRow loading={loading} label="Source Transaction Gas Price" value={sourceTxGasPriceDisplay} />
-              <DetailRow loading={loading} label="Source Transaction Nonce" value={sourceTxNonce} />
-              <DetailRow loading={loading} label="Source Transaction Block Number" value={sourceTxBlockNumber} />
-              <DetailRow loading={loading} label="Source Transaction Calldata" value={sourceTxData} maxWidth={300} />
+              <DetailRow loading={loading} label="Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
+              <DetailRow loading={loading} label="Hash" value={sourceTx.transactionHash} link={sourceTx.transactionExplorerUrl} />
+              <DetailRow loading={loading} label="Status" value={sourceTx.statusDisplay} />
+              <DetailRow loading={loading} label="From Address" value={sourceTx.from} link={sourceTx.fromExplorerUrl} />
+              <DetailRow loading={loading} label="To Address" value={sourceTx.to} link={sourceTx.toExplorerUrl} />
+              <DetailRow loading={loading} label="Value" value={sourceTx.valueDisplay} />
+              <DetailRow loading={loading} label="Gas Limit" value={sourceTx.gasLimit} />
+              <DetailRow loading={loading} label="Gas Used" value={sourceTx.gasUsed} />
+              <DetailRow loading={loading} label="Gas Price" value={sourceTx.gasPriceDisplay} />
+              <DetailRow loading={loading} label="Nonce" value={sourceTx.nonce} />
+              <DetailRow loading={loading} label="Block Number" value={sourceTx.blockNumber} />
+              <DetailRow loading={loading} label="Calldata" value={sourceTx.data} maxWidth={600} />
+              {!!sourceTx.dataDecoded && (
+                <DetailRow loading={loading} label="Decoded Calldata" value={
+                  <DecodedSendDataTable data={sourceTx.dataDecoded} />
+                } />
+              )}
             </TableBody>
           </Table>
         </TableContainer>
       </Paper>
 
-      <Typography variant="h6" color="textPrimary" style={{ marginTop: 16 }}>Destination Transaction</Typography>
-      <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }}>
-        <TableContainer>
-          <Table width="100%">
-            <TableBody>
-              <DetailRow loading={loading} label="Destination Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
-              <DetailRow loading={loading} label="Destination Token" value={destinationTokenDisplay} link={destinationTokenExplorerUrl} />
-              <DetailRow loading={loading} label="Destination Timestamp" value={destinationTxTimestampDisplay} />
-              <DetailRow loading={loading} label="Destination Transfer Amount Out" value={destinationAmountOutDisplay} />
-              <DetailRow loading={loading} label="Destination Transaction Hash" value={destinationTransactionHash} link={destinationTransactionExplorerUrl} />
-              <DetailRow loading={loading} label="Destination Transaction Status" value={destinationTxStatusDisplay} />
-              <DetailRow loading={loading} label="Destination Transaction From Address (Bonder)" value={destinationTxFromDisplay} link={destinationTxFromExplorerUrl} />
-              <DetailRow loading={loading} label="Destination Transaction To Address" value={destinationTxToDisplay} link={destinationTxToExplorerUrl} />
-              <DetailRow loading={loading} label="Destination Transaction Value" value={destinationTxValueDisplay} />
-              <DetailRow loading={loading} label="Destination Transaction Gas Limit" value={destinationTxGasLimit} />
-              <DetailRow loading={loading} label="Destination Transaction Gas Used" value={destinationTxGasUsed} />
-              <DetailRow loading={loading} label="Destination Transaction Gas Price" value={destinationTxGasPriceDisplay} />
-              <DetailRow loading={loading} label="Destination Transaction Nonce" value={destinationTxNonce} />
-              <DetailRow loading={loading} label="Destination Transaction Block Number" value={destinationTxBlockNumber} />
-              <DetailRow loading={loading} label="Destination Transaction Calldata" value={destinationTxData} maxWidth={300} />
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+    {destinationTxs.map((destinationTx: any, i: number) => {
+
+      const {
+        data,
+        dataDecoded,
+        blockTimestamp,
+        blockTimestampRelative,
+        timestampDisplay,
+        status,
+        statusDisplay,
+        value,
+        valueDisplay,
+        gasLimit,
+        gasUsed,
+        gasPrice,
+        gasPriceDisplay,
+        nonce,
+        blockNumber,
+        fromDisplay,
+        fromExplorerUrl,
+        txTo,
+        txToExplorerUrl,
+        tokenAddress,
+        tokenDisplay,
+        claimId,
+        chainDisplay,
+        chainImageUrl,
+        tokenExplorerUrl,
+        amountDisplay,
+        bonderFeeDisplay,
+        to,
+        toExplorerUrl,
+        pathId,
+        transactionHash,
+        transactionExplorerUrl,
+      } = destinationTx
+
+        return (
+          <Box ml={2} mb={4} key={i}>
+            <Typography variant="h6" color="textPrimary" style={{ marginTop: 16 }}>Destination Transaction <small>(Hop #{i + 1})</small></Typography>
+            <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }}>
+              <TableContainer>
+                <Table width="100%">
+                  <TableBody>
+                    <DetailRow loading={loading} label="Claim ID" value={claimId} />
+                    <DetailRow loading={loading} label="Chain" value={chainDisplay} imageUrl={chainImageUrl} />
+                    <DetailRow loading={loading} label="Token" value={tokenDisplay} link={tokenExplorerUrl} />
+                    <DetailRow loading={loading} label="Timestamp" value={timestampDisplay} />
+                    <DetailRow loading={loading} label="Transfer Amount" value={amountDisplay} />
+                    <DetailRow loading={loading} label="Bonder Fee" value={bonderFeeDisplay} />
+                    <DetailRow loading={loading} label="Recipient" value={to} link={toExplorerUrl} />
+                    <DetailRow loading={loading} label="Path ID" value={pathId} />
+                    <DetailRow loading={loading} label="Hash" value={transactionHash} link={transactionExplorerUrl} />
+                    <DetailRow loading={loading} label="Status" value={statusDisplay} />
+                    <DetailRow loading={loading} label="From Address (Bonder)" value={fromDisplay} link={fromExplorerUrl} />
+                    <DetailRow loading={loading} label="To Address" value={txTo} link={txToExplorerUrl} />
+                    <DetailRow loading={loading} label="Value" value={valueDisplay} />
+                    <DetailRow loading={loading} label="Gas Limit" value={gasLimit} />
+                    <DetailRow loading={loading} label="Gas Used" value={gasUsed} />
+                    <DetailRow loading={loading} label="Gas Price" value={gasPriceDisplay} />
+                    <DetailRow loading={loading} label="Nonce" value={nonce} />
+                    <DetailRow loading={loading} label="Block Number" value={blockNumber} />
+                    <DetailRow loading={loading} label="Calldata" value={data} maxWidth={600} />
+                    {!!dataDecoded && (
+                      <DetailRow loading={loading} label="Decoded Calldata" value={
+                        <DecodedBondDataTable data={dataDecoded} />
+                      } />
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        )
+      })}
     </Box>
   )
 }

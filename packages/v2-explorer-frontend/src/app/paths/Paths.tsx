@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
-import { useFetchPaths } from './useFetchPaths'
+import { useFetchPaths } from '@/app/hooks/useFetchPaths'
 import { Table } from '@/app/components/Table'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -42,6 +42,10 @@ export function Paths () {
       key: 'counterpartToken',
       value: 'Counterpart Token'
     },
+    {
+      key: 'details',
+      value: 'Details'
+    },
   ]
 
   const rows = paths.map((path: any) => {
@@ -49,7 +53,8 @@ export function Paths () {
       {
         key: 'pathId',
         value: path.pathIdTruncated,
-        clipboardValue: path.pathId
+        valueUrl: `/p/${path.pathId}`,
+        clipboardValue: path.pathId,
       },
       {
         key: 'chainId',
@@ -73,6 +78,12 @@ export function Paths () {
         valueUrl: path.counterpartTokenExplorerUrl,
         clipboardValue: path.counterpartToken
       },
+      {
+        key: 'details',
+        value: 'View Details',
+        valueUrl: `/p/${path.pathId}`,
+        button: true
+      },
     ]
   })
 
@@ -81,7 +92,7 @@ export function Paths () {
   }
 
   return (
-    <Box>
+    <Box width="100%" maxWidth="1400px">
       <Table title={'Paths'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>

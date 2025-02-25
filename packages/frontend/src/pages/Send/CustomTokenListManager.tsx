@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField'
 import { Button } from '#components/Button/index.js'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'  // Import MUI Alert
-import { useTokenList } from './useTokenList'
+import { useTokenList } from './useTokenList.js'
 
 export const CustomTokenListManager = () => {
   const {

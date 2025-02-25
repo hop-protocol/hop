@@ -5,7 +5,10 @@ import { BigNumber, providers, utils, Contract, constants } from 'ethers'
 import { useV2 } from './useV2.js'
 import { Hop, utils as v2Utils  } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
+import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
+import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
+import { getNetworks } from '#config/networks.js'
 import {
   useBalance,
   useFeeConversions,
@@ -25,6 +28,7 @@ type V2SendHook = {
   bonderFeeUsdDisplay: string
   chains: any[]
   error: string
+  estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
   estimatedReceivedUsdDisplay: string
   fromChain: any
@@ -79,6 +83,9 @@ type V2SendHook = {
   fromBalanceUsdDisplay: string
   toBalanceUsdDisplay: string
   isLoadingNeedsApproval: boolean
+  hasEnoughBalance: boolean
+  parsedAmountIn: string
+  transferStatus: any
 }
 
 class Token {
@@ -107,11 +114,13 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
   const {
-    networks,
     txConfirm
   } = useApp()
+  const networks = useMemo(() => {
+    return getNetworks(networkSlug)
+  }, [networkSlug])
   const { address, provider } = useWeb3Context()
   const [sendTx, setSendTx] = useState<providers.TransactionResponse | null>(null)
   const [approvalTx, setApprovalTx] = useState<providers.TransactionResponse | null>(null)
@@ -144,6 +153,13 @@ export function useV2Send(): V2SendHook {
   const [isFetchingGetSendData, setIsFetchingGetSendData] = useState<boolean>(false)
   const [isLoadingNeedsApproval, setIsLoadingNeedsApproval] = useState<boolean>(false)
   const accountAddress = address?.toString() ?? null
+  const { transferStatus } = useV2TransferStatus({
+    // transactionHash: '0xe34021ab6829980086a80b55e771ce0441b67c5c8b48992d06820c535b3222d8',
+    transactionHash: '0x0eae01af6c043416ddb96c824bd14258ba9c8fcf28d2e2da42b85703ff9f6c46',
+    // transactionHash: sendTx?.hash,
+    fromChainId,
+    toChainId
+  })
 
   useEffect(() => {
     const list = getTokenList()
@@ -214,6 +230,8 @@ export function useV2Send(): V2SendHook {
           }
         }
         setIsLoadingNeedsApproval(false)
+      } else {
+        setNeedsApproval(false)
       }
     }
 
@@ -490,8 +508,8 @@ export function useV2Send(): V2SendHook {
 
   const fromTokenBalanceFormatted = fromTokenBalance != null ? formatUnits(fromTokenBalance, fromToken.decimals) : ''
   const toTokenBalanceFormatted = toTokenBalance != null ? formatUnits(toTokenBalance, toToken.decimals) : ''
-  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${fromTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
-  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${toTokenBalanceFormatted} ${tokenSymbol ?? ''}` : ''
+  const fromTokenBalanceDisplay = fromTokenBalance && tokenSymbol ? `${commafy(fromTokenBalanceFormatted, 5)}` : ''
+  const toTokenBalanceDisplay = toTokenBalance && tokenSymbol ? `${commafy(toTokenBalanceFormatted, 5)}` : ''
 
   const { priceUsd: tokenPriceUsd } = useTokenPrice(tokenSymbol)
   const fromBalanceUsdDisplay = useMemo(() => {
@@ -514,6 +532,7 @@ export function useV2Send(): V2SendHook {
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
   return {
+    parsedAmountIn,
     accountAddress,
     amountIn,
     approveReady,
@@ -523,6 +542,7 @@ export function useV2Send(): V2SendHook {
     bonderFeeUsdDisplay,
     chains,
     error,
+    estimatedReceived,
     estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
     estimatedReceivedUsdDisplay,
     fromChain,
@@ -577,6 +597,8 @@ export function useV2Send(): V2SendHook {
     handleMaxClick,
     fromBalanceUsdDisplay,
     toBalanceUsdDisplay,
-    isLoadingNeedsApproval
+    isLoadingNeedsApproval,
+    hasEnoughBalance,
+    transferStatus
   }
 }

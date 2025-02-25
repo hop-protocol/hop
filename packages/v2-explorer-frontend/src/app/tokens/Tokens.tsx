@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
-import { useFetchTokens } from './useFetchTokens'
+import { useFetchTokens } from '@/app/hooks/useFetchTokens'
 import { Table } from '@/app/components/Table'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -73,7 +73,7 @@ export function Tokens () {
   }
 
   return (
-    <Box>
+    <Box width="100%" maxWidth="1200px">
       <Table title={'Tokens'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>

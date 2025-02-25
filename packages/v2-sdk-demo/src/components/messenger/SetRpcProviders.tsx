@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextArea } from '../CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextArea } from '../CustomTextArea.js'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { useStyles } from '../useStyles'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { Syntax } from '../Syntax.js'
+import { useStyles } from '../useStyles.js'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   sdk: Hop
@@ -18,6 +18,7 @@ export function SetRpcProviders (props: Props) {
   const cacheKey = 'setRpcProviders'
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString } = useShared()
   const [copied, setCopied] = useState(false)
   const [configString, setConfigString] = useLocalStorageState(`${cacheKey}:configString`, {
     defaultValue: JSON.stringify({

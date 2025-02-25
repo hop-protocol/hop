@@ -1,6 +1,6 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import { SiteWrapper } from '../components/SiteWrapper'
+import { SiteWrapper } from '../components/SiteWrapper.js'
 
 export function NotFound () {
   return (

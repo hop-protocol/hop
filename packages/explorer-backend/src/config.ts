@@ -10,6 +10,7 @@ export const isGoerli = network === 'goerli'
 export const port = Number(process.env.PORT || 8000)
 export const ipRateLimitReqPerSec = Number(process.env.IP_RATE_LIMIT_REQ_PER_SEC || 100)
 export const ipRateLimitWindowMs = Number(process.env.IP_RATE_LIMIT_WINDOW_MS || 1 * 1000)
+export const rateLimitToken = process.env.RATE_LIMIT_TOKEN || ''
 export const postgresConfig = {
   user: process.env.POSTGRES_USER,
   host: process.env.POSTGRES_HOST,

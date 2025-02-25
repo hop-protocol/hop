@@ -1,10 +1,10 @@
 import React from 'react'
 import { Route, Switch } from 'react-router-dom'
 import Box from '@mui/material/Box'
-import { Main } from './pages/Main'
-import { NotFound } from './pages/NotFound'
-import { Tutorial } from './pages/Tutorial'
-import { HardhatTutorial } from './pages/HardhatTutorial'
+import { Main } from './pages/Main.js'
+import { NotFound } from './pages/NotFound.js'
+// import { Tutorial } from './pages/Tutorial.js'
+// import { HardhatTutorial } from './pages/HardhatTutorial.js'
 import bgImage from './assets/circles-bg.svg'
 import { Web3Modal } from './components/Web3Modal/index.js'
 
@@ -20,8 +20,10 @@ function App () {
     }}>
       <Switch>
         <Route path="/" exact component={Main} />
+        {/*
         <Route path="/tutorial" component={Tutorial} />
         <Route path="/hardhat-tutorial" component={HardhatTutorial} />
+        */}
         <Route component={NotFound} />
       </Switch>
       <Web3Modal />

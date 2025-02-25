@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
-import { HighlightedButton } from '../components/HighlightedButton'
-import { CustomTextField } from '../components/CustomTextField'
-import { SiteWrapper } from '../components/SiteWrapper'
+import { HighlightedButton } from '../components/HighlightedButton.js'
+import { CustomTextField } from '../components/CustomTextField.js'
+import { SiteWrapper } from '../components/SiteWrapper.js'
 import { providers, Contract, ContractFactory } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
-import { useWeb3Context } from '../contexts/Web3Context'
+import { useWeb3Context } from '../contexts/Web3Context.js'
 import bidirectionalGreeterArtifact from '../abi/BidirectionalGreeter.json'
 import Alert from '@mui/material/Alert'
-import { Syntax } from '../components/Syntax'
+import { Syntax } from '../components/Syntax.js'
 import Typography from '@mui/material/Typography'
-import { CustomPaper } from '../components/CustomPaper'
+import { CustomPaper } from '../components/CustomPaper.js'
 import { useQuery } from 'react-query'
 import { Hop } from '@hop-protocol/v2-sdk'
 import '../tutorial.css'
@@ -169,8 +169,7 @@ export function HardhatTutorial () {
       }
       const sdk = new Hop()
       const isExited = await sdk.messenger.getIsL2TxHashExited({
-        transactionHash: greetingTxOnOptimism,
-        fromChainId: 420
+        transactionHash: greetingTxOnOptimism
       })
       return isExited
     },
@@ -437,7 +436,6 @@ export function HardhatTutorial () {
     } as any) // TODO
 
     const messageFee1 = await sdk.messenger.getMessageFee({
-      fromChainId: chainId,
       toChainId: chainId === 5 ? 420 : 5
     })
     console.log('fee', messageFee1.toString())
@@ -528,9 +526,9 @@ export function HardhatTutorial () {
       fromAddress,
       toCalldata,
       toChainId
-    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ chainId: fromChainId, transactionHash: greetingTxOnOptimism })
+    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ transactionHash: greetingTxOnOptimism })
 
-    const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof })
+    const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, fromAddress, toAddress, toCalldata, bundleProof })
     if (!txData) {
       throw new Error('expected txData')
     }

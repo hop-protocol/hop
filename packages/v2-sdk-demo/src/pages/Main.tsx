@@ -1,64 +1,82 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react'
-import { SiteWrapper } from '../components/SiteWrapper'
-import { CustomPaper } from '../components/CustomPaper'
+import { SiteWrapper } from '../components/SiteWrapper.js'
+import { CustomPaper } from '../components/CustomPaper.js'
 import { useInterval } from 'react-use'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import { HighlightedButton } from '../components/HighlightedButton'
+import { HighlightedButton } from '../components/HighlightedButton.js'
 import Typography from '@mui/material/Typography'
 import { formatEther } from 'ethers/lib/utils'
-import { useQueryParams } from '../hooks/useQueryParams'
-import { Hop } from '@hop-protocol/v2-sdk'
-import { useStyles } from '../components/useStyles'
-import { useWeb3Context } from '../contexts/Web3Context'
-import { network } from '../config'
+import { useQueryParams } from '../hooks/useQueryParams.js'
+import { useApp } from '../hooks/useApp.js'
+import { useStyles } from '../components/useStyles.js'
+import { NetworkSelect } from '../components/NetworkSelect.js'
+import { useWeb3Context } from '../contexts/Web3Context.js'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 // Lazy load the components
-const HopSendTokens = lazy(() => import('../components/hop/HopSendTokens'))
-const HopApproveSendTokens = lazy(() => import('../components/hop/HopApproveSendTokens'))
-const HopSwitchChain = lazy(() => import('../components/hop/HopSwitchChain'))
-const RailsGatewaySend = lazy(() => import('../components/railsGateway/RailsGatewaySend'))
-const RailsGatewayGetNeedsApprovalForSend = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForSend'))
-const RailsGatewayGetNeedsApprovalForBond = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForBond'))
-const RailsGatewayApproveSend = lazy(() => import('../components/railsGateway/RailsGatewayApproveSend'))
-const RailsGatewayApproveBond = lazy(() => import('../components/railsGateway/RailsGatewayApproveBond'))
-const RailsGatewayGetTotalSent = lazy(() => import('../components/railsGateway/RailsGatewayGetTotalSent'))
-const RailsGatewayBond = lazy(() => import('../components/railsGateway/RailsGatewayBond'))
-const RailsGatewayWithdraw = lazy(() => import('../components/railsGateway/RailsGatewayWithdraw'))
-const RailsGatewayGetWithdrawableBalance = lazy(() => import('../components/railsGateway/RailsGatewayGetWithdrawableBalance'))
-const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/RailsGatewayGetPathInfo'))
-const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId'))
-const RailsGatewayGetFee = lazy(() => import('../components/railsGateway/RailsGatewayGetFee'))
-const RailsGatewayGetTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferId'))
-const RailsGatewayGetHeadClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetHeadClaim'))
-const RailsGatewayGetIsClaimValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsClaimValid'))
-const RailsGatewayPostClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostClaim'))
-const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/RailsGatewayConfirmClaim'))
-const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash'))
-const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId'))
-const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash'))
-const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTransferId'))
-const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents'))
-const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents'))
-const HopCalcAmountOutMin = lazy(() => import('../components/hop/HopCalcAmountOutMin'))
-const SendMessage = lazy(() => import('../components/messenger/SendMessage'))
-const RelayMessage = lazy(() => import('../components/messenger/RelayMessage'))
-const Execute = lazy(() => import('../components/messenger/Execute'))
-const ExitBundle = lazy(() => import('../components/messenger/ExitBundle'))
-const GetBundleProof = lazy(() => import('../components/messenger/GetBundleProof'))
-const GetEvents = lazy(() => import('../components/messenger/GetEvents'))
-const GetMessageIdFromTxHash = lazy(() => import('../components/messenger/GetMessageIdFromTxHash'))
-const GetMessageCalldata = lazy(() => import('../components/messenger/GetMessageCalldata'))
-const GetContractAddresses = lazy(() => import('../components/messenger/GetContractAddresses'))
-const SetContractAddresses = lazy(() => import('../components/messenger/SetContractAddresses'))
-const GetMessageSentEventFromMessageId = lazy(() => import('../components/messenger/GetMessageSentEventFromMessageId'))
-const GetMessageSentEventFromTxHash = lazy(() => import('../components/messenger/GetMessageSentEventFromTxHash'))
-const GetMessageFee = lazy(() => import('../components/messenger/GetMessageFee'))
-const SetRpcProviders = lazy(() => import('../components/messenger/SetRpcProviders'))
+const HopSendTokens = lazy(() => import('../components/hop/HopSendTokens.js'))
+const HopApproveSendTokens = lazy(() => import('../components/hop/HopApproveSendTokens.js'))
+const HopSwitchChain = lazy(() => import('../components/hop/HopSwitchChain.js'))
+const RailsGatewaySend = lazy(() => import('../components/railsGateway/RailsGatewaySend.js'))
+const RailsGatewayGetNeedsApprovalForSend = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForSend.js'))
+const RailsGatewayGetNeedsApprovalForBond = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForBond.js'))
+const RailsGatewayApproveSend = lazy(() => import('../components/railsGateway/RailsGatewayApproveSend.js'))
+const RailsGatewayApproveBond = lazy(() => import('../components/railsGateway/RailsGatewayApproveBond.js'))
+const RailsGatewayGetTotalSent = lazy(() => import('../components/railsGateway/RailsGatewayGetTotalSent.js'))
+const RailsGatewayBond = lazy(() => import('../components/railsGateway/RailsGatewayBond.js'))
+const RailsGatewayWithdraw = lazy(() => import('../components/railsGateway/RailsGatewayWithdraw.js'))
+const RailsGatewayGetWithdrawableBalance = lazy(() => import('../components/railsGateway/RailsGatewayGetWithdrawableBalance.js'))
+const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/RailsGatewayGetPathInfo.js'))
+const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId.js'))
+const RailsGatewayGetPathIdLive = lazy(() => import('../components/railsGateway/RailsGatewayGetPathIdLive.js'))
+const RailsGatewayGetSendFee = lazy(() => import('../components/railsGateway/RailsGatewayGetSendFee.js'))
+const RailsGatewayGetUpdateFee = lazy(() => import('../components/railsGateway/RailsGatewayGetUpdateFee.js'))
+const RailsGatewayGetTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferId.js'))
+const RailsGatewayGetHeadClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetHeadClaim.js'))
+const RailsGatewayGetIsClaimValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsClaimValid.js'))
+const RailsGatewayPostClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostClaim.js'))
+const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/RailsGatewayConfirmClaim.js'))
+const RailsGatewayGetBucketIndex = lazy(() => import('../components/railsGateway/RailsGatewayGetBucketIndex.js'))
+const RailsGatewayGetStakingRegistry = lazy(() => import('../components/railsGateway/RailsGatewayGetStakingRegistry.js'))
+const RailsGatewayGetTransferDataHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferDataHash.js'))
+const RailsGatewayBatchUpdateClaimChain = lazy(() => import('../components/railsGateway/RailsGatewayBatchUpdateClaimChain.js'))
+const RailsGatewayUpdateClaimChain = lazy(() => import('../components/railsGateway/RailsGatewayUpdateClaimChain.js'))
+const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash.js'))
+const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId.js'))
+const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash.js'))
+const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTransferId.js'))
+const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents.js'))
+const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents.js'))
+const StakingRegistryApproveStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryApproveStakeHop.js'))
+const StakingRegistryStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryStakeHop.js'))
+const StakingRegistryUnstakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryUnstakeHop.js'))
+const StakingRegistryGetStakedBalance = lazy(() => import('../components/stakingRegistry/StakingRegistryGetStakedBalance.js'))
+const StakingRegistryGetWithdrawableBalance = lazy(() => import('../components/stakingRegistry/StakingRegistryGetWithdrawableBalance.js'))
+const StakingRegistryGetAppealPeriod = lazy(() => import('../components/stakingRegistry/StakingRegistryGetAppealPeriod.js'))
+const StakingRegistryGetFullAppeal = lazy(() => import('../components/stakingRegistry/StakingRegistryGetFullAppeal.js'))
+const StakingRegistryGetChallengePeriod = lazy(() => import('../components/stakingRegistry/StakingRegistryGetChallengePeriod.js'))
+const StakingRegistryGetMinHopStake = lazy(() => import('../components/stakingRegistry/StakingRegistryGetMinHopStake.js'))
+const StakingRegistryGetHopTokenAddress = lazy(() => import('../components/stakingRegistry/StakingRegistryGetHopTokenAddress.js'))
+const StakingRegistryMintHop = lazy(() => import('../components/stakingRegistry/StakingRegistryMintHop.js'))
+const HopCalcAmountOutMin = lazy(() => import('../components/hop/HopCalcAmountOutMin.js'))
+const SendMessage = lazy(() => import('../components/messenger/SendMessage.js'))
+const RelayMessage = lazy(() => import('../components/messenger/RelayMessage.js'))
+const Execute = lazy(() => import('../components/messenger/Execute.js'))
+const ExitBundle = lazy(() => import('../components/messenger/ExitBundle.js'))
+const GetBundleProof = lazy(() => import('../components/messenger/GetBundleProof.js'))
+const GetEvents = lazy(() => import('../components/messenger/GetEvents.js'))
+const GetMessageIdFromTxHash = lazy(() => import('../components/messenger/GetMessageIdFromTxHash.js'))
+const GetMessageCalldata = lazy(() => import('../components/messenger/GetMessageCalldata.js'))
+const GetContractAddresses = lazy(() => import('../components/messenger/GetContractAddresses.js'))
+const SetContractAddresses = lazy(() => import('../components/messenger/SetContractAddresses.js'))
+const GetMessageSentEventFromMessageId = lazy(() => import('../components/messenger/GetMessageSentEventFromMessageId.js'))
+const GetMessageSentEventFromTxHash = lazy(() => import('../components/messenger/GetMessageSentEventFromTxHash.js'))
+const GetMessageFee = lazy(() => import('../components/messenger/GetMessageFee.js'))
+const SetRpcProviders = lazy(() => import('../components/messenger/SetRpcProviders.js'))
 
 export function Main () {
   const { provider, address, requestWallet, disconnectWallet } = useWeb3Context()
@@ -67,15 +85,7 @@ export function Main () {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [balance, setBalance] = useState('-')
-  const [sdk, setSdk] = useState(() => {
-    return new Hop({
-      signersOrProviders: Hop.getDefaultProviders(network)
-    })
-  })
-
-  useEffect(() => {
-    (window as any).sdk = sdk
-  }, [sdk])
+  const { network, sdk, setNetwork } = useApp()
 
   const updateBalance = async () => {
     try {
@@ -110,13 +120,17 @@ export function Main () {
     ['Hop - Switch Chain', <HopSwitchChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Hop - Calculate Amount Out Min', <HopCalcAmountOutMin sdk={sdk} />],
     ['Rails Gateway - Get Path ID', <RailsGatewayGetPathId sdk={sdk} />],
+    ['Rails Gateway - Get Is Path ID Live', <RailsGatewayGetPathIdLive sdk={sdk} />],
     ['Rails Gateway - Get Path Info', <RailsGatewayGetPathInfo sdk={sdk} />],
-    ['Rails Gateway - Get Fee', <RailsGatewayGetFee sdk={sdk} />],
+    ['Rails Gateway - Get Send Fee', <RailsGatewayGetSendFee sdk={sdk} />],
+    ['Rails Gateway - Get Update Fee', <RailsGatewayGetUpdateFee sdk={sdk} />],
     ['Rails Gateway - Get Transfer ID', <RailsGatewayGetTransferId sdk={sdk} />],
     ['Rails Gateway - Get Head Claim', <RailsGatewayGetHeadClaim sdk={sdk} />],
     ['Rails Gateway - Is Claim Valid', <RailsGatewayGetIsClaimValid sdk={sdk} />],
     ['Rails Gateway - Post Claim', <RailsGatewayPostClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Confirm Claim', <RailsGatewayConfirmClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Get Bucket Index', <RailsGatewayGetBucketIndex sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Staking Registry', <RailsGatewayGetStakingRegistry sdk={sdkWithSigner} />],
     ['Rails Gateway - Send', <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Needs Approval For Send', <RailsGatewayGetNeedsApprovalForSend sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Needs Approval For Bond', <RailsGatewayGetNeedsApprovalForBond sdk={sdkWithSigner} />],
@@ -125,13 +139,28 @@ export function Main () {
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Withdraw', <RailsGatewayWithdraw signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Withdrawable Balance', <RailsGatewayGetWithdrawableBalance sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Withdrawable Balance', <RailsGatewayGetWithdrawableBalance sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Total Sent', <RailsGatewayGetTotalSent sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Transfer Data Hash', <RailsGatewayGetTransferDataHash sdk={sdkWithSigner} />],
+    ['Rails Gateway - Update Claim Chain', <RailsGatewayUpdateClaimChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Batch Update Claim Chain', <RailsGatewayBatchUpdateClaimChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transaction Hash', <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transfer ID', <RailsGatewayGetTransferBondedEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Events', <RailsGatewayGetTransferSentEvents sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Events', <RailsGatewayGetTransferBondedEvents sdk={sdk} />],
+    ['Staking Registry - Mint Testnet Hop', <StakingRegistryMintHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Approve Stake Hop', <StakingRegistryApproveStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Stake Hop', <StakingRegistryStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Unstake Hop', <StakingRegistryUnstakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Get Staked Balance', <StakingRegistryGetStakedBalance sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Withdrawable Balance', <StakingRegistryGetWithdrawableBalance sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Appeal Period', <StakingRegistryGetAppealPeriod sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Full Appeal', <StakingRegistryGetFullAppeal sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Challenge Period', <StakingRegistryGetChallengePeriod sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Min Hop Stake', <StakingRegistryGetMinHopStake sdk={sdkWithSigner} />],
+    ['Staking Registry - Get Hop Token Address', <StakingRegistryGetHopTokenAddress sdk={sdkWithSigner} />],
     ['Messenger - Set Contract Addresses', <SetContractAddresses sdk={sdk} />],
     ['Messenger - Get Contract Addresses', <GetContractAddresses sdk={sdk} />],
     ['Messenger - Set RPC Providers', <SetRpcProviders sdk={sdk} />],
@@ -195,13 +224,16 @@ export function Main () {
                 View Explorer
               </Button>
             </Box>
+            <Box ml={4}>
+              <NetworkSelect network={network} setNetwork={setNetwork} />
+            </Box>
             {!address && (
               <Box ml={4}>
                 <HighlightedButton onClick={requestWallet} variant="contained">Connect a Wallet</HighlightedButton>
               </Box>
             )}
             {!!address && (
-              <Box>
+              <Box ml={4}>
                 <Button onClick={disconnectWallet}>disconnect</Button>
               </Box>
             )}

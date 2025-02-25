@@ -801,7 +801,14 @@ export class HopBridge extends Base {
   public async commitTransfers (sourceChain: TChain, destinationChain: TChain) {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    const l2Bridge = await this.getL2Bridge(sourceChain)
+    let l2Bridge = await this.getL2Bridge(sourceChain)
+    if (sourceChain.slug === ChainSlug.Polygon) {
+      const address = this.getConfigAddresses(this.tokenSymbol, sourceChain)?.l2MessengerProxy
+      if (address) {
+        const provider = await this.getSignerOrProvider(sourceChain)
+        l2Bridge = L2_Bridge__factory.connect(address, provider)
+      }
+    }
     return l2Bridge.commitTransfers(destinationChain.chainId)
   }
 
@@ -922,7 +929,7 @@ export class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain)
+    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain, destinationChain)
     const isLiquidityAvailable = availableLiquidity.gte(amountIn)
     const lpFeeBps = BigNumber.from(0)
     const requiredLiquidity = amountIn
@@ -1019,6 +1026,9 @@ export class HopBridge extends Base {
           this.calcFromHTokenAmountMulticall(destinationChain, [hTokenAmount, bonderFeeRelative, destinationTxFee]),
           this.getBonderFeeAbsolute(sourceChain, destinationChain)
         ]))
+
+        // the bonder fee should be at least the relative fee enforced by the contract
+        adjustedBonderFee = adjustedBonderFee.gt(bonderFeeRelative) ? adjustedBonderFee : bonderFeeRelative
       }
 
       // enforce bonderFeeAbsolute after adjustment
@@ -1655,10 +1665,16 @@ export class HopBridge extends Base {
   }
 
   async #getAvailableLiquidityCctp (
-    sourceChain: TChain
+    sourceChain: TChain,
+    destinationChain: TChain
   ): Promise<BigNumber> {
     const isEnabled = await this.getIsCctpEnabled()
     if (!isEnabled) {
+      return BigNumber.from(0)
+    }
+
+    destinationChain = this.toChainModel(destinationChain)
+    if (ChainSlug.Polygon === destinationChain.slug) {
       return BigNumber.from(0)
     }
 
@@ -1692,7 +1708,7 @@ export class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge({isHTokenSend})) {
-      return this.#getAvailableLiquidityCctp(sourceChain)
+      return this.#getAvailableLiquidityCctp(sourceChain, destinationChain)
     }
 
     sourceChain = this.toChainModel(sourceChain)

@@ -2,23 +2,22 @@ import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import StepContent from '@mui/material/StepContent'
 import Button from '@mui/material/Button'
-import { hopInstantiateDisplayString } from '../shared'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -30,6 +29,7 @@ export function RailsGatewayBond (props: Props) {
   const cacheKey = 'railsGatewayBond'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.to,

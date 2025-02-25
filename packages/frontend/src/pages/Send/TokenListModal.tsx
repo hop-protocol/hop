@@ -22,11 +22,10 @@ import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
 import StarIcon from '@mui/icons-material/Star'
-import TollIcon from '@mui/icons-material/Toll'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
-import { useTokenList } from './useTokenList'
-import { CustomTokenListManager } from './CustomTokenListManager'
+import { useTokenList } from './useTokenList.js'
+import { CustomTokenListManager } from './CustomTokenListManager.js'
 
 type Props = {
   onTokenSelect: (token: any) => void
@@ -35,9 +34,10 @@ type Props = {
   excludeChainId?: string
   selectedTokenSymbol?: string
   clear?: boolean
+  selectLabel?: string
 }
 
-export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value }: Props) => {
+export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId, selectedTokenSymbol, clear, value, selectLabel }: Props) => {
   let {
     open,
     search,
@@ -79,17 +79,17 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
 
   const networkOptions = [
     { value: '', label: 'All Chains', logo: 'https://gist.github.com/user-attachments/assets/7d344fcb-6463-4ae1-a311-c89af12a99ba' },
-    { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
+    // { value: '42069', label: 'Hop Hub Sepolia', logo: 'https://assets.hop.exchange/logos/hop.svg' },
     { value: '11155111', label: 'Ethereum Sepolia', logo: 'https://assets.hop.exchange/logos/ethereum.svg' },
     { value: '84532', label: 'Base Sepolia', logo: 'https://assets.hop.exchange/logos/base.svg' },
     { value: '11155420', label: 'Optimism Sepolia', logo: 'https://assets.hop.exchange/logos/optimism.svg' },
   ]
 
-  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken.chainId.toString())?.logo
+  const selectedTokenChainLogo = selectedToken && networkOptions.find(option => option.value === selectedToken?.chainId?.toString())?.logo
 
   function renderTokenList(list: any[]) {
       return list.map((token) => {
-        const chainLogo = networkOptions.find(option => option.value === token.chainId.toString())?.logo
+        const chainLogo = networkOptions.find(option => option.value === token.chainId?.toString())?.logo
         return (
           <ListItem
             button
@@ -178,7 +178,7 @@ export const TokenListModal = ({ onTokenSelect, selectedChainId, excludeChainId,
           <Typography variant="body1" sx={{ color: 'black' }}>{selectedToken.symbol}</Typography>
         </Box>
         ) : (
-          <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>Select token</Typography>
+          <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>{selectLabel ?? 'Select token'}</Typography>
         )}
       </Button>
 

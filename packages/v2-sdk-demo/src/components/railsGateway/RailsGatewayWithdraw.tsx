@@ -2,18 +2,17 @@ import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -25,6 +24,7 @@ export function RailsGatewayWithdraw (props: Props) {
   const cacheKey = 'railsGatewayWithdraw'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.to,
@@ -38,7 +38,7 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [bucketIndex, setBucketIndex] = useLocalStorageState(`${cacheKey}:bucketIndex`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -61,7 +61,7 @@ export function RailsGatewayWithdraw (props: Props) {
     const args = {
       pathId,
       amount,
-      bucketIndex: Number(bucketIndex)
+      claimId
     }
     console.log('args', args)
     const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdraw(args)
@@ -103,13 +103,13 @@ import { ethers } from 'ethers'
 async function main() {
   const pathId = "${pathId}"
   const amount = "${amount}"
-  const bucketIndex = ${bucketIndex}
+  const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdraw({
     pathId,
     amount,
-    bucketIndex
+    claimId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -167,9 +167,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bucket Index <small><em>(uint256)</em></small> <small><em>Bucket index</em></small></label>
+                  <label>Claim ID <small><em>(uint256)</em></small> <small><em>Claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={bucketIndex} onChange={(event: any) => setBucketIndex(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

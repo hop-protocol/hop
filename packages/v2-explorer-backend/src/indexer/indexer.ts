@@ -19,6 +19,7 @@ type Options = {
   endBlocks?: EndBlocks // used for testing
   pollIntervalSeconds?: number
   sdkContractAddresses?: any
+  skipChainIds?: string[]
 }
 
 export const defaultPollSeconds = 10
@@ -29,6 +30,7 @@ export class Indexer {
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
   chainIds: Record<string, boolean> = {}
+  skipChainIds: string[] = []
   priceFeed: PriceFeed
 
   paused: boolean = false
@@ -42,11 +44,15 @@ export class Indexer {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
     this.sdk = new Hop({
+      network: network,
       batchBlocks: 10_000,
       contractAddresses: options?.sdkContractAddresses,
       signersOrProviders: Hop.getDefaultProviders(network)
     })
     this.sdk.setProviderUrls(rpcUrls)
+
+    // console.log('sdk providers', this.sdk.signersOrProviders)
+
     this.priceFeed = new PriceFeed({
       coingecko: coingeckoApiKey
     })
@@ -68,6 +74,10 @@ export class Indexer {
     if (options?.dbPath) {
       this.db.setDbPath(options.dbPath)
     }
+    if (Array.isArray(options?.skipChainIds)) {
+      this.skipChainIds = options.skipChainIds
+    }
+    console.log('indexer skipChainIds', this.skipChainIds)
 
     this.eventsToSync = {
       BundleCommitted: new SyncStateDb(dbPath, 'BundleCommitted'),
@@ -79,7 +89,11 @@ export class Indexer {
       MessageExecuted: new SyncStateDb(dbPath, 'MessageExecuted'),
       MessageSent: new SyncStateDb(dbPath, 'MessageSent'),
       TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
-      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded')
+      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded'),
+      ClaimPosted: new SyncStateDb(dbPath, 'ClaimPosted'),
+      ClaimReadded: new SyncStateDb(dbPath, 'ClaimReadded'),
+      ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
+      BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
     }
   }
 
@@ -120,13 +134,19 @@ export class Indexer {
       'MessageExecuted',
       'MessageSent',
       'TransferSent',
-      'TransferBonded'
+      'TransferBonded',
+      'ClaimPosted',
+      'ClaimReadded',
+      'ClaimRemoved',
+      'BonderPreference'
     ]
 
     const _events: any[] = []
 
-    for (const _chainId in this.chainIds) {
-      const chainId = Number(_chainId)
+    const promises = Object.keys(this.chainIds).map(async (chainId: string) => {
+      if (this.skipChainIds.includes(chainId)) {
+        return
+      }
       const isL1 = this.getIsL1(chainId)
       let _db: any
       let eventNames: string[] = []
@@ -140,7 +160,7 @@ export class Indexer {
       }
 
       if (!_db) {
-        continue
+        return
       }
 
       const syncState = await _db.getSyncState(chainId)
@@ -149,7 +169,7 @@ export class Indexer {
       const provider = this.sdk.getProvider(chainId)
       if (!provider) {
         console.error('provider not found for chainId', chainId)
-        continue
+        return
       }
       let fromBlock = this.startBlocks[chainId]
       let headBlock = await provider.getBlockNumber()
@@ -159,12 +179,21 @@ export class Indexer {
       let toBlock = headBlock
       if (syncState?.toBlock) {
         fromBlock = syncState.toBlock as number + 1
+        // if (chainId === '42069') {
+        //   fromBlock = 866229
+        // }
+        // if (chainId === '84532') {
+        //   fromBlock = 20620236
+        // }
+        // if (chainId === '11155420') {
+        //   fromBlock = 18925085
+        // }
         toBlock = headBlock
       }
 
       console.log('get', eventNames, 'chainId', chainId, 'fromBlock', fromBlock, 'toBlock', toBlock)
       const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })
-      console.log('events', eventNames, events.length)
+      console.log('events', eventNames, events.length, fromBlock, toBlock, chainId)
       for (const event of events) {
         console.log('event', event)
 
@@ -173,12 +202,34 @@ export class Indexer {
           console.error('event db found in pgDb', event.context.eventName)
           continue
         }
-        await this.pgDb.events[event.context.eventName].upsertItem({ ...event.decoded, context: event.context })
+
+        const upsertData = { ...event.decoded, context: event.context }
+
+        // TODO: better way of handling this
+        if (event.context.eventName === 'TransferSent') {
+          try {
+            const dataDecoded = await this.sdk.getRailsGateway(chainId).helpers.decodeSendTxInputData(event.context.data)
+            upsertData.context.dataDecoded = dataDecoded
+          } catch (err: any) {
+            console.warn('decodeSendTxInputData error', err)
+          }
+        } else if (event.context.eventName === 'TransferBonded') {
+          try {
+            const dataDecoded = await this.sdk.getRailsGateway(chainId).helpers.decodeBondTxInputData(event.context.data)
+            upsertData.context.dataDecoded = dataDecoded
+          } catch (err: any) {
+            console.warn('decodeSendTxInputData error', err)
+          }
+        }
+
+        await this.pgDb.events[event.context.eventName].upsertItem(upsertData)
         await _db.putSyncState(chainId, { fromBlock, toBlock })
         _events.push(event)
       }
       await _db.putSyncState(chainId, { fromBlock, toBlock })
-    }
+    })
+
+    await Promise.all(promises)
 
     return _events
   }
@@ -201,8 +252,8 @@ export class Indexer {
     return this.waitForSyncIndex(syncIndex)
   }
 
-  getIsL1 (chainId: number) {
-    return chainId === 5 || chainId === 1 || chainId === 11155111
+  getIsL1 (chainId: string) {
+    return chainId === '5' || chainId === '1' || chainId === '11155111'
   }
 
   async pollPrices () {

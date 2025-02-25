@@ -19,10 +19,14 @@ export class FeesSentToHubTable extends EventDb {
   override async createIndexes () {}
 
   override async getItems (opts: any = {}) {
-    const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1 } = opts
+    const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1, filter } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
       offset = 0
+    }
+    const args = [startTimestamp, endTimestamp, limit, offset]
+    if (filter?.amount) {
+      args.push(filter.amount)
     }
     const items = await this.db.any(
       `SELECT
@@ -36,12 +40,14 @@ export class FeesSentToHubTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
+        ${filter?.amount ? 'AND amount = $5' : ''}
       ORDER BY
         ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
-      [startTimestamp, endTimestamp, limit, offset])
+      args
+    )
 
     return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
   }

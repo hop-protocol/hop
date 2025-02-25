@@ -2,18 +2,17 @@ import React, { useState } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -25,6 +24,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
   const cacheKey = 'railsGatewayConfirmClaim'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,
@@ -34,7 +34,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
     defaultValue: '',
   })
 
-  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -56,7 +56,7 @@ export function RailsGatewayConfirmClaim (props: Props) {
   async function getSendTxData() {
     const args = {
       pathId,
-      transferId
+      claimId
     }
     console.log('args', args)
     const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.confirmClaim(args)
@@ -96,12 +96,12 @@ import { ethers } from 'ethers'
 
 async function main() {
   const pathId = "${pathId}"
-  const transferId = "${transferId}"
+  const claimId = "${claimId}"
 
   ${hopInstantiateDisplayString}
   const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.confirmClaim({
     pathId,
-    transferId
+    claimId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -154,7 +154,7 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>The transfer ID of the claim</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>

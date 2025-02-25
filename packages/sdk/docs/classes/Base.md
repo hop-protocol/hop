@@ -74,11 +74,15 @@ Class with base methods.
 - [getArbChainAddress](Base.md#getarbchainaddress)
 - [getAvailableRoutes](Base.md#getavailableroutes)
 - [getBumpedGasPrice](Base.md#getbumpedgasprice)
+- [getCctpBridgeAddress](Base.md#getcctpbridgeaddress)
+- [getCctpL1BridgeAddress](Base.md#getcctpl1bridgeaddress)
+- [getCctpL2BridgeAddress](Base.md#getcctpl2bridgeaddress)
+- [getCctpMessageTransmitterAddress](Base.md#getcctpmessagetransmitteraddress)
 - [getChainId](Base.md#getchainid)
 - [getChainProvider](Base.md#getchainprovider)
-- [getChainProviderUrls](Base.md#getchainproviderurls)
 - [getChainProviders](Base.md#getchainproviders)
 - [getConfigAddresses](Base.md#getconfigaddresses)
+- [getContractExists](Base.md#getcontractexists)
 - [getDebugTimeLogs](Base.md#getdebugtimelogs)
 - [getDestinationFeeGasPriceMultiplier](Base.md#getdestinationfeegaspricemultiplier)
 - [getExplorerUrl](Base.md#getexplorerurl)
@@ -111,7 +115,6 @@ Class with base methods.
 - [getSupportedAssetsForChain](Base.md#getsupportedassetsforchain)
 - [getSupportedChains](Base.md#getsupportedchains)
 - [getSupportedTokens](Base.md#getsupportedtokens)
-- [getTokenBalancesForAccount](Base.md#gettokenbalancesforaccount)
 - [getTransferStatus](Base.md#gettransferstatus)
 - [getTransferTimes](Base.md#gettransfertimes)
 - [isValidChain](Base.md#isvalidchain)
@@ -135,15 +138,21 @@ Class with base methods.
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new Base**(`networkOrOptionsObject`, `signer`, `chainProviders?`)
+• **new Base**(`networkOrOptionsObject`, `signer?`, `chainProviders?`): [`Base`](Base.md)
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
-| `signer` | [`TProvider`](../modules.md#tprovider) | - |
+| `signer?` | [`TProvider`](../modules.md#tprovider) | - |
 | `chainProviders?` | `ChainProviders` | - |
+
+#### Returns
+
+[`Base`](Base.md)
+
+New Base class instance.
 
 **`Desc`**
 
@@ -154,7 +163,7 @@ Returns a new Base class instance.
 
 ### <a id="addresses" name="addresses"></a> addresses
 
-• **addresses**: `Record`<`string`, `any`\>
+• **addresses**: `Record`\<`string`, `any`\>
 
 ___
 
@@ -172,19 +181,19 @@ ___
 
 ### <a id="blocklist" name="blocklist"></a> blocklist
 
-• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+• **blocklist**: ``null`` \| `Record`\<`string`, `boolean`\> = `null`
 
 ___
 
 ### <a id="bonders" name="bonders"></a> bonders
 
-• **bonders**: `Record`<`string`, `any`\>
+• **bonders**: `Record`\<`string`, `any`\>
 
 ___
 
 ### <a id="bridgedeprecated" name="bridgedeprecated"></a> bridgeDeprecated
 
-• **bridgeDeprecated**: `Record`<`string`, `boolean`\>
+• **bridgeDeprecated**: `Record`\<`string`, `boolean`\>
 
 ___
 
@@ -196,7 +205,7 @@ ___
 
 ### <a id="chains" name="chains"></a> chains
 
-• **chains**: `Record`<`string`, `any`\>
+• **chains**: `Record`\<`string`, `any`\>
 
 ___
 
@@ -248,7 +257,7 @@ ___
 
 #### Index signature
 
-▪ [token: `string`]: `Record`<`string`, `number`\>
+▪ [token: `string`]: `Record`\<`string`, `number`\>
 
 ___
 
@@ -260,11 +269,11 @@ ___
 
 ### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](../modules.md#tprovider)) => `Promise`<`any`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](../modules.md#tprovider)) => `Promise`\<`any`\> = `getContract`
 
 #### Type declaration
 
-▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
+▸ (`factory`, `address`, `provider`): `Promise`\<`any`\>
 
 ##### Parameters
 
@@ -276,17 +285,17 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="getgasprice" name="getgasprice"></a> getGasPrice
 
-• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`<`BigNumber`\>
+• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`\<`BigNumber`\>
 
 #### Type declaration
 
-▸ (`...args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`\<`BigNumber`\>
 
 ##### Parameters
 
@@ -296,7 +305,7 @@ ___
 
 ##### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -310,13 +319,13 @@ ___
 
 ### <a id="relayerfeeenabled" name="relayerfeeenabled"></a> relayerFeeEnabled
 
-• **relayerFeeEnabled**: `Record`<`string`, `boolean`\>
+• **relayerFeeEnabled**: `Record`\<`string`, `boolean`\>
 
 ___
 
 ### <a id="relayerfeewei" name="relayerfeewei"></a> relayerFeeWei
 
-• **relayerFeeWei**: `Record`<`string`, `string`\>
+• **relayerFeeWei**: `Record`\<`string`, `string`\>
 
 ___
 
@@ -380,7 +389,7 @@ ___
 
 ### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
+▸ **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`\<`string`\>
 
 #### Parameters
 
@@ -392,13 +401,13 @@ ___
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 ___
 
 ### <a id="_getmessengerwrapperaddress" name="_getmessengerwrapperaddress"></a> \_getMessengerWrapperAddress
 
-▸ `Protected` **_getMessengerWrapperAddress**(`token`, `destinationChain`): `Promise`<`string`\>
+▸ **_getMessengerWrapperAddress**(`token`, `destinationChain`): `Promise`\<`string`\>
 
 #### Parameters
 
@@ -409,17 +418,17 @@ ___
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 ___
 
 ### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
 
-▸ **checkBlocklist**(): `Promise`<`void`\>
+▸ **checkBlocklist**(): `Promise`\<`void`\>
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 ___
 
@@ -442,7 +451,7 @@ ___
 
 ### <a id="estimategas" name="estimategas"></a> estimateGas
 
-▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`<`BigNumber`\>
+▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
@@ -453,13 +462,13 @@ ___
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 ___
 
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
-▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -468,81 +477,81 @@ ___
 | `gasLimit` | `BigNumberish` | `undefined` |
 | `data` | `string` | `'0x'` |
 | `to` | `string` | `constants.AddressZero` |
-| `destChain` | `string` \| [`Chain`](Chain.md) | `Chain.Optimism` |
+| `destChain` | [`TChain`](../modules.md#tchain) | `ChainSlug.Optimism` |
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchbonderavailableliquiditydata" name="fetchbonderavailableliquiditydata"></a> fetchBonderAvailableLiquidityData
 
-▸ **fetchBonderAvailableLiquidityData**(): `Promise`<`any`\>
+▸ **fetchBonderAvailableLiquidityData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchbonderavailableliquiditydatawithipfsfallback" name="fetchbonderavailableliquiditydatawithipfsfallback"></a> fetchBonderAvailableLiquidityDataWithIpfsFallback
 
-▸ **fetchBonderAvailableLiquidityDataWithIpfsFallback**(): `Promise`<`any`\>
+▸ **fetchBonderAvailableLiquidityDataWithIpfsFallback**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
 
-▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+▸ **fetchConfigFromS3**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchcoreconfigdata" name="fetchcoreconfigdata"></a> fetchCoreConfigData
 
-▸ **fetchCoreConfigData**(): `Promise`<`any`\>
+▸ **fetchCoreConfigData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchcoreconfigdatawithipfsfallback" name="fetchcoreconfigdatawithipfsfallback"></a> fetchCoreConfigDataWithIpfsFallback
 
-▸ **fetchCoreConfigDataWithIpfsFallback**(): `Promise`<`any`\>
+▸ **fetchCoreConfigDataWithIpfsFallback**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchipfsbonderavailableliquiditydata" name="fetchipfsbonderavailableliquiditydata"></a> fetchIpfsBonderAvailableLiquidityData
 
-▸ **fetchIpfsBonderAvailableLiquidityData**(): `Promise`<`any`\>
+▸ **fetchIpfsBonderAvailableLiquidityData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="fetchipfscoreconfigdata" name="fetchipfscoreconfigdata"></a> fetchIpfsCoreConfigData
 
-▸ **fetchIpfsCoreConfigData**(): `Promise`<`any`\>
+▸ **fetchIpfsCoreConfigData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
@@ -575,17 +584,17 @@ ___
 
 ### <a id="getavailableroutes" name="getavailableroutes"></a> getAvailableRoutes
 
-▸ **getAvailableRoutes**(): `Promise`<`any`\>
+▸ **getAvailableRoutes**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="getbumpedgasprice" name="getbumpedgasprice"></a> getBumpedGasPrice
 
-▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
+▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
@@ -596,7 +605,7 @@ ___
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 Bumped as price as BigNumber
 
@@ -616,6 +625,74 @@ console.log(bumpedGasPrice.toNumber())
 
 ___
 
+### <a id="getcctpbridgeaddress" name="getcctpbridgeaddress"></a> getCctpBridgeAddress
+
+▸ **getCctpBridgeAddress**(`token`, `chain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getcctpl1bridgeaddress" name="getcctpl1bridgeaddress"></a> getCctpL1BridgeAddress
+
+▸ **getCctpL1BridgeAddress**(`token`, `chain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getcctpl2bridgeaddress" name="getcctpl2bridgeaddress"></a> getCctpL2BridgeAddress
+
+▸ **getCctpL2BridgeAddress**(`token`, `chain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getcctpmessagetransmitteraddress" name="getcctpmessagetransmitteraddress"></a> getCctpMessageTransmitterAddress
+
+▸ **getCctpMessageTransmitterAddress**(`token`, `chain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+___
+
 ### <a id="getchainid" name="getchainid"></a> getChainId
 
 ▸ **getChainId**(`chain`): `number`
@@ -624,7 +701,7 @@ ___
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) | Chain model. |
+| `chain` | `Chain` | Chain model. |
 
 #### Returns
 
@@ -640,33 +717,23 @@ ___
 
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
-▸ **getChainProvider**(`chain`): `any`
+▸ **getChainProvider**(`chain`): `Provider`
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `chain` | `string` \| [`Chain`](Chain.md) | Chain model. |
+| `chain` | `string` \| `Chain` | Chain model. |
 
 #### Returns
 
-`any`
+`Provider`
 
 Ethers provider.
 
 **`Desc`**
 
 Returns Ethers provider for specified Chain model.
-
-___
-
-### <a id="getchainproviderurls" name="getchainproviderurls"></a> getChainProviderUrls
-
-▸ **getChainProviderUrls**(): `any`
-
-#### Returns
-
-`any`
 
 ___
 
@@ -694,6 +761,23 @@ ___
 #### Returns
 
 `any`
+
+___
+
+### <a id="getcontractexists" name="getcontractexists"></a> getContractExists
+
+▸ **getContractExists**(`address`, `chain`): `Promise`\<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `address` | `string` |
+| `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`Promise`\<`boolean`\>
 
 ___
 
@@ -777,18 +861,19 @@ ___
 
 ### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
+▸ **getFeeBps**(`token`, `sourceChain`, `destinationChain`): `Promise`\<`number`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
 | `destinationChain` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
-`Promise`<`number`\>
+`Promise`\<`number`\>
 
 ___
 
@@ -810,7 +895,7 @@ ___
 
 ### <a id="getisbridgedeprecated" name="getisbridgedeprecated"></a> getIsBridgeDeprecated
 
-▸ **getIsBridgeDeprecated**(`token`): `Promise`<`boolean`\>
+▸ **getIsBridgeDeprecated**(`token`): `Promise`\<`boolean`\>
 
 #### Parameters
 
@@ -820,7 +905,7 @@ ___
 
 #### Returns
 
-`Promise`<`boolean`\>
+`Promise`\<`boolean`\>
 
 ___
 
@@ -1080,7 +1165,7 @@ ___
 
 ### <a id="getrelayerfee" name="getrelayerfee"></a> getRelayerFee
 
-▸ **getRelayerFee**(`destinationChain`, `tokenSymbol`): `Promise`<`BigNumber`\>
+▸ **getRelayerFee**(`destinationChain`, `tokenSymbol`): `Promise`\<`BigNumber`\>
 
 #### Parameters
 
@@ -1091,27 +1176,27 @@ ___
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`Promise`\<`BigNumber`\>
 
 ___
 
 ### <a id="gets3configdata" name="gets3configdata"></a> getS3ConfigData
 
-▸ **getS3ConfigData**(): `Promise`<`any`\>
+▸ **getS3ConfigData**(): `Promise`\<`any`\>
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
 
-▸ **getSignerAddress**(): `Promise`<`string`\>
+▸ **getSignerAddress**(): `Promise`\<`undefined` \| `string`\>
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<`undefined` \| `string`\>
 
 Ethers signer address.
 
@@ -1133,7 +1218,7 @@ ___
 
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`\<`Provider` \| `Signer`\>
 
 #### Parameters
 
@@ -1144,7 +1229,7 @@ ___
 
 #### Returns
 
-`Promise`<`Provider` \| `Signer`\>
+`Promise`\<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
@@ -1201,25 +1286,9 @@ ___
 
 ___
 
-### <a id="gettokenbalancesforaccount" name="gettokenbalancesforaccount"></a> getTokenBalancesForAccount
-
-▸ **getTokenBalancesForAccount**(`accountAddress`): `Promise`<`Balance`[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `accountAddress` | `string` |
-
-#### Returns
-
-`Promise`<`Balance`[]\>
-
-___
-
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
-▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
+▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -1229,13 +1298,13 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="gettransfertimes" name="gettransfertimes"></a> getTransferTimes
 
-▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`): `Promise`<`any`\>
+▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`, `tokenSymbol?`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -1243,10 +1312,11 @@ ___
 | :------ | :------ |
 | `sourceChainSlug` | `string` |
 | `destinationChainSlug` | `string` |
+| `tokenSymbol?` | `string` |
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
@@ -1284,7 +1354,7 @@ ___
 
 ### <a id="resolvednslink" name="resolvednslink"></a> resolveDnslink
 
-▸ **resolveDnslink**(`dnslinkDomain`): `Promise`<`string`\>
+▸ **resolveDnslink**(`dnslinkDomain`): `Promise`\<``null`` \| `string`\>
 
 #### Parameters
 
@@ -1294,13 +1364,13 @@ ___
 
 #### Returns
 
-`Promise`<`string`\>
+`Promise`\<``null`` \| `string`\>
 
 ___
 
 ### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
 
-▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`any`\>
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -1311,13 +1381,13 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
 ### <a id="setavailableliqudityjsonurl" name="setavailableliqudityjsonurl"></a> setAvailableLiqudityJsonUrl
 
-▸ **setAvailableLiqudityJsonUrl**(`url`): `Promise`<`void`\>
+▸ **setAvailableLiqudityJsonUrl**(`url`): `Promise`\<`void`\>
 
 #### Parameters
 
@@ -1327,13 +1397,13 @@ ___
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 ___
 
 ### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
 
-▸ **setBaseConfigUrl**(`url`): `Promise`<`void`\>
+▸ **setBaseConfigUrl**(`url`): `Promise`\<`void`\>
 
 #### Parameters
 
@@ -1343,7 +1413,7 @@ ___
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 ___
 
@@ -1372,7 +1442,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainProviders` | `Record`<`string`, `string`\> |
+| `chainProviders` | `Record`\<`string`, `string`\> |
 
 #### Returns
 
@@ -1430,7 +1500,7 @@ ___
 
 ### <a id="setcoreconfigjsonurl" name="setcoreconfigjsonurl"></a> setCoreConfigJsonUrl
 
-▸ **setCoreConfigJsonUrl**(`url`): `Promise`<`any`\>
+▸ **setCoreConfigJsonUrl**(`url`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -1440,7 +1510,7 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>
 
 ___
 
@@ -1462,7 +1532,7 @@ ___
 
 ### <a id="tochainmodel" name="tochainmodel"></a> toChainModel
 
-▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
+▸ **toChainModel**(`chain`): `Chain`
 
 #### Parameters
 
@@ -1472,7 +1542,7 @@ ___
 
 #### Returns
 
-[`Chain`](Chain.md)
+`Chain`
 
 Chain model with connected provider.
 
@@ -1484,7 +1554,7 @@ ___
 
 ### <a id="totokenmodel" name="totokenmodel"></a> toTokenModel
 
-▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
+▸ **toTokenModel**(`token`): `TokenModel`
 
 #### Parameters
 
@@ -1494,7 +1564,7 @@ ___
 
 #### Returns
 
-[`TokenModel`](TokenModel.md)
+`TokenModel`
 
 Token model.
 
@@ -1506,7 +1576,7 @@ ___
 
 ### <a id="txoverrides" name="txoverrides"></a> txOverrides
 
-▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
+▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`\<`any`\>
 
 #### Parameters
 
@@ -1517,4 +1587,4 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`\<`any`\>

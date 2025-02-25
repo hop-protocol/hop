@@ -41,6 +41,8 @@
 - [getDefaultProvider](HubConnector.md#getdefaultprovider)
 - [getDefaultProviders](HubConnector.md#getdefaultproviders)
 - [getEthersWeb3Signer](HubConnector.md#getethersweb3signer)
+- [getExplorerApiBaseUrl](HubConnector.md#getexplorerapibaseurl)
+- [getHubChainId](HubConnector.md#gethubchainid)
 - [getHubConnectorContractAddress](HubConnector.md#gethubconnectorcontractaddress)
 - [getProvider](HubConnector.md#getprovider)
 - [getSigner](HubConnector.md#getsigner)
@@ -51,9 +53,11 @@
 - [getSupportedTokenSymbols](HubConnector.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](HubConnector.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](HubConnector.md#gettokenaddressbytokensymbol)
+- [getTokenSymbolByTokenAddress](HubConnector.md#gettokensymbolbytokenaddress)
 - [getTxOverrides](HubConnector.md#gettxoverrides)
 - [sendTransaction](HubConnector.md#sendtransaction)
 - [setContractAddresses](HubConnector.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](HubConnector.md#setexplorerapibaseurl)
 - [setProvider](HubConnector.md#setprovider)
 - [setProviderUrl](HubConnector.md#setproviderurl)
 - [setProviderUrls](HubConnector.md#setproviderurls)
@@ -434,6 +438,34 @@ Base.getEthersWeb3Signer
 
 ___
 
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
+
+___
+
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
@@ -619,6 +651,27 @@ Base.getTokenAddressByTokenSymbol
 
 ___
 
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
+
+___
+
 ### <a id="gettxoverrides" name="gettxoverrides"></a> getTxOverrides
 
 ▸ **getTxOverrides**(`fromChainId`, `toChainId`): `Promise`\<`TxOverrides`\>
@@ -679,6 +732,26 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
 
 ___
 

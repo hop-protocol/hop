@@ -45,7 +45,7 @@
 
 ### <a id="constructor" name="constructor"></a> constructor
 
-• **new TokenModel**(`chainId`, `address`, `decimals`, `symbol`, `name`)
+• **new TokenModel**(`chainId`, `address`, `decimals`, `symbol`, `name`): [`TokenModel`](TokenModel.md)
 
 #### Parameters
 
@@ -56,6 +56,10 @@
 | `decimals` | `number` |
 | `symbol` | `string` |
 | `name` | `string` |
+
+#### Returns
+
+[`TokenModel`](TokenModel.md)
 
 ## Properties
 
@@ -91,115 +95,115 @@ ___
 
 ### <a id="dai" name="dai"></a> DAI
 
-▪ `Static` **DAI**: `string` = `'DAI'`
+▪ `Static` **DAI**: `string`
 
 ___
 
 ### <a id="eth" name="eth"></a> ETH
 
-▪ `Static` **ETH**: `string` = `'ETH'`
+▪ `Static` **ETH**: `string`
 
 ___
 
 ### <a id="hop" name="hop"></a> HOP
 
-▪ `Static` **HOP**: `string` = `'HOP'`
+▪ `Static` **HOP**: `string`
 
 ___
 
 ### <a id="magic" name="magic"></a> MAGIC
 
-▪ `Static` **MAGIC**: `string` = `'MAGIC'`
+▪ `Static` **MAGIC**: `string`
 
 ___
 
 ### <a id="matic" name="matic"></a> MATIC
 
-▪ `Static` **MATIC**: `string` = `'MATIC'`
+▪ `Static` **MATIC**: `string`
 
 ___
 
 ### <a id="op" name="op"></a> OP
 
-▪ `Static` **OP**: `string` = `'OP'`
+▪ `Static` **OP**: `string`
 
 ___
 
 ### <a id="snx" name="snx"></a> SNX
 
-▪ `Static` **SNX**: `string` = `'SNX'`
+▪ `Static` **SNX**: `string`
 
 ___
 
 ### <a id="uni" name="uni"></a> UNI
 
-▪ `Static` **UNI**: `string` = `'UNI'`
+▪ `Static` **UNI**: `string`
 
 ___
 
 ### <a id="usdc" name="usdc"></a> USDC
 
-▪ `Static` **USDC**: `string` = `'USDC'`
+▪ `Static` **USDC**: `string`
 
 ___
 
 ### <a id="usdt" name="usdt"></a> USDT
 
-▪ `Static` **USDT**: `string` = `'USDT'`
+▪ `Static` **USDT**: `string`
 
 ___
 
 ### <a id="wbtc" name="wbtc"></a> WBTC
 
-▪ `Static` **WBTC**: `string` = `'WBTC'`
+▪ `Static` **WBTC**: `string`
 
 ___
 
 ### <a id="weth" name="weth"></a> WETH
 
-▪ `Static` **WETH**: `string` = `'WETH'`
+▪ `Static` **WETH**: `string`
 
 ___
 
 ### <a id="wmatic" name="wmatic"></a> WMATIC
 
-▪ `Static` **WMATIC**: `string` = `'WMATIC'`
+▪ `Static` **WMATIC**: `string`
 
 ___
 
 ### <a id="wxdai" name="wxdai"></a> WXDAI
 
-▪ `Static` **WXDAI**: `string` = `'WXDAI'`
+▪ `Static` **WXDAI**: `string`
 
 ___
 
 ### <a id="xdai" name="xdai"></a> XDAI
 
-▪ `Static` **XDAI**: `string` = `'XDAI'`
+▪ `Static` **XDAI**: `string`
 
 ___
 
 ### <a id="reth" name="reth"></a> rETH
 
-▪ `Static` **rETH**: `string` = `'rETH'`
+▪ `Static` **rETH**: `string`
 
 ___
 
 ### <a id="sbtc" name="sbtc"></a> sBTC
 
-▪ `Static` **sBTC**: `string` = `'sBTC'`
+▪ `Static` **sBTC**: `string`
 
 ___
 
 ### <a id="seth" name="seth"></a> sETH
 
-▪ `Static` **sETH**: `string` = `'sETH'`
+▪ `Static` **sETH**: `string`
 
 ___
 
 ### <a id="susd" name="susd"></a> sUSD
 
-▪ `Static` **sUSD**: `string` = `'sUSD'`
+▪ `Static` **sUSD**: `string`
 
 ## Accessors
 
@@ -215,7 +219,7 @@ ___
 
 ### <a id="getcanonicalsymbol" name="getcanonicalsymbol"></a> getCanonicalSymbol
 
-▸ `Static` **getCanonicalSymbol**(`tokenSymbol`): `string`
+▸ **getCanonicalSymbol**(`tokenSymbol`): `string`
 
 #### Parameters
 

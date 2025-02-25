@@ -9,7 +9,7 @@ import { useEvents } from '@/app/hooks/useEvents'
 
 export function TransferBondedEvents () {
   const eventName = 'TransferBonded'
-  const [filterBy, setFilterBy] = useState('transferId')
+  const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
@@ -28,12 +28,16 @@ export function TransferBondedEvents () {
       value: 'Path ID',
     },
     {
-      key: 'transferId',
-      value: 'Transfer ID',
+      key: 'claimId',
+      value: 'Claim ID',
     },
     {
       key: 'amount',
       value: 'Amount',
+    },
+    {
+      key: 'bonderFee',
+      value: 'Bonder Fee',
     },
     {
       key: 'eventChainId',
@@ -61,14 +65,19 @@ export function TransferBondedEvents () {
         clipboardValue: event.pathId
       },
       {
-        key: 'transferId',
-        value: event.transferIdTruncated,
-        clipboardValue: event.transferId
+        key: 'claimId',
+        value: event.claimIdTruncated,
+        clipboardValue: event.claimId
       },
       {
         key: 'amount',
         value: event.amount,
         clipboardValue: event.amount
+      },
+      {
+        key: 'bonderFee',
+        value: event.bonderFee,
+        clipboardValue: event.bonderFee
       },
       {
         key: 'eventChainId',
@@ -84,7 +93,7 @@ export function TransferBondedEvents () {
 
   return (
     <Box>
-      <Table title={`${eventName} Events`} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
+      <Table title={<><strong>{eventName}</strong> Events</>} titleVariant="h5" headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>
           <Typography variant="body1" color="secondary">Filter</Typography>
@@ -93,7 +102,7 @@ export function TransferBondedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'transferId'}>Transfer ID</MenuItem>
+              <MenuItem value={'claimId'}>Claim ID</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>

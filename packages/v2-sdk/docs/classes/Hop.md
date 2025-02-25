@@ -42,11 +42,14 @@
 - [getConfigStartBlock](Hop.md#getconfigstartblock)
 - [getContractAddresses](Hop.md#getcontractaddresses)
 - [getContractExists](Hop.md#getcontractexists)
+- [getCounterpartChainId](Hop.md#getcounterpartchainid)
 - [getDefaultProvider](Hop.md#getdefaultprovider)
 - [getDefaultProviders](Hop.md#getdefaultproviders)
 - [getEstimatedReceived](Hop.md#getestimatedreceived)
 - [getEthersWeb3Signer](Hop.md#getethersweb3signer)
 - [getEvents](Hop.md#getevents)
+- [getExplorerApiBaseUrl](Hop.md#getexplorerapibaseurl)
+- [getHubChainId](Hop.md#gethubchainid)
 - [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
 - [getMessenger](Hop.md#getmessenger)
 - [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
@@ -55,6 +58,7 @@
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
 - [getSendData](Hop.md#getsenddata)
+- [getSendDataMultiHop](Hop.md#getsenddatamultihop)
 - [getSendFee](Hop.md#getsendfee)
 - [getSigner](Hop.md#getsigner)
 - [getSignerAddress](Hop.md#getsigneraddress)
@@ -65,14 +69,18 @@
 - [getSupportedTokenSymbolsByChainId](Hop.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](Hop.md#gettokenaddressbytokensymbol)
 - [getTokenContract](Hop.md#gettokencontract)
+- [getTokenSymbolByTokenAddress](Hop.md#gettokensymbolbytokenaddress)
 - [getTransferIdFromTransactionHash](Hop.md#gettransferidfromtransactionhash)
 - [getTransferStatus](Hop.md#gettransferstatus)
+- [getTransferStatusFromApi](Hop.md#gettransferstatusfromapi)
+- [getTransferStatusFromEvents](Hop.md#gettransferstatusfromevents)
 - [getTxOverrides](Hop.md#gettxoverrides)
 - [getWillSendTokensFail](Hop.md#getwillsendtokensfail)
 - [sendTokens](Hop.md#sendtokens)
 - [sendTokensMultiHop](Hop.md#sendtokensmultihop)
 - [sendTransaction](Hop.md#sendtransaction)
 - [setContractAddresses](Hop.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](Hop.md#setexplorerapibaseurl)
 - [setProvider](Hop.md#setprovider)
 - [setProviderUrl](Hop.md#setproviderurl)
 - [setProviderUrls](Hop.md#setproviderurls)
@@ -422,6 +430,23 @@ Base.getContractExists
 
 ___
 
+### <a id="getcounterpartchainid" name="getcounterpartchainid"></a> getCounterpartChainId
+
+▸ **getCounterpartChainId**(`originChainId`, `pathId`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `originChainId` | `BigNumberish` |
+| `pathId` | `string` |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="getdefaultprovider" name="getdefaultprovider"></a> getDefaultProvider
 
 ▸ **getDefaultProvider**(`chainId`): `Provider`
@@ -508,6 +533,34 @@ ___
 
 ___
 
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
+
+___
+
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="gethubconnectorcontractaddress" name="gethubconnectorcontractaddress"></a> getHubConnectorContractAddress
 
 ▸ **getHubConnectorContractAddress**(`chainId`): `string`
@@ -526,7 +579,13 @@ ___
 
 ### <a id="getmessenger" name="getmessenger"></a> getMessenger
 
-▸ **getMessenger**(): `Messenger`
+▸ **getMessenger**(`chainId`): `Messenger`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -621,6 +680,22 @@ ___
 ### <a id="getsenddata" name="getsenddata"></a> getSendData
 
 ▸ **getSendData**(`«destructured»`): `Promise`\<`SendData`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetSendDataInput` |
+
+#### Returns
+
+`Promise`\<`SendData`\>
+
+___
+
+### <a id="getsenddatamultihop" name="getsenddatamultihop"></a> getSendDataMultiHop
+
+▸ **getSendDataMultiHop**(`«destructured»`): `Promise`\<`SendData`\>
 
 #### Parameters
 
@@ -815,6 +890,27 @@ ___
 
 ___
 
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
+
+___
+
 ### <a id="gettransferidfromtransactionhash" name="gettransferidfromtransactionhash"></a> getTransferIdFromTransactionHash
 
 ▸ **getTransferIdFromTransactionHash**(`«destructured»`): `Promise`\<`string`\>
@@ -840,6 +936,38 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `«destructured»` | [`GetTransferStatusInput`](../modules.md#gettransferstatusinput) |
+
+#### Returns
+
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+___
+
+### <a id="gettransferstatusfromapi" name="gettransferstatusfromapi"></a> getTransferStatusFromApi
+
+▸ **getTransferStatusFromApi**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetTransferStatusFromApiInput` |
+
+#### Returns
+
+`Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+___
+
+### <a id="gettransferstatusfromevents" name="gettransferstatusfromevents"></a> getTransferStatusFromEvents
+
+▸ **getTransferStatusFromEvents**(`«destructured»`): `Promise`\<[`TransferStatus`](../modules.md#transferstatus)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetTransferStatusFromEventsInput` |
 
 #### Returns
 
@@ -957,6 +1085,26 @@ ___
 #### Inherited from
 
 Base.setContractAddresses
+
+___
+
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
 
 ___
 

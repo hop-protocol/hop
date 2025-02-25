@@ -15,6 +15,7 @@
 ### Properties
 
 - [batchBlocks](Messenger.md#batchblocks)
+- [chainId](Messenger.md#chainid)
 - [contractAddresses](Messenger.md#contractaddresses)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
@@ -52,8 +53,10 @@
 - [getEventFetcher](Messenger.md#geteventfetcher)
 - [getEventNames](Messenger.md#geteventnames)
 - [getExecutorContractAddress](Messenger.md#getexecutorcontractaddress)
+- [getExplorerApiBaseUrl](Messenger.md#getexplorerapibaseurl)
 - [getFeesSentToHubEvents](Messenger.md#getfeessenttohubevents)
 - [getHasAuctionStarted](Messenger.md#gethasauctionstarted)
+- [getHubChainId](Messenger.md#gethubchainid)
 - [getHubMessageBridgeContractAddress](Messenger.md#gethubmessagebridgecontractaddress)
 - [getIsBundleSet](Messenger.md#getisbundleset)
 - [getIsL2TxHashExited](Messenger.md#getisl2txhashexited)
@@ -96,17 +99,20 @@
 - [getSupportedTokenSymbols](Messenger.md#getsupportedtokensymbols)
 - [getSupportedTokenSymbolsByChainId](Messenger.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](Messenger.md#gettokenaddressbytokensymbol)
+- [getTokenSymbolByTokenAddress](Messenger.md#gettokensymbolbytokenaddress)
 - [getTxOverrides](Messenger.md#gettxoverrides)
 - [isValidBundleProof](Messenger.md#isvalidbundleproof)
 - [relayMessage](Messenger.md#relaymessage)
 - [sendMessage](Messenger.md#sendmessage)
 - [sendTransaction](Messenger.md#sendtransaction)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
+- [setExplorerApiBaseUrl](Messenger.md#setexplorerapibaseurl)
 - [setProvider](Messenger.md#setprovider)
 - [setProviderUrl](Messenger.md#setproviderurl)
 - [setProviderUrls](Messenger.md#setproviderurls)
 - [setProviders](Messenger.md#setproviders)
 - [throwError](Messenger.md#throwerror)
+- [deriveNetwork](Messenger.md#derivenetwork)
 - [getBundleCommittedEventSignature](Messenger.md#getbundlecommittedeventsignature)
 - [getBundleForwardedEventSignature](Messenger.md#getbundleforwardedeventsignature)
 - [getBundleReceivedEventSignature](Messenger.md#getbundlereceivedeventsignature)
@@ -128,7 +134,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | `BaseConfig` |
+| `«destructured»` | [`MessengerConstructorInput`](../modules.md#messengerconstructorinput) |
 
 #### Returns
 
@@ -147,6 +153,12 @@ Base.constructor
 #### Inherited from
 
 Base.batchBlocks
+
+___
+
+### <a id="chainid" name="chainid"></a> chainId
+
+• **chainId**: `BigNumberish`
 
 ___
 
@@ -567,13 +579,7 @@ ___
 
 ### <a id="getestimatedtxcostforforwardmessage" name="getestimatedtxcostforforwardmessage"></a> getEstimatedTxCostForForwardMessage
 
-▸ **getEstimatedTxCostForForwardMessage**(`«destructured»`): `Promise`\<`number`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetEstimatedTxCostForForwardMessageInput`](../modules.md#getestimatedtxcostforforwardmessageinput) |
+▸ **getEstimatedTxCostForForwardMessage**(): `Promise`\<`number`\>
 
 #### Returns
 
@@ -603,14 +609,13 @@ ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`, `chainId`): `any`
+▸ **getEventFetcher**(`eventName`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `eventName` | [`MessengerEventName`](../enums/MessengerEventName.md) |
-| `chainId` | `BigNumberish` |
 
 #### Returns
 
@@ -630,17 +635,25 @@ ___
 
 ### <a id="getexecutorcontractaddress" name="getexecutorcontractaddress"></a> getExecutorContractAddress
 
-▸ **getExecutorContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getExecutorContractAddress**(): `string`
 
 #### Returns
 
 `string`
+
+___
+
+### <a id="getexplorerapibaseurl" name="getexplorerapibaseurl"></a> getExplorerApiBaseUrl
+
+▸ **getExplorerApiBaseUrl**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getExplorerApiBaseUrl
 
 ___
 
@@ -676,15 +689,23 @@ ___
 
 ___
 
+### <a id="gethubchainid" name="gethubchainid"></a> getHubChainId
+
+▸ **getHubChainId**(): `string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getHubChainId
+
+___
+
 ### <a id="gethubmessagebridgecontractaddress" name="gethubmessagebridgecontractaddress"></a> getHubMessageBridgeContractAddress
 
-▸ **getHubMessageBridgeContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getHubMessageBridgeContractAddress**(): `string`
 
 #### Returns
 
@@ -1284,13 +1305,7 @@ ___
 
 ### <a id="getspokemessagebridgecontractaddress" name="getspokemessagebridgecontractaddress"></a> getSpokeMessageBridgeContractAddress
 
-▸ **getSpokeMessageBridgeContractAddress**(`chainId`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+▸ **getSpokeMessageBridgeContractAddress**(): `string`
 
 #### Returns
 
@@ -1364,6 +1379,27 @@ ___
 #### Inherited from
 
 Base.getTokenAddressByTokenSymbol
+
+___
+
+### <a id="gettokensymbolbytokenaddress" name="gettokensymbolbytokenaddress"></a> getTokenSymbolByTokenAddress
+
+▸ **getTokenSymbolByTokenAddress**(`chainId`, `tokenAddress`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `tokenAddress` | `string` |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+Base.getTokenSymbolByTokenAddress
 
 ___
 
@@ -1480,6 +1516,26 @@ Base.setContractAddresses
 
 ___
 
+### <a id="setexplorerapibaseurl" name="setexplorerapibaseurl"></a> setExplorerApiBaseUrl
+
+▸ **setExplorerApiBaseUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setExplorerApiBaseUrl
+
+___
+
 ### <a id="setprovider" name="setprovider"></a> setProvider
 
 ▸ **setProvider**(`chainId`, `provider`): `void`
@@ -1579,6 +1635,22 @@ ___
 #### Inherited from
 
 Base.throwError
+
+___
+
+### <a id="derivenetwork" name="derivenetwork"></a> deriveNetwork
+
+▸ **deriveNetwork**(`chainId`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`string`
 
 ___
 

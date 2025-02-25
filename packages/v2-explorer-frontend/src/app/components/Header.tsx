@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
-import { useTheme } from '@/app/theme/useTheme'
+import { useTheme } from '@/app/hooks/useTheme'
 import { useRouter } from 'next/navigation'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
@@ -21,12 +21,17 @@ const useStyles = makeStyles((theme: any) => ({
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      width: '100%'
+      width: '90%'
     }
   },
   tabs: {
     [theme.breakpoints.down('md')]: {
-      marginTop: '1rem'
+      width: '100%',
+      overflow: 'auto',
+      marginTop: '1rem',
+      marginLeft: '0',
+      display: 'flex',
+      justifyContent: 'center',
     }
   }
 }))
@@ -44,7 +49,9 @@ export function Header () {
       '/events': 'events',
       '/tokens': 'tokens',
       '/paths': 'paths',
-      '/prices': 'prices'
+      '/prices': 'prices',
+      '/stats': 'stats',
+      '/contracts': 'contracts',
     }
 
     return routes[pathname] ?? 'home'
@@ -57,9 +64,13 @@ export function Header () {
       tokens: '/tokens',
       paths: '/paths',
       prices: '/prices',
+      stats: '/stats',
+      contracts: '/contracts',
     }
     navigate(routes[newValue])
   }
+
+  const logoImage = dark ? logoDark : logo
 
   return (
     <Box width="100%" mb={4} display="flex" justifyContent="space-between">
@@ -67,11 +78,18 @@ export function Header () {
         <Box display="flex" justifyItems="center" alignItems="center" className={styles.container}>
           <Box>
             <Typography variant="h4" color="textPrimary">
-              <Box display="flex" justifyContent="center" alignItems="center">
-                <Box mr={1}>
-                <img src={dark ? logoDark : logo} alt="Hop" />
-                </Box><Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
-              </Box>
+              <a href="/" style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <Box display="flex" mr={1}>
+                  <img src={logoImage} alt="Hop" />
+                  </Box><Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
+                </Box>
+              </a>
             </Typography>
           </Box>
           <Box ml={2}>
@@ -81,12 +99,20 @@ export function Header () {
           </Box>
         </Box>
         <Box ml={4} className={styles.tabs}>
-          <Tabs value={currentTab} onChange={handleTabChange}>
+          <Tabs value={currentTab} onChange={handleTabChange}
+            sx={{
+              '.MuiTabs-scroller': {
+                overflow: 'auto !important', // TODO: Fix this
+              }
+            }}
+          >
             <Tab label="Transfers" value="home" />
             <Tab label="Events" value="events" />
             <Tab label="Tokens" value="tokens" />
             <Tab label="Paths" value="paths" />
             <Tab label="Prices" value="prices" />
+            <Tab label="Stats" value="stats" />
+            <Tab label="Contract States" value="contracts" />
           </Tabs>
         </Box>
       </Box>

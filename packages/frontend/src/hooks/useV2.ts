@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { Hop, Token } from '@hop-protocol/v2-sdk'
-import { reactAppNetwork } from '../config/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 
 type ApproveTokensInput = {
   amount: string
@@ -51,7 +50,7 @@ type GetFeeInput = {
 }
 
 type V2Hook = {
-  approveTokens: (input: ApproveTokensInput) => Promise<providers.TransactionResponse>
+  approveTokens: (input: ApproveTokensInput) => Promise<ethers.providers.TransactionResponse>
   getChainsSupportedByToken: (tokenSymbol: string) => string[]
   getFee: (input: GetFeeInput) => Promise<BigNumber>
   getNeedsApprovalForSendTokens: (input: ApproveTokensInput) => Promise<boolean>
@@ -61,27 +60,35 @@ type V2Hook = {
   getTokenName: (chainId: string, tokenSymbol: string) => Promise<string>
   getTokenInfoByTokenSymbol: (chainId: string, tokenSymbol: string) => Promise<Token>
   getTokenInfoByTokenAddress: (chainId: string, address: string) => Promise<Token>
-  sendTokens: (input: SendTokensInput) => Promise<providers.TransactionResponse>
+  sendTokens: (input: SendTokensInput) => Promise<ethers.providers.TransactionResponse>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   getSendData: (input: GetSendDataInput) => Promise<any>
   v2Sdk: Hop | null
   account: string
+  networkSlug: string
 }
 
 export function useV2(): V2Hook {
   const { address, provider, connectedNetworkId } = useWeb3Context()
+  const networkSlug = 'sepolia' // reactAppNetwork
   const signer = provider?.getSigner()
 
   const account = address?.toString()
 
   const v2Sdk = useMemo(() => {
     const signer = provider?.getSigner()
-    const providers = Object.assign({}, Hop.getDefaultProviders(reactAppNetwork))
+    //const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
+    const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
+      '11155111': new ethers.providers.StaticJsonRpcProvider('https://1rpc.io/sepolia'),
+      '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+      // '11155420': new ethers.providers.StaticJsonRpcProvider('https://optimism-sepolia.drpc.org')
+    })
     if (connectedNetworkId && signer) {
       providers[connectedNetworkId] = signer
     }
     const hop = new Hop({
+      network: networkSlug,
       signersOrProviders: providers
     })
     return hop
@@ -101,12 +108,15 @@ export function useV2(): V2Hook {
   }
 
   async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
+    console.log('getTokenInfoByTokenAddress', chainId, address)
     const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }
 
   async function getTokenInfoByTokenSymbol (chainId: string, tokenSymbol: string): Promise<Token> {
+    console.log('getTokenInfoByTokenSymbol', chainId, tokenSymbol)
     const address = getTokenAddress(chainId, tokenSymbol)
+    console.log('address', address)
     const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
     return tokenInfo
   }
@@ -154,7 +164,7 @@ export function useV2(): V2Hook {
     return needs
   }
 
-  async function approveTokens (input: ApproveTokensInput): Promise<providers.TransactionResponse> {
+  async function approveTokens (input: ApproveTokensInput): Promise<ethers.providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }
@@ -218,7 +228,7 @@ export function useV2(): V2Hook {
     return willFail
   }
 
-  async function sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
+  async function sendTokens (input: SendTokensInput): Promise<ethers.providers.TransactionResponse> {
     if (!v2Sdk) {
       throw new Error('Hop SDK not initialized')
     }
@@ -249,6 +259,7 @@ export function useV2(): V2Hook {
       throw new Error('Needs token approval')
     }
 
+    // const txData = await v2Sdk.populateTransaction.sendTokensMultiHop({
     const txData = await v2Sdk.populateTransaction.sendTokens({
       fromChainId,
       toChainId,
@@ -296,6 +307,7 @@ export function useV2(): V2Hook {
       minAmountOut
     } = input
 
+    // const data = await v2Sdk.getSendDataMultiHop({
     const data = await v2Sdk.getSendData({
       fromChainId,
       fromToken,
@@ -331,6 +343,7 @@ export function useV2(): V2Hook {
   }
 
   return {
+    networkSlug,
     approveTokens,
     getChainsSupportedByToken,
     getFee,

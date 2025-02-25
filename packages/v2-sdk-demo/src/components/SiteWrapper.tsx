@@ -1,7 +1,7 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import { Header } from './Header'
-import { Footer } from './Footer'
+import { Header } from './Header.js'
+import { Footer } from './Footer.js'
 
 export function SiteWrapper (props: any) {
   const { children } = props

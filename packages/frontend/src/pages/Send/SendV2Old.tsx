@@ -16,7 +16,7 @@ import { ExternalLink } from '#components/Link/index.js'
 import { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'
 import { FeeRefund } from './FeeRefund.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
-import { V2TxStatusModal } from '#components/Modal/V2TxStatusModal.js'
+import { TxStatusModalV2 } from '#components/Modal/TxStatusModalV2.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useSendStyles } from './useSendStyles.js'
 import { useV2SendOld } from '#hooks/useV2SendOld.js'
@@ -205,7 +205,7 @@ export const SendV2: FC = () => {
       )}
 
       {routeChainIds?.length > 0 && (
-        <MultiHopStepper steps={routeChainIds} />
+        <MultiHopStepper steps={routeChainIds} transferStatus={null as any }/>
       )}
 
       <Box className={styles.details}>
@@ -316,7 +316,7 @@ export const SendV2: FC = () => {
       }
 
       <Box mt={1}>
-        {tx && <V2TxStatusModal
+        {tx && <TxStatusModalV2
           v2Sdk={v2Sdk}
           token={fromToken}
           fromChain={fromChain}

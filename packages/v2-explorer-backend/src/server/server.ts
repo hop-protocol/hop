@@ -3,9 +3,12 @@ import express, { Express } from 'express'
 import { Controller } from '#controller/index.js'
 import { ipRateLimitMiddleware } from './rateLimit.js'
 import { port } from '#config/index.js'
-import { responseCache } from './responseCache.js'
+import { responseCache, responseCacheHandler } from './responseCache.js'
 
 export const app : Express = express()
+const controller = new Controller()
+
+const maxPageSize = 100
 
 app.enable('trust proxy')
 app.use(cors())
@@ -28,10 +31,9 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
-    const controller = new Controller()
     const { items, hasNextPage } = await controller.getExplorerEventsForApi({
       limit,
       filter,
@@ -47,8 +49,6 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
   }
 })
 
-const controller = new Controller()
-
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {
     let { eventName, page = 1, limit = 10, filter } = req.query
@@ -59,8 +59,8 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getEventsForApi({
       eventName,
@@ -85,8 +85,8 @@ app.get('/v1/paths', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getPathsForApi({
       limit,
@@ -110,8 +110,8 @@ app.get('/v1/tokens', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getTokensForApi({
       limit,
@@ -135,8 +135,8 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
     }
-    if (limit > 10) {
-      throw new Error('limit must be less than 10')
+    if (limit > maxPageSize) {
+      throw new Error(`limit must be less than ${maxPageSize}`)
     }
     const { items, hasNextPage } = await controller.getTokenPricesForApi({
       limit,
@@ -146,6 +146,55 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
     res.status(200).json({
       prices: items,
       hasNextPage
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
+  try {
+    const { filter } = req.query
+    const stats = await controller.getTransferVolumeStatsForApi({
+      filter
+    })
+    res.status(200).json({ stats })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { filter, chainIds } = req.query
+    const data = await controller.getContractState({
+      filter,
+      chainIds
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/path-details', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { pathId } = req.query
+    if (!pathId) {
+      throw new Error('pathId is required')
+    }
+    const data = await controller.getPathDetailsState({
+      pathId
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)

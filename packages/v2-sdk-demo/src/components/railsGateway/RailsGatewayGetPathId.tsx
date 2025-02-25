@@ -1,16 +1,15 @@
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
-import { defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   sdk: Hop
@@ -20,6 +19,7 @@ export function RailsGatewayGetPathId (props: Props) {
   const cacheKey = 'railsGatewayGetPathId'
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
     defaultValue: defaultChainIds.from,
@@ -41,6 +41,10 @@ export function RailsGatewayGetPathId (props: Props) {
     defaultValue: '',
   })
 
+  const [initialReserve, setInitialReserve] = useLocalStorageState(`${cacheKey}:initialReserve`, {
+    defaultValue: '',
+  })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -55,6 +59,7 @@ export function RailsGatewayGetPathId (props: Props) {
         token0: fromToken,
         chainId1: toChainId,
         token1: toToken,
+        initialReserve
       }
       console.log('args', args)
       const pathId = await sdk.getRailsGateway(fromChainId).getPathId(args)
@@ -74,13 +79,15 @@ async function main() {
   const token0 = "${fromToken}"
   const chainId1 = "${toChainId}"
   const token1 = "${toToken}"
+  const initialReserve = "${initialReserve}"
 
   ${hopInstantiateDisplayString}
   const pathId = await hop.getRailsGateway('${fromChainId}').getPathId({
     chainId0,
     token0,
     chainId1,
-    token1
+    token1,
+    initialReserve
   })
   console.log(pathId)
 }
@@ -130,6 +137,12 @@ main().catch(console.error)
                   <label>To Token <small><em>(address)</em></small> <small><em>Destination chain token address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toToken} onChange={event => setToToken(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Initial Reserve <small><em>(uint256)</em></small> <small><em>Initial reserve on the path</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={initialReserve} onChange={event => setInitialReserve(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

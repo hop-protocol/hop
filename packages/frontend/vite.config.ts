@@ -108,7 +108,8 @@ const connectSrc = new Set([
   "https://iris-api-sandbox.circle.com",
   "https://*.polygon.technology",
   "https://sepolia.drpc.org",
-  "https://rpc2.sepolia.org"
+  "https://rpc2.sepolia.org",
+  "https://optimism-sepolia.drpc.org"
 ])
 
 for (const network of getNetworks()) {

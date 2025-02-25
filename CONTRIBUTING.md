@@ -1,5 +1,15 @@
 # Contributing
 
+# Hop Monorepo
+
+We welcome contributations for bug fixes and performance improvements.
+
+Please open an issue for any feature requests to discuss it with the maintainers.
+
+## Typo Fixes
+
+At the moment, we do not accept contributions for typo fixes due to high number of spam PRs.
+
 # Frontend
 
 Thank you for your interest in contributing to the Hop frontend!🐰
@@ -41,11 +51,11 @@ The following points should help guide your development:
 - Accessibility: anyone can use the interface
   - The interface should be responsive, small and also run well on low performance devices (majority of swaps on mobile!)
 
-At the moment we're only considering bug fixes and small improvements. If you have a feature request, please open an issue first to discuss it.
+At the moment we're only considering bug fixes that improve functionality. If you have a feature request, please open an issue first to discuss it.
 
 ### Release process
 
-Releases are cut automatically from the `production` branch according to the [release workflow](./.github/workflows/deploy.yml).
+Releases are cut automatically from the `production` branch according to the [release workflow](.github/workflows/ui-deploy.yml).
 
 Fix pull requests should be merged whenever ready and tested.
 

@@ -5,8 +5,10 @@ import { v4 as uuid } from 'uuid'
 
 export interface TransferBonded extends BaseType {
   pathId: string
-  transferId: string
+  claimId: string
+  to: string
   amount: BigNumber
+  bonderFee: BigNumber
 }
 
 export class TransferBondedTable extends EventDb {
@@ -14,15 +16,17 @@ export class TransferBondedTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfer_bonded_events (
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
-        transfer_id CHAR(66) NOT NULL UNIQUE,
+        claim_id CHAR(66) NOT NULL UNIQUE,
+        "to" CHAR(42) NOT NULL, -- Ethereum address
         amount NUMERIC NOT NULL CHECK (amount >= 0),
+        bonder_fee NUMERIC NOT NULL CHECK (bonder_fee >= 0),
         ${eventContextIdCreationSql}
     )`)
   }
 
   override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_bonded_events_bundle_id ON transfer_bonded_events (transfer_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_bonded_events_claim_id ON transfer_bonded_events (claim_id);'
     )
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfer_bonded_events_path_id ON transfer_bonded_events (path_id);'
@@ -40,8 +44,8 @@ export class TransferBondedTable extends EventDb {
     }
 
     const args = [startTimestamp, endTimestamp, limit, offset]
-    if (filter?.transferId) {
-      args.push(filter.transferId)
+    if (filter?.claimId) {
+      args.push(filter.claimId)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -53,8 +57,10 @@ export class TransferBondedTable extends EventDb {
     const items = await this.db.any(
       `SELECT
         path_id AS "pathId",
-        transfer_id AS "transferId",
+        claim_id AS "claimId",
+        "to",
         amount,
+        bonder_fee AS "bonderFee",
         ${selectEventContextSql}
       FROM
         transfer_bonded_events e
@@ -64,7 +70,7 @@ export class TransferBondedTable extends EventDb {
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.transferId ? 'AND transfer_id = $5' : ''}
+        ${filter?.claimId ? 'AND claim_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
@@ -79,24 +85,24 @@ export class TransferBondedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, transferId, amount, context } = this.#normalizeDataForPut(item)
+    const { pathId, claimId, to, amount, bonderFee, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, transferId, amount
+      id: uuid(), contextId, pathId, claimId, to, amount, bonderFee
     }
     const sql = `
       INSERT INTO
         transfer_bonded_events
       (
-        id, event_context_id, path_id, transfer_id, amount
+        id, event_context_id, path_id, claim_id, "to", amount, bonder_fee
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${amount})'}
-      ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET transfer_id = ${transferId}, path_id = ${pathId}, amount = ${amount}'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId}, ${to}, ${amount}, ${bonderFee})'}
+      ON CONFLICT (claim_id)
+      ${'DO UPDATE SET claim_id = ${claimId}, "to" = ${to}, path_id = ${pathId}, amount = ${amount}, bonder_fee = ${bonderFee}'}
     `
 
     await this.db.tx(async (t: any) => {
@@ -113,6 +119,9 @@ export class TransferBondedTable extends EventDb {
     if (data.amount && typeof data.amount === 'string') {
       data.amount = BigNumber.from(data.amount)
     }
+    if (data.bonderFee && typeof data.bonderFee === 'string') {
+      data.bonderFee = BigNumber.from(data.bonderFee)
+    }
     return data
   }
 
@@ -120,6 +129,9 @@ export class TransferBondedTable extends EventDb {
     const data = Object.assign({}, putData) as any
     if (data.amount && typeof data.amount !== 'string') {
       data.amount = data.amount.toString()
+    }
+    if (data.bonderFee && typeof data.bonderFee !== 'string') {
+      data.bonderFee = data.bonderFee.toString()
     }
 
     return data

@@ -61,7 +61,7 @@ export const chains: Chains = {
     publicRpcUrl: 'https://hub-testnet.rpc.hop.exchange',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://hub-explorer-testnet.hop.exchange'],
-    multicall: '',
+    multicall: '0x3Fb3C8023FA087F623D6077c4b70A7Bffe17b38D',
     subgraphUrl: '',
     etherscanApiUrl: '',
     isRollup: true,

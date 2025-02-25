@@ -11,6 +11,10 @@ import { MessageExecutedEvents } from './events/MessageExecutedEvents'
 import { MessageSentEvents } from './events/MessageSentEvents'
 import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
+import { ClaimPostedEvents } from './events/ClaimPostedEvents'
+import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
+import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
+import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
 
 export function Events () {
   const tables = [
@@ -22,12 +26,16 @@ export function Events () {
     <MessageExecutedEvents key="MessageExecutedEvents" />,
     <MessageSentEvents key="MessageSentEvents" />,
     <TransferSentEvents key="TransferSentEvents" />,
-    <TransferBondedEvents key="TransferBondedEvents" />
+    <TransferBondedEvents key="TransferBondedEvents" />,
+    <ClaimPostedEvents key="ClaimPostedEvents" />,
+    <ClaimReaddedEvents key="ClaimReaddedEvents" />,
+    <ClaimRemovedEvents key="ClaimRemovedEvents" />,
+    <BonderPreferenceEvents key="BonderPreferenceEvents" />
   ]
 
   return (
-    <Box>
-      <Typography variant="h3" color="textPrimary">Events</Typography>
+    <Box width="100%" maxWidth="2000px">
+      <Typography variant="h4" color="textPrimary">Events</Typography>
       <Box width="100%" mt={2} mb={6} display="flex" flexDirection="column">
         <Box mb={8}>
           <Box width="100%" maxWidth="2000px" m="0 auto">

@@ -45,77 +45,126 @@ export const useTransferDetails = (props: any) => {
     }
   }, [eventDetails])
 
-  const bondedEvent = event?.transferBondedEvent
+  const lastBondedEvent = event?.transferBondedEvents?.[event?.transferBondedEvents?.length - 1]
   const token = event?.token
   const context = event?.context
-  const destinationContext = event?.transferBondedEvent?.context
   const tokenDecimals = token?.decimals
   const tokenSymbol = token?.symbol
   const tokenName = token?.name
-  const isBonded = !!bondedEvent
+  const isBonded = !!lastBondedEvent
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
-  const attestedClaimTotalSent = event?.totalSent
-  const attestedClaimTotalSentDisplay = formatDisplay(attestedClaimTotalSent, tokenDecimals, tokenSymbol)
+  const sourcePool = event?.sourcePool
+  const sourcePoolDisplay = event?.sourcePoolDisplay
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
-  const attestedClaimId = event?.attestedClaimId
   const pathId = event?.pathId
-  const nextHops = event?.nextHops
-  const sourceTxValue = context?.value
-  const sourceTxValueDisplay = `${context?.value ?? ''} (${context?.valueDisplay ?? ''}) (${context?.valueUsdDisplay ?? ''})`
-  const sourceTxTransactionHash = context?.transactionHash
-  const sourceTxTransactionExplorerUrl = context?.transactionHashExplorerUrl
-  const sourceTxGasLimit = context?.gasLimit
-  const sourceTxNonce = context?.nonce
-  const sourceTxGasUsed = context?.gasUsed
-  const sourceTxGasPrice = context?.gasPrice
-  const sourceTxGasPriceDisplay = formatDisplay(sourceTxGasPrice, 9, 'gwei')
-  const sourceTxStatus = context?.status?.toString() ?? '-'
-  const sourceTxFrom = context?.from
-  const sourceTxChainId = context?.chainId
-  const sourceTxChainDisplay = context?.chainLabel
-  const sourceTxChainImageUrl = context?.chainImageUrl
-  const sourceTxFromExplorerUrl = sourceTxFrom && sourceTxChainId ? sdk.utils.getAddressExplorerUrl(sourceTxFrom, sourceTxChainId) : ''
-  const sourceTxTo = context?.to
-  const sourceTxToExplorerUrl = sourceTxTo && sourceTxChainId ? sdk.utils.getAddressExplorerUrl(sourceTxTo, sourceTxChainId) : ''
+  const hops = event?.hops
+
   const sourceTokenAddress = token?.address
   const sourceTokenDisplay = tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null
   const sourceTokenExplorerUrl = token?.tokenExplorerUrl
-  const sourceTxStatusDisplay = sourceTxStatus != null ? `${sourceTxStatus} (${sourceTxStatus === '1' ? 'Success' : sourceTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
-  const sourceTxBlockTimestamp = context?.blockTimestamp
-  const sourceTxBlockTimestampRelative = context?.blockTimestampRelative
-  const sourceTxTimestampDisplay = sourceTxBlockTimestamp ? `${sourceTxBlockTimestamp} ${sourceTxBlockTimestampRelative ? `(${sourceTxBlockTimestampRelative})` : ''}` : null
-  const sourceTxBlockNumber = context?.blockNumber
-  const sourceTxData = context?.data
+
+  const sourceTx = {
+    value: context?.value,
+    valueDisplay: `${context?.value ?? ''} (${context?.valueDisplay ?? ''}) (${context?.valueUsdDisplay ?? ''})`,
+    transactionHash: context?.transactionHash,
+    transactionExplorerUrl: context?.transactionHashExplorerUrl,
+    gasLimit: context?.gasLimit,
+    nonce: context?.nonce,
+    gasUsed: context?.gasUsed,
+    gasPrice: context?.gasPrice,
+    gasPriceDisplay: formatDisplay(context?.gasPrice, 9, 'gwei'),
+    status: context?.status?.toString() ?? '-',
+    statusDisplay:
+      context?.status != null
+        ? `${context?.status?.toString()} (${context?.status?.toString() === '1' ? 'Success' : context?.status?.toString() === '0' ? 'Failure' : 'Unknown'})`
+        : null,
+    from: context?.from,
+    chainId: context?.chainId,
+    chainDisplay: context?.chainLabel,
+    chainImageUrl: context?.chainImageUrl,
+    fromExplorerUrl: context?.from && context?.chainId ? sdk.utils.getAddressExplorerUrl(context.from, context.chainId) : '',
+    to: context?.to,
+    toExplorerUrl: context?.to && context?.chainId ? sdk.utils.getAddressExplorerUrl(context.to, context.chainId) : '',
+    blockTimestamp: context?.blockTimestamp,
+    blockTimestampRelative: context?.blockTimestampRelative,
+    timestampDisplay:
+      context?.blockTimestamp
+        ? `${context?.blockTimestamp} ${context?.blockTimestampRelative ? `(${context?.blockTimestampRelative})` : ''}`
+        : null,
+    blockNumber: context?.blockNumber,
+    data: context?.data,
+    dataDecoded: context?.dataDecoded,
+    tokenAddress: token?.address,
+    tokenDisplay: tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null,
+    tokenExplorerUrl: token?.tokenExplorerUrl,
+  }
+
   const destinationChainDisplay = event?.toChainLabel
   const destinationChainImageUrl = event?.toChainImageUrl
-  const destinationTransactionHash = destinationContext?.transactionHash
-  const destinationTransactionExplorerUrl = destinationContext?.transactionHashExplorerUrl
-  const destinationAmountOut = bondedEvent?.amountOut
-  const destinationAmountOutDisplay = bondedEvent ? `${bondedEvent?.amountOut} (${bondedEvent?.amountOutDisplay}) (${bondedEvent?.amountOutUsdDisplay})` : null
-  const destinationTxFromDisplay = destinationContext?.from
-  const destinationTxFromExplorerUrl = destinationContext?.fromExplorerUrl
-  const destinationTxToDisplay = destinationContext?.to
-  const destinationTxToExplorerUrl = destinationContext?.toExplorerUrl
-  const destinationTokenAddress = counterpartToken?.address
-  const destinationTokenDisplay = counterpartToken ? `${tokenName} (${tokenSymbol})` : null
-  const destinationTokenExplorerUrl = counterpartToken?.tokenExplorerUrl
-  const destinationTxData = destinationContext?.data
-  const destinationTxBlockTimestamp = destinationContext?.blockTimestamp
-  const destinationTxBlockTimestampRelative = destinationContext?.blockTimestampRelative
-  const destinationTxTimestampDisplay = destinationTxBlockTimestamp ? `${destinationTxBlockTimestamp} ${destinationTxBlockTimestampRelative ? `(${destinationTxBlockTimestampRelative})` : ''}` : null
-  const destinationTxStatus = destinationContext?.status?.toString() ?? '-'
-  const destinationTxStatusDisplay = destinationTxStatus != '-' ? `${destinationTxStatus} (${destinationTxStatus === '1' ? 'Success' : destinationTxStatus === '0' ? 'Failure' : 'Unknown'})` : null
-  const destinationTxValue = destinationContext?.value
-  const destinationTxValueDisplay = destinationContext ? `${destinationContext?.value} (${destinationContext?.valueDisplay}) (${destinationContext?.valueUsdDisplay})` : null
-  const destinationTxGasLimit = destinationContext?.gasLimit
-  const destinationTxGasUsed = destinationContext?.gasUsed
-	const destinationTxGasPrice = destinationContext?.gasPrice
-  const destinationTxGasPriceDisplay = formatDisplay(destinationTxGasPrice, 9, 'gwei')
-  const destinationTxNonce = destinationContext?.nonce
-  const destinationTxBlockNumber = destinationContext?.blockNumber
+
+  const destinationTxs = event?.transferBondedEvents?.map((bondedEvent: any) => {
+    const destinationContext = bondedEvent?.context
+
+    // Utility function to format and return transformed fields
+    const formatField = (field: any, formatter: (value: any) => string | null = (x) => x) => formatter(field)
+
+    return {
+      data: destinationContext?.data,
+      dataDecoded: destinationContext?.dataDecoded,
+      blockTimestamp: destinationContext?.blockTimestamp,
+      blockTimestampRelative: destinationContext?.blockTimestampRelative,
+      timestampDisplay: formatField(destinationContext?.blockTimestamp, (timestamp) =>
+        timestamp
+          ? `${timestamp} ${
+              destinationContext?.blockTimestampRelative
+                ? `(${destinationContext.blockTimestampRelative})`
+                : ''
+            }`
+          : null
+      ),
+      status: destinationContext?.status?.toString() ?? '-',
+      statusDisplay: formatField(destinationContext?.status.toString(), (status) =>
+        status !== '-' ? `${status} (${status === '1' ? 'Success' : status === '0' ? 'Failure' : 'Unknown'})` : null
+      ),
+      value: destinationContext?.value,
+      valueDisplay: formatField(destinationContext, (ctx) =>
+        ctx
+          ? `${ctx.value} (${ctx.valueDisplay}) (${ctx.valueUsdDisplay})`
+          : null
+      ),
+      gasLimit: destinationContext?.gasLimit,
+      gasUsed: destinationContext?.gasUsed,
+      gasPrice: destinationContext?.gasPrice,
+      gasPriceDisplay: formatDisplay(destinationContext?.gasPrice, 9, 'gwei'),
+      nonce: destinationContext?.nonce,
+      blockNumber: destinationContext?.blockNumber,
+      fromDisplay: destinationContext?.from,
+      fromExplorerUrl: destinationContext?.fromExplorerUrl,
+      txTo: destinationContext?.to,
+      txToExplorerUrl: destinationContext?.toExplorerUrl,
+      tokenAddress: counterpartToken?.address,
+      tokenDisplay: counterpartToken ? `${tokenName} (${tokenSymbol})` : null,
+      claimId: bondedEvent?.claimId,
+      chainDisplay: destinationContext?.chainLabel,
+      chainImageUrl: destinationContext?.chainImageUrl,
+      amountDisplay: bondedEvent
+        ? `${bondedEvent.amount} (${bondedEvent.amountDisplay}) (${bondedEvent.amountUsdDisplay})`
+        : null,
+      bonderFeeDisplay: bondedEvent
+        ? `${bondedEvent.bonderFee} (${bondedEvent.bonderFeeDisplay}) (${bondedEvent.bonderFeeUsdDisplay})`
+        : null,
+      to: bondedEvent?.to,
+      toExplorerUrl: bondedEvent?.toExplorerUrl,
+      pathId: bondedEvent?.pathId,
+      transactionHash: destinationContext?.transactionHash,
+      transactionExplorerUrl: destinationContext?.transactionHashExplorerUrl,
+      tokenExplorerUrl: counterpartToken?.tokenExplorerUrl,
+    }
+  })
+
   const loading = false // !(!isFetching && event)
 
   const statusDisplay = isBonded ? (
@@ -129,65 +178,23 @@ export const useTransferDetails = (props: any) => {
     statusDisplay,
     token,
     context,
-    destinationContext,
     tokenName,
     tokenSymbol,
     transferAmount,
     transferAmountDisplay,
-    attestedClaimTotalSent,
-    attestedClaimTotalSentDisplay,
+    sourcePool,
+    sourcePoolDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
-    attestedClaimId,
     pathId,
-    sourceTxValue,
-    sourceTxValueDisplay,
-    sourceTxTransactionHash,
-    sourceTxTransactionExplorerUrl,
-    sourceTxGasLimit,
-    sourceTxNonce,
-    sourceTxGasUsed,
-    sourceTxGasPrice,
-    sourceTxGasPriceDisplay,
-    sourceTxStatus,
-    sourceTxFrom,
-    sourceTxChainId,
-    sourceTxChainDisplay,
-    sourceTxChainImageUrl,
-    sourceTxFromExplorerUrl,
-    sourceTxTo,
-    sourceTxToExplorerUrl,
+    sourceTx,
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
-    sourceTxStatusDisplay,
-    sourceTxBlockTimestamp,
-    sourceTxBlockTimestampRelative,
-    sourceTxTimestampDisplay,
-    sourceTxBlockNumber,
-    sourceTxData,
     destinationChainDisplay,
     destinationChainImageUrl,
-    destinationTransactionHash,
-    destinationTransactionExplorerUrl,
-    destinationAmountOutDisplay,
-    destinationTxFromDisplay,
-    destinationTxFromExplorerUrl,
-    destinationTxToDisplay,
-    destinationTxToExplorerUrl,
-    destinationTokenAddress,
-    destinationTokenDisplay,
-    destinationTokenExplorerUrl,
-    destinationTxData,
-    destinationTxStatusDisplay,
-    destinationTxValueDisplay,
-    destinationTxGasLimit,
-    destinationTxGasUsed,
-    destinationTxGasPriceDisplay,
-    destinationTxNonce,
-    destinationTxBlockNumber,
-    destinationTxTimestampDisplay,
     loading,
-    nextHops
+    hops,
+    destinationTxs
   }
 }

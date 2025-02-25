@@ -6,6 +6,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
   const [hasNextPage, setHasNextPage] = useState(false)
   const [page, setPage] = useState(queryParams?.page || 1)
   const limit = 10
+  const intervalMs = 10 * 1000
 
   const filterString = useMemo(() => {
     let str = ''
@@ -31,7 +32,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     }
   }, {
     enabled: true,
-    refetchInterval: 10 * 1000
+    refetchInterval: intervalMs
   })
 
   async function previousPage (event: any) {

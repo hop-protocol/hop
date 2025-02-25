@@ -17,6 +17,7 @@ export interface EventContext {
   gasPrice: string
   status: number
   data: string
+  dataDecoded: any[]
 }
 
 export class EventContextTable extends BaseDb {
@@ -37,7 +38,8 @@ export class EventContextTable extends BaseDb {
       gas_used INTEGER NOT NULL CHECK (gas_used >= 0),
       gas_price NUMERIC NOT NULL CHECK (gas_price >= 0),
       status INTEGER NOT NULL CHECK (status >= 0),
-      data TEXT
+      data TEXT,
+      data_ddcoded JSONB
     )`)
   }
 
@@ -96,7 +98,8 @@ export class EventContextTable extends BaseDb {
         gas_used AS "gasUsed",
         gas_price AS "gasPrice",
         status,
-        data
+        data,
+        data_decoded AS "dataDecoded"
       FROM
         event_context
       WHERE
@@ -115,17 +118,17 @@ export class EventContextTable extends BaseDb {
   }
 
   override async upsertItem (item: any) {
-    const { chainId, transactionHash, transactionIndex, logIndex, blockNumber, blockTimestamp, from, to, value, nonce, gasLimit, gasUsed, gasPrice, status, data } = this.#normalizeDataForPut(item)
+    const { chainId, transactionHash, transactionIndex, logIndex, blockNumber, blockTimestamp, from, to, value, nonce, gasLimit, gasUsed, gasPrice, status, data, dataDecoded } = this.#normalizeDataForPut(item)
     const args = {
-      id: uuid(), chainId, transactionHash, transactionIndex, logIndex, blockNumber, blockTimestamp, from, to, value, nonce, gasLimit, gasUsed, gasPrice, status, data
+      id: uuid(), chainId, transactionHash, transactionIndex, logIndex, blockNumber, blockTimestamp, from, to, value, nonce, gasLimit, gasUsed, gasPrice, status, data, dataDecoded
     }
     await this.db.query(
       `INSERT INTO
         event_context
       (
-        id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, status, data
+        id, chain_id, transaction_hash, transaction_index, log_index, block_number, block_timestamp, from_address, to_address, value, nonce, gas_limit, gas_used, gas_price, status, data, data_decoded
       )
-      VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data})'}
+      VALUES ${'(${id}, ${chainId}, ${transactionHash}, ${transactionIndex}, ${logIndex}, ${blockNumber}, ${blockTimestamp}, ${from}, ${to}, ${value}, ${nonce}, ${gasLimit}, ${gasUsed}, ${gasPrice}, ${status}, ${data}, ${dataDecoded})'}
       ON CONFLICT (transaction_hash)
       ${'DO UPDATE SET chain_id = ${chainId}, log_index = ${logIndex}'}`, args
     )

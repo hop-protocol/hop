@@ -4,13 +4,14 @@ import MuiButton from '@mui/material/Button'
 import { Button } from '#components/Button/index.js'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
-import { TokenListModal } from './TokenListModal'
+import { TokenListModal } from './TokenListModal.js'
 import IconButton from '@mui/material/IconButton'
 import ArrowDownward from '@mui/icons-material/ArrowDownward'
 import { useV2Send } from '#hooks/useV2Send.js'
 import { Alert } from '#components/Alert/index.js'
 import Skeleton from '@mui/material/Skeleton'
 import { ConnectWalletButton } from '#components/Header/ConnectWalletButton.js'
+import { MultiHopStepper } from './MultiHopStepper.js'
 
 interface Token {
   name: string
@@ -57,7 +58,13 @@ export const SendV2: React.FC = () => {
     bonderFeeDisplay,
     bonderFeeUsdDisplay,
     totalFeeDisplay,
-    accountAddress
+    accountAddress,
+    fromTokenBalanceDisplay,
+    toTokenBalanceDisplay,
+    hasEnoughBalance,
+    routeChainIds,
+    parsedAmountIn,
+    transferStatus
   } = useV2Send()
 
   const [selectedFromToken, setSelectedFromToken] = useState<Token | null>(null)
@@ -107,6 +114,11 @@ export const SendV2: React.FC = () => {
     buttonText = 'Checking approval'
   }
 
+  if (!hasEnoughBalance && fromChainId && toChainId && parsedAmountIn !== '0') {
+    buttonText = 'Insufficient balance'
+    buttonDisabled = true
+  }
+
   if (isFetchingGetSendData) {
     buttonDisabled = true
     buttonLoading = false
@@ -114,6 +126,8 @@ export const SendV2: React.FC = () => {
   }
 
   const showMaxButton = (fromTokenBalanceFormatted !== '' && tokenSymbol !== 'ETH')
+
+  const needsCounterpart = (!fromChainId && toChainId) || (fromChainId && !toChainId)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" sx={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
@@ -166,9 +180,10 @@ export const SendV2: React.FC = () => {
               </Box>
             </Box>
             <Box display="flex" justifyContent="center" flexDirection="column">
-              <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                 <TokenListModal
                   value={selectedFromToken}
+                  selectLabel={needsCounterpart ? 'Select chain' : 'Select token'}
                   onTokenSelect={(token: Token) => {
                     console.log('fromToken', token)
                     setSelectedFromToken(token)
@@ -193,7 +208,7 @@ export const SendV2: React.FC = () => {
                     whiteSpace: 'nowrap'
                   }}>Balance: {isLoadingFromTokenBalance ? (
                     <Skeleton animation="wave" width={'20px'} title="loading" />
-                  ) : fromTokenBalanceFormatted}</Typography>
+                  ) : fromTokenBalanceDisplay}</Typography>
                   {showMaxButton && (
                     <MuiButton variant="text" onClick={() => handleMaxClick()} sx={{ width: '30px', minWidth: '0', height: '10px', padding: '1rem 2rem', fontSize: '1.4rem' }}>Max</MuiButton>
                   )}
@@ -239,7 +254,7 @@ export const SendV2: React.FC = () => {
             <Box display="flex" flexDirection="column">
               <Box>
                 <Box>
-                  <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Destination</Typography>
+                  <Typography variant="body1" sx={{ color: '#7d7d7d', fontWeight: 'bold' }}>Estimated Received</Typography>
                 </Box>
                 <TextField
                   fullWidth
@@ -276,9 +291,10 @@ export const SendV2: React.FC = () => {
               </Box>
             </Box>
               <Box display="flex" justifyContent="center" flexDirection="column">
-                <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+                <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ height: '100%' }}>
                   <TokenListModal
                     value={selectedToToken}
+                    selectLabel={needsCounterpart ? 'Select chain' : 'Select token'}
                     onTokenSelect={(token: Token) => {
                       console.log('toToken', token)
                       setSelectedToToken(token)
@@ -305,7 +321,7 @@ export const SendV2: React.FC = () => {
                         whiteSpace: 'nowrap'
                       }}>Balance: {isLoadingToTokenBalance ? (
                     <Skeleton animation="wave" width={'20px'} title="loading" />
-                      ) : toTokenBalanceFormatted}</Typography>
+                      ) : toTokenBalanceDisplay}</Typography>
                   </Box>
                 )}
               </Box>
@@ -328,6 +344,10 @@ export const SendV2: React.FC = () => {
             <Box display="inline-flex" sx={{ color: '#4d4d4d' }}>Fee: {bonderFeeDisplay}</Box> <Box display="inline-flex" sx={{ color: '#7d7d7d' }}>({bonderFeeUsdDisplay})</Box>
           </Typography>
         </Box>
+      )}
+
+      {routeChainIds?.length > 0 && (
+        <MultiHopStepper steps={routeChainIds} transferStatus={transferStatus} />
       )}
 
       {!!error && (

@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit'
-import { ipRateLimitReqPerSec, ipRateLimitWindowMs } from './config'
+import { ipRateLimitReqPerSec, ipRateLimitWindowMs, rateLimitToken } from './config'
 
 export const ipRateLimitMiddleware = rateLimit({
   windowMs: ipRateLimitWindowMs,
@@ -8,5 +8,16 @@ export const ipRateLimitMiddleware = rateLimit({
   keyGenerator: (req: any) => {
     // console.log('ip:', req.ip, req.url)
     return req.ip
+  },
+  skip: (req) => {
+    if (!rateLimitToken) {
+      return false
+    }
+
+    if (!req.query.rate_limit_token) {
+      return false
+    }
+
+    return req.query.rate_limit_token === rateLimitToken
   }
 })

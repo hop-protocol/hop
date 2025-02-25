@@ -6,7 +6,6 @@ on:
       - production
     paths:
       - 'packages/hop-node/**'
-      - 'packages/v2-explorer-backend/**'
       - 'packages/api/**'
       - 'packages/explorer-backend/**'
       - 'packages/stats-worker/**'
@@ -22,7 +21,7 @@ jobs:
     name: Check for package that can be published
     uses: ./.github/workflows/publishable-packages.yml
     with:
-      package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker:v2-hop-node'
+      package-names: 'hop-node:api:explorer-backend:stats-worker:v2-hop-node'
 
   publish-docker:
     name: Publish Docker

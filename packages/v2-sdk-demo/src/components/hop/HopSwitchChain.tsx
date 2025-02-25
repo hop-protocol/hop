@@ -2,16 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
+import { HighlightedButton } from '../HighlightedButton.js'
 import { useInterval } from 'react-use'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
-import { useStyles } from '../useStyles'
-import { defaultChainIds, chainIds } from '../../config'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { Syntax } from '../Syntax.js'
+import { ChainSelect } from '../ChainSelect.js'
+import { useStyles } from '../useStyles.js'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   signer?: Signer
@@ -23,6 +22,7 @@ export function HopSwitchChain (props: Props) {
   const cacheKey = 'hopSwitchChain'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
 
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {

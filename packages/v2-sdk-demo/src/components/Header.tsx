@@ -5,7 +5,6 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useHistory, useLocation } from 'react-router-dom'
 import { makeStyles } from '@mui/styles'
-import { network } from '../config'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -56,11 +55,6 @@ export function Header () {
               <Box display="flex" justifyContent="center" alignItems="center">
                 <Box mr={1}><img width="32px" src="https://assets.hop.exchange/images/hop_logo.png" style={{ borderRadius: '50%' }}/></Box><Box>Hop v2 SDK Playground</Box>
               </Box>
-            </Typography>
-          </Box>
-          <Box ml={2}>
-            <Typography variant="subtitle1">
-              {network}
             </Typography>
           </Box>
         </Box>

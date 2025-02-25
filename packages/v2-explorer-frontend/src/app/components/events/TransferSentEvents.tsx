@@ -30,19 +30,11 @@ export function TransferSentEvents () {
     },
     {
       key: 'amount',
-      value: 'Amount',
+      value: 'Amount Out',
     },
     {
-      key: 'totalSent',
-      value: 'Total Sent',
-    },
-    {
-      key: 'attestedClaimId',
-      value: 'Attested Claim ID',
-    },
-    {
-      key: 'attestedClaims',
-      value: 'Attested Claims',
+      key: 'sourcePool',
+      value: 'Source Pool',
     },
     {
       key: 'eventChainId',
@@ -50,7 +42,7 @@ export function TransferSentEvents () {
     },
     {
       key: 'subtable',
-      value: 'Next Hops',
+      value: 'Hops',
     },
   ]
 
@@ -83,14 +75,9 @@ export function TransferSentEvents () {
         clipboardValue: event.totalSent
       },
       {
-        key: 'attestedClaimId',
-        value: event.attestedClaimIdTruncated,
-        clipboardValue: event.attestedClaimId
-      },
-      {
-        key: 'attestedTotalClaims',
-        value: event.attestedTotalClaims,
-        clipboardValue: event.attestedTotalClaims
+        key: 'totalClaims',
+        value: event.totalClaims,
+        clipboardValue: event.totalClaims
       },
       {
         key: 'eventChainId',
@@ -110,6 +97,10 @@ export function TransferSentEvents () {
               value: 'Path ID',
             },
             {
+              key: 'maxBonderFee',
+              value: 'Max Bonder Fee',
+            },
+            {
               key: 'maxTotalSent',
               value: 'Max Total Sent',
             },
@@ -118,27 +109,32 @@ export function TransferSentEvents () {
               value: 'Attested Claim ID',
             },
           ],
-          rows: event.nextHops.map((nextHop: any, i: number) => {
+          rows: event.hops.map((hop: any, i: number) => {
             return [
               {
                 key: 'index',
-                value: nextHop.index
+                value: hop.index
               },
               {
                 key: 'pathId',
-                value: nextHop.pathIdTruncated,
-                valueUrl: `/paths?pathId=${nextHop.pathId}`,
-                clipboardValue: nextHop.pathId
+                value: hop.pathIdTruncated,
+                valueUrl: `/paths?pathId=${hop.pathId}`,
+                clipboardValue: hop.pathId
+              },
+              {
+                key: 'maxBonderFee',
+                value: hop.maxBonderFee,
+                clipboardValue: hop.maxBonderFee
               },
               {
                 key: 'maxTotalSent',
-                value: nextHop.maxTotalSent,
-                clipboardValue: nextHop.maxTotalSent
+                value: hop.maxTotalSent,
+                clipboardValue: hop.maxTotalSent
               },
               {
                 key: 'attestedClaimId',
-                value: nextHop.attestedClaimIdTruncated,
-                clipboardValue: nextHop.attestedClaimId
+                value: hop.attestedClaimIdTruncated,
+                clipboardValue: hop.attestedClaimId
               },
             ]
           })
@@ -153,7 +149,7 @@ export function TransferSentEvents () {
 
   return (
     <Box>
-      <Table title={`${eventName} Events`} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
+      <Table title={<><strong>{eventName}</strong> Events</>} titleVariant="h5" headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
       <Box display="flex" justifyContent="flex-end" alignItems="center">
         <Box mr={2}>
           <Typography variant="body1" color="secondary">Filter</Typography>

@@ -41,6 +41,8 @@ export class Base {
   contractAddresses: Addresses
   l1ChainId: number
   batchBlocks: number = 1000
+  // #explorerApiBaseUrl = 'http://localhost:8000'
+  #explorerApiBaseUrl = 'https://v2-explorer-api-sepolia.hop.exchange'
 
   signersOrProviders: SignersOrProviders = {}
 
@@ -213,6 +215,7 @@ export class Base {
     if (signer.provider) {
       const connectedChainId = (await signer.getChainId()).toString()
       if (connectedChainId !== chainId) {
+        console.warn('connectedChainId', connectedChainId, 'desiredChainId', chainId)
         return null
       }
       return signer
@@ -311,6 +314,7 @@ export class Base {
     }
 
     if (!transactionRequest.to) {
+      console.warn('transactionRequest:', transactionRequest)
       throw new Error('tx "to" address is required')
     }
 
@@ -324,11 +328,13 @@ export class Base {
     }
 
     if (!signer) {
-      throw new Error('signer is required')
+      console.warn('signersOrProviders', this.signersOrProviders)
+      console.warn('customSigner', customSigner)
+      throw new Error(`signer is required, not set for chain "${chainId}"`)
     }
 
     if (!signer.provider) {
-      throw new Error('signer provider is required')
+      throw new Error(`signer provider is required, not set for chain "${chainId}"`)
     }
 
     await this.utils.switchChain(chainId, signer.provider)
@@ -385,7 +391,21 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
-    return (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    console.log('hopV2Sdk: getTokenAddressByTokenSymbol', chainId, tokenSymbol, address)
+    if (!address) {
+      console.log('hopV2Sdk: getTokenAddressByTokenSymbol', this.network, chainId, tokenSymbol, JSON.stringify(this.contractAddresses))
+    }
+    return address
+  }
+
+  getTokenSymbolByTokenAddress (chainId: BigNumberish, tokenAddress: string): string {
+    const tokens = (this.contractAddresses[chainId?.toString()]?.tokens as any) || {}
+    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol] === tokenAddress)
+    if (!tokenSymbol) {
+      throw new Error(`tokenSymbol not found for token address ${tokenAddress} on chainId ${chainId?.toString()}`)
+    }
+    return tokenSymbol
   }
 
   getChainIdsSupportedByTokenSymbol (tokenSymbol: string): string[] {
@@ -657,5 +677,17 @@ export class Base {
     }
 
     return signer
+  }
+
+  getHubChainId(): string {
+    return '42069'
+  }
+
+  getExplorerApiBaseUrl(): string {
+    return this.#explorerApiBaseUrl
+  }
+
+  setExplorerApiBaseUrl(url: string): void {
+    this.#explorerApiBaseUrl = url
   }
 }

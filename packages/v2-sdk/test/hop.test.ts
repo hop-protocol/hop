@@ -1,4 +1,4 @@
-import { Hop } from '#index.js'
+import { Hop, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
@@ -14,7 +14,11 @@ describe('Hop', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   const sdk = new Hop({
-    signersOrProviders: Hop.getDefaultProviders('sepolia')
+    network: 'sepolia',
+    signersOrProviders: Object.assign({
+      ...Hop.getDefaultProviders('sepolia'),
+      '11155420': new providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+    })
   })
 
   it('should get version', async () => {
@@ -27,7 +31,7 @@ describe('Hop', () => {
   })
 
   it('should get messenger instance', async () => {
-    expect(sdk.getMessenger()).toBeDefined()
+    expect(sdk.getMessenger(11155111)).toBeDefined()
   })
 
   it.skip('TODO should get hub connector contract address', async () => {
@@ -162,10 +166,27 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it.skip('TODO should get transfer status for checkpoint', async () => {
-    const fromChainId = 11155111
-    const toChainId = 11155420
-    const transferId = '0xTODO'
+  it('should get transfer status for transferId', async () => {
+    const fromChainId = 11155420
+    const toChainId = 84532
+    const transferId = '0x90a3e365254d2b06002d290c96998dcbf00ec07c2d4ea15e39e3aba52d70be3a'
+    const transferStatus = await sdk.getTransferStatus({
+      fromChainId,
+      toChainId,
+      transferId
+    })
+    console.log(JSON.stringify(transferStatus, null, 2))
+    expect(transferStatus).toBeDefined()
+    expect(transferStatus.transferId).toBe(transferId)
+    expect(transferStatus.state).toBe(TransferState.Bonded)
+    expect(transferStatus.transferSentEvent).toBeDefined()
+    expect(transferStatus.transferBondedEvents.length).toBe(2)
+  }, 10 * 60 * 1000)
+
+  it.skip('should get transfer status for transfer Id - 2', async () => {
+    const fromChainId = 11155420
+    const toChainId = 84532
+    const transferId = '0x7e77249238adda4f7d2b725881339fa6eed7c95c0e493fb65f8e5b68a8574090'
     const transferStatus = await sdk.getTransferStatus({
       fromChainId,
       toChainId,
@@ -173,7 +194,8 @@ describe('Hop', () => {
     })
     console.log(transferStatus)
     expect(transferStatus).toBeDefined()
-  }, 60 * 1000)
+  }, 10 * 60 * 1000)
+
 
   it.skip('should get events', async () => {
     const chainId = 11155111

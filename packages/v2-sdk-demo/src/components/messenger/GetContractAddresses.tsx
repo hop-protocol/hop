@@ -2,11 +2,11 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { useStyles } from '../useStyles'
+import { Syntax } from '../Syntax.js'
+import { useStyles } from '../useStyles.js'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { HighlightedButton } from '../HighlightedButton'
-import { hopInstantiateDisplayString } from '../shared'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   sdk: Hop
@@ -15,6 +15,7 @@ type Props = {
 export function GetContractAddresses (props: Props) {
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString } = useShared()
   const [copied, setCopied] = useState(false)
   const [output, setOutput] = useState(JSON.stringify(sdk?.getContractAddresses() ?? null, null, 2))
 

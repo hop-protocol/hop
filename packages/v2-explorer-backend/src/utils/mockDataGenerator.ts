@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token, BonderPreference, ClaimPosted } from '@hop-protocol/v2-sdk'
 import { Price } from '#pgDb/prices/index.js'
 
 // Helper function to generate random Ethereum address
@@ -44,8 +44,8 @@ export function generateRandomGwei() {
 }
 
 // Function to generate mock EventContext
-export function generateMockEventContext(eventName: string = ''): EventContext {
-  const context: EventContext = {
+export function generateMockEventContext(eventName: string = ''): EventContext & { dataDecoded?: any } {
+  const context: EventContext & { dataDecoded?: any } = {
     // BaseEventContext fields
     eventName,
     chainSlug: generateRandomString(10),
@@ -65,7 +65,8 @@ export function generateMockEventContext(eventName: string = ''): EventContext {
     gasLimit: generateRandomInt(21_000, 1_000_000),
     gasUsed: generateRandomInt(21_000, 1_000_000),
     gasPrice: generateRandomGwei(),
-    data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join('') // Random hex data
+    data: '0x' + Array.from({ length: 200 }, () => Math.floor(Math.random() * 16).toString(16)).join(''), // Random hex data
+    dataDecoded: null
   }
 
   return context
@@ -171,9 +172,8 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
     transferId: generateRandomBytes32(),
     pathId: generateRandomBytes32(),
     to: generateRandomAddress(),
-    amountOut: generateRandomUint256(),
-    totalSent: generateRandomUint256(),
-    totalClaims: generateRandomUint256(),
+    amount: generateRandomUint256(),
+    sourcePool: generateRandomUint256(),
     hops: hops,
   }
 }
@@ -186,6 +186,24 @@ export function generateMockTransferBonded(): TransferBonded {
     to: generateRandomAddress(),
     amount: generateRandomUint256(),
     bonderFee: generateRandomUint256(),
+  }
+}
+
+// Function to generate mock ClaimPosted
+export function generateMockClaimPosted(): ClaimPosted {
+  return {
+    pathId: generateRandomBytes32(),
+    claimId: generateRandomBytes32(),
+  }
+}
+
+// Function to generate mock BonderPreference
+export function generateMockBonderPreference(): BonderPreference {
+  return {
+    bonder: generateRandomAddress(),
+    pathId: generateRandomBytes32(),
+    feeTier: generateRandomUint256(),
+    liquidity: generateRandomUint256()
   }
 }
 

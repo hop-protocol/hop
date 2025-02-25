@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from '../HighlightedButton'
-import { CustomTextField } from '../CustomTextField'
+import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from '../Syntax'
-import { useStyles } from '../useStyles'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { hopInstantiateDisplayString } from '../shared'
+import { Syntax } from '../Syntax.js'
+import { useStyles } from '../useStyles.js'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
+import { useShared } from '../shared.js'
 
 type Props = {
   sdk: Hop
@@ -18,6 +18,7 @@ export function HopCalcAmountOutMin (props: Props) {
   const cacheKey = 'hopCalcAmountOutMin'
   const { sdk } = props
   const styles = useStyles()
+  const { hopInstantiateDisplayString } = useShared()
   const [copied, setCopied] = useState(false)
   const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
     defaultValue: '',

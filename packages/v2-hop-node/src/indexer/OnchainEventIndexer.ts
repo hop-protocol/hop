@@ -43,7 +43,7 @@ interface IndexedEvent<T extends string> {
   indexerEventFilter: RequiredEventFilter
 }
 
-export abstract class OnchainEventIndexer<EventName extends string, EventIndex extends string> implements IOnchainEventIndexer<EventName> {
+export abstract class OnchainEventIndexer<EventName extends string, EventIndexes extends string[]> implements IOnchainEventIndexer<EventName> {
   readonly #eventEmitter: EventEmitter = new EventEmitter()
   readonly #db: OnchainEventIndexerDB
   readonly #indexedEvents: IndexedEvent<EventName>[] = []
@@ -56,7 +56,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
   protected readonly logger: Logger
 
   protected abstract getEventFilter(chainId: string, eventName: EventName): RequiredEventFilter
-  protected abstract getDesiredEventIndexes (eventName: EventName): EventIndex[]
+  protected abstract getDesiredEventIndexes (eventName: EventName): EventIndexes
   protected abstract getStartBlockNumber (chainId: string): number
   protected abstract getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext
   // NOTE: All events should either be indexable in the filter for the getLogs call or the event shouldn't need to be observed.
@@ -163,7 +163,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
     const eventFilter: RequiredEventFilter = this.getEventFilter(eventChainId, eventName)
     const filterId: string = getUniqueFilterId(eventName, eventChainId, eventFilter.address)
 
-    const desiredEventIndexes: EventIndex[] = this.getDesiredEventIndexes(eventName)
+    const desiredEventIndexes: EventIndexes = this.getDesiredEventIndexes(eventName)
     const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(desiredEventIndexes, eventIndexValues)
 
     try {
@@ -254,7 +254,7 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndex e
    */
 
   // Retrieves the values from the object and stringifies them for use as DB indexes.
-  #getStringifiedDBIndexes (desiredEventIndexes: EventIndex[], eventIndexValues: any): string[] {
+  #getStringifiedDBIndexes (desiredEventIndexes: EventIndexes, eventIndexValues: any): string[] {
     return desiredEventIndexes.reduce<string[]>((acc, key) => {
       const value = eventIndexValues[key as keyof typeof eventIndexValues]
       if (value === undefined) {

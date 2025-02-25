@@ -16,9 +16,9 @@ import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import type { ClientName } from '../constants.js'
 
-type RailsEventIndex = keyof NonNullable<RailsFilterInputs>
+type RailsEventIndexes = (keyof NonNullable<RailsFilterInputs>)[]
 
-export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndex> {
+export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndexes> {
 
   constructor(name: ClientName, paths: RailsPath[]) {
     super(name)
@@ -35,7 +35,7 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
     return getRailsEventFilter(eventName, chainId) as RequiredEventFilter
   }
 
-  protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndex[] {
+  protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndexes {
     // The indexer key for all events is transferId
     return ['transferId']
   }

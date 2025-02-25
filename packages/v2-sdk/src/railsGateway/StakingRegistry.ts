@@ -127,6 +127,10 @@ export type Challenge = {
   winner: string
 }
 
+export type GetHopBalanceInput = {
+  staker: string
+}
+
 export type StakingRegistryConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -316,6 +320,22 @@ export class StakingRegistry extends Base {
         }
         const approved = await tokenContract.allowance(account, spender)
         return approved.lt(amount)
+      },
+
+      getHopBalance: async ({ staker }: GetHopBalanceInput): Promise<BigNumber> => {
+        if (!this.utils.isValidAddress(staker)) {
+          throw new InputError(`Invalid staker "${staker}"`)
+        }
+
+        const provider = this.getProvider(this.chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${this.chainId?.toString()}`)
+        }
+
+        const tokenAddress = await this.hopToken()
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
+        const balance = await tokenContract.balanceOf(staker)
+        return balance
       },
 
       approveStake: async (input: ApproveStakeInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {

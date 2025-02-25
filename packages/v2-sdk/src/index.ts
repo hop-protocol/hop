@@ -20,7 +20,6 @@ export {
 export {
   ApproveBondInput,
   ApproveSendInput,
-  BatchUpdateClaimChainInput,
   BondInput,
   ClaimFeesFromPathInput,
   ConfirmClaimInput,
@@ -34,7 +33,6 @@ export {
   GetMessageFeeInput as RailsGatewayGetMessageFeeInput,
   GetClaimFeesFeeInput,
   GetFeePriceInput,
-  GetBatchUpdateFeeInput,
   GetTotalClaimsInput,
   GetTotalClaimsAtClaimIdInput,
   GetTotalConfirmedInput,
@@ -79,7 +77,6 @@ export {
   TransferSentEventInput,
   TransferSentIndexes,
   UnstakeHopInput,
-  UpdateClaimChainInput,
   WithdrawInput,
   GetWithdrawableBalanceInput,
   GetTotalSentInput,
@@ -130,7 +127,8 @@ export {
   SetStakingRegistryInput,
   SetUpdateFeeGasInput,
   UpdateDefaultTokenFeeInput,
-  UpdateTokenFeeInput
+  UpdateTokenFeeInput,
+  GetHopBalanceInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

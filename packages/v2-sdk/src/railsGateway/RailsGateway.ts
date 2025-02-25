@@ -215,10 +215,6 @@ export type GetTotalConfirmedInput = {
   pathId: string
 }
 
-export type GetBatchUpdateFeeInput = {
-  length: BigNumberish
-}
-
 export type GetTransferSentEventFromTransactionReceiptInput = {
   receipt: providers.TransactionReceipt
 }
@@ -297,12 +293,6 @@ export type GetIsPathIdLiveInput = {
   pathId: string
 }
 
-export type BatchUpdateClaimChainInput = {
-  pathId: string
-  transferDataHashes: string[]
-  finalTransferId: string
-}
-
 export type ClaimFeesFromPathInput = {
   pathId: string
 }
@@ -325,12 +315,6 @@ export type GetTransferDataHashInput = {
   amountOut: BigNumberish
   sourcePool: BigNumberish
   hops: HopStructInput[]
-}
-
-export type UpdateClaimChainInput = {
-  pathId: string
-  transferDataHash: string
-  claimId: string
 }
 
 export type GetBucketInput = {
@@ -538,6 +522,14 @@ export type WithdrawBondsInput = {
 export type WithdrawClaimInput = {
   pathId: string
   claimId: string
+}
+
+export type GetInitialReserveByTokenSymbolInput = {
+  tokenSymbol: string
+}
+
+export type GetInitialReserveInput = {
+  tokenAddress: string
 }
 
 export type RailsGatewayConstructorInput = {
@@ -866,7 +858,7 @@ export class RailsGateway extends Base {
     return RailsGateway__factory.connect(address, provider)
   }
 
-  async getPathId ({ chainId0, token0, chainId1, token1 }: GetPathIdInput): Promise<string> {
+  async getPathId ({ chainId0, token0, chainId1, token1, initialReserve }: GetPathIdInput): Promise<string> {
     if (!this.utils.isValidChainId(chainId0)) {
       throw new InputError(`Invalid chainId0 "${chainId0}"`)
     }
@@ -886,10 +878,10 @@ export class RailsGateway extends Base {
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const pathId = await contract.getPathId(chainId0, token0, chainId1, token1)
+      const pathId = await contract.getPathId(chainId0, token0, chainId1, token1, initialReserve)
       return pathId
     } catch (err: unknown) {
-      console.warn('getPathId error', err, { chainId0, token0, chainId1, token1 }, this.getProvider(this.chainId))
+      console.warn('getPathId error', err, { chainId0, token0, chainId1, token1, initialReserve }, this.getProvider(this.chainId))
       return this.throwError(err) as string
     }
   }
@@ -1142,13 +1134,6 @@ export class RailsGateway extends Base {
     }
   }
 
-  async getBatchUpdateFee ({ length }: GetBatchUpdateFeeInput): Promise<BigNumber> {
-    const contract = await this.getRailsGatewayContract()
-    const fee = await contract.getBatchUpdateFee(length)
-    return fee
-  }
-
-
   async getTotalClaims ({ pathId }: GetTotalClaimsInput): Promise<BigNumber> {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathid "${pathId}"`)
@@ -1264,6 +1249,7 @@ export class RailsGateway extends Base {
         if (!provider) {
           throw new ConfigError(`Provider not found for chainId: ${chainId}`)
         }
+        console.log('hopV2Sdk: rails approval token', tokenAddress)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsGatewayContractAddress()
         const txData = await tokenContract.populateTransaction.approve(address, amount)
@@ -1507,11 +1493,13 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
+        const updateFee = await this.getUpdateFee()
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.pushClaim(pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash)
 
         return {
           ...txData,
+          value: updateFee,
           ...txOverrides,
           chainId: Number(chainId),
         }
@@ -1663,11 +1651,13 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
+        const updateFee = await this.getUpdateFee()
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.removeClaim(pathId, claimId)
 
         return {
           ...txData,
+          value: updateFee,
           ...txOverrides,
           chainId: Number(chainId)
         }
@@ -1715,43 +1705,6 @@ export class RailsGateway extends Base {
 
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.confirmClaim(pathId, claimId)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-      batchUpdateClaimChain: async ({ pathId, transferDataHashes, finalTransferId }: BatchUpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(finalTransferId)) {
-          throw new InputError(`Invalid finalTransferId "${finalTransferId}"`)
-        }
-
-        if (!transferDataHashes || !Array.isArray(transferDataHashes)) {
-          throw new InputError('Invalid transferDataHashes')
-        }
-
-        if (!transferDataHashes.every(hash => this.utils.isValidBytes32(hash))) {
-          throw new InputError('One or more transferDataHashes values is invalid')
-        }
-
-        if (!this.utils.isValidBytes32(finalTransferId)) {
-          throw new InputError(`Invalid finalTransferId "${finalTransferId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.batchUpdateClaimChain(pathId, transferDataHashes, finalTransferId)
 
         return {
           ...txData,
@@ -1850,34 +1803,6 @@ export class RailsGateway extends Base {
 
         return {
           ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
-
-      updateClaimChain: async ({ pathId, transferDataHash, claimId }: UpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(transferDataHash)) {
-          throw new InputError(`Invalid transferDataHash "${transferDataHash}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.updateClaimChain(pathId, transferDataHash, claimId)
-        const fee = await this.getUpdateFee()
-
-        return {
-          ...txData,
-          value: fee,
           ...txOverrides,
           chainId: Number(chainId)
         }
@@ -2127,6 +2052,24 @@ export class RailsGateway extends Base {
           bonderFee,
           nextHops
         }
+      },
+
+      getInitialReserveByTokenSymbol: async ({ tokenSymbol }: GetInitialReserveByTokenSymbolInput): Promise<BigNumber> => {
+        if (tokenSymbol === 'MOCK') {
+          return utils.parseUnits(10_000_000_000..toString(), 18)
+        } else if (tokenSymbol === 'USDC') {
+          return utils.parseUnits(10_000_000_000..toString(), 6)
+        }
+        return BigNumber.from(0)
+      },
+
+      getInitialReserve: async ({ tokenAddress }: GetInitialReserveInput): Promise<BigNumber> => {
+        if (!this.utils.isValidAddress(tokenAddress)) {
+          throw new InputError(`Invalid tokenAddress "${tokenAddress}"`)
+        }
+
+        const { symbol: tokenSymbol } = await this.getTokenInfo({ address: tokenAddress })
+        return this.helpers.getInitialReserveByTokenSymbol({ tokenSymbol })
       }
     }
   }
@@ -2682,11 +2625,6 @@ export class RailsGateway extends Base {
     }
   }
 
-  async batchUpdateClaimChain (input: BatchUpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.batchUpdateClaimChain(input, txOverrides)
-    return this.sendTransaction(txData)
-  }
-
   async claimFeesFromPath (input: ClaimFeesFromPathInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const txData = await this.populateTransaction.claimFeesFromPath(input, txOverrides)
     return this.sendTransaction(txData)
@@ -2699,11 +2637,6 @@ export class RailsGateway extends Base {
 
   async distributeExcessFees (input: DistributeExcessFeesInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const txData = await this.populateTransaction.distributeExcessFees(input, txOverrides)
-    return this.sendTransaction(txData)
-  }
-
-  async updateClaimChain (input: UpdateClaimChainInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.updateClaimChain(input, txOverrides)
     return this.sendTransaction(txData)
   }
 

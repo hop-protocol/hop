@@ -1,5 +1,5 @@
 import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract } from 'ethers'
+import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract, utils } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
@@ -179,6 +179,11 @@ export type GetTokenContractInput = {
   address: string
 }
 
+export type GetMaxBonderFeeInput = {
+  fromChainId: BigNumberish
+  fromToken: string
+}
+
 export class Hop extends Base {
   static EventName = EventName
   private readonly eventFetcher: EventFetcher
@@ -206,7 +211,7 @@ export class Hop extends Base {
   }
 
   get version () {
-    return '0.0.1' // TODO
+    return '0.0.1' // TODO: get version from package.json
   }
 
   getMessenger(chainId: BigNumberish):Messenger {
@@ -273,7 +278,7 @@ export class Hop extends Base {
         const tokenSymbol = this.getTokenSymbolByTokenAddress(originChainId, originToken)
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
-        const initialReserve = 10_000 // TODO
+        const initialReserve = await this.getRailsGateway(originChainId).helpers.getInitialReserveByTokenSymbol({ tokenSymbol })
 
         const nextPathId = await this.getRailsGateway(originChainId).getPathId({
           chainId0: originChainId,
@@ -323,14 +328,14 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMaxTotalSent = BigNumber.from('0') // TODO
-        const nextMaxBonderFee = BigNumber.from('0') // TODO
+        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: nextPathId })
+        const nextMaxBonderFee = await this.getMaxBonderFee({ fromChainId: originChainId, fromToken: originToken })
 
-        const destMaxTotalSent = BigNumber.from('0') // TODO
+        const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
         const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
           pathId: destPathId
         })
-        const destMaxBonderFee = BigNumber.from('0') // TODO
+        const destMaxBonderFee = await this.getMaxBonderFee({ fromChainId: nextChainId, fromToken: nextToken })
 
         const hops: HopStructInput[] = [
           {
@@ -394,7 +399,7 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
-        const initialReserve = 10_000 // TODO
+        const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
 
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
@@ -443,8 +448,8 @@ export class Hop extends Base {
           // throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const maxBonderFee = BigNumber.from('0') // TODO
-        const maxTotalSent = BigNumber.from('0') // TODO
+        const maxBonderFee = await this.getMaxBonderFee({ fromChainId, fromToken })
+        const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
 
         const hops: HopStructInput[] = [{
           pathId,
@@ -469,7 +474,7 @@ export class Hop extends Base {
       },
 
       approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const initialReserve = BigNumber.from('0') // TODO
+        const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
 
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
@@ -507,7 +512,7 @@ export class Hop extends Base {
   async getNeedsApprovalForSendTokens (input: GetNeedsApprovalForSendTokensInput): Promise<boolean> {
     const { fromChainId, fromToken, toChainId, toToken, amount, account } = input
 
-    const initialReserve = BigNumber.from('0') // TODO
+    const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
@@ -548,7 +553,7 @@ export class Hop extends Base {
   }
 
   async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
-    const initialReserve = BigNumber.from('0') // TODO
+    const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
     const gateway = this.getRailsGateway(fromChainId)
     const pathId = await gateway.getPathId({
       chainId0: fromChainId,
@@ -573,7 +578,7 @@ export class Hop extends Base {
     minAmountOut,
     from
   }: WillSendTokensFailInput): Promise<boolean> {
-    const initialReserve = BigNumber.from('0') // TODO
+    const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
@@ -586,8 +591,8 @@ export class Hop extends Base {
       pathId
     })
 
-    const maxBonderFee = BigNumber.from('0') // TODO
-    const maxTotalSent = BigNumber.from('0') // TODO
+    const maxBonderFee = await this.getMaxBonderFee({ fromChainId, fromToken })
+    const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
 
     const hops: HopStructInput[] = [{
       pathId,
@@ -614,7 +619,7 @@ export class Hop extends Base {
   }
 
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
-    const initialReserve = BigNumber.from('0') // TODO
+    const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
     const rails = this.getRailsGateway(toChainId)
     const pathId = await rails.getPathId({
       chainId0: fromChainId,
@@ -980,5 +985,11 @@ export class Hop extends Base {
     }
 
     return toChainId
+  }
+
+  async getMaxBonderFee ({ fromChainId, fromToken }: GetMaxBonderFeeInput): Promise<BigNumber> {
+    // TODO
+    const { decimals } = await this.getRailsGateway(fromChainId).getTokenInfo({ address: fromToken })
+    return utils.parseUnits('100', decimals)
   }
 }

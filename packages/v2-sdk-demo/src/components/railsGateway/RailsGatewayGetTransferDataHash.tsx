@@ -46,8 +46,12 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
     defaultValue: '',
   })
 
+  const [sourcePool, setSourcePool] = useLocalStorageState(`${cacheKey}:sourcePool`, {
+    defaultValue: '',
+  })
+
   const [hops, setHops] = useLocalStorageState(`${cacheKey}:hops`, {
-    defaultValue: [{ pathId: '', maxBonderFee: '', minAmountOut: '', attestedClaimId: '' }],
+    defaultValue: [{ pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }],
   })
 
   const [transferDataHash, setTransferDataHash] = useLocalStorageState(`${cacheKey}:transferDataHash`, {
@@ -68,6 +72,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
         amountOut,
         totalSent,
         totalClaims,
+        sourcePool,
         hops,
       }
       console.log('args', args)
@@ -81,7 +86,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
   }
 
   function addHop() {
-    setHops([...hops, { pathId: '', maxBonderFee: '', minAmountOut: '', attestedClaimId: '' }])
+    setHops([...hops, { pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }])
   }
 
   const code = `
@@ -92,6 +97,7 @@ async function main() {
   const amountOut = "${amountOut}"
   const totalSent = "${totalSent}"
   const totalClaims = "${totalClaims}"
+  const sourcePool = "${sourcePool}"
   const hops = ${JSON.stringify(hops, null, 2)}
 
   ${hopInstantiateDisplayString}
@@ -163,9 +169,16 @@ main().catch(console.error)
                 <CustomTextField fullWidth placeholder="0" value={totalClaims} onChange={(event: any) => setTotalClaims(event.target.value)} />
               </Box>
 
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={sourcePool} onChange={(event: any) => setSourcePool(event.target.value)} />
+              </Box>
+
               <Stepper orientation="vertical">
                 {hops.map((hop: any, index: number) => {
-                  const { pathId, minAmountOut, maxBonderFee, attestedClaimId } = hop
+                  const { pathId, maxTotalSent, maxBonderFee, attestedClaimId } = hop
 
                   function setHopPathId (value: string) {
                     const newHops = [...hops]
@@ -179,9 +192,9 @@ main().catch(console.error)
                     setHops(newHops)
                   }
 
-                  function setHopMinAmountOut (value: string) {
+                  function setHopMaxTotalSent (value: string) {
                     const newHops = [...hops]
-                    newHops[index].minAmountOut = value
+                    newHops[index].maxTotalSent = value
                     setHops(newHops)
                   }
 
@@ -217,7 +230,7 @@ main().catch(console.error)
                         <Box mb={1}>
                           <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
                         </Box>
-                        <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={(event: any) => setHopMinAmountOut(event.target.value)} />
+                        <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setHopMaxTotalSent(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>

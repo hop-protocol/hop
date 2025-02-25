@@ -52,7 +52,7 @@ export function RailsGatewayBond (props: Props) {
   })
 
   const [nextHops, setNextHops] = useLocalStorageState(`${cacheKey}:nextHops`, {
-    defaultValue: [{ pathId: '', maxBonderFee: '', minAmountOut: '', attestedClaimId: '' }],
+    defaultValue: [{ pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }],
   })
 
   const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
@@ -121,7 +121,7 @@ export function RailsGatewayBond (props: Props) {
   }
 
   function addHop() {
-    setNextHops([...nextHops, { pathId: '', maxBonderFee: '', minAmountOut: '', attestedClaimId: '' }])
+    setNextHops([...nextHops, { pathId: '', maxBonderFee: '', maxTotalSent: '', attestedClaimId: '' }])
   }
 
   const code = `
@@ -215,7 +215,7 @@ main().catch(console.error)
 
               <Stepper orientation="vertical">
                 {nextHops.map((hop: any, index: number) => {
-                  const { pathId, maxBonderFee, minAmountOut, attestedClaimId } = hop
+                  const { pathId, maxBonderFee, maxTotalSent, attestedClaimId } = hop
 
                   function setHopPathId (value: string) {
                     const newHops = [...nextHops]
@@ -229,9 +229,9 @@ main().catch(console.error)
                     setNextHops(newHops)
                   }
 
-                  function setMinAmountOut (value: string) {
+                  function setMaxTotalSent (value: string) {
                     const newHops = [...nextHops]
-                    newHops[index].minAmountOut = value
+                    newHops[index].maxTotalSent = value
                     setNextHops(newHops)
                   }
 
@@ -267,7 +267,7 @@ main().catch(console.error)
                         <Box mb={1}>
                           <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
                         </Box>
-                        <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={(event: any) => setMinAmountOut(event.target.value)} />
+                        <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setMaxTotalSent(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>

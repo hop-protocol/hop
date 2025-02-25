@@ -1,6 +1,5 @@
 import { StakingRegistry, EventName } from '#railsGateway/StakingRegistry.js'
-import { providers, Wallet, utils, BigNumber, constants } from 'ethers'
-import { ERC20 } from '#contracts/ERC20.js'
+import { providers, Wallet, utils, BigNumber } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { randomBytes } from 'crypto'
 import { jest } from '@jest/globals'
@@ -48,7 +47,7 @@ describe('StakingRegistry', () => {
       signerOrProvider: signer,
     })
 
-    const address = await stakingRegistry.getStakingRegistryContractAddress()
+    const address = stakingRegistry.getStakingRegistryContractAddress()
     console.log(address)
     expect(address).toBeDefined()
   })
@@ -62,7 +61,7 @@ describe('StakingRegistry', () => {
       signerOrProvider: signer,
     })
 
-    const contract = await stakingRegistry.getStakingRegistryContract()
+    const contract = stakingRegistry.getStakingRegistryContract()
     console.log(contract)
     expect(contract).toBeDefined()
   })
@@ -178,6 +177,22 @@ describe('StakingRegistry', () => {
     const address = await stakingRegistry.hopToken()
     console.log(address)
     expect(address).toBeDefined()
+  })
+
+  it('should get window size', async () => {
+    const chainId = 11155111
+    const provider = StakingRegistry.getDefaultProvider(chainId)
+    const signer = new Wallet(privateKey, provider)
+    const stakingRegistry = new StakingRegistry({
+      chainId,
+      signerOrProvider: signer,
+    })
+
+    jest.spyOn(stakingRegistry as any, 'windowSize').mockReturnValue(1)
+
+    const windowSize = await stakingRegistry.windowSize()
+    console.log(windowSize)
+    expect(windowSize).toBeDefined()
   })
 
   it('should get is staked', async () => {
@@ -301,13 +316,13 @@ describe('StakingRegistry', () => {
       signerOrProvider: signer,
     })
 
-    const eventNames = await stakingRegistry.getEventNames()
+    const eventNames = stakingRegistry.getEventNames()
     console.log(eventNames)
     expect(eventNames).toBeDefined()
   })
 
   it('should get event names using static method', async () => {
-    const eventNames = await StakingRegistry.getEventNames()
+    const eventNames = StakingRegistry.getEventNames()
     console.log(eventNames)
     expect(eventNames).toBeDefined()
   })

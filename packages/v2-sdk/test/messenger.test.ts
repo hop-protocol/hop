@@ -1,5 +1,6 @@
-import { Messenger } from '#messenger/index.js'
-import { providers, Wallet } from 'ethers'
+import { jest } from '@jest/globals'
+import { Messenger, EventName } from '#messenger/index.js'
+import { BigNumber } from 'ethers'
 import dotenv from 'dotenv'
 import { randomBytes } from 'crypto'
 
@@ -9,157 +10,269 @@ export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('h
 
 describe('Messenger', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
-  const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-  const signer = new Wallet(privateKey)
-  const address = '0xTODO'
-  const messenger = new Messenger({
-    signersOrProviders: Messenger.getDefaultProviders('sepolia')
-  })
-  it.skip('TODO should get spokeMessageBridge contract address', async () => {
-    const chainId = 1
-    const address = messenger.getSpokeMessageBridgeContractAddress(chainId)
+  // const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+  // const signer = new Wallet(privateKey)
+  it('should get spokeMessageBridge contract address', async () => {
+    const chainId =  1
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getSpokeMessageBridgeContractAddress').mockReturnValue('0x')
+    const address = messenger.getSpokeMessageBridgeContractAddress()
+    console.log(address)
+
     expect(address).toBeDefined()
   })
-  it.skip('TODO should get hubMessageBridge contract address', async () => {
-    const chainId = 1
-    const address = messenger.getHubMessageBridgeContractAddress(chainId)
+  it('should get hubMessageBridge contract address', async () => {
+    const chainId =  1
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getHubMessageBridgeContractAddress').mockReturnValue('0x')
+    const address = messenger.getHubMessageBridgeContractAddress()
     expect(address).toBeDefined()
   })
-  it.skip('TODO should get BundleCommitted events', async () => {
-    const chainId = 1
+  it('should get executor contract address', async () => {
+    const chainId =  1
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getExecutorContractAddress').mockReturnValue('0x')
+    const address = messenger.getExecutorContractAddress()
+    expect(address).toBeDefined()
+  })
+  it('should get BundleCommitted events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getBundleCommittedEvents').mockReturnValue([{}] as any)
     const events = await messenger.getBundleCommittedEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get BundleForwared events', async () => {
-    const chainId = 1
+  it('should get BundleForwared events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getBundleForwardedEvents').mockReturnValue([{}] as any)
     const events = await messenger.getBundleForwardedEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get BundleReceived events', async () => {
-    const chainId = 1
+  it('should get BundleReceived events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getBundleReceivedEvents').mockReturnValue([{}] as any)
     const events = await messenger.getBundleReceivedEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get BundleSet events', async () => {
-    const chainId = 1
+  it('should get BundleSet events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getBundleSetEvents').mockReturnValue([{}] as any)
     const events = await messenger.getBundleSetEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get FeesSentToHub events', async () => {
-    const chainId = 1
+  it('should get FeesSentToHub events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getFeesSentToHubEvents').mockReturnValue([{}] as any)
     const events = await messenger.getFeesSentToHubEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get MessageBundled events', async () => {
-    const chainId = 1
+  it('should get MessageBundled events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getMessageBundledEvents').mockReturnValue([{}] as any)
     const events = await messenger.getMessageBundledEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get MessageExecuted events', async () => {
-    const chainId = 1
+  it('should get MessageExecuted events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getMessageExecutedEvents').mockReturnValue([{}] as any)
     const events = await messenger.getMessageExecutedEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get MessageSent events', async () => {
-    const chainId = 1
+  it('should get MessageSent events', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromBlock = 0
     const toBlock = 1000
+    jest.spyOn(messenger as any, 'getMessageSentEvents').mockReturnValue([{}] as any)
     const events = await messenger.getMessageSentEvents({
-      chainId,
       fromBlock,
       toBlock
     })
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get has auction started state', async () => {
-    const fromChainId = 1
+  it('should get has auction started state', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const bundleCommittedEvent: any = {}
+    jest.spyOn(messenger as any, 'getHasAuctionStarted').mockReturnValue([{}] as any)
     const started = await messenger.getHasAuctionStarted({
-      fromChainId,
       bundleCommittedEvent
     })
     expect(started).toBeDefined()
   })
-  it.skip('TODO should get spoke exit time', async () => {
-    const fromChainId = 1
-    const toChainId = 2
+  it('should get spoke exit time', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const spokeChainId = 84532
+    jest.spyOn(messenger as any, 'getSpokeExitTime').mockReturnValue(1)
     const time = await messenger.getSpokeExitTime({
-      fromChainId,
-      toChainId
+      spokeChainId
     })
     expect(time).toBeGreaterThan(0)
-  })
-  it.skip('TODO should get relay reward', async () => {
+  }, 60 * 1000)
+  it('should get relay reward', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromChainId = 1
     const bundleCommittedEvent: any = {}
+    jest.spyOn(messenger as any, 'getRelayReward').mockReturnValue(BigNumber.from(1))
     const reward = await messenger.getRelayReward({
-      fromChainId,
       bundleCommittedEvent
     })
     expect(reward).toBeDefined()
   })
-  it.skip('TODO should get estimated tx cost for forward message', async () => {
-    const chainId = 1
-    const cost = await messenger.getEstimatedTxCostForForwardMessage({
-      chainId
+  it('should get estimated tx cost for forward message', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
     })
+
+    jest.spyOn(messenger as any, 'getEstimatedTxCostForForwardMessage').mockReturnValue(BigNumber.from(1))
+    const cost = await messenger.getEstimatedTxCostForForwardMessage()
     expect(cost).toBeDefined()
   })
-  it.skip('TODO should get should attempt forward message', async () => {
-    const fromChainId = 1
+  it('should get should attempt forward message', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const fromChainId = 84532
     const bundleCommittedEvent: any = {}
+    jest.spyOn(messenger as any, 'getShouldAttemptForwardMessage').mockReturnValue(true)
     const attempt = await messenger.getShouldAttemptForwardMessage({
-      fromChainId,
+      fromChainId: 1,
       bundleCommittedEvent
     })
     expect(attempt).toBeDefined()
   })
-  it.skip('TODO should get bundle exit populated tx', async () => {
-    const fromChainId = 1
+  it.skip('TODO - should get bundle exit populated tx', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const fromChainId = 84532
     const bundleCommittedEvent: any = {}
-    const bundleCommittedTransactionHash = '0xTODO'
+    const bundleCommittedTransactionHash = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger.populateTransaction as any, 'bundleExit').mockReturnValue({} as any)
     const populatedTx = await messenger.populateTransaction.bundleExit({
       fromChainId,
       bundleCommittedEvent,
@@ -167,83 +280,140 @@ describe('Messenger', () => {
     })
     expect(populatedTx).toBeDefined()
   })
-  it.skip('TODO should exit bundle', async () => {
-    const fromChainId = 1
+  it('should exit bundle', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'exitBundle').mockReturnValue({hash: '0x'} as any)
     const bundleCommittedEvent: any = {}
-    const bundleCommittedTransactionHash = ''
+    const bundleCommittedTransactionHash = `0x${'a'.repeat(64)}`
     const tx = await messenger.exitBundle({
-      fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash,
     })
     expect(tx.hash).toBeDefined()
   })
-  it.skip('TODO should get is L2 tx hash exited', async () => {
-    const fromChainId = 1
-    const transactionHash = '0xTODO'
+  it('should get is L2 tx hash exited', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const transactionHash = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger as any, 'getIsL2TxHashExited').mockReturnValue(true)
     const exited  = await messenger.getIsL2TxHashExited({
-      fromChainId,
       transactionHash
     })
     expect(exited).toBeDefined()
   })
-  it.skip('TODO should get send message populated tx', async () => {
-    const fromChainId = 1
-    const toChainId = 2
-    const toAddress = '0xTODO'
-    const toCalldata = '0xTODO'
+  it('should get send message populated tx', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const toChainId = 84532
+    const toAddress = `0x${'a'.repeat(40)}`
+    const toCalldata = '0x'
+    jest.spyOn(messenger as any, 'getMessageFee').mockReturnValue(BigNumber.from(1))
+    jest.spyOn(messenger.populateTransaction as any, 'sendMessage').mockReturnValue({} as any)
     const populatedTx = await messenger.populateTransaction.sendMessage({
-      fromChainId,
       toChainId,
       toAddress,
       toCalldata,
     })
     expect(populatedTx).toBeDefined()
-  })
-  it.skip('TODO should get relay window hours', async () => {
+  }, 60 * 1000)
+  it('should get relay window hours', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getRelayWindowHours').mockReturnValue(12)
     const hours = await messenger.getRelayWindowHours()
     expect(hours).toBe(12)
   })
-  it.skip('TODO should get route data', async () => {
-    const fromChainId = 1
-    const toChainId = 2
-    const data = await messenger.getRouteData({
-      fromChainId,
+  it('should get route data', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const toChainId = 84532
+    jest.spyOn(messenger as any, 'getRouteData').mockReturnValue({})
+    const routeData = await messenger.getRouteData({
       toChainId
     })
-    expect(data).toBeDefined()
+    expect(routeData).toBeDefined()
   })
-  it.skip('TODO should get message fee', async () => {
-    const fromChainId = 1
-    const toChainId = 2
+  it('should get message fee', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const toChainId = 84532
+    jest.spyOn(messenger as any, 'getMessageFee').mockReturnValue(BigNumber.from(1))
     const fee = await messenger.getMessageFee({
-      fromChainId,
       toChainId
     })
     expect(fee).toBeDefined()
   })
-  it.skip('TODO should get max bundle message count', async () => {
-    const fromChainId = 1
-    const toChainId = 2
+  it('should get max bundle message count', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const toChainId = 84532
+    jest.spyOn(messenger as any, 'getMaxBundleMessageCount').mockReturnValue(1)
     const count = await messenger.getMaxBundleMessageCount({
-      fromChainId,
       toChainId
     })
     expect(count).toBeDefined()
   })
-  it.skip('TODO should get is bundle set', async () => {
+  it('should get is bundle set', async () => {
+    const chainId = 84532
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const fromChainId = 1
-    const toChainId = 2
-    const bundleId = '0xTODO'
+    const bundleId = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger as any, 'getIsBundleSet').mockReturnValue(true)
     const isSet = await messenger.getIsBundleSet({
       fromChainId,
-      toChainId,
       bundleId
     })
     expect(isSet).toBeDefined()
   })
   it('should get MessageSent event from transaction receipt', async () => {
     const chainId = '11155111'
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
     const receipt: any = {
       "to": "0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A",
       "from": "0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA",
@@ -346,8 +516,8 @@ describe('Messenger', () => {
       "byzantium": true
     }
 
+    jest.spyOn(messenger as any, 'getMessageSentEventFromTransactionReceipt').mockReturnValue({ logIndex: 1, decoded: {}} as any)
     const event = await messenger.getMessageSentEventFromTransactionReceipt({
-      chainId,
       receipt
     })
     console.log(event)
@@ -355,29 +525,164 @@ describe('Messenger', () => {
     expect(event!.logIndex).toBeDefined()
     expect(event!.decoded).toBeDefined()
   })
-  it.skip('TODO should get MessageSent event from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const event = await messenger.getMessageSentEventFromTransactionHash({
+  it('should get MessageSent events from transaction receipt', async () => {
+    const chainId = '11155111'
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    const receipt: any = {
+      "to": "0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A",
+      "from": "0x6020aAD5CAFB06c33BBF44DBaBD9F55f42fF2BcA",
+      "contractAddress": null,
+      "transactionIndex": 55,
+      "gasUsed": {
+        "type": "BigNumber",
+        "hex": "0x02cde4"
+      },
+      "logsBloom": "0x04000000840300000000000000000000000000000000000000000000000000040000002000000000100000000000000000000000000020000002000000200000000000000000000000000008001000000000000000800000000000000000200000000002000000000000008400000400000000000000000000000010000100000000800000020000000000000020000000000000100000000000000004000000020000010000000000000108040000400200000002000000000000000000000000000002000000000000000010000000000000000400000000000040004000020010000000008000000000000100400000000000008100008040000000000000",
+      "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f",
+      "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+      "logs": [
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x3791ed182b54e4DBB2522E97A86bC5a7c0cE8D6A",
+          "topics": [
+            "0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627",
+            "0x5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6",
+            "0xd2b4de133dd9d0d38fb46e4c858e6c56aa3fb18fd7a738be80fae74604bf8947",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca"
+          ],
+          "data": "0x000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000001bc16d674ec800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "logIndex": 98,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981",
+          "topics": [
+            "0xcd767b5406b2f63d8e220a45e7163c272f174d25a5015149cbf47baed68ff7e4",
+            "0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a",
+            "0x0000000000000000000000000000000000000000000000000000000000014a34"
+          ],
+          "data": "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000044040aa57a5be8acd551732a476d4787319ec94ee95a1bd68656a30f577c6fc50f970180e6d2b4de133dd9d0d38fb46e4c858e6c56aa3fb18fd7a738be80fae74604bf894700000000000000000000000000000000000000000000000000000000",
+          "logIndex": 99,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x0FcB53Fd9363f186eaB2Eb6a18f3a5d360058981",
+          "topics": [
+            "0x3baa9ea6f10f788d3e1912fddcfa6831f4f9da67b643b348879a787102428ff1",
+            "0x4e17e0f8e5a658c99706752108d59951f0e3bea1258ae0cc27e4513e09be8d6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636"
+          ],
+          "data": "0x",
+          "logIndex": 100,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf",
+          "topics": [
+            "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a"
+          ],
+          "data": "0x0000000000000000000000000000000000000000000000055c8362015e220000",
+          "logIndex": 101,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        },
+        {
+          "transactionIndex": 55,
+          "blockNumber": 6664679,
+          "transactionHash": "0x0478a7c71aabda736cf7238fec9ae6e2c8aa6626f0d87b28aeaa5150d521392d",
+          "address": "0x73bd27b5DB0815979bBCEb1Da519DECeF9F74Baf",
+          "topics": [
+            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+            "0x0000000000000000000000006020aad5cafb06c33bbf44dbabd9f55f42ff2bca",
+            "0x0000000000000000000000003791ed182b54e4dbb2522e97a86bc5a7c0ce8d6a"
+          ],
+          "data": "0x000000000000000000000000000000000000000000000000016345785d8a0000",
+          "logIndex": 102,
+          "blockHash": "0x0e85ef181627696d96ecb5812048c8c50e6e336a6e74c9646a1c30f0e4c91e7f"
+        }
+      ],
+      "blockNumber": 6664679,
+      "confirmations": 6135,
+      "cumulativeGasUsed": {
+        "type": "BigNumber",
+        "hex": "0x6fb021"
+      },
+      "effectiveGasPrice": {
+        "type": "BigNumber",
+        "hex": "0xd86107aa"
+      },
+      "status": 1,
+      "type": 2,
+      "byzantium": true
+    }
+
+    jest.spyOn(messenger as any, 'getMessageSentEventsFromTransactionReceipt').mockReturnValue([{ logIndex: 1, decoded: {}}] as any)
+    const events = await messenger.getMessageSentEventsFromTransactionReceipt({
+      receipt
+    })
+    console.log(events)
+    expect(events!.length).toBe(1)
+  })
+  it('should get MessageSent event from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    const transactionHash = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger as any, 'getMessageSentEventFromTransactionHash').mockReturnValue({} as any)
+    const event = await messenger.getMessageSentEventFromTransactionHash({
       transactionHash
     })
     expect(event).toBeDefined()
   })
-  it.skip('TODO should get MessageBundled event from messageId', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
-    const event = await messenger.getMessageBundledEventFromMessageId({
+  it('should get MessageBundled event from messageId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    const messageId = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger as any, 'getMessageBundledEventFromMessageId').mockReturnValue({} as any)
+    const event = await messenger.getMessageBundledEventFromMessageId({
       messageId
     })
     expect(event).toBeDefined()
   })
   it('should get MessageSent event from messageId', async () => {
     const chainId = '11155111'
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageSentEventFromMessageId').mockReturnValue({ decoded: {}, topics: [] } as any)
     const messageId = '0x2b4f3f580af9c03bc1f65a94ddba9b1e886ff3c39d98df83afb469c53b285636'
     const event = await messenger.getMessageSentEventFromMessageId({
-      chainId,
       messageId
     })
     console.log(event)
@@ -385,133 +690,224 @@ describe('Messenger', () => {
     expect(event!.decoded).toBeDefined()
     expect(event!.topics).toBeDefined()
   })
-  it.skip('TODO should get MessageExecuted event from messageId', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
-    const event = await messenger.getMessageExecutedEventFromMessageId({
+  it('should get MessageExecuted event from messageId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageExecutedEventFromMessageId').mockReturnValue({} as any)
+    const messageId = `0x${'a'.repeat(64)}`
+    const event = await messenger.getMessageExecutedEventFromMessageId({
       messageId
     })
     expect(event).toBeDefined()
   })
-  it.skip('TODO should get MessageBundled event from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const event = await messenger.getMessageBundledEventFromTransactionHash({
+  it('should get MessageBundled event from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageBundledEventFromTransactionHash').mockReturnValue({} as any)
+    const transactionHash = `0x${'a'.repeat(64)}`
+    const event = await messenger.getMessageBundledEventFromTransactionHash({
       transactionHash
     })
     expect(event).toBeDefined()
   })
-  it.skip('TODO should get messageId from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const messageId = await messenger.getMessageIdFromTransactionHash({
+  it('should get messageId from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageIdFromTransactionHash').mockReturnValue('0x')
+    const transactionHash = `0x${'a'.repeat(64)}`
+    const messageId = await messenger.getMessageIdFromTransactionHash({
       transactionHash
     })
     expect(messageId).toBeDefined()
   })
-  it.skip('TODO should get MessageBundle id from messageId', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
+  it('should get MessageBundle id from messageId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageBundleIdFromMessageId').mockReturnValue('0x')
+    const messageId = `0x${'a'.repeat(64)}`
     const messageBundleId = await messenger.getMessageBundleIdFromMessageId({
-      chainId,
       messageId
     })
     expect(messageBundleId).toBeDefined()
   })
-  it.skip('TODO should get MessageBundle id from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
+  it('should get MessageBundle id from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageBundleIdFromTransactionHash').mockReturnValue('0x')
+    const transactionHash = `0x${'a'.repeat(64)}`
     const messageBundleId = await messenger.getMessageBundleIdFromTransactionHash({
-      chainId,
       transactionHash
     })
     expect(messageBundleId).toBeDefined()
   })
-  it.skip('TODO should get message tree index from messageId', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
-    const index = await messenger.getMessageTreeIndexFromMessageId({
+  it('should get message tree index from messageId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageTreeIndexFromMessageId').mockReturnValue(1)
+    const messageId = `0x${'a'.repeat(64)}`
+    const index = await messenger.getMessageTreeIndexFromMessageId({
       messageId
     })
     expect(index).toBeDefined()
   })
-  it.skip('TODO should get message tree index from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const index = await messenger.getMessageTreeIndexFromTransactionHash({
+  it('should get message tree index from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageTreeIndexFromTransactionHash').mockReturnValue(1)
+    const transactionHash = `0x${'a'.repeat(64)}`
+    const index = await messenger.getMessageTreeIndexFromTransactionHash({
       transactionHash
     })
     expect(index).toBeDefined()
   })
-  it.skip('TODO should get MessageBundled events for bundleId', async () => {
-    const chainId = 1
-    const bundleId = '0xTODO'
-    const events = await messenger.getMessageBundledEventsForBundleId({
+  it('should get MessageBundled events for bundleId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    const bundleId = `0x${'a'.repeat(64)}`
+    jest.spyOn(messenger as any, 'getMessageBundledEventsForBundleId').mockReturnValue([{}] as any)
+    const events = await messenger.getMessageBundledEventsForBundleId({
       bundleId
     })
     expect(events).toBeDefined()
   })
-  it.skip('TODO should get messageIds for bundleId', async () => {
-    const chainId = 1
-    const bundleId = '0xTODO'
-    const messageIds = await messenger.getMessageIdsForBundleId({
+  it('should get messageIds for bundleId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageIdsForBundleId').mockReturnValue([])
+    const bundleId = `0x${'a'.repeat(64)}`
+    const messageIds = await messenger.getMessageIdsForBundleId({
       bundleId
     })
     expect(messageIds).toBeDefined()
   })
-  it.skip('TODO should get merkle proof for messageId', async () => {
+  it('should get merkle proof for messageId', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMerkleProofForMessageId').mockReturnValue({} as any)
     const messageIds: string[] = []
-    const targetMessageId = '0xTODO'
+    const targetMessageId = `0x${'a'.repeat(64)}`
     const proof = await messenger.getMerkleProofForMessageId({
       messageIds,
       targetMessageId
     })
     expect(proof).toBeDefined()
   })
-  it.skip('TODO should get bundle proof from message id', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
-    const event = await messenger.getBundleProofFromMessageId({
+  it('should get bundle proof from message id', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getBundleProofFromMessageId').mockReturnValue({} as any)
+    const messageId = `0x${'a'.repeat(64)}`
+    const event = await messenger.getBundleProofFromMessageId({
       messageId
     })
     expect(event).toBeDefined()
   })
-  it.skip('TODO should get bundle proof from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const proof = await messenger.getBundleProofFromTransactionHash({
+  it('should get bundle proof from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getBundleProofFromTransactionHash').mockReturnValue({} as any)
+    const transactionHash = `0x${'a'.repeat(64)}`
+    const proof = await messenger.getBundleProofFromTransactionHash({
       transactionHash
     })
     expect(proof).toBeDefined()
   })
-  it.skip('TODO should get relay message data from transaction hash', async () => {
-    const chainId = 1
-    const transactionHash = '0xTODO'
-    const data = await messenger.getRelayMessageDataFromTransactionHash({
+  it('should get relay message data from transaction hash', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getRelayMessageDataFromTransactionHash').mockReturnValue({} as any)
+    const transactionHash = `0x${'a'.repeat(64)}`
+    const data = await messenger.getRelayMessageDataFromTransactionHash({
       transactionHash
     })
     expect(data).toBeDefined()
   })
-  it.skip('TODO should get relay message populated tx', async () => {
-    const fromChainId = 1
-    const toChainId = 2
-    const fromAddress = '0xTODO'
-    const toAddress = '0xTODO'
-    const toCalldata = '0x'
-    const bundleProof: any = {}
+  it('should get relay message populated tx', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger.populateTransaction as any, 'relayMessage').mockReturnValue({} as any)
+    const fromChainId = 84532
+    const fromAddress = `0x${'a'.repeat(40)}`
+    const toAddress = `0x${'a'.repeat(40)}`
+    const toCalldata = `0x${'a'.repeat(64)}`
+    const bundleProof = {
+      bundleId: `0x${'a'.repeat(64)}`,
+      treeIndex: 1,
+      siblings: [`0x${'a'.repeat(64)}`],
+      totalLeaves: 1
+    }
     const populatedTx = await messenger.populateTransaction.relayMessage({
       fromChainId,
-      toChainId,
       fromAddress,
       toAddress,
       toCalldata,
@@ -519,38 +915,97 @@ describe('Messenger', () => {
     })
     expect(populatedTx).toBeDefined()
   })
-  it.skip('TODO should get message calldata', async () => {
-    const chainId = 1
-    const messageId = '0xTODO'
-    const calldata = await messenger.getMessageCalldataFromMessageId({
+  it('should get message calldata', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
       chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getMessageCalldataFromMessageId').mockReturnValue({} as any)
+    const messageId = `0x${'a'.repeat(64)}`
+    const calldata = await messenger.getMessageCalldataFromMessageId({
       messageId
     })
     expect(calldata).toBeDefined()
   })
-  it.skip('TODO should get is messageId relayed', async () => {
-    const fromChainId = 1
-    const toChainId = 2
-    const messageId = '0xTODO'
+  it('should get is messageId relayed', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getIsMessageIdRelayed').mockReturnValue(true)
+    const messageId = `0x${'a'.repeat(64)}`
     const relayed = await messenger.getIsMessageIdRelayed({
-      fromChainId,
-      toChainId,
       messageId
     })
     expect(relayed).toBeDefined()
   })
-  it.skip('TODO should get relay fee', async () => {
-    const fromChainId = 1
-    const toChainId = 2
-    const toAddress = '0xTODO'
+  it('should get relay fee', async () => {
+    const chainId = 11155111
+    const provider = Messenger.getDefaultProvider(chainId)
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: provider
+    })
+
+    jest.spyOn(messenger as any, 'getRelayFee').mockReturnValue(BigNumber.from(1))
+    const toChainId = 84532
+    const toAddress = `0x${'a'.repeat(40)}`
     const toCalldata = '0x'
     const fee = await messenger.getRelayFee({
-      fromChainId,
       toChainId,
       toAddress,
       toCalldata
     })
     expect(fee).toBeDefined()
+  })
+  it('should get event names', async () => {
+    const chainId = 11155111
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: Messenger.getDefaultProvider(chainId)
+    })
+    const eventNames = messenger.getEventNames()
+    expect(eventNames.length > 0).toBeTruthy()
+    expect(eventNames).toStrictEqual(['BundleCommitted', 'BundleForwarded', 'BundleReceived', 'BundleSet', 'FeesSentToHub', 'MessageBundled', 'MessageExecuted', 'MessageSent'])
+  })
+  it('should get event fetcher', async () => {
+    const chainId = 11155111
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: Messenger.getDefaultProvider(chainId)
+    })
+    const eventFetcher = await messenger.getEventFetcher(EventName.BundleCommitted)
+    console.log(eventFetcher)
+    expect(eventFetcher).toBeDefined()
+  }, 60 * 1000)
+  it('should return boolean for bundle proof validity', async () => {
+    const chainId = 11155111
+    const messenger = new Messenger({
+      chainId,
+      signerOrProvider: Messenger.getDefaultProvider(chainId)
+    })
+    jest.spyOn(messenger as any, 'isValidBundleProof').mockReturnValue(true)
+    const bundleProof = {
+      bundleId: `0x${'a'.repeat(64)}`,
+      treeIndex: 1,
+      siblings: [`0x${'a'.repeat(64)}`],
+      totalLeaves: 1
+    }
+    const isValid = messenger.isValidBundleProof(bundleProof)
+    console.log(isValid)
+    expect(isValid).toBeDefined()
+  })
+  it('should derive network from chain id using static method', async () => {
+    const chainId = 11155111
+    const network = Messenger.deriveNetwork(chainId)
+    expect(network).toBeDefined()
+    expect(network).toBe('sepolia')
   })
   it('should get BundleCommitted event signature using static method', async () => {
     const signature = Messenger.getBundleCommittedEventSignature()

@@ -51,6 +51,7 @@ export interface StakingRegistryInterface extends utils.Interface {
     "stakeHop(address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unstakeHop(uint256)": FunctionFragment;
+    "windowSize()": FunctionFragment;
     "withdrawStake(address)": FunctionFragment;
     "withdrawableEth(address)": FunctionFragment;
   };
@@ -79,6 +80,7 @@ export interface StakingRegistryInterface extends utils.Interface {
       | "stakeHop"
       | "transferOwnership"
       | "unstakeHop"
+      | "windowSize"
       | "withdrawStake"
       | "withdrawableEth"
   ): FunctionFragment;
@@ -163,6 +165,10 @@ export interface StakingRegistryInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "windowSize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "withdrawStake",
     values: [string]
   ): string;
@@ -241,6 +247,7 @@ export interface StakingRegistryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unstakeHop", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "windowSize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawStake",
     data: BytesLike
@@ -417,6 +424,8 @@ export interface StakingRegistry extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    windowSize(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     withdrawStake(
       staker: string,
       overrides?: Overrides & { from?: string }
@@ -533,6 +542,8 @@ export interface StakingRegistry extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  windowSize(overrides?: CallOverrides): Promise<BigNumber>;
+
   withdrawStake(
     staker: string,
     overrides?: Overrides & { from?: string }
@@ -640,6 +651,8 @@ export interface StakingRegistry extends BaseContract {
     ): Promise<void>;
 
     unstakeHop(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    windowSize(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawStake(staker: string, overrides?: CallOverrides): Promise<void>;
 
@@ -779,6 +792,8 @@ export interface StakingRegistry extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    windowSize(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdrawStake(
       staker: string,
       overrides?: Overrides & { from?: string }
@@ -900,6 +915,8 @@ export interface StakingRegistry extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
+
+    windowSize(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawStake(
       staker: string,

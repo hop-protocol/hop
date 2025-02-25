@@ -1,37 +1,34 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { BigNumber } from 'ethers'
 import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
-export interface ClaimChainUpdated extends BaseType {
+export interface ClaimRemoved extends BaseType {
   pathId: string
-  headClaimId: string
-  length: BigNumber
+  claimId: string
 }
 
-export class ClaimChainUpdatedTable extends EventDb {
+export class ClaimRemovedTable extends EventDb {
   override async createTable () {
-    await this.db.query(`CREATE TABLE IF NOT EXISTS claim_chain_updated_events (
+    await this.db.query(`CREATE TABLE IF NOT EXISTS claim_removed_events (
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
-        head_claim_id CHAR(66) NOT NULL UNIQUE,
-        length NUMERIC NOT NULL CHECK (length >= 0),
+        claim_id CHAR(66) NOT NULL UNIQUE,
         ${eventContextIdCreationSql}
     )`)
   }
 
   override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_chain_updated_events_head_claim_id ON claim_chain_updated_events (head_claim_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_removed_events_claim_id ON claim_removed_events (claim_id);'
     )
     await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_chain_updated_events_path_id ON claim_chain_updated_events (path_id);'
+      'CREATE INDEX IF NOT EXISTS idx_claim_removed_events_path_id ON claim_removed_events (path_id);'
     )
     await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_chain_updated_events_event_context_id ON claim_chain_updated_events (event_context_id);'
+      'CREATE INDEX IF NOT EXISTS idx_claim_removed_events_event_context_id ON claim_removed_events (event_context_id);'
     )
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_chain_updated_events_head_claim_id ON claim_chain_updated_events (head_claim_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_removed_events_path_id_and_claim_id ON claim_removed_events (path_id, claim_id);'
     )
   }
 
@@ -43,8 +40,8 @@ export class ClaimChainUpdatedTable extends EventDb {
     }
 
     const args = [startTimestamp, endTimestamp, limit, offset]
-    if (filter?.headClaimId) {
-      args.push(filter.headClaimId)
+    if (filter?.claimId) {
+      args.push(filter.claimId)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -56,18 +53,17 @@ export class ClaimChainUpdatedTable extends EventDb {
     const items = await this.db.any(
       `SELECT
         path_id AS "pathId",
-        head_claim_id AS "headClaimId",
-        length,
+        claim_id AS "claimId",
         ${selectEventContextSql}
       FROM
-        claim_chain_updated_events e
+        claim_removed_events e
       JOIN
         event_context ec ON e.event_context_id = ec.id
       WHERE
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.headClaimId ? 'AND head_claim_id = $5' : ''}
+        ${filter?.claimId ? 'AND claim_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
@@ -82,24 +78,24 @@ export class ClaimChainUpdatedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, headClaimId, length, context } = this.#normalizeDataForPut(item)
+    const { pathId, claimId, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, headClaimId, length
+      id: uuid(), contextId, pathId, claimId
     }
     const sql = `
       INSERT INTO
-        claim_chain_updated_events
+        claim_removed_events
       (
-        id, event_context_id, path_id, head_claim_id, length
+        id, event_context_id, path_id, claim_id
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${headClaimId}, ${length})'}
-      ON CONFLICT (head_claim_id)
-      ${'DO UPDATE SET head_claim_id = ${headClaimId}, path_id = ${pathId}, length = ${length}'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId})'}
+      ON CONFLICT (path_id, claim_id)
+      ${'DO UPDATE SET claim_id = ${claimId}, path_id = ${pathId}'}
     `
 
     await this.db.tx(async (t: any) => {
@@ -108,22 +104,17 @@ export class ClaimChainUpdatedTable extends EventDb {
     })
   }
 
-  #normalizeDataForGet (getData: Partial<ClaimChainUpdated>): Partial<ClaimChainUpdated> {
+  #normalizeDataForGet (getData: Partial<ClaimRemoved>): Partial<ClaimRemoved> {
     if (!getData) {
       return getData
     }
+
     const data = Object.assign({}, getData)
-    if (data.length && typeof data.length === 'string') {
-      data.length = BigNumber.from(data.length)
-    }
     return data
   }
 
-  #normalizeDataForPut (putData: Partial<ClaimChainUpdated>): Partial<ClaimChainUpdated> {
+  #normalizeDataForPut (putData: Partial<ClaimRemoved>): Partial<ClaimRemoved> {
     const data = Object.assign({}, putData) as any
-    if (data.length && typeof data.length !== 'string') {
-      data.length = data.length.toString()
-    }
 
     return data
   }

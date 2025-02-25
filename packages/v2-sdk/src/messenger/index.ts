@@ -6,7 +6,6 @@ export {
   GetBundleExitPopulatedTxInput,
   GetBundleProofFromMessageIdInput,
   GetBundleProofFromTransactionHashInput,
-  GetEstimatedTxCostForForwardMessageInput,
   GetEventContextInput,
   GetEventsInput,
   GetIsBundleSetInput,
@@ -38,7 +37,7 @@ export {
   GetSpokeExitTimeInput,
   HasAuctionStartedInput,
   Messenger,
-  MessengerConfig,
+  MessengerConstructorInput,
   RelayMessageData,
   RouteData,
   ShouldAttemptForwardMessageInput

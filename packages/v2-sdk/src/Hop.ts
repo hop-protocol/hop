@@ -5,6 +5,7 @@ import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
+import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
@@ -19,6 +20,10 @@ export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | Bund
 export enum EventName {
   TransferSent = RailsGatewayEventName.TransferSent,
   TransferBonded = RailsGatewayEventName.TransferBonded,
+  ClaimPosted = RailsGatewayEventName.ClaimPosted,
+  ClaimReadded = RailsGatewayEventName.ClaimReadded,
+  ClaimRemoved = RailsGatewayEventName.ClaimRemoved,
+  BonderPreference = StakingRegistryEventName.BonderPreference,
 
   BundleCommitted = MessengerEventName.BundleCommitted,
   BundleForwarded = MessengerEventName.BundleForwarded,
@@ -196,7 +201,6 @@ export class Hop extends Base {
     }
 
     const sharedConfig = { contractAddresses: this.contractAddresses, signersOrProviders: this.signersOrProviders, network: this.network }
-    this.messenger = new Messenger(sharedConfig)
     this.hubConnector = new HubConnector(sharedConfig)
     this.gasPriceOracle = new GasPriceOracle(this.network)
   }
@@ -205,8 +209,21 @@ export class Hop extends Base {
     return '0.0.1' // TODO
   }
 
-  getMessenger() {
-    return this.messenger
+  getMessenger(chainId: BigNumberish):Messenger {
+    chainId = chainId?.toString()
+    const key = `Messenger:${chainId}`
+    let instance = cache.get(key) as Messenger
+    if (!instance) {
+      instance = new Messenger({
+        network: this.network,
+        chainId,
+        signerOrProvider: this.signersOrProviders[chainId]
+      })
+
+      cache.put(key, instance)
+    }
+
+    return instance
   }
 
   getHubConnectorContractAddress (chainId: BigNumberish): string {
@@ -256,18 +273,22 @@ export class Hop extends Base {
         const tokenSymbol = this.getTokenSymbolByTokenAddress(originChainId, originToken)
         const nextToken = this.getTokenAddressByTokenSymbol(nextChainId, tokenSymbol)
 
+        const initialReserve = 10_000 // TODO
+
         const nextPathId = await this.getRailsGateway(originChainId).getPathId({
           chainId0: originChainId,
           token0: originToken,
           chainId1: nextChainId,
-          token1: nextToken
+          token1: nextToken,
+          initialReserve
         })
 
         const destPathId = await this.getRailsGateway(nextChainId).getPathId({
           chainId0: nextChainId,
           token0: nextToken,
           chainId1: destChainId,
-          token1: destToken
+          token1: destToken,
+          initialReserve
         })
 
         let isClaimIdValid = false
@@ -302,10 +323,10 @@ export class Hop extends Base {
           throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMinAmountOut = BigNumber.from('0') // TODO
+        const nextMaxTotalSent = BigNumber.from('0') // TODO
         const nextMaxBonderFee = BigNumber.from('0') // TODO
 
-        const destMinAmountOut = BigNumber.from('0') // TODO
+        const destMaxTotalSent = BigNumber.from('0') // TODO
         const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
           pathId: destPathId
         })
@@ -315,13 +336,13 @@ export class Hop extends Base {
           {
             pathId: nextPathId,
             maxBonderFee: nextMaxBonderFee,
-            minAmountOut: nextMinAmountOut,
+            maxTotalSent: nextMaxTotalSent,
             attestedClaimId: attestedClaimId
           },
           {
             pathId: destPathId,
             maxBonderFee: destMaxBonderFee,
-            minAmountOut: destMinAmountOut,
+            maxTotalSent: destMaxTotalSent,
             attestedClaimId: destAttestedClaimId
           }
         ]
@@ -373,11 +394,14 @@ export class Hop extends Base {
           throw new InputError(`Invalid "to" address "${to}"`)
         }
 
+        const initialReserve = 10_000 // TODO
+
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
           token0: fromToken,
           chainId1: toChainId,
-          token1: toToken
+          token1: toToken,
+          initialReserve
         })
 
         let isClaimIdValid = false
@@ -420,13 +444,13 @@ export class Hop extends Base {
         }
 
         const maxBonderFee = BigNumber.from('0') // TODO
+        const maxTotalSent = BigNumber.from('0') // TODO
 
         const hops: HopStructInput[] = [{
           pathId,
           maxBonderFee,
-          minAmountOut,
-          attestedClaimId
-        }]
+          maxTotalSent,
+          attestedClaimId        }]
 
         console.log('hopV2Sdk hops', hops)
 
@@ -445,11 +469,14 @@ export class Hop extends Base {
       },
 
       approveSendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount }: ApproveSendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const initialReserve = BigNumber.from('0') // TODO
+
         const pathId = await this.getRailsGateway(fromChainId).getPathId({
           chainId0: fromChainId,
           token0: fromToken,
           chainId1: toChainId,
-          token1: toToken
+          token1: toToken,
+          initialReserve
         })
 
         const populatedTx = await this.getRailsGateway(fromChainId).populateTransaction.approveSend({
@@ -479,11 +506,14 @@ export class Hop extends Base {
 
   async getNeedsApprovalForSendTokens (input: GetNeedsApprovalForSendTokensInput): Promise<boolean> {
     const { fromChainId, fromToken, toChainId, toToken, amount, account } = input
+
+    const initialReserve = BigNumber.from('0') // TODO
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
     console.log('hopV2Sdk: getPathId', pathId)
     return this.getRailsGateway(fromChainId).helpers.getNeedsApprovalForSend({ pathId, amount, account })
@@ -518,12 +548,14 @@ export class Hop extends Base {
   }
 
   async getSendFee ({ fromChainId, fromToken, toChainId, toToken }: GetSendFeeInput): Promise<BigNumber> {
+    const initialReserve = BigNumber.from('0') // TODO
     const gateway = this.getRailsGateway(fromChainId)
     const pathId = await gateway.getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
 
     return gateway.getSendFee({
@@ -541,11 +573,13 @@ export class Hop extends Base {
     minAmountOut,
     from
   }: WillSendTokensFailInput): Promise<boolean> {
+    const initialReserve = BigNumber.from('0') // TODO
     const pathId = await this.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
       chainId1: toChainId,
-      token1: toToken
+      token1: toToken,
+      initialReserve
     })
 
     const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaimId({
@@ -553,12 +587,13 @@ export class Hop extends Base {
     })
 
     const maxBonderFee = BigNumber.from('0') // TODO
+    const maxTotalSent = BigNumber.from('0') // TODO
 
     const hops: HopStructInput[] = [{
       pathId,
       attestedClaimId,
       maxBonderFee,
-      minAmountOut,
+      maxTotalSent
     }]
 
     const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
@@ -579,13 +614,21 @@ export class Hop extends Base {
   }
 
   async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+    const initialReserve = BigNumber.from('0') // TODO
     const rails = this.getRailsGateway(toChainId)
-    const pathId = await rails.getPathId({ chainId0: fromChainId, token0: fromToken, chainId1: toChainId, token1: toToken })
+    const pathId = await rails.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken,
+      initialReserve
+    })
     const attestedClaimId = await rails.getHeadClaimId({
       pathId
     })
 
-    const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId })
+    const sourcePool = await rails.getSourcePool({ pathId, attestedClaimId })
+    const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     return amountOut
   }
 
@@ -676,14 +719,14 @@ export class Hop extends Base {
     const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
 
     const allEventNames = [
-      ...this.messenger.getEventNames(),
+      ...this.getMessenger(chainId).getEventNames(),
       ...this.getRailsGateway(chainId).getEventNames()
     ]
 
     for (const name of eventNames) {
       let subclass: any = null
-      if (this.messenger.getEventNames().includes(name)) {
-        subclass = this.messenger
+      if (this.getMessenger(chainId).getEventNames().includes(name)) {
+        subclass = this.getMessenger(chainId)
       } else if (this.getRailsGateway(chainId).getEventNames().includes(name)) {
         subclass = this.getRailsGateway(chainId)
       } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
@@ -712,11 +755,11 @@ export class Hop extends Base {
 
   override setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
     super.setProviderUrls(signersOrProviders)
-    this.messenger.setProviderUrls(signersOrProviders)
     this.hubConnector.setProviderUrls(signersOrProviders)
 
     for (const chainId in signersOrProviders) {
       this.getRailsGateway(chainId).setProviderUrls(signersOrProviders)
+      this.getMessenger(chainId).setProviderUrls(signersOrProviders)
     }
   }
 

@@ -51,7 +51,6 @@ export const WithdrawV2: FC = () => {
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
-  const [postClaimTxHash, setPostClaimTxHash] = useState<string>('')
   const [confirmClaimTxHash, setConfirmClaimTxHash] = useState<string>('')
   const [withdrawTxHash, setWithdrawTxHash] = useState<string>('')
   const { v2Sdk } = useV2()
@@ -71,7 +70,6 @@ export const WithdrawV2: FC = () => {
     try {
       setLoading(true)
       setError('')
-      setPostClaimTxHash('')
       setConfirmClaimTxHash('')
       setWithdrawTxHash('')
 
@@ -89,31 +87,26 @@ export const WithdrawV2: FC = () => {
 
       const nextHopsHash = await railsGateway.getNextHopsHash({ nextHops: transferSentEvent.decoded.hops.slice(1) })
 
-      const postClaimTx = await railsGateway.postClaim({
-        pathId: transferSentEvent.decoded.pathId,
-        transferId: transferSentEvent.decoded.transferId,
-        to: transferSentEvent.decoded.to,
-        amountOut: transferSentEvent.decoded.amountOut,
-        maxBonderFee: transferSentEvent.decoded.hops[0].maxBonderFee,
-        totalSent: transferSentEvent.decoded.totalSent,
-        totalClaims: transferSentEvent.decoded.totalClaims,
-        attestedClaimId: transferSentEvent.decoded.hops[0].attestedClaimId,
-        nextHopsHash,
-      })
-
-      setPostClaimTxHash(postClaimTx.hash)
-      await postClaimTx.wait()
-
       const confirmClaimTx = await railsGateway.confirmClaim({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId
       })
       setConfirmClaimTxHash(confirmClaimTx.hash)
-      await postClaimTx.wait()
-      const withdrawTx = await railsGateway.withdraw({
+      await confirmClaimTx.wait()
+
+      // TODO: fix
+      const withdrawTx = await railsGateway.postAndWithdraw({
         pathId: transferSentEvent.decoded.pathId,
-        claimId: transferSentEvent.decoded.hops[0].attestedClaimId
+        claimId: transferSentEvent.decoded.transferId,
+        to: transferSentEvent.decoded.to,
+        amountOut: transferSentEvent.decoded.amount,
+        maxBonderFee: transferSentEvent.decoded.hops[0].maxBonderFee,
+        bonderFee: transferSentEvent.decoded.hops[0].maxBonderFee,
+        attestedClaimId: transferSentEvent.decoded.hops[0].attestedClaimId,
+        sourcePool: transferSentEvent.decoded.sourcePool,
+        nextHops: transferSentEvent.decoded.hops.slice(1),
       })
+
       setWithdrawTxHash(withdrawTx.hash)
       await withdrawTx.wait()
     } catch (err: any) {
@@ -166,11 +159,6 @@ export const WithdrawV2: FC = () => {
       <Box className={styles.notice}>
         <Alert severity="error">{error}</Alert>
       </Box>
-      {postClaimTxHash && (
-        <Box className={styles.notice} mt={2}>
-          <Alert severity="info">Post Claim Tx: {postClaimTxHash}</Alert>
-        </Box>
-      )}
       {confirmClaimTxHash && (
         <Box className={styles.notice} mt={2}>
           <Alert severity="info">Confirm Claim tx: {confirmClaimTxHash}</Alert>

@@ -26,8 +26,6 @@ export function Details(props: any) {
   const {
     transferId,
     statusDisplay,
-    totalSentDisplay,
-    totalClaimsDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
     pathId,
@@ -36,7 +34,8 @@ export function Details(props: any) {
     destinationChainDisplay,
     destinationChainImageUrl,
     loading,
-    transferAmountOutDisplay,
+    transferAmountDisplay,
+    sourcePoolDisplay,
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
@@ -69,9 +68,8 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
               <DetailRow loading={loading} label="Event Path ID" value={pathId} />
-              <DetailRow loading={loading} label="Event Amount Out" value={transferAmountOutDisplay} />
-              <DetailRow loading={loading} label="Event Total Sent" value={totalSentDisplay} />
-              <DetailRow loading={loading} label="Event Total Claims" value={totalClaimsDisplay} />
+              <DetailRow loading={loading} label="Event Amount" value={transferAmountDisplay} />
+              <DetailRow loading={loading} label="Event Source Pool" value={sourcePoolDisplay} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -81,7 +79,7 @@ export function Details(props: any) {
         </Box>
 
         {hops.map((nextHop: any, i: number) => {
-          const { pathId, maxBonderFee, minAmountOut, attestedClaimId} = nextHop
+          const { pathId, maxBonderFee, maxTotalSent, attestedClaimId} = nextHop
           return (
             <Box ml={2} mb={4} key={i}>
               <TableContainer>
@@ -90,7 +88,7 @@ export function Details(props: any) {
                     <DetailRow label={`Hop #${i+1}`} value=" " />
                     <DetailRow label="Path ID" value={pathId} />
                     <DetailRow label="Max Bonder Fee" value={maxBonderFee} />
-                    <DetailRow label="Min Amount Out" value={minAmountOut} />
+                    <DetailRow label="Max Total Sent" value={maxTotalSent} />
                     <DetailRow label="Attested Claim ID" value={attestedClaimId} />
                   </TableBody>
                 </Table>

@@ -474,6 +474,14 @@ export class Controller {
       item.amountOutUsd = Number(item.amountOutFormatted) * Number(item.tokenPriceUsd)
       item.amountOutUsdDisplay = `${formatToUSD(item.amountOutUsd.toFixed(2))} USD`
     }
+    if (item.sourcePool != null && item.token) {
+      item.sourcePoolFormatted = formatUnits(item.sourcePool, item.token.decimals)
+      item.sourcePoolDisplay = `${item.sourcePoolFormatted} ${item.token.symbol}`
+    }
+    if (item.sourcePool != null && item.sourcePoolFormatted != null && item.tokenPriceUsd != null) {
+      item.sourcePoolUsd = Number(item.sourcePoolFormatted) * Number(item.tokenPriceUsd)
+      item.sourcePoolUsdDisplay = `${formatToUSD(item.sourcePoolUsd.toFixed(2))} USD`
+    }
     if (item.bonderFee != null && item.token) {
       item.bonderFeeFormatted = formatUnits(item.bonderFee, item.token.decimals)
       item.bonderFeeDisplay = `${item.bonderFeeFormatted} ${item.token.symbol}`
@@ -509,6 +517,14 @@ export class Controller {
     }
     if (item.maxTotalSent) {
       item.maxTotalSent = item.maxTotalSent.toString()
+    }
+    if (item.maxTotalSent != null && item.token) {
+      item.maxTotalSentFormatted = formatUnits(item.maxTotalSent, item.token.decimals)
+      item.maxTotalSentDisplay = `${item.maxTotalSentFormatted} ${item.token.symbol}`
+    }
+    if (item.maxTotalSent != null && item.maxTotalSentFormatted != null && item.tokenPriceUsd != null) {
+      item.maxTotalSentUsd = Number(item.maxTotalSentFormatted) * Number(item.tokenPriceUsd)
+      item.maxTotalSentUsdDisplay = `${formatToUSD(item.maxTotalSentUsd.toFixed(2))} USD`
     }
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
@@ -946,8 +962,8 @@ export class Controller {
           headClaimId,
           pathVault,
           sendFee,
-          messageFee,
-          claimFeesFee,
+          // messageFee,
+          // claimFeesFee,
           totalClaims,
           totalConfirmed,
           totalSent
@@ -955,8 +971,8 @@ export class Controller {
           railsGateway.getHeadClaimId({ pathId }),
           railsGateway.getPathVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
-          railsGateway.getMessageFee({ pathId }),
-          railsGateway.getClaimFeesFee({ pathId }),
+          // railsGateway.getMessageFee({ chainId }), // TODO
+          // railsGateway.getClaimFeesFee({ pathId }), // TODO
           railsGateway.getTotalClaims({ pathId }),
           railsGateway.getTotalConfirmed({ pathId }),
           railsGateway.getTotalSent({ pathId })
@@ -991,8 +1007,8 @@ export class Controller {
           headClaimId,
           pathVault,
           sendFee: sendFee.toString(),
-          messageFee: messageFee.toString(),
-          claimFeesFee: claimFeesFee.toString(),
+          // messageFee: messageFee.toString(),
+          // claimFeesFee: claimFeesFee.toString(),
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),

@@ -2,7 +2,7 @@ import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
-// event from RailsGateway
+// event from StakingRegistry
 export interface BonderPreference {
   bonder: string
   pathId: string

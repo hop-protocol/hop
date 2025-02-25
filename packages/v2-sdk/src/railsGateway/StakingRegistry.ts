@@ -1,11 +1,11 @@
-import { Base, BaseConfig, TxOverrides, SignersOrProviders } from '#common/index.js'
+import { Base, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
 import { Contract, ethers, Signer, BigNumber, BigNumberish, providers } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { ERC20Mintable__factory } from '#contracts/factories/ERC20Mintable__factory.js'
 import { ConfigError, InputError } from '#error/index.js'
-import { BonderPreference, BonderPreferenceEventFetcher, BonderPreferenceIndexes } from '#railsGateway/events/BonderPreference.js'
+import { BonderPreferenceEventFetcher } from '#railsGateway/events/BonderPreference.js'
 
 export type EventFetcher = BonderPreferenceEventFetcher
 
@@ -449,6 +449,11 @@ export class StakingRegistry extends Base {
     const { staker, penalty, challenger, slashingData } = input
     const contract = this.getStakingRegistryContract()
     return contract.getChallengeId(staker, penalty, challenger, slashingData)
+  }
+
+  async windowSize (): Promise<string> {
+    const contract = this.getStakingRegistryContract()
+    return contract.windowSize()
   }
 
   async stakeHop (input: StakeHopInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {

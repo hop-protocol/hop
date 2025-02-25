@@ -4,19 +4,18 @@
 
 ### Properties
 
-- [amountOut](TransferSent.md#amountout)
+- [amount](TransferSent.md#amount)
 - [hops](TransferSent.md#hops)
 - [pathId](TransferSent.md#pathid)
+- [sourcePool](TransferSent.md#sourcepool)
 - [to](TransferSent.md#to)
-- [totalClaims](TransferSent.md#totalclaims)
-- [totalSent](TransferSent.md#totalsent)
 - [transferId](TransferSent.md#transferid)
 
 ## Properties
 
-### <a id="amountout" name="amountout"></a> amountOut
+### <a id="amount" name="amount"></a> amount
 
-• **amountOut**: `BigNumber`
+• **amount**: `BigNumber`
 
 ___
 
@@ -32,21 +31,15 @@ ___
 
 ___
 
+### <a id="sourcepool" name="sourcepool"></a> sourcePool
+
+• **sourcePool**: `BigNumber`
+
+___
+
 ### <a id="to" name="to"></a> to
 
 • **to**: `string`
-
-___
-
-### <a id="totalclaims" name="totalclaims"></a> totalClaims
-
-• **totalClaims**: `BigNumber`
-
-___
-
-### <a id="totalsent" name="totalsent"></a> totalSent
-
-• **totalSent**: `BigNumber`
 
 ___
 

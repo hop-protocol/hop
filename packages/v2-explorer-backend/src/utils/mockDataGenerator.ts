@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token, BonderPreference, ClaimPosted, ClaimChainUpdated } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token, BonderPreference, ClaimPosted } from '@hop-protocol/v2-sdk'
 import { Price } from '#pgDb/prices/index.js'
 
 // Helper function to generate random Ethereum address
@@ -158,7 +158,7 @@ export function generateMockMessageSent(): MessageSent {
 export function generateMockHopStruct(): HopStruct {
   return {
     pathId: generateRandomBytes32(),
-    minAmountOut: generateRandomUint256(),
+    maxTotalSent: generateRandomUint256(),
     maxBonderFee: generateRandomUint256(),
     attestedClaimId: generateRandomBytes32()
   }
@@ -172,9 +172,8 @@ export function generateMockTransferSent(numHops: number = generateRandomInt(1, 
     transferId: generateRandomBytes32(),
     pathId: generateRandomBytes32(),
     to: generateRandomAddress(),
-    amountOut: generateRandomUint256(),
-    totalSent: generateRandomUint256(),
-    totalClaims: generateRandomUint256(),
+    amount: generateRandomUint256(),
+    sourcePool: generateRandomUint256(),
     hops: hops,
   }
 }
@@ -197,16 +196,6 @@ export function generateMockClaimPosted(): ClaimPosted {
     claimId: generateRandomBytes32(),
   }
 }
-
-// Function to generate mock ClaimChainUpdated
-export function generateMockClaimChainUpdated(): ClaimChainUpdated {
-  return {
-    pathId: generateRandomBytes32(),
-    headClaimId: generateRandomBytes32(),
-    length: generateRandomUint256()
-  }
-}
-
 
 // Function to generate mock BonderPreference
 export function generateMockBonderPreference(): BonderPreference {

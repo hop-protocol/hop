@@ -15,10 +15,15 @@ export {
   ClaimPostedIndexes
 } from './ClaimPosted.js'
 export {
-  ClaimChainUpdated,
-  ClaimChainUpdatedEventFetcher,
-  ClaimChainUpdatedIndexes
-} from './ClaimChainUpdated.js'
+  ClaimReadded,
+  ClaimReaddedEventFetcher,
+  ClaimReaddedIndexes
+} from './ClaimReadded.js'
+export {
+  ClaimRemoved,
+  ClaimRemovedEventFetcher,
+  ClaimRemovedIndexes
+} from './ClaimRemoved.js'
 export {
   BonderPreference,
   BonderPreferenceEventFetcher,

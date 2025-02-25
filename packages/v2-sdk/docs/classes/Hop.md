@@ -579,7 +579,13 @@ ___
 
 ### <a id="getmessenger" name="getmessenger"></a> getMessenger
 
-▸ **getMessenger**(): `Messenger`
+▸ **getMessenger**(`chainId`): `Messenger`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
 
 #### Returns
 

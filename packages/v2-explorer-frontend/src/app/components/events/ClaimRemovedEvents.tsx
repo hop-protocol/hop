@@ -7,13 +7,12 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function TransferSentEvents () {
-  const eventName = 'TransferSent'
-  const [filterBy, setFilterBy] = useState('transferId')
+export function ClaimRemovedEvents () {
+  const eventName = 'ClaimRemoved'
+  const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)
-  console.log(events)
 
   const headers = [
     {
@@ -25,24 +24,16 @@ export function TransferSentEvents () {
       value: 'Transaction Hash'
     },
     {
-      key: 'transferId',
-      value: 'Transfer ID',
+      key: 'pathId',
+      value: 'Path ID',
     },
     {
-      key: 'amount',
-      value: 'Amount Out',
-    },
-    {
-      key: 'sourcePool',
-      value: 'Source Pool',
+      key: 'claimId',
+      value: 'Claim ID',
     },
     {
       key: 'eventChainId',
       value: 'Event Chain ID',
-    },
-    {
-      key: 'subtable',
-      value: 'Hops',
     },
   ]
 
@@ -60,85 +51,20 @@ export function TransferSentEvents () {
         clipboardValue: event.context.transactionHash
       },
       {
-        key: 'transferId',
-        value: event.transferIdTruncated,
-        clipboardValue: event.transferId
+        key: 'pathId',
+        value: event.pathIdTruncated,
+        valueUrl: `/paths?pathId=${event.pathId}`,
+        clipboardValue: event.pathId
       },
       {
-        key: 'amount',
-        value: event.amount,
-        clipboardValue: event.amount
-      },
-      {
-        key: 'totalSent',
-        value: event.totalSent,
-        clipboardValue: event.totalSent
-      },
-      {
-        key: 'totalClaims',
-        value: event.totalClaims,
-        clipboardValue: event.totalClaims
+        key: 'claimId',
+        value: event.claimIdTruncated,
+        clipboardValue: event.claimId
       },
       {
         key: 'eventChainId',
         value: event.context.chainLabel,
         clipboardValue: event.context.chainLabel
-      },
-      {
-        key: 'subtable',
-        value: {
-          headers: [
-            {
-              key: 'index',
-              value: '#'
-            },
-            {
-              key: 'pathId',
-              value: 'Path ID',
-            },
-            {
-              key: 'maxBonderFee',
-              value: 'Max Bonder Fee',
-            },
-            {
-              key: 'maxTotalSent',
-              value: 'Max Total Sent',
-            },
-            {
-              key: 'attestedClaimId',
-              value: 'Attested Claim ID',
-            },
-          ],
-          rows: event.hops.map((hop: any, i: number) => {
-            return [
-              {
-                key: 'index',
-                value: hop.index
-              },
-              {
-                key: 'pathId',
-                value: hop.pathIdTruncated,
-                valueUrl: `/paths?pathId=${hop.pathId}`,
-                clipboardValue: hop.pathId
-              },
-              {
-                key: 'maxBonderFee',
-                value: hop.maxBonderFee,
-                clipboardValue: hop.maxBonderFee
-              },
-              {
-                key: 'maxTotalSent',
-                value: hop.maxTotalSent,
-                clipboardValue: hop.maxTotalSent
-              },
-              {
-                key: 'attestedClaimId',
-                value: hop.attestedClaimIdTruncated,
-                clipboardValue: hop.attestedClaimId
-              },
-            ]
-          })
-        }
       },
     ]
   })
@@ -158,8 +84,7 @@ export function TransferSentEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'transferId'}>Transfer ID</MenuItem>
-              <MenuItem value={'attestedClaimId'}>Attested Claim ID</MenuItem>
+              <MenuItem value={'claimId'}>Claim ID</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>

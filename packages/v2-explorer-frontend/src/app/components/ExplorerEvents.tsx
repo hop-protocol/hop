@@ -47,7 +47,7 @@ export function ExplorerEvents (props: any) {
       setEvents([])
     }
     setLoading(false)
-  }, [clientEvents, clientEventsLoading])
+  }, [clientEvents, clientEventsLoading, events?.length])
 
   const headers = [
     {

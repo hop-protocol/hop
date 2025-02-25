@@ -47,6 +47,9 @@ export class Event<T> {
 
   getFilter (): EventFilter {
     const contract = this.getContract()
+    if (!contract.filters[this.eventName]) {
+      throw new Error(`Event ${this.eventName} not found in contract filters`)
+    }
     return contract.filters[this.eventName]()
   }
 

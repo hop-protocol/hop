@@ -55,12 +55,8 @@ export const useTransferDetails = (props: any) => {
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
-  const transferAmountOut = event?.amountOut
-  const transferAmountOutDisplay = `${event?.amountOut ?? ''} (${event?.amountOutDisplay ?? ''}) (${event?.amountOutUsdDisplay ?? ''})`
-  const totalSent = event?.totalSent
-  const totalSentDisplay = formatDisplay(totalSent, tokenDecimals, tokenSymbol)
-  const totalClaims = event?.totalClaims
-  const totalClaimsDisplay = formatDisplay(totalClaims, tokenDecimals, tokenSymbol)
+  const sourcePool = event?.sourcePool
+  const sourcePoolDisplay = event?.sourcePoolDisplay
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const pathId = event?.pathId
@@ -186,12 +182,8 @@ export const useTransferDetails = (props: any) => {
     tokenSymbol,
     transferAmount,
     transferAmountDisplay,
-    transferAmountOut,
-    transferAmountOutDisplay,
-    totalSent,
-    totalSentDisplay,
-    totalClaims,
-    totalClaimsDisplay,
+    sourcePool,
+    sourcePoolDisplay,
     transferRecipient,
     transferRecipientExplorerUrl,
     pathId,

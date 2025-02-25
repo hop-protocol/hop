@@ -1,21 +1,20 @@
-import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
+import { Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 
 // event from RailsGateway
-export interface ClaimChainUpdated {
+export interface ClaimRemoved {
   pathId: string
-  headClaimId: string
-  length: BigNumber
+  claimId: string
 }
 
-export type ClaimChainUpdatedIndexes = {
+export type ClaimRemovedIndexes = {
   pathId?: string
   claimId?: string
 }
 
-export class ClaimChainUpdatedEventFetcher extends Event<ClaimChainUpdated> {
-  override eventName = 'ClaimChainUpdated'
+export class ClaimRemovedEventFetcher extends Event<ClaimRemoved> {
+  override eventName = 'ClaimRemoved'
   override abi = RailsGateway__factory.abi
   override factory = RailsGateway__factory
 
@@ -27,23 +26,21 @@ export class ClaimChainUpdatedEventFetcher extends Event<ClaimChainUpdated> {
     return this.getFilterWithIndexes({ claimId })
   }
 
-  getFilterWithIndexes ({ pathId, claimId } : ClaimChainUpdatedIndexes): EventFilter {
+  getFilterWithIndexes ({ pathId, claimId } : ClaimRemovedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.ClaimChainUpdated(pathId ?? null, claimId ?? null)
+    const filter = railsGateway.filters.ClaimRemoved(pathId ?? null, claimId ?? null)
     return filter
   }
 
-  override toTypedEvent (ethersEvent: EthersEvent): ClaimChainUpdated {
+  override toTypedEvent (ethersEvent: EthersEvent): ClaimRemoved {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()
-    const headClaimId = parsed.args.headClaimId.toString()
-    const length = parsed.args.length.toString()
+    const claimId = parsed.args.claimId.toString()
 
     return {
       pathId,
-      headClaimId,
-      length
+      claimId
     }
   }
 }

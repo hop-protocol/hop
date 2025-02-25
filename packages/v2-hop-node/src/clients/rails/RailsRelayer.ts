@@ -60,8 +60,8 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
 
-    const isClaimed = await gateway.isClaimed(relayItem.transferId)
-    const isBonded = await gateway.isBonded(relayItem.transferId)
+    const isClaimed = await gateway.isClaimed(relayItem.claimId)
+    const isBonded = await gateway.isBonded(relayItem.claimId)
     return isClaimed && !isBonded
   }
 
@@ -83,7 +83,7 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    */
 
   async #sendBond (relayItem: BondInput): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, nextHops } = relayItem
+    const { pathId, claimId, bonderFee, nextHops } = relayItem
     const { destChainId } = getPathFromPathId(pathId)
     const txOverrides = await getTxOverrides(destChainId)
     const gateway = this.#railsGateways[destChainId]
@@ -96,7 +96,7 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
   }
 
   async #sentPostClaim (relayItem: PostClaimInput): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash } = relayItem
+    const { pathId, transferId, to, amountOut, maxBonderFee, attestedClaimId, totalSent, totalClaims, nextHopsHash } = relayItem
     const { destChainId } = getPathFromPathId(pathId)
     const txOverrides = await getTxOverrides(destChainId)
     const gateway = this.#railsGateways[destChainId]

@@ -4,8 +4,8 @@ import {
   type TransferBonded as TransferBondedSDK,
   type GetTransferSentEventFilterInput,
   type GetTransferBondedEventFilterInput,
-  type PostClaimInput as PostClaimInputSDK,
-  type BondInput as BondInputSDK,
+  type PostClaimInput,
+  type BondInput,
   RailsGateway as RailsGatewaySDK,
   utils as RailsUtils,
   RailsGatewayEventName
@@ -19,7 +19,9 @@ import type {
 import { wallets } from '#wallets/index.js'
 import type { RailsPath } from './types.js'
 
-export type RailsFilterInputs = GetTransferSentEventFilterInput['indexes'] & GetTransferBondedEventFilterInput['indexes']
+export type BondInputSDK = BondInput
+export type PostClaimInputSDK = PostClaimInput
+export type RailsFilterInputs = GetTransferSentEventFilterInput & GetTransferBondedEventFilterInput
 
 
 export enum EventName {

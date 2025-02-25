@@ -51,7 +51,6 @@
 - [ApproveBondInput](modules.md#approvebondinput)
 - [ApproveSendInput](modules.md#approvesendinput)
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
-- [BatchUpdateClaimChainInput](modules.md#batchupdateclaimchaininput)
 - [BondInput](modules.md#bondinput)
 - [BonderPreferenceIndexes](modules.md#bonderpreferenceindexes)
 - [Bucket](modules.md#bucket)
@@ -93,6 +92,7 @@
 - [GetHardConfirmedClaimIdInput](modules.md#gethardconfirmedclaimidinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
 - [GetHeadClaimIdInput](modules.md#getheadclaimidinput)
+- [GetHopBalanceInput](modules.md#gethopbalanceinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
@@ -201,7 +201,6 @@
 - [TransferStatus](modules.md#transferstatus)
 - [TxOverrides](modules.md#txoverrides)
 - [UnstakeHopInput](modules.md#unstakehopinput)
-- [UpdateClaimChainInput](modules.md#updateclaimchaininput)
 - [UpdateDefaultTokenFeeInput](modules.md#updatedefaulttokenfeeinput)
 - [UpdateTokenFeeInput](modules.md#updatetokenfeeinput)
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
@@ -260,20 +259,6 @@ ___
 | `fromToken` | `string` |
 | `toChainId` | `BigNumberish` |
 | `toToken` | `string` |
-
-___
-
-### <a id="batchupdateclaimchaininput" name="batchupdateclaimchaininput"></a> BatchUpdateClaimChainInput
-
-Ƭ **BatchUpdateClaimChainInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `finalTransferId` | `string` |
-| `pathId` | `string` |
-| `transferDataHashes` | `string`[] |
 
 ___
 
@@ -816,6 +801,18 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
+
+___
+
+### <a id="gethopbalanceinput" name="gethopbalanceinput"></a> GetHopBalanceInput
+
+Ƭ **GetHopBalanceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `staker` | `string` |
 
 ___
 
@@ -2233,20 +2230,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `amount` | `ethers.BigNumberish` |
-
-___
-
-### <a id="updateclaimchaininput" name="updateclaimchaininput"></a> UpdateClaimChainInput
-
-Ƭ **UpdateClaimChainInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-| `transferDataHash` | `string` |
 
 ___
 

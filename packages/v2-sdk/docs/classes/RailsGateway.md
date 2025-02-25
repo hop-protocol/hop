@@ -35,7 +35,6 @@
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
 - [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
-- [batchUpdateClaimChain](RailsGateway.md#batchupdateclaimchain)
 - [bond](RailsGateway.md#bond)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
@@ -154,7 +153,6 @@
 - [setStakingRegistry](RailsGateway.md#setstakingregistry)
 - [setUpdateFeeGas](RailsGateway.md#setupdatefeegas)
 - [throwError](RailsGateway.md#throwerror)
-- [updateClaimChain](RailsGateway.md#updateclaimchain)
 - [updateDefaultTokenFee](RailsGateway.md#updatedefaulttokenfee)
 - [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdraw](RailsGateway.md#withdraw)
@@ -283,6 +281,8 @@ ___
 | `getComputedNextHopsHash` | (`input`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
 | `getComputedTransferDataHash` | (`input`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`__namedParameters`: [`GetTransferIdInput`](../modules.md#gettransferidinput)) => `string` |
+| `getInitialReserve` | (`__namedParameters`: `GetInitialReserveInput`) => `Promise`\<`BigNumber`\> |
+| `getInitialReserveByTokenSymbol` | (`__namedParameters`: `GetInitialReserveByTokenSymbolInput`) => `Promise`\<`BigNumber`\> |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
@@ -304,7 +304,6 @@ ___
 | :------ | :------ |
 | `approveBond` | (`__namedParameters`: [`ApproveBondInput`](../modules.md#approvebondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `approveSend` | (`__namedParameters`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `batchUpdateClaimChain` | (`__namedParameters`: [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `bond` | (`__namedParameters`: [`BondInput`](../modules.md#bondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
@@ -318,7 +317,6 @@ ___
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrices` | (`__namedParameters`: [`SetFeePricesInput`](../modules.md#setfeepricesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `updateClaimChain` | (`__namedParameters`: [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdrawBonds` | (`__namedParameters`: [`WithdrawBondsInput`](../modules.md#withdrawbondsinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdrawClaim` | (`__namedParameters`: [`WithdrawClaimInput`](../modules.md#withdrawclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
@@ -427,23 +425,6 @@ ___
 #### Returns
 
 `EthersEventWithDecodedTypes`\<`TransferSent`\>[]
-
-___
-
-### <a id="batchupdateclaimchain" name="batchupdateclaimchain"></a> batchUpdateClaimChain
-
-▸ **batchUpdateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`BatchUpdateClaimChainInput`](../modules.md#batchupdateclaimchaininput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
 
 ___
 
@@ -2359,23 +2340,6 @@ ___
 #### Inherited from
 
 Base.throwError
-
-___
-
-### <a id="updateclaimchain" name="updateclaimchain"></a> updateClaimChain
-
-▸ **updateClaimChain**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`UpdateClaimChainInput`](../modules.md#updateclaimchaininput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
 
 ___
 

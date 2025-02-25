@@ -1023,19 +1023,6 @@ describe('RailsGateway', () => {
     console.log(price)
     expect(price).toBeDefined()
   })
-  it('should get batch update fee', async () => {
-    const chainId = 11155111
-    const railsGateway = new RailsGateway({
-      chainId,
-      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
-    })
-
-    jest.spyOn(railsGateway as any, 'getBatchUpdateFee').mockReturnValue(BigNumber.from(1) as any)
-
-    const fee = await railsGateway.getBatchUpdateFee({ length: 1 })
-    console.log(fee)
-    expect(fee).toBeDefined()
-  })
   it('should get total claims for pathId', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
@@ -1085,26 +1072,6 @@ describe('RailsGateway', () => {
     })
     console.log(total)
     expect(total).toBeDefined()
-  })
-  it('should batch update claim chain', async () => {
-    const chainId = 11155111
-    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const transferDataHashes: string[] = []
-    const finalTransferId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const railsGateway = new RailsGateway({
-      chainId,
-      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
-    })
-
-    jest.spyOn(railsGateway as any, 'batchUpdateClaimChain').mockReturnValue({ hash: '' } as any)
-
-    const tx = await railsGateway.batchUpdateClaimChain({
-      pathId,
-      transferDataHashes,
-      finalTransferId
-    })
-    console.log(tx)
-    expect(tx).toBeDefined()
   })
   it('should claim fees from path', async () => {
     const chainId = 11155111
@@ -1160,26 +1127,6 @@ describe('RailsGateway', () => {
       pathId,
       recipients,
       amounts
-    })
-    console.log(tx)
-    expect(tx).toBeDefined()
-  })
-  it('should update claim chain', async () => {
-    const chainId = 11155111
-    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
-    const transferDataHash = '0xd638b23809aef011d3657cda1fa4e163d36121423cc79e695f9c6acc62ba7980'
-    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
-    const railsGateway = new RailsGateway({
-      chainId,
-      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
-    })
-
-    jest.spyOn(railsGateway as any, 'updateClaimChain').mockReturnValue({ hash: '' } as any)
-
-    const tx = await railsGateway.updateClaimChain({
-      pathId,
-      transferDataHash,
-      claimId
     })
     console.log(tx)
     expect(tx).toBeDefined()

@@ -54,7 +54,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
     const to = parsed.args.to
-    const amount = parsed.args.amountOut
+    const amount = parsed.args.amount
     const sourcePool = parsed.args.sourcePool
     const hops = parsed.args.hops.map((hop: any): HopStruct => {
       return {

@@ -9,7 +9,6 @@ export {
   GetMessageFeeInput,
   GetClaimFeesFeeInput,
   GetFeePriceInput,
-  GetBatchUpdateFeeInput,
   GetTotalClaimsInput,
   GetTotalClaimsAtClaimIdInput,
   GetTotalConfirmedInput,
@@ -50,12 +49,10 @@ export {
   GetNextHopsHashInput,
   GetIsPathIdLiveInput,
   EventName,
-  BatchUpdateClaimChainInput,
   ClaimFeesFromPathInput,
   DistributeClaimedFeesInput,
   DistributeExcessFeesInput,
   GetTransferDataHashInput,
-  UpdateClaimChainInput,
   GetBucketIndexInput,
   GetAmountOutInput,
   GetTotalSentInput,
@@ -113,6 +110,7 @@ export {
   StakingRegistryConstructorInput,
   SignalPreferenceInput,
   WithdrawableEthInput,
+  GetHopBalanceInput
 } from './StakingRegistry.js'
 export {
   HopStruct,

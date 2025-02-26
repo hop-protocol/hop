@@ -14,4 +14,4 @@ RUN pnpm --filter=v2-hop-node deploy --prod /prod/app --legacy
 FROM base
 COPY --from=build /prod/app /prod/app
 WORKDIR /prod/app
-ENTRYPOINT ["node", "/prod/app/dist/cli/cli.js"]
+ENTRYPOINT ["node", "/prod/app/dist/cli/hop.js"]

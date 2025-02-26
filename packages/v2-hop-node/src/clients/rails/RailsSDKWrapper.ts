@@ -87,7 +87,9 @@ export class RailsGateway {
 export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: EventName, chainId: string, indexes?: T): EventFilter {
   const wallet = wallets.get(chainId)
   const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet })
-  return gateway.getEventFilter(eventName as RailsGatewayEventName, indexes)
+  // TODO: Fix this
+  // return gateway.getEventFilter(eventName as RailsGatewayEventName, indexes)
+  return gateway.getEventFilter(eventName as any, indexes)
 }
 
 export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {

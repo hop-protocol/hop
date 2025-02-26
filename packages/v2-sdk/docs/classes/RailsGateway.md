@@ -46,7 +46,6 @@
 - [feeOracle](RailsGateway.md#feeoracle)
 - [gateways](RailsGateway.md#gateways)
 - [getAmountOut](RailsGateway.md#getamountout)
-- [getBatchUpdateFee](RailsGateway.md#getbatchupdatefee)
 - [getBucket](RailsGateway.md#getbucket)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
@@ -578,22 +577,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `«destructured»` | [`GetAmountOutInput`](../modules.md#getamountoutinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
-
-___
-
-### <a id="getbatchupdatefee" name="getbatchupdatefee"></a> getBatchUpdateFee
-
-▸ **getBatchUpdateFee**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetBatchUpdateFeeInput`](../modules.md#getbatchupdatefeeinput) |
 
 #### Returns
 

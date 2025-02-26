@@ -71,7 +71,6 @@
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetAmountOutInput](modules.md#getamountoutinput)
-- [GetBatchUpdateFeeInput](modules.md#getbatchupdatefeeinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBucketInput](modules.md#getbucketinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
@@ -535,18 +534,6 @@ ___
 | `attestedClaimId` | `string` |
 | `pathId` | `string` |
 | `sourcePool` | `BigNumberish` |
-
-___
-
-### <a id="getbatchupdatefeeinput" name="getbatchupdatefeeinput"></a> GetBatchUpdateFeeInput
-
-Ƭ **GetBatchUpdateFeeInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `length` | `BigNumberish` |
 
 ___
 

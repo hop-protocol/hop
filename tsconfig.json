@@ -32,7 +32,7 @@
     */
 
     "strictPropertyInitialization": false, // overwrites strict `true`
-    "useUnknownInCatchVariables": false, // overwrites strcit `true`
+    "useUnknownInCatchVariables": false, // overwrites strict `true`
   },
   "exclude": [
     "node_modules",

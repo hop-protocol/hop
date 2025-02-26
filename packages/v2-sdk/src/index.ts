@@ -128,7 +128,10 @@ export {
   SetUpdateFeeGasInput,
   UpdateDefaultTokenFeeInput,
   UpdateTokenFeeInput,
-  GetHopBalanceInput
+  GetHopBalanceInput,
+  GetInitialReserveByTokenSymbolInput,
+  GetInitialReserveByTokenAddressInput,
+  GetInitialReserveInput,
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

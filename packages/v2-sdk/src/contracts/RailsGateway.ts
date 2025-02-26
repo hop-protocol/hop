@@ -100,20 +100,15 @@ export interface RailsGatewayInterface extends utils.Interface {
     "defaultTokenFee()": FunctionFragment;
     "dispatcher()": FunctionFragment;
     "distributeClaimedFees(bytes32,address,uint256,bytes32)": FunctionFragment;
-    "distributeExcessFees(uint256,address[],uint256[])": FunctionFragment;
     "executor()": FunctionFragment;
-    "feeOracle()": FunctionFragment;
+    "feeManager()": FunctionFragment;
     "gateways(uint256)": FunctionFragment;
     "getAmountOut(bytes32,uint256,bytes32,uint256)": FunctionFragment;
-    "getBatchUpdateFee(uint256)": FunctionFragment;
     "getBucket(bytes32,uint256)": FunctionFragment;
     "getBucketIndex(bytes32,bytes32)": FunctionFragment;
     "getClaim(bytes32,bytes32)": FunctionFragment;
-    "getClaimFeesFee(uint256)": FunctionFragment;
     "getClaimId(bytes32,uint256)": FunctionFragment;
     "getCounterpartChainId(bytes32)": FunctionFragment;
-    "getFeePrice(uint256)": FunctionFragment;
-    "getFeeVault(uint256)": FunctionFragment;
     "getHardConfirmedBucketIndex(bytes32)": FunctionFragment;
     "getHardConfirmedClaimId(bytes32)": FunctionFragment;
     "getHeadClaimId(bytes32)": FunctionFragment;
@@ -122,6 +117,7 @@ export interface RailsGatewayInterface extends utils.Interface {
     "getNextHopsHash((bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "getPathId(uint256,address,uint256,address,uint256)": FunctionFragment;
     "getPathInfo(bytes32)": FunctionFragment;
+    "getPushClaimFee()": FunctionFragment;
     "getRemoveFee()": FunctionFragment;
     "getRemovedBalance(bytes32,address)": FunctionFragment;
     "getSendFee(bytes32)": FunctionFragment;
@@ -135,7 +131,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     "getTransferDataHash(address,uint256,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "getTransferId(bytes32,uint256)": FunctionFragment;
     "getTransferIndex(bytes32,bytes32)": FunctionFragment;
-    "getUpdateFee()": FunctionFragment;
     "getWithdrawableBalance(bytes32,address,bytes32)": FunctionFragment;
     "getWithdrawn(bytes32,address)": FunctionFragment;
     "initChain(uint256,address)": FunctionFragment;
@@ -151,12 +146,7 @@ export interface RailsGatewayInterface extends utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "send(address,uint256,(bytes32,uint256,uint256,bytes32)[])": FunctionFragment;
     "setDefaultTokenFee(uint256)": FunctionFragment;
-    "setFeeOracle(address)": FunctionFragment;
-    "setFeePrice(uint256,uint256)": FunctionFragment;
-    "setFeePrices(uint256[],uint256[])": FunctionFragment;
-    "setSendFeeGas(uint256)": FunctionFragment;
     "setStakingRegistry(address)": FunctionFragment;
-    "setUpdateFeeGas(uint256)": FunctionFragment;
     "stakingRegistry()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "updateDefaultTokenFee(uint256)": FunctionFragment;
@@ -173,20 +163,15 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "defaultTokenFee"
       | "dispatcher"
       | "distributeClaimedFees"
-      | "distributeExcessFees"
       | "executor"
-      | "feeOracle"
+      | "feeManager"
       | "gateways"
       | "getAmountOut"
-      | "getBatchUpdateFee"
       | "getBucket"
       | "getBucketIndex"
       | "getClaim"
-      | "getClaimFeesFee"
       | "getClaimId"
       | "getCounterpartChainId"
-      | "getFeePrice"
-      | "getFeeVault"
       | "getHardConfirmedBucketIndex"
       | "getHardConfirmedClaimId"
       | "getHeadClaimId"
@@ -195,6 +180,7 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "getNextHopsHash"
       | "getPathId"
       | "getPathInfo"
+      | "getPushClaimFee"
       | "getRemoveFee"
       | "getRemovedBalance"
       | "getSendFee"
@@ -208,7 +194,6 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "getTransferDataHash"
       | "getTransferId"
       | "getTransferIndex"
-      | "getUpdateFee"
       | "getWithdrawableBalance"
       | "getWithdrawn"
       | "initChain"
@@ -224,12 +209,7 @@ export interface RailsGatewayInterface extends utils.Interface {
       | "renounceOwnership"
       | "send"
       | "setDefaultTokenFee"
-      | "setFeeOracle"
-      | "setFeePrice"
-      | "setFeePrices"
-      | "setSendFeeGas"
       | "setStakingRegistry"
-      | "setUpdateFeeGas"
       | "stakingRegistry"
       | "transferOwnership"
       | "updateDefaultTokenFee"
@@ -262,12 +242,11 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "distributeClaimedFees",
     values: [BytesLike, string, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "distributeExcessFees",
-    values: [BigNumberish, string[], BigNumberish[]]
-  ): string;
   encodeFunctionData(functionFragment: "executor", values?: undefined): string;
-  encodeFunctionData(functionFragment: "feeOracle", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "feeManager",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "gateways",
     values: [BigNumberish]
@@ -275,10 +254,6 @@ export interface RailsGatewayInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getAmountOut",
     values: [BytesLike, BigNumberish, BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getBatchUpdateFee",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getBucket",
@@ -293,24 +268,12 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getClaimFeesFee",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getClaimId",
     values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCounterpartChainId",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFeePrice",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFeeVault",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getHardConfirmedBucketIndex",
@@ -343,6 +306,10 @@ export interface RailsGatewayInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getPathInfo",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPushClaimFee",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getRemoveFee",
@@ -395,10 +362,6 @@ export interface RailsGatewayInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getTransferIndex",
     values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUpdateFee",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getWithdrawableBalance",
@@ -487,28 +450,8 @@ export interface RailsGatewayInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setFeeOracle",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFeePrice",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFeePrices",
-    values: [BigNumberish[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setSendFeeGas",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setStakingRegistry",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setUpdateFeeGas",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakingRegistry",
@@ -553,19 +496,11 @@ export interface RailsGatewayInterface extends utils.Interface {
     functionFragment: "distributeClaimedFees",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "distributeExcessFees",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "executor", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "feeOracle", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "feeManager", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "gateways", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAmountOut",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getBatchUpdateFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getBucket", data: BytesLike): Result;
@@ -574,21 +509,9 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getClaim", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getClaimFeesFee",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "getClaimId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCounterpartChainId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFeePrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFeeVault",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -618,6 +541,10 @@ export interface RailsGatewayInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "getPathId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPathInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPushClaimFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -670,10 +597,6 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getUpdateFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getWithdrawableBalance",
     data: BytesLike
   ): Result;
@@ -719,27 +642,7 @@ export interface RailsGatewayInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setFeeOracle",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFeePrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFeePrices",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setSendFeeGas",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setStakingRegistry",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setUpdateFeeGas",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -916,16 +819,9 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    distributeExcessFees(
-      chainId: BigNumberish,
-      recipients: string[],
-      amounts: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     executor(overrides?: CallOverrides): Promise<[string]>;
 
-    feeOracle(overrides?: CallOverrides): Promise<[string]>;
+    feeManager(overrides?: CallOverrides): Promise<[string]>;
 
     gateways(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
@@ -936,11 +832,6 @@ export interface RailsGateway extends BaseContract {
       sourcePool: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amountOut: BigNumber }>;
-
-    getBatchUpdateFee(
-      length: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     getBucket(
       pathId: BytesLike,
@@ -960,11 +851,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[ClaimStructOutput] & { claim: ClaimStructOutput }>;
 
-    getClaimFeesFee(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     getClaimId(
       pathId: BytesLike,
       index: BigNumberish,
@@ -975,16 +861,6 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { counterpartChainId: BigNumber }>;
-
-    getFeePrice(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getFeeVault(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     getHardConfirmedBucketIndex(
       pathId: BytesLike,
@@ -1030,6 +906,8 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber, string, BigNumber, string, BigNumber]>;
+
+    getPushClaimFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getRemoveFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -1102,8 +980,6 @@ export interface RailsGateway extends BaseContract {
       transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    getUpdateFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getWithdrawableBalance(
       pathId: BytesLike,
@@ -1211,35 +1087,8 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    setFeeOracle(
-      newFeeOracle: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    setFeePrice(
-      chainId: BigNumberish,
-      feePrice: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    setFeePrices(
-      chainIds: BigNumberish[],
-      prices: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    setSendFeeGas(
-      gas: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     setStakingRegistry(
       newStakingRegistry: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    setUpdateFeeGas(
-      gas: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -1305,16 +1154,9 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  distributeExcessFees(
-    chainId: BigNumberish,
-    recipients: string[],
-    amounts: BigNumberish[],
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
   executor(overrides?: CallOverrides): Promise<string>;
 
-  feeOracle(overrides?: CallOverrides): Promise<string>;
+  feeManager(overrides?: CallOverrides): Promise<string>;
 
   gateways(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -1323,11 +1165,6 @@ export interface RailsGateway extends BaseContract {
     amount: BigNumberish,
     attestedClaimId: BytesLike,
     sourcePool: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getBatchUpdateFee(
-    length: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1349,11 +1186,6 @@ export interface RailsGateway extends BaseContract {
     overrides?: CallOverrides
   ): Promise<ClaimStructOutput>;
 
-  getClaimFeesFee(
-    chainId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   getClaimId(
     pathId: BytesLike,
     index: BigNumberish,
@@ -1364,16 +1196,6 @@ export interface RailsGateway extends BaseContract {
     pathId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  getFeePrice(
-    chainId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getFeeVault(
-    chainId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   getHardConfirmedBucketIndex(
     pathId: BytesLike,
@@ -1416,6 +1238,8 @@ export interface RailsGateway extends BaseContract {
     pathId: BytesLike,
     overrides?: CallOverrides
   ): Promise<[BigNumber, string, BigNumber, string, BigNumber]>;
+
+  getPushClaimFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1482,8 +1306,6 @@ export interface RailsGateway extends BaseContract {
     transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   getWithdrawableBalance(
     pathId: BytesLike,
@@ -1591,35 +1413,8 @@ export interface RailsGateway extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  setFeeOracle(
-    newFeeOracle: string,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  setFeePrice(
-    chainId: BigNumberish,
-    feePrice: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  setFeePrices(
-    chainIds: BigNumberish[],
-    prices: BigNumberish[],
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  setSendFeeGas(
-    gas: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
   setStakingRegistry(
     newStakingRegistry: string,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  setUpdateFeeGas(
-    gas: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1685,16 +1480,9 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    distributeExcessFees(
-      chainId: BigNumberish,
-      recipients: string[],
-      amounts: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     executor(overrides?: CallOverrides): Promise<string>;
 
-    feeOracle(overrides?: CallOverrides): Promise<string>;
+    feeManager(overrides?: CallOverrides): Promise<string>;
 
     gateways(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -1703,11 +1491,6 @@ export interface RailsGateway extends BaseContract {
       amount: BigNumberish,
       attestedClaimId: BytesLike,
       sourcePool: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getBatchUpdateFee(
-      length: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1729,11 +1512,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<ClaimStructOutput>;
 
-    getClaimFeesFee(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getClaimId(
       pathId: BytesLike,
       index: BigNumberish,
@@ -1744,16 +1522,6 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getFeePrice(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFeeVault(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     getHardConfirmedBucketIndex(
       pathId: BytesLike,
@@ -1799,6 +1567,8 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber, string, BigNumber, string, BigNumber]>;
+
+    getPushClaimFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1871,8 +1641,6 @@ export interface RailsGateway extends BaseContract {
       transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getWithdrawableBalance(
       pathId: BytesLike,
@@ -1978,32 +1746,8 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setFeeOracle(
-      newFeeOracle: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFeePrice(
-      chainId: BigNumberish,
-      feePrice: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFeePrices(
-      chainIds: BigNumberish[],
-      prices: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setSendFeeGas(gas: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
     setStakingRegistry(
       newStakingRegistry: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setUpdateFeeGas(
-      gas: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -2140,16 +1884,9 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    distributeExcessFees(
-      chainId: BigNumberish,
-      recipients: string[],
-      amounts: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     executor(overrides?: CallOverrides): Promise<BigNumber>;
 
-    feeOracle(overrides?: CallOverrides): Promise<BigNumber>;
+    feeManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     gateways(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2158,11 +1895,6 @@ export interface RailsGateway extends BaseContract {
       amount: BigNumberish,
       attestedClaimId: BytesLike,
       sourcePool: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getBatchUpdateFee(
-      length: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2184,11 +1916,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getClaimFeesFee(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getClaimId(
       pathId: BytesLike,
       index: BigNumberish,
@@ -2197,16 +1924,6 @@ export interface RailsGateway extends BaseContract {
 
     getCounterpartChainId(
       pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFeePrice(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFeeVault(
-      chainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2254,6 +1971,8 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getPushClaimFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRemoveFee(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2326,8 +2045,6 @@ export interface RailsGateway extends BaseContract {
       transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getUpdateFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getWithdrawableBalance(
       pathId: BytesLike,
@@ -2435,35 +2152,8 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    setFeeOracle(
-      newFeeOracle: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    setFeePrice(
-      chainId: BigNumberish,
-      feePrice: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    setFeePrices(
-      chainIds: BigNumberish[],
-      prices: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    setSendFeeGas(
-      gas: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     setStakingRegistry(
       newStakingRegistry: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    setUpdateFeeGas(
-      gas: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -2530,16 +2220,9 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    distributeExcessFees(
-      chainId: BigNumberish,
-      recipients: string[],
-      amounts: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
     executor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    feeOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    feeManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     gateways(
       arg0: BigNumberish,
@@ -2551,11 +2234,6 @@ export interface RailsGateway extends BaseContract {
       amount: BigNumberish,
       attestedClaimId: BytesLike,
       sourcePool: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getBatchUpdateFee(
-      length: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2577,11 +2255,6 @@ export interface RailsGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getClaimFeesFee(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getClaimId(
       pathId: BytesLike,
       index: BigNumberish,
@@ -2590,16 +2263,6 @@ export interface RailsGateway extends BaseContract {
 
     getCounterpartChainId(
       pathId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFeePrice(
-      chainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFeeVault(
-      chainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2647,6 +2310,8 @@ export interface RailsGateway extends BaseContract {
       pathId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getPushClaimFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRemoveFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -2719,8 +2384,6 @@ export interface RailsGateway extends BaseContract {
       transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getUpdateFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getWithdrawableBalance(
       pathId: BytesLike,
@@ -2828,35 +2491,8 @@ export interface RailsGateway extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    setFeeOracle(
-      newFeeOracle: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    setFeePrice(
-      chainId: BigNumberish,
-      feePrice: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    setFeePrices(
-      chainIds: BigNumberish[],
-      prices: BigNumberish[],
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    setSendFeeGas(
-      gas: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
     setStakingRegistry(
       newStakingRegistry: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    setUpdateFeeGas(
-      gas: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 

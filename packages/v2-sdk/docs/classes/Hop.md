@@ -51,6 +51,7 @@
 - [getExplorerApiBaseUrl](Hop.md#getexplorerapibaseurl)
 - [getHubChainId](Hop.md#gethubchainid)
 - [getHubConnectorContractAddress](Hop.md#gethubconnectorcontractaddress)
+- [getMaxBonderFee](Hop.md#getmaxbonderfee)
 - [getMessenger](Hop.md#getmessenger)
 - [getNeedsApprovalForSendTokens](Hop.md#getneedsapprovalforsendtokens)
 - [getPathInfo](Hop.md#getpathinfo)
@@ -574,6 +575,22 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getmaxbonderfee" name="getmaxbonderfee"></a> getMaxBonderFee
+
+▸ **getMaxBonderFee**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetMaxBonderFeeInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 

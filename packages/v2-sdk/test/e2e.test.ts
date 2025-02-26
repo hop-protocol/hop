@@ -101,7 +101,7 @@ describe.skip('Sdk - Hop - e2e', () => {
     console.log('willFail:', willFail)
 
     // const blankAttestedClaimId = sdk.utils.generateZeroBytes32()
-    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
+    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     const pathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,
@@ -181,7 +181,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     })
 
     console.log('fromToken:', fromToken)
-    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
+    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     console.log('initialReserve:', initialReserve.toString())
     const pathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
@@ -230,7 +230,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const maxTotalSent = await sdk.getRailsGateway(fromChainId).getTotalSent({ pathId })
     const fee = await sdk.getRailsGateway(fromChainId).getSendFee({ pathId })
     const to = await senderSigner.getAddress()
-    const maxBonderFee = await sdk.getMaxBonderFee({ fromChainId, fromToken })
+    const maxBonderFee = await sdk.getMaxBonderFee({ amountIn: sendAmount })
     const blankAttestedClaimId = sdk.utils.generateZeroBytes32()
 
     const hops: HopStructInput[] = [{
@@ -335,8 +335,17 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     if (shouldPushClaim) {
       console.log('calling pushClaim')
 
-      const nextHopsHash = await sdk.getRailsGateway(fromChainId).getNextHopsHash({ nextHops: transferSentEvent.decoded.hops.slice(0) })
+      const nextHopsHash = await sdk.getRailsGateway(fromChainId).getNextHopsHash({ nextHops: transferSentEvent.decoded.hops.slice(1) })
       console.log('nextHopsHash:', nextHopsHash)
+
+      const headTransferId = await sdk.getRailsGateway(fromChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
+      console.log('headTransferId:', headTransferId)
+
+      const isValidTransfer = await sdk.getRailsGateway(toChainId).isValidTransfer({
+        pathId,
+        claimId: headTransferId
+      })
+      console.log('isValidTransfer:', isValidTransfer)
 
       // Check if claim already exists
       const isClaimValid = await sdk.getRailsGateway(toChainId).getIsClaimIdValid({
@@ -504,7 +513,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       },
     })
 
-    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserve({ tokenAddress: fromToken })
+    const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     const nextPathId = await sdk.getRailsGateway(fromChainId).getPathId({
       chainId0: fromChainId,
       token0: fromToken,

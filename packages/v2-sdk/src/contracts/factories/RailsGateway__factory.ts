@@ -13,7 +13,7 @@ const _abi = [
       {
         name: "_stakingRegistry",
         type: "address",
-        internalType: "contract StakingRegistry",
+        internalType: "contract IStakingRegistry",
       },
       {
         name: "_dispatcher",
@@ -26,14 +26,9 @@ const _abi = [
         internalType: "contract IMessageExecutor",
       },
       {
-        name: "_feeOracle",
+        name: "_feeManager",
         type: "address",
-        internalType: "address",
-      },
-      {
-        name: "feeDistributor",
-        type: "address",
-        internalType: "address",
+        internalType: "contract IFeeManager",
       },
       {
         name: "_defaultTokenFee",
@@ -44,16 +39,6 @@ const _abi = [
         name: "_tokenFeeRecipient",
         type: "address",
         internalType: "address",
-      },
-      {
-        name: "sendFeeGas",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "updateFeeGas",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -195,29 +180,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "distributeExcessFees",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "recipients",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "amounts",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "executor",
     inputs: [],
     outputs: [
@@ -231,13 +193,13 @@ const _abi = [
   },
   {
     type: "function",
-    name: "feeOracle",
+    name: "feeManager",
     inputs: [],
     outputs: [
       {
         name: "",
         type: "address",
-        internalType: "address",
+        internalType: "contract IFeeManager",
       },
     ],
     stateMutability: "view",
@@ -289,25 +251,6 @@ const _abi = [
     outputs: [
       {
         name: "amountOut",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getBatchUpdateFee",
-    inputs: [
-      {
-        name: "length",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
         type: "uint256",
         internalType: "uint256",
       },
@@ -462,25 +405,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "getClaimFeesFee",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getClaimId",
     inputs: [
       {
@@ -518,44 +442,6 @@ const _abi = [
         name: "counterpartChainId",
         type: "uint256",
         internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getFeePrice",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getFeeVault",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -771,6 +657,19 @@ const _abi = [
         type: "address",
         internalType: "contract IERC20",
       },
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getPushClaimFee",
+    inputs: [],
+    outputs: [
       {
         name: "",
         type: "uint256",
@@ -1083,19 +982,6 @@ const _abi = [
         internalType: "bytes32",
       },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getUpdateFee",
-    inputs: [],
     outputs: [
       {
         name: "",
@@ -1585,87 +1471,12 @@ const _abi = [
   },
   {
     type: "function",
-    name: "setFeeOracle",
-    inputs: [
-      {
-        name: "newFeeOracle",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setFeePrice",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "feePrice",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setFeePrices",
-    inputs: [
-      {
-        name: "chainIds",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "prices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setSendFeeGas",
-    inputs: [
-      {
-        name: "gas",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "setStakingRegistry",
     inputs: [
       {
         name: "newStakingRegistry",
         type: "address",
-        internalType: "contract StakingRegistry",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setUpdateFeeGas",
-    inputs: [
-      {
-        name: "gas",
-        type: "uint256",
-        internalType: "uint256",
+        internalType: "contract IStakingRegistry",
       },
     ],
     outputs: [],
@@ -1679,7 +1490,7 @@ const _abi = [
       {
         name: "",
         type: "address",
-        internalType: "contract StakingRegistry",
+        internalType: "contract IStakingRegistry",
       },
     ],
     stateMutability: "view",

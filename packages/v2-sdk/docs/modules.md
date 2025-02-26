@@ -71,7 +71,6 @@
 - [ExecuteInput](modules.md#executeinput)
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetAmountOutInput](modules.md#getamountoutinput)
-- [GetBatchUpdateFeeInput](modules.md#getbatchupdatefeeinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
 - [GetBucketInput](modules.md#getbucketinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
@@ -93,6 +92,9 @@
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
 - [GetHeadClaimIdInput](modules.md#getheadclaimidinput)
 - [GetHopBalanceInput](modules.md#gethopbalanceinput)
+- [GetInitialReserveByTokenAddressInput](modules.md#getinitialreservebytokenaddressinput)
+- [GetInitialReserveByTokenSymbolInput](modules.md#getinitialreservebytokensymbolinput)
+- [GetInitialReserveInput](modules.md#getinitialreserveinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
@@ -538,18 +540,6 @@ ___
 
 ___
 
-### <a id="getbatchupdatefeeinput" name="getbatchupdatefeeinput"></a> GetBatchUpdateFeeInput
-
-Ƭ **GetBatchUpdateFeeInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `length` | `BigNumberish` |
-
-___
-
 ### <a id="getbucketindexinput" name="getbucketindexinput"></a> GetBucketIndexInput
 
 Ƭ **GetBucketIndexInput**: `Object`
@@ -813,6 +803,42 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `staker` | `string` |
+
+___
+
+### <a id="getinitialreservebytokenaddressinput" name="getinitialreservebytokenaddressinput"></a> GetInitialReserveByTokenAddressInput
+
+Ƭ **GetInitialReserveByTokenAddressInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `tokenAddress` | `string` |
+
+___
+
+### <a id="getinitialreservebytokensymbolinput" name="getinitialreservebytokensymbolinput"></a> GetInitialReserveByTokenSymbolInput
+
+Ƭ **GetInitialReserveByTokenSymbolInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+___
+
+### <a id="getinitialreserveinput" name="getinitialreserveinput"></a> GetInitialReserveInput
+
+Ƭ **GetInitialReserveInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -1503,8 +1529,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `previousTransferId` | `string` |
-| `transferDataHash` | `string` |
+| `index` | `BigNumberish` |
+| `pathId` | `string` |
 
 ___
 
@@ -1759,6 +1785,7 @@ ___
 | `chainId` | `string` |
 | `counterpartChainId` | `string` |
 | `counterpartToken` | `string` |
+| `initialReserve` | `BigNumber` |
 | `pathId` | `string` |
 | `token` | `string` |
 

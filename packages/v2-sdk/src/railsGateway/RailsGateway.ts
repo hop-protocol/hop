@@ -55,6 +55,7 @@ export type Path = {
   token: string
   counterpartToken: string
   counterpartChainId: string
+  initialReserve: BigNumber
 }
 
 export type GetPathIdInput = {
@@ -138,7 +139,7 @@ export type ConfirmClaimInput = {
   claimId: string
 }
 
-export type GetTransferIdInput = {
+export type GetComputedTransferIdInput = {
   previousTransferId: string
   transferDataHash: string
 }
@@ -528,8 +529,17 @@ export type GetInitialReserveByTokenSymbolInput = {
   tokenSymbol: string
 }
 
-export type GetInitialReserveInput = {
+export type GetInitialReserveByTokenAddressInput = {
   tokenAddress: string
+}
+
+export type GetInitialReserveInput = {
+  pathId: string
+}
+
+export type GetTransferIdInput = {
+  pathId: string
+  index: BigNumberish
 }
 
 export type RailsGatewayConstructorInput = {
@@ -904,7 +914,8 @@ export class RailsGateway extends Base {
       chainId: pathInfoArray[0].toString(),
       token: checksumAddress(pathInfoArray[1]),
       counterpartChainId: pathInfoArray[2].toString(),
-      counterpartToken: checksumAddress(pathInfoArray[3])
+      counterpartToken: checksumAddress(pathInfoArray[3]),
+      initialReserve: pathInfoArray[4]
     }
 
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
@@ -928,6 +939,11 @@ export class RailsGateway extends Base {
   async executor (): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.executor()
+  }
+
+  async feeManager (): Promise<string> {
+    const contract = await this.getRailsGatewayContract()
+    return contract.feeManager()
   }
 
   async feeOracle (): Promise<string> {
@@ -1102,6 +1118,17 @@ export class RailsGateway extends Base {
 
     try {
       const fee = await contract.getRemoveFee()
+      return fee
+    } catch (err: unknown) {
+      return this.throwError(err) as BigNumber
+    }
+  }
+
+  async getPushClaimFee (): Promise<BigNumber> {
+    const contract = await this.getRailsGatewayContract()
+
+    try {
+      const fee = await contract.getPushClaimFee()
       return fee
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
@@ -1493,7 +1520,7 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
-        const updateFee = await this.getUpdateFee()
+        const updateFee = await this.getPushClaimFee()
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.pushClaim(pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash)
 
@@ -2014,7 +2041,7 @@ export class RailsGateway extends Base {
         return getComputedTransferDataHash(input)
       },
 
-      getComputedTransferId : ({ previousTransferId, transferDataHash }: GetTransferIdInput): string => {
+      getComputedTransferId : ({ previousTransferId, transferDataHash }: GetComputedTransferIdInput): string => {
         if (!this.utils.isValidBytes32(previousTransferId)) {
           throw new InputError(`Invalid previousTransferId "${previousTransferId}"`)
         }
@@ -2063,7 +2090,7 @@ export class RailsGateway extends Base {
         return BigNumber.from(0)
       },
 
-      getInitialReserve: async ({ tokenAddress }: GetInitialReserveInput): Promise<BigNumber> => {
+      getInitialReserveByTokenAddress: async ({ tokenAddress }: GetInitialReserveByTokenAddressInput): Promise<BigNumber> => {
         if (!this.utils.isValidAddress(tokenAddress)) {
           throw new InputError(`Invalid tokenAddress "${tokenAddress}"`)
         }
@@ -2237,6 +2264,19 @@ export class RailsGateway extends Base {
 
     const contract = await this.getRailsGatewayContract()
     return contract.getTotalWithdrawableAtClaimId(pathId, bonder, claimId)
+  }
+
+  async getTransferId ({ pathId, index }: GetTransferIdInput): Promise<string> {
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(index)) {
+      throw new InputError(`Invalid index "${index}"`)
+    }
+
+    const contract = await this.getRailsGatewayContract()
+    return contract.getTransferId(pathId, index)
   }
 
   async getTransferIndex ({ pathId, transferId }: GetTransferIndexInput): Promise<BigNumber> {
@@ -2661,9 +2701,9 @@ export class RailsGateway extends Base {
     return Number(index)
   }
 
-  async getAmountOut ({ pathId, amount, attestedClaimId }: GetAmountOutInput): Promise<BigNumber> {
+  async getAmountOut ({ pathId, amount, attestedClaimId, sourcePool }: GetAmountOutInput): Promise<BigNumber> {
     const contract = await this.getRailsGatewayContract()
-    return contract.getAmountOut(pathId, amount, attestedClaimId)
+    return contract.getAmountOut(pathId, amount, attestedClaimId, sourcePool)
   }
 
   async isValidClaim ({ pathId, claimId }: IsValidClaimInput ): Promise<boolean> {
@@ -2731,6 +2771,15 @@ export class RailsGateway extends Base {
 
     const contract = await this.getRailsGatewayContract()
     return contract.getSourcePool(pathId, attestedClaimId)
+  }
+
+  async getInitialReserve ({ pathId }: GetInitialReserveInput): Promise<BigNumber> {
+    if (!this.utils.isValidBytes32(pathId)) {
+      throw new InputError(`Invalid pathId "${pathId}"`)
+    }
+
+    const { initialReserve } = await this.getPathInfo({ pathId })
+    return initialReserve
   }
 
   getStakingRegistry(): StakingRegistry {

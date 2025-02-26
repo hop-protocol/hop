@@ -19,6 +19,7 @@ export async function GET(request: any) {
   const cacheTimeSeconds = isAllEvents ? 60 : isExplorerEvents ? 10 : 5
 
   console.log('cache miss' , key)
+  console.log('fetching', url)
   const res = await fetch(url)
   data = await res.json()
 

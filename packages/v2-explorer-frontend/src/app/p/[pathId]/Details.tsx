@@ -24,7 +24,7 @@ export function Details(props: any) {
     { key: 'chainId', label: 'Chain ID' },
     { key: 'pathId', label: 'Path ID' },
     { key: 'headClaimId', label: 'Head Claim ID' },
-    { key: 'pathVault', label: 'Path Vault' },
+    { key: 'tokenVault', label: 'Token Vault' },
     { key: 'sendFee', label: 'Send Fee' },
     { key: 'messageFee', label: 'Message Fee' },
     { key: 'claimFeesFee', label: 'Claim Fees Fee' },

@@ -59,7 +59,7 @@ export {
   IsValidTransferInput,
   SetFeePriceInput,
   SetFeePricesInput,
-  GetPathVaultInput,
+  GetTokenVaultInput,
   Claim,
   Bucket,
   GetBucketInput,

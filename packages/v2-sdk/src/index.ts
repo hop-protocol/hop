@@ -96,7 +96,7 @@ export {
   BonderPreference,
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes,
-  GetPathVaultInput,
+  GetTokenVaultInput,
   StakingRegistryGetWithdrawableBalanceInput,
   Claim,
   Bucket,

@@ -84,7 +84,6 @@
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
-- [getPathVault](RailsGateway.md#getpathvault)
 - [getProvider](RailsGateway.md#getprovider)
 - [getPushClaimFee](RailsGateway.md#getpushclaimfee)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
@@ -1189,22 +1188,6 @@ ___
 
 ___
 
-### <a id="getpathvault" name="getpathvault"></a> getPathVault
-
-▸ **getPathVault**(`«destructured»`): `Promise`\<`string`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetPathVaultInput`](../modules.md#getpathvaultinput) |
-
-#### Returns
-
-`Promise`\<`string`\>
-
-___
-
 ### <a id="getprovider" name="getprovider"></a> getProvider
 
 ▸ **getProvider**(`chainId`): ``null`` \| `Provider`
@@ -1537,7 +1520,13 @@ ___
 
 ### <a id="gettokenvault" name="gettokenvault"></a> getTokenVault
 
-▸ **getTokenVault**(): `Promise`\<`string`\>
+▸ **getTokenVault**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetTokenVaultInput`](../modules.md#gettokenvaultinput) |
 
 #### Returns
 

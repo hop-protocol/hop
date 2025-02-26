@@ -357,7 +357,7 @@ export type SetFeePricesInput = {
   feePrices: BigNumberish[]
 }
 
-export type GetPathVaultInput = {
+export type GetTokenVaultInput = {
   pathId: string
 }
 
@@ -2706,23 +2706,18 @@ export class RailsGateway extends Base {
     return contract.getNextHopsHash(nextHops)
   }
 
-  async getPathVault ({ pathId }: GetPathVaultInput ): Promise<string> {
+  async getTokenVault ({ pathId }: GetTokenVaultInput ): Promise<string> {
     if (!this.utils.isValidBytes32(pathId)) {
       throw new InputError(`Invalid pathId "${pathId}"`)
     }
 
     const contract = await this.getRailsGatewayContract()
-    return contract.getPathVault(pathId)
+    return contract.getTokenVault(pathId)
   }
 
   async getStakingRegistryContractAddress(): Promise<string> {
     const contract = await this.getRailsGatewayContract()
     return contract.stakingRegistry()
-  }
-
-  async getTokenVault(): Promise<string> {
-    const contract = await this.getRailsGatewayContract()
-    return contract.tokenVault()
   }
 
   async getSourcePool({ pathId, attestedClaimId }: GetSourcePoolInput): Promise<BigNumber> {

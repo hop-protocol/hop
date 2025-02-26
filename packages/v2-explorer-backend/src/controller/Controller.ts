@@ -601,6 +601,10 @@ export class Controller {
       item.pathVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathVault, item.context.chainId)
       item.pathVaultTruncated = truncateString(item.pathVault, 4)
     }
+    if (item.tokenVault) {
+      item.tokenVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.tokenVault, item.context.chainId)
+      item.tokenVaultTruncated = truncateString(item.tokenVault, 4)
+    }
     if (item.totalClaims != null && item.token?.decimals != null) {
       item.totalClaimsFormatted = formatUnits(item.totalClaims, item.token.decimals)
       item.totalClaimsDisplay = `${item.totalClaimsFormatted} ${item.token.symbol}`
@@ -647,6 +651,7 @@ export class Controller {
     const filter = this.normalizeFilters(input.filter)
 
     const items = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page })
+
     const itemsNext = await this.pgDb.nonEventTables.Path.getItems({ limit, filter, page: Number(page) + 1 })
     const hasNextPage = itemsNext.length > 0
 
@@ -964,7 +969,7 @@ export class Controller {
 
         const [
           headClaimId,
-          pathVault,
+          tokenVault,
           sendFee,
           // messageFee,
           // claimFeesFee,
@@ -973,7 +978,7 @@ export class Controller {
           totalSent
         ] = await Promise.all([
           railsGateway.getHeadClaimId({ pathId }),
-          railsGateway.getPathVault({ pathId }),
+          railsGateway.getTokenVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
           // railsGateway.getMessageFee({ chainId }), // TODO
           // railsGateway.getClaimFeesFee({ pathId }), // TODO
@@ -1009,7 +1014,7 @@ export class Controller {
           chainId,
           pathId,
           headClaimId,
-          pathVault,
+          tokenVault,
           sendFee: sendFee.toString(),
           // messageFee: messageFee.toString(),
           // claimFeesFee: claimFeesFee.toString(),

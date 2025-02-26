@@ -126,7 +126,6 @@
 - [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
-- [GetPathVaultInput](modules.md#getpathvaultinput)
 - [GetRelayFeeInput](modules.md#getrelayfeeinput)
 - [GetRelayMessageDataFromTransactionHashInput](modules.md#getrelaymessagedatafromtransactionhashinput)
 - [GetRelayMessagePopulatedTxInput](modules.md#getrelaymessagepopulatedtxinput)
@@ -138,6 +137,7 @@
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
+- [GetTokenVaultInput](modules.md#gettokenvaultinput)
 - [GetTotalClaimsAtClaimIdInput](modules.md#gettotalclaimsatclaimidinput)
 - [GetTotalClaimsInput](modules.md#gettotalclaimsinput)
 - [GetTotalConfirmedInput](modules.md#gettotalconfirmedinput)
@@ -1229,18 +1229,6 @@ ___
 
 ___
 
-### <a id="getpathvaultinput" name="getpathvaultinput"></a> GetPathVaultInput
-
-Ƭ **GetPathVaultInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
 ### <a id="getrelayfeeinput" name="getrelayfeeinput"></a> GetRelayFeeInput
 
 Ƭ **GetRelayFeeInput**: `Object`
@@ -1382,6 +1370,18 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `address` | `string` |
+
+___
+
+### <a id="gettokenvaultinput" name="gettokenvaultinput"></a> GetTokenVaultInput
+
+Ƭ **GetTokenVaultInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 

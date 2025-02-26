@@ -299,7 +299,7 @@ export class TransferSentTable extends EventDb {
       SELECT
         t.symbol AS "tokenSymbol",
         t.decimals AS "tokenDecimals",
-        SUM(e.amount_out) AS "totalVolume"
+        SUM(e.amount) AS "totalVolume"
       FROM
         transfer_sent_events e
       JOIN

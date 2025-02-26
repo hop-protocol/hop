@@ -30,6 +30,9 @@ export class PgDb {
   migrationTable: any = {}
   migrationManager: any
   initiated = false
+  initialMigrationIndex = 0
+  rollbackCount = 0
+  skipMigrations = true
 
   constructor () {
     const initOptions: any = {}
@@ -89,7 +92,9 @@ export class PgDb {
       await this.events[event].createTable()
     }
 
-    await this.migrationManager.runMigrations(0)
+    if (!this.skipMigrations) {
+      await this.migrationManager.runMigrations(this.rollbackCount)
+    }
 
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createIndexes()

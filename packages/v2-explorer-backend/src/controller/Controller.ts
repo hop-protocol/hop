@@ -573,6 +573,10 @@ export class Controller {
       item.updateFeeFormatted = formatUnits(item.updateFee, 18)
       item.updateFeeDisplay = `${item.updateFeeFormatted} ETH`
     }
+    if (item.pushClaimFee != null) {
+      item.pushClaimFeeFormatted = formatUnits(item.pushClaimFee, 18)
+      item.pushClaimFeeDisplay = `${item.pushClaimFeeFormatted} ETH`
+    }
     if (item.claimFeesFee != null) {
       item.claimFeesFeeFormatted = formatUnits(item.claimFeesFee, 18)
       item.claimFeesFeeDisplay = `${item.claimFeesFeeFormatted} ETH`
@@ -857,12 +861,12 @@ export class Controller {
         const [
           railsGatewayAddress,
           removeFee,
-          updateFee,
+          pushClaimFee,
           stakingRegistryAddress
         ] = await Promise.all([
           railsGateway.getRailsGatewayContractAddress(),
           railsGateway.getRemoveFee(),
-          railsGateway.getUpdateFee(),
+          railsGateway.getPushClaimFee(),
           railsGateway.getStakingRegistryContractAddress()
         ])
 
@@ -876,7 +880,7 @@ export class Controller {
           pathIdsCount: pathIds.length,
           railsGatewayAddress,
           removeFee: removeFee.toString(),
-          updateFee: updateFee.toString(),
+          pushClaimFee: pushClaimFee.toString(),
           stakingRegistryAddress,
           context: { chainId }
         })

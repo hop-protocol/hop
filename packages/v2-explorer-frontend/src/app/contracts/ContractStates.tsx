@@ -43,7 +43,7 @@ export function ContractStates() {
   const railsGatewayFields = [
     { key: 'railsGatewayAddress', label: 'Gateway Address' },
     { key: 'removeFee', label: 'Remove Fee' },
-    { key: 'updateFee', label: 'Update Fee' },
+    { key: 'pushClaimFee', label: 'Push Claim Fee' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
     { key: 'pathIdsCount', label: 'Path Ids (Count)' },
   ]

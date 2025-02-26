@@ -39,7 +39,7 @@ export class EventContextTable extends BaseDb {
       gas_price NUMERIC NOT NULL CHECK (gas_price >= 0),
       status INTEGER NOT NULL CHECK (status >= 0),
       data TEXT,
-      data_ddcoded JSONB
+      data_decoded JSONB
     )`)
   }
 

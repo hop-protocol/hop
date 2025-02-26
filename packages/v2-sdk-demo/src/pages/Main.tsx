@@ -43,8 +43,6 @@ const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/R
 const RailsGatewayGetBucketIndex = lazy(() => import('../components/railsGateway/RailsGatewayGetBucketIndex.js'))
 const RailsGatewayGetStakingRegistry = lazy(() => import('../components/railsGateway/RailsGatewayGetStakingRegistry.js'))
 const RailsGatewayGetTransferDataHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferDataHash.js'))
-const RailsGatewayBatchUpdateClaimChain = lazy(() => import('../components/railsGateway/RailsGatewayBatchUpdateClaimChain.js'))
-const RailsGatewayUpdateClaimChain = lazy(() => import('../components/railsGateway/RailsGatewayUpdateClaimChain.js'))
 const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash.js'))
 const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId.js'))
 const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash.js'))
@@ -142,8 +140,6 @@ export function Main () {
     ['Rails Gateway - Get Withdrawable Balance', <RailsGatewayGetWithdrawableBalance sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Total Sent', <RailsGatewayGetTotalSent sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Transfer Data Hash', <RailsGatewayGetTransferDataHash sdk={sdkWithSigner} />],
-    ['Rails Gateway - Update Claim Chain', <RailsGatewayUpdateClaimChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Batch Update Claim Chain', <RailsGatewayBatchUpdateClaimChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transaction Hash', <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />],

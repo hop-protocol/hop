@@ -45,12 +45,11 @@ export function GetMessageCalldata (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         messageId
       }
 
       console.log('args', args)
-      const calldata = await sdk.messenger.getMessageCalldataFromMessageId(args)
+      const calldata = await sdk.getMessenger(fromChainId).getMessageCalldataFromMessageId(args)
       setCalldata(calldata)
     } catch (err: any) {
       console.error(err)
@@ -67,8 +66,7 @@ async function main() {
   const messageId = "${messageId}"
 
   ${hopInstantiateDisplayString}
-  const calldata = await hop.messenger.getMessageCalldataFromMessageId({
-    chainId,
+  const calldata = await hop.getMessenger(chainId).getMessageCalldataFromMessageId({
     messageId
   })
   console.log(calldata)

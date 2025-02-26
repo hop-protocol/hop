@@ -188,7 +188,6 @@ export class Hop extends Base {
   private readonly eventFetcher: EventFetcher
   private readonly providers: Record<string, providers.Provider> = {}
   private readonly gasPriceOracle: GasPriceOracle
-  readonly messenger: Messenger
   readonly railsGateways: Record<string, RailsGateway> = {}
   readonly hubConnector: HubConnector
 

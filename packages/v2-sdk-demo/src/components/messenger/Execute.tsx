@@ -76,7 +76,7 @@ export function Execute (props: Props) {
       toCalldata: toCalldata.trim()
     }
     console.log('args', args)
-    const txData = await sdk.messenger.populateTransaction.execute(args)
+    const txData = await sdk.getMessenger(toChainId).populateTransaction.execute(args)
     return txData
   }
 
@@ -120,7 +120,7 @@ async function main() {
   const toCalldata = "${toCalldata}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.messenger.populateTransaction.execute({
+  const txData = await hop.getMessenger(fromChainId).populateTransaction.execute({
     messageId,
     fromChainId,
     toChainId,

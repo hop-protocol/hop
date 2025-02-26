@@ -274,7 +274,6 @@ describe('Messenger', () => {
     const bundleCommittedTransactionHash = `0x${'a'.repeat(64)}`
     jest.spyOn(messenger.populateTransaction as any, 'bundleExit').mockReturnValue({} as any)
     const populatedTx = await messenger.populateTransaction.bundleExit({
-      fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash
     })

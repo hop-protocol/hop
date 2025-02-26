@@ -41,12 +41,11 @@ export function GetMessageIdFromTxHash (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         transactionHash: messageSentTransactionHash
       }
 
       console.log('args', args)
-      const messageId = await sdk.messenger.getMessageIdFromTransactionHash(args)
+      const messageId = await sdk.getMessenger(fromChainId).getMessageIdFromTransactionHash(args)
       setMessageId(messageId)
     } catch (err: any) {
       console.error(err)
@@ -63,8 +62,7 @@ async function main() {
   const transactionHash = "${messageSentTransactionHash}"
 
   ${hopInstantiateDisplayString}
-  const messageId = await hop.messenger.getMessageIdFromTransactionHash({
-    chainId,
+  const messageId = await hop.getMessenger(chainId).getMessageIdFromTransactionHash({
     transactionHash
   })
   console.log(messageId)

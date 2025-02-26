@@ -77,7 +77,6 @@ export {
   TransferSentEventInput,
   TransferSentIndexes,
   UnstakeHopInput,
-  WithdrawInput,
   GetWithdrawableBalanceInput,
   GetTotalSentInput,
   SignalPreferenceInput,

@@ -208,7 +208,6 @@
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
 - [WithdrawBondsInput](modules.md#withdrawbondsinput)
 - [WithdrawClaimInput](modules.md#withdrawclaiminput)
-- [WithdrawInput](modules.md#withdrawinput)
 
 ### Variables
 
@@ -576,7 +575,6 @@ ___
 | :------ | :------ |
 | `bundleCommittedEvent?` | `EthersEventWithDecodedTypesAndContext`\<`BundleCommitted`\> |
 | `bundleCommittedTransactionHash?` | `string` |
-| `fromChainId` | `BigNumberish` |
 
 ___
 
@@ -2320,19 +2318,6 @@ ___
 ### <a id="withdrawclaiminput" name="withdrawclaiminput"></a> WithdrawClaimInput
 
 Ƭ **WithdrawClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="withdrawinput" name="withdrawinput"></a> WithdrawInput
-
-Ƭ **WithdrawInput**: `Object`
 
 #### Type declaration
 

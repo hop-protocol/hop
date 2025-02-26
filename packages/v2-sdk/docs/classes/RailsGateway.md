@@ -158,7 +158,6 @@
 - [throwError](RailsGateway.md#throwerror)
 - [updateDefaultTokenFee](RailsGateway.md#updatedefaulttokenfee)
 - [updateTokenFee](RailsGateway.md#updatetokenfee)
-- [withdraw](RailsGateway.md#withdraw)
 - [withdrawBonds](RailsGateway.md#withdrawbonds)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
@@ -320,7 +319,6 @@ ___
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrices` | (`__namedParameters`: [`SetFeePricesInput`](../modules.md#setfeepricesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `withdraw` | (`__namedParameters`: [`WithdrawInput`](../modules.md#withdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdrawBonds` | (`__namedParameters`: [`WithdrawBondsInput`](../modules.md#withdrawbondsinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `withdrawClaim` | (`__namedParameters`: [`WithdrawClaimInput`](../modules.md#withdrawclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 
@@ -2407,23 +2405,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `«destructured»` | [`UpdateTokenFeeInput`](../modules.md#updatetokenfeeinput) |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="withdraw" name="withdraw"></a> withdraw
-
-▸ **withdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`WithdrawInput`](../modules.md#withdrawinput) |
-| `txOverrides` | `TxOverrides` |
 
 #### Returns
 

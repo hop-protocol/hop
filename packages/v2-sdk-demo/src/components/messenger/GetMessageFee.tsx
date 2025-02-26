@@ -37,11 +37,10 @@ export function GetMessageFee (props: Props) {
     event.preventDefault()
     try {
       const args = {
-        fromChainId,
         toChainId
       }
       console.log(args)
-      const fee = await sdk.messenger.getMessageFee(args)
+      const fee = await sdk.getMessenger(fromChainId).getMessageFee(args)
       setOutput(fee.toString())
     } catch (err: any) {
       console.error(err)
@@ -56,8 +55,7 @@ async function main() {
   const fromChainId = "${fromChainId}"
   const toChainId = "${toChainId}"
 
-  const fee = await hop.messenger.getMessageFee({
-    fromChainId,
+  const fee = await hop.getMessenger(fromChainId).getMessageFee({
     toChainId
   })
   console.log(fee)

@@ -45,12 +45,11 @@ export function GetMessageSentEventFromTxHash (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         transactionHash
       }
 
       console.log('args', args)
-      const event = await sdk.messenger.getMessageSentEventFromTransactionHash(args)
+      const event = await sdk.getMessenger(fromChainId).getMessageSentEventFromTransactionHash(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -67,8 +66,7 @@ async function main() {
   const transactionHash = "${transactionHash}"
 
   ${hopInstantiateDisplayString}
-  const event = await hop.messenger.getMessageSentEventFromTransactionHash({
-    chainId,
+  const event = await hop.getMessenger(chainId).getMessageSentEventFromTransactionHash({
     transactionHash
   })
   console.log(event)

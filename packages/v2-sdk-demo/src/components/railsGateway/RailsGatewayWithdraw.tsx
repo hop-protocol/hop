@@ -34,10 +34,6 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
-    defaultValue: '',
-  })
-
   const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
@@ -60,11 +56,10 @@ export function RailsGatewayWithdraw (props: Props) {
   async function getSendTxData() {
     const args = {
       pathId,
-      amount,
       claimId
     }
     console.log('args', args)
-    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdraw(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawBonds(args)
     return txData
   }
 
@@ -102,13 +97,11 @@ import { ethers } from 'ethers'
 
 async function main() {
   const pathId = "${pathId}"
-  const amount = "${amount}"
   const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdraw({
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdrawBonds({
     pathId,
-    amount,
     claimId
   })
   ${populateTxDataOnly ? (
@@ -156,13 +149,6 @@ main().catch(console.error)
                   <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount of transfer</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>

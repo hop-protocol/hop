@@ -161,14 +161,14 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
-    const shouldPushClaim = true // debug
-    const shouldBond = true // debug
-    const shouldExecute = true // debug
-    const shouldConfirm = true // debug
+    const shouldPushClaim = false // debug
+    const shouldBond = false // debug
+    const shouldExecute = false // debug
+    const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
     let sendTxHash = '0x579bf9d653b2bc5237db2f024afd80c70a2ca4a5ff901b33acf4520a4a59eb4c'
-    let bondTxHash = ''
+    let bondTxHash = '0x6ea977c4c32ad99f59b4cce2f5c2cd53fcb9785c77de5949eb29ec64474443dc'
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -444,14 +444,16 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     if (shouldExecute) {
       console.log('calling execute')
-      const executeTx = await sdk.messenger.execute({
+      const args = {
         messageId,
         fromChainId,
         toChainId: messageSentEvent.decoded.toChainId,
         fromAddress: messageSentEvent.decoded.from,
         toAddress: messageSentEvent.decoded.to,
         toCalldata: messageSentEvent.decoded.data
-      })
+      }
+      console.log(args)
+      const executeTx = await sdk.getMessenger(toChainId).execute(args)
 
       console.log('execute tx:', executeTx.hash)
       await executeTx.wait()
@@ -470,9 +472,9 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     if (shouldWithdraw) {
       console.log('calling withdraw')
-      const withdrawTx = await sdk.getRailsGateway(toChainId).withdraw({
+      const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawBonds({
         pathId: transferSentEvent.decoded.pathId,
-        claimId: transferSentEvent.decoded.transferId // TODO
+        claimId: transferSentEvent.decoded.transferId
       })
 
       console.log('withdraw tx:', withdrawTx.hash)
@@ -679,7 +681,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     if (shouldExecute) {
       console.log('calling execute')
-      const executeTx = await sdk.messenger.execute({
+      const executeTx = await sdk.getMessenger(toChainId).execute({
         messageId,
         fromChainId,
         toChainId: messageSentEvent.decoded.toChainId,
@@ -806,7 +808,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     if (shouldExecute2) {
       console.log('calling execute2')
-      const executeTx = await sdk.messenger.execute({
+      const executeTx = await sdk.getMessenger(toChainId).execute({
         messageId: messageId2,
         fromChainId: nextChainId,
         toChainId: messageSentEvent2.decoded.toChainId,

@@ -40,7 +40,7 @@ export function GetEvents (props: Props) {
 
   const [loading, setLoading] = useState(false)
   const eventNames = useMemo(() => {
-    return sdk?.messenger.getEventNames() ?? []
+    return sdk?.getMessenger(chainId).getEventNames() ?? []
   }, [sdk])
   const [error, setError] = useState('')
 
@@ -104,7 +104,7 @@ async function main() {
   const toBlock = ${toBlock || 'undefined'}
 
   ${hopInstantiateDisplayString}
-  const events = await hop.messenger.getEvents({
+  const events = await hop.getMessenger(chainId).getEvents({
     eventNames,
     chainId,
     fromBlock,

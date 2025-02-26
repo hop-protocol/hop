@@ -215,7 +215,8 @@ export function generateMockPath(): Path {
     chainId: generateRandomInt(1, 10).toString(), // Example chain ID as a string
     token: generateRandomAddress(), // Random Ethereum address
     counterpartToken: generateRandomAddress(), // Random Ethereum address
-    counterpartChainId: generateRandomInt(1, 10).toString() // Example counterpart chain ID as a string
+    counterpartChainId: generateRandomInt(1, 10).toString(), // Example counterpart chain ID as a string
+    initialReserve: generateRandomUint256(),
   }
 }
 

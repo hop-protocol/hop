@@ -19,7 +19,6 @@
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
 - [hubConnector](Hop.md#hubconnector)
 - [l1ChainId](Hop.md#l1chainid)
-- [messenger](Hop.md#messenger)
 - [network](Hop.md#network)
 - [railsGateways](Hop.md#railsgateways)
 - [signersOrProviders](Hop.md#signersorproviders)
@@ -157,12 +156,6 @@ ___
 #### Inherited from
 
 Base.l1ChainId
-
-___
-
-### <a id="messenger" name="messenger"></a> messenger
-
-• `Readonly` **messenger**: `Messenger`
 
 ___
 

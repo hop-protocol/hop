@@ -45,12 +45,11 @@ export function GetMessageSentEventFromMessageId (props: Props) {
       setLoading(true)
 
       const args = {
-        chainId: fromChainId,
         messageId
       }
 
       console.log('args', args)
-      const event = await sdk.messenger.getMessageSentEventFromMessageId(args)
+      const event = await sdk.getMessenger(fromChainId).getMessageSentEventFromMessageId(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -67,8 +66,7 @@ async function main() {
   const messageId = "${messageId}"
 
   ${hopInstantiateDisplayString}
-  const event = await hop.messenger.getMessageSentEventFromMessageId({
-    chainId,
+  const event = await hop.getMessenger(chainId).getMessageSentEventFromMessageId({
     messageId
   })
   console.log(event)

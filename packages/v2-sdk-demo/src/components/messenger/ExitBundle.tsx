@@ -52,11 +52,10 @@ export function ExitBundle (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      fromChainId,
       bundleCommittedTransactionHash: bundleCommittedTxHash
     }
     console.log('args', args)
-    const txData = await sdk.messenger.populateTransaction.bundleExit(args)
+    const txData = await sdk.getMessenger(fromChainId).populateTransaction.bundleExit(args)
     return txData
   }
 
@@ -96,8 +95,7 @@ async function main() {
   const bundleCommittedTransactionHash = "${bundleCommittedTxHash}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.messenger.populateTransaction.bundleExit({
-    fromChainId,
+  const txData = await hop.getMessenger(fromChainId).populateTransaction.bundleExit({
     bundleCommittedTransactionHash
   })
   ${populateTxDataOnly ? (

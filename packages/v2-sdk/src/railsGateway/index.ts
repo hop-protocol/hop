@@ -43,7 +43,6 @@ export {
   TransferBondedEventInput,
   TransferSentEventInput,
   GetWithdrawableBalanceInput,
-  WithdrawInput,
   GetIsTransferBondedInput,
   GetIsTransferClaimedInput,
   GetNextHopsHashInput,

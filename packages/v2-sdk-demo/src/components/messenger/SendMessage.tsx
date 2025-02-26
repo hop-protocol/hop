@@ -122,7 +122,7 @@ export function SendMessage (props: Props) {
       toCalldata
     }
     console.log('args', args)
-    const txData = await sdk.messenger.populateTransaction.sendMessage(args)
+    const txData = await sdk.getMessenger(fromChainId).populateTransaction.sendMessage(args)
     return txData
   }
 
@@ -147,7 +147,7 @@ export function SendMessage (props: Props) {
           chainId: fromChainId,
           receipt
         }
-        const event = await sdk.messenger.getMessageSentEventFromTransactionReceipt(args)
+        const event = await sdk.getMessenger(fromChainId).getMessageSentEventFromTransactionReceipt(args)
         setMessageId(event?.decoded.messageId)
       }
     } catch (err: any) {
@@ -172,7 +172,7 @@ async function main() {
   const toCalldata = "${toCalldata}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.messenger.populateTransaction.sendMessage({
+  const txData = await hop.getMessenger(fromChainId).populateTransaction.sendMessage({
     fromChainId,
     toChainId,
     toAddress,

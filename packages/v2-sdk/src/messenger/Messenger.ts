@@ -52,7 +52,6 @@ export type ShouldAttemptForwardMessageInput = {
 }
 
 export type GetBundleExitPopulatedTxInput = {
-  fromChainId: BigNumberish
   bundleCommittedEvent?: EthersEventWithDecodedTypesAndContext<BundleCommitted>
   bundleCommittedTransactionHash?: string
 }
@@ -781,7 +780,8 @@ export class Messenger extends Base {
         }
       },
 
-      bundleExit: async ({ fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash }: GetBundleExitPopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      bundleExit: async ({ bundleCommittedEvent, bundleCommittedTransactionHash }: GetBundleExitPopulatedTxInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+        const fromChainId = this.chainId
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }

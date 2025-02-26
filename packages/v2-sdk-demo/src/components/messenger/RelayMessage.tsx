@@ -79,7 +79,7 @@ export function RelayMessage (props: Props) {
       bundleProof: JSON.parse(bundleProof.trim())
     }
     console.log('args', args)
-    const txData = await sdk.messenger.populateTransaction.relayMessage(args)
+    const txData = await sdk.getMessenger(toChainId).populateTransaction.relayMessage(args)
     return txData
   }
 
@@ -131,7 +131,7 @@ async function main() {
   const bundleProof = ${_bundleProof}
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.messenger.populateTransaction.relayMessage({
+  const txData = await hop.getMessenger(toChainId).populateTransaction.relayMessage({
     fromChainId,
     toChainId,
     fromAddress,

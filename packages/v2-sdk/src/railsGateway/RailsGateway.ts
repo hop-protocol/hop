@@ -144,11 +144,6 @@ export type GetComputedTransferIdInput = {
   transferDataHash: string
 }
 
-export type WithdrawInput = {
-  pathId: string
-  claimId: string
-}
-
 export type GetWithdrawableBalanceInput = {
   pathId: string
   recipient: string
@@ -1690,31 +1685,6 @@ export class RailsGateway extends Base {
         }
       },
 
-      withdraw: async ({ pathId, claimId }: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.withdraw(pathId, claimId)
-
-        return {
-          ...txData,
-          ...txOverrides,
-          chainId: Number(chainId)
-        }
-      },
-
       confirmClaim: async ({ pathId, claimId }: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
@@ -2174,11 +2144,6 @@ export class RailsGateway extends Base {
 
   async confirmClaim (input: ConfirmClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.confirmClaim(input, txOverrides)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async withdraw (input: WithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.withdraw(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

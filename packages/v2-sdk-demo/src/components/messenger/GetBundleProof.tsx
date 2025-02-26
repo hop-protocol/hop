@@ -43,11 +43,10 @@ export function GetBundleProof (props: Props) {
 
   async function getBundleProof() {
     const args = {
-      chainId: fromChainId,
       messageId
     }
     console.log('args', args)
-    const proof = await sdk.messenger.getBundleProofFromMessageId(args)
+    const proof = await sdk.getMessenger(fromChainId).getBundleProofFromMessageId(args)
     return proof
   }
 
@@ -74,8 +73,7 @@ async function main() {
   const messageId = "${messageId}"
 
   ${hopInstantiateDisplayString}
-  const bundleProof = await hop.messenger.getBundleProofFromMessageId({
-    chainId,
+  const bundleProof = await hop.getMessenger(chainId).getBundleProofFromMessageId({
     messageId
   })
   console.log(bundleProof)

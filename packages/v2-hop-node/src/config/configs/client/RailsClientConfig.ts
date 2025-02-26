@@ -13,7 +13,7 @@ export async function validate(config: IRailsClientConfig): Promise<void> {
 
   const { paths } = config
 
-  // Validate that the paths are live
+  // Validate that the paths are fully live
   for (const path of paths) {
     const pathId = Rails.getPathId(path)
     const provider = getRpcProvider(path.srcChainId)

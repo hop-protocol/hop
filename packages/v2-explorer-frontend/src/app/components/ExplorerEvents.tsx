@@ -67,8 +67,8 @@ export function ExplorerEvents (props: any) {
       value: 'Token',
     },
     {
-      key: 'amountOut',
-      value: 'Amount Out',
+      key: 'amount',
+      value: 'Amount',
     },
     {
       key: 'transferId',
@@ -107,7 +107,7 @@ export function ExplorerEvents (props: any) {
       )
     }
 
-    const transferAmountOutDisplay = `${event?.amountOutDisplay ?? ''} (${event?.amountOutUsdDisplay ?? ''})`
+    const transferAmountDisplay = `${event?.amountDisplay ?? ''} (${event?.amountUsdDisplay ?? ''})`
 
     return [
       {
@@ -129,9 +129,9 @@ export function ExplorerEvents (props: any) {
         valueUrl: event.token?.tokenExplorerUrl,
       },
       {
-        key: 'amountOut',
-        value: transferAmountOutDisplay,
-        clipboardValue: transferAmountOutDisplay
+        key: 'amount',
+        value: transferAmountDisplay,
+        clipboardValue: transferAmountDisplay
       },
       {
         key: 'transferId',

@@ -5,7 +5,7 @@
       {
         "name": "_stakingRegistry",
         "type": "address",
-        "internalType": "contract StakingRegistry"
+        "internalType": "contract IStakingRegistry"
       },
       {
         "name": "_dispatcher",
@@ -18,14 +18,9 @@
         "internalType": "contract IMessageExecutor"
       },
       {
-        "name": "_feeOracle",
+        "name": "_feeManager",
         "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "feeDistributor",
-        "type": "address",
-        "internalType": "address"
+        "internalType": "contract IFeeManager"
       },
       {
         "name": "_defaultTokenFee",
@@ -36,16 +31,6 @@
         "name": "_tokenFeeRecipient",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "sendFeeGas",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "updateFeeGas",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "stateMutability": "nonpayable"
@@ -187,29 +172,6 @@
   },
   {
     "type": "function",
-    "name": "distributeExcessFees",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "recipients",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "amounts",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "executor",
     "inputs": [],
     "outputs": [
@@ -223,13 +185,13 @@
   },
   {
     "type": "function",
-    "name": "feeOracle",
+    "name": "feeManager",
     "inputs": [],
     "outputs": [
       {
         "name": "",
         "type": "address",
-        "internalType": "address"
+        "internalType": "contract IFeeManager"
       }
     ],
     "stateMutability": "view"
@@ -281,25 +243,6 @@
     "outputs": [
       {
         "name": "amountOut",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBatchUpdateFee",
-    "inputs": [
-      {
-        "name": "length",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -454,25 +397,6 @@
   },
   {
     "type": "function",
-    "name": "getClaimFeesFee",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getClaimId",
     "inputs": [
       {
@@ -510,44 +434,6 @@
         "name": "counterpartChainId",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getFeePrice",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getFeeVault",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -763,6 +649,19 @@
         "type": "address",
         "internalType": "contract IERC20"
       },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPushClaimFee",
+    "inputs": [],
+    "outputs": [
       {
         "name": "",
         "type": "uint256",
@@ -1075,19 +974,6 @@
         "internalType": "bytes32"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getUpdateFee",
-    "inputs": [],
     "outputs": [
       {
         "name": "",
@@ -1577,87 +1463,12 @@
   },
   {
     "type": "function",
-    "name": "setFeeOracle",
-    "inputs": [
-      {
-        "name": "newFeeOracle",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setFeePrice",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "feePrice",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setFeePrices",
-    "inputs": [
-      {
-        "name": "chainIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "prices",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setSendFeeGas",
-    "inputs": [
-      {
-        "name": "gas",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "setStakingRegistry",
     "inputs": [
       {
         "name": "newStakingRegistry",
         "type": "address",
-        "internalType": "contract StakingRegistry"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setUpdateFeeGas",
-    "inputs": [
-      {
-        "name": "gas",
-        "type": "uint256",
-        "internalType": "uint256"
+        "internalType": "contract IStakingRegistry"
       }
     ],
     "outputs": [],
@@ -1671,7 +1482,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract StakingRegistry"
+        "internalType": "contract IStakingRegistry"
       }
     ],
     "stateMutability": "view"

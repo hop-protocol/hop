@@ -89,7 +89,10 @@ export {
   SetStakingRegistryInput,
   SetUpdateFeeGasInput,
   UpdateDefaultTokenFeeInput,
-  UpdateTokenFeeInput
+  UpdateTokenFeeInput,
+  GetInitialReserveByTokenSymbolInput,
+  GetInitialReserveByTokenAddressInput,
+  GetInitialReserveInput,
 } from './RailsGateway.js'
 export {
   AcceptSlashInput,

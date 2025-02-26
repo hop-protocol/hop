@@ -1,5 +1,6 @@
 import { RailsClaimDataAdapter } from './state-machine/DataAdapter.js'
 import { RailsClaimStateMachine } from './state-machine/StateMachine.js'
+import type { ClientName } from '../../constants.js'
 import type { RailsIndexer } from '../RailsIndexer.js'
 import type { RailsRelayer } from '../RailsRelayer.js'
 
@@ -7,7 +8,7 @@ export class RailsClaim {
   readonly #stateMachine: RailsClaimStateMachine
   #started: boolean = false
 
-  constructor (clientName: string, indexer: RailsIndexer, relayer: RailsRelayer) {
+  constructor (clientName: ClientName, indexer: RailsIndexer, relayer: RailsRelayer) {
     const name = `${clientName}Claim`
 
     // State handler

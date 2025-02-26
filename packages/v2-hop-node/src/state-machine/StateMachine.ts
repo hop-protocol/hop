@@ -43,7 +43,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   // The maximum amount of time an item can be in the DB before it is considered stale and missed.
   // The resource consumed by this is a DB read per poll plus any fetches to validate state, which
   // adds up with many misses. This is meant to avoid a huge number of missed events in the DB.
-  readonly #maxItemAgeMs: number = TimeIntervals.ONE_WEEK_MS
+  readonly #maxItemAgeMs: number = TimeIntervals.ONE_DAY_MS
   protected readonly logger: Logger
 
   protected abstract getStates(): State[]
@@ -78,7 +78,7 @@ export abstract class StateMachine<State extends string, StateData extends State
     await this.#dataAdapter.init()
 
     // This handles any pending state transitions upon startup
-    // NOTE: Do not process in parallel, since this intentionally
+    // Do not process in parallel, since this intentionally
     // processes each state in order.
     for (const state of this.#states) {
       await this.#checkStateTransition(state)
@@ -136,7 +136,8 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (isLastState(this.#states, state)) return
 
     for await (const [key, value] of this.#db.getItemsInState(state)) {
-      await this.#preTransitionHook(state, value, key)
+      const shouldProceed = await this.#preTransitionHook(state, value, key)
+      if (!shouldProceed) continue
 
       const shouldAttempt = this.shouldAttemptTransition(state, value)
       if (!shouldAttempt) continue
@@ -199,26 +200,29 @@ export abstract class StateMachine<State extends string, StateData extends State
    * Hooks
    */
 
-  async #preTransitionHook (state: State, value: StateData, key: string): Promise<void> {
+  async #preTransitionHook (state: State, value: StateData, key: string): Promise<boolean> {
     const eventTimestampMs = value.txContext.timestampMs
     if (eventTimestampMs < Date.now() - this.#maxItemAgeMs) {
       this.logger.error(`Missed event for state: ${state}, key: ${key}`)
-      return this.#db.discardItem(state, value, key)
+      await this.#db.discardItem(this.#states, value, key)
+      return false
     }
+    return true
   }
 
-  async #postTransitionHook (nextState: State, key: string): Promise<void> {
+  async #postTransitionHook (nextState: State, key: string): Promise<boolean> {
     this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
 
     // There is no action needed for the final state
     const isLastStateHook = isLastState(this.#states, nextState)
-    if (isLastStateHook) return
+    if (isLastStateHook) return false
 
     // The first state hook will have nothing in the DB to read
     const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
 
     this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
-    return this.#relayer.relay(relayItem)
+    await this.#relayer.relay(relayItem)
+    return true
   }
 
   // Aggregate all existing data to send to the relayer. The relayer

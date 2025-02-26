@@ -2,6 +2,7 @@ import { poll } from '#utils/poll.js'
 import { Logger } from '#logger/index.js'
 import { RelayerDB } from './RelayerDB.js'
 import { isEVMError } from '#gasboost/index.js'
+import { Config } from '#config/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
 
@@ -24,6 +25,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   // is too long, users will have to wait longer for their transactions to be relayed. A thirty
   // second poller is a good balance between the two.
   readonly #pollIntervalMs: number = 30_000
+  readonly #dryRun: boolean
   protected readonly logger: Logger
 
   protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
@@ -32,6 +34,7 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
 
   constructor (name: string) {
     this.#db = new RelayerDB(name)
+    this.#dryRun = Config.GlobalConfig.options.dryRun
     const tag = name + 'Relayer'
     this.logger = new Logger({
       tag,
@@ -87,6 +90,14 @@ export abstract class Relayer<RelayItem extends object> implements IRelayer<Rela
   async #attemptRelay (relayItem: RelayItem): Promise<void> {
     this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
     try {
+      // TODO: Optimize: dryRun should be a feature of the provider, not the relayer.
+      // Move it there when provider and signer modules are cleaned up.
+      if (this.#dryRun) {
+        this.logger.info(`Dry run enabled. Skipping relay for item: ${JSON.stringify(relayItem)}`)
+        await this.#db.removeItem(relayItem)
+        return
+      }
+
       await this.sendRelay(relayItem)
       await this.#db.removeItem(relayItem)
     } catch (err: unknown) {

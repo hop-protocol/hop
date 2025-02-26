@@ -1,11 +1,5 @@
-import { CCTP } from './CCTP.js'
-import { CCTPSDK } from './sdk/CCTPSDK.js'
-import { getUnrelayedMessages } from './utils.js'
-import type { ISentCCTPMessage } from './state-machine/types.js'
-
-export {
-  CCTP,
-  CCTPSDK,
-  getUnrelayedMessages,
-  type ISentCCTPMessage
-}
+export { CCTP } from './CCTP.js'
+export { CCTPSDK } from './sdk/CCTPSDK.js'
+export { getUnrelayedMessages } from './utils.js'
+export * from './validation/index.js'
+export type { ISentCCTPMessage } from './state-machine/types.js'

@@ -66,10 +66,14 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
     return this.#updateState(state, nextState, key, value)
   }
 
-  async discardItem(state: State, value: StateData, key: Key): Promise<void> {
+  async discardItem(allStates: State[], value: StateData, key: Key): Promise<void> {
     const batch = this.batch()
-    batch.del(key, { sublevel: this.getSublevel(state) })
-    batch.del(state, { sublevel: this.getSublevel(key) })
+    // Since this method implies an incorrect DB state, we remove all
+    // states even though there should only be one at a time.
+    for (const state of allStates) {
+      batch.del(key, { sublevel: this.getSublevel(state) })
+      batch.del(state, { sublevel: this.getSublevel(key) })
+    }
     batch.put(key, value, { sublevel: this.getSublevel(INTERNAL_STATES.DISCARDED) })
     this.logger.debug(`Discarding item for key: ${key}, value: ${JSON.stringify(value)}`)
     return batch.write()

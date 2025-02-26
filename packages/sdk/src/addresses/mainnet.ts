@@ -138,7 +138,7 @@ export const addresses: Addresses = {
     },
     DAI: {
       ethereum: {
-        optimism: '0x10720f58Cf4A22fa540ff10430fD967d2ef102de ',
+        optimism: '0x10720f58Cf4A22fa540ff10430fD967d2ef102de',
         arbitrum: '0x10720f58Cf4A22fa540ff10430fD967d2ef102de',
         gnosis: '0x10720f58Cf4A22fa540ff10430fD967d2ef102de',
         polygon: '0x10720f58Cf4A22fa540ff10430fD967d2ef102de'

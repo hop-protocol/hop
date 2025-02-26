@@ -26,7 +26,11 @@ export default tseslint.config(
       // '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-unnecessary-condition': 'error',
+      // This rule doesn't allow you to create `else if` block if all the cases are
+      // used. However, this means that if the cases were to grow, then the block
+      // would have to be updated as well, which would not be obvious. Turning this
+      // off allows for the `else if` block to be created for safety.
+      '@typescript-eslint/no-unnecessary-condition': 'off',
       '@typescript-eslint/no-duplicate-type-constituents': ['error', { ignoreIntersections: true }],
       'n/no-missing-import': ['error'],
       'n/no-extraneous-import': ['error'],

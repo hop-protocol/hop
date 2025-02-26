@@ -1,4 +1,3 @@
-import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '#state-machine/index.js'
 import { CCTPSDK } from '../sdk/CCTPSDK.js'
 import {
@@ -6,7 +5,6 @@ import {
   type ICCTPMessage,
   CCTPMessageState
 } from './types.js'
-import { FINALITY_TIME_MS } from '#constants/index.js'
 
 export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessage> {
 

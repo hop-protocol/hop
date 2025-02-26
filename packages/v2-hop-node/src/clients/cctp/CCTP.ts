@@ -2,13 +2,14 @@ import { CCTPDataAdapter } from './state-machine/DataAdapter.js'
 import { CCTPStateMachine } from './state-machine/StateMachine.js'
 import { CCTPRelayer } from './CCTPRelayer.js'
 import { CCTPIndexer } from './CCTPIndexer.js'
+import { ClientName } from '../constants.js'
 
 export class CCTP {
   readonly #stateMachine: CCTPStateMachine
   #started: boolean = false
 
   constructor (chainIds: string[]) {
-    const name = 'cctp'
+    const name = ClientName.CCTP
 
     // Data handler
     const indexer = new CCTPIndexer(name, chainIds)

@@ -258,7 +258,7 @@ class IncompleteSettlementsWatcher {
 
   private getContract (chain: string, token: string) {
     const provider = getRpcProvider(chain as ChainSlug)
-    const config = mainnetAddresses.bridges[token as TokenSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
+    const config = (mainnetAddresses.bridges[token as TokenSymbol] as any)?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)
     }

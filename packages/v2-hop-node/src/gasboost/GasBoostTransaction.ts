@@ -23,7 +23,7 @@ import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -377,7 +377,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const rpcUrl = SignerConfig.chains[chainSlug as ChainSlug]?.rpcUrl
+    const rpcUrl = Config.SignerConfig.shared.chains[chainSlug as ChainSlug]?.rpcUrl
     if (!rpcUrl) {
       throw new Error(`rpcUrl not found for chainSlug: ${chainSlug}`)
     }
@@ -409,7 +409,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     )
     if (isEthereumMainnet) {
       try {
-        const blocknativeApiKey = SignerConfig.blocknativeApiKey
+        const blocknativeApiKey = Config.SignerConfig.shared.blocknativeApiKey
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
         const res = await fetch(url, {

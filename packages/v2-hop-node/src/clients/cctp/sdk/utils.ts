@@ -15,7 +15,7 @@ export const AttestationTimeForChainIdMs: Record<string, Partial<Record<ChainSlu
     [ChainSlug.Ethereum]: 20 * 60 * 1000,
     [ChainSlug.Optimism]: 20 * 60 * 1000,
     [ChainSlug.Arbitrum]: 20 * 60 * 1000,
-    [ChainSlug.Base]: 20 * 60 * 1000,
+    [ChainSlug.Base]: 25 * 60 * 1000,
     [ChainSlug.Polygon]: 30 * 60 * 1000
   },
   [NetworkSlug.Sepolia]: {

@@ -17,6 +17,7 @@
 - [batchBlocks](Hop.md#batchblocks)
 - [contractAddresses](Hop.md#contractaddresses)
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
+- [hubChainId](Hop.md#hubchainid)
 - [hubConnector](Hop.md#hubconnector)
 - [l1ChainId](Hop.md#l1chainid)
 - [network](Hop.md#network)
@@ -81,6 +82,7 @@
 - [sendTransaction](Hop.md#sendtransaction)
 - [setContractAddresses](Hop.md#setcontractaddresses)
 - [setExplorerApiBaseUrl](Hop.md#setexplorerapibaseurl)
+- [setHubChainId](Hop.md#sethubchainid)
 - [setProvider](Hop.md#setprovider)
 - [setProviderUrl](Hop.md#setproviderurl)
 - [setProviderUrls](Hop.md#setproviderurls)
@@ -140,6 +142,16 @@ ___
 #### Inherited from
 
 Base.gasPriceMultiplier
+
+___
+
+### <a id="hubchainid" name="hubchainid"></a> hubChainId
+
+• **hubChainId**: `string`
+
+#### Inherited from
+
+Base.hubChainId
 
 ___
 
@@ -1115,6 +1127,26 @@ ___
 #### Inherited from
 
 Base.setExplorerApiBaseUrl
+
+___
+
+### <a id="sethubchainid" name="sethubchainid"></a> setHubChainId
+
+▸ **setHubChainId**(`newChainId`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `newChainId` | `BigNumberish` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setHubChainId
 
 ___
 

@@ -18,6 +18,7 @@
 - [chainId](RailsGateway.md#chainid)
 - [contractAddresses](RailsGateway.md#contractaddresses)
 - [gasPriceMultiplier](RailsGateway.md#gaspricemultiplier)
+- [hubChainId](RailsGateway.md#hubchainid)
 - [l1ChainId](RailsGateway.md#l1chainid)
 - [network](RailsGateway.md#network)
 - [signersOrProviders](RailsGateway.md#signersorproviders)
@@ -148,6 +149,7 @@
 - [setFeeOracle](RailsGateway.md#setfeeoracle)
 - [setFeePrice](RailsGateway.md#setfeeprice)
 - [setFeePrices](RailsGateway.md#setfeeprices)
+- [setHubChainId](RailsGateway.md#sethubchainid)
 - [setProvider](RailsGateway.md#setprovider)
 - [setProviderUrl](RailsGateway.md#setproviderurl)
 - [setProviderUrls](RailsGateway.md#setproviderurls)
@@ -227,6 +229,16 @@ ___
 #### Inherited from
 
 Base.gasPriceMultiplier
+
+___
+
+### <a id="hubchainid" name="hubchainid"></a> hubChainId
+
+• **hubChainId**: `string`
+
+#### Inherited from
+
+Base.hubChainId
 
 ___
 
@@ -2227,6 +2239,26 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="sethubchainid" name="sethubchainid"></a> setHubChainId
+
+▸ **setHubChainId**(`newChainId`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `newChainId` | `BigNumberish` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setHubChainId
 
 ___
 

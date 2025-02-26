@@ -19,6 +19,7 @@
 - [contractAddresses](Messenger.md#contractaddresses)
 - [gasPriceMultiplier](Messenger.md#gaspricemultiplier)
 - [gasPriceOracle](Messenger.md#gaspriceoracle)
+- [hubChainId](Messenger.md#hubchainid)
 - [l1ChainId](Messenger.md#l1chainid)
 - [network](Messenger.md#network)
 - [signersOrProviders](Messenger.md#signersorproviders)
@@ -107,6 +108,7 @@
 - [sendTransaction](Messenger.md#sendtransaction)
 - [setContractAddresses](Messenger.md#setcontractaddresses)
 - [setExplorerApiBaseUrl](Messenger.md#setexplorerapibaseurl)
+- [setHubChainId](Messenger.md#sethubchainid)
 - [setProvider](Messenger.md#setprovider)
 - [setProviderUrl](Messenger.md#setproviderurl)
 - [setProviderUrls](Messenger.md#setproviderurls)
@@ -185,6 +187,16 @@ ___
 ### <a id="gaspriceoracle" name="gaspriceoracle"></a> gasPriceOracle
 
 • **gasPriceOracle**: `GasPriceOracle`
+
+___
+
+### <a id="hubchainid" name="hubchainid"></a> hubChainId
+
+• **hubChainId**: `string`
+
+#### Inherited from
+
+Base.hubChainId
 
 ___
 
@@ -1533,6 +1545,26 @@ ___
 #### Inherited from
 
 Base.setExplorerApiBaseUrl
+
+___
+
+### <a id="sethubchainid" name="sethubchainid"></a> setHubChainId
+
+▸ **setHubChainId**(`newChainId`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `newChainId` | `BigNumberish` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+Base.setHubChainId
 
 ___
 

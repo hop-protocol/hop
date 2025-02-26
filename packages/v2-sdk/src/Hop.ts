@@ -278,11 +278,20 @@ export class Hop extends Base {
 
         const initialReserve = await this.getRailsGateway(originChainId).helpers.getInitialReserveByTokenSymbol({ tokenSymbol })
 
-        const nextPathId = await this.getRailsGateway(originChainId).getPathId({
+        const originPathId = await this.getRailsGateway(originChainId).getPathId({
           chainId0: originChainId,
           token0: originToken,
           chainId1: nextChainId,
           token1: nextToken,
+          initialReserve
+        })
+
+        console.log('hopV2Sdk: originPathId', originPathId)
+        console.log({
+          chainId0: nextChainId,
+          token0: nextToken,
+          chainId1: destChainId,
+          token1: destToken,
           initialReserve
         })
 
@@ -293,6 +302,8 @@ export class Hop extends Base {
           token1: destToken,
           initialReserve
         })
+
+        console.log('hopV2Sdk: destPathId', destPathId)
 
         let isClaimIdValid = false
 
@@ -305,12 +316,19 @@ export class Hop extends Base {
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', destPathId)
           attestedClaimId = await this.getRailsGateway(originChainId).getHeadClaimId({
-            pathId: nextPathId
+            pathId: originPathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
           isClaimIdValid = await this.getRailsGateway(nextChainId).getIsClaimIdValid({
-            pathId: nextPathId,
+            pathId: originPathId,
+            claimId: attestedClaimId
+          })
+
+          console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
+        } else {
+          isClaimIdValid = await this.getRailsGateway(nextChainId).getIsClaimIdValid({
+            pathId: originPathId,
             claimId: attestedClaimId
           })
 
@@ -323,10 +341,10 @@ export class Hop extends Base {
         }
 
         if (!isClaimIdValid) {
-          throw new CustomError('Latest attestedClaimId is invalid')
+          // throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: nextPathId })
+        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: originPathId })
         const nextMaxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
 
         const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
@@ -337,7 +355,7 @@ export class Hop extends Base {
 
         const hops: HopStructInput[] = [
           {
-            pathId: nextPathId,
+            pathId: originPathId,
             maxBonderFee: nextMaxBonderFee,
             maxTotalSent: nextMaxTotalSent,
             attestedClaimId: attestedClaimId
@@ -350,7 +368,7 @@ export class Hop extends Base {
           }
         ]
 
-        const fee = await this.getRailsGateway(nextChainId).getSendFee({ pathId: nextPathId })
+        const fee = await this.getRailsGateway(nextChainId).getSendFee({ pathId: originPathId })
 
         const populatedTx = await this.getRailsGateway(originChainId).populateTransaction.send({
           to,
@@ -798,7 +816,7 @@ export class Hop extends Base {
   }
 
   async getTransferStatus({ fromChainId, toChainId, transferId, transactionHash }: GetTransferStatusInput): Promise<TransferStatus> {
-    transferId = (transactionHash && fromChainId) ? await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash }) : undefined
+    transferId = (transactionHash && fromChainId) ? await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash }) : transferId
     if (!transferId) {
       throw new InputError('transferId missing or not found')
     }

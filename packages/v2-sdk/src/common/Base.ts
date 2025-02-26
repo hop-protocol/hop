@@ -45,6 +45,7 @@ export class Base {
   #explorerApiBaseUrl = 'https://v2-explorer-api-sepolia.hop.exchange'
 
   signersOrProviders: SignersOrProviders = {}
+  hubChainId: string = '42069'
 
   constructor (config: BaseConfig) {
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
@@ -680,7 +681,11 @@ export class Base {
   }
 
   getHubChainId(): string {
-    return '42069'
+    return this.hubChainId
+  }
+
+  setHubChainId(newChainId: BigNumberish): void {
+    this.hubChainId = newChainId.toString()
   }
 
   getExplorerApiBaseUrl(): string {

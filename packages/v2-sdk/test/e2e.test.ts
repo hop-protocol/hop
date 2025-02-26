@@ -20,7 +20,7 @@ const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
 const optimismRpcUrl = process.env.OPTIMISM_RPC_PROVIDER ?? 'https://sepolia.optimism.io'
 const optimismProvider = new providers.StaticJsonRpcProvider(optimismRpcUrl)
 
-const hubRpcUrl = process.env.HUB_RPC_PROVIDER ?? 'http://hub-testnet.rpc.hop.exchange'
+const hubRpcUrl = process.env.HUB_RPC_PROVIDER ?? 'https://hub-testnet.rpc.hop.exchange'
 const hubProvider = new providers.StaticJsonRpcProvider(hubRpcUrl)
 
 const chainProviders = {
@@ -30,7 +30,7 @@ const chainProviders = {
   '42069': hubProvider
 }
 
-describe.skip('Sdk - Hop - e2e', () => {
+describe.skip('Sdk - Hop - e2e - send only', () => {
   it('should do a send', async () => {
     const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
     const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
@@ -51,6 +51,7 @@ describe.skip('Sdk - Hop - e2e', () => {
 
     const signer = new Wallet(privateKey)
     const sdk = new Hop({
+      network: 'sepolia',
       signersOrProviders: {
         [fromChainId]: signer.connect(ethereumProvider),
         [toChainId]: signer.connect(baseProvider),
@@ -113,7 +114,7 @@ describe.skip('Sdk - Hop - e2e', () => {
       pathId
     })
 
-    let sendTxHash = '' // debug
+    let sendTxHash = '0xe0a9e24e055d198dd7865d444f72e03efe6fc7b04f09eeceb77e71a032e9c7ae' // debug
     const shouldSend = !sendTxHash // debug
     if (shouldSend) {
       const sendTx = await sdk.sendTokens({
@@ -161,14 +162,14 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
-    const shouldPushClaim = false // debug
-    const shouldBond = false // debug
-    const shouldExecute = false // debug
+    const shouldPushClaim = true // debug
+    const shouldBond = true // debug
+    const shouldExecute = true // debug
     const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0x579bf9d653b2bc5237db2f024afd80c70a2ca4a5ff901b33acf4520a4a59eb4c'
-    let bondTxHash = '0x6ea977c4c32ad99f59b4cce2f5c2cd53fcb9785c77de5949eb29ec64474443dc'
+    let sendTxHash = '0x4528cf95fa7e067ec40f160ce8aa391e1c0847a0c52cccd777d1c51c936c333a'
+    let bondTxHash = ''
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -347,14 +348,12 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
       })
       console.log('isValidTransfer:', isValidTransfer)
 
-      // Check if claim already exists
       const isClaimValid = await sdk.getRailsGateway(toChainId).getIsClaimIdValid({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId
       })
       console.log('isClaimValid:', isClaimValid)
 
-      // Verify source pool
       const sourcePool = await sdk.getRailsGateway(fromChainId).getSourcePool({
         pathId: transferSentEvent.decoded.pathId,
         attestedClaimId: transferSentEvent.decoded.hops[0].attestedClaimId
@@ -421,7 +420,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 
     console.log('isClaimed:', isClaimed)
 
-    if (!bondTxHash) {
+    if (!bondTxHash && bondTx) {
       bondTxHash = bondTx.hash
     }
     const lastBond = await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
@@ -490,16 +489,17 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
 describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
-    const fromChainId = '11155420'
-    const fromToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
+    const fromChainId = '11155111'
     const toChainId = '84532'
-    const toToken = '0xbc357f673879a3145172A95546948DBaFd9Fe1cE'
+    const hubChainId = '11155420' // 42069
+    const fromToken = addresses[fromChainId]!.tokens!.MOCK!
+    const toToken = addresses[toChainId]!.tokens!.MOCK!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
     const fromProvider = chainProviders[fromChainId]
     const toProvider = chainProviders[toChainId]
-    const nextChainId = '42069'
+    const nextChainId = hubChainId
     const nextProvider = chainProviders[nextChainId]
     const nextToken = addresses[nextChainId]!.tokens!.MOCK!
 
@@ -508,12 +508,15 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     const signer = new Wallet(privateKey)
     const sdk = new Hop({
+      network: 'sepolia',
       signersOrProviders: {
         [fromChainId]: senderSigner.connect(fromProvider),
         [nextChainId]: bonderSigner.connect(nextProvider),
         [toChainId]: bonderSigner.connect(toProvider)
       },
     })
+
+    sdk.setHubChainId(hubChainId)
 
     const initialReserve = await sdk.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     const nextPathId = await sdk.getRailsGateway(fromChainId).getPathId({
@@ -547,12 +550,14 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       pathId: nextPathId
     })
 
-    const isClaimIdValid = await sdk.getRailsGateway(nextChainId).getIsClaimIdValid({
-      pathId: nextPathId,
-      claimId: attestedClaimId
-    })
+    console.log('attestedClaimId:', attestedClaimId)
 
-    console.log('isClaimIdValid:', isClaimIdValid)
+    // const isClaimIdValid = await sdk.getRailsGateway(nextChainId).getIsClaimIdValid({
+    //   pathId: nextPathId,
+    //   claimId: attestedClaimId
+    // })
+
+    // console.log('isClaimIdValid:', isClaimIdValid)
 
     // const maxTotalSent = await sdk.getRailsGateway(fromChainId).getTotalSent({ pathId })
     // const fee = await sdk.getRailsGateway(fromChainId).getSendFee({ pathId })
@@ -561,17 +566,18 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     // const blankAttestedClaimId = sdk.utils.generateZeroBytes32() // should be blank for first transfer
 
-    const shouldPushClaim = true
-    const shouldExecute = true // debug
-    const shouldConfirm = true // debug
-    const shouldWithdraw = true // debug
-    const shouldPushClaim2 = true // debug
+    const shouldPushClaim = false
+    const shouldExecute = false // debug
+    const shouldConfirm = false // debug
+    const shouldWithdraw = false // debug
+    const shouldPushClaim2 = false // debug
     const shouldExecute2 = true // debug
-    const shouldConfirm2 = true // debug
+    const shouldConfirm2 = false // debug
     const shouldWithdraw2 = true // debug
 
-    let sendTxHash = ''
-    let bondTxHash = ''
+    let sendTxHash = '0x281a277e8ab9975f00fc5dc4c18fb5ece523f93b35fd8213a511d508a84a7818'
+    let bondTxHash = '0xa4a51f7b64e233159735de3f55b8d13dda9fadd7a5155244fc15d3873f0c02a4'
+    let bondTxHash2 = '0xd579c5852048a480d1e247b79348b9b263a0bbf015b4e3738c81ee35b1387ea4'
 
     const shouldSend = !sendTxHash // debug
     let sendTx: any
@@ -615,6 +621,49 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const headTransferId = await sdk.getRailsGateway(nextChainId).getHeadClaimId({ pathId: transferSentEvent.decoded.pathId })
     console.log('pathId:', transferSentEvent.decoded.pathId)
     console.log('headTransferId:', headTransferId)
+
+    const stakingRegistry = sdk.getRailsGateway(nextChainId).getStakingRegistry()
+    const bonderAddress = await bonderSigner.getAddress()
+    const stakedBalance = await stakingRegistry.getStakedBalance({ staker: bonderAddress })
+    console.log('stakedBalance:', formatUnits(stakedBalance, 18))
+
+    const hopTokenAddress = await sdk.getRailsGateway(nextChainId).getHopTokenAddress()
+    console.log('hopTokenAddress:', hopTokenAddress)
+
+    const minHopStake = await stakingRegistry.minHopStake()
+    console.log('minHopStake:', formatUnits(minHopStake, 18))
+    const shouldStake = stakedBalance.lt(minHopStake)
+    if (shouldStake) {
+      const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
+        amount: minHopStake,
+        account: bonderAddress
+      })
+
+      console.log('needsStakeApproval:', needsStakeApproval)
+
+      if (needsStakeApproval) {
+        const stakeApproveTx = await stakingRegistry.helpers.approveStake({
+          amount: minHopStake
+        })
+
+        console.log('stake approval tx:', stakeApproveTx.hash)
+        await stakeApproveTx.wait()
+      }
+
+
+      const hopBalance = await stakingRegistry.helpers.getHopBalance({ staker: bonderAddress })
+      console.log('hopBalance:', formatUnits(hopBalance, 18))
+      if (hopBalance.lt(minHopStake)) {
+        const mintTx = await stakingRegistry.helpers.mint({ amount: minHopStake, to: bonderAddress })
+        console.log('mintTx:', mintTx.hash)
+        await mintTx.wait()
+      }
+
+      const stakeTx = await stakingRegistry.stakeHop({ amount: minHopStake, staker: bonderAddress })
+      console.log('stakeTx:', stakeTx.hash)
+      await stakeTx.wait()
+    }
+
 
     if (shouldPushClaim) {
       console.log('calling pushClaim')
@@ -679,9 +728,11 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       messageId
     }))!
 
+    console.log('messageSentEvent:', messageSentEvent)
+
     if (shouldExecute) {
       console.log('calling execute')
-      const executeTx = await sdk.getMessenger(toChainId).execute({
+      const executeTx = await sdk.getMessenger(nextChainId).execute({
         messageId,
         fromChainId,
         toChainId: messageSentEvent.decoded.toChainId,
@@ -712,9 +763,9 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       })
       console.log('bucketIndex', bucketIndex)
       console.log('calling withdraw')
-      const withdrawTx = await sdk.getRailsGateway(nextChainId).withdraw({
+      const withdrawTx = await sdk.getRailsGateway(nextChainId).withdrawBonds({
         pathId: transferSentEvent.decoded.pathId,
-        claimId: transferSentEvent.decoded.transferId // TODO
+        claimId: transferSentEvent.decoded.transferId
       })
 
       console.log('withdraw tx:', withdrawTx.hash)
@@ -782,7 +833,6 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       await approveTx.wait()
     }
 
-    const bondTxHash2 = ''
     const shouldBond2 = !bondTxHash2 // debug
     let bondTx2: any
     if (shouldBond2) {
@@ -796,15 +846,20 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
       console.log('bond tx2:', bondTx2.hash)
       await bondTx2.wait()
+      bondTxHash2 = bondTx2.hash
     }
 
     const messageId2 = await sdk.getMessenger(nextChainId).getMessageIdFromTransactionHash({
-      transactionHash: bondTxHash2
+      transactionHash: transferSentEvent2.transactionHash
     })
+
+    console.log('messageId2:', messageId2)
 
     const messageSentEvent2 = (await sdk.getMessenger(nextChainId).getMessageSentEventFromMessageId({
       messageId: messageId2
     }))!
+
+    console.log('messageSentEvent2:', messageSentEvent2)
 
     if (shouldExecute2) {
       console.log('calling execute2')
@@ -839,9 +894,9 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
       })
       console.log('bucketIndex', bucketIndex)
       console.log('calling withdraw')
-      const withdrawTx = await sdk.getRailsGateway(toChainId).withdraw({
+      const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawBonds({
         pathId: transferSentEvent2.decoded.pathId,
-        claimId: transferSentEvent2.decoded.transferId // TODO
+        claimId: transferSentEvent2.decoded.transferId
       })
 
       console.log('withdraw tx:', withdrawTx.hash)

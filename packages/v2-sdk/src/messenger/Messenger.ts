@@ -1162,7 +1162,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageSentEventFromTransactionHash({ transactionHash })
     if (!event) {
-      throw new CustomError('event not found for transaction hash')
+      throw new CustomError(`event not found for transaction hash "${transactionHash}" on chainId "${chainId}"`)
     }
 
     return event.decoded.messageId
@@ -1180,7 +1180,7 @@ export class Messenger extends Base {
 
     const event = await this.getMessageBundledEventFromMessageId({ messageId })
     if (!event) {
-      throw new CustomError('event not found for messageId')
+      throw new CustomError(`event not found for messageId "${messageId}" on chainId "${chainId}"`)
     }
 
     return event.decoded.bundleId

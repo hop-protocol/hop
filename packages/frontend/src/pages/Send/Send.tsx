@@ -204,13 +204,12 @@ const Send: FC = () => {
                 maxBonderFeeUsd={bonderFeeUsdDisplay}
                 sendFee={relayFeeEthDisplay}
                 sendFeeUsd={relayFeeUsdDisplay}
-                totalFee={totalFeeDisplayString}
                 totalFeeUsd={totalFeeUsdDisplay}
                 />
             }
             value={<>
               <InfoTooltip title={totalFeeUsdDisplay}>
-                <Box>{totalFeeDisplayString}</Box>
+                <Box>{totalFeeUsdDisplay || '-'}</Box>
               </InfoTooltip>
             </>}
             large

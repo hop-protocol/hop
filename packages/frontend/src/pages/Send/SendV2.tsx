@@ -54,9 +54,9 @@ export const SendV2: React.FC = () => {
     isLoadingFromTokenBalance,
     isLoadingToTokenBalance,
     isLoadingNeedsApproval,
-    bonderFee,
-    bonderFeeDisplay,
-    bonderFeeUsdDisplay,
+    maxBonderFee,
+    maxBonderFeeDisplay,
+    maxBonderFeeUsdDisplay,
     totalFeeDisplay,
     accountAddress,
     fromTokenBalanceDisplay,
@@ -338,10 +338,10 @@ export const SendV2: React.FC = () => {
         </Button>
       )}
 
-      {bonderFee?.gt(0) && (
+      {maxBonderFee?.gt(0) && (
         <Box mt={2} pl={2} width="100%" display="flex" alignItems="flex-start">
           <Typography variant="body1" gutterBottom sx={{ fontWeight: "bold" }}>
-            <Box display="inline-flex" sx={{ color: '#4d4d4d' }}>Fee: {bonderFeeDisplay}</Box> <Box display="inline-flex" sx={{ color: '#7d7d7d' }}>({bonderFeeUsdDisplay})</Box>
+            <Box display="inline-flex" sx={{ color: '#4d4d4d' }}>Fee: {maxBonderFeeDisplay}</Box> <Box display="inline-flex" sx={{ color: '#7d7d7d' }}>({maxBonderFeeUsdDisplay})</Box>
           </Typography>
         </Box>
       )}

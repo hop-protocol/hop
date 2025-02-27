@@ -11,7 +11,7 @@ import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
 import { getNetworks } from '#config/networks.js'
 import {
   useBalance,
-  useFeeConversions,
+  useFeeConversionsV2,
 } from '#hooks/index.js'
 
 const { formatUnits, parseUnits } = utils
@@ -23,9 +23,12 @@ type V2SendHook = {
   amountIn: string | null
   approveReady: boolean
   approveTokens: () => Promise<void>
-  bonderFee: BigNumber
-  bonderFeeDisplay: string
-  bonderFeeUsdDisplay: string
+  sendFee: BigNumber
+  sendFeeDisplay: string
+  sendFeeUsdDisplay: string
+  maxBonderFee: BigNumber
+  maxBonderFeeDisplay: string
+  maxBonderFeeUsdDisplay: string
   chains: any[]
   error: string
   estimatedReceived: BigNumber
@@ -146,7 +149,8 @@ export function useV2Send(): V2SendHook {
   const [info, setInfo] = useState<string>('')
   const [isApproving, setIsApproving] = useState<boolean>(false)
   const [isSending, setIsSending] = useState<boolean>(false)
-  const [bonderFee, setBonderFee] = useState<BigNumber | null>(null)
+  const [sendFee, setSendFee] = useState<BigNumber | null>(null)
+  const [maxBonderFee, setMaxBonderFee] = useState<BigNumber | null>(null)
   const [hasEnoughBalance, setHasEnoughBalance] = useState<boolean>(false)
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>(BigNumber.from(0))
   const [routeChainIds, setRouteChainIds] = useState<string[]>([])
@@ -364,7 +368,7 @@ export function useV2Send(): V2SendHook {
     }
     const contract = v2Sdk?.getTokenContract({ chainId: fromChainId, address: fromTokenAddress })
     return new Token(contract)
-  }, [fromChainId, fromTokenAddress])
+  }, [fromChainId, fromTokenAddress, v2Sdk])
 
   const toToken = useMemo(() => {
     if (!(toChainId && toTokenAddress)) {
@@ -372,7 +376,7 @@ export function useV2Send(): V2SendHook {
     }
     const contract = v2Sdk?.getTokenContract({ chainId: toChainId, address: toTokenAddress })
     return new Token(contract)
-  }, [toChainId, toTokenAddress])
+  }, [toChainId, toTokenAddress, v2Sdk])
 
   const feeToken = useMemo(() => {
     return {
@@ -393,9 +397,9 @@ export function useV2Send(): V2SendHook {
           fromToken: fromTokenAddress,
           toToken: toTokenAddress
         })
-        setBonderFee(fee)
+        setSendFee(fee)
       } else {
-        setBonderFee(null)
+        setSendFee(null)
       }
     }
 
@@ -417,18 +421,21 @@ export function useV2Send(): V2SendHook {
             to: recipient
           })
 
-          const bonderFee = data.bonderFee
+          const sendFee = data.sendFee
+          const maxBonderFee = data.maxBonderFee
           const estimated = data.estimatedReceived
           const routeChainIds = data.routeChainIds
 
           setEstimatedReceived(estimated)
           setRouteChainIds(routeChainIds)
-          setBonderFee(bonderFee)
+          setSendFee(sendFee)
+          setMaxBonderFee(maxBonderFee)
           setIsFetchingGetSendData(false)
         } else {
           setEstimatedReceived(BigNumber.from(0))
           setRouteChainIds([])
-          setBonderFee(BigNumber.from(0))
+          setSendFee(BigNumber.from(0))
+          setMaxBonderFee(BigNumber.from(0))
         }
       } catch (err) {
         setIsFetchingGetSendData(false)
@@ -460,17 +467,20 @@ export function useV2Send(): V2SendHook {
   const initialToChainId = networks?.[1].networkId?.toString()
 
   const {
-    bonderFeeDisplay,
-    bonderFeeUsdDisplay,
+    totalBonderFeeDisplay: maxBonderFeeDisplay,
+    totalBonderFeeUsdDisplay: maxBonderFeeUsdDisplay,
     totalFeeDisplay,
     totalFeeUsdDisplay,
     estimatedReceivedUsdDisplay,
-    estimatedReceivedDisplay
-  } = useFeeConversions({
-    bonderFee: bonderFee,
+    estimatedReceivedDisplay,
+    relayFeeEthDisplay: sendFeeDisplay,
+    relayFeeUsdDisplay: sendFeeUsdDisplay
+  } = useFeeConversionsV2({
+    bonderFee: maxBonderFee,
     feeToken,
     destToken: toToken,
     estimatedReceived,
+    relayFee: sendFee,
   })
 
   const toTokenAmount = formatUnits(estimatedReceived, toTokenDecimals)
@@ -537,9 +547,12 @@ export function useV2Send(): V2SendHook {
     amountIn,
     approveReady,
     approveTokens,
-    bonderFee,
-    bonderFeeDisplay,
-    bonderFeeUsdDisplay,
+    sendFee,
+    sendFeeDisplay,
+    sendFeeUsdDisplay,
+    maxBonderFee,
+    maxBonderFeeDisplay,
+    maxBonderFeeUsdDisplay,
     chains,
     error,
     estimatedReceived,

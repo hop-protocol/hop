@@ -131,6 +131,9 @@ export {
   GetInitialReserveByTokenSymbolInput,
   GetInitialReserveByTokenAddressInput,
   GetInitialReserveInput,
+  GetClaimPostedEventFilterInput,
+  GetClaimReaddedEventFilterInput,
+  GetClaimRemovedEventFilterInput
 } from './railsGateway/index.js'
 export {
   BundleCommitted,

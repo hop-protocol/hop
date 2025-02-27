@@ -90,7 +90,8 @@ export type GetSendDataInput = {
 export type SendData = {
   amountIn: BigNumber
   estimatedReceived: BigNumber
-  bonderFee: BigNumber
+  sendFee: BigNumber
+  maxBonderFee: BigNumber
   routeChainIds: string[]
 }
 
@@ -657,17 +658,20 @@ export class Hop extends Base {
     const amountIn = BigNumber.from(amount)
     const [
       estimatedReceived,
-      bonderFee
+      sendFee,
+      maxBonderFee
     ] = await Promise.all([
       this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }),
-      this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+      this.getSendFee({ fromChainId, fromToken, toChainId, toToken }),
+      this.getMaxBonderFee({ amountIn })
     ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
 
     return {
       amountIn,
       estimatedReceived,
-      bonderFee,
+      sendFee,
+      maxBonderFee,
       routeChainIds,
     }
   }
@@ -679,10 +683,12 @@ export class Hop extends Base {
     const amountIn = BigNumber.from(amount)
     const [
       estimatedReceived,
-      bonderFee
+      sendFee,
+      maxBonderFee
     ] = await Promise.all([
       this.getEstimatedReceived({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount, minAmountOut }),
-      this.getSendFee({ fromChainId, fromToken, toChainId, toToken })
+      this.getSendFee({ fromChainId, fromToken, toChainId: hubChainId, toToken: hubToken }),
+      this.getMaxBonderFee({ amountIn })
     ])
 
     const routeChainIds = [fromChainId, hubChainId, toChainId].map((id) => id.toString())
@@ -690,7 +696,8 @@ export class Hop extends Base {
     return {
       amountIn,
       estimatedReceived,
-      bonderFee,
+      sendFee,
+      maxBonderFee,
       routeChainIds,
     }
   }

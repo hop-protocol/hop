@@ -7,7 +7,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { formatError } from '#utils/format.js'
 import {
   useBalance,
-  useFeeConversions,
+  useFeeConversionsV2,
 } from '#hooks/index.js'
 
 const { formatUnits, parseUnits } = utils
@@ -425,7 +425,7 @@ export function useV2SendOld(): V2SendHook {
     totalFeeUsdDisplay,
     estimatedReceivedUsdDisplay,
     estimatedReceivedDisplay
-  } = useFeeConversions({
+  } = useFeeConversionsV2({
     bonderFee: bonderFee,
     feeToken,
     destToken: toToken,

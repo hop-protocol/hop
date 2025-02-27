@@ -168,7 +168,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0x4528cf95fa7e067ec40f160ce8aa391e1c0847a0c52cccd777d1c51c936c333a'
+    let sendTxHash = '0xb9883ee287d6db719ef45fb9d57cd7461fb3c0b511e94477d076038f3411022a'
     let bondTxHash = ''
 
     const senderSigner = new Wallet(privateKey)
@@ -850,7 +850,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     }
 
     const messageId2 = await sdk.getMessenger(nextChainId).getMessageIdFromTransactionHash({
-      transactionHash: transferSentEvent2.transactionHash
+      transactionHash: bondTxHash2
     })
 
     console.log('messageId2:', messageId2)

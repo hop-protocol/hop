@@ -7,56 +7,45 @@ type Input = {
   destinationTxFee?: BigNumber
   bonderFee?: BigNumber
   estimatedReceived?: BigNumber,
-  feeToken?: any
   destToken?: any
   relayFee?: BigNumber // message relay fee
-  feeTokenUsdPrice?: number
-  destTokenUsdPrice?: number
+  tokenUsdPrice?: number
 }
 
 export function getConvertedFees(input: Input) {
-  let { destinationTxFee, bonderFee, estimatedReceived, feeToken, destToken, feeTokenUsdPrice, destTokenUsdPrice, relayFee: relayFeeEth } = input
-  if (!feeToken) {
-    feeToken = destToken
-  }
-  if (!feeTokenUsdPrice) {
-    feeTokenUsdPrice = destTokenUsdPrice
-  }
-
-  const destTokenSymbol = destToken?.symbol ?? ''
-  const destTokenDecimals = destToken?.decimals
-
-  const feeTokenSymbol = feeToken?.symbol ?? ''
-  const feeTokenDecimals = feeToken?.decimals
+  const { destinationTxFee, bonderFee, estimatedReceived, destToken, tokenUsdPrice, relayFee: relayFeeEth } = input
+  const tokenSymbol = destToken?.symbol
+  const tokenDecimals = destToken?.decimals
 
   // Base -> converted values (displayed to user)
   const destinationTxFeeDisplay = toTokenDisplay(
     destinationTxFee,
-    feeTokenDecimals,
-    feeTokenSymbol,
+    tokenDecimals,
+    tokenSymbol,
   )
 
-  const destinationTxFeeUsdDisplay = toUsdDisplay(destinationTxFee, feeTokenDecimals, feeTokenUsdPrice)
+  const destinationTxFeeUsdDisplay = toUsdDisplay(destinationTxFee, tokenDecimals, tokenUsdPrice)
 
-  const bonderFeeDisplay = toTokenDisplay(bonderFee, feeTokenDecimals, feeTokenSymbol)
-  const bonderFeeUsdDisplay = toUsdDisplay(bonderFee, feeTokenDecimals, feeTokenUsdPrice)
+  const bonderFeeDisplay = toTokenDisplay(bonderFee, tokenDecimals, tokenSymbol)
+  const bonderFeeUsdDisplay = toUsdDisplay(bonderFee, tokenDecimals, tokenUsdPrice)
 
-  const totalBonderFee = destinationTxFee && bonderFee ? destinationTxFee.add(bonderFee) : (destinationTxFee ? destinationTxFee : bonderFee)
+  const totalBonderFee =
+    destinationTxFee && bonderFee ? destinationTxFee.add(bonderFee) : destinationTxFee
   const totalBonderFeeDisplay = toTokenDisplay(
     totalBonderFee,
-    feeTokenDecimals,
-    feeTokenSymbol
+    tokenDecimals,
+    tokenSymbol
   )
 
-  const totalBonderFeeUsdDisplay = toUsdDisplay(totalBonderFee, feeTokenDecimals, feeTokenUsdPrice)
+  const totalBonderFeeUsdDisplay = toUsdDisplay(totalBonderFee, tokenDecimals, tokenUsdPrice)
 
   const estimatedReceivedDisplay = toTokenDisplay(
     estimatedReceived,
-    destTokenDecimals,
-    destTokenSymbol
+    tokenDecimals,
+    tokenSymbol
   )
 
-  const estimatedReceivedUsdDisplay = toUsdDisplay(estimatedReceived, destTokenDecimals, destTokenUsdPrice)
+  const estimatedReceivedUsdDisplay = toUsdDisplay(estimatedReceived, tokenDecimals, tokenUsdPrice)
 
   const relayFeeEthDisplay = relayFeeEth?.gt(0) ? toTokenDisplay(
     relayFeeEth,
@@ -64,10 +53,10 @@ export function getConvertedFees(input: Input) {
     'ETH'
   ) : ''
 
-  const relayFeeUsdDisplay = relayFeeEth?.gt(0) ? toUsdDisplay(relayFeeEth, 18, feeTokenUsdPrice) : ''
-  const totalFee = feeTokenSymbol === 'ETH' ? totalBonderFee?.add(relayFeeEth ?? 0) : totalBonderFee
-  const totalFeeDisplay = toTokenDisplay(totalFee, feeTokenDecimals, feeTokenSymbol)
-  const totalFeeUsdDisplay = toUsdDisplay(totalFee, feeTokenDecimals, feeTokenUsdPrice)
+  const relayFeeUsdDisplay = relayFeeEth?.gt(0) ? toUsdDisplay(relayFeeEth, 18, tokenUsdPrice) : ''
+  const totalFee = tokenSymbol === 'ETH' ? totalBonderFee?.add(relayFeeEth ?? 0) : totalBonderFee
+  const totalFeeDisplay = toTokenDisplay(totalFee, tokenDecimals, tokenSymbol)
+  const totalFeeUsdDisplay = toUsdDisplay(totalFee, tokenDecimals, tokenUsdPrice)
 
   return {
     destinationTxFeeDisplay,
@@ -82,7 +71,7 @@ export function getConvertedFees(input: Input) {
     totalFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
-    tokenUsdPrice: destTokenUsdPrice,
+    tokenUsdPrice,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
   }
@@ -93,19 +82,14 @@ export function useFeeConversions(input: Input) {
     destinationTxFee,
     bonderFee,
     estimatedReceived,
-    feeToken,
     destToken,
     relayFee
   } = input
-  const { priceUsd: destTokenUsdPrice } = useTokenPrice(destToken?.symbol)
-  let feeTokenUsdPrice :any
-  if (feeToken) {
-    ({ priceUsd: feeTokenUsdPrice } = useTokenPrice(feeToken?.symbol))
-  }
+  const { priceUsd: tokenUsdPrice } = useTokenPrice(destToken?.symbol)
 
   const convertedFees = useMemo(() => {
-    return getConvertedFees({ destinationTxFee, bonderFee, estimatedReceived, feeToken, destToken, feeTokenUsdPrice, destTokenUsdPrice, relayFee })
-  }, [destinationTxFee, bonderFee, estimatedReceived, feeToken, destToken])
+    return getConvertedFees({ destinationTxFee, bonderFee, estimatedReceived, destToken, tokenUsdPrice, relayFee })
+  }, [destinationTxFee, bonderFee, estimatedReceived, destToken])
 
   return convertedFees
 }

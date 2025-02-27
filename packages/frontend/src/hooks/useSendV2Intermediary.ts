@@ -105,6 +105,7 @@ export type UseSendV2IntermediaryProps = {
   transferTimeDisplay: string
   tx: Transaction | undefined
   warning: string | ReactNode
+  isV2: boolean
 }
 
 // Helper function to safely access properties with default values
@@ -266,13 +267,13 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     bonderFeeDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'bonderFeeDisplay', '')
+        ? getValue(sendV2, 'maxBonderFeeDisplay', '')
         : getValue(sendV1, 'bonderFeeDisplay', '')
       : getValue(sendV1, 'bonderFeeDisplay', ''),
 
     bonderFeeUsdDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'bonderFeeUsdDisplay', '')
+        ? getValue(sendV2, 'maxBonderFeeUsdDisplay', '')
         : getValue(sendV1, 'bonderFeeUsdDisplay', '')
       : getValue(sendV1, 'bonderFeeUsdDisplay', ''),
 
@@ -484,13 +485,13 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     relayFeeEthDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide
+        ? getValue(sendV2, 'sendFeeDisplay', '')
         : getValue(sendV1, 'relayFeeEthDisplay', '')
       : getValue(sendV1, 'relayFeeEthDisplay', ''),
 
     relayFeeUsdDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide
+        ? getValue(sendV2, 'sendFeeUsdDisplay', '')
         : getValue(sendV1, 'relayFeeUsdDisplay', '')
       : getValue(sendV1, 'relayFeeUsdDisplay', ''),
 
@@ -589,6 +590,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
         ? '' // Placeholder as per updated type
         : getValue(sendV1, 'warning', '')
       : getValue(sendV1, 'warning', ''),
+
+      isV2: isTokenEligibleForV2
   }
 
   return mappedProps

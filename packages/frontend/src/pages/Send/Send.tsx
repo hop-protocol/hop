@@ -14,6 +14,7 @@ import { ConnectWalletButton } from '#components/Header/ConnectWalletButton.js'
 import { DetailRow } from '#components/InfoTooltip/DetailRow.js'
 import { ExternalLink } from '#components/Link/index.js'
 import { FeeDetails } from '#components/InfoTooltip/FeeDetails.js'
+import { FeeDetailsV2 } from '#components/InfoTooltip/FeeDetailsV2.js'
 import { FeeRefund } from './FeeRefund.js'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { TxStatusModal } from '#components/Modal/TxStatusModal.js'
@@ -92,6 +93,7 @@ const Send: FC = () => {
     transferTimeDisplay,
     tx,
     warning,
+    isV2
   } = useSendV2Intermediary()
 
   const isFromPol = fromNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
@@ -193,16 +195,18 @@ const Send: FC = () => {
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
-          <DetailRow
+          {isV2 && (
+            <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails
-                bonderFee={bonderFeeDisplayString}
-                bonderFeeUsd={bonderFeeUsdDisplay}
-                destinationTxFee={destinationTxFeeDisplayString}
-                destinationTxFeeUsd={destinationTxFeeUsdDisplay}
-                relayFee={relayFeeEthDisplay}
-                relayFeeUsd={relayFeeUsdDisplay} />
+              <FeeDetailsV2
+                maxBonderFee={bonderFeeDisplayString}
+                maxBonderFeeUsd={bonderFeeUsdDisplay}
+                sendFee={relayFeeEthDisplay}
+                sendFeeUsd={relayFeeUsdDisplay}
+                totalFee={totalFeeDisplayString}
+                totalFeeUsd={totalFeeUsdDisplay}
+                />
             }
             value={<>
               <InfoTooltip title={totalFeeUsdDisplay}>
@@ -211,6 +215,27 @@ const Send: FC = () => {
             </>}
             large
           />
+          )}
+          {!isV2 && (
+            <DetailRow
+              title={'Fees'}
+              tooltip={
+                <FeeDetails
+                  bonderFee={bonderFeeDisplayString}
+                  bonderFeeUsd={bonderFeeUsdDisplay}
+                  destinationTxFee={destinationTxFeeDisplayString}
+                  destinationTxFeeUsd={destinationTxFeeUsdDisplay}
+                  relayFee={relayFeeEthDisplay}
+                  relayFeeUsd={relayFeeUsdDisplay} />
+              }
+              value={<>
+                <InfoTooltip title={totalFeeUsdDisplay}>
+                  <Box>{totalFeeDisplayString}</Box>
+                </InfoTooltip>
+              </>}
+              large
+            />
+          )}
 
           <DetailRow
             title="Estimated Received"

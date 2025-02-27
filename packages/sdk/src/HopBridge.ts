@@ -561,7 +561,7 @@ export class HopBridge extends Base {
     try {
       return await this.estimateGas(provider, populatedTx)
     } catch (err: any) {
-      console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas')
+      console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas', err)
       return this.estimateGas(provider, {
         ...populatedTx,
         gasLimit: sourceChain.slug === ChainSlug.Arbitrum ? 1_000_000 : 500_000

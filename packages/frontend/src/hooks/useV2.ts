@@ -91,6 +91,7 @@ export function useV2(): V2Hook {
       network: networkSlug,
       signersOrProviders: providers
     })
+    console.log('new HOPPPPPl', providers)
     return hop
   }, [address, provider, connectedNetworkId])
 

@@ -1,9 +1,9 @@
-import type{ ISharedConfig } from './configs/SharedConfig.js'
-import type { ISignerConfig } from './configs/SignerConfig.js'
-import type { IRailsConfig } from './configs/RailsConfig.js'
+import type { IGlobalConfig } from './configs/global/index.js'
+import type { ISignerConfig } from './configs/signer/index.js'
+import type { IClientConfig } from './configs/client/index.js'
 
 export interface IConfig {
-  shared: ISharedConfig
+  global: IGlobalConfig
   signer: ISignerConfig
-  rails: IRailsConfig
+  client: IClientConfig
 }

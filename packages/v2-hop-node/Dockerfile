@@ -9,9 +9,9 @@ FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=v2-hop-node... install
 
 RUN pnpm --filter=v2-hop-node... build
-RUN pnpm --filter=v2-hop-node deploy --prod /prod/app
+RUN pnpm --filter=v2-hop-node deploy --prod /prod/app --legacy
 
 FROM base
 COPY --from=build /prod/app /prod/app
 WORKDIR /prod/app
-ENTRYPOINT ["node", "/prod/app/dist/cli/cli.js"]
+ENTRYPOINT ["node", "/prod/app/dist/cli/hop.js"]

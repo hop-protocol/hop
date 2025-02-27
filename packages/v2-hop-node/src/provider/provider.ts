@@ -18,6 +18,7 @@ import type { Deferrable } from '@ethersproject/properties'
 import type { Network } from '@ethersproject/networks'
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
+
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
 
   constructor (rpcUrlOrOptions: string | ConnectionInfo) {

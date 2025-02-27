@@ -1,6 +1,6 @@
 import { Logger } from '#logger/index.js'
 import type { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 
 export abstract class AbstractService {
   protected readonly chainSlug: ChainSlug
@@ -9,7 +9,7 @@ export abstract class AbstractService {
 
   constructor (chainSlug: ChainSlug) {
     this.chainSlug = chainSlug
-    this.networkSlug = SignerConfig.network
+    this.networkSlug = Config.GlobalConfig.options.network
 
     // Set up config
     const prefix = `${this.chainSlug}`

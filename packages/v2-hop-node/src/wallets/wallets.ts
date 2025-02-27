@@ -1,15 +1,15 @@
-import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
+import { type ValidationOptions, HopSigner } from '#signer/index.js'
 import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
 import { ChainSlug, getChain } from '@hop-protocol/sdk'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 
 const cache: Record<string, Signer> = {}
 
 const constructSigner = (networkOrChainId: string, privateKey?: string): Signer => {
   let network = networkOrChainId
-  if (!(networkOrChainId in ChainSlug)) {
+  if (!(Object.values(ChainSlug).includes(networkOrChainId as ChainSlug))) {
     network = getChain(networkOrChainId).slug
   }
   const cacheKey = `${network}`
@@ -24,7 +24,9 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
 
   const provider = getRpcProvider(network as ChainSlug)
   const wallet = new Wallet(privateKey, provider)
-  const signer = new GasBoostSigner(wallet)
+
+  const validationOptions: ValidationOptions = Config.SignerConfig.validation
+  const signer = new HopSigner(wallet, validationOptions)
   cache[cacheKey] = signer
   return signer
 }
@@ -32,11 +34,10 @@ const constructSigner = (networkOrChainId: string, privateKey?: string): Signer 
 // lazy instantiate
 export const wallets = {
   has (networkOrChainId: string): boolean {
-    const privateKey = SignerConfig.bonderPrivateKey
-    return !!constructSigner(networkOrChainId, privateKey)
+    return !!constructSigner(networkOrChainId)
   },
   get (networkOrChainId: string): Signer {
-    const privateKey = SignerConfig.bonderPrivateKey
+    const privateKey = Config.SignerConfig.shared.bonderPrivateKey
     return constructSigner(networkOrChainId, privateKey)
   }
 }

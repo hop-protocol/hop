@@ -13,21 +13,16 @@ import {
   CCTPMessageState
 } from './types.js'
 
-// TODO: I shouldn't have to do this
-type ISentCCTPMessageWithoutContext = Omit<ISentCCTPMessage, 'txContext'>
-type IRelayedCCTPMessageWithoutContext = Omit<IRelayedCCTPMessage, 'txContext'>
-
 export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage, CCTPEventName> {
 
   protected override formatDecodedLog (log: DecodedLogWithContext): ICCTPMessage {
     const { eventName } = log.context
     switch (eventName) {
-      case CCTPEventName.CCTPTransferSent:
-        // TODO: Fix this when abstract class return type is fixed
-        return this.#formatTransferSentLog(log as DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>) as unknown as ICCTPMessage
+      case CCTPEventName.CCTPTransferSent: {
+        return this.#formatTransferSentLog(log as DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>) as ICCTPMessage
+      }
       case CCTPEventName.MessageReceived:
-        // TODO: Fix this when abstract class return type is fixed
-        return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>) as unknown as ICCTPMessage
+        return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>) as ICCTPMessage
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -93,7 +88,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
    * Internal
    */
 
-  #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): ISentCCTPMessageWithoutContext {
+  #formatTransferSentLog (log: DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>): Omit<ISentCCTPMessage, 'txContext'> {
     const { context, decoded } = log
     const { chainId } = context
     const { message, cctpNonce, chainId: destinationChainId } = decoded
@@ -106,7 +101,7 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
-  #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): IRelayedCCTPMessageWithoutContext {
+  #formatRelayedLog (log: DecodedLogWithContext<HopCCTPTransferReceivedDecoded>): Omit<IRelayedCCTPMessage, 'txContext'> {
     const { decoded, context } = log
     const { nonce, sourceDomain } = decoded
 

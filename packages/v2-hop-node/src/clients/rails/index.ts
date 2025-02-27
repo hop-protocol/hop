@@ -1,3 +1,4 @@
 export * from './Rails.js'
 export * from './RailsSDKWrapper.js'
+export * from './validation/index.js'
 export { type RailsPath, RailsClientName } from './types.js'

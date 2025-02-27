@@ -62,15 +62,15 @@ export const config: Config = {
       arbitrum: 23
     },
     HOP: {
-      ethereum: 5,
-      polygon: 20,
-      gnosis: 20,
-      optimism: 5,
-      arbitrum: 5,
-      nova: 20,
-      base: 20,
-      linea: 20,
-      polygonzk: 20
+      ethereum: 4,
+      polygon: 4,
+      gnosis: 4,
+      optimism: 4,
+      arbitrum: 4,
+      nova: 4,
+      base: 4,
+      linea: 4,
+      polygonzk: 4
     },
     SNX: {
       ethereum: 20

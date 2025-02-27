@@ -7,13 +7,15 @@ import {
   CCTPEventName,
   CCTPSDK
 } from './sdk/CCTPSDK.js'
+import type { ClientName } from '../constants.js'
 
-// TODO: I believe this should be union, not intersection
-type CCTPEventIndex = keyof (HopCCTPTransferSentDecodedWithMessage & HopCCTPTransferReceivedDecoded)
+export type CCTPEventIndexes =
+  | (keyof HopCCTPTransferSentDecodedWithMessage)[]
+  | (keyof HopCCTPTransferReceivedDecoded)[]
 
-export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventIndex> {
+export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventIndexes> {
 
-  constructor(name: string, chainIds: string[]) {
+  constructor(name: ClientName, chainIds: string[]) {
     super(name)
 
     for (const chainId of chainIds) {
@@ -39,7 +41,7 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventInd
     }
   }
 
-  protected override getDesiredEventIndexes (eventName: CCTPEventName): CCTPEventIndex[] {
+  protected override getDesiredEventIndexes (eventName: CCTPEventName): CCTPEventIndexes {
     switch (eventName) {
       case CCTPEventName.CCTPTransferSent:
         return ['cctpNonce', 'chainId']

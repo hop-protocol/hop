@@ -163,7 +163,6 @@ export class Logger {
   dbOperation = (...input: any[]) => {
     // Explicitly set to true for debugging
     const isEnabled = false
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!this.enabled || !isEnabled) return
     if (logLevel < LogLevels.Debug) {
       return

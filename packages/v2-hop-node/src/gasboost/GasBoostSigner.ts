@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Store } from './Store.js'
 import type { providers } from 'ethers'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import {
   MAX_PRIORITY_FEE_CONFIDENCE_LEVEL,
   INITIAL_TX_GAS_PRICE_MULTIPLIER,
@@ -81,7 +81,7 @@ export class GasBoostSigner extends Signer {
     const defaultOptions: Partial<Options> = {
       gasPriceMultiplier: GAS_PRICE_MULTIPLIER,
       initialTxGasPriceMultiplier: INITIAL_TX_GAS_PRICE_MULTIPLIER,
-      maxGasPriceGwei: SignerConfig.chains[chainSlug as ChainSlug]?.maxGasPriceGwei,
+      maxGasPriceGwei: Config.SignerConfig.shared.chains[chainSlug as ChainSlug]?.maxGasPriceGwei,
       priorityFeePerGasCap: PRIORITY_FEE_PER_GAS_CAP,
       timeTilBoostMs: TIME_TIL_BOOST_MS,
       maxPriorityFeeConfidenceLevel: MAX_PRIORITY_FEE_CONFIDENCE_LEVEL
@@ -102,7 +102,6 @@ export class GasBoostSigner extends Signer {
   }
 
   protected async tilReady (): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.ready) {
         return true

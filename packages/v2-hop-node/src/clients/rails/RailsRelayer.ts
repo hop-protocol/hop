@@ -6,16 +6,17 @@ import { getTxOverrides } from '#utils/getTxOverrides.js'
 import type { BondInput, PostClaimInput, RailsRelayItem } from './types.js'
 import type { providers } from 'ethers'
 import type { RailsPath } from './types.js'
+import type { ClientName } from '../constants.js'
 
 export class RailsRelayer extends Relayer<RailsRelayItem> {
   readonly #railsGateways: Record<string, RailsGateway> = {}
 
-  constructor (name: string, paths: RailsPath[]) {
+  constructor (name: ClientName, paths: RailsPath[]) {
     super(name)
     const chainIds = getChainIdsForPaths(paths)
     for (const chainId of chainIds) {
       const wallet = wallets.get(chainId)
-      this.#railsGateways[chainId] = new RailsGateway(wallet)
+      this.#railsGateways[chainId] = new RailsGateway(chainId, wallet)
     }
   }
 
@@ -59,8 +60,8 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
 
-    const isClaimed = await gateway.isClaimed(relayItem.transferId)
-    const isBonded = await gateway.isBonded(relayItem.transferId)
+    const isClaimed = await gateway.isClaimed(relayItem.claimId)
+    const isBonded = await gateway.isBonded(relayItem.claimId)
     return isClaimed && !isBonded
   }
 
@@ -82,38 +83,29 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    */
 
   async #sendBond (relayItem: BondInput): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, nextHops } = relayItem
+    const { pathId, claimId, bonderFee, nextHops } = relayItem
     const { destChainId } = getPathFromPathId(pathId)
     const txOverrides = await getTxOverrides(destChainId)
     const gateway = this.#railsGateways[destChainId]
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
-    return gateway.bond({
-      pathId,
-      transferId,
-      nextHops
-    }, txOverrides)
+
+    const a: any = {}
+    return gateway.bond(a, txOverrides)
   }
 
   async #sentPostClaim (relayItem: PostClaimInput): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, to, amount, totalSent, attestedClaimId, attestedTotalClaims, nextHopsHash } = relayItem
+    const { pathId, transferId, to, amountOut, maxBonderFee, attestedClaimId, totalSent, totalClaims, nextHopsHash } = relayItem
     const { destChainId } = getPathFromPathId(pathId)
     const txOverrides = await getTxOverrides(destChainId)
     const gateway = this.#railsGateways[destChainId]
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${destChainId}`)
     }
-    return gateway.postClaim({
-      pathId,
-      transferId,
-      to,
-      amount,
-      totalSent,
-      attestedClaimId,
-      attestedTotalClaims,
-      nextHopsHash
-    }, txOverrides)
+
+    const a: any = {}
+    return gateway.postClaim(a, txOverrides)
   }
 
   /**

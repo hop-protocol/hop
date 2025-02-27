@@ -1,5 +1,5 @@
 import type { TxOverrides } from '#types/index.js'
-import { SignerConfig } from '#config/index.js'
+import { Config } from '#config/index.js'
 import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { MIN_GNOSIS_GAS_PRICE, MIN_POLYGON_GAS_PRICE } from '#constants/index.js'
 import { BigNumber } from 'ethers'
@@ -11,7 +11,7 @@ import { getRpcProvider } from './getRpcProvider.js'
  */
 
 export async function getTxOverrides (chainSlug: string): Promise<TxOverrides> {
-  const network: NetworkSlug = SignerConfig.network
+  const network: NetworkSlug = Config.GlobalConfig.options.network
 
   switch (chainSlug) {
     case ChainSlug.Polygon:

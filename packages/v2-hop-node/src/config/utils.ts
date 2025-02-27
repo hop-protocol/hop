@@ -4,8 +4,10 @@ import fs from 'node:fs'
 import type { IConfig } from './types.js'
 import { USER_CONFIG_PATH } from './constants.js'
 
-export async function parseUserDefinedConfigFile (): Promise<IConfig> {
-  const configPath = path.resolve(USER_CONFIG_PATH.replace('~', os.homedir()))
+export async function parseUserDefinedConfigFile (configPath?: string): Promise<IConfig> {
+  if (!configPath || configPath.length === 0) {
+    configPath = path.resolve(USER_CONFIG_PATH.replace('~', os.homedir()))
+  }
   return parseConfigFile(configPath)
 }
 
@@ -27,4 +29,11 @@ async function parseConfigFile (configPath: string): Promise<IConfig> {
   }
 
   return config
+}
+
+export function validateRequiredKeys<T extends object>(obj: Partial<T>, requiredKeys: Array<keyof T>): asserts obj is T {
+  const missing = requiredKeys.filter(key => !(key in obj))
+  if (missing.length > 0) {
+    throw new Error(`Missing required configuration keys: ${missing.join(', ')}`)
+  }
 }

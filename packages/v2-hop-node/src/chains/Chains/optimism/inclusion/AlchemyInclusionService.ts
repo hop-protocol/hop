@@ -53,7 +53,6 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
   }
 
   async #isReadyAndInitialized (): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.#ready && this.#isInitialized) {
         return true

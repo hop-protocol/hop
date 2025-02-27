@@ -1,7 +1,7 @@
 {
   "name": "@hop-protocol/v2-hop-node",
   "version": "0.0.2",
-  "description": "The V2 Hop Node pakcage for Hop Protocol",
+  "description": "The V2 Hop Node package for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "type": "module",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "start": "tsx ./src/cli/cli.ts",
+    "start": "tsx ./src/cli/hop.ts",
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
@@ -45,7 +45,7 @@
     "async-mutex": "0.4.1",
     "bip39": "3.1.0",
     "chalk": "4.1.2",
-    "commander": "6.2.1",
+    "commander": "12.1.0",
     "console-clear": "1.1.1",
     "ethers": "5.7.2",
     "keythereum": "1.2.0",

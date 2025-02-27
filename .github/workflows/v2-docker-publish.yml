@@ -5,6 +5,7 @@ on:
       - v2
     paths:
       - 'packages/v2-explorer-backend/**'
+      - 'packages/v2-hop-node/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
@@ -13,7 +14,7 @@ jobs:
     name: Check for v2 packages that can be published
     uses: ./.github/workflows/publishable-packages.yml
     with:
-      package-names: 'v2-explorer-backend'
+      package-names: 'v2-explorer-backend:v2-hop-node'
 
   publish-docker:
     name: Publish Docker

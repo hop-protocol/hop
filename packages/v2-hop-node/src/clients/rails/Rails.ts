@@ -2,6 +2,7 @@ import { RailsTransfer } from './transfer/RailsTransfer.js'
 import { RailsClaim } from './claim/RailsClaim.js'
 import { RailsRelayer } from './RailsRelayer.js'
 import { RailsIndexer } from './RailsIndexer.js'
+import { ClientName } from '../constants.js'
 import { type RailsPath, RailsClientName } from './types.js'
 
 export class Rails {
@@ -10,7 +11,7 @@ export class Rails {
   #started: boolean = false
 
   constructor (clientNames: RailsClientName[], paths: RailsPath[]) {
-    const name = 'rails'
+    const name = ClientName.Rails
 
     // Data handler
     const indexer = new RailsIndexer(name, paths)

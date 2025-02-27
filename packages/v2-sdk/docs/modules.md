@@ -79,6 +79,9 @@
 - [GetClaimFeesFeeInput](modules.md#getclaimfeesfeeinput)
 - [GetClaimIdInput](modules.md#getclaimidinput)
 - [GetClaimInput](modules.md#getclaiminput)
+- [GetClaimPostedEventFilterInput](modules.md#getclaimpostedeventfilterinput)
+- [GetClaimReaddedEventFilterInput](modules.md#getclaimreaddedeventfilterinput)
+- [GetClaimRemovedEventFilterInput](modules.md#getclaimremovedeventfilterinput)
 - [GetCounterpartChainIdInput](modules.md#getcounterpartchainidinput)
 - [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
@@ -640,6 +643,24 @@ ___
 
 ___
 
+### <a id="getclaimpostedeventfilterinput" name="getclaimpostedeventfilterinput"></a> GetClaimPostedEventFilterInput
+
+Ƭ **GetClaimPostedEventFilterInput**: `ClaimPostedIndexes`
+
+___
+
+### <a id="getclaimreaddedeventfilterinput" name="getclaimreaddedeventfilterinput"></a> GetClaimReaddedEventFilterInput
+
+Ƭ **GetClaimReaddedEventFilterInput**: `ClaimReaddedIndexes`
+
+___
+
+### <a id="getclaimremovedeventfilterinput" name="getclaimremovedeventfilterinput"></a> GetClaimRemovedEventFilterInput
+
+Ƭ **GetClaimRemovedEventFilterInput**: `ClaimRemovedIndexes`
+
+___
+
 ### <a id="getcounterpartchainidinput" name="getcounterpartchainidinput"></a> GetCounterpartChainIdInput
 
 Ƭ **GetCounterpartChainIdInput**: `Object`
@@ -683,7 +704,7 @@ ___
 
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
-Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes`
+Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPostedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes`
 
 ___
 

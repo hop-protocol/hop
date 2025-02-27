@@ -7,9 +7,9 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
-import { ClaimPostedEventFetcher } from '#railsGateway/events/ClaimPosted.js'
-import { ClaimReaddedEventFetcher } from '#railsGateway/events/ClaimReadded.js'
-import { ClaimRemovedEventFetcher } from '#railsGateway/events/ClaimRemoved.js'
+import { ClaimPosted, ClaimPostedEventFetcher, ClaimPostedIndexes } from '#railsGateway/events/ClaimPosted.js'
+import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
+import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -248,11 +248,17 @@ export type GetTokenContractInput = {
   address: string
 }
 
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes
+export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes
 
 export type GetTransferSentEventFilterInput = TransferSentIndexes
 
 export type GetTransferBondedEventFilterInput = TransferBondedIndexes
+
+export type GetClaimPostedEventFilterInput = ClaimPostedIndexes
+
+export type GetClaimReaddedEventFilterInput = ClaimReaddedIndexes
+
+export type GetClaimRemovedEventFilterInput = ClaimRemovedIndexes
 
 export type Token = {
   chainId: string
@@ -734,6 +740,18 @@ export class RailsGateway extends Base {
       return this.getTransferBondedEventFilter(input)
     }
 
+    if (eventName == EventName.ClaimPosted) {
+      return this.getClaimPostedEventFilter(input)
+    }
+
+    if (eventName == EventName.ClaimReadded) {
+      return this.getClaimReaddedEventFilter(input)
+    }
+
+    if (eventName == EventName.ClaimRemoved) {
+      return this.getClaimRemovedEventFilter(input)
+    }
+
     throw new InputError(`event name ${eventName} not found`)
   }
 
@@ -747,11 +765,26 @@ export class RailsGateway extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
+  getClaimPostedEventFilter(input: GetClaimPostedEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.ClaimPosted)
+    return eventFetcher.getFilterWithIndexes(input)
+  }
+
+  getClaimReaddedEventFilter(input: GetClaimReaddedEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.ClaimReadded)
+    return eventFetcher.getFilterWithIndexes(input)
+  }
+
+  getClaimRemovedEventFilter(input: GetClaimRemovedEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.ClaimRemoved)
+    return eventFetcher.getFilterWithIndexes(input)
+  }
+
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
     return RailsGateway.addDecodedTypesToEvent(event)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
     return RailsGateway.addDecodedTypesToEvents(events)
   }
 
@@ -2796,15 +2829,18 @@ export class RailsGateway extends Base {
     return eventFetcher.getTopic0()
   }
 
-  static addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded> {
+  static addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypes<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
     const decoded = RailsGateway.addDecodedTypesToEvents([event])
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded>[] {
+  static addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypes<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
     const transferSentEventFetcher = new TransferSentEventFetcher()
     const transferBondedEventFetcher = new TransferBondedEventFetcher()
+    const claimPostedEventFetcher = new ClaimPostedEventFetcher()
+    const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
+    const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
 
     if (events.some(event => transferSentEventFetcher.getEventNameFromTopic(event.topics[0]))) {
       return RailsGateway.addDecodedTypesToTransferSentEvents(events)
@@ -2812,6 +2848,18 @@ export class RailsGateway extends Base {
 
     if (events.some(event => transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
       return RailsGateway.addDecodedTypesToTransferBondedEvents(events)
+    }
+
+    if (events.some(event => claimPostedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return RailsGateway.addDecodedTypesToClaimPostedEvents(events)
+    }
+
+    if (events.some(event => claimReaddedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return RailsGateway.addDecodedTypesToClaimReaddedEvents(events)
+    }
+
+    if (events.some(event => claimRemovedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
+      return RailsGateway.addDecodedTypesToClaimRemovedEvents(events)
     }
 
     return events
@@ -2824,6 +2872,21 @@ export class RailsGateway extends Base {
 
   static addDecodedTypesToTransferBondedEvents (events: any[]): EthersEventWithDecodedTypes<TransferBonded>[] {
     const eventFetcher = new TransferBondedEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
+  }
+
+  static addDecodedTypesToClaimPostedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimPosted>[] {
+    const eventFetcher = new ClaimPostedEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
+  }
+
+  static addDecodedTypesToClaimReaddedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimReadded>[] {
+    const eventFetcher = new ClaimReaddedEventFetcher()
+    return events.map(event => eventFetcher.addTypedEvent(event))
+  }
+
+  static addDecodedTypesToClaimRemovedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimRemoved>[] {
+    const eventFetcher = new ClaimRemovedEventFetcher()
     return events.map(event => eventFetcher.addTypedEvent(event))
   }
 }

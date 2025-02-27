@@ -84,7 +84,7 @@ export class RailsGateway {
  * Utils
  */
 
-export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: EventName, chainId: string, indexes?: T): EventFilter {
+export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: RailsEventName, chainId: string, indexes?: T): EventFilter {
   const wallet = wallets.get(chainId)
   const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet })
   // TODO: Fix this

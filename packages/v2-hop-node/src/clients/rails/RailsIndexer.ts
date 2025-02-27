@@ -1,6 +1,6 @@
 import {
   type RailsFilterInputs,
-  EventName as RailsEventName,
+  RailsEventName,
   addDecodedTypesToEvent,
   getRailsEventFilter
 } from './RailsSDKWrapper.js'
@@ -62,7 +62,6 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
   // with sub-implementation (i.e. transfer vs. claim) details. If there is a need for this, then implement
   // those details in the sub-implementation and extend this class.
   protected addEventFilters(paths: RailsPath[]): void {
-    this.addEventFilters(paths)
     const chainIds = getChainIdsForPaths(paths)
     const eventNames = Object.values(RailsEventName)
 

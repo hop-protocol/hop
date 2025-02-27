@@ -1,6 +1,6 @@
 import { DataAdapter } from '#state-machine/index.js'
 import { getPathFromPathId } from '../../utils.js'
-import { EventName as RailsEventName } from '../../RailsSDKWrapper.js'
+import { RailsEventName } from '../../RailsSDKWrapper.js'
 import { type IRailsTransfer, RailsTransferState } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 

@@ -6,6 +6,7 @@ import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   // TODO: SDK: Fill in the start block numbers
+  // TODO: SDK: These live in the SDK
   [NetworkSlug.Mainnet]: {
     [ChainSlug.Ethereum]: 0,
     [ChainSlug.Optimism]: 0,
@@ -14,10 +15,10 @@ const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, numbe
     [ChainSlug.Polygon]: 0
   },
   [NetworkSlug.Sepolia]: {
-    [ChainSlug.Ethereum]: 0,
+    [ChainSlug.Ethereum]: 7784611,
     [ChainSlug.Optimism]: 0,
     [ChainSlug.Arbitrum]: 0,
-    [ChainSlug.Base]: 0
+    [ChainSlug.Base]: 22371334
   }
 }
 

@@ -92,7 +92,7 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Rai
   return gateway.getEventFilter(eventName as any, indexes)
 }
 
-export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
+export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK | ClaimPostedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
   return RailsGatewaySDK.addDecodedTypesToEvent(log)
 }
 
@@ -101,7 +101,8 @@ export function getPathId(path: RailsPath): string {
     path.srcChainId,
     path.srcToken,
     path.destChainId,
-    path.destToken
+    path.destToken,
+    path.initialReserve
   )
 }
 

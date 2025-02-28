@@ -68,8 +68,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
     // All events are indexed by pathId so there is no need to filter them
     for (const eventName of eventNames) {
       for (const chainId of chainIds) {
-        const getPathIdsForChainId = getPathIdsPerChainId(chainId, paths)
-        const filters = getPathIdsForChainId.map(pathId => {
+        const pathIdsForChainIds = getPathIdsPerChainId(chainId, paths)
+        const filters = pathIdsForChainIds.map(pathId => {
           return getRailsEventFilter(eventName, chainId, { pathId }) as RequiredEventFilter
         })
 

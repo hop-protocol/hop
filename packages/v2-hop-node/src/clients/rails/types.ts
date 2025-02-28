@@ -20,6 +20,7 @@ export type RailsPath = {
   srcToken: string
   destChainId: string
   destToken: string
+  initialReserve: string
 }
 
 export type BondInput = BondInputSDK

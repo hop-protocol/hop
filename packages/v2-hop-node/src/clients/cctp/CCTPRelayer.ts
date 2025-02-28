@@ -19,7 +19,7 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     try {
       await CCTPSDK.fetchAttestation(relayItem.message)
     } catch (err) {
-      this.logger.debug(`Attestation not yet ready for message: ${relayItem.message}`)
+      this.logger.debug(`Attestation not yet ready for message: ${relayItem.message}`, JSON.stringify(err))
       return false
     }
 

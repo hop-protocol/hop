@@ -34,4 +34,5 @@ export interface Filter {
 }
 
 export type EthersEventWithDecodedTypes<T> = EthersEvent & { decoded: T }
+export type EthersEventWithDecodedTypesAndBaseContext <T> = EthersEvent & { decoded: T, context: BaseEventContext }
 export type EthersEventWithDecodedTypesAndContext <T> = EthersEvent & { decoded: T, context: EventContext }

@@ -1,4 +1,4 @@
-import { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './types.js'
+import { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypesAndBaseContext, BaseEventContext } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { getChainSlug } from '#utils/index.js'
 import { promiseQueue } from '@hop-protocol/sdk'
@@ -40,12 +40,12 @@ export class Event<T> {
     return eventFragment ? eventFragment.name : null
   }
 
-  parseEthersEventLog (ethersEvent: EthersEvent): any {
+  parseEthersEventLog(ethersEvent: EthersEvent): any {
     const iface = new utils.Interface(this.abi)
     return iface.parseLog(ethersEvent)
   }
 
-  getFilter (): EventFilter {
+  getFilter(): EventFilter {
     const contract = this.getContract()
     if (!contract.filters[this.eventName]) {
       throw new Error(`Event ${this.eventName} not found in contract filters`)
@@ -53,12 +53,12 @@ export class Event<T> {
     return contract.filters[this.eventName]()
   }
 
-  getTopic0 (): string {
+  getTopic0(): string {
     const iface = new utils.Interface(this.abi)
     return iface.getEventTopic(this.eventName)
   }
 
-  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, options: GetEventsOptions = {}): Promise<T[]> {
+  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, options: GetEventsOptions = {}): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {
     const { fetchTxData, returnOnFirstMatch } = options
     const eventFetcher = new EventFetcher({
       provider: this.provider,
@@ -67,32 +67,30 @@ export class Event<T> {
 
     const endBlock = toBlock ?? await this.provider.getBlockNumber()
     const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock, returnOnFirstMatch })
-
-    console.log(`hopV2Sdk: populating events. count: ${events.length}`)
     return this.populateEvents(events, fetchTxData)
   }
 
-  async *getEventsForRangeWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
+  async *getEventsForRangeWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<EthersEventWithDecodedTypesAndContext<T>[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
     })
 
     const endBlock = toBlock ?? await this.provider.getBlockNumber()
-    const eventGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock: endBlock })
+    const eventsGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock: endBlock })
 
-    for await (const events of eventGenerator) {
-      console.log(`hopV2Sdk: populating events. count: ${events.length}`)
-      yield await this.populateEvents(events)
+    for await (const events of eventsGenerator) {
+      const populatedEvents = await this.populateEvents(events)
+      yield populatedEvents
     }
   }
 
-  async getEventsForRange (fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<T[]> {
+  async getEventsForRange(fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {
     const filter = this.getFilter()
     return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { fetchTxData })
   }
 
-  async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<T[]> {
+  async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<EthersEventWithDecodedTypesAndContext<T>[]> {
     const eventsGenerator = this.getEventsForRangeWithFilterAsGenerator(this.getFilter(), fromBlock, toBlock)
 
     for await (const events of eventsGenerator) {
@@ -100,79 +98,102 @@ export class Event<T> {
     }
   }
 
-  async populateEvents<T>(inputEvents: EthersEvent[], fetchTxData: boolean = false): Promise<T[]> {
-    const events = inputEvents.map(this.addTypedEvent.bind(this))
-    const promiseFns = events.map(event => () => this.addContextToEvent(event, this.chainId, fetchTxData))
+  async populateEvents(inputEvents: EthersEvent[], fetchTxData: boolean = false): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {
+    const events = inputEvents.map(event => this.addTypedEvent(event))
+    const promiseFns = events.map(event => () => this.addContextToEvent(event, fetchTxData))
 
-    const populatedEvents: Event<T>[] = []
+    const populatedEvents: EthersEventWithDecodedTypesAndContext<T>[] = []
 
-    await promiseQueue(promiseFns, async (fn: () => Promise<Event<T>>) => {
+    await promiseQueue(promiseFns, async (fn: () => Promise<EthersEventWithDecodedTypesAndContext<T>>) => {
       const result = await fn()
       populatedEvents.push(result)
     }, { concurrency: 20 })
 
-    return populatedEvents as T[]
+    return populatedEvents
   }
 
-  addTypedEvent(ethersEvent: EthersEvent): EthersEventWithDecodedTypes<T> {
+  addTypedEvent(ethersEvent: EthersEvent): EthersEventWithDecodedTypesAndBaseContext<T> {
+    const decoded = this.toTypedEvent(ethersEvent)
+    const eventWithDecoded = {
+      ...ethersEvent,
+      decoded
+    } as EthersEventWithDecodedTypes<T>
+
     return {
       ...ethersEvent,
-      decoded: this.toTypedEvent(ethersEvent)
+      decoded,
+      context: this.getBaseEventContext(eventWithDecoded)
     }
   }
 
-  toTypedEvent (ethersEvent: EthersEvent): T {
+  toTypedEvent(ethersEvent: EthersEvent): T {
     throw new Error('Not implemented')
   }
 
-  async addContextToEvent(event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData = false): Promise<T> {
-    (event as EthersEventWithDecodedTypesAndContext<T>).context = await this.getEventContext(event, chainId, fetchTxData)
-    return event as T
+  async addContextToEvent(event: EthersEventWithDecodedTypesAndBaseContext<T>, fetchTxData = false): Promise<EthersEventWithDecodedTypesAndContext<T>> {
+    const context = await (fetchTxData ? this.getReceiptEventContext(event) : this.getBaseEventContext(event))
+    return {
+      ...event,
+      context
+    } as EthersEventWithDecodedTypesAndContext<T>
   }
 
-  async getEventContext(event: EthersEventWithDecodedTypes<T>, chainId: BigNumberish, fetchTxData = false): Promise<EventContext> {
+  getBaseEventContext(event: EthersEventWithDecodedTypes<T>): BaseEventContext {
     try {
-      const chainSlug = this.getChainSlug(chainId)
+      const chainSlug = this.getChainSlug(this.chainId ?? 0)
       const { transactionHash, transactionIndex, logIndex, blockNumber } = event
-
-      let fetchedTxData = {}
-      if (fetchTxData) {
-        const [block, transaction, receipt] = await Promise.all([
-          this.provider.getBlock(blockNumber),
-          this.provider.getTransaction(transactionHash),
-          this.provider.getTransactionReceipt(transactionHash)
-        ])
-
-        const { timestamp: blockTimestamp } = block
-        const { value, nonce, gasLimit, gasPrice, data } = transaction
-        const { from, to, gasUsed, status } = receipt
-
-        fetchedTxData = {
-          blockTimestamp,
-          from,
-          to,
-          value: value.toString(),
-          nonce: Number(nonce.toString()),
-          gasLimit: Number(gasLimit.toString()),
-          gasUsed: Number(gasUsed.toString()),
-          gasPrice: gasPrice?.toString(),
-          data,
-          status
-        }
-      }
 
       return {
         eventName: this.eventName,
         chainSlug,
-        chainId: chainId.toString(),
+        chainId: this.chainId.toString(),
         transactionHash,
         transactionIndex,
         logIndex,
-        blockNumber,
+        blockNumber
+      }
+    } catch (err: unknown) {
+      console.error('hopV2Sdk: getEventContext error:', err, this.chainId, event)
+      throw err
+    }
+  }
+
+  async getReceiptEventContext(event: EthersEventWithDecodedTypes<T>): Promise<EventContext> {
+    try {
+      const { transactionHash, blockNumber } = event
+
+      let fetchedTxData = {}
+      const [block, transaction, receipt] = await Promise.all([
+        this.provider.getBlock(blockNumber),
+        this.provider.getTransaction(transactionHash),
+        this.provider.getTransactionReceipt(transactionHash)
+      ])
+
+      const { timestamp: blockTimestamp } = block
+      const { value, nonce, gasLimit, gasPrice, data } = transaction
+      const { from, to, gasUsed, status } = receipt
+
+      fetchedTxData = {
+        blockTimestamp,
+        from,
+        to,
+        value: value.toString(),
+        nonce: Number(nonce.toString()),
+        gasLimit: Number(gasLimit.toString()),
+        gasUsed: Number(gasUsed.toString()),
+        gasPrice: gasPrice?.toString(),
+        data,
+        status
+      }
+
+      const baseEventContext = this.getBaseEventContext(event)
+
+      return {
+        ...baseEventContext,
         ...fetchedTxData
       }
     } catch (err: unknown) {
-      console.error('hopV2Sdk: getEventContext error:', err, chainId, event)
+      console.error('hopV2Sdk: getEventContext error:', err, this.chainId, event)
       throw err
     }
   }
@@ -182,14 +203,6 @@ export class Event<T> {
   }
 
   decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): EthersEventWithDecodedTypes<T>[] {
-    const topic = this.getTopic0()
-    return receipt.logs
-      .filter(log => log.topics[0] === topic)
-      .map(log => {
-        return {
-          ...log,
-          decoded: this.toTypedEvent(log as EthersEvent)
-        }
-      }) as EthersEventWithDecodedTypes<T>[]
+    return []
   }
 }

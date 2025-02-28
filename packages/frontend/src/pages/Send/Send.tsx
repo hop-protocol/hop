@@ -93,7 +93,8 @@ const Send: FC = () => {
     transferTimeDisplay,
     tx,
     warning,
-    isV2
+    isV2,
+    estimatedReceivedComparison
   } = useSendV2Intermediary()
 
   const isFromPol = fromNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
@@ -193,6 +194,9 @@ const Send: FC = () => {
         </Alert>
       )}
 
+      <Box>V1 estimate: {estimatedReceivedComparison.v1} {!isV2 && '✓'}</Box>
+      <Box>V2 estimate: {estimatedReceivedComparison.v2} {isV2 && '✓'}</Box>
+
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {isV2 && (
@@ -204,13 +208,12 @@ const Send: FC = () => {
                 maxBonderFeeUsd={bonderFeeUsdDisplay}
                 sendFee={relayFeeEthDisplay}
                 sendFeeUsd={relayFeeUsdDisplay}
-                totalFee={totalFeeDisplayString}
                 totalFeeUsd={totalFeeUsdDisplay}
                 />
             }
             value={<>
               <InfoTooltip title={totalFeeUsdDisplay}>
-                <Box>{totalFeeDisplayString}</Box>
+                <Box>{totalFeeUsdDisplay || '-'}</Box>
               </InfoTooltip>
             </>}
             large

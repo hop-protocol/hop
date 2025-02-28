@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { toTokenDisplay, toUsdDisplay } from '#utils/index.js'
+import { toTokenDisplay, toUsdDisplay, toUsd, formatUsdDisplay } from '#utils/index.js'
 import { useMemo } from 'react'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
 
@@ -39,6 +39,7 @@ export function getConvertedFeesV2(input: Input) {
   const destinationTxFeeUsdDisplay = destinationTxFee ? toUsdDisplay(destinationTxFee, feeTokenDecimals, feeTokenUsdPrice) : ''
 
   const bonderFeeDisplay = bonderFee ? toTokenDisplay(bonderFee, destTokenDecimals, destTokenSymbol) : ''
+  const bonderFeeUsd = bonderFee ? toUsd(bonderFee, destTokenDecimals, destTokenUsdPrice) : 0
   const bonderFeeUsdDisplay = bonderFee ? toUsdDisplay(bonderFee, destTokenDecimals, destTokenUsdPrice) : ''
 
   const totalBonderFee = bonderFee
@@ -64,10 +65,11 @@ export function getConvertedFeesV2(input: Input) {
     'ETH'
   ) : ''
 
+  const relayFeeUsd = relayFeeEth ? toUsd(relayFeeEth, 18, feeTokenUsdPrice) : 0
   const relayFeeUsdDisplay = relayFeeEth ? toUsdDisplay(relayFeeEth, 18, feeTokenUsdPrice) : ''
-  const totalFee = totalBonderFee
-  const totalFeeDisplay = toTokenDisplay(totalFee, feeTokenDecimals, feeTokenSymbol)
-  const totalFeeUsdDisplay = toUsdDisplay(totalFee, feeTokenDecimals, feeTokenUsdPrice)
+  const totalFee = bonderFeeUsd + relayFeeUsd
+  const totalFeeDisplay = `${totalFee || 0}`
+  const totalFeeUsdDisplay = totalFee > 0 ? formatUsdDisplay(totalFee) : '0'
 
   return {
     destinationTxFeeDisplay,

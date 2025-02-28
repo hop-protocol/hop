@@ -238,16 +238,15 @@ describe('RailsGateway', () => {
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeDefined()
   }, 60 * 1000)
-  it('should add typedEvent to events', async () => {
+  it.only('should add typedEvent to events (TransferSent)', async () => {
     const chainId = 11155111
-    const fromBlock = 5816945
-    const toBlock = 5816945
+    const fromBlock = 7794287
+    const toBlock = 7794287
 
     const ethersEvents = await provider.getLogs({
-      address: '0xE09810aEA635e0B481cC3703963216013Ff7956D',
+      address: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
       topics: [
-        '0x3ac38345c5480a0a83c6dcc635c5ae04720e7a0a523516f61a9b573fbd4f1e43'
-        // '0x3d5679b3c8a1d106e71289dce97aa0f2518e8c2e1279556fca8753c71257b627'
+        '0xdc12e414a1870b29fe8c4d2fbf59bbc5024d649678d85c5f70e8da2e6e4988fa'
       ],
       fromBlock,
       toBlock
@@ -260,13 +259,14 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    jest.spyOn(railsGateway as any, 'addDecodedTypesToEvents').mockReturnValue([{ decoded: {} }] as any)
+    // jest.spyOn(railsGateway as any, 'addDecodedTypesToEvents').mockReturnValue([{ decoded: {}, context: {} }] as any)
 
     const events = railsGateway.addDecodedTypesToEvents(ethersEvents)
     console.log(events)
 
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeDefined()
+    expect(events[0].context).toBeDefined()
   }, 60 * 1000)
   it('should add typedEvent to event', async () => {
     const chainId = 11155111
@@ -289,12 +289,13 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    jest.spyOn(railsGateway as any, 'addDecodedTypesToEvent').mockReturnValue({ decoded: {} } as any)
+    jest.spyOn(railsGateway as any, 'addDecodedTypesToEvent').mockReturnValue({ decoded: {}, context: {} } as any)
 
     const event = railsGateway.addDecodedTypesToEvent(ethersEvents[0])
     console.log(event)
 
     expect(event.decoded).toBeDefined()
+    expect(event.context).toBeDefined()
   }, 60 * 1000)
   it('should fetch TransferBonded events', async () => {
     const chainId = 11155420
@@ -334,7 +335,8 @@ describe('RailsGateway', () => {
       chainId0: 11155111,
       token0: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
       chainId1: 11155420,
-      token1: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd'
+      token1: '0xDCAc09AbB4D3E008b941370d384d0Cf20ce0a5bd',
+      initialReserve: 10_000
     })
     console.log(pathId)
     expect(pathId).toBeDefined()
@@ -433,7 +435,7 @@ describe('RailsGateway', () => {
     const hops = [{
       pathId,
       maxBonderFee: '0',
-      minAmountOut: '0',
+      maxTotalSent: '0',
       attestedClaimId
     }]
     const railsGateway = new RailsGateway({
@@ -466,7 +468,7 @@ describe('RailsGateway', () => {
     const nextHops = [{
       pathId,
       maxBonderFee: '0',
-      minAmountOut: '0',
+      maxTotalSent: '0',
       attestedClaimId: claimId
     }]
     const railsGateway = new RailsGateway({
@@ -537,7 +539,7 @@ describe('RailsGateway', () => {
     console.log(balance)
     expect(balance).toBeDefined()
   })
-  it('should withdraw', async () => {
+  it('should withdraw bonds', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
@@ -546,7 +548,22 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    const txData = await railsGateway.populateTransaction.withdraw({
+    const txData = await railsGateway.populateTransaction.withdrawBonds({
+      pathId,
+      claimId
+    })
+    expect(txData).toBeDefined()
+  })
+  it('should withdraw claim', async () => {
+    const chainId = 11155111
+    const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
+    const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const railsGateway = new RailsGateway({
+      chainId,
+      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
+    })
+
+    const txData = await railsGateway.populateTransaction.withdrawClaim({
       pathId,
       claimId
     })
@@ -897,7 +914,7 @@ describe('RailsGateway', () => {
     expect(decoded.hops).toBeDefined()
     expect(decoded.hops[0].pathId).toBeDefined()
     expect(decoded.hops[0].maxBonderFee).toBeDefined()
-    expect(decoded.hops[0].minAmountOut).toBeDefined()
+    expect(decoded.hops[0].maxTotalSent).toBeDefined()
     expect(decoded.hops[0].attestedClaimId).toBeDefined()
   }, 60 * 1000)
 
@@ -917,7 +934,7 @@ describe('RailsGateway', () => {
     expect(decoded.nextHops).toBeDefined()
     // expect(decoded.nextHops[0].pathId).toBeDefined()
     // expect(decoded.nextHops[0].maxBonderFee).toBeDefined()
-    // expect(decoded.nextHops[0].minAmountOut).toBeDefined()
+    // expect(decoded.nextHops[0].maxTotalSent).toBeDefined()
     // expect(decoded.nextHops[0].attestedClaimId).toBeDefined()
   }, 60 * 1000)
 
@@ -960,10 +977,11 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
+    const toChainId = 11155420
     jest.spyOn(railsGateway as any, 'getMessageFee').mockReturnValue(BigNumber.from(1) as any)
 
     const fee = await railsGateway.getMessageFee({
-      pathId
+      chainId: toChainId
     })
     console.log(fee)
     expect(fee).toBeDefined()
@@ -978,8 +996,9 @@ describe('RailsGateway', () => {
 
     jest.spyOn(railsGateway as any, 'getClaimFeesFee').mockReturnValue(BigNumber.from(1) as any)
 
+    const toChainId = 11155420
     const fee = await railsGateway.getClaimFeesFee({
-      pathId
+      chainId: toChainId
     })
     console.log(fee)
     expect(fee).toBeDefined()
@@ -1275,6 +1294,7 @@ describe('RailsGateway', () => {
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'
     const amount = parseUnits('1', 18)
     const attestedClaimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
+    const sourcePool = BigNumber.from(1)
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
@@ -1282,7 +1302,7 @@ describe('RailsGateway', () => {
 
     jest.spyOn(railsGateway as any, 'getAmountOut').mockReturnValue(BigNumber.from(1) as any)
 
-    const amountOut = await railsGateway.getAmountOut({ pathId, amount, attestedClaimId })
+    const amountOut = await railsGateway.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     console.log(amountOut)
     expect(amountOut).toBeDefined()
   })
@@ -1359,7 +1379,7 @@ describe('RailsGateway', () => {
     const nextHops = [{
       pathId,
       maxBonderFee: BigNumber.from('0'),
-      minAmountOut: BigNumber.from('0'),
+      maxTotalSent: BigNumber.from('0'),
       attestedClaimId: claimId
     }]
     const railsGateway = new RailsGateway({
@@ -1384,13 +1404,13 @@ describe('RailsGateway', () => {
       {
         pathId: utils.formatBytes32String('path1'),
         maxBonderFee: BigNumber.from('1000000'),
-        minAmountOut: BigNumber.from('0'),
+        maxTotalSent: BigNumber.from('0'),
         attestedClaimId: utils.formatBytes32String('claim1'),
       },
       {
         pathId: utils.formatBytes32String('path2'),
         maxBonderFee: BigNumber.from('2000000'),
-        minAmountOut: BigNumber.from('0'),
+        maxTotalSent: BigNumber.from('0'),
         attestedClaimId: utils.formatBytes32String('claim2'),
       },
     ]
@@ -1429,13 +1449,13 @@ describe('RailsGateway', () => {
       {
         pathId: utils.formatBytes32String('path1'),
         maxBonderFee: BigNumber.from('1000000'),
-        minAmountOut: BigNumber.from('0'),
+        maxTotalSent: BigNumber.from('0'),
         attestedClaimId: utils.formatBytes32String('claim1'),
       },
       {
         pathId: utils.formatBytes32String('path2'),
         maxBonderFee: BigNumber.from('2000000'),
-        minAmountOut: BigNumber.from('0'),
+        maxTotalSent: BigNumber.from('0'),
         attestedClaimId: utils.formatBytes32String('claim2'),
       },
     ]

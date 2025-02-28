@@ -20,13 +20,12 @@ type Props = {
   maxBonderFeeUsd: string
   sendFee: string
   sendFeeUsd: string
-  totalFee: string
   totalFeeUsd: string
 }
 
 export const FeeDetailsV2: FC<Props> = props => {
   const styles = useStyles()
-  const { maxBonderFee, maxBonderFeeUsd, sendFee, sendFeeUsd, totalFee, totalFeeUsd } = props
+  const { maxBonderFee, maxBonderFeeUsd, sendFee, sendFeeUsd, totalFeeUsd } = props
 
   return (
     <Box className={styles.root}>
@@ -59,10 +58,7 @@ export const FeeDetailsV2: FC<Props> = props => {
       <DetailRow
         title="Total Fee"
         value={<>
-          {totalFeeUsd && (
-            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{totalFeeUsd}</small></Box>
-          )}
-          <Box display="inline-block">{totalFee}</Box>
+          <Box display="inline-block">{totalFeeUsd}</Box>
         </>}
         contrastText
       />

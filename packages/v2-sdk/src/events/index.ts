@@ -1,5 +1,5 @@
 export { Event } from './Event.js'
-export { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from './types.js'
+export { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypesAndBaseContext } from './types.js'
 export {
   Options,
   FetchOptions,

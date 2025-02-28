@@ -66,6 +66,7 @@
 - [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
 - [DistributeExcessFeesInput](modules.md#distributeexcessfeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
+- [EthersEventWithDecodedTypesAndBaseContext](modules.md#etherseventwithdecodedtypesandbasecontext)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
 - [EventContext](modules.md#eventcontext)
 - [ExecuteInput](modules.md#executeinput)
@@ -479,6 +480,18 @@ ___
 
 ___
 
+### <a id="etherseventwithdecodedtypesandbasecontext" name="etherseventwithdecodedtypesandbasecontext"></a> EthersEventWithDecodedTypesAndBaseContext
+
+Ƭ **EthersEventWithDecodedTypesAndBaseContext**\<`T`\>: `EthersEvent` & \{ `context`: `BaseEventContext` ; `decoded`: `T`  }
+
+#### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+___
+
 ### <a id="etherseventwithdecodedtypesandcontext" name="etherseventwithdecodedtypesandcontext"></a> EthersEventWithDecodedTypesAndContext
 
 Ƭ **EthersEventWithDecodedTypesAndContext**\<`T`\>: `EthersEvent` & \{ `context`: [`EventContext`](modules.md#eventcontext) ; `decoded`: `T`  }
@@ -613,7 +626,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `string` |
+| `chainId` | `BigNumberish` |
 
 ___
 
@@ -1914,7 +1927,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chainId` | `string` |
+| `chainId` | `BigNumberish` |
 
 ___
 

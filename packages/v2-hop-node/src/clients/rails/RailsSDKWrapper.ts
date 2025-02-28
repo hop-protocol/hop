@@ -21,6 +21,7 @@ import type {
 } from 'ethers'
 import { wallets } from '#wallets/index.js'
 import type { RailsPath } from './types.js'
+import type { DecodedLogWithContext } from '#types/index.js'
 
 export type BondInputSDK = BondInput
 export type PostClaimInputSDK = PostClaimInput
@@ -95,8 +96,24 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Rai
   return gateway.getEventFilter(eventName as any, indexes)
 }
 
-export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK | ClaimPostedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
-  return RailsGatewaySDK.addDecodedTypesToEvent(log)
+// TODO: Consider way to not pass in chainId. Right now, SDK needs it since it has large response. However, from the perspective
+// of the hn it is not necessary and adds confusion. This is because the response to the method should not care about
+// the chainId, so the intention of the method is not clear.
+export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSentSDK | TransferBondedSDK | ClaimPostedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
+  const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsGatewaySDK.addDecodedTypesToEvent(log, chainId)
+
+  // TODO: Temp do this until hn and sdk are in sync
+  if (!res?.context?.eventName) {
+    throw new Error('Event name not found in decoded event')
+  }
+  return {
+    ...res,
+    decoded: res.decoded,
+    context: {
+      eventName: res.context.eventName,
+      chainId
+    }
+  }
 }
 
 export function getPathId(path: RailsPath): string {

@@ -45,8 +45,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
   }
 
   protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
-    const decodedEvent = addDecodedTypesToEvent(log)
-    const eventName = decodedEvent.event!
+    const decodedEvent = addDecodedTypesToEvent(log, chainId)
+    const eventName = decodedEvent.context.eventName
     return {
       ...decodedEvent,
       context: {

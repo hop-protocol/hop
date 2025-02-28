@@ -2854,7 +2854,6 @@ export class RailsGateway extends Base {
     const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
     const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
 
-    console.log('her00', events.length)
     const result = events.map(event => {
       if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
         return RailsGateway.addDecodedTypesToTransferSentEvent(event, chainId)

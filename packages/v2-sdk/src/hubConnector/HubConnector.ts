@@ -94,6 +94,7 @@ export class HubConnector extends Base {
     }
 
     const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks, address)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
+    const events = await eventFetcher.getEventsForRange(fromBlock, toBlock)
+    return events.map(event => event.decoded)
   }
 }

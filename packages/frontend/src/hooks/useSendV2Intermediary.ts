@@ -19,16 +19,14 @@ import { ChangeEvent } from 'react'
 const v2EligibleTokens = [
   {
     symbol: 'ETH',
-    sourceChainId: '1', // Example Chain ID (e.g., Ethereum Mainnet)
-    //destinationChainId: '84532', // Example Destination Chain ID
+    sourceChainId: '1',
     destinationChainId: '8453'
   },
-  // Add more eligible tokens as needed
-  // {
-  //   symbol: 'DAI',
-  //   sourceChainId: '1',
-  //   destinationChainId: '3',
-  // },
+  {
+    symbol: 'USDC',
+    sourceChainId: '1',
+    destinationChainId: '8453',
+  },
 ]
 
 interface TokenInterface {
@@ -106,6 +104,7 @@ export type UseSendV2IntermediaryProps = {
   tx: Transaction | undefined
   warning: string | ReactNode
   isV2: boolean
+  estimatedReceivedComparison: any
 }
 
 // Helper function to safely access properties with default values
@@ -196,8 +195,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
       // Synchronize fromToken.symbol
       if (sendV1.fromToken && sendV1.fromToken.symbol && sendV2.setTokenSymbol) {
-        // sendV2.setTokenSymbol(sendV1.fromToken.symbol)
-        sendV2.setTokenSymbol('MOCK') // for testing
+        sendV2.setTokenSymbol(sendV1.fromToken.symbol === 'ETH' ? 'MOCK' : sendV1.fromToken.symbol) // for testing
       }
 
       // Synchronize fromTokenAmount to amountIn
@@ -591,7 +589,12 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
         : getValue(sendV1, 'warning', '')
       : getValue(sendV1, 'warning', ''),
 
-      isV2: isTokenEligibleForV2
+      isV2: useV2ForBestRate,
+
+      estimatedReceivedComparison: {
+        v1: sendV1.estimatedReceivedUsdDisplay,
+        v2: sendV2.estimatedReceivedUsdDisplay
+      }
   }
 
   return mappedProps

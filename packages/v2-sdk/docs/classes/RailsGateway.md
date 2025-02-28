@@ -32,6 +32,9 @@
 
 ### Methods
 
+- [addDecodedTypesToClaimPostedEvents](RailsGateway.md#adddecodedtypestoclaimpostedevents)
+- [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents)
+- [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
@@ -164,9 +167,9 @@
 - [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdrawBonds](RailsGateway.md#withdrawbonds)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
-- [addDecodedTypesToClaimPostedEvents](RailsGateway.md#adddecodedtypestoclaimpostedevents)
-- [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents)
-- [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents)
+- [addDecodedTypesToClaimPostedEvents](RailsGateway.md#adddecodedtypestoclaimpostedevents-1)
+- [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents-1)
+- [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents-1)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
 - [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
@@ -382,25 +385,9 @@ Base.utils
 
 ## Methods
 
-### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
+### <a id="adddecodedtypestoclaimpostedevents" name="adddecodedtypestoclaimpostedevents"></a> addDecodedTypesToClaimPostedEvents
 
-▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
-
-___
-
-### <a id="adddecodedtypestoevents" name="adddecodedtypestoevents"></a> addDecodedTypesToEvents
-
-▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
+▸ **addDecodedTypesToClaimPostedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
 
 #### Parameters
 
@@ -410,7 +397,71 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
+`EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
+
+___
+
+### <a id="adddecodedtypestoclaimreaddedevents" name="adddecodedtypestoclaimreaddedevents"></a> addDecodedTypesToClaimReaddedEvents
+
+▸ **addDecodedTypesToClaimReaddedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
+
+___
+
+### <a id="adddecodedtypestoclaimremovedevents" name="adddecodedtypestoclaimremovedevents"></a> addDecodedTypesToClaimRemovedEvents
+
+▸ **addDecodedTypesToClaimRemovedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
+
+___
+
+### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
+
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `event` | `any` |
+
+#### Returns
+
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
+
+___
+
+### <a id="adddecodedtypestoevents" name="adddecodedtypestoevents"></a> addDecodedTypesToEvents
+
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `events` | `any`[] |
+
+#### Returns
+
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
 
 ___
 
@@ -2521,115 +2572,122 @@ ___
 
 ___
 
-### <a id="adddecodedtypestoclaimpostedevents" name="adddecodedtypestoclaimpostedevents"></a> addDecodedTypesToClaimPostedEvents
+### <a id="adddecodedtypestoclaimpostedevents-1" name="adddecodedtypestoclaimpostedevents-1"></a> addDecodedTypesToClaimPostedEvents
 
-▸ **addDecodedTypesToClaimPostedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
+▸ **addDecodedTypesToClaimPostedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>[]
 
 ___
 
-### <a id="adddecodedtypestoclaimreaddedevents" name="adddecodedtypestoclaimreaddedevents"></a> addDecodedTypesToClaimReaddedEvents
+### <a id="adddecodedtypestoclaimreaddedevents-1" name="adddecodedtypestoclaimreaddedevents-1"></a> addDecodedTypesToClaimReaddedEvents
 
-▸ **addDecodedTypesToClaimReaddedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
+▸ **addDecodedTypesToClaimReaddedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>[]
 
 ___
 
-### <a id="adddecodedtypestoclaimremovedevents" name="adddecodedtypestoclaimremovedevents"></a> addDecodedTypesToClaimRemovedEvents
+### <a id="adddecodedtypestoclaimremovedevents-1" name="adddecodedtypestoclaimremovedevents-1"></a> addDecodedTypesToClaimRemovedEvents
 
-▸ **addDecodedTypesToClaimRemovedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
+▸ **addDecodedTypesToClaimRemovedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>[]
 
 ___
 
 ### <a id="adddecodedtypestoevent-1" name="adddecodedtypestoevent-1"></a> addDecodedTypesToEvent
 
-▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
+▸ **addDecodedTypesToEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `event` | `any` |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>
 
 ___
 
 ### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
+▸ **addDecodedTypesToEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved`\>[]
 
 ___
 
 ### <a id="adddecodedtypestotransferbondedevents-1" name="adddecodedtypestotransferbondedevents-1"></a> addDecodedTypesToTransferBondedEvents
 
-▸ **addDecodedTypesToTransferBondedEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+▸ **addDecodedTypesToTransferBondedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>[]
 
 ___
 
 ### <a id="adddecodedtypestotransfersentevents-1" name="adddecodedtypestotransfersentevents-1"></a> addDecodedTypesToTransferSentEvents
 
-▸ **addDecodedTypesToTransferSentEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+▸ **addDecodedTypesToTransferSentEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>[]
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `events` | `any`[] |
+| `chainId?` | `BigNumberish` |
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>[]
 
 ___
 

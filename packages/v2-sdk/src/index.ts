@@ -200,6 +200,7 @@ export { PriceFeed } from './priceFeed/index.js'
 export {
   EthersEventWithDecodedTypes,
   EthersEventWithDecodedTypesAndContext,
+  EthersEventWithDecodedTypesAndBaseContext,
   EventContext
 } from './events/index.js'
 export {

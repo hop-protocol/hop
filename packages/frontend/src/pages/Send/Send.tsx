@@ -93,7 +93,8 @@ const Send: FC = () => {
     transferTimeDisplay,
     tx,
     warning,
-    isV2
+    isV2,
+    estimatedReceivedComparison
   } = useSendV2Intermediary()
 
   const isFromPol = fromNetwork?.slug === ChainSlug.Polygon && toToken?.symbol === TokenSymbol.MATIC
@@ -192,6 +193,9 @@ const Send: FC = () => {
           />
         </Alert>
       )}
+
+      <Box>V1 estimate: {estimatedReceivedComparison.v1} {!isV2 && '✓'}</Box>
+      <Box>V2 estimate: {estimatedReceivedComparison.v2} {isV2 && '✓'}</Box>
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>

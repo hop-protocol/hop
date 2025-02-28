@@ -2854,27 +2854,57 @@ export class RailsGateway extends Base {
     const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
     const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
 
-    if (events.some(event => transferSentEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return RailsGateway.addDecodedTypesToTransferSentEvents(events, chainId)
-    }
+    console.log('her00', events.length)
+    const result = events.map(event => {
+      if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
+        return RailsGateway.addDecodedTypesToTransferSentEvent(event, chainId)
+      }
 
-    if (events.some(event => transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return RailsGateway.addDecodedTypesToTransferBondedEvents(events, chainId)
-    }
+      if (transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferBonded) {
+        return RailsGateway.addDecodedTypesToTransferBondedEvent(event, chainId)
+      }
 
-    if (events.some(event => claimPostedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return RailsGateway.addDecodedTypesToClaimPostedEvents(events, chainId)
-    }
+      if (claimPostedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimPosted) {
+        return RailsGateway.addDecodedTypesToClaimPostedEvent(event, chainId)
+      }
 
-    if (events.some(event => claimReaddedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return RailsGateway.addDecodedTypesToClaimReaddedEvents(events, chainId)
-    }
+      if (claimReaddedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimReadded) {
+        return RailsGateway.addDecodedTypesToClaimReaddedEvent(event, chainId)
+      }
 
-    if (events.some(event => claimRemovedEventFetcher.getEventNameFromTopic(event.topics[0]))) {
-      return RailsGateway.addDecodedTypesToClaimRemovedEvents(events, chainId)
-    }
+      if (claimRemovedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimRemoved) {
+        return RailsGateway.addDecodedTypesToClaimRemovedEvent(event, chainId)
+      }
 
-    return events
+      return event
+    })
+
+    return result
+  }
+
+  static addDecodedTypesToTransferSentEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent> {
+    const eventFetcher = new TransferSentEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
+  }
+
+  static addDecodedTypesToTransferBondedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferBonded> {
+    const eventFetcher = new TransferBondedEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
+  }
+
+  static addDecodedTypesToClaimPostedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPosted> {
+    const eventFetcher = new ClaimPostedEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
+  }
+
+  static addDecodedTypesToClaimReaddedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimReadded> {
+    const eventFetcher = new ClaimReaddedEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
+  }
+
+  static addDecodedTypesToClaimRemovedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimRemoved> {
+    const eventFetcher = new ClaimRemovedEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
   }
 
   static addDecodedTypesToTransferSentEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent>[] {

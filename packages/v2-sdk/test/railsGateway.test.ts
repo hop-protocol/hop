@@ -9,9 +9,10 @@ const { parseUnits } = utils
 dotenv.config()
 
 export const privateKey = process.env.PRIVATE_KEY ?? randomBytes(32).toString('hex')
+const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
+const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
 
 describe('RailsGateway', () => {
-  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(privateKey)
   it('should get signer address', async () => {
@@ -238,20 +239,30 @@ describe('RailsGateway', () => {
     expect(events.length).toBe(1)
     expect(events[0].decoded).toBeDefined()
   }, 60 * 1000)
-  it.only('should add typedEvent to events (TransferSent)', async () => {
+  it('should add typedEvent to events (TransferSent)', async () => {
     const chainId = 11155111
-    const fromBlock = 7794287
-    const toBlock = 7794287
 
-    const ethersEvents = await provider.getLogs({
+    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+    const transferSentEvents = await provider.getLogs({
       address: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
       topics: [
         '0xdc12e414a1870b29fe8c4d2fbf59bbc5024d649678d85c5f70e8da2e6e4988fa'
       ],
-      fromBlock,
-      toBlock
+      fromBlock: 7794287,
+      toBlock: 7794287
     })
 
+    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
+    const transferBondedEvents = await baseProvider.getLogs({
+      address: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
+      topics: [
+        '0xe2786f275972baeb8a20a433f9e7ed69d342f446a0d75443ff47c2478f6bd0b0'
+      ],
+      fromBlock: 22431491,
+      toBlock: 22431491
+    })
+
+    const ethersEvents = transferSentEvents.concat(transferBondedEvents)
     console.log(ethersEvents)
 
     const railsGateway = new RailsGateway({
@@ -264,9 +275,11 @@ describe('RailsGateway', () => {
     const events = railsGateway.addDecodedTypesToEvents(ethersEvents)
     console.log(events)
 
-    expect(events.length).toBe(1)
+    expect(events.length).toBe(2)
     expect(events[0].decoded).toBeDefined()
     expect(events[0].context).toBeDefined()
+    expect(events[0].context.eventName).toBe('TransferSent')
+    expect(events[1].context.eventName).toBe('TransferBonded')
   }, 60 * 1000)
   it('should add typedEvent to event', async () => {
     const chainId = 11155111

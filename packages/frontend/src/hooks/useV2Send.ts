@@ -556,7 +556,7 @@ export function useV2Send(): V2SendHook {
     chains,
     error,
     estimatedReceived,
-    estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
+    estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
     fromChain,
     fromChainId,

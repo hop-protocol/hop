@@ -157,16 +157,15 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
   // Determine which version has the best rate
   const useV2ForBestRate = useMemo(() => {
+    console.log('send0000', sendV1)
+    console.log('send1111', sendV2)
     if (
       isTokenEligibleForV2 &&
       sendV1.estimatedReceived instanceof BigNumber &&
       sendV2.estimatedReceived instanceof BigNumber
     ) {
-      // Compare BigNumber values
       const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
-      console.log('useSendV2Intermediary useV2 estimatedReceived', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
-      // return useV2
-      return true // for testing
+      return useV2
     }
     return false
   }, [isTokenEligibleForV2, sendV1.estimatedReceived, sendV2.estimatedReceived])
@@ -592,8 +591,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       isV2: useV2ForBestRate,
 
       estimatedReceivedComparison: {
-        v1: sendV1.estimatedReceivedUsdDisplay,
-        v2: sendV2.estimatedReceivedUsdDisplay
+        v1: sendV1.estimatedReceivedDisplay,
+        v2: sendV2.estimatedReceivedDisplay
       }
   }
 

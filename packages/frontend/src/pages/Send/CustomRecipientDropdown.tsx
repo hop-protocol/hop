@@ -1,15 +1,23 @@
 import Card from '@mui/material/Card'
 import React from 'react'
 import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import { InfoTooltip } from '#components/InfoTooltip/index.js'
 import { LargeTextField } from '#components/LargeTextField/index.js'
 
 function CustomRecipientDropdown(props: any) {
-  const { styles, customRecipient, handleCustomRecipientInput, isOpen = false } = props
+  const { styles, customRecipient, handleCustomRecipientInput, isOpen = false, leftSideContent = null } = props
 
   return (
     <details className={styles.detailsDropdown} open={isOpen}>
-      <summary className={styles.detailsDropdownSummary}>
+      <summary style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }} className={styles.detailsDropdownSummary}>
+        <Box display="flex" alignItems="center">
+          {leftSideContent}
+        </Box>
         <Typography
           variant="subtitle1"
           color="textSecondary"

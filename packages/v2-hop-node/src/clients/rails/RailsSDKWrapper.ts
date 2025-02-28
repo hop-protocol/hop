@@ -2,6 +2,9 @@ import {
   type EthersEventWithDecodedTypes,
   type TransferSent as TransferSentSDK,
   type TransferBonded as TransferBondedSDK,
+  type ClaimPosted as ClaimPostedSDK,
+  type ClaimReadded as ClaimReaddedSDK,
+  type ClaimRemoved as ClaimRemovedSDK,
   type GetTransferSentEventFilterInput,
   type GetTransferBondedEventFilterInput,
   type PostClaimInput,
@@ -92,7 +95,7 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Eve
   return gateway.getEventFilter(eventName as any, indexes)
 }
 
-export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK> {
+export function addDecodedTypesToEvent(log: providers.Log): EthersEventWithDecodedTypes<TransferSentSDK | TransferBondedSDK | ClaimPostedSDK | ClaimReaddedSDK | ClaimRemovedSDK> {
   return RailsGatewaySDK.addDecodedTypesToEvent(log)
 }
 

@@ -288,7 +288,9 @@ const Send: FC = () => {
                   destinationTxFee={destinationTxFeeDisplayString}
                   destinationTxFeeUsd={destinationTxFeeUsdDisplay}
                   relayFee={relayFeeEthDisplay}
-                  relayFeeUsd={relayFeeUsdDisplay} />
+                  relayFeeUsd={relayFeeUsdDisplay}
+                  totalFeeUsd={totalFeeUsdDisplay}
+                   />
               }
               value={<>
                 <InfoTooltip title={totalFeeUsdDisplay}>

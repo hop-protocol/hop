@@ -60,6 +60,8 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg.includes('Non-200 status code')
   ) {
     errMsg = `There was a network error. Please disable any ad blockers and check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
+  } else if (errMsg.includes(`invalid character 'r' looking for beginning of value`) || errMsg.includes('Exceeded the quota usage')) {
+    errMsg = `Encountered a rate limit error. Please update your RPC provider or try again later. Error: ${errMsg}`
   } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List') || errMsg.includes('PermissionDenied, permission denied for tx type: Call')) {
     errMsg = `An RPC error occurred. Please refresh page to try again. Error: ${errMsg}`
   } else if (errMsg.includes('transaction underpriced')) {

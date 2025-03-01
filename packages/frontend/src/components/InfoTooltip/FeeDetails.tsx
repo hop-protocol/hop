@@ -23,11 +23,12 @@ type Props = {
   relayFee?: string
   relayFeeUsd?: string
   v2Display?: boolean
+  totalFeeUsd?: string
 }
 
 export const FeeDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { v2Display, bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd } = props
+  const { v2Display, bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd, totalFeeUsd } = props
 
   return (
     <Box className={styles.root}>
@@ -77,6 +78,14 @@ export const FeeDetails: FC<Props> = props => {
           <Box display="inline-block">{destinationTxFee}</Box>
         </>} contrastText />
       )}
+
+      <DetailRow
+        title="Total Fee"
+        value={<>
+          <Box display="inline-block">{totalFeeUsd}</Box>
+        </>}
+        contrastText
+      />      
     </Box>
   )
 }

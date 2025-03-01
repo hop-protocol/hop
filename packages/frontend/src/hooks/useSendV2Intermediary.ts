@@ -159,17 +159,14 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
   const useV2ForBestRate = useMemo(() => {
     if (
       isTokenEligibleForV2 &&
-      sendV1.estimatedReceived instanceof BigNumber &&
-      sendV2.estimatedReceived instanceof BigNumber
+      typeof sendV1.estimatedReceivedUsd === 'number' &&
+      typeof sendV2.estimatedReceivedUsd === 'number'
     ) {
-      // Compare BigNumber values
-      const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
-      console.log('useSendV2Intermediary useV2 estimatedReceived', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
-      // return useV2
-      return true // for testing
+      const useV2 = sendV2.estimatedReceivedUsd > sendV1.estimatedReceivedUsd
+      return useV2
     }
     return false
-  }, [isTokenEligibleForV2, sendV1.estimatedReceived, sendV2.estimatedReceived])
+  }, [isTokenEligibleForV2, sendV1.estimatedReceivedUsd, sendV2.estimatedReceivedUsd])
 
   // Select the appropriate source based on eligibility and best rate
   const selectedSource = isTokenEligibleForV2
@@ -199,8 +196,9 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       }
 
       // Synchronize fromTokenAmount to amountIn
-      if (sendV1.fromTokenAmount && sendV2.setAmountIn) {
+      if (sendV2.setAmountIn && sendV1.fromToken) {
         sendV2.setAmountIn(sendV1.fromTokenAmount)
+        sendV2.setFromTokenDecimals(sendV1.fromToken.decimals)
       }
 
       // Synchronize customRecipient to recipient
@@ -211,6 +209,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     // Dependencies ensure this runs when relevant v1 properties change
   }, [
     isTokenEligibleForV2,
+    sendV1,
+    sendV2,
     sendV1.fromNetwork,
     sendV1.toNetwork,
     sendV1.fromToken,

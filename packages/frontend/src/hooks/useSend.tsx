@@ -49,6 +49,7 @@ export type SendResponseProps = {
   error: string
   estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
+  estimatedReceivedUsd: number
   estimatedReceivedUsdDisplay: string
   feeRefundDisplay: string
   feeRefundTokenSymbol: string
@@ -97,6 +98,7 @@ export type SendResponseProps = {
   toToken: Token
   toTokenAmount: string
   totalFeeDisplay: string
+  totalFeeUsd: number
   totalFeeUsdDisplay: string
   transferTimeDisplay: string
   tx: Transaction | undefined
@@ -308,12 +310,14 @@ export function useSend(): SendResponseProps {
     destinationTxFeeDisplay,
     destinationTxFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
     tokenUsdPrice,
     totalBonderFee,
     totalFeeDisplay, // this is: totalFee = bonderFee + messageRelayFee
+    totalFeeUsd,
     totalFeeUsdDisplay, // this is: totalFee = bonderFee + messageRelayFee
   } = useFeeConversions({
     destinationTxFee: adjustedDestinationTxFee,
@@ -891,6 +895,7 @@ export function useSend(): SendResponseProps {
     error,
     estimatedReceived,
     estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     feeRefundDisplay,
     feeRefundTokenSymbol,
@@ -939,6 +944,7 @@ export function useSend(): SendResponseProps {
     toToken,
     toTokenAmount,
     totalFeeDisplay,
+    totalFeeUsd,
     totalFeeUsdDisplay,
     transferTimeDisplay,
     tx,

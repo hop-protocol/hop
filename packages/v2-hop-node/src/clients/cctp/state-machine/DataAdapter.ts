@@ -15,6 +15,10 @@ import {
 
 export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage, CCTPEventName> {
 
+  protected isValidEventName(eventName: CCTPEventName | string): eventName is CCTPEventName{
+    return Object.values(CCTPEventName).includes(eventName as CCTPEventName)
+  }
+
   protected override formatDecodedLog (log: DecodedLogWithContext): ICCTPMessage {
     const { eventName } = log.context
     switch (eventName) {

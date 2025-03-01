@@ -25,6 +25,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
 
   // The implementing class will need to typecast the response since it does not care about the context
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
+  protected abstract isValidEventName(eventName: EventName | string): eventName is EventName
   protected abstract getStateFromEventName (eventName: string): State
   protected abstract getEventNameFromState (state: State): EventName
   protected abstract getEventChainIdForState (state: State, value: StateData): string
@@ -76,6 +77,9 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
 
   #handleDataProcessedEvent = async (inputData: DecodedLogWithContext): Promise<void> => {
     try {
+      const eventName = inputData.context.eventName
+      if (!this.isValidEventName(eventName)) return
+
       const state = this.getStateFromEventName(inputData.context.eventName)
       const formattedInputData = await this.#toStateMachine(inputData)
       this.#eventEmitter.emit(DATA_PROCESSED_EVENT, state, formattedInputData)

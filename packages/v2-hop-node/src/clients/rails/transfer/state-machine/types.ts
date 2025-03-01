@@ -1,5 +1,11 @@
 import type { RailsHop } from '../../types.js'
 import type { StateTxContext } from '#state-machine/index.js'
+import { RailsEventName } from '#clients/rails/RailsSDKWrapper.js'
+
+export enum RailsTransferEventName {
+  TransferSent = RailsEventName.TransferSent,
+  TransferBonded = RailsEventName.TransferBonded
+}
 
 export enum RailsTransferState {
   Sent = 'sent',

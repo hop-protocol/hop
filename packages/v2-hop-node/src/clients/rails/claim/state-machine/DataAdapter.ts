@@ -1,10 +1,14 @@
 import { DataAdapter } from '#state-machine/index.js'
-import { type IRailsClaim, RailsClaimState } from './types.js'
 import { RailsEventName } from '../../RailsSDKWrapper.js'
+import { type IRailsClaim, RailsClaimEventName, RailsClaimState } from './types.js'
 import { getPathFromPathId } from '../../utils.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsClaim, RailsEventName> {
+
+  protected isValidEventName(eventName: RailsEventName | string): eventName is RailsEventName {
+    return Object.values(RailsClaimEventName).includes(eventName as RailsClaimEventName)
+  }
 
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsClaim {
     // Rails logs do not need additional decoding since the onchain log format
@@ -20,8 +24,9 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Posted
       case RailsEventName.ClaimRemoved:
         return RailsClaimState.Removed
-      case RailsEventName.ClaimConfirmed:
-        return RailsClaimState.Confirmed
+      // TODO: This should exist
+      // case RailsEventName.ClaimConfirmed:
+      //   return RailsClaimState.Confirmed
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -35,8 +40,9 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsEventName.ClaimPosted
       case RailsClaimState.Removed:
         return RailsEventName.ClaimRemoved
-      case RailsClaimState.Confirmed:
-        return RailsEventName.ClaimConfirmed
+      // TODO: This should exist
+      // case RailsClaimState.Confirmed:
+      //   return RailsEventName.ClaimConfirmed
       default:
         throw new Error('Invalid state')
     }
@@ -53,8 +59,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return destChainId
       case RailsClaimState.Removed:
         return destChainId
-      case RailsClaimState.Confirmed:
-        return destChainId
+      // case RailsClaimState.Confirmed:
+      //   return destChainId
       default:
         throw new Error('Invalid state')
     }

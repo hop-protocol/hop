@@ -1,10 +1,14 @@
 import { DataAdapter } from '#state-machine/index.js'
 import { getPathFromPathId } from '../../utils.js'
 import { RailsEventName } from '../../RailsSDKWrapper.js'
-import { type IRailsTransfer, RailsTransferState } from './types.js'
+import { type IRailsTransfer, RailsTransferEventName, RailsTransferState } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
+
+  protected isValidEventName(eventName: RailsEventName | string): eventName is RailsEventName {
+    return Object.values(RailsTransferEventName).includes(eventName as RailsTransferEventName)
+  }
 
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsTransfer {
     // Rails logs do not need additional decoding since the onchain log format

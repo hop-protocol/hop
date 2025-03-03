@@ -439,8 +439,7 @@ export function useV2Send(): V2SendHook {
           const estimated = data.estimatedReceived
           const routeChainIds = data.routeChainIds
 
-          const estimatedMinusFee = estimated.sub(maxBonderFee)
-          setEstimatedReceived(estimatedMinusFee)
+          setEstimatedReceived(estimated)
           setRouteChainIds(routeChainIds)
           setSendFee(sendFee)
           setMaxBonderFee(maxBonderFee)

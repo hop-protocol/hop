@@ -29,27 +29,7 @@ export function RailsGatewayGetTransferId (props: Props) {
     defaultValue: '',
   })
 
-  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
-    defaultValue: '',
-  })
-
-  const [adjustedAmount, setAdjustedAmount] = useLocalStorageState(`${cacheKey}:adjustedAmount`, {
-    defaultValue: '',
-  })
-
-  const [minAmountOut, setMinAmountOut] = useLocalStorageState(`${cacheKey}:minAmountOut`, {
-    defaultValue: '',
-  })
-
-  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
-    defaultValue: '',
-  })
-
-  const [nonce, setNonce] = useLocalStorageState(`${cacheKey}:nonce`, {
-    defaultValue: '',
-  })
-
-  const [attestedCheckpoint, setAttestedCheckpoint] = useLocalStorageState(`${cacheKey}:attestedCheckpoint`, {
+  const [index, setIndex] = useLocalStorageState(`${cacheKey}:index`, {
     defaultValue: '',
   })
 
@@ -68,17 +48,11 @@ export function RailsGatewayGetTransferId (props: Props) {
       setLoading(true)
       const args = {
         pathId,
-        to: toAddress,
-        adjustedAmount,
-        minAmountOut,
-        totalSent,
-        nonce,
-        attestedCheckpoint
+        index
       }
-
       console.log('args', args)
-      // const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
-      // setTransferId(transferId)
+      const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
+      setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -91,22 +65,12 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const pathId = "${pathId}"
-  const to = "${toAddress}"
-  const adjustedAmount = "${adjustedAmount}"
-  const minAmountOut = "${minAmountOut}"
-  const totalSent = "${totalSent}"
-  const nonce = "${nonce}"
-  const attestedCheckpoint = "${attestedCheckpoint}"
+  const index = ${index}
 
   ${hopInstantiateDisplayString}
   const transferId = await hop.getRailsGateway('${fromChainId}').getTransferId({
     pathId,
-    to,
-    adjustedAmount,
-    minAmountOut,
-    totalSent,
-    nonce,
-    attestedCheckpoint
+    index
   })
   console.log(transferId)
 }
@@ -135,7 +99,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get transfer ID for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
@@ -147,39 +111,9 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>To address</em></small></label>
+                  <label>Index <small><em>(uint256)</em></small> <small><em>The index value</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={event => setToAddress(event.target.value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Adjusted Amount <small><em>(uint256)</em></small> <small><em>Adjusted amount</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={adjustedAmount} onChange={event => setAdjustedAmount(event.target.value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Min Amount Out <small><em>(uint256)</em></small> <small><em>Min amount out</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={event => setMinAmountOut(event.target.value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={event => setTotalSent(event.target.value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={event => setNonce(event.target.value)} />
-              </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint hex string</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={event => setAttestedCheckpoint(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={index} onChange={event => setIndex(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
@@ -194,7 +128,7 @@ main().catch(console.error)
           )}
           {!!transferId && (
             <Box mb={4}>
-              <Alert severity="info">{transferId}</Alert>
+              <Alert severity="success">Transfer ID: {transferId}</Alert>
             </Box>
           )}
         </Box>

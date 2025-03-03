@@ -129,7 +129,7 @@ main().catch(console.error)
           )}
           {!!isClaimValid && (
             <Box mb={4}>
-              <Alert severity="info">{isClaimValid}</Alert>
+              <Alert severity="success">Valid: <strong>{isClaimValid}</strong></Alert>
             </Box>
           )}
         </Box>

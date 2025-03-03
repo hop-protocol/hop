@@ -2,29 +2,34 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax.js'
-import { ChainSelect } from '../ChainSelect.js'
 import { useStyles } from '../useStyles.js'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState.js'
 import { useShared } from '../shared.js'
+import { ChainSelect } from '../ChainSelect.js'
 
 type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetHopTokenAddress (props: Props) {
-  const cacheKey = 'stakingRegistryGetHopTokenAddress'
+export function HopGetTokenAddressByTokenSymbol (props: Props) {
+  const cacheKey = 'hopGetTokenAddressByTokenSymbol'
   const { sdk } = props
   const styles = useStyles()
-  const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
+  const { hopInstantiateDisplayString, chainIds, defaultChainIds } = useShared()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
+  const [address, setAddress] = useLocalStorageState(`${cacheKey}:address`, {
+    defaultValue: '',
+  })
+
+  const [chainId, setChainId] = useLocalStorageState(`${cacheKey}:chainId`, {
     defaultValue: defaultChainIds.from,
   })
 
-  const [hopAddress, setHopAddress] = useLocalStorageState(`${cacheKey}:hopAddress`, {
+  const [tokenSymbol, setTokenSymbol] = useLocalStorageState(`${cacheKey}:tokenSymbol`, {
     defaultValue: '',
   })
 
@@ -35,10 +40,16 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setHopAddress('')
+      setAddress('')
       setLoading(true)
-      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistry().hopToken()
-      setHopAddress(address)
+      const args = {
+        chainId,
+        tokenSymbol
+      }
+
+      console.log('args', args)
+      const result = sdk.getTokenAddressByTokenSymbol(chainId, tokenSymbol)
+      setAddress(result)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -50,8 +61,11 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
+  const chainId = "${chainId}"
+  const tokenSymbol = "${tokenSymbol}"
+
   ${hopInstantiateDisplayString}
-  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().hopToken()
+  const address = await hop.getTokenAddressByTokenSymbol(chainId, tokenSymbol)
   console.log(address)
 }
 
@@ -68,10 +82,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Hop Token Address</Typography>
+        <Typography variant="h5">Hop - Get Token Address By Token Symbol</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Hop Token address</Typography>
+        <Typography variant="subtitle1">Get token address by token symbol</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +93,19 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to read from</em></small></label>
+                  <label>Chain Id <small><em>(uint256)</em></small> <small><em>Chain id value</em></small></label>
                 </Box>
-                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={chainId} chains={chainIds} onChange={value => setChainId(value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Token Symbol <small><em>(string)</em></small> <small><em>Token symbol</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="USDC" value={tokenSymbol} onChange={event => setTokenSymbol(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Hop Address</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Address</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +114,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!hopAddress && (
+          {!!address && (
             <Box mb={4}>
-              <Alert severity="success">Address: {hopAddress}</Alert>
+              <Alert severity="success">Address: {address}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +133,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetHopTokenAddress
+export default HopGetTokenAddressByTokenSymbol

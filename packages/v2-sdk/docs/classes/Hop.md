@@ -36,6 +36,7 @@
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [calcAmountOutMin](Hop.md#calcamountoutmin)
 - [connectTargets](Hop.md#connecttargets)
+- [getAmountOut](Hop.md#getamountout)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Hop.md#getcolorforchainid)
 - [getConfigAddress](Hop.md#getconfigaddress)
@@ -317,6 +318,22 @@ ___
 #### Returns
 
 `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+
+___
+
+### <a id="getamountout" name="getamountout"></a> getAmountOut
+
+▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetAmountOutInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 

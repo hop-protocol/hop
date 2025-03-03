@@ -116,9 +116,10 @@ main().catch(console.error)
             </Box>
           )}
           {!!pathInfo && (
-            <Box width="100%">
-              <Box mb={2}>
-                <Typography variant="body1">Output</Typography>
+            <Alert severity="success">
+              <Box width="100%">
+                <Box mb={2}>
+                  <Typography variant="body1">Output</Typography>
               </Box>
               <pre style={{
                 width: '100%',
@@ -132,7 +133,8 @@ main().catch(console.error)
                   {copied ? 'Copied!' : 'Copy to clipboard'}
                 </Typography>
               </CopyToClipboard>
-            </Box>
+              </Box>
+            </Alert>
           )}
         </Box>
         <Box width="100%" overflow="auto" className={styles.syntaxContainer}>

@@ -14,8 +14,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetHopTokenAddress (props: Props) {
-  const cacheKey = 'stakingRegistryGetHopTokenAddress'
+export function RailsGatewayGetPushClaimFee (props: Props) {
+  const cacheKey = 'railsGatewayGetPushClaimFee'
   const { sdk } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
@@ -24,7 +24,7 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [hopAddress, setHopAddress] = useLocalStorageState(`${cacheKey}:hopAddress`, {
+  const [fee, setFee] = useLocalStorageState(`${cacheKey}:fee`, {
     defaultValue: '',
   })
 
@@ -35,10 +35,10 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setHopAddress('')
+      setFee('')
       setLoading(true)
-      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistry().hopToken()
-      setHopAddress(address)
+      const fee = await sdk.getRailsGateway(fromChainId).getPushClaimFee()
+      setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -51,8 +51,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   ${hopInstantiateDisplayString}
-  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().hopToken()
-  console.log(address)
+  const fee = await hop.getRailsGateway('${fromChainId}').getPushClaimFee()
+  console.log(fee)
 }
 
 main().catch(console.error)
@@ -68,10 +68,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Hop Token Address</Typography>
+        <Typography variant="h5">Rails Gateway - Get Push Claim Fee</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Hop Token address</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Push Claim Fee</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +79,13 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to read from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Hop Address</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Fee</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +94,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!hopAddress && (
+          {!!fee && (
             <Box mb={4}>
-              <Alert severity="success">Address: {hopAddress}</Alert>
+              <Alert severity="success">Push Claim Fee: {fee}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +113,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetHopTokenAddress
+export default RailsGatewayGetPushClaimFee 

@@ -159,10 +159,10 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
   const useV2ForBestRate = useMemo(() => {
     if (
       isTokenEligibleForV2 &&
-      typeof sendV1.estimatedReceivedUsd === 'number' &&
-      typeof sendV2.estimatedReceivedUsd === 'number'
+      sendV1.estimatedReceived &&
+      sendV2.estimatedReceived
     ) {
-      const useV2 = sendV2.estimatedReceivedUsd > sendV1.estimatedReceivedUsd
+      const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
       return useV2
     }
     return false
@@ -592,8 +592,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       isV2: useV2ForBestRate,
 
       estimatedReceivedComparison: {
-        v1: sendV1.estimatedReceivedUsdDisplay,
-        v2: sendV2.estimatedReceivedUsdDisplay
+        v1: sendV1.estimatedReceivedDisplay,
+        v2: sendV2.estimatedReceivedDisplay
       }
   }
 

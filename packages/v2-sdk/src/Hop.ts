@@ -77,6 +77,14 @@ export type GetEstimatedReceivedInput = {
   minAmountOut: BigNumberish
 }
 
+export type GetAmountOutInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  amount: BigNumberish
+}
+
 export type GetSendDataInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
@@ -89,6 +97,7 @@ export type GetSendDataInput = {
 
 export type SendData = {
   amountIn: BigNumber
+  amountOut: BigNumber
   estimatedReceived: BigNumber
   sendFee: BigNumber
   maxBonderFee: BigNumber
@@ -635,7 +644,7 @@ export class Hop extends Base {
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
-  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+  async getAmountOut ({ fromChainId, toChainId, fromToken, toToken, amount }: GetAmountOutInput): Promise<BigNumber> {
     const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     const rails = this.getRailsGateway(toChainId)
     const pathId = await rails.getPathId({
@@ -645,30 +654,51 @@ export class Hop extends Base {
       token1: toToken,
       initialReserve
     })
+
     const attestedClaimId = await rails.getHeadClaimId({
       pathId
     })
 
     const sourcePool = await rails.getSourcePool({ pathId, attestedClaimId })
+
     const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     return amountOut
+  }
+
+  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+    const amountOut = await this.getAmountOut({ fromChainId, toChainId, fromToken, toToken, amount })
+    const maxBonderFee = await this.getMaxBonderFee({ amountIn: amountOut })
+    const estimatedReceived = amountOut.sub(maxBonderFee)
+    return estimatedReceived
   }
 
   async getSendData ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {
     const amountIn = BigNumber.from(amount)
     const [
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee
     ] = await Promise.all([
+      this.getAmountOut({ fromChainId, toChainId, fromToken, toToken, amount }),
       this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }),
       this.getSendFee({ fromChainId, fromToken, toChainId, toToken }),
       this.getMaxBonderFee({ amountIn })
     ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
 
+    console.log('v2-sdk: getSendData', {
+      amountIn,
+      amountOut,
+      estimatedReceived,
+      sendFee,
+      maxBonderFee,
+      routeChainIds,
+    })
+    
     return {
       amountIn,
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee,
@@ -682,10 +712,12 @@ export class Hop extends Base {
     const hubToken = this.getTokenAddressByTokenSymbol(hubChainId, tokenSymbol)
     const amountIn = BigNumber.from(amount)
     const [
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee
     ] = await Promise.all([
+      this.getAmountOut({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount }),
       this.getEstimatedReceived({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount, minAmountOut }),
       this.getSendFee({ fromChainId, fromToken, toChainId: hubChainId, toToken: hubToken }),
       this.getMaxBonderFee({ amountIn })
@@ -695,6 +727,7 @@ export class Hop extends Base {
 
     return {
       amountIn,
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee,

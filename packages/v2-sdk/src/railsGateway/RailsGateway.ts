@@ -959,7 +959,7 @@ export class RailsGateway extends Base {
     }
 
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
-      throw new InputError('pathId is invalid or not found')
+      throw new InputError(`pathId "${pathId}" is invalid or not found. Check the chainId is correct for that pathId. Chain ID used: ${chainId.toString()}`)
     }
 
     console.log('hopV2Sdk: pathInfo', pathInfo)

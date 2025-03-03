@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax.js'
@@ -14,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetHopTokenAddress (props: Props) {
-  const cacheKey = 'stakingRegistryGetHopTokenAddress'
+export function StakingRegistryGetHopBalance (props: Props) {
+  const cacheKey = 'stakingRegistryGetHopBalance'
   const { sdk } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
@@ -24,7 +25,11 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [hopAddress, setHopAddress] = useLocalStorageState(`${cacheKey}:hopAddress`, {
+  const [account, setAccount] = useLocalStorageState(`${cacheKey}:account`, {
+    defaultValue: '',
+  })
+
+  const [hopBalance, setHopBalance] = useLocalStorageState(`${cacheKey}:hopBalance`, {
     defaultValue: '',
   })
 
@@ -35,10 +40,12 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setHopAddress('')
+      setHopBalance('')
       setLoading(true)
-      const address = await sdk.getRailsGateway(fromChainId).getStakingRegistry().hopToken()
-      setHopAddress(address)
+      const balance = await sdk.getRailsGateway(fromChainId).getStakingRegistry().helpers.getHopBalance({
+        staker: account
+      })
+      setHopBalance(balance?.toString())
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -50,9 +57,13 @@ export function StakingRegistryGetHopTokenAddress (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
+  const staker = "${account}"
+
   ${hopInstantiateDisplayString}
-  const address = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().hopToken()
-  console.log(address)
+  const balance = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().helpers.getHopBalance({
+    staker
+  })
+  console.log(balance)
 }
 
 main().catch(console.error)
@@ -68,10 +79,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Staking Registry - Get Hop Token Address</Typography>
+        <Typography variant="h5">Staking Registry - Get HOP Balance</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Hop Token address</Typography>
+        <Typography variant="subtitle1">Get HOP token balance for an account</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -84,8 +95,15 @@ main().catch(console.error)
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Staker <small><em>(address)</em></small> <small><em>Staker address to check balance for</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={account} onChange={(event: any) => setAccount(event.target.value)} />
+              </Box>
+
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Hop Address</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get HOP Balance</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +112,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!hopAddress && (
+          {!!hopBalance && (
             <Box mb={4}>
-              <Alert severity="success">Address: {hopAddress}</Alert>
+              <Alert severity="success">Balance: {hopBalance}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +131,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetHopTokenAddress
+export default StakingRegistryGetHopBalance 

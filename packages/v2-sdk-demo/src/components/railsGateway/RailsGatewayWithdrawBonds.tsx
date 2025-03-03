@@ -20,49 +20,21 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayPostClaim (props: Props) {
-  const cacheKey = 'railsGatewayPostClaim'
+export function RailsGatewayWithdrawBonds (props: Props) {
+  const cacheKey = 'railsGatewayWithdrawBonds'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
-    defaultValue: defaultChainIds.from,
+    defaultValue: defaultChainIds.to,
   })
 
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
     defaultValue: '',
   })
 
-  const [transferId, setTransferId] = useLocalStorageState(`${cacheKey}:transferId`, {
-    defaultValue: '',
-  })
-
-  const [toAddress, setToAddress] = useLocalStorageState(`${cacheKey}:toAddress`, {
-    defaultValue: '',
-  })
-
-  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
-    defaultValue: '',
-  })
-
-  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
-    defaultValue: '',
-  })
-
-  const [maxBonderFee, setMaxBonderFee] = useLocalStorageState(`${cacheKey}:maxBonderFee`, {
-    defaultValue: '',
-  })
-
-  const [totalClaims, setTotalClaims] = useLocalStorageState(`${cacheKey}:totalClaims`, {
-    defaultValue: '',
-  })
-
-  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
-    defaultValue: '',
-  })
-
-  const [nextHopsHash, setNextHopsHash] = useLocalStorageState(`${cacheKey}:nextHopsHash`, {
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
     defaultValue: '',
   })
 
@@ -84,17 +56,10 @@ export function RailsGatewayPostClaim (props: Props) {
   async function getSendTxData() {
     const args = {
       pathId,
-      transferId,
-      to: toAddress,
-      amountOut,
-      maxBonderFee,
-      totalSent,
-      totalClaims,
-      attestedClaimId,
-      nextHopsHash
+      claimId
     }
     console.log('args', args)
-    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.postClaim(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawBonds(args)
     return txData
   }
 
@@ -111,6 +76,7 @@ export function RailsGatewayPostClaim (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
+
         const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
@@ -131,33 +97,19 @@ import { ethers } from 'ethers'
 
 async function main() {
   const pathId = "${pathId}"
-  const transferId = "${transferId}"
-  const to = "${toAddress}"
-  const amountOut = "${amountOut}"
-  const maxBonderFee = "${maxBonderFee}"
-  const totalSent = "${totalSent}"
-  const totalClaims = "${totalClaims}"
-  const attestedClaimId = "${attestedClaimId}"
-  const nextHopsHash = "${nextHopsHash}"
+  const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.postClaim({
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdrawBonds({
     pathId,
-    transferId,
-    to,
-    amountOut,
-    maxBonderFee,
-    totalSent,
-    totalClaims,
-    attestedClaimId,
-    nextHopsHash
+    claimId
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
   ) : (
   `
   const signer = window.ethereum
-  const tx = await signer.sendTransaction(txData)
+  const tx = await signer..sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -176,10 +128,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Post Claim</Typography>
+        <Typography variant="h5">Rails Gateway - Withdraw Bonds</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Post claim</Typography>
+        <Typography variant="subtitle1">Withdraw bonds from the rails gateway</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -187,7 +139,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to post claim on</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
@@ -201,58 +153,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Transfer ID <small><em>(bytes32)</em></small> <small><em>The transfer ID of the claim</em></small></label>
+                  <label>Claim ID <small><em>(uint256)</em></small> <small><em>Claim ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={(event: any) => setTransferId(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient address</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount out of transfer sent event</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setMaxBonderFee(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total amount sent from TransferSent event</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Claims <small><em>(uint256)</em></small> <small><em>Total claims</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalClaims} onChange={(event: any) => setTotalClaims(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Next Hops Hash <small><em>(bytes32)</em></small> <small><em>Next hops hash</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={nextHopsHash} onChange={(event: any) => setNextHopsHash(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -266,7 +169,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Post Claim'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Withdraw'}</HighlightedButton>
                 )}
               </Box>
             </form>
@@ -314,4 +217,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayPostClaim
+export default RailsGatewayWithdrawBonds

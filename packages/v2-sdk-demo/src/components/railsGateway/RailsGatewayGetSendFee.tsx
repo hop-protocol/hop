@@ -115,7 +115,7 @@ main().catch(console.error)
           )}
           {!!fee && (
             <Box mb={4}>
-              <Alert severity="info">{fee}</Alert>
+              <Alert severity="success">Send Fee: {fee}</Alert>
             </Box>
           )}
         </Box>

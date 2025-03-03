@@ -120,7 +120,7 @@ main().catch(console.error)
           )}
           {!!pathIdLive && (
             <Box mb={4}>
-              <Alert severity="info">{pathIdLive}</Alert>
+              <Alert severity="success">Live: <strong>{pathIdLive}</strong></Alert>
             </Box>
           )}
         </Box>

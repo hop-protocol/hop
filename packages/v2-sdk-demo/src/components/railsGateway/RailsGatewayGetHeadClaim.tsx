@@ -116,7 +116,7 @@ main().catch(console.error)
           )}
           {!!claim && (
             <Box mb={4}>
-              <Alert severity="info">{claim}</Alert>
+              <Alert severity="success">Head Claim: {claim}</Alert>
             </Box>
           )}
         </Box>

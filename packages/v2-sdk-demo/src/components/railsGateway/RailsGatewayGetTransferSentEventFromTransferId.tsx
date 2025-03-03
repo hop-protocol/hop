@@ -105,7 +105,7 @@ main().catch(console.error)
               <CustomTextField fullWidth placeholder="0x" value={transferId} onChange={event => setTransferId(event.target.value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
-              <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
+              <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Event</HighlightedButton>
             </Box>
           </form>
           {!!error && (
@@ -114,23 +114,25 @@ main().catch(console.error)
             </Box>
           )}
           {!!event && (
-            <Box>
-              <Box mb={2}>
-                <Typography variant="body1">Output</Typography>
+            <Alert severity="success">
+              <Box>
+                <Box mb={2}>
+                  <Typography variant="body1">Output</Typography>
+                </Box>
+                <pre style={{
+                  maxWidth: '500px',
+                  overflow: 'auto'
+                }}>
+                  {event}
+                </pre>
+                <CopyToClipboard text={transferId}
+                  onCopy={handleCopy}>
+                  <Typography variant="body2" style={{ cursor: 'pointer' }}>
+                    {copied ? 'Copied!' : 'Copy to clipboard'}
+                  </Typography>
+                </CopyToClipboard>
               </Box>
-              <pre style={{
-                maxWidth: '500px',
-                overflow: 'auto'
-              }}>
-                {event}
-              </pre>
-              <CopyToClipboard text={transferId}
-                onCopy={handleCopy}>
-                <Typography variant="body2" style={{ cursor: 'pointer' }}>
-                  {copied ? 'Copied!' : 'Copy to clipboard'}
-                </Typography>
-              </CopyToClipboard>
-            </Box>
+            </Alert>
           )}
         </Box>
         <Box width="100%" overflow="auto" className={styles.syntaxContainer}>

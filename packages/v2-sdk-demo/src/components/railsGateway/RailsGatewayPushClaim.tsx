@@ -177,63 +177,63 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to push claim on</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Destination chain ID of hop to push claim on</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID</em></small></label>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID (transfer ID of TransferSent event)</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient address</em></small></label>
+                  <label>To <small><em>(address)</em></small> <small><em>Original recipient address from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={to} onChange={(event: any) => setTo(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to push</em></small></label>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
+                  <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setMaxBonderFee(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
+                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool</em></small></label>
+                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={sourcePool} onChange={(event: any) => setSourcePool(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Next Hops Hash <small><em>(bytes32)</em></small> <small><em>Next hops hash</em></small></label>
+                  <label>Next Hops Hash <small><em>(bytes32)</em></small> <small><em>Next hops hash computed from hops</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={nextHopsHash} onChange={(event: any) => setNextHopsHash(event.target.value)} />
               </Box>

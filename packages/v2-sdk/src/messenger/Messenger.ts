@@ -989,7 +989,7 @@ export class Messenger extends Base {
     }
 
     if (!receipt) {
-      throw new InputError('receipt is required')
+      throw new InputError('receipt is required. Receipt is the transaction receipt of the message sent event.')
     }
 
     const provider = this.getProvider(chainId)
@@ -1007,7 +1007,6 @@ export class Messenger extends Base {
   }
 
   async getMessageSentEventFromTransactionReceipt ({ receipt }: GetMessageSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<MessageSent> | null> {
-    const chainId = this.chainId
     const events = await this.getMessageSentEventsFromTransactionReceipt({ receipt })
     return events?.[0] ?? null
   }
@@ -1031,7 +1030,14 @@ export class Messenger extends Base {
       throw new ConfigError(`Provider not found for chainId "${chainId}"`)
     }
 
+    console.log('provider', provider)
     const receipt = await provider.getTransactionReceipt(transactionHash)
+    console.log('receipt', receipt)
+
+    if (!receipt) {
+      return null
+    }
+
     return this.getMessageSentEventFromTransactionReceipt({ receipt })
   }
 

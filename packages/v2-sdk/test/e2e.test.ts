@@ -32,12 +32,6 @@ const chainProviders = {
 
 describe.skip('Sdk - Hop - e2e - send only', () => {
   it('should do a send', async () => {
-    const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER ?? 'https://rpc2.sepolia.org'
-    const ethereumProvider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
-
-    const baseRpcUrl = process.env.BASE_RPC_PROVIDER ?? 'https://sepolia.base.org'
-    const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-
     // ----------------
     const fromChainId = '11155111'
     const fromToken = addresses[fromChainId]!.tokens!.MOCK!
@@ -53,8 +47,8 @@ describe.skip('Sdk - Hop - e2e - send only', () => {
     const sdk = new Hop({
       network: 'sepolia',
       signersOrProviders: {
-        [fromChainId]: signer.connect(ethereumProvider),
-        [toChainId]: signer.connect(baseProvider),
+        [fromChainId]: signer.connect(chainProviders[fromChainId]),
+        [toChainId]: signer.connect(chainProviders[toChainId]),
       },
     })
 
@@ -152,12 +146,12 @@ describe.skip('Sdk - Hop - e2e - send only', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - one hop', () => {
+describe.only('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
-    const fromChainId = '11155111'
+    const fromChainId = '84532'
     const fromToken = addresses[fromChainId]!.tokens!.MOCK!
-    const toChainId = '84532'
+    const toChainId = '11155111'
     const toToken = addresses[toChainId]!.tokens!.MOCK!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
@@ -168,7 +162,7 @@ describe.only('Sdk - RailsGateway - e2e - one hop', () => {
     const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0xb9883ee287d6db719ef45fb9d57cd7461fb3c0b511e94477d076038f3411022a'
+    let sendTxHash = '0xb1dc46d15d12772669d3e4a155fd2db81833c7a5bda03e875f118bd64b4e36af'
     let bondTxHash = ''
 
     const senderSigner = new Wallet(privateKey)

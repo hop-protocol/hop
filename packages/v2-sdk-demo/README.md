@@ -1,6 +1,6 @@
-# Hop v2 SDK Demo
+# Hop v2 Playground
 
-> Hop v2 SDK Demo
+> Hop v2 Playground to test and demo the Hop v2 SDK
 
 [https://v2-playground.hop.exchange/](https://v2-playground.hop.exchange/)
 

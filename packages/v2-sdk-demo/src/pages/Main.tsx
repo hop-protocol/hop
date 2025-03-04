@@ -23,6 +23,8 @@ const HopApproveSendTokens = lazy(() => import('../components/hop/HopApproveSend
 const HopSwitchChain = lazy(() => import('../components/hop/HopSwitchChain.js'))
 const HopGetTokenAddressByTokenSymbol = lazy(() => import('../components/hop/HopGetTokenAddressByTokenSymbol.js'))
 const HopGetMaxBonderFee = lazy(() => import('../components/hop/HopGetMaxBonderFee.js'))
+const HopGetMessengerAddress = lazy(() => import('../components/hop/HopGetMessengerAddress.js'))
+const HopGetRailsGatewayAddress = lazy(() => import('../components/hop/HopGetRailsGatewayAddress.js'))
 const RailsGatewaySend = lazy(() => import('../components/railsGateway/RailsGatewaySend.js'))
 const RailsGatewayGetNeedsApprovalForSend = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForSend.js'))
 const RailsGatewayGetNeedsApprovalForBond = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForBond.js'))
@@ -127,6 +129,8 @@ export function Main () {
     ['Hop - Calculate Amount Out Min', <HopCalcAmountOutMin sdk={sdk} />],
     ['Hop - Get Token Address By Token Symbol', <HopGetTokenAddressByTokenSymbol sdk={sdkWithSigner} />],
     ['Hop - Get Max Bonder Fee', <HopGetMaxBonderFee sdk={sdkWithSigner} />],
+    ['Hop - Get Messenger Address', <HopGetMessengerAddress sdk={sdkWithSigner} />],
+    ['Hop - Get RailsGateway Address', <HopGetRailsGatewayAddress sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Path ID', <RailsGatewayGetPathId sdk={sdk} />],
     ['Rails Gateway - Get Is Path ID Live', <RailsGatewayGetPathIdLive sdk={sdk} />],
     ['Rails Gateway - Get Path Info', <RailsGatewayGetPathInfo sdk={sdk} />],

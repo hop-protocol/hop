@@ -95,20 +95,30 @@ export function RailsGatewayBond (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
+        console.log('here00')
+
+        const signerAddress = await signer.getAddress()
 
         const needsApproval = await sdk.getRailsGateway(fromChainId).helpers.getNeedsApprovalForBond({
           pathId,
-          amount
+          amount,
+          account: signerAddress
         })
 
         if (needsApproval) {
+          console.log('here111')
+
           const approveTxData = await sdk.getRailsGateway(fromChainId).populateTransaction.approveBond({
             pathId,
-            amount
-          })
+            amount          })
+
+          console.log('here222')
+
           const tx = await sdk.sendTransaction(approveTxData, approveTxData.chainId, signer)
           await tx.wait()
         }
+
+        console.log('signer', signer)
 
         const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
@@ -187,28 +197,28 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>Claim ID to bond. This is transferId from TransferSentEvent.</em></small></label>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>Claim ID to bond. This is transferId from TransferSent event.</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount of transfer</em></small></label>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount of transfer from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bonder Fee <small><em>(uint256)</em></small> <small><em>Bonder fee</em></small></label>
+                  <label>Bonder Fee <small><em>(uint256)</em></small> <small><em>Bonder fee to use, must be less than or equal to maxBonderFee from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={bonderFee} onChange={(event: any) => setBonderFee(event.target.value)} />
               </Box>
@@ -243,7 +253,7 @@ main().catch(console.error)
 
                   return (
                   <Step key={index} active>
-                    <StepLabel>Hop {'⤵'}</StepLabel>
+                    <StepLabel>Next Hops {'⤵'}</StepLabel>
                     <StepContent>
                     <Box>
                       <Box mb={2}>

@@ -203,6 +203,38 @@ export class Event<T> {
   }
 
   decodeEventsFromTransactionReceipt(receipt: providers.TransactionReceipt): EthersEventWithDecodedTypes<T>[] {
-    return []
+    const iface = new utils.Interface(this.abi)
+    const decodedEvents: EthersEventWithDecodedTypes<T>[] = []
+
+    for (const log of receipt.logs) {
+      try {
+        // Check if this log is for our event by matching the event signature
+        const eventName = this.getEventNameFromTopic(log.topics[0])
+        if (!eventName) {
+          continue
+        }
+
+        // Parse and decode the event
+        const ethersEvent: EthersEvent = {
+          ...log,
+          event: eventName,
+          eventSignature: iface.getEvent(eventName).format(),
+          args: iface.parseLog(log).args,
+          decode: (data: string) => iface.parseLog(log),
+          removeListener: () => {},
+          getBlock: () => this.provider.getBlock(log.blockHash),
+          getTransaction: () => this.provider.getTransaction(log.transactionHash),
+          getTransactionReceipt: () => this.provider.getTransactionReceipt(log.transactionHash)
+        }
+
+        const decodedEvent = this.addTypedEvent(ethersEvent)
+        decodedEvents.push(decodedEvent)
+      } catch (err) {
+        // Skip logs that don't match our event interface
+        continue
+      }
+    }
+
+    return decodedEvents
   }
 }

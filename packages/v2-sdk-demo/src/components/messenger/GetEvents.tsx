@@ -176,9 +176,10 @@ main().catch(console.error)
             </Box>
           )}
           {!!events && (
-            <Box>
-              <Box mb={2}>
-                <Typography variant="body1">Output</Typography>
+            <Alert severity="success">
+              <Box>
+                <Box mb={2}>
+                  <Typography variant="body1">Output</Typography>
               </Box>
               <pre style={{
                 maxWidth: '500px',
@@ -190,7 +191,8 @@ main().catch(console.error)
                   {copied ? 'Copied!' : 'Copy to clipboard'}
                 </Typography>
               </CopyToClipboard>
-            </Box>
+              </Box>
+            </Alert>
           )}
         </Box>
         <Box width="100%" overflow="auto" className={styles.syntaxContainer}>

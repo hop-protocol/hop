@@ -26,7 +26,6 @@ const dbTypeArgument = new Argument('db-type', 'Name of the DB')
 program
   .name('show-db')
   .description('Show the contents of a DB')
-  .description('Show DB contents')
   .addArgument(dbTypeArgument)
   .option('--state <state>', 'Desired state item (when querying state machine DB)', parseString)
   .action(run)

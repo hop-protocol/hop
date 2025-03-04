@@ -67,7 +67,6 @@ export class RelayerDB<RelayItem> extends DB<DBKey, DBValue<RelayItem>> {
    * Internal
    */
 
-
   async #updateItem (
     relayItem: RelayItem,
     relayedAt: number,

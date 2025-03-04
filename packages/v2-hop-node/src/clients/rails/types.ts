@@ -3,6 +3,7 @@ import type {
   BondInputSDK,
   PostClaimInputSDK
 } from './RailsSDKWrapper.js'
+import type { RelayChainId } from '#relayer/types.js'
 
 export enum RailsClientName {
   Transfer = 'transfer',
@@ -16,13 +17,13 @@ export type RailsHop = {
 }
 
 export type RailsPath = {
-  srcChainId: string
-  srcToken: string
-  destChainId: string
-  destToken: string
+  chainId: string
+  token: string
+  counterpartChainId: string
+  counterpartToken: string
   initialReserve: string
 }
 
 export type BondInput = BondInputSDK
 export type PostClaimInput = PostClaimInputSDK
-export type RailsRelayItem = BondInput | PostClaimInput
+export type RailsRelayItem = (BondInput | PostClaimInput) & RelayChainId

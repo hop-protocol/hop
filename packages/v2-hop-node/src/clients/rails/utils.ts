@@ -72,11 +72,11 @@ export function getPathFromPathId (pathId: string): RailsPath {
 
 export function getChainIdsForPaths(paths: RailsPath[]): string[] {
   return paths.reduce((chainIds: string[], path: RailsPath) => {
-    if (!chainIds.includes(path.srcChainId)) {
-      chainIds.push(path.srcChainId)
+    if (!chainIds.includes(path.chainId)) {
+      chainIds.push(path.chainId)
     }
-    if (!chainIds.includes(path.destChainId)) {
-      chainIds.push(path.destChainId)
+    if (!chainIds.includes(path.counterpartChainId)) {
+      chainIds.push(path.counterpartChainId)
     }
     return chainIds
   }, [])
@@ -84,12 +84,23 @@ export function getChainIdsForPaths(paths: RailsPath[]): string[] {
 
 export function getPathIdsPerChainId(chainId: string, paths: RailsPath[]): string[] {
   return paths.reduce((pathIds: string[], path: RailsPath) => {
-    if (path.srcChainId === chainId) {
+    if (path.chainId === chainId) {
       pathIds.push(getPathId(path))
     }
-    if (path.destChainId === chainId) {
+    if (path.counterpartChainId === chainId) {
       pathIds.push(getPathId(path))
     }
     return pathIds
   }, [])
+}
+
+export function getCounterpartChainIdForPathId(chainId: string, pathId: string): string {
+  const path = getPathFromPathId(pathId)
+  if (path.chainId === chainId) {
+    return path.counterpartChainId
+  }
+  if (path.counterpartChainId === chainId) {
+    return path.chainId
+  }
+  throw new Error(`ChainId not found in path: ${chainId}`)
 }

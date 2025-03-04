@@ -7,7 +7,7 @@ import {
   RailsClaimState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import { getPathFromPathId } from '../../utils.js'
+import { getCounterpartChainIdForPathId } from '../../utils.js'
 
 export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRailsClaim> {
 
@@ -21,6 +21,19 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
 
   protected override getItemId(value: IRailsClaim): string {
     return value.transferId
+  }
+
+  protected override getRelayChainId(state: RailsClaimState, value: IRailsClaim): string {
+    const { pathId, txContext } = value
+    const { chainId } = txContext
+    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+
+    switch (state) {
+      case RailsClaimState.Sent:
+        return counterpartChainId
+      default:
+        throw new Error('Invalid state')
+    }
   }
 
   protected override shouldAttemptTransition(state: RailsClaimState, value: IRailsClaim): boolean {
@@ -39,7 +52,9 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
       case RailsClaimState.Sent:
         return RailsClaimState.Posted
       case RailsClaimState.Posted: {
-        return RailsClaimState.Confirmed
+        // TODO: should be posted
+        return RailsClaimState.Posted
+        // return RailsClaimState.Confirmed
       }
       default:
         throw new Error('Invalid state')
@@ -55,11 +70,10 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     // be finalized on its own chain, for the bonder to bond the claim,
     // and for the bond to be finalized on its own chain.
     const { pathId, txContext } = value
-    const { timestampMs } = txContext
+    const { timestampMs, chainId } = txContext
+    const destChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
     // TODO: Handle timing of post
-
-    const { destChainId } = getPathFromPathId(pathId)
     const destChainSlug = getChain(destChainId).slug
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 

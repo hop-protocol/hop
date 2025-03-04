@@ -5,6 +5,7 @@ import { isEVMError } from '#gasboost/index.js'
 import { Config } from '#config/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
+import type { RelayChainId } from './types.js'
 
 /**
  * Relayer is concerned with relaying transactions. It allows for validation of transactions
@@ -17,7 +18,7 @@ import type { providers } from 'ethers'
  * will consume RPC calls to validate onchain state, so it should be used sparingly.
  */
 
-export abstract class Relayer<RelayItem extends object> implements IRelayer<RelayItem> {
+export abstract class Relayer<RelayItem extends RelayChainId> implements IRelayer<RelayItem> {
   readonly #db: RelayerDB<RelayItem>
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls

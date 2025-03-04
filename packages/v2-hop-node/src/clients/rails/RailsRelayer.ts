@@ -21,10 +21,11 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
   }
 
   protected override async shouldAttemptRelay (relayItem: RailsRelayItem): Promise<boolean> {
+    const { relayChainId } = relayItem
     if (this.#isBondInput(relayItem)) {
-      return this.#canRelayBond(relayItem as BondInput)
+      return this.#canRelayBond(relayItem, relayChainId)
     } else if (!this.#isPostClaimInput(relayItem)) {
-      return this.#canRelayPostClaim(relayItem as PostClaimInput)
+      return this.#canRelayPostClaim(relayItem, relayChainId)
     }
 
     throw new Error('Invalid relay item')
@@ -32,11 +33,12 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
 
   protected override async sendRelay (relayItem: RailsRelayItem): Promise<providers.TransactionResponse> {
     // TODO: possibly validate BCR here to avoid a bad bond
+    const { relayChainId } = relayItem
 
     if (this.#isBondInput(relayItem)) {
-      return this.#sendBond(relayItem)
+      return this.#sendBond(relayItem, relayChainId)
     } else if (!this.#isPostClaimInput(relayItem)) {
-      return this.#sentPostClaim(relayItem)
+      return this.#sendPostClaim(relayItem, relayChainId)
     }
 
     throw new Error('Invalid relay item')
@@ -52,12 +54,10 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    * Internal - Validation
    */
 
-  async #canRelayBond (relayItem: BondInput): Promise<boolean> {
-    const { pathId } = relayItem
-    const { destChainId } = getPathFromPathId(pathId)
-    const gateway = this.#railsGateways[destChainId]
+  async #canRelayBond (relayItem: BondInput, relayChainId: string): Promise<boolean> {
+    const gateway = this.#railsGateways[relayChainId]
     if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${destChainId}`)
+      throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
 
     const isClaimed = await gateway.isClaimed(relayItem.claimId)
@@ -65,12 +65,10 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     return isClaimed && !isBonded
   }
 
-  async #canRelayPostClaim (relayItem: PostClaimInput): Promise<boolean> {
-    const { pathId } = relayItem
-    const { destChainId } = getPathFromPathId(pathId)
-    const gateway = this.#railsGateways[destChainId]
+  async #canRelayPostClaim (relayItem: PostClaimInput, relayChainId: string): Promise<boolean> {
+    const gateway = this.#railsGateways[relayChainId]
     if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${destChainId}`)
+      throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
 
     const isPosted = await gateway.isPosted(relayItem.transferId)
@@ -82,28 +80,27 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
    * Internal - Execution
    */
 
-  async #sendBond (relayItem: BondInput): Promise<providers.TransactionResponse> {
-    const { pathId, claimId, bonderFee, nextHops } = relayItem
-    const { destChainId } = getPathFromPathId(pathId)
-    const txOverrides = await getTxOverrides(destChainId)
-    const gateway = this.#railsGateways[destChainId]
+  async #sendBond (relayItem: BondInput, relayChainId: string): Promise<providers.TransactionResponse> {
+    const txOverrides = await getTxOverrides(relayChainId)
+    const gateway = this.#railsGateways[relayChainId]
     if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${destChainId}`)
+      throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
 
+    // TODO: Fix this
     const a: any = {}
     return gateway.bond(a, txOverrides)
   }
 
-  async #sentPostClaim (relayItem: PostClaimInput): Promise<providers.TransactionResponse> {
+  async #sendPostClaim (relayItem: PostClaimInput, relayChainId: string): Promise<providers.TransactionResponse> {
     const { pathId, transferId, to, amountOut, maxBonderFee, attestedClaimId, totalSent, totalClaims, nextHopsHash } = relayItem
-    const { destChainId } = getPathFromPathId(pathId)
-    const txOverrides = await getTxOverrides(destChainId)
-    const gateway = this.#railsGateways[destChainId]
+    const txOverrides = await getTxOverrides(relayChainId)
+    const gateway = this.#railsGateways[relayChainId]
     if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${destChainId}`)
+      throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
 
+    // TODO: Fix this
     const a: any = {}
     return gateway.postClaim(a, txOverrides)
   }

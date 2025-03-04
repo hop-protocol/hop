@@ -6,7 +6,7 @@ import {
   RailsTransferState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import { getPathFromPathId } from '../../utils.js'
+import { getCounterpartChainIdForPathId } from '../../utils.js'
 
 export class RailsTransferStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
 
@@ -20,6 +20,19 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
 
   protected override getItemId(value: IRailsTransfer): string {
     return value.transferId
+  }
+
+  protected override getRelayChainId(state: RailsTransferState, value: IRailsTransfer): string {
+    const { pathId, txContext } = value
+    const { chainId } = txContext
+    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+
+    switch (state) {
+      case RailsTransferState.Sent:
+        return counterpartChainId
+      default:
+        throw new Error('Invalid state')
+    }
   }
 
   protected override shouldAttemptTransition(state: RailsTransferState, value: IRailsTransfer): boolean {
@@ -49,11 +62,10 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
     // be finalized on its own chain, for the bonder to bond the claim,
     // and for the bond to be finalized on its own chain.
     const { pathId, txContext } = value
-    const { timestampMs } = txContext
+    const { timestampMs, chainId } = txContext
 
     // TODO: Handle timing of post
-
-    const { destChainId } = getPathFromPathId(pathId)
+    const destChainId = getCounterpartChainIdForPathId(chainId, pathId)
     const destChainSlug = getChain(destChainId).slug
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 

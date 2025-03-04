@@ -20,6 +20,17 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
     return `${value.sourceChainId}:${value.messageNonce}`
   }
 
+  protected override getRelayChainId(state: CCTPMessageState, value: ICCTPMessage): string {
+    const { sourceChainId } = value
+
+    switch (state) {
+      case CCTPMessageState.Sent:
+        return sourceChainId
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   protected override shouldAttemptTransition(state: CCTPMessageState, value: ICCTPMessage): boolean {
     switch (state) {
       case CCTPMessageState.Sent:

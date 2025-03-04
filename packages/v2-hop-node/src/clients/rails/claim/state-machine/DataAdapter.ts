@@ -1,7 +1,7 @@
 import { DataAdapter } from '#state-machine/index.js'
 import { RailsEventName } from '../../RailsSDKWrapper.js'
 import { type IRailsClaim, RailsClaimEventName, RailsClaimState } from './types.js'
-import { getPathFromPathId } from '../../utils.js'
+import { getCounterpartChainIdForPathId } from '../../utils.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsClaim, RailsEventName> {
@@ -24,7 +24,6 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Posted
       case RailsEventName.ClaimRemoved:
         return RailsClaimState.Removed
-      // TODO: This should exist
       // case RailsEventName.ClaimConfirmed:
       //   return RailsClaimState.Confirmed
       default:
@@ -40,7 +39,6 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsEventName.ClaimPosted
       case RailsClaimState.Removed:
         return RailsEventName.ClaimRemoved
-      // TODO: This should exist
       // case RailsClaimState.Confirmed:
       //   return RailsEventName.ClaimConfirmed
       default:
@@ -49,18 +47,19 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
   }
 
   protected override getEventChainIdForState (state: RailsClaimState, value: IRailsClaim): string {
-    const path = getPathFromPathId(value.pathId)
-    const { srcChainId, destChainId } = path
+    const { pathId, txContext } = value
+    const { chainId } = txContext
+    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
     switch (state) {
       case RailsClaimState.Sent:
-        return srcChainId
+        return chainId
       case RailsClaimState.Posted:
-        return destChainId
+        return counterpartChainId
       case RailsClaimState.Removed:
-        return destChainId
+        return counterpartChainId
       // case RailsClaimState.Confirmed:
-      //   return destChainId
+      //   return counterpartChainId
       default:
         throw new Error('Invalid state')
     }

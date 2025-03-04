@@ -52,6 +52,7 @@ export abstract class StateMachine<State extends string, StateData extends State
   // NOTE: The final state does not need to be handled since there are no more transitions after it
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
   protected abstract getTransitionState(state: State): State
+  protected abstract getRelayChainId(state: State, value: StateData): string
 
   constructor (
     name: string,
@@ -156,7 +157,7 @@ export abstract class StateMachine<State extends string, StateData extends State
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(nextState, key)
+      void this.#postTransitionHook(state, key, value)
     }
   }
 
@@ -210,19 +211,22 @@ export abstract class StateMachine<State extends string, StateData extends State
     return true
   }
 
-  async #postTransitionHook (nextState: State, key: string): Promise<boolean> {
-    this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
-
-    // There is no action needed for the final state
-    const isLastStateHook = isLastState(this.#states, nextState)
-    if (isLastStateHook) return false
+  async #postTransitionHook (state: State, key: string, value: StateData): Promise<boolean> {
+    this.logger.debug(`Post transition hook for state: ${state}, key: ${key}`)
 
     // The first state hook will have nothing in the DB to read
     const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
 
-    this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
-    await this.#relayer.relay(relayItem)
+    // TODO: In theory, the state machine should not care about the chain.
+    const relayChainId: string = this.getRelayChainId(state, value)
+
+    this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
+    await this.#relayer.relay({
+      ...relayItem,
+      relayChainId
+    })
     return true
+
   }
 
   // Aggregate all existing data to send to the relayer. The relayer

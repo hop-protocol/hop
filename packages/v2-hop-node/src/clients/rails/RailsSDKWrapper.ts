@@ -70,7 +70,7 @@ export class RailsGateway {
     return this.#sdk.bond({ ...input, ...overrides })
   }
 
-  async postClaim (input: PostClaimInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
+  async pushClaim (input: PostClaimInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
     return this.#sdk.postClaim({ ...input, ...overrides })
   }
 
@@ -118,10 +118,10 @@ export function addDecodedTypesToEvent(log: providers.Log, chainId: string): Dec
 
 export function getPathId(path: RailsPath): string {
   return RailsUtils.getComputedPathId(
-    path.srcChainId,
-    path.srcToken,
-    path.destChainId,
-    path.destToken,
+    path.chainId,
+    path.token,
+    path.counterpartChainId,
+    path.counterpartToken,
     path.initialReserve
   )
 }

@@ -17,7 +17,7 @@ export async function validate(config: IRailsClientConfig): Promise<void> {
   for (const path of paths) {
     const pathId = Rails.getPathId(path)
 
-    const chainIds = [path.chainId, path.counterpartChainId]
+    const chainIds = Rails.getChainIdsForPaths([path])
     for (const chainId of chainIds) {
       const provider = getRpcProvider(chainId)
       const railsGateway = new RailsGateway(chainId, provider)

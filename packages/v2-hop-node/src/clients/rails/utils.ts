@@ -1,7 +1,18 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Config } from '#config/index.js'
-import { getPathId } from './RailsSDKWrapper.js'
-import type { RailsPath } from './types.js'
+import { RailsGateway, getPathId } from './RailsSDKWrapper.js'
+import { RelayerDB } from '#relayer/index.js'
+import { ClientName } from '../constants.js'
+import { getTxOverrides } from '#utils/getTxOverrides.js'
+import { wallets } from '#wallets/index.js'
+import type { providers } from 'ethers'
+import {
+  type BondInput,
+  type PostClaimInput,
+  type RailsPath,
+  type RailsRelayItem,
+  RailsRelayType
+} from './types.js'
 import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
@@ -103,4 +114,98 @@ export function getCounterpartChainIdForPathId(chainId: string, pathId: string):
     return path.chainId
   }
   throw new Error(`ChainId not found in path: ${chainId}`)
+}
+
+
+/**
+ * CLI Tools
+ */
+
+export async function getRelayableItems (relayType: RailsRelayType): Promise<RailsRelayItem[]> {
+  const name = ClientName.Rails
+  const db = new RelayerDB(name)
+  if (!db) {
+    throw new Error(`DB not found for client: ${name}`)
+  }
+
+  const relayableItems: RailsRelayItem[] = []
+  for await (const relayableItem of db.getRelayableItems()) {
+    if (
+      (relayType === RailsRelayType.Bond && isBondTxInputData(relayableItem)) ||
+      (relayType === RailsRelayType.PostClaim && isPostClaimTxInputData(relayableItem))
+    ) {
+      // TODO: I shouldn't have to typecast RailsRelayItem. It is needed now since the type guard is so strict.
+      relayableItems.push(relayableItem as RailsRelayItem)
+    }
+  }
+
+
+  return relayableItems
+}
+
+export async function relayItem (relayableItem: RailsRelayItem): Promise<providers.TransactionResponse> {
+  const { relayChainId } = relayableItem
+  const txOverrides = await getTxOverrides(relayChainId)
+  const wallet = wallets.get(relayChainId)
+  const gateway = new RailsGateway(relayChainId, wallet)
+  if (typeof gateway === 'undefined') {
+    throw new Error(`No gateway found for chainId: ${relayChainId}`)
+  }
+
+  if (isBondTxInputData(relayableItem)) {
+    return gateway.bond(relayableItem, txOverrides)
+  } else if (isPostClaimTxInputData(relayableItem)) {
+    return gateway.pushClaim(relayableItem, txOverrides)
+  } else {
+    throw new Error('Invalid relay item')
+  }
+}
+
+/**
+ * Type Guards
+ */
+
+export function isBondTxInputData (item: unknown): item is BondInput {
+  if (typeof item !== 'object' || item === null) {
+    return false
+  }
+
+  const candidate = item as Partial<BondInput>
+  return (
+    'pathId' in candidate &&
+    'transferId' in candidate &&
+    'nextHops' in candidate &&
+    typeof candidate.pathId === 'string' &&
+    typeof candidate.transferId === 'string' &&
+    Array.isArray(candidate.nextHops)
+    // NOTE: This does not validate the nextHops array. It is assumed that the
+    // array is correctly formatted
+  )
+}
+
+// TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
+export function isPostClaimTxInputData (item: unknown): item is PostClaimInput {
+  if (typeof item !== 'object' || item === null) {
+    return false
+  }
+
+  const candidate = item as Partial<PostClaimInput>
+  return (
+    'pathId' in candidate &&
+    'transferId' in candidate &&
+    'to' in candidate &&
+    'amount' in candidate &&
+    'totalSent' in candidate &&
+    'attestedClaimId' in candidate &&
+    'attestedTotalClaims' in candidate &&
+    'nextHopsHash' in candidate &&
+    typeof candidate.pathId === 'string' &&
+    typeof candidate.transferId === 'string' &&
+    typeof candidate.to === 'string' &&
+    // typeof candidate.amount?.toString() === 'string' &&
+    // typeof candidate.totalSent?.toString() === 'string' &&
+    typeof candidate.attestedClaimId === 'string' &&
+    // typeof candidate.attestedTotalClaims?.toString() === 'string' &&
+    typeof candidate.nextHopsHash === 'string'
+  )
 }

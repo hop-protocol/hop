@@ -1,8 +1,9 @@
-import { getChainIdsForPaths, getPathFromPathId } from './utils.js'
+import { getChainIdsForPaths } from './utils.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import { RailsGateway, isContractError } from './RailsSDKWrapper.js'
 import { getTxOverrides } from '#utils/getTxOverrides.js'
+import { isBondTxInputData, isPostClaimTxInputData } from './utils.js'
 import type { BondInput, PostClaimInput, RailsRelayItem } from './types.js'
 import type { providers } from 'ethers'
 import type { RailsPath } from './types.js'
@@ -22,9 +23,10 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
 
   protected override async shouldAttemptRelay (relayItem: RailsRelayItem): Promise<boolean> {
     const { relayChainId } = relayItem
-    if (this.#isBondInput(relayItem)) {
+    if (isBondTxInputData(relayItem)) {
       return this.#canRelayBond(relayItem, relayChainId)
-    } else if (!this.#isPostClaimInput(relayItem)) {
+    // TODO: Why did I do not?
+    } else if (!isPostClaimTxInputData(relayItem)) {
       return this.#canRelayPostClaim(relayItem, relayChainId)
     }
 
@@ -35,9 +37,10 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     // TODO: possibly validate BCR here to avoid a bad bond
     const { relayChainId } = relayItem
 
-    if (this.#isBondInput(relayItem)) {
+    if (isBondTxInputData(relayItem)) {
       return this.#sendBond(relayItem, relayChainId)
-    } else if (!this.#isPostClaimInput(relayItem)) {
+    // TODO: Why did I do not?
+    } else if (!isPostClaimTxInputData(relayItem)) {
       return this.#sendPostClaim(relayItem, relayChainId)
     }
 
@@ -50,6 +53,7 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
       this.#isBCRError(err)
     )
   }
+
   /**
    * Internal - Validation
    */
@@ -86,23 +90,16 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
-
-    // TODO: Fix this
-    const a: any = {}
-    return gateway.bond(a, txOverrides)
+    return gateway.bond(relayItem, txOverrides)
   }
 
   async #sendPostClaim (relayItem: PostClaimInput, relayChainId: string): Promise<providers.TransactionResponse> {
-    const { pathId, transferId, to, amountOut, maxBonderFee, attestedClaimId, totalSent, totalClaims, nextHopsHash } = relayItem
     const txOverrides = await getTxOverrides(relayChainId)
     const gateway = this.#railsGateways[relayChainId]
     if (typeof gateway === 'undefined') {
       throw new Error(`No gateway found for chainId: ${relayChainId}`)
     }
-
-    // TODO: Fix this
-    const a: any = {}
-    return gateway.postClaim(a, txOverrides)
+    return gateway.pushClaim(relayItem, txOverrides)
   }
 
   /**
@@ -122,54 +119,5 @@ export class RailsRelayer extends Relayer<RailsRelayItem> {
     // }
     // return false
     return true
-  }
-
-  /**
-   * Type Guards
-   */
-
-  #isBondInput(item: unknown): item is BondInput {
-    if (typeof item !== 'object' || item === null) {
-      return false
-    }
-
-    const candidate = item as Partial<BondInput>
-    return (
-      'pathId' in candidate &&
-      'transferId' in candidate &&
-      'nextHops' in candidate &&
-      typeof candidate.pathId === 'string' &&
-      typeof candidate.transferId === 'string' &&
-      Array.isArray(candidate.nextHops)
-      // NOTE: This does not validate the nextHops array. It is assumed that the
-      // array is correctly formatted
-    )
-  }
-
-  // TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
-  #isPostClaimInput(item: unknown): item is PostClaimInput {
-    if (typeof item !== 'object' || item === null) {
-      return false
-    }
-
-    const candidate = item as Partial<PostClaimInput>
-    return (
-      'pathId' in candidate &&
-      'transferId' in candidate &&
-      'to' in candidate &&
-      'amount' in candidate &&
-      'totalSent' in candidate &&
-      'attestedClaimId' in candidate &&
-      'attestedTotalClaims' in candidate &&
-      'nextHopsHash' in candidate &&
-      typeof candidate.pathId === 'string' &&
-      typeof candidate.transferId === 'string' &&
-      typeof candidate.to === 'string' &&
-      // typeof candidate.amount?.toString() === 'string' &&
-      // typeof candidate.totalSent?.toString() === 'string' &&
-      typeof candidate.attestedClaimId === 'string' &&
-      // typeof candidate.attestedTotalClaims?.toString() === 'string' &&
-      typeof candidate.nextHopsHash === 'string'
-    )
   }
 }

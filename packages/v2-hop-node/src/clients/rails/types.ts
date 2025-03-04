@@ -10,6 +10,11 @@ export enum RailsClientName {
   Claim = 'claim'
 }
 
+export enum RailsRelayType {
+  Bond = 'bond',
+  PostClaim = 'postClaim'
+}
+
 export type RailsHop = {
   pathId: string
   maxTotalSent: BigNumber

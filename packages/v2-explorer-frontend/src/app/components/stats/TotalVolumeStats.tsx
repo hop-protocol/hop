@@ -10,13 +10,26 @@ export const TotalVolumeStats: React.FC = () => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Typography variant="h5" gutterBottom color="secondary">
-        Total Volume
-      </Typography>
-      <Typography variant="h4" color="primary">
-        {volumeStats?.stats?.totalVolume?.totalUsdDisplay ?? ''}
-      </Typography>
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4">
+          Stats
+        </Typography>
+        {volumeStats?.lastUpdated && (
+          <Typography variant="body2" color="textSecondary">
+            Last Updated: {volumeStats.lastUpdated}
+          </Typography>
+        )}
+      </Box>
+
+      <Box display="flex" flexDirection="column" alignItems="center">
+        <Typography variant="h5" gutterBottom color="secondary">
+          Total Volume
+        </Typography>
+        <Typography variant="h4" color="primary">
+          {volumeStats?.stats?.totalVolume?.totalUsdDisplay ?? ''}
+        </Typography>
+      </Box>
     </Box>
   )
 }

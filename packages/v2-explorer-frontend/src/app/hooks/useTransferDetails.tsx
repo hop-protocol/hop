@@ -56,11 +56,20 @@ export const useTransferDetails = (props: any) => {
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
   const sourcePool = event?.sourcePool
-  const sourcePoolDisplay = event?.sourcePoolDisplay
+  const sourcePoolDisplay = event?.sourcePool
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const pathId = event?.pathId
-  const hops = event?.hops
+  const hops = event?.hops?.map((hop: any) => {
+    const maxBonderFeeDisplay = `${hop?.maxBonderFee} (${hop?.maxBonderFeeDisplay}) (${hop?.maxBonderFeeUsdDisplay})`
+    const maxTotalSentDisplay = `${hop?.maxTotalSent} (${hop?.maxTotalSentDisplay}) (${hop?.maxTotalSentUsdDisplay})`
+    return {
+      ...hop,
+      maxBonderFeeDisplay,
+      maxTotalSentDisplay,
+      token: token
+    }
+  })
 
   const sourceTokenAddress = token?.address
   const sourceTokenDisplay = tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null

@@ -14,23 +14,21 @@ import { TransferBondedEvents } from './events/TransferBondedEvents'
 import { ClaimPostedEvents } from './events/ClaimPostedEvents'
 import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
 import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
-import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
 
 export function Events () {
   const tables = [
-    <BundleCommittedEvents key="BundleCommittedEvents" />,
-    <BundleForwardedEvents key="BundleForwardedEvents" />,
-    <BundleReceivedEvents key="BundleReceivedEvents" />,
-    <BundleSetEvents key="BundleSetEvents" />,
-    <MessageBundledEvents key="MessageBundledEvents" />,
-    <MessageExecutedEvents key="MessageExecutedEvents" />,
-    <MessageSentEvents key="MessageSentEvents" />,
     <TransferSentEvents key="TransferSentEvents" />,
     <TransferBondedEvents key="TransferBondedEvents" />,
     <ClaimPostedEvents key="ClaimPostedEvents" />,
     <ClaimReaddedEvents key="ClaimReaddedEvents" />,
     <ClaimRemovedEvents key="ClaimRemovedEvents" />,
-    <BonderPreferenceEvents key="BonderPreferenceEvents" />
+    <MessageSentEvents key="MessageSentEvents" />,
+    <MessageBundledEvents key="MessageBundledEvents" />,
+    <MessageExecutedEvents key="MessageExecutedEvents" />,
+    <BundleCommittedEvents key="BundleCommittedEvents" />,
+    <BundleForwardedEvents key="BundleForwardedEvents" />,
+    <BundleReceivedEvents key="BundleReceivedEvents" />,
+    <BundleSetEvents key="BundleSetEvents" />,
   ]
 
   return (

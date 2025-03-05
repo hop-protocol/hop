@@ -41,7 +41,8 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       events: items,
-      hasNextPage
+      hasNextPage,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)
@@ -70,7 +71,8 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       events: items,
-      hasNextPage
+      hasNextPage,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)
@@ -95,7 +97,8 @@ app.get('/v1/paths', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       paths: items,
-      hasNextPage
+      hasNextPage,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)
@@ -120,7 +123,8 @@ app.get('/v1/tokens', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       tokens: items,
-      hasNextPage
+      hasNextPage,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)
@@ -145,7 +149,8 @@ app.get('/v1/prices', responseCache, async (req: any, res: any) => {
     })
     res.status(200).json({
       prices: items,
-      hasNextPage
+      hasNextPage,
+      lastUpdated: new Date().toISOString()
     })
   } catch (err: any) {
     console.error(err)
@@ -159,7 +164,10 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
     const stats = await controller.getTransferVolumeStatsForApi({
       filter
     })
-    res.status(200).json({ stats })
+    res.status(200).json({
+      stats,
+      lastUpdated: new Date().toISOString()
+    })
   } catch (err: any) {
     console.error(err)
     res.json({ error: err.message })

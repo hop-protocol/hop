@@ -12,6 +12,7 @@ type VolumeStats = {
       totalUsdDisplay: string
     }>
   }
+  lastUpdated: string
 }
 
 const fetchVolumeStats = async (): Promise<VolumeStats> => {

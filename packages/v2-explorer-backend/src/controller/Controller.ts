@@ -499,10 +499,10 @@ export class Controller {
       item.attestationFeeUsdDisplay = `${formatToUSD(item.attestationFeeUsd.toFixed(2))} USD`
     }
     if (item.nextHops) {
-      item.nextHops = item.nextHops.map((item: any) => this.addEventFields(item))
+      item.nextHops = item.nextHops.map((hop: any) => this.addEventFields({ ...hop, token: item.token, tokenPriceUsd: item.tokenPriceUsd }))
     }
     if (item.hops) {
-      item.hops = item.hops.map((item: any) => this.addEventFields(item))
+      item.hops = item.hops.map((hop: any) => this.addEventFields({ ...hop, token: item.token, tokenPriceUsd: item.tokenPriceUsd }))
     }
     if (item.minAmountOut) {
       item.minAmountOut = item.minAmountOut.toString()
@@ -515,6 +515,14 @@ export class Controller {
     if (item.maxBonderFee) {
       item.maxBonderFee = item.maxBonderFee.toString()
     }
+    if (item.maxBonderFee != null && item.token) {
+      item.maxBonderFeeFormatted = formatUnits(item.maxBonderFee, item.token.decimals)
+      item.maxBonderFeeDisplay = `${item.maxBonderFeeFormatted} ${item.token.symbol}`
+    }
+    if (item.maxBonderFee != null && item.maxBonderFeeFormatted != null && item.tokenPriceUsd != null) {
+      item.maxBonderFeeUsd = Number(item.maxBonderFeeFormatted) * Number(item.tokenPriceUsd)
+      item.maxBonderFeeUsdDisplay = `${formatToUSD(item.maxBonderFeeUsd.toFixed(2))} USD`
+    }
     if (item.maxTotalSent) {
       item.maxTotalSent = item.maxTotalSent.toString()
     }
@@ -526,6 +534,19 @@ export class Controller {
       item.maxTotalSentUsd = Number(item.maxTotalSentFormatted) * Number(item.tokenPriceUsd)
       item.maxTotalSentUsdDisplay = `${formatToUSD(item.maxTotalSentUsd.toFixed(2))} USD`
     }
+
+    if (item.totalClaimsAtHeadClaimId) {
+      item.totalClaimsAtHeadClaimId = item.totalClaimsAtHeadClaimId.toString()
+    }
+    if (item.totalClaimsAtHeadClaimId != null && item.token) {
+      item.totalClaimsAtHeadClaimIdFormatted = formatUnits(item.totalClaimsAtHeadClaimId, item.token.decimals)
+      item.totalClaimsAtHeadClaimIdDisplay = `${item.totalClaimsAtHeadClaimIdFormatted} ${item.token.symbol}`
+    }
+    if (item.totalClaimsAtHeadClaimId != null && item.totalClaimsAtHeadClaimIdFormatted != null && item.tokenPriceUsd != null) {
+      item.totalClaimsAtHeadClaimIdUsd = Number(item.totalClaimsAtHeadClaimIdFormatted) * Number(item.tokenPriceUsd)
+      item.totalClaimsAtHeadClaimIdUsdDisplay = `${formatToUSD(item.totalClaimsAtHeadClaimIdUsd.toFixed(2))} USD`
+    }
+
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
     }
@@ -860,7 +881,6 @@ export class Controller {
       if (chainId === '42069') { // TODO
         continue
       }
-
       try {
         const railsGateway = this.sdk.getRailsGateway(chainId)
         const [
@@ -902,11 +922,10 @@ export class Controller {
     const result: any = {}
 
     for (const chainId of chainIds) {
+      if (chainId === '42069') { // TODO
+        continue
+      }
       try {
-        if (chainId === '42069') { // TODO
-          continue
-        }
-
         const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
         const [
           stakingRegistryAddress,
@@ -967,28 +986,24 @@ export class Controller {
           continue
         }
 
+        const headClaimId = await railsGateway.getHeadClaimId({ pathId })
         const [
-          headClaimId,
           tokenVault,
           sendFee,
-          // messageFee,
-          // claimFeesFee,
           totalClaims,
           totalConfirmed,
-          totalSent
+          totalSent,
+          totalClaimsAtHeadClaimId,
+          bucketIndex
         ] = await Promise.all([
-          railsGateway.getHeadClaimId({ pathId }),
           railsGateway.getTokenVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
-          // railsGateway.getMessageFee({ chainId }), // TODO
-          // railsGateway.getClaimFeesFee({ pathId }), // TODO
           railsGateway.getTotalClaims({ pathId }),
           railsGateway.getTotalConfirmed({ pathId }),
-          railsGateway.getTotalSent({ pathId })
+          railsGateway.getTotalSent({ pathId }),
+          railsGateway.getTotalClaimsAtClaimId({ pathId, claimId: headClaimId }),
+          railsGateway.getBucketIndex({ pathId, claimId: headClaimId })
         ])
-        // railsGateway.getFeePrice({ chainId }),
-        // getTotalClaimsAtClaimId({ pathId, claimId })
-        // getBucketIndex({ pathId, claimId })
 
         if (!result[chainId]) {
           result[chainId] = {}
@@ -1016,11 +1031,11 @@ export class Controller {
           headClaimId,
           tokenVault,
           sendFee: sendFee.toString(),
-          // messageFee: messageFee.toString(),
-          // claimFeesFee: claimFeesFee.toString(),
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
+          totalClaimsAtHeadClaimId: totalClaimsAtHeadClaimId.toString(),
+          bucketIndex: bucketIndex.toString(),
           context: { chainId },
           token: tokenInfo
         })

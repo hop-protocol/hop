@@ -1221,7 +1221,7 @@ export class RailsGateway extends Base {
     }
 
     const contract = await this.getRailsGatewayContract()
-    const totalClaims = await contract.getTotalClaimsAtClaimId(pathId)
+    const totalClaims = await contract.getTotalClaimsAtClaimId(pathId, claimId)
     return totalClaims
   }
 

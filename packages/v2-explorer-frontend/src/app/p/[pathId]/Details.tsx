@@ -26,13 +26,13 @@ export function Details(props: any) {
     { key: 'headClaimId', label: 'Head Claim ID' },
     { key: 'tokenVault', label: 'Token Vault' },
     { key: 'sendFee', label: 'Send Fee' },
-    { key: 'messageFee', label: 'Message Fee' },
-    { key: 'claimFeesFee', label: 'Claim Fees Fee' },
     { key: 'totalClaims', label: 'Total Claims' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
     { key: 'tokenLabel', label: 'Token Name' },
     { key: 'tokenAddress', label: 'Token Address' },
+    { key: 'totalClaimsAtHeadClaimId', label: 'Total Claims at Head Claim ID' },
+    { key: 'bucketIndex', label: 'Bucket Index' }
   ]
 
   if (loading) {

@@ -194,10 +194,6 @@ export type GetClaimFeesFeeInput = {
   chainId: BigNumberish
 }
 
-export type GetFeePriceInput = {
-  chainId: BigNumberish
-}
-
 export type GetTotalClaimsInput = {
   pathId: string
 }
@@ -1180,21 +1176,6 @@ export class RailsGateway extends Base {
 
     try {
       const fee = await contract.getUpdateFee()
-      return fee
-    } catch (err: unknown) {
-      return this.throwError(err) as BigNumber
-    }
-  }
-
-  async getFeePrice ({ chainId }: GetFeePriceInput): Promise<BigNumber> {
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    const contract = await this.getRailsGatewayContract()
-
-    try {
-      const fee = await contract.getFeePrice(chainId)
       return fee
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber

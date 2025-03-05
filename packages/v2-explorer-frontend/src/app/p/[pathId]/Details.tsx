@@ -32,7 +32,9 @@ export function Details(props: any) {
     { key: 'tokenLabel', label: 'Token Name' },
     { key: 'tokenAddress', label: 'Token Address' },
     { key: 'totalClaimsAtHeadClaimId', label: 'Total Claims at Head Claim ID' },
-    { key: 'bucketIndex', label: 'Bucket Index' }
+    { key: 'bucketIndex', label: 'Bucket Index' },
+    { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
+    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' }
   ]
 
   if (loading) {

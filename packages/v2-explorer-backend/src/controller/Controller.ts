@@ -895,6 +895,26 @@ export class Controller {
           railsGateway.getStakingRegistryContractAddress()
         ])
 
+        const chainIdStates : any = {}
+        for (const _chainId of chainIds) {
+          if (_chainId === '42069') { // TODO
+            continue
+          }
+          if (_chainId === chainId) {
+            continue
+          }
+          try {
+            //const messageFee = await railsGateway.getMessageFee({ chainId })
+            const feePrice = await railsGateway.getFeePrice({ chainId })
+            chainIdStates[chainId] = {
+             // messageFee,
+              feePrice
+            }
+          } catch (err: any) {
+            console.error(`getRailsGatewayContractState, getChainIdStates, chainId: ${chainId}, error: ${err.message}`)
+          }
+        }
+
         const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { chainId }, limit: 100 })
         // console.log('paths', paths)
         const pathIds = paths.map((path: any) => path.pathId)
@@ -907,6 +927,7 @@ export class Controller {
           removeFee: removeFee.toString(),
           pushClaimFee: pushClaimFee.toString(),
           stakingRegistryAddress,
+          chainIdStates,
           context: { chainId }
         })
       } catch (err: any) {
@@ -993,6 +1014,8 @@ export class Controller {
           totalClaims,
           totalConfirmed,
           totalSent,
+          hardConfirmedBucketIndex,
+          hardConfirmedClaimId,
           totalClaimsAtHeadClaimId,
           bucketIndex
         ] = await Promise.all([
@@ -1001,6 +1024,8 @@ export class Controller {
           railsGateway.getTotalClaims({ pathId }),
           railsGateway.getTotalConfirmed({ pathId }),
           railsGateway.getTotalSent({ pathId }),
+          railsGateway.getHardConfirmedBucketIndex({ pathId }),
+          railsGateway.getHardConfirmedClaimId({ pathId }),
           railsGateway.getTotalClaimsAtClaimId({ pathId, claimId: headClaimId }),
           railsGateway.getBucketIndex({ pathId, claimId: headClaimId })
         ])
@@ -1034,6 +1059,8 @@ export class Controller {
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
+          hardConfirmedBucketIndex: hardConfirmedBucketIndex.toString(),
+          hardConfirmedClaimId,
           totalClaimsAtHeadClaimId: totalClaimsAtHeadClaimId.toString(),
           bucketIndex: bucketIndex.toString(),
           context: { chainId },

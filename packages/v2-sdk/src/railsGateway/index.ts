@@ -8,7 +8,6 @@ export {
   GetSendFeeInput,
   GetMessageFeeInput,
   GetClaimFeesFeeInput,
-  GetFeePriceInput,
   GetTotalClaimsInput,
   GetTotalClaimsAtClaimIdInput,
   GetTotalConfirmedInput,

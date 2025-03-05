@@ -45,7 +45,7 @@ export function ContractStates() {
     { key: 'removeFee', label: 'Remove Fee' },
     { key: 'pushClaimFee', label: 'Push Claim Fee' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
-    { key: 'pathIdsCount', label: 'Path Ids (Count)' },
+    { key: 'pathIds', label: 'Path Ids' },
   ]
 
   const pathsFields = [
@@ -53,8 +53,8 @@ export function ContractStates() {
     { key: 'headClaimId', label: 'Head Claim ID' },
     { key: 'pathVault', label: 'Path Vault' },
     { key: 'sendFee', label: 'Send Fee' },
-    // { key: 'messageFee', label: 'Message Fee' },
-    // { key: 'claimFeesFee', label: 'Claim Fees Fee' },
+    { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
+    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' },
     { key: 'totalClaims', label: 'Total Claims' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
@@ -116,9 +116,14 @@ export function ContractStates() {
                   const displayValue = contract.railsGateway
                     ? contract.railsGateway[field.key + 'Display'] || ''
                     : ''
-                  const link = contract.railsGateway
+                  let link = contract.railsGateway
                     ? contract.railsGateway[field.key + 'ExplorerUrl'] || ''
                     : ''
+
+                  if (field.key === 'pathIds') {
+                    link = rawValue.map((pathId: string) => `/p/${pathId}`)
+                  }
+
                   return (
                     <DetailRow
                       key={field.key}
@@ -152,6 +157,7 @@ export function ContractStates() {
                             const rawValue = path[field.key] || ''
                             const displayValue = path[field.key + 'Display'] || ''
                             const link = path[field.key + 'ExplorerUrl'] || ''
+
                             return (
                               <DetailRow
                                 key={field.key}

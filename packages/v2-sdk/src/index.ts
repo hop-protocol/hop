@@ -32,7 +32,6 @@ export {
   GetSendFeeInput as RailsGatewayGetSendFeeInput,
   GetMessageFeeInput as RailsGatewayGetMessageFeeInput,
   GetClaimFeesFeeInput,
-  GetFeePriceInput,
   GetTotalClaimsInput,
   GetTotalClaimsAtClaimIdInput,
   GetTotalConfirmedInput,

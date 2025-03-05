@@ -46,18 +46,36 @@ export const DetailRow = ({
 }: {
   loading: boolean
   label: string
-  rawValue: string
+  rawValue: string | string[]
   displayValue?: string
-  link?: string
+  link?: string | string[]
   imageUrl?: string
   skeletonWidth?: number
   maxWidth?: number | string
 }) => {
   const styles = useStyles()
-  const computedValue =
+  let computedValue: any =
     displayValue && displayValue !== rawValue
       ? `${displayValue} ${rawValue ? `(${rawValue})` : ''}`
       : rawValue
+
+  if (rawValue && Array.isArray(rawValue)) {
+    computedValue = <Box>
+      <ul>
+        {rawValue.map((value: string, i: number) => {
+          return (
+            <li key={i}>
+              <Link href={link?.[i]} target="_blank" rel="noreferrer">
+                {value}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </Box>
+
+    label = `${label} (${rawValue.length})`
+  }
 
   return (
     <TableRow className={styles.tableRow}>
@@ -73,8 +91,8 @@ export const DetailRow = ({
           )}
           {loading ? (
             <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
-          ) : (link && computedValue) ? (
-            <CopyToClipboardText text={rawValue}>
+          ) : (link && !Array.isArray(link) && computedValue && !Array.isArray(computedValue)) ? (
+            <CopyToClipboardText text={rawValue?.toString()}>
               <Link href={link} target="_blank" rel="noreferrer">
                 {computedValue}
               </Link>
@@ -82,7 +100,7 @@ export const DetailRow = ({
           ) : (typeof computedValue === 'string' ||
               typeof computedValue === 'number') &&
             computedValue?.toString().trim() !== '' ? (
-            <CopyToClipboardText text={rawValue}>
+            <CopyToClipboardText text={rawValue?.toString()}>
               {computedValue}
             </CopyToClipboardText>
           ) : (

@@ -896,6 +896,7 @@ export class Controller {
         ])
 
         const chainIdStates : any = {}
+        /*
         for (const _chainId of chainIds) {
           if (_chainId === '42069') { // TODO
             continue
@@ -904,16 +905,15 @@ export class Controller {
             continue
           }
           try {
-            //const messageFee = await railsGateway.getMessageFee({ chainId })
-            const feePrice = await railsGateway.getFeePrice({ chainId })
+            const messageFee = await railsGateway.getMessageFee({ chainId })
             chainIdStates[chainId] = {
-             // messageFee,
-              feePrice
+              messageFee,
             }
           } catch (err: any) {
             console.error(`getRailsGatewayContractState, getChainIdStates, chainId: ${chainId}, error: ${err.message}`)
           }
         }
+        */
 
         const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { chainId }, limit: 100 })
         // console.log('paths', paths)

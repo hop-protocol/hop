@@ -92,16 +92,25 @@ export function ContractStates() {
         <Typography variant="h4">
           Contract States
         </Typography>
-        <Typography variant="body2">
+        <Typography variant="body2" color="textSecondary">
           Last Updated: {lastUpdated}
         </Typography>
       </Box>
 
       {contractState.map((contract) => (
         <Paper key={contract.chainId} elevation={2} sx={{ mb: 4, p: 2 }}>
-          <Typography variant="h5" gutterBottom>
-            {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
-          </Typography>
+          <Box display="flex" alignItems="center" mb={2}>
+            {contract.railsGateway?.chainImageUrl && (
+              <img
+                src={contract.railsGateway.chainImageUrl}
+                alt={contract.railsGateway?.context?.chainName || 'Chain'}
+                style={{ width: 24, height: 24, marginRight: 8 }}
+              />
+            )}
+            <Typography variant="h5">
+              {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
+            </Typography>
+          </Box>
 
           <Typography variant="h6" gutterBottom>
             Rails Gateway

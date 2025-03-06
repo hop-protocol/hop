@@ -39,6 +39,7 @@ export function Details(props: any) {
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
+    sourceTokenImageUrl,
     destinationTxs
   } = useTransferDetails({ initialEventDetails })
   const router = useRouter()
@@ -63,7 +64,7 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Transfer ID" value={transferId} />
               <DetailRow loading={loading} label="Status" value={statusDisplay} />
               <DetailRow loading={loading} label="Created" value={sourceTx.timestampDisplay} />
-              <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} />
+              <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} imageUrl={sourceTokenImageUrl} />
               <DetailRow loading={loading} label="Origin Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />

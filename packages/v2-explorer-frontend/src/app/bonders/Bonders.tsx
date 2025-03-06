@@ -75,7 +75,7 @@ export function Bonders() {
       </Box>
 
       {contractState.bonders?.map((bonder: any) => (
-        <Paper key={bonder.address} elevation={0} sx={{ mb: 4, p: 2, background: 'transparent' }}>
+        <Paper key={bonder.address} elevation={2} sx={{ mb: 4, p: 2, background: '#fff' }}>
           <TableContainer>
             <Table>
               <TableBody>
@@ -91,15 +91,12 @@ export function Bonders() {
             </Table>
           </TableContainer>
 
-          <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-            Total Amount Bonded by Token
-          </Typography>
-          <TableContainer>
+          <TableContainer sx={{ mt: 4 }}>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ width: '200px' }}>Token</TableCell>
-                  <TableCell>Amount</TableCell>
+                  <TableCell>Total Bonded Amount</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -128,10 +125,7 @@ export function Bonders() {
             </Table>
           </TableContainer>
 
-          <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-            Chain Balances
-          </Typography>
-          <TableContainer>
+          <TableContainer sx={{ mt: 4 }}>
             <Table>
               <TableHead>
                 <TableRow>

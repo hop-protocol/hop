@@ -74,6 +74,7 @@ export const useTransferDetails = (props: any) => {
   const sourceTokenAddress = token?.address
   const sourceTokenDisplay = tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null
   const sourceTokenExplorerUrl = token?.tokenExplorerUrl
+  const sourceTokenImageUrl = token?.imageUrl
 
   const sourceTx = {
     value: context?.value,
@@ -200,6 +201,7 @@ export const useTransferDetails = (props: any) => {
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
+    sourceTokenImageUrl,
     destinationChainDisplay,
     destinationChainImageUrl,
     loading,

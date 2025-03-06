@@ -56,7 +56,7 @@ export const DetailRow = ({
   const styles = useStyles()
   let computedValue: any =
     displayValue && displayValue !== rawValue
-      ? `${displayValue} ${rawValue ? `(${rawValue})` : ''}`
+      ? `${rawValue} (${displayValue})`
       : rawValue
 
   if (rawValue && Array.isArray(rawValue)) {

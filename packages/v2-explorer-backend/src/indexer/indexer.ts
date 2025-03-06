@@ -261,6 +261,7 @@ export class Indexer {
 
     const tokens = new Set(this.sdk.getSupportedTokenSymbols()) // TODO: read from db list of tokens
     tokens.add('ETH')
+    tokens.add('HOP')
     for  (const token of tokens) {
       let tokenLookup = token
       if (tokenLookup === 'MOCK') {

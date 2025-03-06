@@ -210,6 +210,22 @@ app.get('/v1/path-details', responseCacheHandler(5 * 60 * 1000), async (req: any
   }
 })
 
+app.get('/v1/bonders', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { filter } = req.query
+    const data = await controller.getBondersState({
+      filter
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

@@ -52,6 +52,7 @@ export function Header () {
       '/prices': 'prices',
       '/stats': 'stats',
       '/contracts': 'contracts',
+      '/bonders': 'bonders',
     }
 
     return routes[pathname] ?? 'home'
@@ -66,6 +67,7 @@ export function Header () {
       prices: '/prices',
       stats: '/stats',
       contracts: '/contracts',
+      bonders: '/bonders',
     }
     navigate(routes[newValue])
   }
@@ -108,11 +110,12 @@ export function Header () {
           >
             <Tab label="Transfers" value="home" />
             <Tab label="Events" value="events" />
+            <Tab label="Bonders" value="bonders" />
+            <Tab label="Gateways" value="contracts" />
             <Tab label="Tokens" value="tokens" />
             <Tab label="Paths" value="paths" />
             <Tab label="Prices" value="prices" />
             <Tab label="Stats" value="stats" />
-            <Tab label="Contract States" value="contracts" />
           </Tabs>
         </Box>
       </Box>

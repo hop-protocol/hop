@@ -402,7 +402,7 @@ export class Controller {
     const fieldsToTruncate = [
       'messageId', 'checkpoint', 'transferId', 'claimId', 'headClaimId',
       'pathId', 'bundleId', 'bundleRoot', 'attestedClaimId', 'relayer',
-      'from', 'to', 'bonder'
+      'from', 'to', 'bonder', 'address'
     ]
     fieldsToTruncate.forEach(field => {
       if (item[field]) {
@@ -434,6 +434,7 @@ export class Controller {
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
       item.chainLabel = getChainLabel(item.chainId)
+      item.chainImageUrl = this.sdk.utils.getLogoForChainId(item.chainId)
     }
     if (item.fromChainId) {
       item.fromChainName = chainNames[item.fromChainId]
@@ -651,6 +652,42 @@ export class Controller {
       item.minHopStakeDisplay = `${item.minHopStakeFormatted} HOP`
     }
 
+    if (item.stakedBalance) {
+      item.stakedBalance = item.stakedBalance.toString()
+    }
+    if (item.stakedBalance != null) {
+      item.stakedBalanceFormatted = formatUnits(item.stakedBalance, 18)
+      item.stakedBalanceDisplay = `${item.stakedBalanceFormatted} HOP`
+    }
+    if (item.stakedBalance != null && item.stakedBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.stakedBalanceUsd = Number(item.stakedBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.stakedBalanceUsdDisplay = `${formatToUSD(item.stakedBalanceUsd.toFixed(2))} USD`
+    }
+
+    if (item.withdrawableBalance) {
+      item.withdrawableBalance = item.withdrawableBalance.toString()
+    }
+    if (item.withdrawableBalance != null) {
+      item.withdrawableBalanceFormatted = formatUnits(item.withdrawableBalance, 18)
+      item.withdrawableBalanceDisplay = `${item.withdrawableBalanceFormatted} HOP`
+    }
+    if (item.withdrawableBalance != null && item.withdrawableBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.withdrawableBalanceUsd = Number(item.withdrawableBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.withdrawableBalanceUsdDisplay = `${formatToUSD(item.withdrawableBalanceUsd.toFixed(2))} USD`
+    }
+
+    if (item.hopBalance) {
+      item.hopBalance = item.hopBalance.toString()
+    }
+    if (item.hopBalance != null) {
+      item.hopBalanceFormatted = formatUnits(item.hopBalance, 18)
+      item.hopBalanceDisplay = `${item.hopBalanceFormatted} HOP`
+    }
+    if (item.hopBalance != null && item.hopBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.hopBalanceUsd = Number(item.hopBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.hopBalanceUsdDisplay = `${formatToUSD(item.hopBalanceUsd.toFixed(2))} USD`
+    }
+
     return item
   }
 
@@ -714,16 +751,15 @@ export class Controller {
     if (item.chainId && item.address) {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.address, item.chainId)
+        item.imageUrl = this.sdk.utils.getLogoForTokenSymbol(item.symbol)
+
       } catch (err) {
         console.error(err)
         item.tokenExplorerUrl = ''
       }
       item.addressTruncated = truncateString(item.address, 4)
     }
-    if (item.chainId) {
-      item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = getChainLabel(item.chainId)
-    }
+    item = this.addEventFields(item)
     return item
   }
 
@@ -734,6 +770,7 @@ export class Controller {
     if (item.token) {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
+        item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.tokenSymbol)
       } catch (err) {
         console.error(err)
         item.tokenExplorerUrl = ''
@@ -743,20 +780,20 @@ export class Controller {
     if (item.counterpartToken) {
       try {
         item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
+        item.counterpartTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.counterpartTokenSymbol)
       } catch (err: any) {
         console.error(err)
         item.counterpartTokenExplorerUrl = ''
       }
       item.counterpartTokenTruncated = truncateString(item.counterpartToken, 4)
     }
-    if (item.chainId) {
-      item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = getChainLabel(item.chainId)
-    }
     if (item.counterpartChainId) {
       item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
       item.counterpartChainLabel = getChainLabel(item.counterpartChainId)
+      item.counterpartChainImageUrl = this.sdk.utils.getLogoForChainId(item.counterpartChainId)
     }
+
+    item = this.addEventFields(item)
 
     return item
   }
@@ -1071,6 +1108,92 @@ export class Controller {
       }
     }
 
+    return result
+  }
+
+  async getBondersState({ filter }: any = {}): Promise<any> {
+    const result: any = {}
+    const bonderMap = new Map()
+
+    const { items: events } = await this.getEvents({
+      eventName: 'TransferBonded',
+      filter
+    })
+
+    const hopTokenPrice = await this.pgDb.priceTable.getClosestPrice('HOP', Math.floor(Date.now() / 1000))
+
+    for (const event of events) {
+      const { pathId, amount, context } = event
+      const { from: address } = context
+      const { chainId } = context
+
+      const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId } })
+      const path = paths?.[0]
+      const tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { address: path?.token }})
+      const token = tokenInfos?.[0]
+      if (!token) {
+        console.warn(`getBondersState: token not found for path ${pathId}`)
+        continue
+      }
+
+      if (!bonderMap.has(address)) {
+        bonderMap.set(address, this.addEventFields({
+          address,
+          totalAmountBondedByToken: new Map(),
+          balances: new Map()
+        }))
+      }
+
+      const bonderData = bonderMap.get(address)
+
+      if (!bonderData.balances.has(chainId)) {
+        try {
+          const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+          const [stakedBalance, withdrawableBalance, hopBalance] = await Promise.all([
+            stakingRegistry.getStakedBalance({ staker: address }),
+            stakingRegistry.getWithdrawableBalance({ staker: address }),
+            stakingRegistry.helpers.getHopBalance({ staker: address })
+          ])
+
+          bonderData.balances.set(chainId, this.addEventFields({
+            chainId,
+            stakedBalance: stakedBalance.toString(),
+            withdrawableBalance: withdrawableBalance.toString(),
+            hopBalance: hopBalance.toString(),
+            tokenPriceUsd: hopTokenPrice?.priceUsd
+          }))
+        } catch (err) {
+          console.error(`Error fetching balances for bonder ${address} on chain ${chainId}:`, err)
+        }
+      }
+
+      const tokenPrice = await this.pgDb.priceTable.getClosestPrice(token.symbol, Math.floor(Date.now() / 1000))
+
+      if (!bonderData.totalAmountBondedByToken.has(token.address)) {
+        bonderData.totalAmountBondedByToken.set(token.symbol, {
+          amount
+        })
+      }
+      const current = bonderData.totalAmountBondedByToken.get(token.symbol)
+      const currentAmount = BigInt(current.amount)
+      bonderData.totalAmountBondedByToken.set(token.symbol, this.addEventFields({
+        amount: (currentAmount + BigInt(amount)).toString(),
+        token,
+        tokenPriceUsd: tokenPrice?.priceUsd
+      }))
+    }
+
+    // Convert map to array and format the data
+    const formattedBonders = await Promise.all(Array.from(bonderMap.values()).map(async bonder => {
+      const formattedBonder = {
+        address: bonder.address,
+        totalAmountBondedByToken: Object.fromEntries(bonder.totalAmountBondedByToken),
+        balances: Array.from(bonder.balances.values())
+      }
+      return formattedBonder
+    }))
+
+    result.bonders = formattedBonders
     return result
   }
 }

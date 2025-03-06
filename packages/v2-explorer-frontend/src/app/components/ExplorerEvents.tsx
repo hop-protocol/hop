@@ -126,6 +126,7 @@ export function ExplorerEvents (props: any) {
       {
         key: 'token',
         value: `${event?.token?.name ?? ''} (${event?.token?.symbol ?? ''})`,
+        imageUrl: event.token?.imageUrl,
         valueUrl: event.token?.tokenExplorerUrl,
       },
       {

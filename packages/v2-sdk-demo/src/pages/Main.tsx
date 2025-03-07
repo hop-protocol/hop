@@ -58,6 +58,7 @@ const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../c
 const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents.js'))
 const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents.js'))
 const RailsGatewayGetInitialReserveByTokenAddress = lazy(() => import('../components/railsGateway/RailsGatewayGetInitialReserveByTokenAddress.js'))
+const RailsGatewayGetClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetClaim.js'))
 const StakingRegistryApproveStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryApproveStakeHop.js'))
 const StakingRegistryStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryStakeHop.js'))
 const StakingRegistryUnstakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryUnstakeHop.js'))
@@ -164,6 +165,7 @@ export function Main () {
     ['Rails Gateway - Get Transfer Sent Events', <RailsGatewayGetTransferSentEvents sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Events', <RailsGatewayGetTransferBondedEvents sdk={sdk} />],
     ['Rails Gateway - Get Initial Reserve By Token Address', <RailsGatewayGetInitialReserveByTokenAddress sdk={sdk} />],
+    ['Rails Gateway - Get Claim', <RailsGatewayGetClaim sdk={sdk} />],
     ['Staking Registry - Get Staked Balance', <StakingRegistryGetStakedBalance sdk={sdkWithSigner} />],
     ['Staking Registry - Get Withdrawable Balance', <StakingRegistryGetWithdrawableBalance sdk={sdkWithSigner} />],
     ['Staking Registry - Get Appeal Period', <StakingRegistryGetAppealPeriod sdk={sdkWithSigner} />],

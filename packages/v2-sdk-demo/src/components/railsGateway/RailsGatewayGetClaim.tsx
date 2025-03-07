@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton.js'
+import { CustomTextField } from '../CustomTextField.js'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax.js'
@@ -14,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function HopGetRailsGatewayAddress (props: Props) {
-  const cacheKey = 'hopGetRailsGatewayAddress'
+export function RailsGatewayGetClaim (props: Props) {
+  const cacheKey = 'railsGatewayGetClaim'
   const { sdk } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
@@ -24,7 +25,15 @@ export function HopGetRailsGatewayAddress (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [address, setAddress] = useLocalStorageState(`${cacheKey}:address`, {
+  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+    defaultValue: '',
+  })
+
+  const [claimId, setClaimId] = useLocalStorageState(`${cacheKey}:claimId`, {
+    defaultValue: '',
+  })
+
+  const [claim, setClaim] = useLocalStorageState(`${cacheKey}:claim`, {
     defaultValue: '',
   })
 
@@ -35,10 +44,15 @@ export function HopGetRailsGatewayAddress (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setAddress('')
+      setClaim('')
       setLoading(true)
-      const address = sdk.getRailsGatewayContractAddress(fromChainId)
-      setAddress(address)
+      const args = {
+        pathId,
+        claimId
+      }
+      console.log('args', args)
+      const claim = await sdk.getRailsGateway(fromChainId).getClaim(args)
+      setClaim(JSON.stringify(claim, null, 2))
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -50,9 +64,15 @@ export function HopGetRailsGatewayAddress (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
+  const pathId = "${pathId}"
+  const claimId = "${claimId}"
+
   ${hopInstantiateDisplayString}
-  const address = await hop.getRailsGatewayContractAddress('${fromChainId}')
-  console.log(address)
+  const claim = await hop.getRailsGateway('${fromChainId}').getClaim({
+    pathId,
+    claimId
+  })
+  console.log(claim)
 }
 
 main().catch(console.error)
@@ -68,10 +88,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Hop - Get RailsGateway Address</Typography>
+        <Typography variant="h5">Rails Gateway - Get Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get RailsGateway contract address for a chain</Typography>
+        <Typography variant="subtitle1">Get claim information for a given path ID and claim ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -79,13 +99,27 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get RailsGateway address for</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get claim from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>The path ID hex string</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID hex string</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={event => setClaimId(event.target.value)} />
+              </Box>
+
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Address</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Claim</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -94,9 +128,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!address && (
+          {!!claim && (
             <Box mb={4}>
-              <Alert severity="success">RailsGateway Address: {address}</Alert>
+              <Alert severity="success" style={{ whiteSpace: 'pre-wrap' }}>Claim: {claim}</Alert>
             </Box>
           )}
         </Box>
@@ -113,4 +147,4 @@ main().catch(console.error)
   )
 }
 
-export default HopGetRailsGatewayAddress
+export default RailsGatewayGetClaim 

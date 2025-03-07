@@ -1029,7 +1029,19 @@ export class RailsGateway extends Base {
 
     try {
       const claim = await contract.getClaim(pathId, claimId)
-      return claim
+
+      return {
+        createdAt: claim[0],
+        index: claim[1],
+        to: claim[2],
+        amountOut: claim[3],
+        maxBonderFee: claim[4],
+        totalClaims: claim[5],
+        nextHopsHash: claim[6],
+        totalAttested: claim[7],
+        totalAddedToBucketMaxConfirmed: claim[8],
+        bondedOrWithdrawnBy: claim[9]
+      }
     } catch (err: unknown) {
       return this.throwError(err) as Claim
     }

@@ -10,6 +10,7 @@ import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } fro
 import { ClaimPosted, ClaimPostedEventFetcher, ClaimPostedIndexes } from '#railsGateway/events/ClaimPosted.js'
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
+import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -21,7 +22,7 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -29,6 +30,7 @@ export enum EventName {
   ClaimPosted = 'ClaimPosted',
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
+  ClaimWithdrawn = 'ClaimWithdrawn',
 }
 
 export type GetEventsInput = {
@@ -244,7 +246,7 @@ export type GetTokenContractInput = {
   address: string
 }
 
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes
+export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
 
 export type GetTransferSentEventFilterInput = TransferSentIndexes
 
@@ -255,6 +257,8 @@ export type GetClaimPostedEventFilterInput = ClaimPostedIndexes
 export type GetClaimReaddedEventFilterInput = ClaimReaddedIndexes
 
 export type GetClaimRemovedEventFilterInput = ClaimRemovedIndexes
+
+export type GetClaimWithdrawnEventFilterInput = ClaimWithdrawnIndexes
 
 export type Token = {
   chainId: string
@@ -717,6 +721,7 @@ export class RailsGateway extends Base {
       [EventName.ClaimPosted]: ClaimPostedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
+      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
     }
 
     const EventFetcherClass = eventFetcher[eventName]
@@ -748,6 +753,10 @@ export class RailsGateway extends Base {
       return this.getClaimRemovedEventFilter(input)
     }
 
+    if (eventName == EventName.ClaimWithdrawn) {
+      return this.getClaimWithdrawnEventFilter(input)
+    }
+
     throw new InputError(`event name ${eventName} not found`)
   }
 
@@ -776,11 +785,16 @@ export class RailsGateway extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
+  getClaimWithdrawnEventFilter(input: GetClaimWithdrawnEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.ClaimWithdrawn)
+    return eventFetcher.getFilterWithIndexes(input)
+  }
+
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     return RailsGateway.addDecodedTypesToEvent(event, this.chainId)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     return RailsGateway.addDecodedTypesToEvents(events, this.chainId)
   }
 
@@ -878,6 +892,10 @@ export class RailsGateway extends Base {
 
   addDecodedTypesToClaimRemovedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimRemoved>[] {
     return RailsGateway.addDecodedTypesToClaimRemovedEvents(events, this.chainId)
+  }
+
+  addDecodedTypesToClaimWithdrawnEvents (events: any[]): EthersEventWithDecodedTypes<ClaimWithdrawn>[] {
+    return RailsGateway.addDecodedTypesToClaimWithdrawnEvents(events, this.chainId)
   }
 
   async getTransferBondedEvents (input: TransferBondedEventInput): Promise<EthersEventWithDecodedTypes<TransferBonded>[]> {
@@ -2834,19 +2852,19 @@ export class RailsGateway extends Base {
     return eventFetcher.getTopic0()
   }
 
-  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     const decoded = RailsGateway.addDecodedTypesToEvents([event], chainId)
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     const transferSentEventFetcher = new TransferSentEventFetcher()
     const transferBondedEventFetcher = new TransferBondedEventFetcher()
     const claimPostedEventFetcher = new ClaimPostedEventFetcher()
     const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
     const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
-
+    const claimWithdrawnEventFetcher = new ClaimWithdrawnEventFetcher()
     console.log('her00', events.length)
     const result = events.map(event => {
       if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
@@ -2867,6 +2885,10 @@ export class RailsGateway extends Base {
 
       if (claimRemovedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimRemoved) {
         return RailsGateway.addDecodedTypesToClaimRemovedEvent(event, chainId)
+      }
+
+      if (claimWithdrawnEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimWithdrawn) {
+        return RailsGateway.addDecodedTypesToClaimWithdrawnEvent(event, chainId)
       }
 
       return event
@@ -2900,6 +2922,11 @@ export class RailsGateway extends Base {
     return eventFetcher.addTypedEvent(event)
   }
 
+  static addDecodedTypesToClaimWithdrawnEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimWithdrawn> {
+    const eventFetcher = new ClaimWithdrawnEventFetcher(undefined, chainId)
+    return eventFetcher.addTypedEvent(event)
+  }
+
   static addDecodedTypesToTransferSentEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent>[] {
     const eventFetcher = new TransferSentEventFetcher(undefined, chainId)
     return events.map(event => eventFetcher.addTypedEvent(event))
@@ -2922,6 +2949,11 @@ export class RailsGateway extends Base {
 
   static addDecodedTypesToClaimRemovedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimRemoved>[] {
     const eventFetcher = new ClaimRemovedEventFetcher(undefined, chainId)
+    return events.map(event => eventFetcher.addTypedEvent(event))
+  }
+
+  static addDecodedTypesToClaimWithdrawnEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimWithdrawn>[] {
+    const eventFetcher = new ClaimWithdrawnEventFetcher(undefined, chainId)
     return events.map(event => eventFetcher.addTypedEvent(event))
   }
 }

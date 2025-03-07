@@ -34,6 +34,7 @@ export {
   GetClaimPostedEventFilterInput,
   GetClaimReaddedEventFilterInput,
   GetClaimRemovedEventFilterInput,
+  GetClaimWithdrawnEventFilterInput,
   HopStructInput,
   Path,
   PostClaimInput,
@@ -133,6 +134,9 @@ export {
   ClaimRemoved,
   ClaimRemovedEventFetcher,
   ClaimRemovedIndexes,
+  ClaimWithdrawn,
+  ClaimWithdrawnEventFetcher,
+  ClaimWithdrawnIndexes,
   BonderPreference,
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes

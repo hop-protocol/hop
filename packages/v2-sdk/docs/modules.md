@@ -716,7 +716,7 @@ ___
 
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
-Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPostedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes`
+Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPostedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes` \| `ClaimWithdrawnIndexes`
 
 ___
 

@@ -25,6 +25,11 @@ export {
   ClaimRemovedIndexes
 } from './ClaimRemoved.js'
 export {
+  ClaimWithdrawn,
+  ClaimWithdrawnEventFetcher,
+  ClaimWithdrawnIndexes
+} from './ClaimWithdrawn.js'
+export {
   BonderPreference,
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes

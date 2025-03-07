@@ -93,6 +93,7 @@ export class Indexer {
       ClaimPosted: new SyncStateDb(dbPath, 'ClaimPosted'),
       ClaimReadded: new SyncStateDb(dbPath, 'ClaimReadded'),
       ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
+     // ClaimWithdrawn: new SyncStateDb(dbPath, 'ClaimWithdrawn'),
       BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
     }
   }
@@ -138,6 +139,7 @@ export class Indexer {
       'ClaimPosted',
       'ClaimReadded',
       'ClaimRemoved',
+      // 'ClaimWithdrawn',
       'BonderPreference'
     ]
 

@@ -13,7 +13,7 @@ import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
 import { ClaimPostedEvents } from './events/ClaimPostedEvents'
 import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
-import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
+// import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
 
 export function Events () {
   const tables = [
@@ -22,6 +22,7 @@ export function Events () {
     <ClaimPostedEvents key="ClaimPostedEvents" />,
     <ClaimReaddedEvents key="ClaimReaddedEvents" />,
     <ClaimRemovedEvents key="ClaimRemovedEvents" />,
+    // <ClaimWithdrawnEvents key="ClaimWithdrawnEvents" />,
     <MessageSentEvents key="MessageSentEvents" />,
     <MessageBundledEvents key="MessageBundledEvents" />,
     <MessageExecutedEvents key="MessageExecutedEvents" />,

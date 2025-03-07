@@ -101,9 +101,12 @@ export function ExplorerEvents (props: any) {
       <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
     )
     const isBonded = event.transferBondedEvents?.length > 0 // TODO
-    if (isBonded) {
+    const isWithdrawn = event.claimWithdrawnEvents?.length > 0
+    const isCompleted = isBonded || isWithdrawn
+    const statusLabel = isBonded ? 'Bonded' : isWithdrawn ? 'Withdrawn' : 'Pending'
+    if (isCompleted) {
       status = (
-        <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+        <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label={statusLabel} style={{ backgroundColor: '#74d56e', color: '#fff' }} />
       )
     }
 

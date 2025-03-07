@@ -1,4 +1,4 @@
-import { BigNumber, utils } from 'ethers'
+import { BigNumber, utils, constants } from 'ethers'
 import { DateTime } from 'luxon'
 import { db } from '#db/index.js'
 import { Hop, RailsGateway } from '@hop-protocol/v2-sdk'
@@ -193,6 +193,45 @@ export class Controller {
     return bondedEvents
   }
 
+  async getClaimEventsForTransferId(transferId: string): Promise<any[]> {
+    const transferSentEvents = await this.getEvents({
+      eventName: 'TransferSent',
+      filter: { transferId }
+    })
+
+    const claims = []
+    
+    const pathId = transferSentEvents.items[0].pathId
+    const chainId = transferSentEvents.items[0].context.chainId
+    const pathInfo = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId, chainId }})
+    const counterpartChainId = pathInfo[0].counterpartChainId
+
+    try {
+      const claim = await this.getRailsGateway(counterpartChainId).getClaim({
+        pathId,
+        claimId: transferId
+      })
+
+      if (claim.bondedOrWithdrawnBy !== constants.AddressZero) {
+        const claimWithdrawnEvent = {
+          claimId: transferId,
+          pathId,
+          context: {
+            chainId: counterpartChainId,
+            from: claim.bondedOrWithdrawnBy,
+          }
+        }
+        claims.push(claimWithdrawnEvent)
+      }
+    } catch (err: any) {
+      if (!err.message.includes('claimId not found')) {
+        console.error(`getClaimEventsForTransferId, transferId: ${transferId}, error: ${err.message}`)
+      }
+    }
+
+    return claims
+  }
+
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
     const { limit = 10, page } = input
@@ -212,6 +251,12 @@ export class Controller {
       // Get all bonded events for the current transferId, following all hops
       const bondedEvents = await this.getBondedEventsForTransferId(transferId)
       item.transferBondedEvents = []
+      item.claimWithdrawnEvents = []
+
+      if (bondedEvents.length === 0) {
+        const claimEvents = await this.getClaimEventsForTransferId(transferId)
+        item.claimWithdrawnEvents = claimEvents
+      }
 
       try {
         await this.upsertPathInfoIfNotExists(item)

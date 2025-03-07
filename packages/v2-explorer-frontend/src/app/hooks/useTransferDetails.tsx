@@ -46,12 +46,16 @@ export const useTransferDetails = (props: any) => {
   }, [eventDetails])
 
   const lastBondedEvent = event?.transferBondedEvents?.[event?.transferBondedEvents?.length - 1]
+  const lastClaimWithdrawnEvent = event?.claimWithdrawnEvents?.[event?.claimWithdrawnEvents?.length - 1]
   const token = event?.token
   const context = event?.context
   const tokenDecimals = token?.decimals
   const tokenSymbol = token?.symbol
   const tokenName = token?.name
   const isBonded = !!lastBondedEvent
+  const isWithdrawn = !!lastClaimWithdrawnEvent
+  const isCompleted = isBonded || isWithdrawn
+  const statusLabel = isBonded ? 'Bonded' : isWithdrawn ? 'Withdrawn' : 'Pending'
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
@@ -177,8 +181,8 @@ export const useTransferDetails = (props: any) => {
 
   const loading = false // !(!isFetching && event)
 
-  const statusDisplay = isBonded ? (
-    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+  const statusDisplay = isCompleted ? (
+    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label={statusLabel} style={{ backgroundColor: '#74d56e', color: '#fff' }} />
   ) : (
     <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
   )

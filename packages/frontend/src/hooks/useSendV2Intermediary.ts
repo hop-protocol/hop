@@ -10,22 +10,59 @@ import { Address } from '#models/Address.js'
 import { HopBridge } from '@hop-protocol/sdk' // Ensure both are imported from the same SDK
 import { Network } from '#models/Network.js'
 import { DisabledRoute } from '#config/disabled.js'
+import { v2Enabled } from '#config/index.js'
 import { Transaction } from '#models/Transaction.js'
 import { GnosisSafeWarning } from '#hooks/index.js' // Corrected import path
 
 import { ChangeEvent } from 'react'
 
 // Define the list of tokens eligible for v2
+// TODO: testing; This is a temporary list and should be replaced with the actual list of eligible tokens
 const v2EligibleTokens = [
   {
     symbol: 'ETH',
     sourceChainId: '1',
-    destinationChainId: '8453'
+    destinationChainId: '8453',
+    sepolia: {
+      sourceChainId: '11155111',
+      destinationChainId: '84532'
+    }
   },
   {
     symbol: 'USDC',
     sourceChainId: '1',
     destinationChainId: '8453',
+    sepolia: {
+      sourceChainId: '11155111',
+      destinationChainId: '84532'
+    }
+  },
+  {
+    symbol: 'USDC',
+    sourceChainId: '8453',
+    destinationChainId: '1',
+    sepolia: {
+      sourceChainId: '84532',
+      destinationChainId: '11155111'
+    }
+  },
+  {
+    symbol: 'USDC',
+    sourceChainId: '1',
+    destinationChainId: '10',
+    sepolia: {
+      sourceChainId: '11155111',
+      destinationChainId: '11155420'
+    }
+  },
+  {
+    symbol: 'USDC',
+    sourceChainId: '10',
+    destinationChainId: '1',
+    sepolia: {
+      sourceChainId: '11155420',
+      destinationChainId: '11155111'
+    }
   },
 ]
 
@@ -38,6 +75,7 @@ interface TokenInterface {
 
 // Define the return type for useSendV2Intermediary
 export type UseSendV2IntermediaryProps = {
+  v2Enabled: boolean
   accountAddress: Address | undefined
   amountOutMinDisplay: string
   amountOutMinUsdDisplay: string
@@ -145,7 +183,12 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
   // Helper function to check if a token is eligible for v2
   const isTokenEligibleForV2 = useMemo(() => {
-    if (!sendV1.fromToken || !sendV1.fromNetwork || !sendV1.toNetwork) return false
+    if (!v2Enabled) {
+      return false
+    }
+    if (!sendV1.fromToken || !sendV1.fromNetwork || !sendV1.toNetwork) {
+      return false
+    }
 
     return v2EligibleTokens.some(
       (token) =>
@@ -180,14 +223,32 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     if (isTokenEligibleForV2) {
       // Synchronize fromChainId
       if (sendV1.fromNetwork && sendV2.setFromChainId) {
-        //sendV2.setFromChainId(sendV1.fromNetwork.chainId.toString())
-        sendV2.setFromChainId('11155111') // for testing
+        const eligibleToken = v2EligibleTokens.find(
+          token => token.symbol === sendV1.fromToken?.symbol &&
+            token.sourceChainId === sendV1.fromNetwork?.chainId.toString() &&
+            token.destinationChainId === sendV1.toNetwork?.chainId.toString()
+        )
+
+        if (eligibleToken) {
+          sendV2.setFromChainId(eligibleToken.sepolia.sourceChainId)
+        } else {
+          sendV2.setFromChainId(sendV1.fromNetwork.chainId.toString())
+        } 
       }
 
       // Synchronize toChainId
       if (sendV1.toNetwork && sendV2.setToChainId) {
-        //sendV2.setToChainId(sendV1.toNetwork.chainId.toString())
-        sendV2.setToChainId('84532') // for testing
+        const eligibleToken = v2EligibleTokens.find(
+          token => token.symbol === sendV1.toToken?.symbol &&
+            token.sourceChainId === sendV1.fromNetwork?.chainId.toString() &&
+            token.destinationChainId === sendV1.toNetwork?.chainId.toString()
+        )
+
+        if (eligibleToken) {
+          sendV2.setToChainId(eligibleToken.sepolia.destinationChainId)
+        } else {
+          sendV2.setToChainId(sendV1.toNetwork.chainId.toString())
+        }
       }
 
       // Synchronize fromToken.symbol
@@ -223,8 +284,25 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     sendV2.setRecipient,
   ])
 
+  const v2Tx = useMemo(() => {
+    if (!sendV2.sendTx) {
+      return undefined
+    }
+    return new Transaction({
+      v2Sdk: sendV2.v2Sdk,
+      ...sendV2.sendTx,
+      fromChainId: sendV2.fromChainId,
+      networkName: sendV2.fromChain?.slug,
+      destNetworkName: sendV2.toChain?.slug,
+      // destTxHash:
+      token: sendV2.fromToken,
+    } as any)
+  }, [sendV2.sendTx])
+
   // Map variables to match useSend interface
   const mappedProps: UseSendV2IntermediaryProps = {
+    v2Enabled,
+
     // **Common Variables**
     accountAddress: isTokenEligibleForV2
       ? useV2ForBestRate
@@ -571,15 +649,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     tx: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'sendTx', undefined) ? new Transaction({
-          v2Sdk: sendV2.v2Sdk,
-          ...sendV2.sendTx,
-          fromChainId: sendV2.fromChainId,
-          networkName: sendV2.fromChain?.slug,
-          destNetworkName: sendV2.toChain?.slug,
-          // destTxHash:
-          token: sendV2.fromToken,
-        } as any) : undefined
+        ? getValue(sendV2, 'sendTx', undefined) ? v2Tx : undefined
         : getValue(sendV1, 'tx', undefined)
       : getValue(sendV1, 'tx', undefined),
 

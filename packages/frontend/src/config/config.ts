@@ -9,6 +9,8 @@ if (process.env.REACT_APP_NETWORK === 'goerli') {
   showRewards = false
 }
 
+export const v2Enabled = process.env.REACT_APP_V2_ENABLED === 'true'
+
 export { showRewards }
 
 export const transferTimes = {

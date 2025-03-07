@@ -359,8 +359,8 @@ export function useV2Send(): V2SendHook {
   }
 
   useEffect(() => {
-    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData])
+    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData && estimatedReceived.gt(0))
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData, estimatedReceived])
 
   useEffect(() => {
     setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)

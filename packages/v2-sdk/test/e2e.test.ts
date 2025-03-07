@@ -149,11 +149,12 @@ describe.skip('Sdk - Hop - e2e - send only', () => {
 describe.only('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
-    const fromChainId = '84532'
-    const fromToken = addresses[fromChainId]!.tokens!.MOCK!
+    const token = 'USDC'
+    const fromChainId = '11155420'
+    const fromToken = addresses[fromChainId]!.tokens![token]!
     const toChainId = '11155111'
-    const toToken = addresses[toChainId]!.tokens!.MOCK!
-    const sendAmount = parseUnits('0.1', 18)
+    const toToken = addresses[toChainId]!.tokens![token]!
+    const sendAmount = parseUnits('0.1', 6)
     // ----------------
 
     const shouldPushClaim = true // debug
@@ -162,7 +163,7 @@ describe.only('Sdk - RailsGateway - e2e - single hop', () => {
     const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0xb1dc46d15d12772669d3e4a155fd2db81833c7a5bda03e875f118bd64b4e36af'
+    let sendTxHash = '0xb3f941eee3ecf4d5c66ae3dff136ee576684c033760020e90d5e014e0971a8d0'
     let bondTxHash = ''
 
     const senderSigner = new Wallet(privateKey)

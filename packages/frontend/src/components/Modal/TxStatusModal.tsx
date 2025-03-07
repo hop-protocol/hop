@@ -91,7 +91,7 @@ export function TxStatusModal(props: Props) {
         networkConfirmations={networkConfirmations}
       />
 
-      <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
+      <Box display="flex" alignItems="center" className={styles.txStatusInfo} mt={2}>
         <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
           <InfoContent tx={tx} medianTimeEstimateSeconds={medianTimeEstimateSeconds} percentileTimeEstimateSeconds={percentileTimeEstimateSeconds} fixedTimeEstimateSeconds={fixedTimeEstimateSeconds} />
           <br />

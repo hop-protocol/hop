@@ -88,7 +88,6 @@
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
-- [GetFeePriceInput](modules.md#getfeepriceinput)
 - [GetFeeVaultInput](modules.md#getfeevaultinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHardConfirmedBucketIndexInput](modules.md#gethardconfirmedbucketindexinput)
@@ -732,18 +731,6 @@ ___
 | `chainId` | `BigNumberish` |
 | `fromBlock` | `number` |
 | `toBlock?` | `number` |
-
-___
-
-### <a id="getfeepriceinput" name="getfeepriceinput"></a> GetFeePriceInput
-
-Ƭ **GetFeePriceInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
 
 ___
 

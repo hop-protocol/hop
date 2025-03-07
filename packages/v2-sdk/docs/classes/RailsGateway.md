@@ -73,7 +73,6 @@
 - [getEventFilter](RailsGateway.md#geteventfilter)
 - [getEventNames](RailsGateway.md#geteventnames)
 - [getExplorerApiBaseUrl](RailsGateway.md#getexplorerapibaseurl)
-- [getFeePrice](RailsGateway.md#getfeeprice)
 - [getFeeVault](RailsGateway.md#getfeevault)
 - [getHardConfirmedBucketIndex](RailsGateway.md#gethardconfirmedbucketindex)
 - [getHardConfirmedClaimId](RailsGateway.md#gethardconfirmedclaimid)
@@ -1037,22 +1036,6 @@ ___
 #### Inherited from
 
 Base.getExplorerApiBaseUrl
-
-___
-
-### <a id="getfeeprice" name="getfeeprice"></a> getFeePrice
-
-▸ **getFeePrice**(`«destructured»`): `Promise`\<`BigNumber`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetFeePriceInput`](../modules.md#getfeepriceinput) |
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
 
 ___
 

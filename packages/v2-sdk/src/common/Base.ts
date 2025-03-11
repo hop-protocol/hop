@@ -219,7 +219,6 @@ export class Base {
     }
 
     if (isProvider) {
-      console.warn('getSigner isProvider', isProvider, signer)
       return null
     }
 

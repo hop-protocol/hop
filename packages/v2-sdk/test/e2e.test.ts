@@ -922,7 +922,7 @@ describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
     const shouldExecute = true // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0x25e4cecb294a4686187b1424b0390ad5f3abc467a8c41c21e26555e799698ba7'
+    let sendTxHash = '0xf0743e3186a06c5051caf7ffbb91a5395aafa6f56a9fb7fb2bccdc53289675e6'
 
     const senderSigner = new Wallet(privateKey)
     const sdk = new Hop({

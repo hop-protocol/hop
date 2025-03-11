@@ -13,7 +13,8 @@ import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
 import { ClaimPostedEvents } from './events/ClaimPostedEvents'
 import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
-// import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
+import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
+// import { ClaimWithdrawnEvents } from './events/ClaimWithdrawnEvents'
 
 export function Events () {
   const tables = [

@@ -265,19 +265,19 @@ function useWithdrawV2() {
       const chainId = connectedNetworkId
       const sendTxHash = transferIdOrTxHash
 
+      console.log('sendTxHash:', sendTxHash)
+
+      // v2Sdk.setExplorerApiBaseUrl('http://localhost:8000')
+
       const status = await v2Sdk.getTransferStatus({
-        fromChainId: chainId,
         transactionHash: sendTxHash
       })
-
-      console.log('sendTxHash:', sendTxHash)
 
       if (!status) {
         throw new Error('Transfer not found. Please check the transaction hash and connect to the correct source chain network.')
       }
 
       const destinationChainId = (status.transferSentEvent as any)?.toChainId as number
-
       if (!destinationChainId) {
         throw new Error('Destination chain ID not found on the transfer sent event.')
       }
@@ -313,14 +313,15 @@ function useWithdrawV2() {
         setMessageSentEvent(messageSentEvent)
       }
 
+      console.log('messageSentEvent:', messageSentEvent)
+
       const nextHopsHash = await sourceRailsGateway.getNextHopsHash({ nextHops: transferSentEvent.decoded.hops.slice(1) })
-
       const signer = provider?.getSigner()
-
       if (!signer) {
         throw new Error('Signer not found. Please connect to the correct network.')
       }
 
+      // TODO: improve this in v2 sdk
       await v2Sdk.utils.switchChain(destinationChainId, provider)
       v2Sdk.setProvider(destinationChainId, signer)
 
@@ -348,11 +349,9 @@ function useWithdrawV2() {
       }
 
       const shouldPushClaim = !claim || claim.createdAt.eq(0)
-
       console.log('shouldPushClaim:', shouldPushClaim)
 
       if (shouldPushClaim) {
-        // Step 1: Push Claim
         const pushClaimTx = await destRailsGateway.pushClaim({
           pathId: transferSentEvent.decoded.pathId,
           claimId: transferSentEvent.decoded.transferId,
@@ -370,11 +369,8 @@ function useWithdrawV2() {
       const shouldExecute = true // debug
       console.log('shouldExecute:', shouldExecute)
 
-      console.log('messageSentEvent:', messageSentEvent)
-
       if (shouldExecute) {
         try {
-          // Step 2: Execute
           const executeTx = await destMessenger.execute({
             messageId: messageSentEvent.decoded.messageId,
             fromChainId: chainId,
@@ -396,11 +392,9 @@ function useWithdrawV2() {
       })
 
       shouldWithdraw = claim.bondedOrWithdrawnBy === constants.AddressZero
-
       console.log('shouldWithdraw:', shouldWithdraw)
 
       if (shouldWithdraw) {
-        // Step 3: Withdraw Claim
         const withdrawTx = await destRailsGateway.withdrawClaim({
           pathId: transferSentEvent.decoded.pathId,
           claimId: transferSentEvent.decoded.transferId

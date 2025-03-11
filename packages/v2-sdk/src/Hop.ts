@@ -158,7 +158,8 @@ export type GetTransferStatusFromEventsInput = {
 }
 
 export type GetTransferStatusFromApiInput = {
-  transferId: string
+  transferId?: string
+  transactionHash?: string
 }
 
 export enum TransferState {
@@ -856,28 +857,44 @@ export class Hop extends Base {
   }
 
   async getTransferStatus({ fromChainId, toChainId, transferId, transactionHash }: GetTransferStatusInput): Promise<TransferStatus> {
-    transferId = (transactionHash && fromChainId) ? await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash }) : transferId
-    if (!transferId) {
-      throw new InputError('transferId missing or not found')
+    if (transactionHash && fromChainId) {
+      transferId = await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash })
+
+      if (!transferId) {
+        throw new InputError('could not find transferId from transaction hash')
+      }
     }
 
-    return this.getTransferStatusFromApi({ transferId })
+    return this.getTransferStatusFromApi({ transferId, transactionHash })
     // return this.getTransferStatusFromEvents({ fromChainId, toChainId, transferId })
   }
 
-  async getTransferStatusFromApi ({ transferId }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
-    if (!this.utils.isValidBytes32(transferId)) {
+  async getTransferStatusFromApi ({ transferId, transactionHash }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
+    if (transferId && !this.utils.isValidBytes32(transferId)) {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5BtransferId%5D=${transferId}`
+    if (transactionHash && !this.utils.isValidBytes32(transactionHash)) {
+      throw new InputError(`Invalid transactionHash "${transactionHash}"`)
+    }
+
+    if (!transferId && !transactionHash) {
+      throw new InputError('expected transferId or transactionHash')
+    }
+
+    let filter = `transferId%5D=${transferId}`
+    if (transactionHash) {
+      filter = `transactionHash%5D=${transactionHash}`
+    }
+
+    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5B${filter}`
     const json = await fetchJsonOrThrow(url.toString())
 
     const event = json?.events?.[0]
     if (!event) {
       return {
         state: TransferState.NotFound,
-        transferId,
+        transferId: transferId ?? '',
         transferSentEvent: null as any,
         transferBondedEvents: []
       }

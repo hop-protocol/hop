@@ -1176,7 +1176,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
+| `provider` | `Provider` \| `Signer` |
 
 #### Returns
 
@@ -1251,13 +1251,14 @@ ___
 
 ### <a id="switchchain" name="switchchain"></a> switchChain
 
-▸ **switchChain**(`chainId`): `Promise`\<`void`\>
+▸ **switchChain**(`chainId`, `currentSignerChainId?`): `Promise`\<`void`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `chainId` | `BigNumberish` | `undefined` |
+| `currentSignerChainId` | `BigNumberish` | `chainId` |
 
 #### Returns
 

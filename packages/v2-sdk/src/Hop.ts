@@ -1,5 +1,5 @@
 import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract, utils } from 'ethers'
+import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
@@ -560,12 +560,12 @@ export class Hop extends Base {
     return { tx, connectorAddress }
   }
 
-  async switchChain (chainId: BigNumberish): Promise<void> {
+  async switchChain (chainId: BigNumberish, currentSignerChainId: BigNumberish = chainId): Promise<void> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
-    const signer = await this.getSigner(chainId)
+    const signer = await this.getSigner(currentSignerChainId)
 
     if (!signer) {
       throw new ConfigError('No signer connected to switch chains')

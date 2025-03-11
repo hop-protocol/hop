@@ -2389,7 +2389,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
+| `provider` | `Provider` \| `Signer` |
 
 #### Returns
 

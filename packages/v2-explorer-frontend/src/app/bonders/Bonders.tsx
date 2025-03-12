@@ -12,7 +12,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Link from '@mui/material/Link'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
-import { DetailRow } from '@/app/contracts/DetailRow'
+import { DetailRow } from '@/app/gateways/DetailRow'
 
 export function Bonders() {
   const [contractState, setContractState] = useState<any>({})
@@ -48,7 +48,7 @@ export function Bonders() {
   if (loading) {
     return (
       <Box p={2}>
-        <Typography>Loading...</Typography>
+        <Typography variant="body1" color="textSecondary">Loading...</Typography>
       </Box>
     )
   }
@@ -64,7 +64,7 @@ export function Bonders() {
   return (
     <Box width="100%" maxWidth="1400px" p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Bonders
         </Typography>
         {lastUpdated && (
@@ -75,7 +75,7 @@ export function Bonders() {
       </Box>
 
       {contractState.bonders?.map((bonder: any) => (
-        <Paper key={bonder.address} elevation={2} sx={{ mb: 4, p: 2, background: '#fff' }}>
+        <Paper key={bonder.address} elevation={2} sx={{ mb: 4, p: 2 }}>
           <TableContainer>
             <Table>
               <TableBody>

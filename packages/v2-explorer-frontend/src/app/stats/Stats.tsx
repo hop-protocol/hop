@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography'
 
 export function Stats () {
   return (
-    <Box width="100%" maxWidth="1200px">
+    <Box width="100%" maxWidth="600px">
       <Box mb={8}>
         <TotalVolumeStats />
       </Box>

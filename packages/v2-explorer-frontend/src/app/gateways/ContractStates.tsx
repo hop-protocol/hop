@@ -73,7 +73,7 @@ export function ContractStates() {
   if (loading) {
     return (
       <Box p={2}>
-        <Typography>Loading...</Typography>
+        <Typography variant="body1" color="textSecondary">Loading...</Typography>
       </Box>
     )
   }
@@ -89,7 +89,7 @@ export function ContractStates() {
   return (
     <Box width="100%" maxWidth="1200px" p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Contract States
         </Typography>
         <Typography variant="body2" color="textSecondary">

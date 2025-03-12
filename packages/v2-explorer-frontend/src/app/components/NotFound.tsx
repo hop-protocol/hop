@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography'
 export function NotFound () {
   return (
     <Box p={4}>
-      <Typography variant="h2">Not Found</Typography>
+      <Typography variant="h4" color="textPrimary">Not Found</Typography>
     </Box>
   )
 }

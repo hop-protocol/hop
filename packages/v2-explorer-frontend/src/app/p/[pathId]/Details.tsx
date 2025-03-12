@@ -10,7 +10,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import { DetailRow } from '@/app/contracts/DetailRow'
+import { DetailRow } from '@/app/gateways/DetailRow'
 
 export function Details(props: any) {
   const { initialPathDetails } = props
@@ -48,10 +48,10 @@ export function Details(props: any) {
   return (
     <Box width="100%" maxWidth="1200px" p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Path Details
         </Typography>
-        <Typography variant="body2">
+        <Typography variant="body2" color="textSecondary">
           Last Updated: {lastUpdated}
         </Typography>
       </Box>
@@ -59,7 +59,7 @@ export function Details(props: any) {
       {Object.values(contractState).map(
         (path: any, index: number) => (
           <Box key={index} sx={{ mb: 2, ml: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
+            <Typography variant="subtitle1" gutterBottom color="textPrimary">
               Path on {index === 1 ? 'Counterpart' : ''} Chain <strong>{path?.context?.chainName}</strong>
             </Typography>
             <TableContainer>

@@ -12,7 +12,7 @@ export const TotalVolumeStats: React.FC = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Stats
         </Typography>
         {volumeStats?.lastUpdated && (

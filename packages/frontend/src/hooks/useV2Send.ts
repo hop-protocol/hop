@@ -233,9 +233,7 @@ export function useV2Send(): V2SendHook {
           setNeedsApproval(needs)
         } catch (err) {
           console.error('useV2Send getNeedsApprovalForSendTokens', err)
-          if (!/cancelled/gi.test(err.message)) {
-            setError(formatError(err.message))
-          }
+          // setError(formatError(err.message))
         }
         setIsLoadingNeedsApproval(false)
       } else {
@@ -244,10 +242,13 @@ export function useV2Send(): V2SendHook {
     }
 
     update().catch(console.error)
-  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving, accountAddress])
+  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving, accountAddress, fromTokenAddress, toTokenAddress])
 
   async function approveTokens () {
     try {
+      if (!fromToken?.symbol) {
+        return
+      }
       setApprovalTx(null)
       setError('')
       setIsApproving(true)
@@ -286,8 +287,9 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err){
       console.error('useV2Send approveTokens', err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err.message))
+      const errorMessage = formatError(err.message)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(errorMessage)
       }
       setIsApproving(false)
     }
@@ -351,8 +353,9 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err) {
       console.error('useV2Send sendTokens', err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err.message))
+      const errorMessage = formatError(err.message)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(formatError(errorMessage))
       }
     }
     setIsSending(false)
@@ -418,7 +421,17 @@ export function useV2Send(): V2SendHook {
         setError('')
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
           const requestId = ++latestRequestId.current
-          
+
+          console.log('getSendData', {
+            fromChainId,
+            fromTokenAddress,
+            toChainId,
+            toTokenAddress,
+            amount: parsedAmountIn,
+            minAmountOut: parsedMinAmountOut,
+            to: recipient
+          })
+
           const data = await getSendData({
             fromChainId,
             fromToken: fromTokenAddress,
@@ -453,7 +466,7 @@ export function useV2Send(): V2SendHook {
       } catch (err) {
         console.error('getSendData error:', err)
         setIsFetchingGetSendData(false)
-        setError(formatError(err.message))
+        // setError(formatError(err.message))
       }
     }
 

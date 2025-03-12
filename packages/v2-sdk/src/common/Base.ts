@@ -209,8 +209,8 @@ export class Base {
       isProvider = (signer as any)._isProvider
       if (isProvider) {
         if (typeof (signer as any).getSigner === 'function') {
-          isProvider = false
-          signer = (signer as any).getSigner()
+          //isProvider = false
+          //signer = (signer as any).getSigner()
         }
       }
     } catch (err: any) {

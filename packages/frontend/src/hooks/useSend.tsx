@@ -593,8 +593,9 @@ export function useSend(): SendResponseProps {
       setIsApproving(true)
       await approveFromToken()
     } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
+      const errorMessage = formatError(err, fromNetwork)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(errorMessage)
       }
       logger.error(err)
     }

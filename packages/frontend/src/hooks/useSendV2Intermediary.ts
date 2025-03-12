@@ -16,55 +16,60 @@ import { GnosisSafeWarning } from '#hooks/index.js' // Corrected import path
 
 import { ChangeEvent } from 'react'
 
+// mainnet chains mapped to sepolia chains
+const chains :any = {
+  1: '11155111',
+  10: '11155420',
+  8453: '84532',
+}
+
+// Helper function to check if chain is supported
+function isChainSupported(chainId: string | number): boolean {
+  return Object.keys(chains).includes(chainId.toString())
+}
+
+// Helper function to get Sepolia chain ID
+function getSepoliaChainId(chainId: string | number): string {
+  return chains[chainId.toString()]
+}
+
+// Helper function to check if token is eligible for v2 and get chain mappings
+function isTokenEligibleWithChains(params: {
+  symbol: string,
+  sourceChainId: string | number,
+  destinationChainId: string | number
+}) {
+  const { symbol, sourceChainId, destinationChainId } = params
+
+  // Only USDC is supported for now
+  if (symbol !== 'USDC') return false
+
+  // Both chains must be supported
+  if (!isChainSupported(sourceChainId) || !isChainSupported(destinationChainId)) return false
+
+  // Don't allow same chain transfers
+  if (sourceChainId.toString() === destinationChainId.toString()) return false
+
+  return {
+    symbol,
+    sourceChainId: sourceChainId.toString(),
+    destinationChainId: destinationChainId.toString(),
+    sepolia: {
+      sourceChainId: getSepoliaChainId(sourceChainId),
+      destinationChainId: getSepoliaChainId(destinationChainId)
+    }
+  }
+}
+
 // Define the list of tokens eligible for v2
-// TODO: testing; This is a temporary list and should be replaced with the actual list of eligible tokens
-const v2EligibleTokens = [
-  {
-    symbol: 'ETH',
-    sourceChainId: '1',
-    destinationChainId: '8453',
-    sepolia: {
-      sourceChainId: '11155111',
-      destinationChainId: '84532'
-    }
-  },
-  {
-    symbol: 'USDC',
-    sourceChainId: '1',
-    destinationChainId: '8453',
-    sepolia: {
-      sourceChainId: '11155111',
-      destinationChainId: '84532'
-    }
-  },
-  {
-    symbol: 'USDC',
-    sourceChainId: '8453',
-    destinationChainId: '1',
-    sepolia: {
-      sourceChainId: '84532',
-      destinationChainId: '11155111'
-    }
-  },
-  {
-    symbol: 'USDC',
-    sourceChainId: '1',
-    destinationChainId: '10',
-    sepolia: {
-      sourceChainId: '11155111',
-      destinationChainId: '11155420'
-    }
-  },
-  {
-    symbol: 'USDC',
-    sourceChainId: '10',
-    destinationChainId: '1',
-    sepolia: {
-      sourceChainId: '11155420',
-      destinationChainId: '11155111'
-    }
-  },
-]
+// This is now a function instead of a static array
+function getV2EligibleToken(params: {
+  symbol: string,
+  sourceChainId: string | number,
+  destinationChainId: string | number
+}) {
+  return isTokenEligibleWithChains(params)
+}
 
 interface TokenInterface {
   address: string
@@ -181,7 +186,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     update().catch(console.error)
   }, [sendV2.v2Sdk])
 
-  // Helper function to check if a token is eligible for v2
+  // Update the isTokenEligibleForV2 check in useSendV2Intermediary
   const isTokenEligibleForV2 = useMemo(() => {
     if (!v2Enabled) {
       return false
@@ -190,12 +195,11 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       return false
     }
 
-    return v2EligibleTokens.some(
-      (token) =>
-        token.symbol === sendV1.fromToken.symbol &&
-        token.sourceChainId === sendV1.fromNetwork.chainId.toString() &&
-        token.destinationChainId === sendV1.toNetwork.chainId.toString()
-    )
+    return !!getV2EligibleToken({
+      symbol: sendV1.fromToken.symbol,
+      sourceChainId: sendV1.fromNetwork.chainId,
+      destinationChainId: sendV1.toNetwork.chainId
+    })
   }, [sendV1.fromToken, sendV1.fromNetwork, sendV1.toNetwork])
 
   // Determine which version has the best rate
@@ -218,36 +222,32 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       : sendV1
     : sendV1
 
-  // Synchronize v1 state changes to v2
+  // Update the synchronization effect
   useEffect(() => {
     if (isTokenEligibleForV2) {
       // Synchronize fromChainId
       if (sendV1.fromNetwork && sendV2.setFromChainId) {
-        const eligibleToken = v2EligibleTokens.find(
-          token => token.symbol === sendV1.fromToken?.symbol &&
-            token.sourceChainId === sendV1.fromNetwork?.chainId.toString() &&
-            token.destinationChainId === sendV1.toNetwork?.chainId.toString()
-        )
+        const eligibleToken = getV2EligibleToken({
+          symbol: sendV1.fromToken?.symbol || '',
+          sourceChainId: sendV1.fromNetwork.chainId,
+          destinationChainId: sendV1.toNetwork?.chainId || ''
+        })
 
         if (eligibleToken) {
           sendV2.setFromChainId(eligibleToken.sepolia.sourceChainId)
-        } else {
-          sendV2.setFromChainId(sendV1.fromNetwork.chainId.toString())
-        } 
+        }
       }
 
       // Synchronize toChainId
       if (sendV1.toNetwork && sendV2.setToChainId) {
-        const eligibleToken = v2EligibleTokens.find(
-          token => token.symbol === sendV1.toToken?.symbol &&
-            token.sourceChainId === sendV1.fromNetwork?.chainId.toString() &&
-            token.destinationChainId === sendV1.toNetwork?.chainId.toString()
-        )
+        const eligibleToken = getV2EligibleToken({
+          symbol: sendV1.fromToken?.symbol || '',
+          sourceChainId: sendV1.fromNetwork?.chainId || '',
+          destinationChainId: sendV1.toNetwork.chainId
+        })
 
         if (eligibleToken) {
           sendV2.setToChainId(eligibleToken.sepolia.destinationChainId)
-        } else {
-          sendV2.setToChainId(sendV1.toNetwork.chainId.toString())
         }
       }
 
@@ -410,7 +410,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       : getValue(sendV1, 'feeRefundTokenSymbol', ''),
 
     fromAmountInputChangeHandler: getValue(sendV1, 'fromAmountInputChangeHandler', () => {}),
-
+    
     fromBalance: isTokenEligibleForV2
       ? useV2ForBestRate
         ? getValue(sendV2, 'fromTokenBalance', BigNumber.from(0))
@@ -453,11 +453,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     handleFromNetworkChange: sendV1.handleFromNetworkChange,
 
-    handleSwitchDirection: isTokenEligibleForV2
-      ? useV2ForBestRate
-        ? sendV2.handleSwitchDirection
-        : sendV1.handleSwitchDirection
-      : sendV1.handleSwitchDirection,
+    handleSwitchDirection: sendV1.handleSwitchDirection,
 
     handleToNetworkChange: sendV1.handleToNetworkChange,
 

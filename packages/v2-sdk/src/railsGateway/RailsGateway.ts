@@ -973,6 +973,7 @@ export class RailsGateway extends Base {
     }
 
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
+      console.warn('pathInfo', pathInfo, chainId, this.getProvider(chainId))
       throw new InputError(`pathId "${pathId}" is invalid or not found. Check the chainId is correct for that pathId. Chain ID used: ${chainId.toString()}`)
     }
 

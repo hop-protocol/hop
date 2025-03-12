@@ -590,6 +590,16 @@ export class Hop extends Base {
       initialReserve
     })
 
+    console.log('getSendFee',
+      {
+        chainId0: fromChainId,
+        token0: fromToken,
+        chainId1: toChainId,
+        token1: toToken,
+        initialReserve
+      }
+    )
+
     return gateway.getSendFee({
       pathId
     })
@@ -911,6 +921,8 @@ export class Hop extends Base {
       }
     })
 
+    const claimWithdrawnEvents = event.claimWithdrawnEvents
+
     delete transferSentEvent.transferBondedEvents
 
     let transferState = TransferState.NotFound
@@ -920,6 +932,10 @@ export class Hop extends Base {
     }
 
     if (event && transferBondedEvents.length === event.hops.length) {
+      transferState = TransferState.Bonded
+    }
+
+    if (event && claimWithdrawnEvents.length > 0) {
       transferState = TransferState.Bonded
     }
 

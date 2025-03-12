@@ -91,6 +91,9 @@ export function useV2(): V2Hook {
       network: networkSlug,
       signersOrProviders: providers
     })
+
+    hop.setExplorerApiBaseUrl('http://localhost:8000')
+
     return hop
   }, [address, provider, connectedNetworkId])
 
@@ -307,6 +310,9 @@ export function useV2(): V2Hook {
       minAmountOut
     } = input
 
+
+    console.log('getSendData', fromChainId, fromToken, toChainId, toToken, amount, minAmountOut)
+
     // const data = await v2Sdk.getSendDataMultiHop({
     const data = await v2Sdk.getSendData({
       fromChainId,
@@ -331,6 +337,8 @@ export function useV2(): V2Hook {
       fromToken,
       toToken,
     } = input
+
+    console.log('getFee', fromChainId, fromToken, toChainId, toToken)
 
     const fee = await v2Sdk.getSendFee({
       fromChainId,

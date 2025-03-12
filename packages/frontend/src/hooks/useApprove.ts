@@ -54,6 +54,10 @@ const useApprove = (token: any) => {
       return
     }
 
+    if (!token?.symbol) {
+      return
+    }
+
     const formattedAmount = toTokenDisplay(amount, token.decimals)
     const chain = getChain(reactAppNetwork as NetworkSlug, token.chain.slug as ChainSlug)
     const tx = await txConfirm?.show({

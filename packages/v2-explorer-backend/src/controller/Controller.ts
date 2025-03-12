@@ -199,11 +199,14 @@ export class Controller {
       filter: { transferId }
     })
 
-    const claims = []
-    
+    const claims: any[] = []
+
     const pathId = transferSentEvents.items[0].pathId
     const chainId = transferSentEvents.items[0].context.chainId
     const pathInfo = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId, chainId }})
+    if (!pathInfo.length) {
+      return claims
+    }
     const counterpartChainId = pathInfo[0].counterpartChainId
 
     try {

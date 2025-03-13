@@ -97,8 +97,8 @@ export function ContractStates() {
         </Typography>
       </Box>
 
-      {contractState.map((contract) => (
-        <Paper key={contract.chainId} elevation={2} sx={{ mb: 4, p: 2 }}>
+      {contractState.map((contract, contractIndex) => (
+        <Paper key={`contract-${contract.chainId}-${contractIndex}`} elevation={2} sx={{ mb: 4, p: 2 }}>
           <Box display="flex" alignItems="center" mb={2}>
             {contract.railsGateway?.chainImageUrl && (
               <img
@@ -135,7 +135,7 @@ export function ContractStates() {
 
                   return (
                     <DetailRow
-                      key={field.key}
+                      key={`rails-${contract.chainId}-${field.key}`}
                       label={field.label}
                       rawValue={rawValue}
                       displayValue={displayValue}
@@ -154,10 +154,10 @@ export function ContractStates() {
                 Paths
               </Typography>
               {Object.values(contract.railsGateway.paths).map(
-                (path: any, index: number) => (
-                  <Box key={index} sx={{ mb: 2, ml: 2 }}>
+                (path: any, pathIndex: number) => (
+                  <Box key={`path-${contract.chainId}-${pathIndex}`} sx={{ mb: 2, ml: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Path {index + 1}
+                      Path {pathIndex + 1}
                     </Typography>
                     <TableContainer>
                       <Table>
@@ -169,7 +169,7 @@ export function ContractStates() {
 
                             return (
                               <DetailRow
-                                key={field.key}
+                                key={`path-${contract.chainId}-${pathIndex}-${field.key}`}
                                 label={field.label}
                                 rawValue={rawValue}
                                 displayValue={displayValue}
@@ -205,7 +205,7 @@ export function ContractStates() {
                     : ''
                   return (
                     <DetailRow
-                      key={field.key}
+                      key={`registry-${contract.chainId}-${field.key}`}
                       label={field.label}
                       rawValue={rawValue}
                       displayValue={displayValue}

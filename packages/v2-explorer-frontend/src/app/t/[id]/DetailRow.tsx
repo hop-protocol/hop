@@ -1,51 +1,79 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Skeleton from '@mui/material/Skeleton'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
-import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
-import { makeStyles } from '@mui/styles'
-import { useTransferDetails } from '@/app/hooks/useTransferDetails'
+import TableCell from '@mui/material/TableCell'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 
-const useStyles = makeStyles((theme: any) => ({
-  tableRow: {
-    wordBreak: 'break-all',
-    '& td:first-child': {
-      [theme.breakpoints.down('md')]: {
-        borderBottom: 'none',
-        paddingBottom: 0,
-      },
-    },
-    [theme.breakpoints.down('md')]: {
-      display: 'flex !important',
-      flexDirection: 'column',
-    }
-  }
-}))
-
 export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth = 200, maxWidth }: any) => {
-  const styles = useStyles()
+  // Client-only rendering to avoid hydration mismatch
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  if (!isClient) {
+    return null
+  }
+  
   return (
-    <TableRow className={styles.tableRow}>
-      <TableCell style={{ minWidth: '350px' }}>{label ? `${label}:` : ''}</TableCell>
-      <TableCell style={{ maxWidth }}>
-        <Box display="flex" alignItems="center">
+    <TableRow sx={{ 
+      wordBreak: 'break-all',
+      '& td:first-of-type': {
+        '@media (max-width: 900px)': {
+          borderBottom: 'none',
+          paddingBottom: 0,
+        },
+      },
+      '@media (max-width: 900px)': {
+        display: 'flex !important',
+        flexDirection: 'column',
+      },
+    }}>
+      <TableCell 
+        sx={{ 
+          minWidth: '350px',
+          whiteSpace: 'nowrap',
+          '@media (max-width: 900px)': {
+            width: '100%',
+          },
+        }}
+      >
+        {label ? `${label}:` : ''}
+      </TableCell>
+      <TableCell
+        sx={{ 
+          maxWidth: maxWidth || 'auto',
+          wordBreak: 'break-all'
+        }}
+      >
+        <Box display="flex" alignItems="center" sx={{ flexWrap: 'wrap' }}>
           {imageUrl && (
-            <img src={imageUrl} alt="" style={{ width: 20, height: 20, marginRight: 8 }} />
+            <Box
+              component="img"
+              src={imageUrl}
+              alt=""
+              sx={{
+                width: 20,
+                height: 20,
+                mr: 1
+              }}
+            />
           )}
           {loading ? (
             <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
           ) : (
             (link && value) ? (
               <CopyToClipboardText text={value}>
-                <Link href={link} target="_blank" rel="noreferrer">
+                <Link 
+                  href={link} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  sx={{ wordBreak: 'break-all' }}
+                >
                   {value}
                 </Link>
               </CopyToClipboardText>

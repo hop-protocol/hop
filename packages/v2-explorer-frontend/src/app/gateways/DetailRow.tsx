@@ -10,24 +10,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import { makeStyles } from '@mui/styles'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
-
-const useStyles = makeStyles((theme: any) => ({
-  tableRow: {
-    wordBreak: 'break-all',
-    '& td:first-child': {
-      [theme.breakpoints.down('md')]: {
-        borderBottom: 'none',
-        paddingBottom: 0,
-      },
-    },
-    [theme.breakpoints.down('md')]: {
-      display: 'flex !important',
-      flexDirection: 'column',
-    },
-  },
-}))
 
 // The DetailRow component computes the text to display as follows:
 // - If a display value exists and is different from the raw value,
@@ -53,7 +36,6 @@ export const DetailRow = ({
   skeletonWidth?: number
   maxWidth?: number | string
 }) => {
-  const styles = useStyles()
   let computedValue: any =
     displayValue && displayValue !== rawValue
       ? `${rawValue} (${displayValue})`
@@ -64,8 +46,8 @@ export const DetailRow = ({
       <ul>
         {rawValue.map((value: string, i: number) => {
           return (
-            <li key={i}>
-              <Link href={link?.[i]} target="_blank" rel="noreferrer">
+            <li key={`value-${value}-${i}`}>
+              <Link href={Array.isArray(link) ? link[i] : undefined} target="_blank" rel="noreferrer">
                 {value}
               </Link>
             </li>
@@ -78,15 +60,30 @@ export const DetailRow = ({
   }
 
   return (
-    <TableRow className={styles.tableRow}>
-      <TableCell style={{ minWidth: '350px' }}>{label ? `${label}:` : ''}</TableCell>
-      <TableCell style={{ maxWidth }}>
+    <TableRow 
+      sx={{
+        wordBreak: 'break-all',
+        '& td:first-of-type': {
+          '@media (max-width: 900px)': {
+            borderBottom: 'none',
+            paddingBottom: 0,
+          },
+        },
+        '@media (max-width: 900px)': {
+          display: 'flex !important',
+          flexDirection: 'column',
+        },
+      }}
+    >
+      <TableCell sx={{ minWidth: '350px' }}>{label ? `${label}:` : ''}</TableCell>
+      <TableCell sx={{ maxWidth }}>
         <Box display="flex" alignItems="center">
           {imageUrl && (
-            <img
+            <Box
+              component="img"
               src={imageUrl}
               alt={label}
-              style={{ width: 20, height: 20, marginRight: 8 }}
+              sx={{ width: 20, height: 20, mr: 1 }}
             />
           )}
           {loading ? (

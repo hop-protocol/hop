@@ -3,7 +3,6 @@ import React, { useMemo } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import { makeStyles } from '@mui/styles'
 import { networkName } from '@/app/config'
 import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
@@ -11,33 +10,13 @@ import DarkModeIcon from '@mui/icons-material/DarkMode'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@/app/hooks/useTheme'
 import { useRouter } from 'next/navigation'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme as useMuiTheme } from '@mui/material/styles'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
 
-const useStyles = makeStyles((theme: any) => ({
-  container: {
-    [theme.breakpoints.down('md')]: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      width: '90%'
-    }
-  },
-  tabs: {
-    [theme.breakpoints.down('md')]: {
-      width: '100%',
-      overflow: 'auto',
-      marginTop: '1rem',
-      marginLeft: '0',
-      display: 'flex',
-      justifyContent: 'center',
-    }
-  }
-}))
-
 export function Header () {
-  const styles = useStyles()
   const router = useRouter()
   const navigate = router.push
   const pathname = usePathname()
@@ -76,8 +55,34 @@ export function Header () {
 
   return (
     <Box width="100%" mb={4} display="flex" justifyContent="space-between">
-      <Box display="flex" className={styles.container}>
-        <Box display="flex" justifyItems="center" alignItems="center" className={styles.container}>
+      <Box display="flex" sx={{
+        width: {
+          xs: '90%',
+          md: 'auto'
+        },
+        flexDirection: {
+          xs: 'column',
+          md: 'row'
+        },
+        alignItems: {
+          xs: 'center',
+          md: 'flex-start'
+        }
+      }}>
+        <Box display="flex" justifyItems="center" alignItems="center" sx={{
+          width: {
+            xs: '90%',
+            md: 'auto'
+          },
+          flexDirection: {
+            xs: 'column',
+            md: 'row'
+          },
+          alignItems: {
+            xs: 'center',
+            md: 'flex-start'
+          }
+        }}>
           <Box>
             <Typography variant="h4" color="textPrimary">
               <a href="/" style={{
@@ -88,8 +93,9 @@ export function Header () {
               }}>
                 <Box display="flex" justifyContent="center" alignItems="center">
                   <Box display="flex" mr={1}>
-                  <img src={logoImage} alt="Hop" />
-                  </Box><Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
+                    <img src={logoImage} alt="Hop" />
+                  </Box>
+                  <Box style={{ whiteSpace: 'nowrap' }}>v2 Explorer</Box>
                 </Box>
               </a>
             </Typography>
@@ -100,11 +106,25 @@ export function Header () {
             </Typography>
           </Box>
         </Box>
-        <Box ml={4} className={styles.tabs}>
+        <Box ml={{ xs: 0, md: 4 }} sx={{
+          width: {
+            xs: '100%',
+            md: 'auto'
+          },
+          marginTop: {
+            xs: '1rem',
+            md: 0
+          },
+          display: 'flex',
+          justifyContent: {
+            xs: 'center',
+            md: 'flex-start'
+          }
+        }}>
           <Tabs value={currentTab} onChange={handleTabChange}
             sx={{
               '.MuiTabs-scroller': {
-                overflow: 'auto !important', // TODO: Fix this
+                overflow: 'auto !important'
               }
             }}
           >

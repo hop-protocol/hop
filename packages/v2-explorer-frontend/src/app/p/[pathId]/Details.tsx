@@ -17,6 +17,12 @@ export function Details(props: any) {
   const [contractState, setContractState] = useState<any[]>(initialPathDetails?.items)
   const [lastUpdated, setLastUpdated] = useState<string>(initialPathDetails?.lastUpdated ?? '')
   const [loading, setLoading] = useState<boolean>(!contractState?.length)
+  // Client-only rendering to avoid hydration mismatch
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   console.log('initialPathDetails', initialPathDetails)
 
@@ -37,7 +43,7 @@ export function Details(props: any) {
     { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' }
   ]
 
-  if (loading) {
+  if (loading || !isClient) {
     return (
       <Box p={2}>
         <Typography>Loading...</Typography>
@@ -58,7 +64,7 @@ export function Details(props: any) {
 
       {Object.values(contractState).map(
         (path: any, index: number) => (
-          <Box key={index} sx={{ mb: 2, ml: 2 }}>
+          <Box key={`path-${index}`} sx={{ mb: 2, ml: 2 }}>
             <Typography variant="subtitle1" gutterBottom color="textPrimary">
               Path on {index === 1 ? 'Counterpart' : ''} Chain <strong>{path?.context?.chainName}</strong>
             </Typography>
@@ -84,7 +90,7 @@ export function Details(props: any) {
 
                     return (
                       <DetailRow
-                        key={field.key}
+                        key={`${index}-${field.key}`}
                         label={field.label}
                         rawValue={rawValue}
                         displayValue={displayValue}

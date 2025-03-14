@@ -2,14 +2,15 @@ import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '#state-machine/index.js'
 import {
   type ISentRailsClaim,
-  type IPostedRailsClaim,
+  type IPushedRailsClaim,
   type IRailsClaim,
+  RailsClaimMethodName,
   RailsClaimState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
 import { getCounterpartChainIdForPathId } from '../../utils.js'
 
-export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRailsClaim> {
+export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRailsClaim, RailsClaimMethodName> {
 
   /**
    * Implementation
@@ -68,6 +69,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
       case RailsClaimState.Sent:
         return RailsClaimState.Pushed
       case RailsClaimState.Pushed: {
+        // TODO: Should be either confirmed or removed
         return RailsClaimState.Pushed
         // return RailsClaimState.Confirmed
       }

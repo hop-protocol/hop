@@ -16,6 +16,7 @@ export enum RailsRelayType {
   PushClaim = 'pushClaim'
 }
 
+// TODO: Get from SDk
 export type RailsHop = {
   pathId: string
   maxTotalSent: BigNumber

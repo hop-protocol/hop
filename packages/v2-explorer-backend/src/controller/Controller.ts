@@ -62,10 +62,34 @@ type TransferVolumeStatsApiResult = {
   totalVolume: {
     totalUsd: number
     totalUsdDisplay: string
+    totalVolumeFormatted: number
   }
   tokenVolumes: Record<string, {
     totalUsd: number
     totalUsdDisplay: string
+    totalVolumeFormatted: number
+  }>
+}
+
+type DailyVolumeStatsApiInput = {
+  startTimestamp?: number
+  endTimestamp?: number
+  days?: number
+  pathId?: string
+}
+
+type DailyVolumeStatsApiResult = {
+  labels: string[]  // dates
+  datasets: Array<{
+    label: string   // token symbol
+    data: number[]  // volume in USD
+  }>
+  rawData: Array<{
+    date: string
+    tokenSymbol: string
+    tokenDecimals: number
+    volume: string
+    volumeUsd: number
   }>
 }
 
@@ -891,7 +915,9 @@ export class Controller {
     const results = await this.pgDb.events.TransferSent.getVolumeStats(input)
 
     let totalUsd = 0
+    let totalVolumeFormatted = 0
     const tokenVolumes: Record<string, {
+      totalVolumeFormatted: number
       totalUsd: number
       totalUsdDisplay: string
     }> = {}
@@ -899,18 +925,23 @@ export class Controller {
     for (const result of results) {
       const tokenPrice = await this.pgDb.priceTable.getClosestPrice(result.tokenSymbol, input.endTimestamp)
       if (tokenPrice) {
-        const volumeFormatted = formatUnits(result.totalVolume, result.tokenDecimals)
-        const usdValue = Number(volumeFormatted) * Number(tokenPrice.priceUsd)
+        // Use the pre-formatted value directly
+        const volumeFormatted = parseFloat(result.totalVolumeFormatted)
+        const usdValue = volumeFormatted * Number(tokenPrice.priceUsd)
 
         totalUsd += usdValue
+        totalVolumeFormatted += volumeFormatted
+        
         if (!tokenVolumes[result.tokenSymbol]) {
           tokenVolumes[result.tokenSymbol] = {
+            totalVolumeFormatted: 0,
             totalUsd: 0,
             totalUsdDisplay: ''
           }
         }
-        tokenVolumes[result.tokenSymbol].totalUsd += usdValue
-        tokenVolumes[result.tokenSymbol].totalUsdDisplay = `${formatToUSD(tokenVolumes[result.tokenSymbol].totalUsd.toFixed(2))} USD`
+        tokenVolumes[result.tokenSymbol].totalVolumeFormatted = volumeFormatted
+        tokenVolumes[result.tokenSymbol].totalUsd = usdValue
+        tokenVolumes[result.tokenSymbol].totalUsdDisplay = `${formatToUSD(usdValue.toFixed(2))} USD`
       }
     }
 
@@ -919,7 +950,8 @@ export class Controller {
     return {
       totalVolume: {
         totalUsd,
-        totalUsdDisplay
+        totalUsdDisplay,
+        totalVolumeFormatted
       },
       tokenVolumes
     }
@@ -1243,5 +1275,222 @@ export class Controller {
 
     result.bonders = formattedBonders
     return result
+  }
+
+  async getDailyVolumeStatsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getDailyVolumeStatsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getDailyVolumeStats(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Group by token
+      const tokenMap = new Map<string, number[]>()
+      const tokenDecimalsMap = new Map<string, number>()
+      
+      data.forEach((item: any) => {
+        const { tokenSymbol, tokenDecimals } = item
+        if (!tokenMap.has(tokenSymbol)) {
+          // Initialize with zeros for all dates
+          tokenMap.set(tokenSymbol, sortedDates.map(() => 0))
+          tokenDecimalsMap.set(tokenSymbol, tokenDecimals)
+        }
+      })
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, tokenSymbol, volume } = item
+        const dateIndex = sortedDates.indexOf(date)
+        const tokenValues = tokenMap.get(tokenSymbol)
+        if (tokenValues && dateIndex >= 0) {
+          // Use BigNumber to handle large values safely
+          const tokenDecimals = tokenDecimalsMap.get(tokenSymbol) || 18
+          const formattedAmount = parseFloat(this.formatUnits(volume, tokenDecimals))
+          tokenValues[dateIndex] = formattedAmount
+        }
+      })
+      
+      // Create datasets
+      const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
+        label: tokenSymbol,
+        data: values,
+      }))
+      
+      // Create raw data with formatted values
+      const rawData = data.map((item: any) => {
+        const decimals = parseInt(item.tokenDecimals)
+        return {
+          ...item,
+          volume: item.volume,
+          volumeFormatted: this.formatUnits(item.volume, decimals)
+        }
+      })
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting daily volume stats', err)
+      throw err
+    }
+  }
+  
+  async getCumulativeVolumeStatsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getCumulativeVolumeStatsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getCumulativeVolumeStats(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Group by token
+      const tokenMap = new Map<string, number[]>()
+      const tokenDecimalsMap = new Map<string, number>()
+      
+      data.forEach((item: any) => {
+        const { tokenSymbol, tokenDecimals } = item
+        if (!tokenMap.has(tokenSymbol)) {
+          // Initialize with zeros for all dates
+          tokenMap.set(tokenSymbol, sortedDates.map(() => 0))
+          tokenDecimalsMap.set(tokenSymbol, tokenDecimals)
+        }
+      })
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, tokenSymbol, volume } = item
+        const dateIndex = sortedDates.indexOf(date)
+        const tokenValues = tokenMap.get(tokenSymbol)
+        if (tokenValues && dateIndex >= 0) {
+          // Use BigNumber to handle large values safely
+          const tokenDecimals = tokenDecimalsMap.get(tokenSymbol) || 18
+          const formattedAmount = parseFloat(this.formatUnits(volume, tokenDecimals))
+          tokenValues[dateIndex] = formattedAmount
+        }
+      })
+      
+      // Create datasets
+      const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
+        label: tokenSymbol,
+        data: values,
+      }))
+      
+      // Create raw data with formatted values
+      const rawData = data.map((item: any) => {
+        const decimals = parseInt(item.tokenDecimals)
+        return {
+          ...item,
+          volume: item.volume,
+          volumeFormatted: this.formatUnits(item.volume, decimals)
+        }
+      })
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting cumulative volume stats', err)
+      throw err
+    }
+  }
+  
+  async getDetailedVolumeDataForApi(input: DailyVolumeStatsApiInput): Promise<any> {
+    try {
+      console.log('getDetailedVolumeDataForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getDetailedDailyVolumeData(input)
+      
+      console.log(`Found ${data.length} detailed volume data entries`)
+      
+      // Add additional debugging info
+      const transferCounts: Record<string, number> = {}
+      const volumeByDay: Record<string, Record<string, { raw: string, formatted: string }>> = {}
+      
+      data.forEach((item: any) => {
+        // Count transfers by day
+        if (!transferCounts[item.date]) {
+          transferCounts[item.date] = 0
+        }
+        transferCounts[item.date] += item.transferCount
+        
+        // Track volume by day and token
+        if (!volumeByDay[item.date]) {
+          volumeByDay[item.date] = {}
+        }
+        
+        volumeByDay[item.date][item.tokenSymbol] = {
+          raw: item.totalRawAmount,
+          formatted: item.formattedAmount
+        }
+      })
+      
+      return {
+        detailedData: data,
+        summary: {
+          totalEntries: data.length,
+          transferCounts,
+          volumeByDay
+        }
+      }
+    } catch (err: any) {
+      console.error('Error getting detailed volume data', err)
+      throw err
+    }
+  }
+  
+  // Helper method to format token units
+  formatUnits(value: string, decimals: number): string {
+    if (!value) return '0'
+    
+    // Handle very large numbers by using a simple string manipulation
+    // since BigNumber might not be available in the controller context
+    try {
+      const valueStr = value.toString()
+      
+      if (valueStr === '0') return '0'
+      
+      // If the value is less than 1 * 10^decimals, we need to add leading zeros
+      if (valueStr.length <= decimals) {
+        return '0.' + '0'.repeat(decimals - valueStr.length) + valueStr
+      }
+      
+      // Otherwise, insert the decimal point at the appropriate position
+      const integerPart = valueStr.slice(0, valueStr.length - decimals) || '0'
+      const fractionalPart = valueStr.slice(valueStr.length - decimals)
+      
+      // Trim trailing zeros
+      const trimmedFractional = fractionalPart.replace(/0+$/, '')
+      
+      if (trimmedFractional.length === 0) {
+        return integerPart
+      }
+      
+      return integerPart + '.' + trimmedFractional
+    } catch (error) {
+      console.error('Error formatting units:', error)
+      return '0'
+    }
   }
 }

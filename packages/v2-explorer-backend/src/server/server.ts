@@ -174,6 +174,63 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/stats/daily-volume', responseCache, async (req: any, res: any) => {
+  try {
+    const { days, pathId, startTimestamp, endTimestamp } = req.query
+    const stats = await controller.getDailyVolumeStatsForApi({
+      days: days ? parseInt(days) : undefined,
+      pathId,
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    })
+    res.status(200).json({
+      data: stats,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any) => {
+  try {
+    const { days, pathId, startTimestamp, endTimestamp } = req.query
+    const stats = await controller.getCumulativeVolumeStatsForApi({
+      days: days ? parseInt(days) : undefined,
+      pathId,
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    })
+    res.status(200).json({
+      data: stats,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/stats/detailed-volume', async (req: any, res: any) => {
+  try {
+    const { days, pathId, startTimestamp, endTimestamp } = req.query
+    const data = await controller.getDetailedVolumeDataForApi({
+      days: days ? parseInt(days) : undefined,
+      pathId,
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
     const { filter, chainIds } = req.query
@@ -223,6 +280,54 @@ app.get('/v1/bonders', responseCacheHandler(5 * 60 * 1000), async (req: any, res
   } catch (err: any) {
     console.error(err)
     res.json({ error: err.message })
+  }
+})
+
+// Add this new endpoint for debugging transfer data
+app.get('/v1/debug/transfers', async (req: any, res: any) => {
+  try {
+    const { date } = req.query
+    if (!date) {
+      return res.status(400).json({ error: 'Date parameter is required' })
+    }
+    
+    // Use a direct SQL query to get raw transfer data for the given date
+    const query = `
+      SELECT 
+        e.id, 
+        e.transfer_id as "transferId", 
+        e.amount as "amount", 
+        e."to" as "recipient", 
+        ec.transaction_hash as "transactionHash", 
+        ec.chain_id as "chainId", 
+        ec.block_timestamp as "blockTimestamp",
+        to_char(to_timestamp(ec.block_timestamp), 'YYYY-MM-DD') AS "date",
+        t.symbol as "tokenSymbol",
+        t.decimals as "tokenDecimals"
+      FROM 
+        transfer_sent_events e
+      JOIN 
+        event_context ec ON e.event_context_id = ec.id
+      JOIN 
+        paths p ON e.path_id = p.path_id
+      JOIN 
+        tokens t ON p.token = t.address
+      WHERE 
+        to_char(to_timestamp(ec.block_timestamp), 'YYYY-MM-DD') = $1
+      ORDER BY 
+        ec.block_timestamp, e.transfer_id
+    `
+    
+    console.log(`Executing debug query for date: ${date}`)
+    const result = await controller.pgDb.db.any(query, [date])
+    
+    return res.json({
+      transfers: result,
+      count: result.length
+    })
+  } catch (err: any) {
+    console.error('Error getting debug transfers:', err)
+    return res.status(500).json({ error: err.message })
   }
 })
 

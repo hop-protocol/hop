@@ -2,7 +2,8 @@ name: Publish Packages to Docker Hub
 on:
   push:
     branches:
-      - v2
+      - feature/v2-sdk
+      # - v2
     paths:
       - 'packages/v2-explorer-backend/**'
       - 'packages/v2-hop-node/**'

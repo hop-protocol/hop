@@ -7,6 +7,7 @@ import { getTxOverrides } from '#utils/getTxOverrides.js'
 import { wallets } from '#wallets/index.js'
 import type { providers } from 'ethers'
 import {
+  type TransferSentInput,
   type BondInput,
   type PostClaimInput,
   type RailsPath,
@@ -165,6 +166,31 @@ export async function relayItem (relayableItem: RailsRelayItem): Promise<provide
  * Type Guards
  */
 
+export function isTransferSentInputData (item: unknown): item is TransferSentInput {
+  if (typeof item !== 'object' || item === null) {
+    return false
+  }
+
+  const candidate = item as Partial<TransferSentInput>
+  return (
+    'pathId' in candidate &&
+    'transferId' in candidate &&
+    'to' in candidate &&
+    'amount' in candidate &&
+    'sourcePool' in candidate &&
+    'hops' in candidate &&
+    typeof candidate.pathId === 'string' &&
+    typeof candidate.transferId === 'string' &&
+    typeof candidate.to === 'string' &&
+    // typeof candidate.amount?.toString() === 'string' &&
+    // typeof candidate.sourcePool?.toString() === 'string' &&
+    Array.isArray(candidate.hops)
+    // TODO: Is that a valid assumption?
+    // NOTE: This does not validate the hops array. It is assumed that the
+    // array is correctly formatted
+  )
+}
+
 export function isBondTxInputData (item: unknown): item is BondInput {
   if (typeof item !== 'object' || item === null) {
     return false
@@ -173,11 +199,14 @@ export function isBondTxInputData (item: unknown): item is BondInput {
   const candidate = item as Partial<BondInput>
   return (
     'pathId' in candidate &&
-    'transferId' in candidate &&
+    'claimId' in candidate &&
+    'bonderFee' in candidate &&
     'nextHops' in candidate &&
     typeof candidate.pathId === 'string' &&
-    typeof candidate.transferId === 'string' &&
+    typeof candidate.claimId === 'string' &&
+    // typeof candidate.bonderFee?.toString() === 'string' &&
     Array.isArray(candidate.nextHops)
+    // TODO: Is that a valid assumption?
     // NOTE: This does not validate the nextHops array. It is assumed that the
     // array is correctly formatted
   )
@@ -194,18 +223,20 @@ export function isPostClaimTxInputData (item: unknown): item is PostClaimInput {
     'pathId' in candidate &&
     'transferId' in candidate &&
     'to' in candidate &&
-    'amount' in candidate &&
-    'totalSent' in candidate &&
+    'amountOut' in candidate &&
+    'maxBonderFee' in candidate &&
     'attestedClaimId' in candidate &&
-    'attestedTotalClaims' in candidate &&
+    'totalSent' in candidate &&
+    'totalClaims' in candidate &&
     'nextHopsHash' in candidate &&
     typeof candidate.pathId === 'string' &&
     typeof candidate.transferId === 'string' &&
     typeof candidate.to === 'string' &&
-    // typeof candidate.amount?.toString() === 'string' &&
-    // typeof candidate.totalSent?.toString() === 'string' &&
+    // typeof candidate.amountOut?.toString() === 'string' &&
+    // typeof candidate.maxBonderFee?.toString() === 'string' &&
     typeof candidate.attestedClaimId === 'string' &&
-    // typeof candidate.attestedTotalClaims?.toString() === 'string' &&
+    // typeof candidate.totalSent?.toString() === 'string' &&
+    // typeof candidate.totalClaims?.toString() === 'string' &&
     typeof candidate.nextHopsHash === 'string'
   )
 }

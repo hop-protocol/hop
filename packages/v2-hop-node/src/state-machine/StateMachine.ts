@@ -177,8 +177,7 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (state !== getFirstState(this.#states)) return false
     if (await this.#db.isItemInitialized(key)) return false
 
-    const relayItem: RelayItem<StateData> = value
-    void this.#relayer.relay(relayItem)
+    void this.#sendRelay(state, key, value)
     await this.#db.initializeItem(key)
     return true
   }
@@ -213,20 +212,30 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   async #postTransitionHook (state: State, key: string, value: StateData): Promise<boolean> {
     this.logger.debug(`Post transition hook for state: ${state}, key: ${key}`)
+    await this.#sendRelay(state, key, value)
+    return true
+  }
 
+  /**
+   * Utils
+   */
+
+  async #sendRelay(state: State, key: string, value: StateData): Promise<void> {
+    this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
     // The first state hook will have nothing in the DB to read
-    const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
+    let relayItem: RelayItem<StateData> | undefined
+    if (state === getFirstState(this.#states)) {
+      relayItem = value
+    } else {
+      relayItem = await this.#getRelayItem(key)
+    }
 
     // TODO: In theory, the state machine should not care about the chain.
     const relayChainId: string = this.getRelayChainId(state, value)
-
-    this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
-    await this.#relayer.relay({
+    return this.#relayer.relay({
       ...relayItem,
       relayChainId
     })
-    return true
-
   }
 
   // Aggregate all existing data to send to the relayer. The relayer
@@ -236,7 +245,7 @@ export abstract class StateMachine<State extends string, StateData extends State
 
     return stateAndItem.reduce((acc, [, data]) => {
       const { txContext, ...restData } = data
-      return { ...acc, ...restData, }
+      return { ...acc, ...restData }
     }, {} as RelayItem<StateData>)
   }
 }

@@ -18,23 +18,26 @@ export enum RailsClaimState {
 }
 
 interface IRailsClaimShared extends StateTxContext {
-  transferId: string
   pathId: string
 }
 
 export interface ISentRailsClaim extends IRailsClaimShared {
+  transferId: string
   // TODO
 }
 
 export interface IPostedRailsClaim extends IRailsClaimShared {
+  claimId: string
   // TODO
 }
 
 export interface IRemovedRailsClaim extends IRailsClaimShared {
+  claimId: string
   // TODO
 }
 
 export interface IConfirmedRailsClaim extends IRailsClaimShared {
+  claimId: string
   // TODO
 }
 

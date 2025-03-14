@@ -20,6 +20,10 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   }
 
   protected override getItemId(value: IRailsClaim): string {
+    if ('claimId' in value) {
+      return value.claimId
+    }
+
     return value.transferId
   }
 

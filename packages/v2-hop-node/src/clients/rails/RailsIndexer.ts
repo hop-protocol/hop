@@ -36,8 +36,11 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
   }
 
   protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndexes {
-    // The indexer key for all events is transferId
-    return ['transferId']
+    if (eventName === RailsEventName.TransferSent) {
+      return ['transferId']
+    }
+
+    return ['claimId']
   }
 
   protected override getStartBlockNumber (chainId: string): number {

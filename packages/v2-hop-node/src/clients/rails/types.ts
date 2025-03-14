@@ -1,5 +1,6 @@
 import type { BigNumber } from 'ethers'
 import type {
+  TransferSentSDK,
   BondInputSDK,
   PostClaimInputSDK
 } from './RailsSDKWrapper.js'
@@ -29,6 +30,7 @@ export type RailsPath = {
   initialReserve: string
 }
 
+export type TransferSentInput = TransferSentSDK
 export type BondInput = BondInputSDK
 export type PostClaimInput = PostClaimInputSDK
-export type RailsRelayItem = (BondInput | PostClaimInput) & RelayChainId
+export type RailsRelayItem = (TransferSentInput | BondInput | PostClaimInput) & RelayChainId

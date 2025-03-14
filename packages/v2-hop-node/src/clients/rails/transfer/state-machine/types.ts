@@ -13,15 +13,16 @@ export enum RailsTransferState {
 }
 
 interface IRailsTransferShared extends StateTxContext {
-  transferId: string
   pathId: string
 }
 
 export interface ISentRailsTransfer extends IRailsTransferShared {
+  transferId: string
   nextHops: RailsHop[]
 }
 
 export interface IBondedRailsTransfer extends IRailsTransferShared {
+  claimId: string
   // TODO
 }
 

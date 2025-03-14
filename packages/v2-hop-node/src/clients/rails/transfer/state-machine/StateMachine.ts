@@ -19,6 +19,10 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   }
 
   protected override getItemId(value: IRailsTransfer): string {
+    if ('claimId' in value) {
+      return value.claimId
+    }
+
     return value.transferId
   }
 

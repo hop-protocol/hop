@@ -1,17 +1,18 @@
 import {
   type EthersEventWithDecodedTypes,
-  type TransferSent as TransferSentSDK,
+  type TransferSent as TransferSent,
   type TransferBonded as TransferBondedSDK,
   type ClaimPosted as ClaimPostedSDK,
-  type ClaimReadded as ClaimReaddedSDK,
   type ClaimRemoved as ClaimRemovedSDK,
+  type ClaimReadded as ClaimReaddedSDK,
   type GetTransferSentEventFilterInput,
   type GetTransferBondedEventFilterInput,
   type PostClaimInput,
   type BondInput,
+  type EthersEventWithDecodedTypesAndBaseContext,
   RailsGateway as RailsGatewaySDK,
   utils as RailsUtils,
-  RailsGatewayEventName
+  RailsGatewayEventName as RailsEventName
 } from '@hop-protocol/v2-sdk'
 import type {
   EventFilter,
@@ -23,20 +24,19 @@ import { wallets } from '#wallets/index.js'
 import type { RailsPath } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
+export type TransferSentSDK = TransferSent
 export type BondInputSDK = BondInput
 export type PostClaimInputSDK = PostClaimInput
 export type RailsFilterInputs = GetTransferSentEventFilterInput & GetTransferBondedEventFilterInput
 
+// TODO: Wait for SDK to export all methods
+// enum RailsEventName {
+//   TransferSent = 'TransferSent',
+//   TransferBonded = 'TransferBonded'
+// }
 
-export enum EventName {
-  TransferSent = 'TransferSent',
-  TransferPosted = 'TransferPosted',
-  TransferBonded = 'TransferBonded',
-  ClaimPosted = 'ClaimPosted', // This is a mock until live in contract
-  ClaimRemoved = 'ClaimRemoved', // This is a mock until live in contract
-  ClaimConfirmed = 'ClaimConfirmed', // This is a mock until live in contract
-  // TODO: any others
-}
+
+export { RailsEventName }
 
 export class RailsGateway {
   #sdk: RailsGatewaySDK

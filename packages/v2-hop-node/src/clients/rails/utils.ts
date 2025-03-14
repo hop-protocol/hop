@@ -1,23 +1,13 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Config } from '#config/index.js'
 import {
-  RailsGateway,
   getPathId,
   type BondInput,
   type PushClaimInput,
   type ReaddClaimInput,
   type RemoveClaimInput,
 } from './RailsSDKWrapper.js'
-import { RelayerDB } from '#relayer/index.js'
-import { ClientName } from '../constants.js'
-import { getTxOverrides } from '#utils/getTxOverrides.js'
-import { wallets } from '#wallets/index.js'
-import type { providers } from 'ethers'
-import {
-  type RailsPath,
-  type RailsRelayItem,
-  RailsRelayType
-} from './types.js'
+import type { RailsPath } from './types.js'
 import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
@@ -121,50 +111,6 @@ export function getCounterpartChainIdForPathId(chainId: string, pathId: string):
   throw new Error(`ChainId not found in path: ${chainId}`)
 }
 
-
-/**
- * CLI Tools
- */
-
-export async function getRelayableItems (relayType: RailsRelayType): Promise<RailsRelayItem[]> {
-  const name = ClientName.Rails
-  const db = new RelayerDB(name)
-  if (!db) {
-    throw new Error(`DB not found for client: ${name}`)
-  }
-
-  const relayableItems: RailsRelayItem[] = []
-  for await (const relayableItem of db.getRelayableItems()) {
-    if (
-      (relayType === RailsRelayType.Bond && isValidBondTxInputData(relayableItem)) ||
-      (relayType === RailsRelayType.PushClaim && isValidPushClaimTxInputData(relayableItem))
-    ) {
-      // TODO: I shouldn't have to typecast RailsRelayItem. It is needed now since the type guard is so strict.
-      relayableItems.push(relayableItem as RailsRelayItem)
-    }
-  }
-
-
-  return relayableItems
-}
-
-export async function relayItem (relayableItem: RailsRelayItem): Promise<providers.TransactionResponse> {
-export async function relayItem (relayableItem: RailsRelayItem, relayChainId: string): Promise<providers.TransactionResponse> {
-  const txOverrides = await getTxOverrides(relayChainId)
-  const wallet = wallets.get(relayChainId)
-  const gateway = new RailsGateway(relayChainId, wallet)
-  if (typeof gateway === 'undefined') {
-    throw new Error(`No gateway found for chainId: ${relayChainId}`)
-  }
-
-  if (isValidBondTxInputData(relayableItem)) {
-    return gateway.bond(relayableItem, txOverrides)
-  } else if (isValidPushClaimTxInputData(relayableItem)) {
-    return gateway.pushClaim(relayableItem, txOverrides)
-  } else {
-    throw new Error('Invalid relay item')
-  }
-}
 
 /**
  * Type Guards

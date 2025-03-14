@@ -1,12 +1,12 @@
 import { StateMachine } from '#state-machine/index.js'
-import { CCTPSDK } from '../sdk/CCTPSDK.js'
+import { CCTPMethodName, CCTPSDK } from '../sdk/CCTPSDK.js'
 import {
   type ISentCCTPMessage,
   type ICCTPMessage,
   CCTPMessageState
 } from './types.js'
 
-export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessage> {
+export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessage, CCTPMethodName> {
 
   /**
    * Implementation
@@ -26,6 +26,15 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
     switch (state) {
       case CCTPMessageState.Sent:
         return sourceChainId
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getRelayTxMethodFromState(state: CCTPMessageState): CCTPMethodName {
+    switch (state) {
+      case CCTPMessageState.Sent:
+        return CCTPMethodName.ReceiveMessage
       default:
         throw new Error('Invalid state')
     }

@@ -40,12 +40,24 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     }
   }
 
+  protected override getRelayTxMethodFromState(state: RailsClaimState): RailsClaimMethodName {
+    switch (state) {
+      case RailsClaimState.Sent:
+        return RailsClaimMethodName.PushClaim
+        // TODO
+      // case RailsClaimState.Pushed:
+      //   return RailsClaimMethodName.RemoveClaim
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
   protected override shouldAttemptTransition(state: RailsClaimState, value: IRailsClaim): boolean {
     switch (state) {
       case RailsClaimState.Sent:
-        return this.#shouldSendBeFinalized(value as ISentRailsClaim)
-      case RailsClaimState.Posted:
-        return this.#shouldPostBeFinalized(value as IPostedRailsClaim)
+        return this.#shouldSentTransferBeFinalized(value as ISentRailsClaim)
+      case RailsClaimState.Pushed:
+        return this.#shouldPushBeFinalized(value as IPushedRailsClaim)
       default:
         throw new Error('Invalid state')
     }
@@ -54,10 +66,9 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   protected override getTransitionState(state: RailsClaimState): RailsClaimState {
     switch (state) {
       case RailsClaimState.Sent:
-        return RailsClaimState.Posted
-      case RailsClaimState.Posted: {
-        // TODO: should be posted
-        return RailsClaimState.Posted
+        return RailsClaimState.Pushed
+      case RailsClaimState.Pushed: {
+        return RailsClaimState.Pushed
         // return RailsClaimState.Confirmed
       }
       default:
@@ -69,23 +80,16 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
    * Internal
    */
 
-  #shouldSendBeFinalized(value: ISentRailsClaim): boolean {
-    // A post can be finalized if enough time has passed for the post to
-    // be finalized on its own chain, for the bonder to bond the claim,
-    // and for the bond to be finalized on its own chain.
-    const { pathId, txContext } = value
+  #shouldSentTransferBeFinalized(value: ISentRailsClaim): boolean {
+    const { txContext } = value
     const { timestampMs, chainId } = txContext
-    const destChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
-    // TODO: Handle timing of post
-    const destChainSlug = getChain(destChainId).slug
-    const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
+    const srcChainSlug = getChain(chainId).slug
+    const srcChainFinalityTimeMs = FINALITY_TIME_MS[srcChainSlug]
 
-    // We add the finality time twice because both the post and the claim
-    // must be finalized and they exist on the same chain.
-    const expectedRelayTimeMs =
-      timestampMs +
-      destChainFinalityTimeMs
+      const expectedRelayTimeMs =
+        timestampMs +
+        srcChainFinalityTimeMs
 
     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()
 
@@ -94,7 +98,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     )
   }
 
-  #shouldPostBeFinalized(value: IPostedRailsClaim): boolean {
+  #shouldPushBeFinalized(value: IPushedRailsClaim): boolean {
     // TODO: Implement this -- it should be a function of the exit time of the source
     // since this is sent with the send
     return true

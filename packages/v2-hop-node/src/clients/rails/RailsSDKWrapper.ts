@@ -1,18 +1,27 @@
 import {
-  type EthersEventWithDecodedTypes,
-  type TransferSent as TransferSent,
+  type TransferSent,
+  type TransferBonded,
+  type ClaimPushed,
+  type ClaimRemoved,
+  type ClaimReadded,
   type TransferBonded as TransferBondedSDK,
-  type ClaimPosted as ClaimPostedSDK,
+  type ClaimPushed as ClaimPushedSDK,
   type ClaimRemoved as ClaimRemovedSDK,
   type ClaimReadded as ClaimReaddedSDK,
   type GetTransferSentEventFilterInput,
   type GetTransferBondedEventFilterInput,
-  type PostClaimInput,
+  type GetClaimPushedEventFilterInput,
+  type GetClaimReaddedEventFilterInput,
+  type GetClaimRemovedEventFilterInput,
+  type PushClaimInput,
   type BondInput,
   type EthersEventWithDecodedTypesAndBaseContext,
+  type RemoveClaimInput,
+  type ReaddClaimInput,
   RailsGateway as RailsGatewaySDK,
   utils as RailsUtils,
-  RailsGatewayEventName as RailsEventName
+  RailsGatewayEventName as RailsGatewayEventNameSDK,
+  RailsGatewayMethodName as RailsMethodName
 } from '@hop-protocol/v2-sdk'
 import type {
   EventFilter,
@@ -24,19 +33,41 @@ import { wallets } from '#wallets/index.js'
 import type { RailsPath } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
-export type TransferSentSDK = TransferSent
-export type BondInputSDK = BondInput
-export type PostClaimInputSDK = PostClaimInput
-export type RailsFilterInputs = GetTransferSentEventFilterInput & GetTransferBondedEventFilterInput
+export type RailsFilterInputs = &
+  GetTransferSentEventFilterInput &
+  GetTransferBondedEventFilterInput &
+  GetClaimPushedEventFilterInput &
+  GetClaimReaddedEventFilterInput &
+  GetClaimRemovedEventFilterInput
 
-// TODO: Wait for SDK to export all methods
-// enum RailsEventName {
-//   TransferSent = 'TransferSent',
-//   TransferBonded = 'TransferBonded'
-// }
+export type RailsEvent = |
+  TransferSent |
+  TransferBonded |
+  ClaimPushed |
+  ClaimRemoved |
+  ClaimReadded
 
 
-export { RailsEventName }
+export enum RailsEventName {
+  TransferSent = RailsGatewayEventNameSDK.TransferSent,
+  TransferBonded = RailsGatewayEventNameSDK.TransferBonded,
+  ClaimPushed = RailsGatewayEventNameSDK.ClaimPushed,
+  ClaimRemoved = RailsGatewayEventNameSDK.ClaimRemoved,
+  ClaimReadded = RailsGatewayEventNameSDK.ClaimReadded,
+}
+
+export {
+  RailsMethodName,
+  type TransferSent,
+  type TransferBonded,
+  type ClaimPushed,
+  type ClaimRemoved,
+  type ClaimReadded,
+  type BondInput,
+  type PushClaimInput,
+  type RemoveClaimInput,
+  type ReaddClaimInput
+}
 
 export class RailsGateway {
   #sdk: RailsGatewaySDK
@@ -50,28 +81,37 @@ export class RailsGateway {
    * Getter methods
    */
 
-  async isPosted(transferId: string): Promise<boolean> {
-    return true
+  async isPushed(pathId: string, claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimPushed({ pathId, claimId })
   }
 
-  async isClaimed(transferId: string): Promise<boolean> {
-    return true
-  }
+  // async isClaimed(pathId: string, transferId: string): Promise<boolean> {
+  //   return this.#sdk.helpers.getIsTransferClaimed({ transferId })
+  // }
 
-  async isBonded(transferId: string): Promise<boolean> {
-    return true
+  async isBonded(pathId: string, claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ pathId, claimId })
   }
 
   /**
    * Transactional Methods
    */
 
-  async bond (input: BondInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
+  async bond (input: BondInput, overrides: Overrides): Promise<providers.TransactionResponse> {
     return this.#sdk.bond({ ...input, ...overrides })
   }
 
-  async pushClaim (input: PostClaimInputSDK, overrides: Overrides): Promise<providers.TransactionResponse> {
-    return this.#sdk.postClaim({ ...input, ...overrides })
+  async pushClaim (input: PushClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.pushClaim({ ...input, ...overrides })
+  }
+
+  async removeClaim(input: RemoveClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.removeClaim({ ...input, ...overrides })
+  }
+
+  async readdClaim(input: ReaddClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    // return this.#sdk.readdClaim({ ...input, ...overrides })
+    throw new Error('Method not implemented')
   }
 
   /**
@@ -99,7 +139,7 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Rai
 // TODO: Consider way to not pass in chainId. Right now, SDK needs it since it has large response. However, from the perspective
 // of the hn it is not necessary and adds confusion. This is because the response to the method should not care about
 // the chainId, so the intention of the method is not clear.
-export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSentSDK | TransferBondedSDK | ClaimPostedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
+export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | TransferBondedSDK | ClaimPushedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
   const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsGatewaySDK.addDecodedTypesToEvent(log, chainId)
 
   // TODO: Temp do this until hn and sdk are in sync

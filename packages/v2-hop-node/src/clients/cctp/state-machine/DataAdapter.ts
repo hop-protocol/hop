@@ -22,9 +22,8 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
   protected override formatDecodedLog (log: DecodedLogWithContext): ICCTPMessage {
     const { eventName } = log.context
     switch (eventName) {
-      case CCTPEventName.CCTPTransferSent: {
+      case CCTPEventName.CCTPTransferSent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<HopCCTPTransferSentDecodedWithMessage>) as ICCTPMessage
-      }
       case CCTPEventName.MessageReceived:
         return this.#formatRelayedLog(log as DecodedLogWithContext<HopCCTPTransferReceivedDecoded>) as ICCTPMessage
       default:

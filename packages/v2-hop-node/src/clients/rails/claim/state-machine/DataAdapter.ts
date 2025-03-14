@@ -1,6 +1,20 @@
 import { DataAdapter } from '#state-machine/index.js'
-import { RailsEventName } from '../../RailsSDKWrapper.js'
-import { type IRailsClaim, RailsClaimEventName, RailsClaimState } from './types.js'
+import {
+  type TransferSent,
+  type ClaimPushed,
+  type ClaimRemoved,
+  type ClaimReadded,
+  RailsEventName
+} from '../../RailsSDKWrapper.js'
+import {
+  type IRailsClaim,
+  type ISentRailsClaim,
+  type IPushedRailsClaim,
+  type IRemovedRailsClaim,
+  type IReaddedRailsClaim,
+  RailsClaimEventName,
+  RailsClaimState
+} from './types.js'
 import { getCounterpartChainIdForPathId } from '../../utils.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
@@ -11,17 +25,27 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
   }
 
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsClaim {
-    // Rails logs do not need additional decoding since the onchain log format
-    // matches the format that the state machine expects.
-    return log.decoded as IRailsClaim
+    const { eventName } = log.context
+    switch (eventName) {
+      case RailsEventName.TransferSent:
+        return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsClaim
+      case RailsEventName.ClaimPushed:
+        return this.#formatClaimPushedLog(log as DecodedLogWithContext<ClaimPushed>) as IRailsClaim
+      case RailsEventName.ClaimReadded:
+        return this.#formatClaimRemovedLog(log as DecodedLogWithContext<ClaimRemoved>) as IRailsClaim
+      case RailsEventName.ClaimRemoved:
+        return this.#formatClaimReaddedLog(log as DecodedLogWithContext<ClaimReadded>) as IRailsClaim
+      default:
+        throw new Error(`Invalid event name: ${eventName}`)
+    }
   }
 
   protected override getStateFromEventName (eventName: string): RailsClaimState {
     switch (eventName) {
       case RailsEventName.TransferSent:
         return RailsClaimState.Sent
-      case RailsEventName.ClaimPosted:
-        return RailsClaimState.Posted
+      case RailsEventName.ClaimPushed:
+        return RailsClaimState.Pushed
       case RailsEventName.ClaimRemoved:
         return RailsClaimState.Removed
       // case RailsEventName.ClaimConfirmed:
@@ -35,8 +59,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     switch (state) {
       case RailsClaimState.Sent:
         return RailsEventName.TransferSent
-      case RailsClaimState.Posted:
-        return RailsEventName.ClaimPosted
+      case RailsClaimState.Pushed:
+        return RailsEventName.ClaimPushed
       case RailsClaimState.Removed:
         return RailsEventName.ClaimRemoved
       // case RailsClaimState.Confirmed:
@@ -54,7 +78,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     switch (state) {
       case RailsClaimState.Sent:
         return chainId
-      case RailsClaimState.Posted:
+      case RailsClaimState.Pushed:
         return counterpartChainId
       case RailsClaimState.Removed:
         return counterpartChainId
@@ -62,6 +86,54 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
       //   return counterpartChainId
       default:
         throw new Error('Invalid state')
+    }
+  }
+
+  /**
+   * Internal
+   */
+
+  #formatTransferSentLog (log: DecodedLogWithContext<TransferSent>): Omit<ISentRailsClaim, 'txContext'> {
+    const { decoded } = log
+    const { pathId, transferId, to, amount, sourcePool, hops } = decoded
+
+    return {
+      pathId,
+      transferId,
+      to,
+      amount,
+      sourcePool,
+      hops
+    }
+  }
+
+  #formatClaimPushedLog(log: DecodedLogWithContext<ClaimPushed>): Omit<IPushedRailsClaim, 'txContext'> {
+    const { decoded } = log
+    const { pathId, claimId } = decoded
+
+    return {
+      pathId,
+      claimId
+    }
+  }
+
+  #formatClaimRemovedLog(log: DecodedLogWithContext<ClaimRemoved>): Omit<IRemovedRailsClaim, 'txContext'> {
+    const { decoded } = log
+    const { pathId, claimId } = decoded
+
+    return {
+      pathId,
+      claimId
+    }
+  }
+
+  #formatClaimReaddedLog(log: DecodedLogWithContext<ClaimReadded>): Omit<IReaddedRailsClaim, 'txContext'> {
+    const { decoded } = log
+    const { pathId, claimId } = decoded
+
+    return {
+      pathId,
+      claimId
     }
   }
 }

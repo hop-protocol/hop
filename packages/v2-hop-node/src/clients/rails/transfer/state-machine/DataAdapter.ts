@@ -1,7 +1,17 @@
 import { DataAdapter } from '#state-machine/index.js'
 import { getCounterpartChainIdForPathId } from '../../utils.js'
-import { RailsEventName } from '../../RailsSDKWrapper.js'
-import { type IRailsTransfer, RailsTransferEventName, RailsTransferState } from './types.js'
+import {
+  type TransferBonded,
+  type TransferSent,
+  RailsEventName
+} from '../../RailsSDKWrapper.js'
+import {
+  type IBondedRailsTransfer,
+  type IRailsTransfer,
+  type ISentRailsTransfer,
+  RailsTransferEventName,
+  RailsTransferState
+} from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
@@ -11,9 +21,15 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
   }
 
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsTransfer {
-    // Rails logs do not need additional decoding since the onchain log format
-    // matches the format that the state machine expects.
-    return log.decoded as IRailsTransfer
+    const { eventName } = log.context
+    switch (eventName) {
+      case RailsEventName.TransferSent:
+        return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsTransfer
+      case RailsEventName.TransferBonded:
+        return this.#formatTransferBondedLog(log as DecodedLogWithContext<TransferBonded>) as IRailsTransfer
+      default:
+        throw new Error(`Invalid event name: ${eventName}`)
+    }
   }
 
   protected override getStateFromEventName (eventName: string): RailsTransferState {
@@ -49,6 +65,34 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
         return counterpartChainId
       default:
         throw new Error('Invalid state')
+    }
+  }
+
+  /**
+   * Internal
+   */
+
+  #formatTransferSentLog (log: DecodedLogWithContext<TransferSent>): Omit<ISentRailsTransfer, 'txContext'> {
+    const { decoded } = log
+    const { pathId, transferId, to, amount, sourcePool, hops } = decoded
+
+    return {
+      pathId,
+      transferId,
+      to,
+      amount,
+      sourcePool,
+      hops
+    }
+  }
+
+  #formatTransferBondedLog (log: DecodedLogWithContext<TransferBonded>): Omit<IBondedRailsTransfer, 'txContext'> {
+    const { decoded } = log
+    const { pathId, claimId } = decoded
+
+    return {
+      pathId,
+      claimId
     }
   }
 }

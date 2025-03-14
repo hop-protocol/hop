@@ -1,6 +1,12 @@
 import type { RailsHop } from '../../types.js'
+import type { BigNumber } from 'ethers'
 import type { StateTxContext } from '#state-machine/index.js'
-import { RailsEventName } from '#clients/rails/RailsSDKWrapper.js'
+import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.js'
+
+export enum RailsTransferMethodName {
+  Bond = RailsMethodName.Bond,
+  PushClaim = RailsMethodName.PushClaim
+}
 
 export enum RailsTransferEventName {
   TransferSent = RailsEventName.TransferSent,
@@ -18,12 +24,14 @@ interface IRailsTransferShared extends StateTxContext {
 
 export interface ISentRailsTransfer extends IRailsTransferShared {
   transferId: string
-  nextHops: RailsHop[]
+  to: string
+  amount: BigNumber
+  sourcePool: BigNumber
+  hops: RailsHop[]
 }
 
 export interface IBondedRailsTransfer extends IRailsTransferShared {
   claimId: string
-  // TODO
 }
 
 export type IRailsTransfer = ISentRailsTransfer | IBondedRailsTransfer

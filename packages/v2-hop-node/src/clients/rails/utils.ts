@@ -1,15 +1,19 @@
 import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { Config } from '#config/index.js'
-import { RailsGateway, getPathId } from './RailsSDKWrapper.js'
+import {
+  RailsGateway,
+  getPathId,
+  type BondInput,
+  type PushClaimInput,
+  type ReaddClaimInput,
+  type RemoveClaimInput,
+} from './RailsSDKWrapper.js'
 import { RelayerDB } from '#relayer/index.js'
 import { ClientName } from '../constants.js'
 import { getTxOverrides } from '#utils/getTxOverrides.js'
 import { wallets } from '#wallets/index.js'
 import type { providers } from 'ethers'
 import {
-  type TransferSentInput,
-  type BondInput,
-  type PostClaimInput,
   type RailsPath,
   type RailsRelayItem,
   RailsRelayType
@@ -132,8 +136,8 @@ export async function getRelayableItems (relayType: RailsRelayType): Promise<Rai
   const relayableItems: RailsRelayItem[] = []
   for await (const relayableItem of db.getRelayableItems()) {
     if (
-      (relayType === RailsRelayType.Bond && isBondTxInputData(relayableItem)) ||
-      (relayType === RailsRelayType.PostClaim && isPostClaimTxInputData(relayableItem))
+      (relayType === RailsRelayType.Bond && isValidBondTxInputData(relayableItem)) ||
+      (relayType === RailsRelayType.PushClaim && isValidPushClaimTxInputData(relayableItem))
     ) {
       // TODO: I shouldn't have to typecast RailsRelayItem. It is needed now since the type guard is so strict.
       relayableItems.push(relayableItem as RailsRelayItem)
@@ -145,7 +149,7 @@ export async function getRelayableItems (relayType: RailsRelayType): Promise<Rai
 }
 
 export async function relayItem (relayableItem: RailsRelayItem): Promise<providers.TransactionResponse> {
-  const { relayChainId } = relayableItem
+export async function relayItem (relayableItem: RailsRelayItem, relayChainId: string): Promise<providers.TransactionResponse> {
   const txOverrides = await getTxOverrides(relayChainId)
   const wallet = wallets.get(relayChainId)
   const gateway = new RailsGateway(relayChainId, wallet)
@@ -153,9 +157,9 @@ export async function relayItem (relayableItem: RailsRelayItem): Promise<provide
     throw new Error(`No gateway found for chainId: ${relayChainId}`)
   }
 
-  if (isBondTxInputData(relayableItem)) {
+  if (isValidBondTxInputData(relayableItem)) {
     return gateway.bond(relayableItem, txOverrides)
-  } else if (isPostClaimTxInputData(relayableItem)) {
+  } else if (isValidPushClaimTxInputData(relayableItem)) {
     return gateway.pushClaim(relayableItem, txOverrides)
   } else {
     throw new Error('Invalid relay item')
@@ -166,32 +170,7 @@ export async function relayItem (relayableItem: RailsRelayItem): Promise<provide
  * Type Guards
  */
 
-export function isTransferSentInputData (item: unknown): item is TransferSentInput {
-  if (typeof item !== 'object' || item === null) {
-    return false
-  }
-
-  const candidate = item as Partial<TransferSentInput>
-  return (
-    'pathId' in candidate &&
-    'transferId' in candidate &&
-    'to' in candidate &&
-    'amount' in candidate &&
-    'sourcePool' in candidate &&
-    'hops' in candidate &&
-    typeof candidate.pathId === 'string' &&
-    typeof candidate.transferId === 'string' &&
-    typeof candidate.to === 'string' &&
-    // typeof candidate.amount?.toString() === 'string' &&
-    // typeof candidate.sourcePool?.toString() === 'string' &&
-    Array.isArray(candidate.hops)
-    // TODO: Is that a valid assumption?
-    // NOTE: This does not validate the hops array. It is assumed that the
-    // array is correctly formatted
-  )
-}
-
-export function isBondTxInputData (item: unknown): item is BondInput {
+export function isValidBondTxInputData (item: unknown): item is BondInput {
   if (typeof item !== 'object' || item === null) {
     return false
   }
@@ -213,17 +192,17 @@ export function isBondTxInputData (item: unknown): item is BondInput {
 }
 
 // TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
-export function isPostClaimTxInputData (item: unknown): item is PostClaimInput {
+export function isValidPushClaimTxInputData (item: unknown): item is PushClaimInput {
   if (typeof item !== 'object' || item === null) {
     return false
   }
 
-  const candidate = item as Partial<PostClaimInput>
+  const candidate = item as Partial<PushClaimInput>
   return (
     'pathId' in candidate &&
     'transferId' in candidate &&
     'to' in candidate &&
-    'amountOut' in candidate &&
+    'amount' in candidate &&
     'maxBonderFee' in candidate &&
     'attestedClaimId' in candidate &&
     'totalSent' in candidate &&
@@ -232,11 +211,42 @@ export function isPostClaimTxInputData (item: unknown): item is PostClaimInput {
     typeof candidate.pathId === 'string' &&
     typeof candidate.transferId === 'string' &&
     typeof candidate.to === 'string' &&
-    // typeof candidate.amountOut?.toString() === 'string' &&
+    // typeof candidate.amount?.toString() === 'string' &&
     // typeof candidate.maxBonderFee?.toString() === 'string' &&
     typeof candidate.attestedClaimId === 'string' &&
     // typeof candidate.totalSent?.toString() === 'string' &&
     // typeof candidate.totalClaims?.toString() === 'string' &&
     typeof candidate.nextHopsHash === 'string'
+  )
+}
+
+// TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
+export function isValidRemoveClaimTxInputData (item: unknown): item is RemoveClaimInput{
+  if (typeof item !== 'object' || item === null) {
+    return false
+  }
+
+  const candidate = item as Partial<RemoveClaimInput>
+  return (
+    'pathId' in candidate &&
+    'claimId' in candidate &&
+    typeof candidate.pathId === 'string' &&
+    typeof candidate.claimId === 'string'
+  )
+}
+
+export function isValidReaddClaimTxInputData (item: unknown): item is ReaddClaimInput{
+  if (typeof item !== 'object' || item === null) {
+    return false
+  }
+
+  const candidate = item as Partial<ReaddClaimInput>
+  return (
+    'pathId' in candidate &&
+    'transferDataHash' in candidate &&
+    'claimId' in candidate &&
+    typeof candidate.pathId === 'string' &&
+    typeof candidate.transferDataHash === 'string' &&
+    typeof candidate.claimId === 'string'
   )
 }

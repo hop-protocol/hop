@@ -1,10 +1,10 @@
 import type { BigNumber } from 'ethers'
 import type {
-  TransferSentSDK,
-  BondInputSDK,
-  PostClaimInputSDK
+  BondInput,
+  PushClaimInput,
+  RemoveClaimInput,
+  ReaddClaimInput
 } from './RailsSDKWrapper.js'
-import type { RelayChainId } from '#relayer/types.js'
 
 export enum RailsClientName {
   Transfer = 'transfer',
@@ -13,7 +13,7 @@ export enum RailsClientName {
 
 export enum RailsRelayType {
   Bond = 'bond',
-  PostClaim = 'postClaim'
+  PushClaim = 'pushClaim'
 }
 
 export type RailsHop = {
@@ -30,7 +30,15 @@ export type RailsPath = {
   initialReserve: string
 }
 
-export type TransferSentInput = TransferSentSDK
-export type BondInput = BondInputSDK
-export type PostClaimInput = PostClaimInputSDK
-export type RailsRelayItem = (TransferSentInput | BondInput | PostClaimInput) & RelayChainId
+export type {
+  BondInput,
+  PushClaimInput,
+  RemoveClaimInput,
+  ReaddClaimInput
+}
+
+export type RailsRelayItem =
+  | BondInput
+  | PushClaimInput
+  | RemoveClaimInput
+  | ReaddClaimInput

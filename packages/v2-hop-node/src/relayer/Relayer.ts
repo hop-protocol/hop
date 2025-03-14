@@ -5,7 +5,7 @@ import { isEVMError } from '#gasboost/index.js'
 import { Config } from '#config/index.js'
 import type { IRelayer } from './IRelayer.js'
 import type { providers } from 'ethers'
-import type { RelayChainId } from './types.js'
+import type { RelayTxContext } from './types.js'
 
 /**
  * Relayer is concerned with relaying transactions. It allows for validation of transactions
@@ -18,8 +18,8 @@ import type { RelayChainId } from './types.js'
  * will consume RPC calls to validate onchain state, so it should be used sparingly.
  */
 
-export abstract class Relayer<RelayItem extends RelayChainId> implements IRelayer<RelayItem> {
-  readonly #db: RelayerDB<RelayItem>
+export abstract class Relayer<RelayTxMethodName extends string, RelayItem> implements IRelayer {
+  readonly #db: RelayerDB<RelayTxMethodName, RelayItem>
   // This poller is what relays transactions. The main resource consumed per poll is onchain calls,
   // which can be heavy if left unchecked. If this poller is too short, too many RPC calls
   // may be made for an unexpected transaction and cause exhaustion of resources. If the poller
@@ -29,8 +29,9 @@ export abstract class Relayer<RelayItem extends RelayChainId> implements IRelaye
   readonly #dryRun: boolean
   protected readonly logger: Logger
 
-  protected abstract shouldAttemptRelay(value: RelayItem): Promise<boolean>
-  protected abstract sendRelay(value: RelayItem): Promise<providers.TransactionResponse>
+  protected abstract formatRelayItem(relayTxMethodName: RelayTxMethodName, relayItem: any): RelayItem
+  protected abstract shouldAttemptRelay(value: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<boolean>
+  protected abstract sendRelay(value: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<providers.TransactionResponse>
   protected abstract isImplementationError(err: unknown): boolean
 
   constructor (name: string) {
@@ -61,8 +62,9 @@ export abstract class Relayer<RelayItem extends RelayChainId> implements IRelaye
   }
 
   #checkRelay = async (): Promise<void> => {
-    for await (const relayItem of this.#db.getRelayableItems()) {
-      const canRelay = await this.shouldAttemptRelay(relayItem)
+    for await (const [relayItem, relayTxContext] of this.#db.getRelayableItems()) {
+      const { relayTxMethodName, relayChainId } = relayTxContext
+      const canRelay = await this.shouldAttemptRelay(relayItem, relayTxMethodName, relayChainId)
       if (!canRelay) continue
 
       await this.#db.addRelayAttempt(relayItem)
@@ -71,7 +73,7 @@ export abstract class Relayer<RelayItem extends RelayChainId> implements IRelaye
       // transactions. The relayItem will not continue to poll the
       // same relayItem until this method is resolved, so we don't
       // care if it is awaited.
-      void this.#attemptRelay(relayItem)
+      void this.#attemptRelay(relayItem, relayTxMethodName, relayChainId)
     }
   }
 
@@ -79,16 +81,24 @@ export abstract class Relayer<RelayItem extends RelayChainId> implements IRelaye
    * Relay
    */
 
-  async relay (relayItem: RelayItem): Promise<void> {
+
+  // The relayItem can be any format, since the sender does not care about the relay format type.
+  // The relayer validates that there is sufficient data to process the relay.
+  async relay (relayTxMethodName: RelayTxMethodName, relayItem: any, relayChainId: string): Promise<void> {
     this.logger.info(`Adding item to relay: ${JSON.stringify(relayItem)}`)
-    await this.#db.addItem(relayItem)
+    const formattedRelayItem: RelayItem = this.formatRelayItem(relayTxMethodName, relayItem)
+    const relayTxContext: RelayTxContext<RelayTxMethodName> = {
+        relayChainId,
+        relayTxMethodName
+    }
+    await this.#db.addItem(formattedRelayItem, relayTxContext)
   }
 
   /**
    * Internal
    */
 
-  async #attemptRelay (relayItem: RelayItem): Promise<void> {
+  async #attemptRelay (relayItem: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<void> {
     this.logger.info(`Relaying item: ${JSON.stringify(relayItem)}`)
     try {
       // TODO: Optimize: dryRun should be a feature of the provider, not the relayer.
@@ -99,7 +109,7 @@ export abstract class Relayer<RelayItem extends RelayChainId> implements IRelaye
         return
       }
 
-      await this.sendRelay(relayItem)
+      await this.sendRelay(relayItem, relayTxMethodName, relayChainId)
       await this.#db.removeItem(relayItem)
     } catch (err: unknown) {
       return this.#handleRelayError(relayItem, err)

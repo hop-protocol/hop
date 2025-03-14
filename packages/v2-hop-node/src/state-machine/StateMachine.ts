@@ -27,9 +27,9 @@ import type { NextState, StateTxContext } from './types.js'
 
 // The relayer is unconcerned with the context of transactions, so
 // that is removed from the data that is relayed.
-type RelayItem<StateData extends object = object> = Omit<StateData, 'txContext'>
+type StateDataWithoutContext<StateData extends object = object> = Omit<StateData, 'txContext'>
 
-export abstract class StateMachine<State extends string, StateData extends StateTxContext> implements IStateMachine {
+export abstract class StateMachine<State extends string, StateData extends StateTxContext, RelayTxMethodName extends string> implements IStateMachine {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, NextState<State>, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
@@ -53,11 +53,12 @@ export abstract class StateMachine<State extends string, StateData extends State
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
   protected abstract getTransitionState(state: State): State
   protected abstract getRelayChainId(state: State, value: StateData): string
+  protected abstract getRelayTxMethodFromState(state: State): RelayTxMethodName
 
   constructor (
     name: string,
     dataAdapter: IDataAdapter<State, StateData>,
-    relayer: IRelayer<RelayItem>
+    relayer: IRelayer
   ) {
     this.#db = new StateMachineDB(name)
     this.#dataAdapter = dataAdapter
@@ -223,29 +224,29 @@ export abstract class StateMachine<State extends string, StateData extends State
   async #sendRelay(state: State, key: string, value: StateData): Promise<void> {
     this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
     // The first state hook will have nothing in the DB to read
-    let relayItem: RelayItem<StateData> | undefined
+    let relayItem: StateDataWithoutContext<StateData> | undefined
     if (state === getFirstState(this.#states)) {
       relayItem = value
     } else {
       relayItem = await this.#getRelayItem(key)
     }
 
+    // TODO: Optimize: Enforce the NextState<State> type in the implementation
+    const nextState = this.getTransitionState(state) as NextState<State>
+    const relayTxMethodName = this.getRelayTxMethodFromState(nextState)
     // TODO: In theory, the state machine should not care about the chain.
     const relayChainId: string = this.getRelayChainId(state, value)
-    return this.#relayer.relay({
-      ...relayItem,
-      relayChainId
-    })
+    return this.#relayer.relay(relayTxMethodName, relayItem, relayChainId)
   }
 
   // Aggregate all existing data to send to the relayer. The relayer
   // doesn't care about the state, only the data it needs to relay.
-  async #getRelayItem(key: string): Promise<RelayItem<StateData>> {
+  async #getRelayItem(key: string): Promise<StateDataWithoutContext<StateData>> {
     const stateAndItem: [State, StateData][] = await this.#db.getItemByKey(key, this.#states)
 
     return stateAndItem.reduce((acc, [, data]) => {
       const { txContext, ...restData } = data
       return { ...acc, ...restData }
-    }, {} as RelayItem<StateData>)
+    }, {} as StateDataWithoutContext<StateData>)
   }
 }

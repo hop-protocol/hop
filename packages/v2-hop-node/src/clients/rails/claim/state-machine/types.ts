@@ -1,20 +1,26 @@
+import type { RailsHop } from '../../types.js'
+import type { BigNumber } from 'ethers'
 import type { StateTxContext } from '#state-machine/index.js'
-import { RailsEventName } from '#clients/rails/RailsSDKWrapper.js'
+import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.js'
+
+export enum RailsClaimMethodName {
+  PushClaim = RailsMethodName.PushClaim,
+  RemoveClaim = RailsMethodName.RemoveClaim,
+  ReaddClaim = RailsMethodName.ReaddClaim
+}
 
 export enum RailsClaimEventName {
   TransferSent = RailsEventName.TransferSent,
-  ClaimPosted = RailsEventName.ClaimPosted,
+  ClaimPushed = RailsEventName.ClaimPushed,
   ClaimRemoved = RailsEventName.ClaimRemoved,
-  // ClaimReadded = RailsEventName.ClaimReadded
-  // Confirmed = RailsEventName.ClaimConfirmed
+  ClaimReadded = RailsEventName.ClaimReadded
 }
 
 export enum RailsClaimState {
   Sent = 'sent',
-  Posted = 'posted',
+  Pushed = 'pushed',
   Removed = 'removed',
-  // Readded = 'readded',
-  // Confirmed = 'confirmed'
+  Readded = 'readded',
 }
 
 interface IRailsClaimShared extends StateTxContext {
@@ -23,23 +29,22 @@ interface IRailsClaimShared extends StateTxContext {
 
 export interface ISentRailsClaim extends IRailsClaimShared {
   transferId: string
-  // TODO
+  to: string
+  amount: BigNumber
+  sourcePool: BigNumber
+  hops: RailsHop[]
 }
 
-export interface IPostedRailsClaim extends IRailsClaimShared {
+export interface IPushedRailsClaim extends IRailsClaimShared {
   claimId: string
-  // TODO
 }
 
 export interface IRemovedRailsClaim extends IRailsClaimShared {
   claimId: string
-  // TODO
 }
 
-export interface IConfirmedRailsClaim extends IRailsClaimShared {
+export interface IReaddedRailsClaim extends IRailsClaimShared {
   claimId: string
-  // TODO
 }
 
-
-export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IRemovedRailsClaim | IConfirmedRailsClaim
+export type IRailsClaim = ISentRailsClaim | IPushedRailsClaim | IRemovedRailsClaim | IReaddedRailsClaim

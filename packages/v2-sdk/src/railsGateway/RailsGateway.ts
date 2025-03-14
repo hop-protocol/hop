@@ -7,7 +7,7 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
-import { ClaimPosted, ClaimPostedEventFetcher, ClaimPostedIndexes } from '#railsGateway/events/ClaimPosted.js'
+import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#railsGateway/events/ClaimPushed.js'
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
@@ -21,12 +21,20 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPostedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher
+
+export enum MethodName {
+  Send = 'send',
+  PushClaim = 'pushClaim',
+  RemoveClaim = 'removeClaim',
+  ReaddClaim = 'readdClaim',
+  Bond = 'bond'
+}
 
 export enum EventName {
   TransferSent = 'TransferSent',
   TransferBonded = 'TransferBonded',
-  ClaimPosted = 'ClaimPosted',
+  ClaimPushed = 'ClaimPushed',
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
 }
@@ -116,7 +124,6 @@ export type ApproveBondInput = {
   pathId: string
   amount: BigNumberish
 }
-
 export type PostClaimInput = {
   pathId: string
   transferId: string
@@ -130,6 +137,11 @@ export type PostClaimInput = {
 }
 
 export type RemoveClaimInput = {
+  pathId: string
+  claimId: string
+}
+
+export type ReaddClaimInput = {
   pathId: string
   claimId: string
 }
@@ -248,13 +260,13 @@ export type GetTokenContractInput = {
   address: string
 }
 
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes
+export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes
 
 export type GetTransferSentEventFilterInput = TransferSentIndexes
 
 export type GetTransferBondedEventFilterInput = TransferBondedIndexes
 
-export type GetClaimPostedEventFilterInput = ClaimPostedIndexes
+export type GetClaimPushedEventFilterInput = ClaimPushedIndexes
 
 export type GetClaimReaddedEventFilterInput = ClaimReaddedIndexes
 
@@ -279,12 +291,14 @@ export type GetTotalSentInput = {
   pathId: string
 }
 
-export type GetIsTransferBondedInput = {
-  transferId: string
+export type GetIsClaimBondedOrWithdrawnInput = {
+  pathId: string
+  claimId: string
 }
 
-export type GetIsTransferClaimedInput = {
-  transferId: string
+export type GetIsClaimPushedInput = {
+  pathId: string
+  claimId: string
 }
 
 export type GetNextHopsHashInput = {
@@ -715,10 +729,10 @@ export class RailsGateway extends Base {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
 
-    const eventFetcher: Record<EventName, any> = {
+    const eventFetcher: Record<any, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
       [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
+      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
     }
@@ -731,7 +745,8 @@ export class RailsGateway extends Base {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
+  // TODO: Not any
+  getEventFilter(eventName: any, input: GetEventFilterInput = {}) {
     if (eventName == EventName.TransferSent) {
       return this.getTransferSentEventFilter(input)
     }
@@ -740,8 +755,8 @@ export class RailsGateway extends Base {
       return this.getTransferBondedEventFilter(input)
     }
 
-    if (eventName == EventName.ClaimPosted) {
-      return this.getClaimPostedEventFilter(input)
+    if (eventName == EventName.ClaimPushed) {
+      return this.getClaimPushedEventFilter(input)
     }
 
     if (eventName == EventName.ClaimReadded) {
@@ -765,8 +780,8 @@ export class RailsGateway extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  getClaimPostedEventFilter(input: GetClaimPostedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.ClaimPosted)
+  getClaimPushedEventFilter(input: GetClaimPushedEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.ClaimPushed)
     return eventFetcher.getFilterWithIndexes(input)
   }
 
@@ -780,11 +795,11 @@ export class RailsGateway extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved> {
     return RailsGateway.addDecodedTypesToEvent(event, this.chainId)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved>[] {
     return RailsGateway.addDecodedTypesToEvents(events, this.chainId)
   }
 
@@ -872,8 +887,8 @@ export class RailsGateway extends Base {
     return RailsGateway.addDecodedTypesToTransferBondedEvents(events, this.chainId)
   }
 
-  addDecodedTypesToClaimPostedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimPosted>[] {
-    return RailsGateway.addDecodedTypesToClaimPostedEvents(events, this.chainId)
+  addDecodedTypesToClaimPushedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimPushed>[] {
+    return RailsGateway.addDecodedTypesToClaimPushedEvents(events, this.chainId)
   }
 
   addDecodedTypesToClaimReaddedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimReadded>[] {
@@ -1983,34 +1998,44 @@ export class RailsGateway extends Base {
         return this.sendTransaction(txData)
       },
 
-      getIsTransferBonded: async ({ transferId }: GetIsTransferBondedInput): Promise<boolean> => {
+      getIsClaimPushed: async ({ pathId, claimId }: GetIsClaimPushedInput): Promise<boolean> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
 
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        // TODO: call contract state once it's available
-        return false
+        const contract = await this.getRailsGatewayContract()
+        try {
+          const claim = await contract.getClaim(pathId, claimId)
+          return claim.to !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
       },
 
-      getIsTransferClaimed: async ({ transferId }: GetIsTransferClaimedInput): Promise<boolean> => {
+      getIsClaimBondedOrWithdrawn: async ({ pathId, claimId }: GetIsClaimBondedOrWithdrawnInput): Promise<boolean> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
 
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        // TODO: call contract state once it's available
-        return false
+        const contract = await this.getRailsGatewayContract()
+        try {
+          const claim = await contract.getClaim(pathId, claimId)
+          return claim.bondedOrWithdrawnBy !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
       },
 
       getIsPathIdLive: async ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> => {
@@ -2841,18 +2866,19 @@ export class RailsGateway extends Base {
     return eventFetcher.getTopic0()
   }
 
-  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved> {
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved> {
     const decoded = RailsGateway.addDecodedTypesToEvents([event], chainId)
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPosted | ClaimReadded | ClaimRemoved>[] {
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved>[] {
     const transferSentEventFetcher = new TransferSentEventFetcher()
     const transferBondedEventFetcher = new TransferBondedEventFetcher()
-    const claimPostedEventFetcher = new ClaimPostedEventFetcher()
+    const claimPushedEventFetcher = new ClaimPushedEventFetcher()
     const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
     const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
+
 
     const result = events.map(event => {
       if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
@@ -2863,8 +2889,12 @@ export class RailsGateway extends Base {
         return RailsGateway.addDecodedTypesToTransferBondedEvent(event, chainId)
       }
 
-      if (claimPostedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimPosted) {
-        return RailsGateway.addDecodedTypesToClaimPostedEvent(event, chainId)
+      // TODO: TEMP
+      if (
+        claimPushedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimPushed ||
+        event.topics[0] === '0xb4218711f46b03c748b6c766eab4aba7149207e336d447cbf3adba10976daaa6'
+      ) {
+        return RailsGateway.addDecodedTypesToClaimPushedEvent(event, chainId)
       }
 
       if (claimReaddedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimReadded) {
@@ -2891,8 +2921,8 @@ export class RailsGateway extends Base {
     return eventFetcher.addTypedEvent(event)
   }
 
-  static addDecodedTypesToClaimPostedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPosted> {
-    const eventFetcher = new ClaimPostedEventFetcher(undefined, chainId)
+  static addDecodedTypesToClaimPushedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPushed> {
+    const eventFetcher = new ClaimPushedEventFetcher(undefined, chainId)
     return eventFetcher.addTypedEvent(event)
   }
 
@@ -2916,8 +2946,8 @@ export class RailsGateway extends Base {
     return events.map(event => eventFetcher.addTypedEvent(event))
   }
 
-  static addDecodedTypesToClaimPostedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPosted>[] {
-    const eventFetcher = new ClaimPostedEventFetcher(undefined, chainId)
+  static addDecodedTypesToClaimPushedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPushed>[] {
+    const eventFetcher = new ClaimPushedEventFetcher(undefined, chainId)
     return events.map(event => eventFetcher.addTypedEvent(event))
   }
 

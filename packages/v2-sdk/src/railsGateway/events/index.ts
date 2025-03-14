@@ -10,10 +10,10 @@ export {
   TransferSentIndexes
 } from './TransferSent.js'
 export {
-  ClaimPosted,
-  ClaimPostedEventFetcher,
-  ClaimPostedIndexes
-} from './ClaimPosted.js'
+  ClaimPushed,
+  ClaimPushedEventFetcher,
+  ClaimPushedIndexes
+} from './ClaimPushed.js'
 export {
   ClaimReadded,
   ClaimReaddedEventFetcher,

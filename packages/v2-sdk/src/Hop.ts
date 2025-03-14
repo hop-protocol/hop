@@ -20,7 +20,7 @@ export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | Bund
 export enum EventName {
   TransferSent = RailsGatewayEventName.TransferSent,
   TransferBonded = RailsGatewayEventName.TransferBonded,
-  ClaimPosted = RailsGatewayEventName.ClaimPosted,
+  ClaimPushed = RailsGatewayEventName.ClaimPushed,
   ClaimReadded = RailsGatewayEventName.ClaimReadded,
   ClaimRemoved = RailsGatewayEventName.ClaimRemoved,
   BonderPreference = StakingRegistryEventName.BonderPreference,

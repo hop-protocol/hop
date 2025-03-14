@@ -11,10 +11,21 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Link from '@mui/material/Link'
+import Container from '@mui/material/Container'
+import Divider from '@mui/material/Divider'
+import Chip from '@mui/material/Chip'
+import Skeleton from '@mui/material/Skeleton'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import { useTheme } from '@mui/material/styles'
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
+import Avatar from '@mui/material/Avatar'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 import { DetailRow } from '@/app/gateways/DetailRow'
 
 export function Bonders() {
+  const theme = useTheme()
+  const isDarkMode = theme.palette.mode === 'dark'
   const [contractState, setContractState] = useState<any>({})
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
@@ -45,133 +56,284 @@ export function Bonders() {
       })
   }, [])
 
+  // Loading state with skeletons for better UX
   if (loading) {
     return (
-      <Box p={2}>
-        <Typography variant="body1" color="textSecondary">Loading...</Typography>
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ mb: 5 }}>
+          <Skeleton variant="text" width="300px" height={60} />
+          <Skeleton variant="text" width="500px" height={30} />
+        </Box>
+        
+        {[1, 2].map((i) => (
+          <Paper 
+            key={i} 
+            elevation={2} 
+            sx={{ 
+              mb: 4, 
+              p: 3, 
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`
+            }}
+          >
+            <Skeleton variant="rectangular" height={400} />
+          </Paper>
+        ))}
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <Box p={2}>
-        <Typography color="error">Error: {error.message}</Typography>
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h3" component="h1" fontWeight="bold" color="primary" mb={1}>
+            Bonders
+          </Typography>
+        </Box>
+        <Paper 
+          elevation={2} 
+          sx={{ 
+            p: 3, 
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            bgcolor: 'error.light'
+          }}
+        >
+          <Typography color="error" variant="h6">Error Loading Bonder Data</Typography>
+          <Typography color="error.dark" sx={{ mt: 1 }}>{error.message}</Typography>
+        </Paper>
+      </Container>
     )
   }
 
   return (
-    <Box width="100%" maxWidth="1400px" p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4" color="textPrimary">
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 5 }}>
+        <Typography variant="h3" component="h1" fontWeight="bold" color="primary" mb={1}>
           Bonders
         </Typography>
-        {lastUpdated && (
-          <Typography variant="body2" color="textSecondary">
-            Last Updated: {lastUpdated}
-          </Typography>
-        )}
+        <Typography variant="subtitle1" color="text.secondary">
+          View active bonders and their balances across chains
+        </Typography>
       </Box>
 
       {contractState.bonders?.map((bonder: any) => (
-        <Paper key={bonder.address} elevation={2} sx={{ mb: 4, p: 2 }}>
-          <TableContainer>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell sx={{ width: '200px' }}>Bonder Address:</TableCell>
-                  <TableCell>
-                    <CopyToClipboardText text={bonder.address}>
+        <Paper 
+          key={bonder.address} 
+          elevation={isDarkMode ? 3 : 2} 
+          sx={{ 
+            mb: 5, 
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden'
+          }}
+        >
+          {/* Bonder Header */}
+          <Box 
+            sx={{ 
+              p: 3, 
+              background: isDarkMode 
+                ? `linear-gradient(145deg, ${theme.palette.background.paper} 0%, rgba(40, 50, 60, 0.8) 100%)`
+                : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(245,247,250,0.9) 100%)',
+              borderBottom: `1px solid ${theme.palette.divider}`
+            }}
+          >
+            <Box display="flex" alignItems="center" flexWrap="wrap" gap={2}>
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText
+                }}
+              >
+                <AccountBalanceWalletIcon />
+              </Avatar>
+
+              <Box>
+                <Typography variant="h5" fontWeight="bold">
+                  Bonder
+                </Typography>
+                <Box display="flex" alignItems="center" mt={0.5}>
+                  <CopyToClipboardText text={bonder.address}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        backgroundColor: isDarkMode 
+                          ? 'rgba(0,0,0,0.2)' 
+                          : 'rgba(0,0,0,0.05)',
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: 1,
+                        cursor: 'pointer'
+                      }}
+                    >
                       {bonder.address}
-                    </CopyToClipboardText>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </Typography>
+                  </CopyToClipboardText>
+                </Box>
+              </Box>
 
-          <TableContainer sx={{ mt: 4 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: '200px' }}>Token</TableCell>
-                  <TableCell>Total Bonded Amount</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.entries(bonder.totalAmountBondedByToken).map(([symbol, data]: [string, any]) => (
-                  <TableRow key={symbol}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        {data.token.imageUrl && (
-                          <img
-                            src={data.token.imageUrl}
-                            alt={symbol}
-                            style={{ width: 20, height: 20, marginRight: 8 }}
-                          />
-                        )}
-                        {symbol}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <CopyToClipboardText text={data.amount}>
-                        {`${data.amount} (${data.amountDisplay}) (${data.amountUsdDisplay})`}
-                      </CopyToClipboardText>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              <Box flexGrow={1} />
+              
+              <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'flex-start' }}>
+                Last Updated: {lastUpdated ? new Date(lastUpdated).toLocaleString() : 'Unknown'}
+              </Typography>
+            </Box>
+          </Box>
 
-          <TableContainer sx={{ mt: 4 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: '200px' }}>Chain</TableCell>
-                  <TableCell>Staked Balance</TableCell>
-                  <TableCell>Withdrawable Balance</TableCell>
-                  <TableCell>HOP Balance</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {bonder.balances.map((balance: any) => (
-                  <TableRow key={balance.chainId}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        {balance.chainImageUrl && (
-                          <img
-                            src={balance.chainImageUrl}
-                            alt={balance.chainName}
-                            style={{ width: 20, height: 20, marginRight: 8 }}
-                          />
-                        )}
-                        {balance.chainLabel}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <CopyToClipboardText text={balance.stakedBalance}>
-                        {`${balance.stakedBalance} (${balance.stakedBalanceDisplay}) (${balance.stakedBalanceUsdDisplay})`}
-                      </CopyToClipboardText>
-                    </TableCell>
-                    <TableCell>
-                      <CopyToClipboardText text={balance.withdrawableBalance}>
-                        {`${balance.withdrawableBalance} (${balance.withdrawableBalanceDisplay}) (${balance.withdrawableBalanceUsdDisplay})`}
-                      </CopyToClipboardText>
-                    </TableCell>
-                    <TableCell>
-                      <CopyToClipboardText text={balance.hopBalance}>
-                        {`${balance.hopBalance} (${balance.hopBalanceDisplay}) (${balance.hopBalanceUsdDisplay})`}
-                      </CopyToClipboardText>
-                    </TableCell>
+          {/* Total Bonded By Token */}
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+              Total Bonded by Token
+            </Typography>
+            
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 2,
+                mb: 4
+              }}
+            >
+              {Object.entries(bonder.totalAmountBondedByToken).map(([symbol, data]: [string, any]) => (
+                <Card 
+                  key={symbol} 
+                  elevation={1}
+                  sx={{ 
+                    minWidth: 220,
+                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 4
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" alignItems="center" mb={1.5}>
+                      {data.token.imageUrl && (
+                        <Avatar
+                          src={data.token.imageUrl}
+                          alt={symbol}
+                          sx={{ width: 32, height: 32, mr: 1 }}
+                        >
+                          {symbol.charAt(0)}
+                        </Avatar>
+                      )}
+                      <Typography variant="h6">{symbol}</Typography>
+                    </Box>
+                    
+                    <Divider sx={{ mb: 1.5 }} />
+                    
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Total Bonded
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data.amountDisplay}
+                      </Typography>
+                      <Typography variant="body2" color="primary">
+                        {data.amountUsdDisplay}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+
+            {/* Chain Balances */}
+            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+              Chain Balances
+            </Typography>
+            
+            <TableContainer component={Paper} elevation={0} sx={{ border: `1px solid ${theme.palette.divider}` }}>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(255,255,255,0.05)' 
+                        : 'rgba(0,0,0,0.02)',
+                      '& th': {
+                        fontWeight: 'bold'
+                      }
+                    }}
+                  >
+                    <TableCell>Chain</TableCell>
+                    <TableCell>Staked Balance</TableCell>
+                    <TableCell>Withdrawable Balance</TableCell>
+                    <TableCell>HOP Balance</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {bonder.balances.map((balance: any) => (
+                    <TableRow 
+                      key={balance.chainId}
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        '&:hover': {
+                          backgroundColor: isDarkMode 
+                            ? 'rgba(255,255,255,0.03)' 
+                            : 'rgba(0,0,0,0.01)'
+                        }
+                      }}
+                    >
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          {balance.chainImageUrl && (
+                            <Avatar
+                              src={balance.chainImageUrl}
+                              alt={balance.chainName}
+                              sx={{ width: 24, height: 24, mr: 1 }}
+                            >
+                              {balance.chainLabel.charAt(0)}
+                            </Avatar>
+                          )}
+                          <Typography variant="body2" fontWeight="medium">
+                            {balance.chainLabel}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {balance.stakedBalanceDisplay}
+                          </Typography>
+                          <Typography variant="caption" color="primary">
+                            {balance.stakedBalanceUsdDisplay}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {balance.withdrawableBalanceDisplay}
+                          </Typography>
+                          <Typography variant="caption" color="primary">
+                            {balance.withdrawableBalanceUsdDisplay}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {balance.hopBalanceDisplay}
+                          </Typography>
+                          <Typography variant="caption" color="primary">
+                            {balance.hopBalanceUsdDisplay}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </Paper>
       ))}
-    </Box>
+    </Container>
   )
 }

@@ -1,51 +1,49 @@
-import { RailsGateway } from './RailsSDKWrapper.js'
+import { RailsRelayer } from './RailsRelayer.js'
 import { RelayerDB } from '#relayer/index.js'
 import { ClientName } from '../constants.js'
-import { getTxOverrides } from '#utils/getTxOverrides.js'
-import { wallets } from '#wallets/index.js'
 import type { providers } from 'ethers'
-import { type RailsRelayItem, RailsClientName, RailsRelayType } from './types.js'
-import { isValidBondTxInputData, isValidPushClaimTxInputData } from './utils.js'
+import { type RailsRelayItem, type RailsPath, RailsClientName } from './types.js'
+import { getPathFromPathId, isValidBondTxInputData, isValidPushClaimTxInputData } from './utils.js'
+import { RailsMethodName } from './RailsSDKWrapper.js'
 
 export {
   RailsClientName,
-  RailsRelayType,
+  RailsMethodName
 }
 
-export async function getRelayableItems (relayType: RailsRelayType): Promise<RailsRelayItem[]> {
+export async function getRelayableItems (methodName: RailsMethodName): Promise<RailsRelayItem[]> {
   const name = ClientName.Rails
-  const db = new RelayerDB(name)
-  if (!db) {
-    throw new Error(`DB not found for client: ${name}`)
-  }
+  const db = getRelayerDB(name)
 
   const relayableItems: RailsRelayItem[] = []
   for await (const relayableItem of db.getRelayableItems()) {
     if (
-      (relayType === RailsRelayType.Bond && isValidBondTxInputData(relayableItem)) ||
-      (relayType === RailsRelayType.PushClaim && isValidPushClaimTxInputData(relayableItem))
+      (methodName === RailsMethodName.Bond && isValidBondTxInputData(relayableItem)) ||
+      (methodName === RailsMethodName.PushClaim && isValidPushClaimTxInputData(relayableItem))
     ) {
-      relayableItems.push(relayableItem as RailsRelayItem)
+      relayableItems.push(relayableItem)
     }
   }
 
   return relayableItems
 }
 
-// TODO: This needs to be updated for use elsewhere
-export async function relayItem (relayableItem: RailsRelayItem, relayChainId: string): Promise<providers.TransactionResponse> {
-  const txOverrides = await getTxOverrides(relayChainId)
-  const wallet = wallets.get(relayChainId)
-  const gateway = new RailsGateway(relayChainId, wallet)
-  if (typeof gateway === 'undefined') {
-    throw new Error(`No gateway found for chainId: ${relayChainId}`)
+export async function relayItem (relayItem: RailsRelayItem): Promise<providers.TransactionResponse> {
+  const name = ClientName.Rails
+  const db = getRelayerDB(name)
+
+  const { relayChainId, relayTxMethodName } = await db.getTxContextByRelayItemKey(relayItem.pathId)
+
+  const path: RailsPath = getPathFromPathId(relayItem.pathId)
+  const relayer = new RailsRelayer(name, [path])
+  return relayer.sendRelay(relayItem, relayTxMethodName, relayChainId)
+}
+
+function getRelayerDB (name: ClientName): RelayerDB<RailsMethodName, RailsRelayItem> {
+  const db = new RelayerDB<RailsMethodName, RailsRelayItem>(name)
+  if (!db) {
+    throw new Error(`DB not found for client: ${name}`)
   }
 
-  if (isValidBondTxInputData(relayableItem)) {
-    return gateway.bond(relayableItem, txOverrides)
-  } else if (isValidPushClaimTxInputData(relayableItem)) {
-    return gateway.pushClaim(relayableItem, txOverrides)
-  } else {
-    throw new Error('Invalid relay item')
-  }
+  return db
 }

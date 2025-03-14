@@ -71,7 +71,18 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     }
   }
 
-  protected override async sendRelay (
+  protected override isImplementationError (err: unknown): boolean {
+    return (
+      this.#isContractError(err) ||
+      this.#isBCRError(err)
+    )
+  }
+
+  /**
+   * External
+   */
+
+  override async sendRelay (
     relayItem: RailsRelayItem,
     relayTxMethodName: RailsMethodName,
     relayChainId: string
@@ -89,13 +100,6 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
       default:
         throw new Error('Invalid relay item')
     }
-  }
-
-  protected override isImplementationError (err: unknown): boolean {
-    return (
-      this.#isContractError(err) ||
-      this.#isBCRError(err)
-    )
   }
 
   /**

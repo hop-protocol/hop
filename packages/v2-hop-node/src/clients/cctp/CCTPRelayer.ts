@@ -31,7 +31,11 @@ export class CCTPRelayer extends Relayer<CCTPMethodName, ICCTPRelayItem> {
     }
   }
 
-  protected override async sendRelay (
+  /**
+   * External
+   */
+
+  override async sendRelay (
     relayItem: ICCTPRelayItem,
     relayTxMethodName: CCTPMethodName
   ): Promise<providers.TransactionResponse> {

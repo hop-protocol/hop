@@ -11,11 +11,6 @@ export enum RailsClientName {
   Claim = 'claim'
 }
 
-export enum RailsRelayType {
-  Bond = 'bond',
-  PushClaim = 'pushClaim'
-}
-
 // TODO: Get from SDk
 export type RailsHop = {
   pathId: string

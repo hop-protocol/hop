@@ -1,17 +1,17 @@
-import { Stats } from './Stats'
+import { Analytics } from './Analytics'
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 import { LoadingText } from '@/app/components/LoadingText'
 
 export const metadata: Metadata = {
-  title: 'Stats',
+  title: 'Analytics',
 }
 
-export default async function StatsPage() {
+export default async function AnalyticsPage() {
 
   return (
     <Suspense fallback={<LoadingText />}>
-      <Stats />
+      <Analytics />
     </Suspense>
   )
 }

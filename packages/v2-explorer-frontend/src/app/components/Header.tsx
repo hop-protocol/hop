@@ -30,7 +30,7 @@ export function Header () {
     tokens: '/tokens',
     paths: '/paths',
     prices: '/prices',
-    stats: '/stats',
+    analytics: '/analytics',
     gateways: '/gateways',
     bonders: '/bonders',
   }
@@ -42,7 +42,7 @@ export function Header () {
       '/tokens': 'tokens',
       '/paths': 'paths',
       '/prices': 'prices',
-      '/stats': 'stats',
+      '/analytics': 'analytics',
       '/gateways': 'gateways',
       '/bonders': 'bonders',
     }
@@ -158,7 +158,7 @@ export function Header () {
           <Tab label="Tokens" value="tokens" />
           <Tab label="Paths" value="paths" />
           <Tab label="Prices" value="prices" />
-          <Tab label="Stats" value="stats" />
+          <Tab label="Analytics" value="analytics" />
         </Tabs>
       </Box>
     </Box>

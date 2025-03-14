@@ -65,6 +65,7 @@ type TransferVolumeStatsApiResult = {
     totalVolumeFormatted: number
   }
   tokenVolumes: Record<string, {
+    tokenImageUrl: string
     totalUsd: number
     totalUsdDisplay: string
     totalVolumeFormatted: number
@@ -917,6 +918,7 @@ export class Controller {
     let totalUsd = 0
     let totalVolumeFormatted = 0
     const tokenVolumes: Record<string, {
+      tokenImageUrl: string
       totalVolumeFormatted: number
       totalUsd: number
       totalUsdDisplay: string
@@ -934,6 +936,7 @@ export class Controller {
         
         if (!tokenVolumes[result.tokenSymbol]) {
           tokenVolumes[result.tokenSymbol] = {
+            tokenImageUrl: this.sdk.utils.getLogoForTokenSymbol(result.tokenSymbol),
             totalVolumeFormatted: 0,
             totalUsd: 0,
             totalUsdDisplay: ''
@@ -1413,49 +1416,6 @@ export class Controller {
       }
     } catch (err: any) {
       console.error('Error getting cumulative volume stats', err)
-      throw err
-    }
-  }
-  
-  async getDetailedVolumeDataForApi(input: DailyVolumeStatsApiInput): Promise<any> {
-    try {
-      console.log('getDetailedVolumeDataForApi input', input)
-      const data = await this.pgDb.events.TransferSent.getDetailedDailyVolumeData(input)
-      
-      console.log(`Found ${data.length} detailed volume data entries`)
-      
-      // Add additional debugging info
-      const transferCounts: Record<string, number> = {}
-      const volumeByDay: Record<string, Record<string, { raw: string, formatted: string }>> = {}
-      
-      data.forEach((item: any) => {
-        // Count transfers by day
-        if (!transferCounts[item.date]) {
-          transferCounts[item.date] = 0
-        }
-        transferCounts[item.date] += item.transferCount
-        
-        // Track volume by day and token
-        if (!volumeByDay[item.date]) {
-          volumeByDay[item.date] = {}
-        }
-        
-        volumeByDay[item.date][item.tokenSymbol] = {
-          raw: item.totalRawAmount,
-          formatted: item.formattedAmount
-        }
-      })
-      
-      return {
-        detailedData: data,
-        summary: {
-          totalEntries: data.length,
-          transferCounts,
-          volumeByDay
-        }
-      }
-    } catch (err: any) {
-      console.error('Error getting detailed volume data', err)
       throw err
     }
   }

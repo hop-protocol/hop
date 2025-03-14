@@ -212,25 +212,6 @@ app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any)
   }
 })
 
-app.get('/v1/stats/detailed-volume', async (req: any, res: any) => {
-  try {
-    const { days, pathId, startTimestamp, endTimestamp } = req.query
-    const data = await controller.getDetailedVolumeDataForApi({
-      days: days ? parseInt(days) : undefined,
-      pathId,
-      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
-      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
-    })
-    res.status(200).json({
-      data,
-      lastUpdated: new Date().toISOString()
-    })
-  } catch (err: any) {
-    console.error(err)
-    res.json({ error: err.message })
-  }
-})
-
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
     const { filter, chainIds } = req.query

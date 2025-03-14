@@ -6,7 +6,7 @@ on:
       # - v2
     paths:
       - 'packages/v2-explorer-backend/**'
-      - 'packages/v2-hop-node/**'
+      #- 'packages/v2-hop-node/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 

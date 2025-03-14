@@ -65,6 +65,11 @@ export class RelayerDB<RelayTxMethodName, RelayItem> extends DB<DBKey, DBValue<R
     }
   }
 
+  async getTxContextByRelayItemKey(key: DBKey): Promise<RelayTxContext<RelayTxMethodName>> {
+    const relayItem = await this.get(key)
+    return relayItem.relayTxContext
+  }
+
   /**
    * Internal
    */

@@ -29,9 +29,9 @@ export abstract class Relayer<RelayTxMethodName extends string, RelayItem> imple
   readonly #dryRun: boolean
   protected readonly logger: Logger
 
+  abstract sendRelay(value: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<providers.TransactionResponse>
   protected abstract formatRelayItem(relayTxMethodName: RelayTxMethodName, relayItem: any): RelayItem
   protected abstract shouldAttemptRelay(value: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<boolean>
-  protected abstract sendRelay(value: RelayItem, relayTxMethodName: RelayTxMethodName, relayChainId: string): Promise<providers.TransactionResponse>
   protected abstract isImplementationError(err: unknown): boolean
 
   constructor (name: string) {

@@ -2,14 +2,14 @@ import { BaseType, EventDb } from '../BaseType.js'
 import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
-export interface ClaimPosted extends BaseType {
+export interface ClaimPushed extends BaseType {
   pathId: string
   claimId: string
 }
 
-export class ClaimPostedTable extends EventDb {
+export class ClaimPushedTable extends EventDb {
   override async createTable () {
-    await this.db.query(`CREATE TABLE IF NOT EXISTS claim_posted_events (
+    await this.db.query(`CREATE TABLE IF NOT EXISTS claim_pushed_events (
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
         claim_id CHAR(66) NOT NULL UNIQUE,
@@ -19,16 +19,16 @@ export class ClaimPostedTable extends EventDb {
 
   override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_posted_events_claim_id ON claim_posted_events (claim_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_pushed_events_claim_id ON claim_pushed_events (claim_id);'
     )
     await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_posted_events_path_id ON claim_posted_events (path_id);'
+      'CREATE INDEX IF NOT EXISTS idx_claim_pushed_events_path_id ON claim_pushed_events (path_id);'
     )
     await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_posted_events_event_context_id ON claim_posted_events (event_context_id);'
+      'CREATE INDEX IF NOT EXISTS idx_claim_pushed_events_event_context_id ON claim_pushed_events (event_context_id);'
     )
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_posted_events_path_id_and_claim_id ON claim_posted_events (path_id, claim_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_pushed_events_path_id_and_claim_id ON claim_pushed_events (path_id, claim_id);'
     )
   }
 
@@ -56,7 +56,7 @@ export class ClaimPostedTable extends EventDb {
         claim_id AS "claimId",
         ${selectEventContextSql}
       FROM
-        claim_posted_events e
+        claim_pushed_events e
       JOIN
         event_context ec ON e.event_context_id = ec.id
       WHERE
@@ -89,7 +89,7 @@ export class ClaimPostedTable extends EventDb {
     }
     const sql = `
       INSERT INTO
-        claim_posted_events
+        claim_pushed_events
       (
         id, event_context_id, path_id, claim_id
       )
@@ -104,7 +104,7 @@ export class ClaimPostedTable extends EventDb {
     })
   }
 
-  #normalizeDataForGet (getData: Partial<ClaimPosted>): Partial<ClaimPosted> {
+  #normalizeDataForGet (getData: Partial<ClaimPushed>): Partial<ClaimPushed> {
     if (!getData) {
       return getData
     }
@@ -113,7 +113,7 @@ export class ClaimPostedTable extends EventDb {
     return data
   }
 
-  #normalizeDataForPut (putData: Partial<ClaimPosted>): Partial<ClaimPosted> {
+  #normalizeDataForPut (putData: Partial<ClaimPushed>): Partial<ClaimPushed> {
     const data = Object.assign({}, putData) as any
 
     return data

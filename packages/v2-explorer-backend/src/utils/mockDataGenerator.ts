@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token, BonderPreference, ClaimPosted } from '@hop-protocol/v2-sdk'
+import { BundleCommitted, BundleForwarded, BundleReceived, BundleSet, FeesSentToHub, MessageBundled, MessageExecuted, MessageSent, TransferSent, TransferBonded, HopStruct, EventContext, Path, Token, BonderPreference, ClaimPushed } from '@hop-protocol/v2-sdk'
 import { Price } from '#pgDb/prices/index.js'
 
 // Helper function to generate random Ethereum address
@@ -189,8 +189,8 @@ export function generateMockTransferBonded(): TransferBonded {
   }
 }
 
-// Function to generate mock ClaimPosted
-export function generateMockClaimPosted(): ClaimPosted {
+// Function to generate mock ClaimPushed
+export function generateMockClaimPushed(): ClaimPushed {
   return {
     pathId: generateRandomBytes32(),
     claimId: generateRandomBytes32(),

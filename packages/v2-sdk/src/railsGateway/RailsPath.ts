@@ -215,7 +215,7 @@ export class RailsPath extends Base {
     super({
       contractAddresses,
       signersOrProviders: {
-        [chainId?.toString()]: signerOrProvider!
+        [chainId?.toString()]: signerOrProvider! || signersOrProviders![chainId?.toString()]
       },
       network: network ?? RailsPath.deriveNetwork(chainId)
     })
@@ -922,12 +922,12 @@ export class RailsPath extends Base {
     return contract.token()
   }
 
-  async tokenClaims (): Promise<string> {
+  async tokenClaims (): Promise<BigNumber> {
     const contract = await this.getRailsPathContract()
     return contract.tokenClaims()
   }
 
-  async totalSent (): Promise<string> {
+  async totalSent (): Promise<BigNumber> {
     const contract = await this.getRailsPathContract()
     return contract.totalSent()
   }

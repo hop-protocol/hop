@@ -34,7 +34,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
     defaultValue: '',
   })
 
-  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
+  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
     defaultValue: '',
   })
 
@@ -61,7 +61,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
       setLoading(true)
       const args = {
         to: toAddress,
-        amountOut,
+        amount,
         sourcePool,
         hops,
       }
@@ -84,14 +84,14 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const to = "${toAddress}"
-  const amountOut = "${amountOut}"
+  const amount = "${amount}"
   const sourcePool = "${sourcePool}"
   const hops = ${JSON.stringify(hops, null, 2)}
 
   ${hopInstantiateDisplayString}
   const transferDataHash = await hop.getRailsGateway('${fromChainId}').getTransferDataHash({
     to,
-    amountOut,
+    amount,
     sourcePool,
     hops,
   })
@@ -137,9 +137,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount to be received at destination</em></small></label>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to be received at destination</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>

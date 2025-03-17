@@ -397,7 +397,8 @@ function useWithdrawV2() {
       if (shouldWithdraw) {
         const withdrawTx = await destRailsGateway.withdrawClaim({
           pathId: transferSentEvent.decoded.pathId,
-          claimId: transferSentEvent.decoded.transferId
+          claimId: transferSentEvent.decoded.transferId,
+          nextHops: transferSentEvent.decoded.hops.slice(1)
         })
         setWithdrawTxHash(withdrawTx.hash)
         await withdrawTx.wait()

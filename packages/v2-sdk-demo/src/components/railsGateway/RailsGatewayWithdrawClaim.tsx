@@ -56,7 +56,8 @@ export function RailsGatewayWithdrawClaim (props: Props) {
   async function getSendTxData() {
     const args = {
       pathId,
-      claimId
+      claimId,
+      nextHops: [] // TODO: add nextHops
     }
     console.log('args', args)
     const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawClaim(args)

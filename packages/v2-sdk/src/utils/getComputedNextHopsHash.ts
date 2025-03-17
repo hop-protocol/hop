@@ -1,7 +1,7 @@
 import { utils, constants } from 'ethers'
-import { HopStruct } from '../railsGateway/events/TransferSent.js'
+import { HopStructInput } from '../railsGateway/RailsGateway.js'
 
-export function getComputedNextHopsHash(nextHops: HopStruct[]): string {
+export function getComputedNextHopsHash(nextHops: HopStructInput[]): string {
   if (!nextHops || !Array.isArray(nextHops)) {
     throw new Error('Invalid nextHops')
   }

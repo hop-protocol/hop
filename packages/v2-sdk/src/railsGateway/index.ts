@@ -153,4 +153,4 @@ export {
 } from './events/index.js'
 export {
   RailsPath,
-} from './RailsPath'
+} from './RailsPath.js'

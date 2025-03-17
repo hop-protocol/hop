@@ -107,7 +107,7 @@ describe.skip('Sdk - Hop - e2e - send only', () => {
       pathId
     })
 
-    let sendTxHash = '0xe0a9e24e055d198dd7865d444f72e03efe6fc7b04f09eeceb77e71a032e9c7ae' // debug
+    let sendTxHash = '' // debug
     const shouldSend = !sendTxHash // debug
     if (shouldSend) {
       const sendTx = await sdk.sendTokens({
@@ -145,7 +145,7 @@ describe.skip('Sdk - Hop - e2e - send only', () => {
   }, 10 * 60 * 1000)
 })
 
-describe('Sdk - RailsGateway - e2e - single hop', () => {
+describe.skip('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     // ----------------
     const token = 'MOCK'
@@ -157,13 +157,13 @@ describe('Sdk - RailsGateway - e2e - single hop', () => {
     // ----------------
 
     const shouldPushClaim = false // debug
-    const shouldBond = true // debug
+    const shouldBond = false // debug
     const shouldExecute = true // debug
     const shouldConfirm = false // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0x4528cf95fa7e067ec40f160ce8aa391e1c0847a0c52cccd777d1c51c936c333a'
-    let bondTxHash = ''
+    let sendTxHash = '0x144f1fc54c44655527e3a2e9533b084be7ef3420bdd2ffbc6575de40eb221612'
+    let bondTxHash = '0x69d6a4a136ece09edb0d017762810dbc681dddb471cd30755d25576c050afb87'
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -266,7 +266,7 @@ describe('Sdk - RailsGateway - e2e - single hop', () => {
 
     const transferDataHash = await sdk.getRailsGateway(fromChainId).getTransferDataHash({
       to: transferSentEvent.decoded.to,
-      amountOut: transferSentEvent.decoded.amount,
+      amount: transferSentEvent.decoded.amount,
       sourcePool: transferSentEvent.decoded.sourcePool,
       hops: transferSentEvent.decoded.hops,
     })
@@ -605,7 +605,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     const transferDataHash = await sdk.getRailsGateway(fromChainId).getTransferDataHash({
       to: transferSentEvent.decoded.to,
-      amountOut: transferSentEvent.decoded.amount,
+      amount: transferSentEvent.decoded.amount,
       sourcePool: transferSentEvent.decoded.sourcePool,
       hops: transferSentEvent.decoded.hops,
     })
@@ -783,7 +783,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     // const transferDataHash2 = await sdk.getRailsGateway(nextChainId).getTransferDataHash({
     //   to: transferSentEvent2.decoded.to,
-    //   amountOut: transferSentEvent2.decoded.amountOut,
+    //   amount: transferSentEvent2.decoded.amountOut,
     //   totalSent: transferSentEvent2.decoded.totalSent,
     //   totalClaims: transferSentEvent2.decoded.totalClaims,
     //   hops: transferSentEvent2.decoded.hops,
@@ -905,15 +905,15 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
+describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
   it('should do an end to end test', async () => {
     // ----------------
     const token = 'MOCK'
-    //const fromChainId = '11155111'
-    const fromChainId = '84532'
+    const fromChainId = '11155111'
+    //const fromChainId = '84532'
     const fromToken = addresses[fromChainId]!.tokens![token]!
-    //const toChainId = '84532'
-    const toChainId = '11155111'
+    const toChainId = '84532'
+    //const toChainId = '11155111'
     const toToken = addresses[toChainId]!.tokens![token]!
     const sendAmount = parseUnits('0.1', 6)
     // ----------------
@@ -922,7 +922,7 @@ describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
     const shouldExecute = true // debug
     const shouldWithdraw = true // debug
 
-    let sendTxHash = '0xf0743e3186a06c5051caf7ffbb91a5395aafa6f56a9fb7fb2bccdc53289675e6'
+    let sendTxHash = '0xd67a843b690445d4eb1a9898ffc47f3cd82eaf0299fa0adbff2a1c5c128ca409'
 
     const senderSigner = new Wallet(privateKey)
     const sdk = new Hop({
@@ -1024,7 +1024,7 @@ describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
 
     const transferDataHash = await sdk.getRailsGateway(fromChainId).getTransferDataHash({
       to: transferSentEvent.decoded.to,
-      amountOut: transferSentEvent.decoded.amount,
+      amount: transferSentEvent.decoded.amount,
       sourcePool: transferSentEvent.decoded.sourcePool,
       hops: transferSentEvent.decoded.hops,
     })
@@ -1118,7 +1118,8 @@ describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
       console.log('calling withdraw')
       const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawClaim({
         pathId: transferSentEvent.decoded.pathId,
-        claimId: transferSentEvent.decoded.transferId
+        claimId: transferSentEvent.decoded.transferId,
+        nextHops: transferSentEvent.decoded.hops.slice(1),
       })
 
       console.log('withdraw tx:', withdrawTx.hash)

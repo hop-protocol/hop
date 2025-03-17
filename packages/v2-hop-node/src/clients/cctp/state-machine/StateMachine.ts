@@ -33,7 +33,7 @@ export class CCTPStateMachine extends StateMachine<CCTPMessageState, ICCTPMessag
 
   protected override getRelayTxMethodFromState(state: CCTPMessageState): CCTPMethodName {
     switch (state) {
-      case CCTPMessageState.Sent:
+      case CCTPMessageState.Relayed:
         return CCTPMethodName.ReceiveMessage
       default:
         throw new Error('Invalid state')

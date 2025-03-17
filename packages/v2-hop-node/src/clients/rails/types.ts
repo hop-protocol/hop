@@ -14,6 +14,7 @@ export enum RailsClientName {
 // TODO: Get from SDk
 export type RailsHop = {
   pathId: string
+  maxBonderFee: BigNumber
   maxTotalSent: BigNumber
   attestedClaimId: string
 }

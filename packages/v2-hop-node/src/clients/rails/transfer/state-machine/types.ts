@@ -20,10 +20,10 @@ export enum RailsTransferState {
 
 interface IRailsTransferShared extends StateTxContext {
   pathId: string
+  claimId: string
 }
 
 export interface ISentRailsTransfer extends IRailsTransferShared {
-  transferId: string
   to: string
   amount: BigNumber
   sourcePool: BigNumber
@@ -31,7 +31,6 @@ export interface ISentRailsTransfer extends IRailsTransferShared {
 }
 
 export interface IBondedRailsTransfer extends IRailsTransferShared {
-  claimId: string
 }
 
 export type IRailsTransfer = ISentRailsTransfer | IBondedRailsTransfer

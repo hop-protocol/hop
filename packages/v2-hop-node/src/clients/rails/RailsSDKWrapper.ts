@@ -30,7 +30,7 @@ import type {
   providers
 } from 'ethers'
 import { wallets } from '#wallets/index.js'
-import type { RailsPath } from './types.js'
+import type { RailsHop, RailsPath } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export type RailsFilterInputs = &
@@ -154,6 +154,10 @@ export function addDecodedTypesToEvent(log: providers.Log, chainId: string): Dec
       chainId
     }
   }
+}
+
+export function getComputedNextHopsHash (nextHops: RailsHop[]): string {
+  return RailsUtils.getComputedNextHopsHash(nextHops)
 }
 
 export function getPathId(path: RailsPath): string {

@@ -1,6 +1,7 @@
 import { Level } from 'level'
 import { getDBPath } from './utils.js'
 import { Logger } from '#logger/index.js'
+import { normalizeDBValue } from './utils.js'
 
 interface DatabaseOptions {
   keyEncoding: string
@@ -63,6 +64,6 @@ export abstract class DB<K extends string, V> extends Level<K, V> {
    */
 
   protected normalizeDBValue<T extends Record<string, any>>(value: T): T {
-    return value as T
+    return normalizeDBValue(value)
   }
 }

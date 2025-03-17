@@ -2,16 +2,17 @@ import { DataAdapter } from '#state-machine/index.js'
 import {
   type TransferSent,
   type ClaimPushed,
-  type ClaimRemoved,
-  type ClaimReadded,
-  RailsEventName
+  // type ClaimRemoved,
+  // type ClaimReadded,
+  RailsEventName,
+  getComputedNextHopsHash
 } from '../../RailsSDKWrapper.js'
 import {
   type IRailsClaim,
   type ISentRailsClaim,
   type IPushedRailsClaim,
-  type IRemovedRailsClaim,
-  type IReaddedRailsClaim,
+  // type IRemovedRailsClaim,
+  // type IReaddedRailsClaim,
   RailsClaimEventName,
   RailsClaimState
 } from './types.js'
@@ -31,10 +32,10 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsClaim
       case RailsEventName.ClaimPushed:
         return this.#formatClaimPushedLog(log as DecodedLogWithContext<ClaimPushed>) as IRailsClaim
-      case RailsEventName.ClaimReadded:
-        return this.#formatClaimRemovedLog(log as DecodedLogWithContext<ClaimRemoved>) as IRailsClaim
-      case RailsEventName.ClaimRemoved:
-        return this.#formatClaimReaddedLog(log as DecodedLogWithContext<ClaimReadded>) as IRailsClaim
+      // case RailsEventName.ClaimReadded:
+      //   return this.#formatClaimRemovedLog(log as DecodedLogWithContext<ClaimRemoved>) as IRailsClaim
+      // case RailsEventName.ClaimRemoved:
+      //   return this.#formatClaimReaddedLog(log as DecodedLogWithContext<ClaimReadded>) as IRailsClaim
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -46,8 +47,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Sent
       case RailsEventName.ClaimPushed:
         return RailsClaimState.Pushed
-      case RailsEventName.ClaimRemoved:
-        return RailsClaimState.Removed
+      // case RailsEventName.ClaimRemoved:
+      //   return RailsClaimState.Removed
       // case RailsEventName.ClaimConfirmed:
       //   return RailsClaimState.Confirmed
       default:
@@ -61,8 +62,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsEventName.TransferSent
       case RailsClaimState.Pushed:
         return RailsEventName.ClaimPushed
-      case RailsClaimState.Removed:
-        return RailsEventName.ClaimRemoved
+      // case RailsClaimState.Removed:
+      //   return RailsEventName.ClaimRemoved
       // case RailsClaimState.Confirmed:
       //   return RailsEventName.ClaimConfirmed
       default:
@@ -80,8 +81,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return chainId
       case RailsClaimState.Pushed:
         return counterpartChainId
-      case RailsClaimState.Removed:
-        return counterpartChainId
+      // case RailsClaimState.Removed:
+      //   return counterpartChainId
       // case RailsClaimState.Confirmed:
       //   return counterpartChainId
       default:
@@ -97,13 +98,27 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     const { decoded } = log
     const { pathId, transferId, to, amount, sourcePool, hops } = decoded
 
+    if (
+      hops.length === 0 ||
+      typeof hops?.[0] === 'undefined'
+    ) {
+      throw new Error('Invalid hops')
+    }
+
+    // TODO: is this supposed to be hops[0]?
+    const { maxBonderFee, attestedClaimId } = hops[0]
+    const nextHopsHash = getComputedNextHopsHash(hops)
+
     return {
       pathId,
-      transferId,
+      claimId: transferId,
       to,
       amount,
       sourcePool,
-      hops
+      hops,
+      maxBonderFee,
+      attestedClaimId,
+      nextHopsHash
     }
   }
 
@@ -117,23 +132,23 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     }
   }
 
-  #formatClaimRemovedLog(log: DecodedLogWithContext<ClaimRemoved>): Omit<IRemovedRailsClaim, 'txContext'> {
-    const { decoded } = log
-    const { pathId, claimId } = decoded
+  // #formatClaimRemovedLog(log: DecodedLogWithContext<ClaimRemoved>): Omit<IRemovedRailsClaim, 'txContext'> {
+  //   const { decoded } = log
+  //   const { pathId, claimId } = decoded
 
-    return {
-      pathId,
-      claimId
-    }
-  }
+  //   return {
+  //     pathId,
+  //     claimId
+  //   }
+  // }
 
-  #formatClaimReaddedLog(log: DecodedLogWithContext<ClaimReadded>): Omit<IReaddedRailsClaim, 'txContext'> {
-    const { decoded } = log
-    const { pathId, claimId } = decoded
+  // #formatClaimReaddedLog(log: DecodedLogWithContext<ClaimReadded>): Omit<IReaddedRailsClaim, 'txContext'> {
+  //   const { decoded } = log
+  //   const { pathId, claimId } = decoded
 
-    return {
-      pathId,
-      claimId
-    }
-  }
+  //   return {
+  //     pathId,
+  //     claimId
+  //   }
+  // }
 }

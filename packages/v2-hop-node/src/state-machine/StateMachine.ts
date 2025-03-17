@@ -223,10 +223,13 @@ export abstract class StateMachine<State extends string, StateData extends State
 
   async #sendRelay(state: State, key: string, value: StateData): Promise<void> {
     this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
-    // The first state hook will have nothing in the DB to read
-    let relayItem: StateDataWithoutContext<StateData> | undefined
+    let relayItem: StateDataWithoutContext<StateData>
     if (state === getFirstState(this.#states)) {
+      // The first state hook will have nothing in the DB to read
       relayItem = value
+    } else if (isLastState(this.#states, state)) {
+      // The final state does not need to be relayed
+      return
     } else {
       relayItem = await this.#getRelayItem(key)
     }

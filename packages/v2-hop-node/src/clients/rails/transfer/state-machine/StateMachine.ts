@@ -20,11 +20,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   }
 
   protected override getItemId(value: IRailsTransfer): string {
-    if ('claimId' in value) {
-      return value.claimId
-    }
-
-    return value.transferId
+    return value.claimId
   }
 
   protected override getRelayChainId(state: RailsTransferState, value: IRailsTransfer): string {
@@ -42,7 +38,9 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
 
   protected override getRelayTxMethodFromState(state: RailsTransferState): RailsTransferMethodName {
     switch (state) {
-      case RailsTransferState.Sent:
+      // case RailsTransferState.Sent:
+      //   return RailsTransferMethodName.Bond
+      case RailsTransferState.Bonded:
         return RailsTransferMethodName.Bond
       default:
         throw new Error('Invalid state')

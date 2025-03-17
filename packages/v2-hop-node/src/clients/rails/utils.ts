@@ -146,22 +146,20 @@ export function isValidPushClaimTxInputData (item: unknown): item is PushClaimIn
   const candidate = item as Partial<PushClaimInput>
   return (
     'pathId' in candidate &&
-    'transferId' in candidate &&
+    'claimId' in candidate &&
     'to' in candidate &&
     'amount' in candidate &&
     'maxBonderFee' in candidate &&
     'attestedClaimId' in candidate &&
-    'totalSent' in candidate &&
-    'totalClaims' in candidate &&
+    'sourcePool' in candidate &&
     'nextHopsHash' in candidate &&
     typeof candidate.pathId === 'string' &&
-    typeof candidate.transferId === 'string' &&
+    typeof candidate.claimId === 'string' &&
     typeof candidate.to === 'string' &&
     // typeof candidate.amount?.toString() === 'string' &&
     // typeof candidate.maxBonderFee?.toString() === 'string' &&
     typeof candidate.attestedClaimId === 'string' &&
-    // typeof candidate.totalSent?.toString() === 'string' &&
-    // typeof candidate.totalClaims?.toString() === 'string' &&
+    // typeof candidate.sourcePool?.toString() === 'string' &&
     typeof candidate.nextHopsHash === 'string'
   )
 }

@@ -78,7 +78,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
 
     return {
       pathId,
-      transferId,
+      claimId: transferId,
       to,
       amount,
       sourcePool,

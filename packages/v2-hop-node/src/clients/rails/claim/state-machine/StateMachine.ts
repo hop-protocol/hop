@@ -21,11 +21,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   }
 
   protected override getItemId(value: IRailsClaim): string {
-    if ('claimId' in value) {
-      return value.claimId
-    }
-
-    return value.transferId
+    return value.claimId
   }
 
   protected override getRelayChainId(state: RailsClaimState, value: IRailsClaim): string {
@@ -43,10 +39,9 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
 
   protected override getRelayTxMethodFromState(state: RailsClaimState): RailsClaimMethodName {
     switch (state) {
-      case RailsClaimState.Sent:
+      case RailsClaimState.Pushed:
         return RailsClaimMethodName.PushClaim
-        // TODO
-      // case RailsClaimState.Pushed:
+      // case RailsClaimState.RemoveClaim:
       //   return RailsClaimMethodName.RemoveClaim
       default:
         throw new Error('Invalid state')
@@ -68,11 +63,11 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     switch (state) {
       case RailsClaimState.Sent:
         return RailsClaimState.Pushed
-      case RailsClaimState.Pushed: {
-        // TODO: Should be either confirmed or removed
-        return RailsClaimState.Pushed
-        // return RailsClaimState.Confirmed
-      }
+      // case RailsClaimState.Pushed: {
+      //   // TODO: Should be either confirmed or removed
+      //   return RailsClaimState.Pushed
+      //   // return RailsClaimState.Confirmed
+      // }
       default:
         throw new Error('Invalid state')
     }

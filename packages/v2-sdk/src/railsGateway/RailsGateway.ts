@@ -3115,9 +3115,11 @@ export class RailsGateway extends Base {
     })
   }
 
-  getRailsPath (): RailsPath {
+  async getRailsPath (pathId: string): Promise<RailsPath> {
+    const address = await this.getPath({ pathId })
     return new RailsPath({
       chainId: this.chainId,
+      address,
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,
       network: this.network

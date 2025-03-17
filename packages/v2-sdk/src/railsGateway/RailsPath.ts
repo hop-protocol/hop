@@ -198,6 +198,7 @@ export type WithdrawnInput = {
 
 export type RailsPathConstructorInput = {
   network?: string
+  address: string
   gasPriceMultiplier?: number
   signersOrProviders?: SignersOrProviders
   contractAddresses?: Addresses
@@ -208,8 +209,9 @@ export type RailsPathConstructorInput = {
 export class RailsPath extends Base {
   static EventName = EventName
   chainId: BigNumberish
+  address: string
 
-  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network }: RailsPathConstructorInput) {
+  constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network, address }: RailsPathConstructorInput) {
     super({
       contractAddresses,
       signersOrProviders: {
@@ -217,6 +219,7 @@ export class RailsPath extends Base {
       },
       network: network ?? RailsPath.deriveNetwork(chainId)
     })
+    this.address = address
     this.chainId = chainId
   }
 
@@ -241,12 +244,7 @@ export class RailsPath extends Base {
   }
 
   getRailsPathContractAddress (): string {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    return this.getConfigAddress(chainId, 'railsPath')
+    return this.address
   }
 
   async getRailsPathContract (): Promise<Contract> {

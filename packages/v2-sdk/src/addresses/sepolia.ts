@@ -3,64 +3,64 @@ import { Addresses } from './types.js'
 export const addresses: Addresses = {
   '11155111': { // Ethereum
     chainId: '11155111',
-    startBlock: 7784611,
-    hubCoreMessenger: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA', // dispatcher
-    spokeCoreMessenger: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA', // dispatcher
+    startBlock: 7897346,
+    hubCoreMessenger: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4', // dispatcher
+    spokeCoreMessenger: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4', // dispatcher
     ethFeeDistributor: '', // empty
-    railsGateway: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
-    dispatcher: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA',
-    transporter: '0x0845c6F5A205A8e43Ed840febD07E98c0dFD7847',
-    executor: '0xc07e0A6fbCC4A6C33678BCEa52C76d6BEb42c0Fa',
-    stakingRegistry: '0x560E9d609b48a9793Fb75806c103919eAaFc617d',
-    hopToken: '0xa8cDA973a218322c14B95961a7eE0Ac547672787',
+    railsGateway: '0x8b544B919Ca620d41f87d234e5Bd3C9c06E1ad9D',
+    dispatcher: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4',
+    transporter: '0x767576DF19aC7636a30276760f220157ca44586E',
+    executor: '0x61C08376C91385Ef68467eF905f73874fA0d5CB6',
+    stakingRegistry: '0xa65BA5E806Ffde410EAdAd6e07FA07e58683d8b6',
+    hopToken: '0xF5505ED806FB7F0d13f90d6e53D59cc2153a4aEd',
     tokens: {
-      MOCK: '0x8be4de23709517Ca2fC138Da0959794db5A8746A',
+      MOCK: '0xA1d20347a0Aa549fC43dA9570e1E666E58614d56',
       USDC: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+    }
+  },
+  '42069': { // Hub
+    chainId: '42069',
+    startBlock: 6620616,
+    hubCoreMessenger: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4', // dispatcher
+    railsGateway: '0x8b544B919Ca620d41f87d234e5Bd3C9c06E1ad9D',
+    dispatcher: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4',
+    transporter: '0x767576DF19aC7636a30276760f220157ca44586E',
+    executor: '0x61C08376C91385Ef68467eF905f73874fA0d5CB6',
+    stakingRegistry: '0xa65BA5E806Ffde410EAdAd6e07FA07e58683d8b6',
+    hopToken: '0x9F6aCfA39A080d42E80db32F601F70894158039E',
+    tokens: {
+      MOCK: '0xA1d20347a0Aa549fC43dA9570e1E666E58614d56',
+      USDC: '0x9F6aCfA39A080d42E80db32F601F70894158039E'
     }
   },
   '11155420': { // Optimism
     chainId: '11155420',
-    startBlock: 24354188,
-    spokeCoreMessenger: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA', // dispatcher
-    railsGateway: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
-    dispatcher: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA',
-    transporter: '0x0845c6F5A205A8e43Ed840febD07E98c0dFD7847',
-    executor: '0xc07e0A6fbCC4A6C33678BCEa52C76d6BEb42c0Fa',
-    stakingRegistry: '0x560E9d609b48a9793Fb75806c103919eAaFc617d',
-    hopToken: '0xFAcAD5f3210A078fE429dc4d51C852B22F6DA430',
+    startBlock: 25056143,
+    spokeCoreMessenger: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4', // dispatcher
+    railsGateway: '0x8b544B919Ca620d41f87d234e5Bd3C9c06E1ad9D',
+    dispatcher: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4',
+    transporter: '0x767576DF19aC7636a30276760f220157ca44586E',
+    executor: '0x61C08376C91385Ef68467eF905f73874fA0d5CB6',
+    stakingRegistry: '0xa65BA5E806Ffde410EAdAd6e07FA07e58683d8b6',
+    hopToken: '0xF5505ED806FB7F0d13f90d6e53D59cc2153a4aEd',
     tokens: {
-      MOCK: '0x8be4de23709517Ca2fC138Da0959794db5A8746A',
+      MOCK: '0xA1d20347a0Aa549fC43dA9570e1E666E58614d56',
       USDC: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'
     }
   },
   '84532': { // Base
     chainId: '84532',
-    startBlock: 22371334,
-    spokeCoreMessenger: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA', // dispatcher
-    railsGateway: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
-    dispatcher: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA',
-    transporter: '0x0845c6F5A205A8e43Ed840febD07E98c0dFD7847',
-    executor: '0xc07e0A6fbCC4A6C33678BCEa52C76d6BEb42c0Fa',
-    stakingRegistry: '0x560E9d609b48a9793Fb75806c103919eAaFc617d',
-    hopToken: '0x25593d5474978cd1d5F159dE28113FaE6C6929C7',
+    startBlock: 23073292,
+    spokeCoreMessenger: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4', // dispatcher
+    railsGateway: '0x8b544B919Ca620d41f87d234e5Bd3C9c06E1ad9D',
+    dispatcher: '0xec6820f86804c4fa52453be4Fd0D30c436b527A4',
+    transporter: '0x767576DF19aC7636a30276760f220157ca44586E',
+    executor: '0x61C08376C91385Ef68467eF905f73874fA0d5CB6',
+    stakingRegistry: '0xa65BA5E806Ffde410EAdAd6e07FA07e58683d8b6',
+    hopToken: '0xF5505ED806FB7F0d13f90d6e53D59cc2153a4aEd',
     tokens: {
-      MOCK: '0x8be4de23709517Ca2fC138Da0959794db5A8746A',
+      MOCK: '0xA1d20347a0Aa549fC43dA9570e1E666E58614d56',
       USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
-    }
-  },
-  '42069': { // Hub Chain
-    chainId: '42069',
-    startBlock: 6295536,
-    spokeCoreMessenger: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA', // dispatcher
-    railsGateway: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
-    dispatcher: '0x0C2Dd2a7E353ae2cCB27B66b54475cdCf26269DA',
-    transporter: '0x0845c6F5A205A8e43Ed840febD07E98c0dFD7847',
-    executor: '0xc07e0A6fbCC4A6C33678BCEa52C76d6BEb42c0Fa',
-    stakingRegistry: '0x560E9d609b48a9793Fb75806c103919eAaFc617d',
-    hopToken: '0xFAcAD5f3210A078fE429dc4d51C852B22F6DA430',
-    tokens: {
-      MOCK: '0x8be4de23709517Ca2fC138Da0959794db5A8746A',
-      USDC: '0x36d3f5501Ef2BA0ea329c46C5A4a463C163e1ff0'
     }
   }
 }

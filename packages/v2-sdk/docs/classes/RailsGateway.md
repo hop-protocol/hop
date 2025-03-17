@@ -1414,11 +1414,17 @@ ___
 
 ### <a id="getrailspath" name="getrailspath"></a> getRailsPath
 
-▸ **getRailsPath**(): [`RailsPath`](RailsPath.md)
+▸ **getRailsPath**(`pathId`): `Promise`\<[`RailsPath`](RailsPath.md)\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 #### Returns
 
-[`RailsPath`](RailsPath.md)
+`Promise`\<[`RailsPath`](RailsPath.md)\>
 
 ___
 

@@ -1,22 +1,22 @@
 import { Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
-import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
+import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
-// event from RailsGateway
-export interface ClaimPosted {
+// event from RailsPath
+export interface ClaimPushed {
   pathId: string
   claimId: string
 }
 
-export type ClaimPostedIndexes = {
+export type ClaimPushedIndexes = {
   pathId?: string
   claimId?: string
 }
 
-export class ClaimPostedEventFetcher extends Event<ClaimPosted> {
-  override eventName = 'ClaimPosted'
-  override abi = RailsGateway__factory.abi
-  override factory = RailsGateway__factory
+export class ClaimPushedEventFetcher extends Event<ClaimPushed> {
+  override eventName = 'ClaimPushed'
+  override abi = RailsPath__factory.abi
+  override factory = RailsPath__factory
 
   getPathIdFilter (pathId: string): EventFilter {
     return this.getFilterWithIndexes({ pathId })
@@ -26,13 +26,13 @@ export class ClaimPostedEventFetcher extends Event<ClaimPosted> {
     return this.getFilterWithIndexes({ claimId })
   }
 
-  getFilterWithIndexes ({ pathId, claimId } : ClaimPostedIndexes): EventFilter {
+  getFilterWithIndexes ({ pathId, claimId } : ClaimPushedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.ClaimPosted(pathId ?? null, claimId ?? null)
+    const filter = railsGateway.filters.ClaimPushed(pathId ?? null, claimId ?? null)
     return filter
   }
 
-  override toTypedEvent (ethersEvent: EthersEvent): ClaimPosted {
+  override toTypedEvent (ethersEvent: EthersEvent): ClaimPushed {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()

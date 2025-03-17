@@ -1,8 +1,8 @@
 import { BigNumber, Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
-import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
+import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
-// event from RailsGateway
+// event from RailsPath
 export interface TransferSent {
   pathId: string
   transferId: string
@@ -27,8 +27,8 @@ export type TransferSentIndexes = {
 
 export class TransferSentEventFetcher extends Event<TransferSent> {
   override eventName = 'TransferSent'
-  override abi = RailsGateway__factory.abi
-  override factory = RailsGateway__factory
+  override abi = RailsPath__factory.abi
+  override factory = RailsPath__factory
 
   getPathIdFilter (pathId: string): EventFilter {
     return this.getFilterWithIndexes({ pathId })

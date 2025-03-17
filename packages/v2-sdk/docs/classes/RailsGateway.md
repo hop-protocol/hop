@@ -32,7 +32,7 @@
 
 ### Methods
 
-- [addDecodedTypesToClaimPostedEvents](RailsGateway.md#adddecodedtypestoclaimpostedevents)
+- [addDecodedTypesToClaimPushedEvents](RailsGateway.md#adddecodedtypestoclaimpushedevents)
 - [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents)
 - [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents)
 - [addDecodedTypesToClaimWithdrawnEvents](RailsGateway.md#adddecodedtypestoclaimwithdrawnevents)
@@ -43,6 +43,7 @@
 - [bond](RailsGateway.md#bond)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
+- [counterpartChainIds](RailsGateway.md#counterpartchainids)
 - [defaultTokenFee](RailsGateway.md#defaulttokenfee)
 - [dispatcher](RailsGateway.md#dispatcher)
 - [distributeClaimedFees](RailsGateway.md#distributeclaimedfees)
@@ -58,7 +59,7 @@
 - [getClaim](RailsGateway.md#getclaim)
 - [getClaimFeesFee](RailsGateway.md#getclaimfeesfee)
 - [getClaimId](RailsGateway.md#getclaimid)
-- [getClaimPostedEventFilter](RailsGateway.md#getclaimpostedeventfilter)
+- [getClaimPushedEventFilter](RailsGateway.md#getclaimpushedeventfilter)
 - [getClaimReaddedEventFilter](RailsGateway.md#getclaimreaddedeventfilter)
 - [getClaimRemovedEventFilter](RailsGateway.md#getclaimremovedeventfilter)
 - [getClaimWithdrawnEventFilter](RailsGateway.md#getclaimwithdrawneventfilter)
@@ -89,12 +90,14 @@
 - [getLastBondedClaimId](RailsGateway.md#getlastbondedclaimid)
 - [getMessageFee](RailsGateway.md#getmessagefee)
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
+- [getPath](RailsGateway.md#getpath)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
 - [getProvider](RailsGateway.md#getprovider)
 - [getPushClaimFee](RailsGateway.md#getpushclaimfee)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
+- [getRailsPath](RailsGateway.md#getrailspath)
 - [getRemoveFee](RailsGateway.md#getremovefee)
 - [getRemovedBalance](RailsGateway.md#getremovedbalance)
 - [getSendFee](RailsGateway.md#getsendfee)
@@ -146,6 +149,10 @@
 - [postAndWithdraw](RailsGateway.md#postandwithdraw)
 - [postClaim](RailsGateway.md#postclaim)
 - [pushClaim](RailsGateway.md#pushclaim)
+- [pushClaimAndBond](RailsGateway.md#pushclaimandbond)
+- [pushClaimAndWithdraw](RailsGateway.md#pushclaimandwithdraw)
+- [railsPathImplementation](RailsGateway.md#railspathimplementation)
+- [readdClaim](RailsGateway.md#readdclaim)
 - [removeClaim](RailsGateway.md#removeclaim)
 - [send](RailsGateway.md#send)
 - [sendTransaction](RailsGateway.md#sendtransaction)
@@ -162,14 +169,17 @@
 - [setProviders](RailsGateway.md#setproviders)
 - [setSendFeeGas](RailsGateway.md#setsendfeegas)
 - [setStakingRegistry](RailsGateway.md#setstakingregistry)
+- [setTokenFeeRecipient](RailsGateway.md#settokenfeerecipient)
 - [setUpdateFeeGas](RailsGateway.md#setupdatefeegas)
+- [stakingRegistry](RailsGateway.md#stakingregistry)
 - [throwError](RailsGateway.md#throwerror)
+- [tokens](RailsGateway.md#tokens)
 - [updateDefaultTokenFee](RailsGateway.md#updatedefaulttokenfee)
 - [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdrawBonds](RailsGateway.md#withdrawbonds)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
-- [addDecodedTypesToClaimPostedEvent](RailsGateway.md#adddecodedtypestoclaimpostedevent)
-- [addDecodedTypesToClaimPostedEvents](RailsGateway.md#adddecodedtypestoclaimpostedevents-1)
+- [addDecodedTypesToClaimPushedEvent](RailsGateway.md#adddecodedtypestoclaimpushedevent)
+- [addDecodedTypesToClaimPushedEvents](RailsGateway.md#adddecodedtypestoclaimpushedevents-1)
 - [addDecodedTypesToClaimReaddedEvent](RailsGateway.md#adddecodedtypestoclaimreaddedevent)
 - [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents-1)
 - [addDecodedTypesToClaimRemovedEvent](RailsGateway.md#adddecodedtypestoclaimremovedevent)
@@ -318,7 +328,7 @@ ___
 | `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
-| `getAbi` | () => readonly [\{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"_stakingRegistry"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``"_dispatcher"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``"_executor"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``"_feeManager"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"_defaultTokenFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_tokenFeeRecipient"`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"constructor"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"bond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"claimFeesFromPath"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"confirmClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"defaultTokenFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"dispatcher"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"account"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalFees"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"lastClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"distributeClaimedFees"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"executor"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"feeManager"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `name`: ``"gateways"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getAmountOut"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getBucket"`` ; `outputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"completedAt"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"finalClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAttested"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxConfirmed"`` ; `type`: ``"uint256"``  }] ; `internalType`: ``"struct Bucket"`` ; `name`: ``"bucket"`` ; `type`: ``"tuple"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getBucketIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getClaim"`` ; `outputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"createdAt"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalClaims"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAttested"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalAddedToBucketMaxConfirmed"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bondedOrWithdrawnBy"`` ; `type`: ``"address"``  }] ; `internalType`: ``"struct Claim"`` ; `name`: ``"claim"`` ; `type`: ``"tuple"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getCounterpartChainId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHardConfirmedBucketIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHardConfirmedClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getHeadClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"headCheckpoint"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getLastBondedClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getMessageFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"messageFee"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"getNextHopsHash"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId0"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token0"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"chainId1"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token1"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getPathId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getPathInfo"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getPushClaimFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getRemoveFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getRemovedBalance"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSendFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSourcePool"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTokenVault"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalClaims"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalClaimsAtClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalConfirmed"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalSent"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTotalWithdrawableAtClaimId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"getTransferDataHash"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"index"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getTransferId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getTransferIndex"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"recipient"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getWithdrawableBalance"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"bonder"`` ; `type`: ``"address"``  }] ; `name`: ``"getWithdrawn"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"gateway"`` ; `type`: ``"address"``  }] ; `name`: ``"initChain"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"initPath"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isPathInitialized"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isValidClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isValidTransfer"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"owner"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"postAndBond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"postAndWithdraw"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"pushClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"removeClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"renounceOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"send"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"newStakingRegistry"`` ; `type`: ``"address"``  }] ; `name`: ``"setStakingRegistry"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"stakingRegistry"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"transferOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawBonds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimPosted"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimReadded"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"ClaimRemoved"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"previousOwner"`` ; `type`: ``"address"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"OwnershipTransferred"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"TransferBonded"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `indexed`: ``false`` ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"TransferSent"`` ; `type`: ``"event"``  }] |
+| `getAbi` | () => readonly [\{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"_stakingRegistry"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``"_dispatcher"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``"_executor"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``"_feeManager"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_railsPathImplementation"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"_defaultTokenFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_tokenFeeRecipient"`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"constructor"``  }, \{ `stateMutability`: ``"payable"`` ; `type`: ``"receive"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"bond"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"claimFeesFromPath"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"confirmClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `name`: ``"counterpartChainIds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"defaultTokenFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"dispatcher"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"account"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalFees"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"lastClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"distributeClaimedFees"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"executor"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"feeManager"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `name`: ``"gateways"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getAmountOut"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getCounterpartChainId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getMessageFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"messageFee"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getPath"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IRailsPath"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId0"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token0"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"chainId1"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token1"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getPathId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getPushClaimFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getRemoveFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSendFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"gateway"`` ; `type`: ``"address"``  }] ; `name`: ``"initChain"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"initPath"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isPathInitialized"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"owner"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"pushClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"pushClaimAndBond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"pushClaimAndWithdraw"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"railsPathImplementation"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"transferDataHash"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"readdClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"removeClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"renounceOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"send"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"newStakingRegistry"`` ; `type`: ``"address"``  }] ; `name`: ``"setStakingRegistry"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"recipient"`` ; `type`: ``"address"``  }] ; `name`: ``"setTokenFeeRecipient"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"stakingRegistry"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `name`: ``"tokens"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"transferOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawBonds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"withdrawClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"previousOwner"`` ; `type`: ``"address"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"OwnershipTransferred"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``false`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"address"`` ; `name`: ``"path"`` ; `type`: ``"address"``  }] ; `name`: ``"PathInitialized"`` ; `type`: ``"event"``  }] |
 
 ___
 
@@ -343,6 +353,9 @@ ___
 | `postAndWithdraw` | (`__namedParameters`: [`PostAndWithdrawInput`](../modules.md#postandwithdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `pushClaim` | (`__namedParameters`: [`PushClaimInput`](../modules.md#pushclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `pushClaimAndBond` | (`__namedParameters`: [`PushClaimAndBondInput`](../modules.md#pushclaimandbondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `pushClaimAndWithdraw` | (`__namedParameters`: [`PushClaimAndWithdrawInput`](../modules.md#pushclaimandwithdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `readdClaim` | (`__namedParameters`: [`ReaddClaimInput`](../modules.md#readdclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `setFeePrice` | (`__namedParameters`: [`SetFeePriceInput`](../modules.md#setfeepriceinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
@@ -393,9 +406,9 @@ Base.utils
 
 ## Methods
 
-### <a id="adddecodedtypestoclaimpostedevents" name="adddecodedtypestoclaimpostedevents"></a> addDecodedTypesToClaimPostedEvents
+### <a id="adddecodedtypestoclaimpushedevents" name="adddecodedtypestoclaimpushedevents"></a> addDecodedTypesToClaimPushedEvents
 
-▸ **addDecodedTypesToClaimPostedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
+▸ **addDecodedTypesToClaimPushedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimPushed`\>[]
 
 #### Parameters
 
@@ -405,7 +418,7 @@ Base.utils
 
 #### Returns
 
-`EthersEventWithDecodedTypes`\<`ClaimPosted`\>[]
+`EthersEventWithDecodedTypes`\<`ClaimPushed`\>[]
 
 ___
 
@@ -459,7 +472,7 @@ ___
 
 ### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
 
-▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
 
 #### Parameters
 
@@ -469,13 +482,13 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
 
 ___
 
 ### <a id="adddecodedtypestoevents" name="adddecodedtypestoevents"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
 
 #### Parameters
 
@@ -485,7 +498,7 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
 
 ___
 
@@ -569,6 +582,22 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="counterpartchainids" name="counterpartchainids"></a> counterpartChainIds
+
+▸ **counterpartChainIds**(`«destructured»`): `Promise`\<`BigNumber`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`CounterpartChainIdsInput`](../modules.md#counterpartchainidsinput) |
+
+#### Returns
+
+`Promise`\<`BigNumber`[]\>
 
 ___
 
@@ -788,15 +817,15 @@ ___
 
 ___
 
-### <a id="getclaimpostedeventfilter" name="getclaimpostedeventfilter"></a> getClaimPostedEventFilter
+### <a id="getclaimpushedeventfilter" name="getclaimpushedeventfilter"></a> getClaimPushedEventFilter
 
-▸ **getClaimPostedEventFilter**(`input?`): `any`
+▸ **getClaimPushedEventFilter**(`input?`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | `ClaimPostedIndexes` |
+| `input` | `ClaimPushedIndexes` |
 
 #### Returns
 
@@ -1285,6 +1314,22 @@ ___
 
 ___
 
+### <a id="getpath" name="getpath"></a> getPath
+
+▸ **getPath**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`GetPathInput`](../modules.md#getpathinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
 ### <a id="getpathid" name="getpathid"></a> getPathId
 
 ▸ **getPathId**(`«destructured»`): `Promise`\<`string`\>
@@ -1364,6 +1409,16 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getrailspath" name="getrailspath"></a> getRailsPath
+
+▸ **getRailsPath**(): [`RailsPath`](RailsPath.md)
+
+#### Returns
+
+[`RailsPath`](RailsPath.md)
 
 ___
 
@@ -2198,6 +2253,67 @@ ___
 
 ___
 
+### <a id="pushclaimandbond" name="pushclaimandbond"></a> pushClaimAndBond
+
+▸ **pushClaimAndBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PushClaimAndBondInput`](../modules.md#pushclaimandbondinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="pushclaimandwithdraw" name="pushclaimandwithdraw"></a> pushClaimAndWithdraw
+
+▸ **pushClaimAndWithdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`PushClaimAndWithdrawInput`](../modules.md#pushclaimandwithdrawinput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="railspathimplementation" name="railspathimplementation"></a> railsPathImplementation
+
+▸ **railsPathImplementation**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
+
+___
+
+### <a id="readdclaim" name="readdclaim"></a> readdClaim
+
+▸ **readdClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | [`ReaddClaimInput`](../modules.md#readdclaiminput) |
+| `txOverrides` | `TxOverrides` |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="removeclaim" name="removeclaim"></a> removeClaim
 
 ▸ **removeClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
@@ -2494,6 +2610,22 @@ ___
 
 ___
 
+### <a id="settokenfeerecipient" name="settokenfeerecipient"></a> setTokenFeeRecipient
+
+▸ **setTokenFeeRecipient**(`«destructured»`): `Promise`\<`TransactionResponse`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`SetTokenFeeRecipientInput`](../modules.md#settokenfeerecipientinput) |
+
+#### Returns
+
+`Promise`\<`TransactionResponse`\>
+
+___
+
 ### <a id="setupdatefeegas" name="setupdatefeegas"></a> setUpdateFeeGas
 
 ▸ **setUpdateFeeGas**(`«destructured»`): `Promise`\<`TransactionResponse`\>
@@ -2507,6 +2639,16 @@ ___
 #### Returns
 
 `Promise`\<`TransactionResponse`\>
+
+___
+
+### <a id="stakingregistry" name="stakingregistry"></a> stakingRegistry
+
+▸ **stakingRegistry**(): `Promise`\<`string`\>
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -2527,6 +2669,22 @@ ___
 #### Inherited from
 
 Base.throwError
+
+___
+
+### <a id="tokens" name="tokens"></a> tokens
+
+▸ **tokens**(`«destructured»`): `Promise`\<`string`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | [`TokensInput`](../modules.md#tokensinput) |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
@@ -2596,9 +2754,9 @@ ___
 
 ___
 
-### <a id="adddecodedtypestoclaimpostedevent" name="adddecodedtypestoclaimpostedevent"></a> addDecodedTypesToClaimPostedEvent
+### <a id="adddecodedtypestoclaimpushedevent" name="adddecodedtypestoclaimpushedevent"></a> addDecodedTypesToClaimPushedEvent
 
-▸ **addDecodedTypesToClaimPostedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>
+▸ **addDecodedTypesToClaimPushedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>
 
 #### Parameters
 
@@ -2609,13 +2767,13 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>
+`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>
 
 ___
 
-### <a id="adddecodedtypestoclaimpostedevents-1" name="adddecodedtypestoclaimpostedevents-1"></a> addDecodedTypesToClaimPostedEvents
+### <a id="adddecodedtypestoclaimpushedevents-1" name="adddecodedtypestoclaimpushedevents-1"></a> addDecodedTypesToClaimPushedEvents
 
-▸ **addDecodedTypesToClaimPostedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>[]
+▸ **addDecodedTypesToClaimPushedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>[]
 
 #### Parameters
 
@@ -2626,7 +2784,7 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPosted`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>[]
 
 ___
 
@@ -2734,7 +2892,7 @@ ___
 
 ### <a id="adddecodedtypestoevent-1" name="adddecodedtypestoevent-1"></a> addDecodedTypesToEvent
 
-▸ **addDecodedTypesToEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+▸ **addDecodedTypesToEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
 
 #### Parameters
 
@@ -2745,13 +2903,13 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
 
 ___
 
 ### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
+▸ **addDecodedTypesToEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
 
 #### Parameters
 
@@ -2762,7 +2920,7 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPosted` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
 
 ___
 

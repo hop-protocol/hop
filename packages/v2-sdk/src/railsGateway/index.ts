@@ -31,7 +31,7 @@ export {
   GetTransferSentEventFromTransferIdInput,
   GetTransferSentEventsFromPathIdInput,
   GetTransferBondedEventFilterInput,
-  GetClaimPostedEventFilterInput,
+  GetClaimPushedEventFilterInput,
   GetClaimReaddedEventFilterInput,
   GetClaimRemovedEventFilterInput,
   GetClaimWithdrawnEventFilterInput,
@@ -95,6 +95,13 @@ export {
   GetInitialReserveByTokenSymbolInput,
   GetInitialReserveByTokenAddressInput,
   GetInitialReserveInput,
+  CounterpartChainIdsInput,
+  GetPathInput,
+  PushClaimAndBondInput,
+  PushClaimAndWithdrawInput,
+  ReaddClaimInput,
+  SetTokenFeeRecipientInput,
+  TokensInput
 } from './RailsGateway.js'
 export {
   AcceptSlashInput,
@@ -118,6 +125,9 @@ export {
   GetHopBalanceInput
 } from './StakingRegistry.js'
 export {
+  PathInitialized,
+  PathInitializedEventFetcher,
+  PathInitializedIndexes,
   HopStruct,
   TransferBonded,
   TransferBondedEventFetcher,
@@ -125,9 +135,9 @@ export {
   TransferSent,
   TransferSentEventFetcher,
   TransferSentIndexes,
-  ClaimPosted,
-  ClaimPostedEventFetcher,
-  ClaimPostedIndexes,
+  ClaimPushed,
+  ClaimPushedEventFetcher,
+  ClaimPushedIndexes,
   ClaimReadded,
   ClaimReaddedEventFetcher,
   ClaimReaddedIndexes,
@@ -141,3 +151,6 @@ export {
   BonderPreferenceEventFetcher,
   BonderPreferenceIndexes
 } from './events/index.js'
+export {
+  RailsPath,
+} from './RailsPath'

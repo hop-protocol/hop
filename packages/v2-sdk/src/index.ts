@@ -83,9 +83,9 @@ export {
   IsValidTransferInput,
   SetFeePriceInput,
   SetFeePricesInput,
-  ClaimPosted,
-  ClaimPostedEventFetcher,
-  ClaimPostedIndexes,
+  ClaimPushed,
+  ClaimPushedEventFetcher,
+  ClaimPushedIndexes,
   ClaimReadded,
   ClaimReaddedEventFetcher,
   ClaimReaddedIndexes,
@@ -130,9 +130,20 @@ export {
   GetInitialReserveByTokenSymbolInput,
   GetInitialReserveByTokenAddressInput,
   GetInitialReserveInput,
-  GetClaimPostedEventFilterInput,
+  GetClaimPushedEventFilterInput,
   GetClaimReaddedEventFilterInput,
-  GetClaimRemovedEventFilterInput
+  GetClaimRemovedEventFilterInput,
+  CounterpartChainIdsInput,
+  GetPathInput,
+  PushClaimAndBondInput,
+  PushClaimAndWithdrawInput,
+  ReaddClaimInput,
+  SetTokenFeeRecipientInput,
+  TokensInput,
+  PathInitialized,
+  PathInitializedEventFetcher,
+  PathInitializedIndexes,
+  RailsPath
 } from './railsGateway/index.js'
 export {
   BundleCommitted,
@@ -221,7 +232,7 @@ import {
   getExplorerUrl,
   getTokenExplorerUrl,
   getTxHashExplorerUrl,
-  isContractError
+  isContractError,
 } from './utils/index.js'
 export const utils = {
   formatUSD,

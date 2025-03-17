@@ -56,3 +56,5 @@ export { Transporter__factory } from "./factories/Transporter__factory.js"
 export { WETH9__factory } from "./factories/WETH9__factory.js"
 export { RailsGateway__factory } from "./factories/RailsGateway__factory.js"
 export { MockExecutor__factory } from "./factories/MockExecutor__factory.js"
+export type { RailsPath } from "./RailsPath.js";
+export { RailsPath__factory } from "./factories/RailsPath__factory.js";

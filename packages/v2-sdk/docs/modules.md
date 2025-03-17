@@ -12,7 +12,7 @@
 ### Classes
 
 - [BonderPreferenceEventFetcher](classes/BonderPreferenceEventFetcher.md)
-- [ClaimPostedEventFetcher](classes/ClaimPostedEventFetcher.md)
+- [ClaimPushedEventFetcher](classes/ClaimPushedEventFetcher.md)
 - [ClaimReaddedEventFetcher](classes/ClaimReaddedEventFetcher.md)
 - [ClaimRemovedEventFetcher](classes/ClaimRemovedEventFetcher.md)
 - [ConfigError](classes/ConfigError.md)
@@ -24,8 +24,10 @@
 - [InsufficientApprovalError](classes/InsufficientApprovalError.md)
 - [InsufficientBalanceError](classes/InsufficientBalanceError.md)
 - [Messenger](classes/Messenger.md)
+- [PathInitializedEventFetcher](classes/PathInitializedEventFetcher.md)
 - [PriceFeed](classes/PriceFeed.md)
 - [RailsGateway](classes/RailsGateway.md)
+- [RailsPath](classes/RailsPath.md)
 
 ### Interfaces
 
@@ -34,7 +36,7 @@
 - [BundleForwarded](interfaces/BundleForwarded.md)
 - [BundleReceived](interfaces/BundleReceived.md)
 - [BundleSet](interfaces/BundleSet.md)
-- [ClaimPosted](interfaces/ClaimPosted.md)
+- [ClaimPushed](interfaces/ClaimPushed.md)
 - [ClaimReadded](interfaces/ClaimReadded.md)
 - [ClaimRemoved](interfaces/ClaimRemoved.md)
 - [FeesSentToHub](interfaces/FeesSentToHub.md)
@@ -42,6 +44,7 @@
 - [MessageBundled](interfaces/MessageBundled.md)
 - [MessageExecuted](interfaces/MessageExecuted.md)
 - [MessageSent](interfaces/MessageSent.md)
+- [PathInitialized](interfaces/PathInitialized.md)
 - [TransferBonded](interfaces/TransferBonded.md)
 - [TransferSent](interfaces/TransferSent.md)
 
@@ -58,11 +61,12 @@
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
 - [Claim](modules.md#claim)
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
-- [ClaimPostedIndexes](modules.md#claimpostedindexes)
+- [ClaimPushedIndexes](modules.md#claimpushedindexes)
 - [ClaimReaddedIndexes](modules.md#claimreaddedindexes)
 - [ClaimRemovedIndexes](modules.md#claimremovedindexes)
 - [ConfirmClaimInput](modules.md#confirmclaiminput)
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
+- [CounterpartChainIdsInput](modules.md#counterpartchainidsinput)
 - [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
 - [DistributeExcessFeesInput](modules.md#distributeexcessfeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
@@ -80,7 +84,7 @@
 - [GetClaimFeesFeeInput](modules.md#getclaimfeesfeeinput)
 - [GetClaimIdInput](modules.md#getclaimidinput)
 - [GetClaimInput](modules.md#getclaiminput)
-- [GetClaimPostedEventFilterInput](modules.md#getclaimpostedeventfilterinput)
+- [GetClaimPushedEventFilterInput](modules.md#getclaimpushedeventfilterinput)
 - [GetClaimReaddedEventFilterInput](modules.md#getclaimreaddedeventfilterinput)
 - [GetClaimRemovedEventFilterInput](modules.md#getclaimremovedeventfilterinput)
 - [GetCounterpartChainIdInput](modules.md#getcounterpartchainidinput)
@@ -129,6 +133,7 @@
 - [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
+- [GetPathInput](modules.md#getpathinput)
 - [GetRelayFeeInput](modules.md#getrelayfeeinput)
 - [GetRelayMessageDataFromTransactionHashInput](modules.md#getrelaymessagedatafromtransactionhashinput)
 - [GetRelayMessagePopulatedTxInput](modules.md#getrelaymessagepopulatedtxinput)
@@ -173,13 +178,17 @@
 - [IsValidTransferInput](modules.md#isvalidtransferinput)
 - [MessengerConstructorInput](modules.md#messengerconstructorinput)
 - [Path](modules.md#path)
+- [PathInitializedIndexes](modules.md#pathinitializedindexes)
 - [PostAndBondInput](modules.md#postandbondinput)
 - [PostAndWithdrawInput](modules.md#postandwithdrawinput)
 - [PostClaimInput](modules.md#postclaiminput)
+- [PushClaimAndBondInput](modules.md#pushclaimandbondinput)
+- [PushClaimAndWithdrawInput](modules.md#pushclaimandwithdrawinput)
 - [PushClaimInput](modules.md#pushclaiminput)
 - [RailsGatewayConstructorInput](modules.md#railsgatewayconstructorinput)
 - [RailsGatewayGetMessageFeeInput](modules.md#railsgatewaygetmessagefeeinput)
 - [RailsGatewayGetSendFeeInput](modules.md#railsgatewaygetsendfeeinput)
+- [ReaddClaimInput](modules.md#readdclaiminput)
 - [RelayMessageData](modules.md#relaymessagedata)
 - [RemoveClaimInput](modules.md#removeclaiminput)
 - [RouteData](modules.md#routedata)
@@ -191,6 +200,7 @@
 - [SetFeePricesInput](modules.md#setfeepricesinput)
 - [SetSendFeeGasInput](modules.md#setsendfeegasinput)
 - [SetStakingRegistryInput](modules.md#setstakingregistryinput)
+- [SetTokenFeeRecipientInput](modules.md#settokenfeerecipientinput)
 - [SetUpdateFeeGasInput](modules.md#setupdatefeegasinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
 - [SignalPreferenceInput](modules.md#signalpreferenceinput)
@@ -198,6 +208,7 @@
 - [StakeHopInput](modules.md#stakehopinput)
 - [StakingRegistryGetWithdrawableBalanceInput](modules.md#stakingregistrygetwithdrawablebalanceinput)
 - [Token](modules.md#token)
+- [TokensInput](modules.md#tokensinput)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
 - [TransferBondedEventInput](modules.md#transferbondedeventinput)
 - [TransferBondedIndexes](modules.md#transferbondedindexes)
@@ -371,9 +382,9 @@ ___
 
 ___
 
-### <a id="claimpostedindexes" name="claimpostedindexes"></a> ClaimPostedIndexes
+### <a id="claimpushedindexes" name="claimpushedindexes"></a> ClaimPushedIndexes
 
-Ƭ **ClaimPostedIndexes**: `Object`
+Ƭ **ClaimPushedIndexes**: `Object`
 
 #### Type declaration
 
@@ -435,6 +446,18 @@ ___
 | `spokeChainId` | `BigNumberish` |
 | `target1` | `string` |
 | `target2` | `string` |
+
+___
+
+### <a id="counterpartchainidsinput" name="counterpartchainidsinput"></a> CounterpartChainIdsInput
+
+Ƭ **CounterpartChainIdsInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -655,9 +678,9 @@ ___
 
 ___
 
-### <a id="getclaimpostedeventfilterinput" name="getclaimpostedeventfilterinput"></a> GetClaimPostedEventFilterInput
+### <a id="getclaimpushedeventfilterinput" name="getclaimpushedeventfilterinput"></a> GetClaimPushedEventFilterInput
 
-Ƭ **GetClaimPostedEventFilterInput**: `ClaimPostedIndexes`
+Ƭ **GetClaimPushedEventFilterInput**: `ClaimPushedIndexes`
 
 ___
 
@@ -716,7 +739,7 @@ ___
 
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
-Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPostedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes` \| `ClaimWithdrawnIndexes`
+Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPushedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes` \| `ClaimWithdrawnIndexes`
 
 ___
 
@@ -1241,6 +1264,18 @@ ___
 ### <a id="getpathinfoinput" name="getpathinfoinput"></a> GetPathInfoInput
 
 Ƭ **GetPathInfoInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
+
+___
+
+### <a id="getpathinput" name="getpathinput"></a> GetPathInput
+
+Ƭ **GetPathInput**: `Object`
 
 #### Type declaration
 
@@ -1810,6 +1845,20 @@ ___
 
 ___
 
+### <a id="pathinitializedindexes" name="pathinitializedindexes"></a> PathInitializedIndexes
+
+Ƭ **PathInitializedIndexes**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `path?` | `string` |
+| `pathId?` | `string` |
+| `token?` | `string` |
+
+___
+
 ### <a id="postandbondinput" name="postandbondinput"></a> PostAndBondInput
 
 Ƭ **PostAndBondInput**: `Object`
@@ -1870,6 +1919,45 @@ ___
 
 ___
 
+### <a id="pushclaimandbondinput" name="pushclaimandbondinput"></a> PushClaimAndBondInput
+
+Ƭ **PushClaimAndBondInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amountOut` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `bonderFee` | `BigNumberish` |
+| `claimId` | `string` |
+| `maxBonderFee` | `BigNumberish` |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
+| `pathId` | `string` |
+| `sourcePool` | `BigNumberish` |
+| `to` | `string` |
+
+___
+
+### <a id="pushclaimandwithdrawinput" name="pushclaimandwithdrawinput"></a> PushClaimAndWithdrawInput
+
+Ƭ **PushClaimAndWithdrawInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amountOut` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `claimId` | `string` |
+| `maxBonderFee` | `BigNumberish` |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
+| `pathId` | `string` |
+| `sourcePool` | `BigNumberish` |
+| `to` | `string` |
+
+___
+
 ### <a id="pushclaiminput" name="pushclaiminput"></a> PushClaimInput
 
 Ƭ **PushClaimInput**: `Object`
@@ -1927,6 +2015,20 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
+
+___
+
+### <a id="readdclaiminput" name="readdclaiminput"></a> ReaddClaimInput
+
+Ƭ **ReaddClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+| `transferDataHash` | `string` |
 
 ___
 
@@ -2081,6 +2183,18 @@ ___
 
 ___
 
+### <a id="settokenfeerecipientinput" name="settokenfeerecipientinput"></a> SetTokenFeeRecipientInput
+
+Ƭ **SetTokenFeeRecipientInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `recipient` | `string` |
+
+___
+
 ### <a id="setupdatefeegasinput" name="setupdatefeegasinput"></a> SetUpdateFeeGasInput
 
 Ƭ **SetUpdateFeeGasInput**: `Object`
@@ -2168,6 +2282,18 @@ ___
 | `decimals` | `number` |
 | `name` | `string` |
 | `symbol` | `string` |
+
+___
+
+### <a id="tokensinput" name="tokensinput"></a> TokensInput
+
+Ƭ **TokensInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `pathId` | `string` |
 
 ___
 
@@ -2345,6 +2471,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `claimId` | `string` |
+| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
 
 ## Variables

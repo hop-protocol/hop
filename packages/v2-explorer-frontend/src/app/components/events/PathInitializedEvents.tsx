@@ -7,8 +7,9 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function ClaimPostedEvents () {
-  const eventName = 'ClaimPosted'
+
+export function PathInitializedEvents () {
+  const eventName = 'PathInitialized'
   const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
@@ -28,12 +29,24 @@ export function ClaimPostedEvents () {
       value: 'Path ID',
     },
     {
-      key: 'claimId',
-      value: 'Claim ID',
+      key: 'token',
+      value: 'Token',
     },
     {
-      key: 'eventChainId',
-      value: 'Event Chain ID',
+      key: 'counterpartChainId',
+      value: 'Counterpart Chain ID',
+    },
+    {
+      key: 'counterpartToken',
+      value: 'Counterpart Token',
+    },
+    {
+      key: 'initialReserve',
+      value: 'Initial Reserve',
+    },
+    {
+      key: 'path',
+      value: 'Path',
     },
   ]
 
@@ -57,9 +70,29 @@ export function ClaimPostedEvents () {
         clipboardValue: event.pathId
       },
       {
-        key: 'claimId',
-        value: event.claimIdTruncated,
-        clipboardValue: event.claimId
+        key: 'token',
+        value: event.token,
+        clipboardValue: event.token
+      },
+      {
+        key: 'counterpartChainId',
+        value: event.counterpartChainId,
+        clipboardValue: event.counterpartChainId
+      },
+      {
+        key: 'counterpartToken',
+        value: event.counterpartToken,
+        clipboardValue: event.counterpartToken
+      },
+      {
+        key: 'initialReserve',
+        value: event.initialReserve,
+        clipboardValue: event.initialReserve
+      },
+      {
+        key: 'path',
+        value: event.path,
+        clipboardValue: event.path
       },
       {
         key: 'eventChainId',
@@ -84,8 +117,12 @@ export function ClaimPostedEvents () {
           <Select
             value={filterBy}
             onChange={handleFilterByChange}>
-              <MenuItem value={'claimId'}>Claim ID</MenuItem>
               <MenuItem value={'pathId'}>Path ID</MenuItem>
+              <MenuItem value={'token'}>Token</MenuItem>
+              <MenuItem value={'counterpartChainId'}>Counterpart Chain ID</MenuItem>
+              <MenuItem value={'counterpartToken'}>Counterpart Token</MenuItem>
+              <MenuItem value={'initialReserve'}>Initial Reserve</MenuItem>
+              <MenuItem value={'path'}>Path</MenuItem>
               <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
               <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
           </Select>

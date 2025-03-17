@@ -1005,7 +1005,7 @@ export class RailsGateway extends Base {
       const pathId = await contract.getPathId(chainId0, token0, chainId1, token1, initialReserve)
       return pathId
     } catch (err: unknown) {
-      console.warn('getPathId error', err, { chainId0, token0, chainId1, token1, initialReserve }, this.getProvider(this.chainId))
+      console.warn('hopV2Sdk: getPathId error', err, { chainId0, token0, chainId1, token1, initialReserve }, this.getProvider(this.chainId))
       return this.throwError(err) as string
     }
   }
@@ -1025,7 +1025,7 @@ export class RailsGateway extends Base {
     console.log('hopV2Sdk: pathInfo', pathInfo)
 
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
-      console.warn('pathInfo', pathInfo, chainId, this.getProvider(chainId))
+      console.warn('hopV2Sdk: pathInfo', pathInfo, chainId, this.getProvider(chainId))
       throw new InputError(`pathId "${pathId}" is invalid or not found. Check the chainId is correct for that pathId. Chain ID used: ${chainId.toString()}`)
     }
 
@@ -3139,7 +3139,6 @@ export class RailsGateway extends Base {
     const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
     const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
     const claimWithdrawnEventFetcher = new ClaimWithdrawnEventFetcher()
-    console.log('her00', events.length)
     const result = events.map(event => {
       if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
         return RailsGateway.addDecodedTypesToTransferSentEvent(event, chainId)

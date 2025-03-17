@@ -698,7 +698,7 @@ export class Hop extends Base {
     ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
 
-    console.log('v2-sdk: getSendData', {
+    console.log('hopV2Sdk: getSendData', {
       amountIn,
       amountOut,
       estimatedReceived,
@@ -995,7 +995,7 @@ export class Hop extends Base {
         try {
           earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
         } catch (err: any) {
-          console.log('getBlockNumberFromDate error', err)
+          console.log('hopV2Sdk: getBlockNumberFromDate error', err)
         }
 
         const transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({

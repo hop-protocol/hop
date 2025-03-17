@@ -11,19 +11,23 @@ import { MessageExecutedEvents } from './events/MessageExecutedEvents'
 import { MessageSentEvents } from './events/MessageSentEvents'
 import { TransferSentEvents } from './events/TransferSentEvents'
 import { TransferBondedEvents } from './events/TransferBondedEvents'
-import { ClaimPostedEvents } from './events/ClaimPostedEvents'
+import { ClaimPushedEvents } from './events/ClaimPushedEvents'
 import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
 import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
+import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
+import { PathInitializedEvents } from './events/PathInitializedEvents'
 // import { ClaimWithdrawnEvents } from './events/ClaimWithdrawnEvents'
 
 export function Events () {
   const tables = [
     <TransferSentEvents key="TransferSentEvents" />,
     <TransferBondedEvents key="TransferBondedEvents" />,
-    <ClaimPostedEvents key="ClaimPostedEvents" />,
+    <ClaimPushedEvents key="ClaimPushedEvents" />,
     <ClaimReaddedEvents key="ClaimReaddedEvents" />,
     <ClaimRemovedEvents key="ClaimRemovedEvents" />,
     // <ClaimWithdrawnEvents key="ClaimWithdrawnEvents" />,
+    <BonderPreferenceEvents key="BonderPreferenceEvents" />,
+    <PathInitializedEvents key="PathInitializedEvents" />,
     <MessageSentEvents key="MessageSentEvents" />,
     <MessageBundledEvents key="MessageBundledEvents" />,
     <MessageExecutedEvents key="MessageExecutedEvents" />,

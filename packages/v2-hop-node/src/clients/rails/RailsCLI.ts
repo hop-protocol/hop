@@ -16,7 +16,7 @@ export async function getRelayableItems (methodName: RailsMethodName): Promise<R
   const db = getRelayerDB(name)
 
   const relayableItems: RailsRelayItem[] = []
-  for await (const relayableItem of db.getRelayableItems()) {
+  for await (const [relayableItem, ] of db.getRelayableItems()) {
     if (
       (methodName === RailsMethodName.Bond && isValidBondTxInputData(relayableItem)) ||
       (methodName === RailsMethodName.PushClaim && isValidPushClaimTxInputData(relayableItem))
@@ -25,6 +25,9 @@ export async function getRelayableItems (methodName: RailsMethodName): Promise<R
     }
   }
 
+  // TODO: Need to do this when called form CLI. Should not have to do this, create getter for DB
+  // that checks openness of DB and returns existing instance if already open.
+  await db.close()
   return relayableItems
 }
 
@@ -32,7 +35,7 @@ export async function relayItem (relayItem: RailsRelayItem): Promise<providers.T
   const name = ClientName.Rails
   const db = getRelayerDB(name)
 
-  const { relayChainId, relayTxMethodName } = await db.getTxContextByRelayItemKey(relayItem.pathId)
+  const { relayChainId, relayTxMethodName } = await db.getTxContextByRelayItem(relayItem)
 
   const path: RailsPath = getPathFromPathId(relayItem.pathId)
   const relayer = new RailsRelayer(name, [path])

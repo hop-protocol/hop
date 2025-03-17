@@ -61,13 +61,17 @@ export class RelayerDB<RelayTxMethodName, RelayItem> extends DB<DBKey, DBValue<R
   async *getRelayableItems (): AsyncGenerator<[RelayItem, RelayTxContext<RelayTxMethodName>]> {
     for await (const [, dbValue] of this.iterator()) {
       if (dbValue.inFlight) continue
-      yield [dbValue.item, dbValue.relayTxContext]
+      const filteredItem = this.normalizeDBValue(dbValue)
+      yield [filteredItem.item, filteredItem.relayTxContext]
     }
   }
 
-  async getTxContextByRelayItemKey(key: DBKey): Promise<RelayTxContext<RelayTxMethodName>> {
-    const relayItem = await this.get(key)
-    return relayItem.relayTxContext
+  async getTxContextByRelayItem(relayItem: RelayItem): Promise<RelayTxContext<RelayTxMethodName>> {
+    const key = this.#getKey(relayItem)
+    const item = await this.get(key)
+
+    const filteredItem = this.normalizeDBValue(item)
+    return filteredItem.relayTxContext
   }
 
   /**

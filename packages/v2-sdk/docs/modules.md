@@ -231,7 +231,7 @@
 
 ### <a id="alleventtypes" name="alleventtypes"></a> AllEventTypes
 
-Ƭ **AllEventTypes**: `TransferSent` \| `TransferBonded` \| `FeesSentToHub` \| `BundleCommitted` \| `BundleForwarded` \| `BundleReceived` \| `BundleSet` \| `MessageBundled` \| `MessageExecuted` \| `MessageSent`
+Ƭ **AllEventTypes**: `TransferSent` \| `TransferBonded` \| `FeesSentToHub` \| `BundleCommitted` \| `BundleForwarded` \| `BundleReceived` \| `BundleSet` \| `MessageBundled` \| `MessageExecuted` \| `MessageSent` \| `PathInitialized`
 
 ___
 
@@ -1850,14 +1850,6 @@ ___
 ### <a id="pathinitializedindexes" name="pathinitializedindexes"></a> PathInitializedIndexes
 
 Ƭ **PathInitializedIndexes**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `path?` | `string` |
-| `pathId?` | `string` |
-| `token?` | `string` |
 
 ___
 

@@ -10,7 +10,7 @@ import { useEvents } from '@/app/hooks/useEvents'
 
 export function PathInitializedEvents () {
   const eventName = 'PathInitialized'
-  const [filterBy, setFilterBy] = useState('claimId')
+  const [filterBy, setFilterBy] = useState('pathId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading } = useEvents(eventName, filter)

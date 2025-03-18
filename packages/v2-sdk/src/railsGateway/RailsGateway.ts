@@ -594,6 +594,10 @@ export type TokensInput = {
   pathId: string
 }
 
+export type GetPathInitializedEventFilterInput = {
+
+}
+
 export type RailsGatewayConstructorInput = {
   network?: string
   gasPriceMultiplier?: number
@@ -819,7 +823,16 @@ export class RailsGateway extends Base {
       return this.getClaimWithdrawnEventFilter(input)
     }
 
+    if (eventName == EventName.PathInitialized) {
+      return this.getPathInitializedEventFilter(input)
+    }
+
     throw new InputError(`event name ${eventName} not found`)
+  }
+
+  getPathInitializedEventFilter(input: GetPathInitializedEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(EventName.PathInitialized)
+    return eventFetcher.getFilterWithIndexes(input)
   }
 
   getTransferSentEventFilter(input: GetTransferSentEventFilterInput = {}) {
@@ -895,8 +908,10 @@ export class RailsGateway extends Base {
 
     console.log('hopV2Sdk: getEvents', fromBlock, toBlock, eventName)
 
-    // const eventFetcher = this.getEventFetcher(eventName)
-    // return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
+    if (eventName == EventName.PathInitialized) {
+      const eventFetcher = this.getEventFetcher(eventName)
+      return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
+    }
 
     // Get all RailsPath addresses for this chain
     const railsPathAddresses = await this.getAllRailsPathAddresses()
@@ -940,7 +955,7 @@ export class RailsGateway extends Base {
         'usdc': [
           '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
           '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
-          '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
+          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
         ]
       },
       '42069': { // Base Sepolia
@@ -974,7 +989,7 @@ export class RailsGateway extends Base {
           '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
         ],
         'usdc': [
-          '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
+          // '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
           '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
           '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
         ]
@@ -1001,7 +1016,7 @@ export class RailsGateway extends Base {
             addresses.add(address)
           }
         } catch (err) {
-          console.warn(`Failed to get RailsPath address for pathId ${pathId}:`, err)
+          console.warn(`Failed to get RailsPath address on chain ${chainId} for pathId ${pathId}:`, err)
           continue
         }
       }

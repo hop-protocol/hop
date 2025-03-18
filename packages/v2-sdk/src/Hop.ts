@@ -4,7 +4,7 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName } from '#railsGateway/index.js'
+import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName, PathInitialized } from '#railsGateway/index.js'
 import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
@@ -15,7 +15,7 @@ import memcache from 'memory-cache'
 
 const cache = new memcache.Cache()
 
-export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent
+export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent | PathInitialized
 
 export enum EventName {
   TransferSent = RailsGatewayEventName.TransferSent,
@@ -24,6 +24,7 @@ export enum EventName {
   ClaimReadded = RailsGatewayEventName.ClaimReadded,
   ClaimRemoved = RailsGatewayEventName.ClaimRemoved,
   BonderPreference = StakingRegistryEventName.BonderPreference,
+  PathInitialized = RailsGatewayEventName.PathInitialized,
 
   BundleCommitted = MessengerEventName.BundleCommitted,
   BundleForwarded = MessengerEventName.BundleForwarded,
@@ -808,7 +809,13 @@ export class Hop extends Base {
       let subclass: any = null
       if (this.getMessenger(chainId).getEventNames().includes(name)) {
         subclass = this.getMessenger(chainId)
-        const fetcher = subclass.getEventFetcher(name, chainId)
+        const fetcher = subclass.getEventFetcher(name)
+        const filter = fetcher.getFilter()
+        filters.push(filter)
+        eventFetcherMap[filter.topics?.[0] as string] = fetcher
+      } else if (name == EventName.PathInitialized) {
+        subclass = this.getRailsGateway(chainId)
+        const fetcher = subclass.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
@@ -823,13 +830,14 @@ export class Hop extends Base {
         }
       } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
         subclass = this.getRailsGateway(chainId).getStakingRegistry()
-        const fetcher = subclass.getEventFetcher(name, chainId)
+        const fetcher = subclass.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       }
     }
   
+    // console.log('hopV2Sdk: getEvents filters', filters)
     const options = { fromBlock: fromBlock as number, toBlock: toBlock as number }
     const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
   

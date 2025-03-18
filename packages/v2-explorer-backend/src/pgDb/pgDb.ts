@@ -12,6 +12,7 @@ import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { ClaimPushedTable } from './events/railsGateway/ClaimPushed.js'
 import { ClaimReaddedTable } from './events/railsGateway/ClaimReadded.js'
 import { ClaimRemovedTable } from './events/railsGateway/ClaimRemoved.js'
+import { PathInitializedTable } from './events/railsGateway/PathInitialized.js'
 // import { ClaimWithdrawnTable } from './events/railsGateway/ClaimWithdrawn.js'
 import { BonderPreferenceTable } from './events/railsGateway/BonderPreference.js'
 import { PriceTable } from './prices/index.js'
@@ -67,6 +68,7 @@ export class PgDb {
       ClaimRemoved: new ClaimRemovedTable(this.db),
       // ClaimWithdrawn: new ClaimWithdrawnTable(this.db),
       BonderPreference: new BonderPreferenceTable(this.db),
+      PathInitialized: new PathInitializedTable(this.db),
     }
 
     this.migrationTable = new MigrationTable(this.db)

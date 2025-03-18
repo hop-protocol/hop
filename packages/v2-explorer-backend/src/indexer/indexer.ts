@@ -95,6 +95,7 @@ export class Indexer {
       ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
      // ClaimWithdrawn: new SyncStateDb(dbPath, 'ClaimWithdrawn'),
       BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
+      PathInitialized: new SyncStateDb(dbPath, 'PathInitialized')
     }
   }
 
@@ -140,7 +141,8 @@ export class Indexer {
       'ClaimReadded',
       'ClaimRemoved',
       // 'ClaimWithdrawn',
-      'BonderPreference'
+      'BonderPreference',
+      'PathInitialized'
     ]
 
     const _events: any[] = []
@@ -208,7 +210,6 @@ export class Indexer {
         const upsertData = { ...event.decoded, context: event.context }
 
         // TODO: better way of handling this
-        /*
         if (event.context.eventName === 'TransferSent') {
           try {
             const dataDecoded = await this.sdk.getRailsGateway(chainId).helpers.decodeSendTxInputData(event.context.data)
@@ -224,7 +225,6 @@ export class Indexer {
             console.warn('decodeSendTxInputData error', err)
           }
         }
-        */
 
         await this.pgDb.events[event.context.eventName].upsertItem(upsertData)
         await _db.putSyncState(chainId, { fromBlock, toBlock })

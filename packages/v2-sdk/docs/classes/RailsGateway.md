@@ -94,6 +94,7 @@
 - [getPath](RailsGateway.md#getpath)
 - [getPathId](RailsGateway.md#getpathid)
 - [getPathInfo](RailsGateway.md#getpathinfo)
+- [getPathInitializedEventFilter](RailsGateway.md#getpathinitializedeventfilter)
 - [getProvider](RailsGateway.md#getprovider)
 - [getPushClaimFee](RailsGateway.md#getpushclaimfee)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
@@ -1371,6 +1372,22 @@ ___
 #### Returns
 
 `Promise`\<[`Path`](../modules.md#path)\>
+
+___
+
+### <a id="getpathinitializedeventfilter" name="getpathinitializedeventfilter"></a> getPathInitializedEventFilter
+
+▸ **getPathInitializedEventFilter**(`input?`): `any`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | `GetPathInitializedEventFilterInput` |
+
+#### Returns
+
+`any`
 
 ___
 

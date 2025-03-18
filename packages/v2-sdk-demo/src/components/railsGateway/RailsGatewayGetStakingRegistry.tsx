@@ -68,7 +68,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Staking Registry</Typography>
+        <Typography variant="h5">Rails Gateway - Get Staking Registry Address</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get Rails Gateway Staking Registry address</Typography>
@@ -96,7 +96,7 @@ main().catch(console.error)
           )}
           {!!stakingRegistry && (
             <Box mb={4}>
-              <Alert severity="info">{stakingRegistry}</Alert>
+              <Alert severity="success">Address: {stakingRegistry}</Alert>
             </Box>
           )}
         </Box>

@@ -16,6 +16,7 @@ export const useTransferDetails = (props: any) => {
   const parts = pathname.split('/')
   const transferId = parts[2]
   const sdk = useMemo(() => new Hop({
+    network: networkSlug,
     signersOrProviders: Hop.getDefaultProviders(networkSlug)
   }), [])
   const formatDisplay = (value: string, decimals: number, symbol: string) => {
@@ -46,25 +47,39 @@ export const useTransferDetails = (props: any) => {
   }, [eventDetails])
 
   const lastBondedEvent = event?.transferBondedEvents?.[event?.transferBondedEvents?.length - 1]
+  const lastClaimWithdrawnEvent = event?.claimWithdrawnEvents?.[event?.claimWithdrawnEvents?.length - 1]
   const token = event?.token
   const context = event?.context
   const tokenDecimals = token?.decimals
   const tokenSymbol = token?.symbol
   const tokenName = token?.name
   const isBonded = !!lastBondedEvent
+  const isWithdrawn = !!lastClaimWithdrawnEvent
+  const isCompleted = isBonded || isWithdrawn
+  const statusLabel = isBonded ? 'Bonded' : isWithdrawn ? 'Withdrawn' : 'Pending'
   const counterpartToken = event?.counterpartToken
   const transferAmount = event?.amount
   const transferAmountDisplay = `${event?.amount ?? ''} (${event?.amountDisplay ?? ''}) (${event?.amountUsdDisplay ?? ''})`
   const sourcePool = event?.sourcePool
-  const sourcePoolDisplay = event?.sourcePoolDisplay
+  const sourcePoolDisplay = event?.sourcePool
   const transferRecipient = event?.to
   const transferRecipientExplorerUrl = event?.toExplorerUrl
   const pathId = event?.pathId
-  const hops = event?.hops
+  const hops = event?.hops?.map((hop: any) => {
+    const maxBonderFeeDisplay = `${hop?.maxBonderFee} (${hop?.maxBonderFeeDisplay}) (${hop?.maxBonderFeeUsdDisplay})`
+    const maxTotalSentDisplay = `${hop?.maxTotalSent} (${hop?.maxTotalSentDisplay}) (${hop?.maxTotalSentUsdDisplay})`
+    return {
+      ...hop,
+      maxBonderFeeDisplay,
+      maxTotalSentDisplay,
+      token: token
+    }
+  })
 
   const sourceTokenAddress = token?.address
   const sourceTokenDisplay = tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : null
   const sourceTokenExplorerUrl = token?.tokenExplorerUrl
+  const sourceTokenImageUrl = token?.imageUrl
 
   const sourceTx = {
     value: context?.value,
@@ -167,8 +182,8 @@ export const useTransferDetails = (props: any) => {
 
   const loading = false // !(!isFetching && event)
 
-  const statusDisplay = isBonded ? (
-    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+  const statusDisplay = isCompleted ? (
+    <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label={statusLabel} style={{ backgroundColor: '#74d56e', color: '#fff' }} />
   ) : (
     <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
   )
@@ -191,6 +206,7 @@ export const useTransferDetails = (props: any) => {
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
+    sourceTokenImageUrl,
     destinationChainDisplay,
     destinationChainImageUrl,
     loading,

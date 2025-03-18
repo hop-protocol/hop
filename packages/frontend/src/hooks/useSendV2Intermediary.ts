@@ -10,24 +10,66 @@ import { Address } from '#models/Address.js'
 import { HopBridge } from '@hop-protocol/sdk' // Ensure both are imported from the same SDK
 import { Network } from '#models/Network.js'
 import { DisabledRoute } from '#config/disabled.js'
+import { v2Enabled } from '#config/index.js'
 import { Transaction } from '#models/Transaction.js'
 import { GnosisSafeWarning } from '#hooks/index.js' // Corrected import path
 
 import { ChangeEvent } from 'react'
 
+// mainnet chains mapped to sepolia chains
+const chains :any = {
+  1: '11155111',
+  10: '11155420',
+  8453: '84532',
+}
+
+// Helper function to check if chain is supported
+function isChainSupported(chainId: string | number): boolean {
+  return Object.keys(chains).includes(chainId.toString())
+}
+
+// Helper function to get Sepolia chain ID
+function getSepoliaChainId(chainId: string | number): string {
+  return chains[chainId.toString()]
+}
+
+// Helper function to check if token is eligible for v2 and get chain mappings
+function isTokenEligibleWithChains(params: {
+  symbol: string,
+  sourceChainId: string | number,
+  destinationChainId: string | number
+}) {
+  const { symbol, sourceChainId, destinationChainId } = params
+
+  // Only USDC is supported for now
+  if (symbol !== 'USDC') return false
+
+  // Both chains must be supported
+  if (!isChainSupported(sourceChainId) || !isChainSupported(destinationChainId)) return false
+
+  // Don't allow same chain transfers
+  if (sourceChainId.toString() === destinationChainId.toString()) return false
+
+  return {
+    symbol,
+    sourceChainId: sourceChainId.toString(),
+    destinationChainId: destinationChainId.toString(),
+    sepolia: {
+      sourceChainId: getSepoliaChainId(sourceChainId),
+      destinationChainId: getSepoliaChainId(destinationChainId)
+    }
+  }
+}
+
 // Define the list of tokens eligible for v2
-const v2EligibleTokens = [
-  {
-    symbol: 'ETH',
-    sourceChainId: '1',
-    destinationChainId: '8453'
-  },
-  {
-    symbol: 'USDC',
-    sourceChainId: '1',
-    destinationChainId: '8453',
-  },
-]
+// This is now a function instead of a static array
+function getV2EligibleToken(params: {
+  symbol: string,
+  sourceChainId: string | number,
+  destinationChainId: string | number
+}) {
+  return isTokenEligibleWithChains(params)
+}
 
 interface TokenInterface {
   address: string
@@ -38,6 +80,7 @@ interface TokenInterface {
 
 // Define the return type for useSendV2Intermediary
 export type UseSendV2IntermediaryProps = {
+  v2Enabled: boolean
   accountAddress: Address | undefined
   amountOutMinDisplay: string
   amountOutMinUsdDisplay: string
@@ -143,33 +186,34 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     update().catch(console.error)
   }, [sendV2.v2Sdk])
 
-  // Helper function to check if a token is eligible for v2
+  // Update the isTokenEligibleForV2 check in useSendV2Intermediary
   const isTokenEligibleForV2 = useMemo(() => {
-    if (!sendV1.fromToken || !sendV1.fromNetwork || !sendV1.toNetwork) return false
+    if (!v2Enabled) {
+      return false
+    }
+    if (!sendV1.fromToken || !sendV1.fromNetwork || !sendV1.toNetwork) {
+      return false
+    }
 
-    return v2EligibleTokens.some(
-      (token) =>
-        token.symbol === sendV1.fromToken.symbol &&
-        token.sourceChainId === sendV1.fromNetwork.chainId.toString() &&
-        token.destinationChainId === sendV1.toNetwork.chainId.toString()
-    )
+    return !!getV2EligibleToken({
+      symbol: sendV1.fromToken.symbol,
+      sourceChainId: sendV1.fromNetwork.chainId,
+      destinationChainId: sendV1.toNetwork.chainId
+    })
   }, [sendV1.fromToken, sendV1.fromNetwork, sendV1.toNetwork])
 
   // Determine which version has the best rate
   const useV2ForBestRate = useMemo(() => {
     if (
       isTokenEligibleForV2 &&
-      sendV1.estimatedReceived instanceof BigNumber &&
-      sendV2.estimatedReceived instanceof BigNumber
+      sendV1.estimatedReceived &&
+      sendV2.estimatedReceived
     ) {
-      // Compare BigNumber values
       const useV2 = sendV2.estimatedReceived.gt(sendV1.estimatedReceived)
-      console.log('useSendV2Intermediary useV2 estimatedReceived', useV2, sendV2.estimatedReceived?.toString(), sendV1.estimatedReceived?.toString())
-      // return useV2
-      return true // for testing
+      return useV2
     }
     return false
-  }, [isTokenEligibleForV2, sendV1.estimatedReceived, sendV2.estimatedReceived])
+  }, [isTokenEligibleForV2, sendV1.estimatedReceivedUsd, sendV2.estimatedReceivedUsd])
 
   // Select the appropriate source based on eligibility and best rate
   const selectedSource = isTokenEligibleForV2
@@ -178,19 +222,33 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       : sendV1
     : sendV1
 
-  // Synchronize v1 state changes to v2
+  // Update the synchronization effect
   useEffect(() => {
     if (isTokenEligibleForV2) {
       // Synchronize fromChainId
       if (sendV1.fromNetwork && sendV2.setFromChainId) {
-        //sendV2.setFromChainId(sendV1.fromNetwork.chainId.toString())
-        sendV2.setFromChainId('11155111') // for testing
+        const eligibleToken = getV2EligibleToken({
+          symbol: sendV1.fromToken?.symbol || '',
+          sourceChainId: sendV1.fromNetwork.chainId,
+          destinationChainId: sendV1.toNetwork?.chainId || ''
+        })
+
+        if (eligibleToken) {
+          sendV2.setFromChainId(eligibleToken.sepolia.sourceChainId)
+        }
       }
 
       // Synchronize toChainId
       if (sendV1.toNetwork && sendV2.setToChainId) {
-        //sendV2.setToChainId(sendV1.toNetwork.chainId.toString())
-        sendV2.setToChainId('84532') // for testing
+        const eligibleToken = getV2EligibleToken({
+          symbol: sendV1.fromToken?.symbol || '',
+          sourceChainId: sendV1.fromNetwork?.chainId || '',
+          destinationChainId: sendV1.toNetwork.chainId
+        })
+
+        if (eligibleToken) {
+          sendV2.setToChainId(eligibleToken.sepolia.destinationChainId)
+        }
       }
 
       // Synchronize fromToken.symbol
@@ -199,8 +257,9 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       }
 
       // Synchronize fromTokenAmount to amountIn
-      if (sendV1.fromTokenAmount && sendV2.setAmountIn) {
+      if (sendV2.setAmountIn && sendV1.fromToken) {
         sendV2.setAmountIn(sendV1.fromTokenAmount)
+        sendV2.setFromTokenDecimals(sendV1.fromToken.decimals)
       }
 
       // Synchronize customRecipient to recipient
@@ -211,6 +270,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     // Dependencies ensure this runs when relevant v1 properties change
   }, [
     isTokenEligibleForV2,
+    sendV1,
+    sendV2,
     sendV1.fromNetwork,
     sendV1.toNetwork,
     sendV1.fromToken,
@@ -223,8 +284,25 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
     sendV2.setRecipient,
   ])
 
+  const v2Tx = useMemo(() => {
+    if (!sendV2.sendTx) {
+      return undefined
+    }
+    return new Transaction({
+      v2Sdk: sendV2.v2Sdk,
+      ...sendV2.sendTx,
+      fromChainId: sendV2.fromChainId,
+      networkName: sendV2.fromChain?.slug,
+      destNetworkName: sendV2.toChain?.slug,
+      // destTxHash:
+      token: sendV2.fromToken,
+    } as any)
+  }, [sendV2.sendTx])
+
   // Map variables to match useSend interface
   const mappedProps: UseSendV2IntermediaryProps = {
+    v2Enabled,
+
     // **Common Variables**
     accountAddress: isTokenEligibleForV2
       ? useV2ForBestRate
@@ -332,7 +410,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       : getValue(sendV1, 'feeRefundTokenSymbol', ''),
 
     fromAmountInputChangeHandler: getValue(sendV1, 'fromAmountInputChangeHandler', () => {}),
-
+    
     fromBalance: isTokenEligibleForV2
       ? useV2ForBestRate
         ? getValue(sendV2, 'fromTokenBalance', BigNumber.from(0))
@@ -375,11 +453,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     handleFromNetworkChange: sendV1.handleFromNetworkChange,
 
-    handleSwitchDirection: isTokenEligibleForV2
-      ? useV2ForBestRate
-        ? sendV2.handleSwitchDirection
-        : sendV1.handleSwitchDirection
-      : sendV1.handleSwitchDirection,
+    handleSwitchDirection: sendV1.handleSwitchDirection,
 
     handleToNetworkChange: sendV1.handleToNetworkChange,
 
@@ -571,15 +645,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     tx: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'sendTx', undefined) ? new Transaction({
-          v2Sdk: sendV2.v2Sdk,
-          ...sendV2.sendTx,
-          fromChainId: sendV2.fromChainId,
-          networkName: sendV2.fromChain?.slug,
-          destNetworkName: sendV2.toChain?.slug,
-          // destTxHash:
-          token: sendV2.fromToken,
-        } as any) : undefined
+        ? getValue(sendV2, 'sendTx', undefined) ? v2Tx : undefined
         : getValue(sendV1, 'tx', undefined)
       : getValue(sendV1, 'tx', undefined),
 
@@ -592,8 +658,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       isV2: useV2ForBestRate,
 
       estimatedReceivedComparison: {
-        v1: sendV1.estimatedReceivedUsdDisplay,
-        v2: sendV2.estimatedReceivedUsdDisplay
+        v1: sendV1.estimatedReceivedDisplay,
+        v2: sendV2.estimatedReceivedDisplay
       }
   }
 

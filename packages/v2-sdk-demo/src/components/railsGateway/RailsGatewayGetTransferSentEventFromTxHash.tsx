@@ -105,7 +105,7 @@ main().catch(console.error)
               <CustomTextField fullWidth placeholder="0x" value={transactionHash} onChange={event => setTransactionHash(event.target.value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
-              <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
+              <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Event</HighlightedButton>
             </Box>
           </form>
           {!!error && (

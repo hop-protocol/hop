@@ -90,9 +90,10 @@ export class Indexer {
       MessageSent: new SyncStateDb(dbPath, 'MessageSent'),
       TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
       TransferBonded: new SyncStateDb(dbPath, 'TransferBonded'),
-      ClaimPosted: new SyncStateDb(dbPath, 'ClaimPosted'),
+      ClaimPushed: new SyncStateDb(dbPath, 'ClaimPushed'),
       ClaimReadded: new SyncStateDb(dbPath, 'ClaimReadded'),
       ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
+     // ClaimWithdrawn: new SyncStateDb(dbPath, 'ClaimWithdrawn'),
       BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
     }
   }
@@ -135,9 +136,10 @@ export class Indexer {
       'MessageSent',
       'TransferSent',
       'TransferBonded',
-      'ClaimPosted',
+      'ClaimPushed',
       'ClaimReadded',
       'ClaimRemoved',
+      // 'ClaimWithdrawn',
       'BonderPreference'
     ]
 
@@ -261,6 +263,7 @@ export class Indexer {
 
     const tokens = new Set(this.sdk.getSupportedTokenSymbols()) // TODO: read from db list of tokens
     tokens.add('ETH')
+    tokens.add('HOP')
     for  (const token of tokens) {
       let tokenLookup = token
       if (tokenLookup === 'MOCK') {

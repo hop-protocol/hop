@@ -36,6 +36,7 @@
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [calcAmountOutMin](Hop.md#calcamountoutmin)
 - [connectTargets](Hop.md#connecttargets)
+- [getAmountOut](Hop.md#getamountout)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Hop.md#getcolorforchainid)
 - [getConfigAddress](Hop.md#getconfigaddress)
@@ -317,6 +318,22 @@ ___
 #### Returns
 
 `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+
+___
+
+### <a id="getamountout" name="getamountout"></a> getAmountOut
+
+▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `GetAmountOutInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 
@@ -1159,7 +1176,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
-| `provider` | `Provider` |
+| `provider` | `Provider` \| `Signer` |
 
 #### Returns
 
@@ -1234,13 +1251,14 @@ ___
 
 ### <a id="switchchain" name="switchchain"></a> switchChain
 
-▸ **switchChain**(`chainId`): `Promise`\<`void`\>
+▸ **switchChain**(`chainId`, `currentSignerChainId?`): `Promise`\<`void`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `chainId` | `BigNumberish` | `undefined` |
+| `currentSignerChainId` | `BigNumberish` | `chainId` |
 
 #### Returns
 

@@ -57,6 +57,7 @@ export function getConvertedFeesV2(input: Input) {
     destTokenSymbol
   )
 
+  const estimatedReceivedUsd = estimatedReceived ? toUsd(estimatedReceived, destTokenDecimals, destTokenUsdPrice) : 0
   const estimatedReceivedUsdDisplay = toUsdDisplay(estimatedReceived, destTokenDecimals, destTokenUsdPrice)
 
   const relayFeeEthDisplay = relayFeeEth ? toTokenDisplay(
@@ -69,6 +70,7 @@ export function getConvertedFeesV2(input: Input) {
   const relayFeeUsdDisplay = relayFeeEth ? toUsdDisplay(relayFeeEth, 18, feeTokenUsdPrice) : ''
   const totalFee = bonderFeeUsd + relayFeeUsd
   const totalFeeDisplay = `${totalFee || 0}`
+  const totalFeeUsd = totalFee > 0 ? totalFee : 0
   const totalFeeUsdDisplay = totalFee > 0 ? formatUsdDisplay(totalFee) : '0'
 
   return {
@@ -81,8 +83,10 @@ export function getConvertedFeesV2(input: Input) {
     totalBonderFeeUsdDisplay,
     totalFee,
     totalFeeDisplay,
+    totalFeeUsd,
     totalFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     tokenUsdPrice: destTokenUsdPrice,
     relayFeeEthDisplay,

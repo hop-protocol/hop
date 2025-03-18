@@ -20,14 +20,14 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayWithdraw (props: Props) {
-  const cacheKey = 'railsGatewayWithdraw'
+export function RailsGatewayPushClaim (props: Props) {
+  const cacheKey = 'railsGatewayPushClaim'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useLocalStorageState(`${cacheKey}:fromChainId`, {
-    defaultValue: defaultChainIds.to,
+    defaultValue: defaultChainIds.from,
   })
 
   const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
@@ -38,7 +38,27 @@ export function RailsGatewayWithdraw (props: Props) {
     defaultValue: '',
   })
 
-  const [txHash, setTxHash] = useLocalStorageState(`${cacheKey}:txHash`, {
+  const [to, setTo] = useLocalStorageState(`${cacheKey}:to`, {
+    defaultValue: '',
+  })
+
+  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
+    defaultValue: '',
+  })
+
+  const [maxBonderFee, setMaxBonderFee] = useLocalStorageState(`${cacheKey}:maxBonderFee`, {
+    defaultValue: '',
+  })
+
+  const [attestedClaimId, setAttestedClaimId] = useLocalStorageState(`${cacheKey}:attestedClaimId`, {
+    defaultValue: '',
+  })
+
+  const [sourcePool, setSourcePool] = useLocalStorageState(`${cacheKey}:sourcePool`, {
+    defaultValue: '',
+  })
+
+  const [nextHopsHash, setNextHopsHash] = useLocalStorageState(`${cacheKey}:nextHopsHash`, {
     defaultValue: '',
   })
 
@@ -52,14 +72,21 @@ export function RailsGatewayWithdraw (props: Props) {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [txHash, setTxHash] = useState('')
 
   async function getSendTxData() {
     const args = {
       pathId,
-      claimId
+      claimId,
+      to,
+      amount,
+      maxBonderFee,
+      attestedClaimId,
+      sourcePool,
+      nextHopsHash
     }
     console.log('args', args)
-    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.withdrawBonds(args)
+    const txData = await sdk.getRailsGateway(fromChainId).populateTransaction.pushClaim(args)
     return txData
   }
 
@@ -76,7 +103,6 @@ export function RailsGatewayWithdraw (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-
         const tx = await sdk.sendTransaction(txData, txData.chainId, signer)
         setTxHash(tx.hash)
       }
@@ -97,19 +123,31 @@ import { ethers } from 'ethers'
 
 async function main() {
   const pathId = "${pathId}"
-  const claimId = ${claimId}
+  const claimId = "${claimId}"
+  const to = "${to}"
+  const amount = "${amount}"
+  const maxBonderFee = "${maxBonderFee}"
+  const attestedClaimId = "${attestedClaimId}"
+  const sourcePool = "${sourcePool}"
+  const nextHopsHash = "${nextHopsHash}"
 
   ${hopInstantiateDisplayString}
-  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.withdrawBonds({
+  const txData = await hop.getRailsGateway('${fromChainId}').populateTransaction.pushClaim({
     pathId,
-    claimId
+    claimId,
+    to,
+    amount,
+    maxBonderFee,
+    attestedClaimId,
+    sourcePool,
+    nextHopsHash
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
   ) : (
   `
   const signer = window.ethereum
-  const tx = await signer..sendTransaction(txData)
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -128,10 +166,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Withdraw</Typography>
+        <Typography variant="h5">Rails Gateway - Push Claim</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Withdraw balance</Typography>
+        <Typography variant="subtitle1">Push a claim to the RailsGateway contract</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -139,37 +177,80 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Destination chain ID of hop to push claim on</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID from TransferSent event</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Claim ID <small><em>(uint256)</em></small> <small><em>Claim ID</em></small></label>
+                  <label>Claim ID <small><em>(bytes32)</em></small> <small><em>The claim ID (transfer ID of TransferSent event)</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={claimId} onChange={(event: any) => setClaimId(event.target.value)} />
               </Box>
 
               <Box mb={2}>
-                <Box>
-                  <Checkbox onChange={(event: any) => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
-                  <label>Populate Tx Only</label>
+                <Box mb={1}>
+                  <label>To <small><em>(address)</em></small> <small><em>Original recipient address from TransferSent event</em></small></label>
                 </Box>
+                <CustomTextField fullWidth placeholder="0x" value={to} onChange={(event: any) => setTo(event.target.value)} />
               </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount from TransferSent event</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee from TransferSent event</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setMaxBonderFee(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID from TransferSent event</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setAttestedClaimId(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool from TransferSent event</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={sourcePool} onChange={(event: any) => setSourcePool(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Next Hops Hash <small><em>(bytes32)</em></small> <small><em>Next hops hash computed from hops</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={nextHopsHash} onChange={(event: any) => setNextHopsHash(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Populate tx data only</label>
+                </Box>
+                <Checkbox checked={populateTxDataOnly} onChange={(event: any) => setPopulateTxDataOnly(event.target.checked)} />
+              </Box>
+
               <Box mb={2} display="flex" justifyContent="center">
                 {!signer && (
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Withdraw'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Push Claim'}</HighlightedButton>
                 )}
               </Box>
             </form>
@@ -217,4 +298,4 @@ main().catch(console.error)
   )
 }
 
-export default RailsGatewayWithdraw
+export default RailsGatewayPushClaim

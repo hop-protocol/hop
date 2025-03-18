@@ -1,4 +1,9 @@
 export {
+  PathInitialized,
+  PathInitializedEventFetcher,
+  PathInitializedIndexes
+} from './PathInitialized.js'
+export {
     TransferBonded,
     TransferBondedEventFetcher,
     TransferBondedIndexes
@@ -24,6 +29,11 @@ export {
   ClaimRemovedEventFetcher,
   ClaimRemovedIndexes
 } from './ClaimRemoved.js'
+export {
+  ClaimWithdrawn,
+  ClaimWithdrawnEventFetcher,
+  ClaimWithdrawnIndexes
+} from './ClaimWithdrawn.js'
 export {
   BonderPreference,
   BonderPreferenceEventFetcher,

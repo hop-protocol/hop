@@ -79,7 +79,15 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
       setConfirmations(txResponse?.confirmations)
 
-      const isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string, provider)
+      let isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string, provider)
+      if (!isFinalized) {
+        if (transaction?.isV2) {
+          const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
+          if (isSpent) {
+            isFinalized = true
+          }
+        } 
+      }
       if (isFinalized) {
         setCompleted(true)
         updateTransaction(transaction, { pending: false })

@@ -10,13 +10,19 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import { DetailRow } from '@/app/contracts/DetailRow'
+import { DetailRow } from '@/app/gateways/DetailRow'
 
 export function Details(props: any) {
   const { initialPathDetails } = props
   const [contractState, setContractState] = useState<any[]>(initialPathDetails?.items)
   const [lastUpdated, setLastUpdated] = useState<string>(initialPathDetails?.lastUpdated ?? '')
   const [loading, setLoading] = useState<boolean>(!contractState?.length)
+  // Client-only rendering to avoid hydration mismatch
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   console.log('initialPathDetails', initialPathDetails)
 
@@ -26,16 +32,18 @@ export function Details(props: any) {
     { key: 'headClaimId', label: 'Head Claim ID' },
     { key: 'tokenVault', label: 'Token Vault' },
     { key: 'sendFee', label: 'Send Fee' },
-    { key: 'messageFee', label: 'Message Fee' },
-    { key: 'claimFeesFee', label: 'Claim Fees Fee' },
     { key: 'totalClaims', label: 'Total Claims' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
     { key: 'tokenLabel', label: 'Token Name' },
     { key: 'tokenAddress', label: 'Token Address' },
+    { key: 'totalClaimsAtHeadClaimId', label: 'Total Claims at Head Claim ID' },
+    { key: 'bucketIndex', label: 'Bucket Index' },
+    { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
+    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' }
   ]
 
-  if (loading) {
+  if (loading || !isClient) {
     return (
       <Box p={2}>
         <Typography>Loading...</Typography>
@@ -46,18 +54,18 @@ export function Details(props: any) {
   return (
     <Box width="100%" maxWidth="1200px" p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Path Details
         </Typography>
-        <Typography variant="body2">
+        <Typography variant="body2" color="textSecondary">
           Last Updated: {lastUpdated}
         </Typography>
       </Box>
 
       {Object.values(contractState).map(
         (path: any, index: number) => (
-          <Box key={index} sx={{ mb: 2, ml: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
+          <Box key={`path-${index}`} sx={{ mb: 2, ml: 2 }}>
+            <Typography variant="subtitle1" gutterBottom color="textPrimary">
               Path on {index === 1 ? 'Counterpart' : ''} Chain <strong>{path?.context?.chainName}</strong>
             </Typography>
             <TableContainer>
@@ -82,7 +90,7 @@ export function Details(props: any) {
 
                     return (
                       <DetailRow
-                        key={field.key}
+                        key={`${index}-${field.key}`}
                         label={field.label}
                         rawValue={rawValue}
                         displayValue={displayValue}

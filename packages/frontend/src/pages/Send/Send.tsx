@@ -6,6 +6,7 @@ import React, { FC } from 'react'
 import SendAmountSelectorCard from '#pages/Send/SendAmountSelectorCard.js'
 import SendHeader from './SendHeader.js'
 import SendIcon from '@mui/icons-material/Send'
+import Typography from '@mui/material/Typography'
 import { Alert } from '#components/Alert/index.js'
 import { AmmDetails } from '#components/AmmDetails/index.js'
 import { Button } from '#components/Button/index.js'
@@ -28,6 +29,7 @@ const Send: FC = () => {
   const styles = useSendStyles()
   const { theme } = useApp()
   const {
+    v2Enabled,
     accountAddress,
     amountOutMinDisplay,
     amountOutMinUsdDisplay,
@@ -169,6 +171,70 @@ const Send: FC = () => {
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
         isOpen={customRecipient || isSmartContractWallet}
+        leftSideContent={
+          v2Enabled ? (
+            <InfoTooltip title={
+              <Box style={{
+                width: '340px',
+                height: '140px',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '2rem'
+              }}>
+                <Box mb={2}>
+                  <Typography variant="body1" style={{
+                    color: theme.palette.primary.contrastText
+                  }}>
+                    This transfer is using Hop <strong>V{isV2 ? 2 : 1}</strong> with better rate.
+                  </Typography>
+                </Box>
+                {(estimatedReceivedComparison.v1 && estimatedReceivedComparison.v2) && (
+                  <Box>
+                    <Typography variant="body1" style={{
+                      color: theme.palette.primary.contrastText
+                    }}>
+                      Estimated Received:
+                    </Typography>
+                    <Box style={{
+                      paddingLeft: '1rem'
+                    }}>
+                      <Box>
+                        <Typography variant="body1" style={{
+                          color: theme.palette.primary.contrastText,
+                          fontWeight: !isV2 ? 'bold' : 'normal'
+                        }}>V1: {estimatedReceivedComparison.v1 ?? '-'} {!isV2 && '✓'}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="body1" style={{
+                          color: theme.palette.primary.contrastText,
+                          fontWeight: isV2 ? 'bold' : 'normal'
+                        }}>V2: {estimatedReceivedComparison.v2 ?? '-'} {isV2 && '✓'}</Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            }>
+            <Box sx={{
+              marginLeft: '2rem',
+              bgcolor: theme => isV2 ? 'rgba(232, 65, 66, 0.08)' : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'),
+              borderRadius: '16px',
+              padding: '4px 12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: theme => isV2 ? theme.palette.primary.main : theme.palette.text.secondary,
+              minWidth: '36px',
+              justifyContent: 'center',
+              transition: theme => theme.transitions.create(['background-color', 'color'])
+            }}>
+              {isV2 ? 'V2' : 'V1'}
+            </Box>
+          </InfoTooltip>
+          )
+          : null
+        }
       />
 
       {!!gnosisSafeWarning.text && (
@@ -193,9 +259,6 @@ const Send: FC = () => {
           />
         </Alert>
       )}
-
-      <Box>V1 estimate: {estimatedReceivedComparison.v1} {!isV2 && '✓'}</Box>
-      <Box>V2 estimate: {estimatedReceivedComparison.v2} {isV2 && '✓'}</Box>
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -229,7 +292,9 @@ const Send: FC = () => {
                   destinationTxFee={destinationTxFeeDisplayString}
                   destinationTxFeeUsd={destinationTxFeeUsdDisplay}
                   relayFee={relayFeeEthDisplay}
-                  relayFeeUsd={relayFeeUsdDisplay} />
+                  relayFeeUsd={relayFeeUsdDisplay}
+                  totalFeeUsd={totalFeeUsdDisplay}
+                   />
               }
               value={<>
                 <InfoTooltip title={totalFeeUsdDisplay}>

@@ -21,6 +21,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 const HopSendTokens = lazy(() => import('../components/hop/HopSendTokens.js'))
 const HopApproveSendTokens = lazy(() => import('../components/hop/HopApproveSendTokens.js'))
 const HopSwitchChain = lazy(() => import('../components/hop/HopSwitchChain.js'))
+const HopGetTokenAddressByTokenSymbol = lazy(() => import('../components/hop/HopGetTokenAddressByTokenSymbol.js'))
+const HopGetMaxBonderFee = lazy(() => import('../components/hop/HopGetMaxBonderFee.js'))
+const HopGetMessengerAddress = lazy(() => import('../components/hop/HopGetMessengerAddress.js'))
+const HopGetRailsGatewayAddress = lazy(() => import('../components/hop/HopGetRailsGatewayAddress.js'))
 const RailsGatewaySend = lazy(() => import('../components/railsGateway/RailsGatewaySend.js'))
 const RailsGatewayGetNeedsApprovalForSend = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForSend.js'))
 const RailsGatewayGetNeedsApprovalForBond = lazy(() => import('../components/railsGateway/RailsGatewayGetNeedsApprovalForBond.js'))
@@ -28,27 +32,33 @@ const RailsGatewayApproveSend = lazy(() => import('../components/railsGateway/Ra
 const RailsGatewayApproveBond = lazy(() => import('../components/railsGateway/RailsGatewayApproveBond.js'))
 const RailsGatewayGetTotalSent = lazy(() => import('../components/railsGateway/RailsGatewayGetTotalSent.js'))
 const RailsGatewayBond = lazy(() => import('../components/railsGateway/RailsGatewayBond.js'))
-const RailsGatewayWithdraw = lazy(() => import('../components/railsGateway/RailsGatewayWithdraw.js'))
+const RailsGatewayWithdrawBonds = lazy(() => import('../components/railsGateway/RailsGatewayWithdrawBonds.js'))
+const RailsGatewayWithdrawClaim = lazy(() => import('../components/railsGateway/RailsGatewayWithdrawClaim.js'))
 const RailsGatewayGetWithdrawableBalance = lazy(() => import('../components/railsGateway/RailsGatewayGetWithdrawableBalance.js'))
 const RailsGatewayGetPathInfo = lazy(() => import('../components/railsGateway/RailsGatewayGetPathInfo.js'))
 const RailsGatewayGetPathId = lazy(() => import('../components/railsGateway/RailsGatewayGetPathId.js'))
 const RailsGatewayGetPathIdLive = lazy(() => import('../components/railsGateway/RailsGatewayGetPathIdLive.js'))
 const RailsGatewayGetSendFee = lazy(() => import('../components/railsGateway/RailsGatewayGetSendFee.js'))
 const RailsGatewayGetUpdateFee = lazy(() => import('../components/railsGateway/RailsGatewayGetUpdateFee.js'))
+const RailsGatewayGetPushClaimFee = lazy(() => import('../components/railsGateway/RailsGatewayGetPushClaimFee.js'))
+const RailsGatewayPushClaim = lazy(() => import('../components/railsGateway/RailsGatewayPushClaim.js'))
 const RailsGatewayGetTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferId.js'))
 const RailsGatewayGetHeadClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetHeadClaim.js'))
 const RailsGatewayGetIsClaimValid = lazy(() => import('../components/railsGateway/RailsGatewayGetIsClaimValid.js'))
-const RailsGatewayPostClaim = lazy(() => import('../components/railsGateway/RailsGatewayPostClaim.js'))
 const RailsGatewayConfirmClaim = lazy(() => import('../components/railsGateway/RailsGatewayConfirmClaim.js'))
 const RailsGatewayGetBucketIndex = lazy(() => import('../components/railsGateway/RailsGatewayGetBucketIndex.js'))
 const RailsGatewayGetStakingRegistry = lazy(() => import('../components/railsGateway/RailsGatewayGetStakingRegistry.js'))
 const RailsGatewayGetTransferDataHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferDataHash.js'))
+const RailsGatewayGetNextHopsHash = lazy(() => import('../components/railsGateway/RailsGatewayGetNextHopsHash.js'))
+const RailsGatewayGetSourcePool = lazy(() => import('../components/railsGateway/RailsGatewayGetSourcePool.js'))
 const RailsGatewayGetTransferSentEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash.js'))
 const RailsGatewayGetTransferSentEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId.js'))
 const RailsGatewayGetTransferBondedEventFromTxHash = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash.js'))
 const RailsGatewayGetTransferBondedEventFromTransferId = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEventFromTransferId.js'))
 const RailsGatewayGetTransferSentEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferSentEvents.js'))
 const RailsGatewayGetTransferBondedEvents = lazy(() => import('../components/railsGateway/RailsGatewayGetTransferBondedEvents.js'))
+const RailsGatewayGetInitialReserveByTokenAddress = lazy(() => import('../components/railsGateway/RailsGatewayGetInitialReserveByTokenAddress.js'))
+const RailsGatewayGetClaim = lazy(() => import('../components/railsGateway/RailsGatewayGetClaim.js'))
 const StakingRegistryApproveStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryApproveStakeHop.js'))
 const StakingRegistryStakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryStakeHop.js'))
 const StakingRegistryUnstakeHop = lazy(() => import('../components/stakingRegistry/StakingRegistryUnstakeHop.js'))
@@ -59,6 +69,7 @@ const StakingRegistryGetFullAppeal = lazy(() => import('../components/stakingReg
 const StakingRegistryGetChallengePeriod = lazy(() => import('../components/stakingRegistry/StakingRegistryGetChallengePeriod.js'))
 const StakingRegistryGetMinHopStake = lazy(() => import('../components/stakingRegistry/StakingRegistryGetMinHopStake.js'))
 const StakingRegistryGetHopTokenAddress = lazy(() => import('../components/stakingRegistry/StakingRegistryGetHopTokenAddress.js'))
+const StakingRegistryGetHopBalance = lazy(() => import('../components/stakingRegistry/StakingRegistryGetHopBalance.js'))
 const StakingRegistryMintHop = lazy(() => import('../components/stakingRegistry/StakingRegistryMintHop.js'))
 const HopCalcAmountOutMin = lazy(() => import('../components/hop/HopCalcAmountOutMin.js'))
 const SendMessage = lazy(() => import('../components/messenger/SendMessage.js'))
@@ -117,39 +128,44 @@ export function Main () {
     ['Hop - Approve Send Tokens', <HopApproveSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Hop - Switch Chain', <HopSwitchChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Hop - Calculate Amount Out Min', <HopCalcAmountOutMin sdk={sdk} />],
+    ['Hop - Get Token Address By Token Symbol', <HopGetTokenAddressByTokenSymbol sdk={sdkWithSigner} />],
+    ['Hop - Get Max Bonder Fee', <HopGetMaxBonderFee sdk={sdkWithSigner} />],
+    ['Hop - Get Messenger Address', <HopGetMessengerAddress sdk={sdkWithSigner} />],
+    ['Hop - Get RailsGateway Address', <HopGetRailsGatewayAddress sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Path ID', <RailsGatewayGetPathId sdk={sdk} />],
     ['Rails Gateway - Get Is Path ID Live', <RailsGatewayGetPathIdLive sdk={sdk} />],
     ['Rails Gateway - Get Path Info', <RailsGatewayGetPathInfo sdk={sdk} />],
     ['Rails Gateway - Get Send Fee', <RailsGatewayGetSendFee sdk={sdk} />],
     ['Rails Gateway - Get Update Fee', <RailsGatewayGetUpdateFee sdk={sdk} />],
+    ['Rails Gateway - Get Push Claim Fee', <RailsGatewayGetPushClaimFee sdk={sdk} />],
+    ['Rails Gateway - Push Claim', <RailsGatewayPushClaim sdk={sdk} signer={signer} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Transfer ID', <RailsGatewayGetTransferId sdk={sdk} />],
     ['Rails Gateway - Get Head Claim', <RailsGatewayGetHeadClaim sdk={sdk} />],
     ['Rails Gateway - Is Claim Valid', <RailsGatewayGetIsClaimValid sdk={sdk} />],
-    ['Rails Gateway - Post Claim', <RailsGatewayPostClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Confirm Claim', <RailsGatewayConfirmClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Bucket Index', <RailsGatewayGetBucketIndex sdk={sdkWithSigner} />],
-    ['Rails Gateway - Get Staking Registry', <RailsGatewayGetStakingRegistry sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Staking Registry Address', <RailsGatewayGetStakingRegistry sdk={sdkWithSigner} />],
     ['Rails Gateway - Send', <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Needs Approval For Send', <RailsGatewayGetNeedsApprovalForSend sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Needs Approval For Bond', <RailsGatewayGetNeedsApprovalForBond sdk={sdkWithSigner} />],
     ['Rails Gateway - Approve Send', <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Bond', <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Approve Bond', <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Withdraw', <RailsGatewayWithdraw signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Rails Gateway - Get Withdrawable Balance', <RailsGatewayGetWithdrawableBalance sdk={sdkWithSigner} />],
+    ['Rails Gateway - Withdraw Bonds', <RailsGatewayWithdrawBonds signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Withdraw Claim', <RailsGatewayWithdrawClaim signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Rails Gateway - Get Withdrawable Balance', <RailsGatewayGetWithdrawableBalance sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Total Sent', <RailsGatewayGetTotalSent sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Transfer Data Hash', <RailsGatewayGetTransferDataHash sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Next Hops Hash', <RailsGatewayGetNextHopsHash sdk={sdkWithSigner} />],
+    ['Rails Gateway - Get Source Pool', <RailsGatewayGetSourcePool sdk={sdkWithSigner} />],
     ['Rails Gateway - Get Transfer Sent Event From Transaction Hash', <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Event From Transfer ID', <RailsGatewayGetTransferSentEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transaction Hash', <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Event From Transfer ID', <RailsGatewayGetTransferBondedEventFromTransferId sdk={sdk} />],
     ['Rails Gateway - Get Transfer Sent Events', <RailsGatewayGetTransferSentEvents sdk={sdk} />],
     ['Rails Gateway - Get Transfer Bonded Events', <RailsGatewayGetTransferBondedEvents sdk={sdk} />],
-    ['Staking Registry - Mint Testnet Hop', <StakingRegistryMintHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Staking Registry - Approve Stake Hop', <StakingRegistryApproveStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Staking Registry - Stake Hop', <StakingRegistryStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
-    ['Staking Registry - Unstake Hop', <StakingRegistryUnstakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Rails Gateway - Get Initial Reserve By Token Address', <RailsGatewayGetInitialReserveByTokenAddress sdk={sdk} />],
+    ['Rails Gateway - Get Claim', <RailsGatewayGetClaim sdk={sdk} />],
     ['Staking Registry - Get Staked Balance', <StakingRegistryGetStakedBalance sdk={sdkWithSigner} />],
     ['Staking Registry - Get Withdrawable Balance', <StakingRegistryGetWithdrawableBalance sdk={sdkWithSigner} />],
     ['Staking Registry - Get Appeal Period', <StakingRegistryGetAppealPeriod sdk={sdkWithSigner} />],
@@ -157,6 +173,11 @@ export function Main () {
     ['Staking Registry - Get Challenge Period', <StakingRegistryGetChallengePeriod sdk={sdkWithSigner} />],
     ['Staking Registry - Get Min Hop Stake', <StakingRegistryGetMinHopStake sdk={sdkWithSigner} />],
     ['Staking Registry - Get Hop Token Address', <StakingRegistryGetHopTokenAddress sdk={sdkWithSigner} />],
+    ['Staking Registry - Get HOP Balance', <StakingRegistryGetHopBalance sdk={sdkWithSigner} />],
+    ['Staking Registry - Mint Testnet Hop', <StakingRegistryMintHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Approve Stake Hop', <StakingRegistryApproveStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Stake Hop', <StakingRegistryStakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
+    ['Staking Registry - Unstake Hop', <StakingRegistryUnstakeHop signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />],
     ['Messenger - Set Contract Addresses', <SetContractAddresses sdk={sdk} />],
     ['Messenger - Get Contract Addresses', <GetContractAddresses sdk={sdk} />],
     ['Messenger - Set RPC Providers', <SetRpcProviders sdk={sdk} />],

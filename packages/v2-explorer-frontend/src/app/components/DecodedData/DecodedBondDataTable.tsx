@@ -1,8 +1,24 @@
-import React from 'react'
-import { Table, TableBody, TableCell, TableContainer, TableRow, Typography, Box } from '@mui/material'
+'use client'
+import React, { memo, useEffect, useState } from 'react'
+import { 
+  Box, 
+  Typography, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableRow
+} from '@mui/material'
 
-export function DecodedBondDataTable({ data }: any) {
-  if (!data) {
+export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }: any) {
+  // Client-only rendering to avoid hydration mismatch
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  if (!data || !isClient) {
     return null
   }
 
@@ -15,7 +31,13 @@ export function DecodedBondDataTable({ data }: any) {
               if (key === 'nextHops') return null
               return (
                 <TableRow key={key}>
-                  <TableCell style={{ minWidth: '95px' }}>
+                  <TableCell 
+                    sx={{ 
+                      minWidth: '95px', 
+                      width: '95px',
+                      whiteSpace: 'nowrap' 
+                    }}
+                  >
                     <Typography variant="body2">{key}:</Typography>
                   </TableCell>
                   <TableCell>
@@ -43,7 +65,13 @@ export function DecodedBondDataTable({ data }: any) {
                   </TableRow>
                   {Object.entries(hop).map(([hopKey, hopValue]: any[]) => (
                     <TableRow key={hopKey}>
-                      <TableCell style={{ minWidth: '150px' }}>
+                      <TableCell 
+                        sx={{ 
+                          minWidth: '150px', 
+                          width: '150px',
+                          whiteSpace: 'nowrap' 
+                        }}
+                      >
                         <Typography variant="body2">{hopKey}:</Typography>
                       </TableCell>
                       <TableCell>
@@ -55,7 +83,13 @@ export function DecodedBondDataTable({ data }: any) {
               ))
             ) : (
               <TableRow>
-                <TableCell style={{ width: '95px' }}>
+                <TableCell 
+                  sx={{ 
+                    minWidth: '95px', 
+                    width: '95px',
+                    whiteSpace: 'nowrap' 
+                  }}
+                >
                   <Typography variant="body2">nextHops:</Typography>
                 </TableCell>
                 <TableCell>
@@ -68,4 +102,4 @@ export function DecodedBondDataTable({ data }: any) {
       </TableContainer>
     </Box>
   )
-}
+})

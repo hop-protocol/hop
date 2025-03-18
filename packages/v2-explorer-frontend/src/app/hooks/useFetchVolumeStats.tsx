@@ -8,10 +8,12 @@ type VolumeStats = {
       totalUsdDisplay: string
     }
     tokenVolumes: Record<string, {
+      tokenImageUrl: string
       totalUsd: number
       totalUsdDisplay: string
     }>
   }
+  lastUpdated: string
 }
 
 const fetchVolumeStats = async (): Promise<VolumeStats> => {

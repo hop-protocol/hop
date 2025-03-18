@@ -1,4 +1,4 @@
-import { BigNumber, utils } from 'ethers'
+import { BigNumber, utils, constants } from 'ethers'
 import { DateTime } from 'luxon'
 import { db } from '#db/index.js'
 import { Hop, RailsGateway } from '@hop-protocol/v2-sdk'
@@ -62,10 +62,35 @@ type TransferVolumeStatsApiResult = {
   totalVolume: {
     totalUsd: number
     totalUsdDisplay: string
+    totalVolumeFormatted: number
   }
   tokenVolumes: Record<string, {
+    tokenImageUrl: string
     totalUsd: number
     totalUsdDisplay: string
+    totalVolumeFormatted: number
+  }>
+}
+
+type DailyVolumeStatsApiInput = {
+  startTimestamp?: number
+  endTimestamp?: number
+  days?: number
+  pathId?: string
+}
+
+type DailyVolumeStatsApiResult = {
+  labels: string[]  // dates
+  datasets: Array<{
+    label: string   // token symbol
+    data: number[]  // volume in USD
+  }>
+  rawData: Array<{
+    date: string
+    tokenSymbol: string
+    tokenDecimals: number
+    volume: string
+    volumeUsd: number
   }>
 }
 
@@ -193,6 +218,48 @@ export class Controller {
     return bondedEvents
   }
 
+  async getClaimEventsForTransferId(transferId: string): Promise<any[]> {
+    const transferSentEvents = await this.getEvents({
+      eventName: 'TransferSent',
+      filter: { transferId }
+    })
+
+    const claims: any[] = []
+
+    const pathId = transferSentEvents.items[0].pathId
+    const chainId = transferSentEvents.items[0].context.chainId
+    const pathInfo = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId, chainId }})
+    if (!pathInfo.length) {
+      return claims
+    }
+    const counterpartChainId = pathInfo[0].counterpartChainId
+
+    try {
+      const claim = await this.getRailsGateway(counterpartChainId).getClaim({
+        pathId,
+        claimId: transferId
+      })
+
+      if (claim.bondedOrWithdrawnBy !== constants.AddressZero) {
+        const claimWithdrawnEvent = {
+          claimId: transferId,
+          pathId,
+          context: {
+            chainId: counterpartChainId,
+            from: claim.bondedOrWithdrawnBy,
+          }
+        }
+        claims.push(claimWithdrawnEvent)
+      }
+    } catch (err: any) {
+      if (!err.message.includes('claimId not found')) {
+        console.error(`getClaimEventsForTransferId, transferId: ${transferId}, error: ${err.message}`)
+      }
+    }
+
+    return claims
+  }
+
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
     const { limit = 10, page } = input
@@ -212,6 +279,12 @@ export class Controller {
       // Get all bonded events for the current transferId, following all hops
       const bondedEvents = await this.getBondedEventsForTransferId(transferId)
       item.transferBondedEvents = []
+      item.claimWithdrawnEvents = []
+
+      if (bondedEvents.length === 0) {
+        const claimEvents = await this.getClaimEventsForTransferId(transferId)
+        item.claimWithdrawnEvents = claimEvents
+      }
 
       try {
         await this.upsertPathInfoIfNotExists(item)
@@ -402,7 +475,7 @@ export class Controller {
     const fieldsToTruncate = [
       'messageId', 'checkpoint', 'transferId', 'claimId', 'headClaimId',
       'pathId', 'bundleId', 'bundleRoot', 'attestedClaimId', 'relayer',
-      'from', 'to', 'bonder'
+      'from', 'to', 'bonder', 'address'
     ]
     fieldsToTruncate.forEach(field => {
       if (item[field]) {
@@ -434,6 +507,7 @@ export class Controller {
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
       item.chainLabel = getChainLabel(item.chainId)
+      item.chainImageUrl = this.sdk.utils.getLogoForChainId(item.chainId)
     }
     if (item.fromChainId) {
       item.fromChainName = chainNames[item.fromChainId]
@@ -499,10 +573,10 @@ export class Controller {
       item.attestationFeeUsdDisplay = `${formatToUSD(item.attestationFeeUsd.toFixed(2))} USD`
     }
     if (item.nextHops) {
-      item.nextHops = item.nextHops.map((item: any) => this.addEventFields(item))
+      item.nextHops = item.nextHops.map((hop: any) => this.addEventFields({ ...hop, token: item.token, tokenPriceUsd: item.tokenPriceUsd }))
     }
     if (item.hops) {
-      item.hops = item.hops.map((item: any) => this.addEventFields(item))
+      item.hops = item.hops.map((hop: any) => this.addEventFields({ ...hop, token: item.token, tokenPriceUsd: item.tokenPriceUsd }))
     }
     if (item.minAmountOut) {
       item.minAmountOut = item.minAmountOut.toString()
@@ -515,6 +589,14 @@ export class Controller {
     if (item.maxBonderFee) {
       item.maxBonderFee = item.maxBonderFee.toString()
     }
+    if (item.maxBonderFee != null && item.token) {
+      item.maxBonderFeeFormatted = formatUnits(item.maxBonderFee, item.token.decimals)
+      item.maxBonderFeeDisplay = `${item.maxBonderFeeFormatted} ${item.token.symbol}`
+    }
+    if (item.maxBonderFee != null && item.maxBonderFeeFormatted != null && item.tokenPriceUsd != null) {
+      item.maxBonderFeeUsd = Number(item.maxBonderFeeFormatted) * Number(item.tokenPriceUsd)
+      item.maxBonderFeeUsdDisplay = `${formatToUSD(item.maxBonderFeeUsd.toFixed(2))} USD`
+    }
     if (item.maxTotalSent) {
       item.maxTotalSent = item.maxTotalSent.toString()
     }
@@ -526,6 +608,19 @@ export class Controller {
       item.maxTotalSentUsd = Number(item.maxTotalSentFormatted) * Number(item.tokenPriceUsd)
       item.maxTotalSentUsdDisplay = `${formatToUSD(item.maxTotalSentUsd.toFixed(2))} USD`
     }
+
+    if (item.totalClaimsAtHeadClaimId) {
+      item.totalClaimsAtHeadClaimId = item.totalClaimsAtHeadClaimId.toString()
+    }
+    if (item.totalClaimsAtHeadClaimId != null && item.token) {
+      item.totalClaimsAtHeadClaimIdFormatted = formatUnits(item.totalClaimsAtHeadClaimId, item.token.decimals)
+      item.totalClaimsAtHeadClaimIdDisplay = `${item.totalClaimsAtHeadClaimIdFormatted} ${item.token.symbol}`
+    }
+    if (item.totalClaimsAtHeadClaimId != null && item.totalClaimsAtHeadClaimIdFormatted != null && item.tokenPriceUsd != null) {
+      item.totalClaimsAtHeadClaimIdUsd = Number(item.totalClaimsAtHeadClaimIdFormatted) * Number(item.tokenPriceUsd)
+      item.totalClaimsAtHeadClaimIdUsdDisplay = `${formatToUSD(item.totalClaimsAtHeadClaimIdUsd.toFixed(2))} USD`
+    }
+
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
     }
@@ -630,6 +725,42 @@ export class Controller {
       item.minHopStakeDisplay = `${item.minHopStakeFormatted} HOP`
     }
 
+    if (item.stakedBalance) {
+      item.stakedBalance = item.stakedBalance.toString()
+    }
+    if (item.stakedBalance != null) {
+      item.stakedBalanceFormatted = formatUnits(item.stakedBalance, 18)
+      item.stakedBalanceDisplay = `${item.stakedBalanceFormatted} HOP`
+    }
+    if (item.stakedBalance != null && item.stakedBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.stakedBalanceUsd = Number(item.stakedBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.stakedBalanceUsdDisplay = `${formatToUSD(item.stakedBalanceUsd.toFixed(2))} USD`
+    }
+
+    if (item.withdrawableBalance) {
+      item.withdrawableBalance = item.withdrawableBalance.toString()
+    }
+    if (item.withdrawableBalance != null) {
+      item.withdrawableBalanceFormatted = formatUnits(item.withdrawableBalance, 18)
+      item.withdrawableBalanceDisplay = `${item.withdrawableBalanceFormatted} HOP`
+    }
+    if (item.withdrawableBalance != null && item.withdrawableBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.withdrawableBalanceUsd = Number(item.withdrawableBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.withdrawableBalanceUsdDisplay = `${formatToUSD(item.withdrawableBalanceUsd.toFixed(2))} USD`
+    }
+
+    if (item.hopBalance) {
+      item.hopBalance = item.hopBalance.toString()
+    }
+    if (item.hopBalance != null) {
+      item.hopBalanceFormatted = formatUnits(item.hopBalance, 18)
+      item.hopBalanceDisplay = `${item.hopBalanceFormatted} HOP`
+    }
+    if (item.hopBalance != null && item.hopBalanceFormatted != null && item.tokenPriceUsd != null) {
+      item.hopBalanceUsd = Number(item.hopBalanceFormatted) * Number(item.tokenPriceUsd)
+      item.hopBalanceUsdDisplay = `${formatToUSD(item.hopBalanceUsd.toFixed(2))} USD`
+    }
+
     return item
   }
 
@@ -693,16 +824,15 @@ export class Controller {
     if (item.chainId && item.address) {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.address, item.chainId)
+        item.imageUrl = this.sdk.utils.getLogoForTokenSymbol(item.symbol)
+
       } catch (err) {
         console.error(err)
         item.tokenExplorerUrl = ''
       }
       item.addressTruncated = truncateString(item.address, 4)
     }
-    if (item.chainId) {
-      item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = getChainLabel(item.chainId)
-    }
+    item = this.addEventFields(item)
     return item
   }
 
@@ -713,6 +843,7 @@ export class Controller {
     if (item.token) {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
+        item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.tokenSymbol)
       } catch (err) {
         console.error(err)
         item.tokenExplorerUrl = ''
@@ -722,20 +853,20 @@ export class Controller {
     if (item.counterpartToken) {
       try {
         item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
+        item.counterpartTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.counterpartTokenSymbol)
       } catch (err: any) {
         console.error(err)
         item.counterpartTokenExplorerUrl = ''
       }
       item.counterpartTokenTruncated = truncateString(item.counterpartToken, 4)
     }
-    if (item.chainId) {
-      item.chainName = chainNames[item.chainId] ?? ''
-      item.chainLabel = getChainLabel(item.chainId)
-    }
     if (item.counterpartChainId) {
       item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
       item.counterpartChainLabel = getChainLabel(item.counterpartChainId)
+      item.counterpartChainImageUrl = this.sdk.utils.getLogoForChainId(item.counterpartChainId)
     }
+
+    item = this.addEventFields(item)
 
     return item
   }
@@ -785,7 +916,10 @@ export class Controller {
     const results = await this.pgDb.events.TransferSent.getVolumeStats(input)
 
     let totalUsd = 0
+    let totalVolumeFormatted = 0
     const tokenVolumes: Record<string, {
+      tokenImageUrl: string
+      totalVolumeFormatted: number
       totalUsd: number
       totalUsdDisplay: string
     }> = {}
@@ -793,18 +927,24 @@ export class Controller {
     for (const result of results) {
       const tokenPrice = await this.pgDb.priceTable.getClosestPrice(result.tokenSymbol, input.endTimestamp)
       if (tokenPrice) {
-        const volumeFormatted = formatUnits(result.totalVolume, result.tokenDecimals)
-        const usdValue = Number(volumeFormatted) * Number(tokenPrice.priceUsd)
+        // Use the pre-formatted value directly
+        const volumeFormatted = parseFloat(result.totalVolumeFormatted)
+        const usdValue = volumeFormatted * Number(tokenPrice.priceUsd)
 
         totalUsd += usdValue
+        totalVolumeFormatted += volumeFormatted
+        
         if (!tokenVolumes[result.tokenSymbol]) {
           tokenVolumes[result.tokenSymbol] = {
+            tokenImageUrl: this.sdk.utils.getLogoForTokenSymbol(result.tokenSymbol),
+            totalVolumeFormatted: 0,
             totalUsd: 0,
             totalUsdDisplay: ''
           }
         }
-        tokenVolumes[result.tokenSymbol].totalUsd += usdValue
-        tokenVolumes[result.tokenSymbol].totalUsdDisplay = `${formatToUSD(tokenVolumes[result.tokenSymbol].totalUsd.toFixed(2))} USD`
+        tokenVolumes[result.tokenSymbol].totalVolumeFormatted = volumeFormatted
+        tokenVolumes[result.tokenSymbol].totalUsd = usdValue
+        tokenVolumes[result.tokenSymbol].totalUsdDisplay = `${formatToUSD(usdValue.toFixed(2))} USD`
       }
     }
 
@@ -813,7 +953,8 @@ export class Controller {
     return {
       totalVolume: {
         totalUsd,
-        totalUsdDisplay
+        totalUsdDisplay,
+        totalVolumeFormatted
       },
       tokenVolumes
     }
@@ -860,7 +1001,6 @@ export class Controller {
       if (chainId === '42069') { // TODO
         continue
       }
-
       try {
         const railsGateway = this.sdk.getRailsGateway(chainId)
         const [
@@ -875,6 +1015,26 @@ export class Controller {
           railsGateway.getStakingRegistryContractAddress()
         ])
 
+        const chainIdStates : any = {}
+        /*
+        for (const _chainId of chainIds) {
+          if (_chainId === '42069') { // TODO
+            continue
+          }
+          if (_chainId === chainId) {
+            continue
+          }
+          try {
+            const messageFee = await railsGateway.getMessageFee({ chainId })
+            chainIdStates[chainId] = {
+              messageFee,
+            }
+          } catch (err: any) {
+            console.error(`getRailsGatewayContractState, getChainIdStates, chainId: ${chainId}, error: ${err.message}`)
+          }
+        }
+        */
+
         const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { chainId }, limit: 100 })
         // console.log('paths', paths)
         const pathIds = paths.map((path: any) => path.pathId)
@@ -887,6 +1047,7 @@ export class Controller {
           removeFee: removeFee.toString(),
           pushClaimFee: pushClaimFee.toString(),
           stakingRegistryAddress,
+          chainIdStates,
           context: { chainId }
         })
       } catch (err: any) {
@@ -902,11 +1063,10 @@ export class Controller {
     const result: any = {}
 
     for (const chainId of chainIds) {
+      if (chainId === '42069') { // TODO
+        continue
+      }
       try {
-        if (chainId === '42069') { // TODO
-          continue
-        }
-
         const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
         const [
           stakingRegistryAddress,
@@ -967,28 +1127,28 @@ export class Controller {
           continue
         }
 
+        const headClaimId = await railsGateway.getHeadClaimId({ pathId })
         const [
-          headClaimId,
           tokenVault,
           sendFee,
-          // messageFee,
-          // claimFeesFee,
           totalClaims,
           totalConfirmed,
-          totalSent
+          totalSent,
+          hardConfirmedBucketIndex,
+          hardConfirmedClaimId,
+          totalClaimsAtHeadClaimId,
+          bucketIndex
         ] = await Promise.all([
-          railsGateway.getHeadClaimId({ pathId }),
           railsGateway.getTokenVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
-          // railsGateway.getMessageFee({ chainId }), // TODO
-          // railsGateway.getClaimFeesFee({ pathId }), // TODO
           railsGateway.getTotalClaims({ pathId }),
           railsGateway.getTotalConfirmed({ pathId }),
-          railsGateway.getTotalSent({ pathId })
+          railsGateway.getTotalSent({ pathId }),
+          railsGateway.getHardConfirmedBucketIndex({ pathId }),
+          railsGateway.getHardConfirmedClaimId({ pathId }),
+          railsGateway.getTotalClaimsAtClaimId({ pathId, claimId: headClaimId }),
+          railsGateway.getBucketIndex({ pathId, claimId: headClaimId })
         ])
-        // railsGateway.getFeePrice({ chainId }),
-        // getTotalClaimsAtClaimId({ pathId, claimId })
-        // getBucketIndex({ pathId, claimId })
 
         if (!result[chainId]) {
           result[chainId] = {}
@@ -1016,11 +1176,13 @@ export class Controller {
           headClaimId,
           tokenVault,
           sendFee: sendFee.toString(),
-          // messageFee: messageFee.toString(),
-          // claimFeesFee: claimFeesFee.toString(),
           totalClaims: totalClaims.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
+          hardConfirmedBucketIndex: hardConfirmedBucketIndex.toString(),
+          hardConfirmedClaimId,
+          totalClaimsAtHeadClaimId: totalClaimsAtHeadClaimId.toString(),
+          bucketIndex: bucketIndex.toString(),
           context: { chainId },
           token: tokenInfo
         })
@@ -1030,5 +1192,265 @@ export class Controller {
     }
 
     return result
+  }
+
+  async getBondersState({ filter }: any = {}): Promise<any> {
+    const result: any = {}
+    const bonderMap = new Map()
+
+    const { items: events } = await this.getEvents({
+      eventName: 'TransferBonded',
+      filter
+    })
+
+    const hopTokenPrice = await this.pgDb.priceTable.getClosestPrice('HOP', Math.floor(Date.now() / 1000))
+
+    for (const event of events) {
+      const { pathId, amount, context } = event
+      const { from: address } = context
+      const { chainId } = context
+
+      const paths = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId } })
+      const path = paths?.[0]
+      const tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { address: path?.token }})
+      const token = tokenInfos?.[0]
+      if (!token) {
+        console.warn(`getBondersState: token not found for path ${pathId}`)
+        continue
+      }
+
+      if (!bonderMap.has(address)) {
+        bonderMap.set(address, this.addEventFields({
+          address,
+          totalAmountBondedByToken: new Map(),
+          balances: new Map()
+        }))
+      }
+
+      const bonderData = bonderMap.get(address)
+
+      if (!bonderData.balances.has(chainId)) {
+        try {
+          const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+          const [stakedBalance, withdrawableBalance, hopBalance] = await Promise.all([
+            stakingRegistry.getStakedBalance({ staker: address }),
+            stakingRegistry.getWithdrawableBalance({ staker: address }),
+            stakingRegistry.helpers.getHopBalance({ staker: address })
+          ])
+
+          bonderData.balances.set(chainId, this.addEventFields({
+            chainId,
+            stakedBalance: stakedBalance.toString(),
+            withdrawableBalance: withdrawableBalance.toString(),
+            hopBalance: hopBalance.toString(),
+            tokenPriceUsd: hopTokenPrice?.priceUsd
+          }))
+        } catch (err) {
+          console.error(`Error fetching balances for bonder ${address} on chain ${chainId}:`, err)
+        }
+      }
+
+      const tokenPrice = await this.pgDb.priceTable.getClosestPrice(token.symbol, Math.floor(Date.now() / 1000))
+
+      if (!bonderData.totalAmountBondedByToken.has(token.address)) {
+        bonderData.totalAmountBondedByToken.set(token.symbol, {
+          amount
+        })
+      }
+      const current = bonderData.totalAmountBondedByToken.get(token.symbol)
+      const currentAmount = BigInt(current.amount)
+      bonderData.totalAmountBondedByToken.set(token.symbol, this.addEventFields({
+        amount: (currentAmount + BigInt(amount)).toString(),
+        token,
+        tokenPriceUsd: tokenPrice?.priceUsd
+      }))
+    }
+
+    // Convert map to array and format the data
+    const formattedBonders = await Promise.all(Array.from(bonderMap.values()).map(async bonder => {
+      const formattedBonder = {
+        address: bonder.address,
+        totalAmountBondedByToken: Object.fromEntries(bonder.totalAmountBondedByToken),
+        balances: Array.from(bonder.balances.values())
+      }
+      return formattedBonder
+    }))
+
+    result.bonders = formattedBonders
+    return result
+  }
+
+  async getDailyVolumeStatsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getDailyVolumeStatsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getDailyVolumeStats(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Group by token
+      const tokenMap = new Map<string, number[]>()
+      const tokenDecimalsMap = new Map<string, number>()
+      
+      data.forEach((item: any) => {
+        const { tokenSymbol, tokenDecimals } = item
+        if (!tokenMap.has(tokenSymbol)) {
+          // Initialize with zeros for all dates
+          tokenMap.set(tokenSymbol, sortedDates.map(() => 0))
+          tokenDecimalsMap.set(tokenSymbol, tokenDecimals)
+        }
+      })
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, tokenSymbol, volume } = item
+        const dateIndex = sortedDates.indexOf(date)
+        const tokenValues = tokenMap.get(tokenSymbol)
+        if (tokenValues && dateIndex >= 0) {
+          // Use BigNumber to handle large values safely
+          const tokenDecimals = tokenDecimalsMap.get(tokenSymbol) || 18
+          const formattedAmount = parseFloat(this.formatUnits(volume, tokenDecimals))
+          tokenValues[dateIndex] = formattedAmount
+        }
+      })
+      
+      // Create datasets
+      const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
+        label: tokenSymbol,
+        data: values,
+      }))
+      
+      // Create raw data with formatted values
+      const rawData = data.map((item: any) => {
+        const decimals = parseInt(item.tokenDecimals)
+        return {
+          ...item,
+          volume: item.volume,
+          volumeFormatted: this.formatUnits(item.volume, decimals)
+        }
+      })
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting daily volume stats', err)
+      throw err
+    }
+  }
+  
+  async getCumulativeVolumeStatsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getCumulativeVolumeStatsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getCumulativeVolumeStats(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Group by token
+      const tokenMap = new Map<string, number[]>()
+      const tokenDecimalsMap = new Map<string, number>()
+      
+      data.forEach((item: any) => {
+        const { tokenSymbol, tokenDecimals } = item
+        if (!tokenMap.has(tokenSymbol)) {
+          // Initialize with zeros for all dates
+          tokenMap.set(tokenSymbol, sortedDates.map(() => 0))
+          tokenDecimalsMap.set(tokenSymbol, tokenDecimals)
+        }
+      })
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, tokenSymbol, volume } = item
+        const dateIndex = sortedDates.indexOf(date)
+        const tokenValues = tokenMap.get(tokenSymbol)
+        if (tokenValues && dateIndex >= 0) {
+          // Use BigNumber to handle large values safely
+          const tokenDecimals = tokenDecimalsMap.get(tokenSymbol) || 18
+          const formattedAmount = parseFloat(this.formatUnits(volume, tokenDecimals))
+          tokenValues[dateIndex] = formattedAmount
+        }
+      })
+      
+      // Create datasets
+      const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
+        label: tokenSymbol,
+        data: values,
+      }))
+      
+      // Create raw data with formatted values
+      const rawData = data.map((item: any) => {
+        const decimals = parseInt(item.tokenDecimals)
+        return {
+          ...item,
+          volume: item.volume,
+          volumeFormatted: this.formatUnits(item.volume, decimals)
+        }
+      })
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting cumulative volume stats', err)
+      throw err
+    }
+  }
+  
+  // Helper method to format token units
+  formatUnits(value: string, decimals: number): string {
+    if (!value) return '0'
+    
+    // Handle very large numbers by using a simple string manipulation
+    // since BigNumber might not be available in the controller context
+    try {
+      const valueStr = value.toString()
+      
+      if (valueStr === '0') return '0'
+      
+      // If the value is less than 1 * 10^decimals, we need to add leading zeros
+      if (valueStr.length <= decimals) {
+        return '0.' + '0'.repeat(decimals - valueStr.length) + valueStr
+      }
+      
+      // Otherwise, insert the decimal point at the appropriate position
+      const integerPart = valueStr.slice(0, valueStr.length - decimals) || '0'
+      const fractionalPart = valueStr.slice(valueStr.length - decimals)
+      
+      // Trim trailing zeros
+      const trimmedFractional = fractionalPart.replace(/0+$/, '')
+      
+      if (trimmedFractional.length === 0) {
+        return integerPart
+      }
+      
+      return integerPart + '.' + trimmedFractional
+    } catch (error) {
+      console.error('Error formatting units:', error)
+      return '0'
+    }
   }
 }

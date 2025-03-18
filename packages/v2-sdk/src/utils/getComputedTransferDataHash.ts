@@ -1,31 +1,29 @@
 import { ethers, BigNumberish } from 'ethers'
 import { getComputedNextHopsHash } from './getComputedNextHopsHash.js'
-import { HopStruct } from '../railsGateway/events/TransferSent.js'
+import { HopStructInput } from '../railsGateway/RailsGateway.js'
 
 export type GetComputedTransferDataHashInput = {
   to: string,
-  amountOut: BigNumberish,
+  amount: BigNumberish,
   maxBonderFee: BigNumberish,
   attestedClaimId: string,
-  totalSent: BigNumberish,
-  totalClaims: BigNumberish,
-  nextHops: HopStruct[]
+  sourcePool: BigNumberish,
+  hops: HopStructInput[]
 }
 
 export function getComputedTransferDataHash(
-  { to, amountOut, maxBonderFee, totalSent, totalClaims, attestedClaimId, nextHops }: GetComputedTransferDataHashInput
+  { to, amount, maxBonderFee, attestedClaimId, sourcePool, hops }: GetComputedTransferDataHashInput
 ): string {
   return ethers.utils.keccak256(
     ethers.utils.defaultAbiCoder.encode(
-      ['address', 'uint256', 'uint256', 'bytes32', 'uint256', 'uint256', 'bytes32'],
+      ['address', 'uint256', 'uint256', 'bytes32', 'uint256', 'bytes32'],
       [
         to,
-        amountOut,
+        amount,
         maxBonderFee,
         attestedClaimId,
-        totalSent,
-        totalClaims,
-        getComputedNextHopsHash(nextHops)
+        sourcePool,
+        getComputedNextHopsHash(hops)
       ]
     )
   )

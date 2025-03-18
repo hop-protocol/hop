@@ -45,7 +45,7 @@ export function ContractStates() {
     { key: 'removeFee', label: 'Remove Fee' },
     { key: 'pushClaimFee', label: 'Push Claim Fee' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
-    { key: 'pathIdsCount', label: 'Path Ids (Count)' },
+    { key: 'pathIds', label: 'Path Ids' },
   ]
 
   const pathsFields = [
@@ -53,8 +53,8 @@ export function ContractStates() {
     { key: 'headClaimId', label: 'Head Claim ID' },
     { key: 'pathVault', label: 'Path Vault' },
     { key: 'sendFee', label: 'Send Fee' },
-    // { key: 'messageFee', label: 'Message Fee' },
-    // { key: 'claimFeesFee', label: 'Claim Fees Fee' },
+    { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
+    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' },
     { key: 'totalClaims', label: 'Total Claims' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
@@ -73,7 +73,7 @@ export function ContractStates() {
   if (loading) {
     return (
       <Box p={2}>
-        <Typography>Loading...</Typography>
+        <Typography variant="body1" color="textSecondary">Loading...</Typography>
       </Box>
     )
   }
@@ -89,19 +89,28 @@ export function ContractStates() {
   return (
     <Box width="100%" maxWidth="1200px" p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
+        <Typography variant="h4" color="textPrimary">
           Contract States
         </Typography>
-        <Typography variant="body2">
+        <Typography variant="body2" color="textSecondary">
           Last Updated: {lastUpdated}
         </Typography>
       </Box>
 
-      {contractState.map((contract) => (
-        <Paper key={contract.chainId} elevation={2} sx={{ mb: 4, p: 2 }}>
-          <Typography variant="h5" gutterBottom>
-            {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
-          </Typography>
+      {contractState.map((contract, contractIndex) => (
+        <Paper key={`contract-${contract.chainId}-${contractIndex}`} elevation={2} sx={{ mb: 4, p: 2 }}>
+          <Box display="flex" alignItems="center" mb={2}>
+            {contract.railsGateway?.chainImageUrl && (
+              <img
+                src={contract.railsGateway.chainImageUrl}
+                alt={contract.railsGateway?.context?.chainName || 'Chain'}
+                style={{ width: 24, height: 24, marginRight: 8 }}
+              />
+            )}
+            <Typography variant="h5">
+              {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
+            </Typography>
+          </Box>
 
           <Typography variant="h6" gutterBottom>
             Rails Gateway
@@ -116,12 +125,17 @@ export function ContractStates() {
                   const displayValue = contract.railsGateway
                     ? contract.railsGateway[field.key + 'Display'] || ''
                     : ''
-                  const link = contract.railsGateway
+                  let link = contract.railsGateway
                     ? contract.railsGateway[field.key + 'ExplorerUrl'] || ''
                     : ''
+
+                  if (field.key === 'pathIds') {
+                    link = rawValue.map((pathId: string) => `/p/${pathId}`)
+                  }
+
                   return (
                     <DetailRow
-                      key={field.key}
+                      key={`rails-${contract.chainId}-${field.key}`}
                       label={field.label}
                       rawValue={rawValue}
                       displayValue={displayValue}
@@ -140,10 +154,10 @@ export function ContractStates() {
                 Paths
               </Typography>
               {Object.values(contract.railsGateway.paths).map(
-                (path: any, index: number) => (
-                  <Box key={index} sx={{ mb: 2, ml: 2 }}>
+                (path: any, pathIndex: number) => (
+                  <Box key={`path-${contract.chainId}-${pathIndex}`} sx={{ mb: 2, ml: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Path {index + 1}
+                      Path {pathIndex + 1}
                     </Typography>
                     <TableContainer>
                       <Table>
@@ -152,9 +166,10 @@ export function ContractStates() {
                             const rawValue = path[field.key] || ''
                             const displayValue = path[field.key + 'Display'] || ''
                             const link = path[field.key + 'ExplorerUrl'] || ''
+
                             return (
                               <DetailRow
-                                key={field.key}
+                                key={`path-${contract.chainId}-${pathIndex}-${field.key}`}
                                 label={field.label}
                                 rawValue={rawValue}
                                 displayValue={displayValue}
@@ -190,7 +205,7 @@ export function ContractStates() {
                     : ''
                   return (
                     <DetailRow
-                      key={field.key}
+                      key={`registry-${contract.chainId}-${field.key}`}
                       label={field.label}
                       rawValue={rawValue}
                       displayValue={displayValue}

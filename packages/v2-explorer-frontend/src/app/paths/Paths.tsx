@@ -59,23 +59,29 @@ export function Paths () {
       {
         key: 'chainId',
         value: path.chainLabel,
+        valueUrl: path.chainExplorerUrl,
+        imageUrl: path.chainImageUrl,
         clipboardValue: path.chainId
       },
       {
         key: 'token',
         value: `${path.tokenSymbol ? `(${path.tokenSymbol}) ` : ''} ${path.tokenTruncated}`,
         valueUrl: path.tokenExplorerUrl,
+        imageUrl: path.tokenImageUrl,
         clipboardValue: path.token
       },
       {
         key: 'counterpartChainId',
         value: path.counterpartChainLabel,
+        valueUrl: path.counterpartChainExplorerUrl,
+        imageUrl: path.counterpartChainImageUrl,
         clipboardValue: path.counterpartChainId
       },
       {
         key: 'counterpartToken',
         value: `${path.counterpartTokenSymbol ? `(${path.counterpartTokenSymbol}) ` : ''}${path.counterpartTokenTruncated}`,
         valueUrl: path.counterpartTokenExplorerUrl,
+        imageUrl: path.counterpartTokenImageUrl,
         clipboardValue: path.counterpartToken
       },
       {

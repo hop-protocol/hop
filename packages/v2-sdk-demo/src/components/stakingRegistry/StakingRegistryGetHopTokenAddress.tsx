@@ -96,7 +96,7 @@ main().catch(console.error)
           )}
           {!!hopAddress && (
             <Box mb={4}>
-              <Alert severity="info">{hopAddress}</Alert>
+              <Alert severity="success">Address: {hopAddress}</Alert>
             </Box>
           )}
         </Box>

@@ -140,7 +140,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Initial Reserve <small><em>(uint256)</em></small> <small><em>Initial reserve on the path</em></small></label>
+                  <label>Initial Reserve <small><em>(uint256)</em></small> <small><em>Initial reserve that the path was created with</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={initialReserve} onChange={event => setInitialReserve(event.target.value)} />
               </Box>
@@ -157,7 +157,7 @@ main().catch(console.error)
           )}
           {!!pathId && (
             <Box mb={4}>
-              <Alert severity="info">Path ID: {pathId}</Alert>
+              <Alert severity="success">Path ID: {pathId}</Alert>
             </Box>
           )}
         </Box>

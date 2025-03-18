@@ -94,7 +94,7 @@ export class Base {
     return Base.getDefaultProviders(this.network)
   }
 
-  setProvider (chainId: BigNumberish, provider: Provider): void {
+  setProvider (chainId: BigNumberish, provider: Provider | Signer): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
       return
@@ -197,14 +197,27 @@ export class Base {
     let signer = this.signersOrProviders[chainId]
 
     if (!signer) {
-      throw new Error(`signer or provider not set for chain "${chainId}"`)
+      throw new Error(`getSigner: signer or provider not set for chain "${chainId}"`)
     }
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`invalid chainId "${chainId}"`)
     }
 
-    const isProvider = (signer as any)._isProvider
+    let isProvider = false
+    try {
+      isProvider = (signer as any)._isProvider
+      if (isProvider) {
+        if (typeof (signer as any).getSigner === 'function') {
+          //isProvider = false
+          //signer = (signer as any).getSigner()
+        }
+      }
+    } catch (err: any) {
+      console.warn('getSigner isProvider getSigner error:', err)
+      return null
+    }
+
     if (isProvider) {
       return null
     }
@@ -217,6 +230,7 @@ export class Base {
       const connectedChainId = (await signer.getChainId()).toString()
       if (connectedChainId !== chainId) {
         console.warn('connectedChainId', connectedChainId, 'desiredChainId', chainId)
+        console.warn('signer:', signer)
         return null
       }
       return signer
@@ -240,7 +254,7 @@ export class Base {
     const signerOrProvider = this.signersOrProviders[chainId]
 
     if (!signerOrProvider) {
-      throw new Error(`signer or provider not set for chain "${chainId}"`)
+      throw new Error(`getProvider: signer or provider not set for chain "${chainId}"`)
     }
 
     if (Signer.isSigner(signerOrProvider)) {
@@ -331,11 +345,11 @@ export class Base {
     if (!signer) {
       console.warn('signersOrProviders', this.signersOrProviders)
       console.warn('customSigner', customSigner)
-      throw new Error(`signer is required, not set for chain "${chainId}"`)
+      throw new Error(`sendTransaction: signer is required, not set for chain "${chainId}"`)
     }
 
     if (!signer.provider) {
-      throw new Error(`signer provider is required, not set for chain "${chainId}"`)
+      throw new Error(`sendTransaction: signer provider is required, not set for chain "${chainId}"`)
     }
 
     await this.utils.switchChain(chainId, signer.provider)
@@ -672,8 +686,9 @@ export class Base {
     if (!Signer.isSigner(signer)) {
       try {
         signer = (new providers.Web3Provider(signer as any, 'any').getSigner()) as any
+        console.warn('getEthersWeb3Signer, signer:', signer)
       } catch (err: any) {
-        console.log('new Web3Provider error:', err)
+        console.log('getEthersWeb3Signer: new Web3Provider error:', err)
       }
     }
 

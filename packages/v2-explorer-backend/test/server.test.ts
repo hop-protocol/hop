@@ -391,8 +391,14 @@ describe('Server', () => {
     expect(stats.totalVolume.totalUsdDisplay).toBeTruthy()
     expect(stats.tokenVolumes).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.only('/v1/contract-state', async () => {
+  it('/v1/contract-state', async () => {
     const res = await request(app).get('/v1/contract-state').send()
+    const { data } = res.body
+    console.log(JSON.stringify(res.body, null, 2))
+    expect(data).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it.only('/v1/bonders', async () => {
+    const res = await request(app).get('/v1/bonders').send()
     const { data } = res.body
     console.log(JSON.stringify(res.body, null, 2))
     expect(data).toBeTruthy()

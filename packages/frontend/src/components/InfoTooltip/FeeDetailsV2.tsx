@@ -30,19 +30,8 @@ export const FeeDetailsV2: FC<Props> = props => {
   return (
     <Box className={styles.root}>
       <Typography variant="body1" className={styles.text}>
-        The total fee consists of the maximum bonder fee and the send fee.
+        The total fee consists of the required send fee in ETH and the maximum bonder fee in the token being sent.
       </Typography>
-
-      <DetailRow
-        title="Max Bonder Fee"
-        value={<>
-          {maxBonderFeeUsd && (
-            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{maxBonderFeeUsd}</small></Box>
-          )}
-          <Box display="inline-block">{maxBonderFee}</Box>
-        </>}
-        contrastText
-      />
 
       <DetailRow
         title="Send Fee"
@@ -51,6 +40,17 @@ export const FeeDetailsV2: FC<Props> = props => {
             <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{sendFeeUsd}</small></Box>
           )}
           <Box display="inline-block">{sendFee}</Box>
+        </>}
+        contrastText
+      />
+
+      <DetailRow
+        title="Max Bonder Fee"
+        value={<>
+          {maxBonderFeeUsd && (
+            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{maxBonderFeeUsd}</small></Box>
+          )}
+          <Box display="inline-block">{maxBonderFee}</Box>
         </>}
         contrastText
       />

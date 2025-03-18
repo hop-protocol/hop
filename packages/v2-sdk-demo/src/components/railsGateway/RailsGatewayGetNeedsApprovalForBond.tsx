@@ -145,7 +145,7 @@ main().catch(console.error)
 
           {needsApproval !== '' && (
             <Box mb={4}>
-              <Alert severity="info">{needsApproval}</Alert>
+              <Alert severity="success">Needs Approval: <strong>{needsApproval}</strong></Alert>
             </Box>
           )}
         </Box>

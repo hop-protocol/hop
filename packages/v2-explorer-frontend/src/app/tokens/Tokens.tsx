@@ -42,6 +42,7 @@ export function Tokens () {
       {
         key: 'name',
         value: token.name,
+        imageUrl: token.imageUrl,
         clipboardValue: token.name
       },
       {
@@ -57,6 +58,7 @@ export function Tokens () {
       {
         key: 'chainId',
         value: token.chainLabel,
+        imageUrl: token.chainImageUrl,
         clipboardValue: token.chainId
       },
       {

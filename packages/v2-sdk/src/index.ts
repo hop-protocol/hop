@@ -33,7 +33,6 @@ export {
   GetSendFeeInput as RailsGatewayGetSendFeeInput,
   GetMessageFeeInput as RailsGatewayGetMessageFeeInput,
   GetClaimFeesFeeInput,
-  GetFeePriceInput,
   GetTotalClaimsInput,
   GetTotalClaimsAtClaimIdInput,
   GetTotalConfirmedInput,
@@ -134,7 +133,18 @@ export {
   GetInitialReserveInput,
   GetClaimPushedEventFilterInput,
   GetClaimReaddedEventFilterInput,
-  GetClaimRemovedEventFilterInput
+  GetClaimRemovedEventFilterInput,
+  CounterpartChainIdsInput,
+  GetPathInput,
+  PushClaimAndBondInput,
+  PushClaimAndWithdrawInput,
+  ReaddClaimInput,
+  SetTokenFeeRecipientInput,
+  TokensInput,
+  PathInitialized,
+  PathInitializedEventFetcher,
+  PathInitializedIndexes,
+  RailsPath
 } from './railsGateway/index.js'
 export {
   BundleCommitted,
@@ -223,7 +233,7 @@ import {
   getExplorerUrl,
   getTokenExplorerUrl,
   getTxHashExplorerUrl,
-  isContractError
+  isContractError,
 } from './utils/index.js'
 export const utils = {
   formatUSD,

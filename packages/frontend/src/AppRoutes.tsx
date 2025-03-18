@@ -2,7 +2,6 @@ import Box from '@mui/material/Box'
 import React, { FC, Suspense, lazy, useEffect } from 'react'
 import Send from '#pages/Send/index.js'
 import { SendV2 } from '#pages/Send/SendV2.js'
-import { WithdrawV2 } from '#pages/Withdraw/WithdrawV2.js'
 import { AirdropPreview } from '#pages/Airdrop/AirdropPreview/index.js'
 import { Claim } from '#pages/Claim/index.js'
 import { Loading } from '#components/Loading/index.js'
@@ -64,7 +63,6 @@ const AppRoutes: FC = () => {
                   <Route path="/pool/:tab/*" element={<PoolDetails />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/withdraw" element={<Withdraw />} />
-                  <Route path="/withdrawv2" element={<WithdrawV2 />} />
                   <Route path="/relay" element={<Relay />} />
                   <Route path="/commit-transfers" element={<CommitTransfers />} />
                   <Route path="/health" element={<Health />} />

@@ -1,5 +1,5 @@
 import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract, utils } from 'ethers'
+import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
@@ -77,6 +77,14 @@ export type GetEstimatedReceivedInput = {
   minAmountOut: BigNumberish
 }
 
+export type GetAmountOutInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  amount: BigNumberish
+}
+
 export type GetSendDataInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
@@ -89,6 +97,7 @@ export type GetSendDataInput = {
 
 export type SendData = {
   amountIn: BigNumber
+  amountOut: BigNumber
   estimatedReceived: BigNumber
   sendFee: BigNumber
   maxBonderFee: BigNumber
@@ -149,7 +158,8 @@ export type GetTransferStatusFromEventsInput = {
 }
 
 export type GetTransferStatusFromApiInput = {
-  transferId: string
+  transferId?: string
+  transactionHash?: string
 }
 
 export enum TransferState {
@@ -551,12 +561,12 @@ export class Hop extends Base {
     return { tx, connectorAddress }
   }
 
-  async switchChain (chainId: BigNumberish): Promise<void> {
+  async switchChain (chainId: BigNumberish, currentSignerChainId: BigNumberish = chainId): Promise<void> {
     if (!this.utils.isValidChainId(chainId)) {
       throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
-    const signer = await this.getSigner(chainId)
+    const signer = await this.getSigner(currentSignerChainId)
 
     if (!signer) {
       throw new ConfigError('No signer connected to switch chains')
@@ -579,6 +589,16 @@ export class Hop extends Base {
       token1: toToken,
       initialReserve
     })
+
+    console.log('getSendFee',
+      {
+        chainId0: fromChainId,
+        token0: fromToken,
+        chainId1: toChainId,
+        token1: toToken,
+        initialReserve
+      }
+    )
 
     return gateway.getSendFee({
       pathId
@@ -635,7 +655,7 @@ export class Hop extends Base {
     return this.utils.willTransactionFail(provider, { ...populatedTx, from })
   }
 
-  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+  async getAmountOut ({ fromChainId, toChainId, fromToken, toToken, amount }: GetAmountOutInput): Promise<BigNumber> {
     const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
     const rails = this.getRailsGateway(toChainId)
     const pathId = await rails.getPathId({
@@ -645,30 +665,51 @@ export class Hop extends Base {
       token1: toToken,
       initialReserve
     })
+
     const attestedClaimId = await rails.getHeadClaimId({
       pathId
     })
 
     const sourcePool = await rails.getSourcePool({ pathId, attestedClaimId })
+
     const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     return amountOut
+  }
+
+  async getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetEstimatedReceivedInput): Promise<BigNumber> {
+    const amountOut = await this.getAmountOut({ fromChainId, toChainId, fromToken, toToken, amount })
+    const maxBonderFee = await this.getMaxBonderFee({ amountIn: amountOut })
+    const estimatedReceived = amountOut.sub(maxBonderFee)
+    return estimatedReceived
   }
 
   async getSendData ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }: GetSendDataInput ): Promise<SendData> {
     const amountIn = BigNumber.from(amount)
     const [
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee
     ] = await Promise.all([
+      this.getAmountOut({ fromChainId, toChainId, fromToken, toToken, amount }),
       this.getEstimatedReceived({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut }),
       this.getSendFee({ fromChainId, fromToken, toChainId, toToken }),
       this.getMaxBonderFee({ amountIn })
     ])
     const routeChainIds = [fromChainId, toChainId].map((id) => id.toString())
 
+    console.log('hopV2Sdk: getSendData', {
+      amountIn,
+      amountOut,
+      estimatedReceived,
+      sendFee,
+      maxBonderFee,
+      routeChainIds,
+    })
+
     return {
       amountIn,
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee,
@@ -682,10 +723,12 @@ export class Hop extends Base {
     const hubToken = this.getTokenAddressByTokenSymbol(hubChainId, tokenSymbol)
     const amountIn = BigNumber.from(amount)
     const [
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee
     ] = await Promise.all([
+      this.getAmountOut({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount }),
       this.getEstimatedReceived({ fromChainId, toChainId: hubChainId, fromToken, toToken: hubToken, amount, minAmountOut }),
       this.getSendFee({ fromChainId, fromToken, toChainId: hubChainId, toToken: hubToken }),
       this.getMaxBonderFee({ amountIn })
@@ -695,6 +738,7 @@ export class Hop extends Base {
 
     return {
       amountIn,
+      amountOut,
       estimatedReceived,
       sendFee,
       maxBonderFee,
@@ -823,28 +867,44 @@ export class Hop extends Base {
   }
 
   async getTransferStatus({ fromChainId, toChainId, transferId, transactionHash }: GetTransferStatusInput): Promise<TransferStatus> {
-    transferId = (transactionHash && fromChainId) ? await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash }) : transferId
-    if (!transferId) {
-      throw new InputError('transferId missing or not found')
+    if (transactionHash && fromChainId) {
+      transferId = await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash })
+
+      if (!transferId) {
+        throw new InputError('could not find transferId from transaction hash')
+      }
     }
 
-    return this.getTransferStatusFromApi({ transferId })
+    return this.getTransferStatusFromApi({ transferId, transactionHash })
     // return this.getTransferStatusFromEvents({ fromChainId, toChainId, transferId })
   }
 
-  async getTransferStatusFromApi ({ transferId }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
-    if (!this.utils.isValidBytes32(transferId)) {
+  async getTransferStatusFromApi ({ transferId, transactionHash }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
+    if (transferId && !this.utils.isValidBytes32(transferId)) {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5BtransferId%5D=${transferId}`
+    if (transactionHash && !this.utils.isValidBytes32(transactionHash)) {
+      throw new InputError(`Invalid transactionHash "${transactionHash}"`)
+    }
+
+    if (!transferId && !transactionHash) {
+      throw new InputError('expected transferId or transactionHash')
+    }
+
+    let filter = `transferId%5D=${transferId}`
+    if (transactionHash) {
+      filter = `transactionHash%5D=${transactionHash}`
+    }
+
+    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5B${filter}`
     const json = await fetchJsonOrThrow(url.toString())
 
     const event = json?.events?.[0]
     if (!event) {
       return {
         state: TransferState.NotFound,
-        transferId,
+        transferId: transferId ?? '',
         transferSentEvent: null as any,
         transferBondedEvents: []
       }
@@ -861,6 +921,8 @@ export class Hop extends Base {
       }
     })
 
+    const claimWithdrawnEvents = event.claimWithdrawnEvents
+
     delete transferSentEvent.transferBondedEvents
 
     let transferState = TransferState.NotFound
@@ -870,6 +932,10 @@ export class Hop extends Base {
     }
 
     if (event && transferBondedEvents.length === event.hops.length) {
+      transferState = TransferState.Bonded
+    }
+
+    if (event && claimWithdrawnEvents.length > 0) {
       transferState = TransferState.Bonded
     }
 
@@ -929,7 +995,7 @@ export class Hop extends Base {
         try {
           earliestBlock = await getBlockNumberFromDate(toProvider, fromTimestamp)
         } catch (err: any) {
-          console.log('getBlockNumberFromDate error', err)
+          console.log('hopV2Sdk: getBlockNumberFromDate error', err)
         }
 
         const transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({

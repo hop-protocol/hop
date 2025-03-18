@@ -39,6 +39,7 @@ export function Details(props: any) {
     sourceTokenAddress,
     sourceTokenDisplay,
     sourceTokenExplorerUrl,
+    sourceTokenImageUrl,
     destinationTxs
   } = useTransferDetails({ initialEventDetails })
   const router = useRouter()
@@ -63,13 +64,12 @@ export function Details(props: any) {
               <DetailRow loading={loading} label="Transfer ID" value={transferId} />
               <DetailRow loading={loading} label="Status" value={statusDisplay} />
               <DetailRow loading={loading} label="Created" value={sourceTx.timestampDisplay} />
-              <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} />
+              <DetailRow loading={loading} label="Token" value={sourceTokenDisplay} link={sourceTokenExplorerUrl} imageUrl={sourceTokenImageUrl} />
               <DetailRow loading={loading} label="Origin Chain" value={sourceTx.chainDisplay} imageUrl={sourceTx.chainImageUrl} />
               <DetailRow loading={loading} label="Target Chain" value={destinationChainDisplay} imageUrl={destinationChainImageUrl} />
               <DetailRow loading={loading} label="Transfer Recipient" value={transferRecipient} link={transferRecipientExplorerUrl} />
-              <DetailRow loading={loading} label="Event Path ID" value={pathId} />
-              <DetailRow loading={loading} label="Event Amount" value={transferAmountDisplay} />
-              <DetailRow loading={loading} label="Event Source Pool" value={sourcePoolDisplay} />
+              <DetailRow loading={loading} label="Path ID" value={pathId} link={`/p/${pathId}`} />
+              <DetailRow loading={loading} label="Amount" value={transferAmountDisplay} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -78,17 +78,17 @@ export function Details(props: any) {
           <Typography variant="subtitle1" color="textPrimary">Hops</Typography>
         </Box>
 
-        {hops.map((nextHop: any, i: number) => {
-          const { pathId, maxBonderFee, maxTotalSent, attestedClaimId} = nextHop
+        {hops.map((hop: any, i: number) => {
+          const { pathId, maxBonderFeeDisplay, maxTotalSentDisplay, attestedClaimId} = hop
           return (
             <Box ml={2} mb={4} key={i}>
               <TableContainer>
                 <Table width="100%">
                   <TableBody>
                     <DetailRow label={`Hop #${i+1}`} value=" " />
-                    <DetailRow label="Path ID" value={pathId} />
-                    <DetailRow label="Max Bonder Fee" value={maxBonderFee} />
-                    <DetailRow label="Max Total Sent" value={maxTotalSent} />
+                    <DetailRow label="Path ID" value={pathId} link={`/p/${pathId}`} />
+                    <DetailRow label="Max Bonder Fee" value={maxBonderFeeDisplay} />
+                    <DetailRow label="Max Total Sent" value={maxTotalSentDisplay} />
                     <DetailRow label="Attested Claim ID" value={attestedClaimId} />
                   </TableBody>
                 </Table>
@@ -120,6 +120,7 @@ export function Details(props: any) {
                   <DecodedSendDataTable data={sourceTx.dataDecoded} />
                 } />
               )}
+              <DetailRow loading={loading} label="Event Source Pool" value={sourcePoolDisplay} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -176,7 +177,7 @@ export function Details(props: any) {
                     <DetailRow loading={loading} label="Transfer Amount" value={amountDisplay} />
                     <DetailRow loading={loading} label="Bonder Fee" value={bonderFeeDisplay} />
                     <DetailRow loading={loading} label="Recipient" value={to} link={toExplorerUrl} />
-                    <DetailRow loading={loading} label="Path ID" value={pathId} />
+                    <DetailRow loading={loading} label="Path ID" value={pathId} link={`/p/${pathId}`} />
                     <DetailRow loading={loading} label="Hash" value={transactionHash} link={transactionExplorerUrl} />
                     <DetailRow loading={loading} label="Status" value={statusDisplay} />
                     <DetailRow loading={loading} label="From Address (Bonder)" value={fromDisplay} link={fromExplorerUrl} />

@@ -1,8 +1,8 @@
 import { Event as EthersEvent, EventFilter } from 'ethers'
 import { Event } from '#events/index.js'
-import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
+import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
-// event from RailsGateway
+// event from RailsPath
 export interface ClaimPushed {
   pathId: string
   claimId: string
@@ -15,8 +15,8 @@ export type ClaimPushedIndexes = {
 
 export class ClaimPushedEventFetcher extends Event<ClaimPushed> {
   override eventName = 'ClaimPushed'
-  override abi = RailsGateway__factory.abi
-  override factory = RailsGateway__factory
+  override abi = RailsPath__factory.abi
+  override factory = RailsPath__factory
 
   getPathIdFilter (pathId: string): EventFilter {
     return this.getFilterWithIndexes({ pathId })
@@ -28,7 +28,7 @@ export class ClaimPushedEventFetcher extends Event<ClaimPushed> {
 
   getFilterWithIndexes ({ pathId, claimId } : ClaimPushedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.ClaimPosted(pathId ?? null, claimId ?? null)
+    const filter = railsGateway.filters.ClaimPushed(pathId ?? null, claimId ?? null)
     return filter
   }
 

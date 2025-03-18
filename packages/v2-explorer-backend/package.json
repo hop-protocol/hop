@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/v2-explorer-backend",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "description": "The Hop v2 explorer backend",
   "main": "dist/index.js",
   "author": "Authereum Labs, Inc.",
@@ -58,9 +58,6 @@
     "@types/subleveldown": "4.1.0",
     "@types/supertest": "2.0.15",
     "@types/uuid": "9.0.6",
-    "i": "0.3.7",
-    "json-stable-stringify": "1.1.1",
-    "npm": "10.8.2",
-    "tsx": "4.7.2"
+    "json-stable-stringify": "1.1.1"
   }
 }

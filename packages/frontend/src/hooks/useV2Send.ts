@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { BigNumber, providers, utils, Contract, constants } from 'ethers'
@@ -33,6 +33,7 @@ type V2SendHook = {
   error: string
   estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
+  estimatedReceivedUsd: number
   estimatedReceivedUsdDisplay: string
   fromChain: any
   fromChainId: string
@@ -70,6 +71,7 @@ type V2SendHook = {
   tokenList: string[]
   tokenSymbol: string | null
   totalFeeDisplay: string
+  totalFeeUsd: number
   totalFeeUsdDisplay: string
   sendTx: providers.TransactionResponse | null
   warning: string
@@ -88,7 +90,9 @@ type V2SendHook = {
   isLoadingNeedsApproval: boolean
   hasEnoughBalance: boolean
   parsedAmountIn: string
-  transferStatus: any
+  transferStatus: any,
+  fromTokenDecimals: number,
+  setFromTokenDecimals: (decimals: number) => void
 }
 
 class Token {
@@ -186,8 +190,8 @@ export function useV2Send(): V2SendHook {
     async function update() {
       if (tokenSymbol && fromChainId) {
         setFromTokenAddress(getTokenAddress(fromChainId, tokenSymbol))
-        setFromTokenName(await getTokenName(fromChainId, tokenSymbol))
         setFromTokenDecimals(await getTokenDecimals(fromChainId, tokenSymbol))
+        setFromTokenName(await getTokenName(fromChainId, tokenSymbol))
       } else {
         setFromTokenAddress(null)
         setFromTokenName(null)
@@ -229,9 +233,7 @@ export function useV2Send(): V2SendHook {
           setNeedsApproval(needs)
         } catch (err) {
           console.error('useV2Send getNeedsApprovalForSendTokens', err)
-          if (!/cancelled/gi.test(err.message)) {
-            setError(formatError(err.message))
-          }
+          // setError(formatError(err.message))
         }
         setIsLoadingNeedsApproval(false)
       } else {
@@ -240,10 +242,13 @@ export function useV2Send(): V2SendHook {
     }
 
     update().catch(console.error)
-  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving, accountAddress])
+  }, [tokenSymbol, fromChainId, toChainId, parsedAmountIn, isApproving, accountAddress, fromTokenAddress, toTokenAddress])
 
   async function approveTokens () {
     try {
+      if (!fromToken?.symbol) {
+        return
+      }
       setApprovalTx(null)
       setError('')
       setIsApproving(true)
@@ -282,8 +287,9 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err){
       console.error('useV2Send approveTokens', err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err.message))
+      const errorMessage = formatError(err.message)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(errorMessage)
       }
       setIsApproving(false)
     }
@@ -347,16 +353,17 @@ export function useV2Send(): V2SendHook {
       })
     } catch (err) {
       console.error('useV2Send sendTokens', err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err.message))
+      const errorMessage = formatError(err.message)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(formatError(errorMessage))
       }
     }
     setIsSending(false)
   }
 
   useEffect(() => {
-    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
-  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData])
+    setSendReady(!needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData && estimatedReceived.gt(0))
+  }, [needsApproval, fromChainId, toChainId, tokenSymbol, parsedAmountIn, hasEnoughBalance, isFetchingGetSendData, estimatedReceived])
 
   useEffect(() => {
     setApproveReady(needsApproval && fromChainId && toChainId && tokenSymbol && parsedAmountIn != '0' && hasEnoughBalance && !isFetchingGetSendData)
@@ -406,11 +413,25 @@ export function useV2Send(): V2SendHook {
     update().catch(console.error)
   }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress])
 
+  const latestRequestId = useRef<number>(0)
+
   useEffect(() => {
     async function update() {
       try {
+        setError('')
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
-          setIsFetchingGetSendData(true)
+          const requestId = ++latestRequestId.current
+
+          console.log('getSendData', {
+            fromChainId,
+            fromTokenAddress,
+            toChainId,
+            toTokenAddress,
+            amount: parsedAmountIn,
+            minAmountOut: parsedMinAmountOut,
+            to: recipient
+          })
+
           const data = await getSendData({
             fromChainId,
             fromToken: fromTokenAddress,
@@ -420,6 +441,11 @@ export function useV2Send(): V2SendHook {
             minAmountOut: parsedMinAmountOut,
             to: recipient
           })
+
+          // Check if this is still the latest request
+          if (requestId !== latestRequestId.current) {
+            return
+          }
 
           const sendFee = data.sendFee
           const maxBonderFee = data.maxBonderFee
@@ -438,12 +464,14 @@ export function useV2Send(): V2SendHook {
           setMaxBonderFee(BigNumber.from(0))
         }
       } catch (err) {
+        console.error('getSendData error:', err)
         setIsFetchingGetSendData(false)
+        // setError(formatError(err.message))
       }
     }
 
     update().catch(console.error)
-  }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress, parsedAmountIn])
+  }, [fromChainId, toChainId, fromTokenAddress, toTokenAddress, parsedAmountIn, parsedMinAmountOut, recipient])
 
   useEffect(() => {
     async function update() {
@@ -470,7 +498,9 @@ export function useV2Send(): V2SendHook {
     totalBonderFeeDisplay: maxBonderFeeDisplay,
     totalBonderFeeUsdDisplay: maxBonderFeeUsdDisplay,
     totalFeeDisplay,
+    totalFeeUsd,
     totalFeeUsdDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     estimatedReceivedDisplay,
     relayFeeEthDisplay: sendFeeDisplay,
@@ -556,7 +586,8 @@ export function useV2Send(): V2SendHook {
     chains,
     error,
     estimatedReceived,
-    estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay?.split(' ')[0],
+    estimatedReceivedDisplay: isFetchingGetSendData ? '' : estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     fromChain,
     fromChainId,
@@ -593,6 +624,7 @@ export function useV2Send(): V2SendHook {
     toTokenBalance,
     tokenList,
     tokenSymbol,
+    totalFeeUsd,
     totalFeeDisplay,
     totalFeeUsdDisplay,
     sendTx,
@@ -612,6 +644,8 @@ export function useV2Send(): V2SendHook {
     toBalanceUsdDisplay,
     isLoadingNeedsApproval,
     hasEnoughBalance,
-    transferStatus
+    transferStatus,
+    fromTokenDecimals,
+    setFromTokenDecimals
   }
 }

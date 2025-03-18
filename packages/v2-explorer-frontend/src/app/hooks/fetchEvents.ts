@@ -28,6 +28,7 @@ export async function fetchEvents (options: any = {}) {
     console.log('fetchEvents url', url)
     const res = await fetch(url)
     const json = await res.json()
+    // console.log('fetchEvents json', json.events[0])
     if (json.error) {
       throw new Error(json.error)
     }

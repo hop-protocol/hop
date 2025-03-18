@@ -34,15 +34,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
     defaultValue: '',
   })
 
-  const [amountOut, setAmountOut] = useLocalStorageState(`${cacheKey}:amountOut`, {
-    defaultValue: '',
-  })
-
-  const [totalSent, setTotalSent] = useLocalStorageState(`${cacheKey}:totalSent`, {
-    defaultValue: '',
-  })
-
-  const [totalClaims, setTotalClaims] = useLocalStorageState(`${cacheKey}:totalClaims`, {
+  const [amount, setAmount] = useLocalStorageState(`${cacheKey}:amount`, {
     defaultValue: '',
   })
 
@@ -69,9 +61,7 @@ export function RailsGatewayGetTransferDataHash (props: Props) {
       setLoading(true)
       const args = {
         to: toAddress,
-        amountOut,
-        totalSent,
-        totalClaims,
+        amount,
         sourcePool,
         hops,
       }
@@ -94,18 +84,15 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const to = "${toAddress}"
-  const amountOut = "${amountOut}"
-  const totalSent = "${totalSent}"
-  const totalClaims = "${totalClaims}"
+  const amount = "${amount}"
   const sourcePool = "${sourcePool}"
   const hops = ${JSON.stringify(hops, null, 2)}
 
   ${hopInstantiateDisplayString}
   const transferDataHash = await hop.getRailsGateway('${fromChainId}').getTransferDataHash({
     to,
-    amountOut,
-    totalSent,
-    totalClaims,
+    amount,
+    sourcePool,
     hops,
   })
 
@@ -143,35 +130,21 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>The to address</em></small></label>
+                  <label>To <small><em>(address)</em></small> <small><em>The destination address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount Out <small><em>(uint256)</em></small> <small><em>Amount out value</em></small></label>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to be received at destination</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={amountOut} onChange={(event: any) => setAmountOut(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Claims <small><em>(uint256)</em></small> <small><em>Total claims value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalClaims} onChange={(event: any) => setTotalClaims(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool</em></small></label>
+                  <label>Source Pool <small><em>(uint256)</em></small> <small><em>Source pool amount</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={sourcePool} onChange={(event: any) => setSourcePool(event.target.value)} />
               </Box>
@@ -221,21 +194,21 @@ main().catch(console.error)
 
                       <Box mb={2}>
                         <Box mb={1}>
-                          <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Max bonder fee</em></small></label>
+                          <label>Max Bonder Fee <small><em>(uint256)</em></small> <small><em>Maximum fee for the bonder</em></small></label>
                         </Box>
                         <CustomTextField fullWidth placeholder="0" value={maxBonderFee} onChange={(event: any) => setHopMaxBonderFee(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>
                         <Box mb={1}>
-                          <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Max total sent</em></small></label>
+                          <label>Max Total Sent <small><em>(uint256)</em></small> <small><em>Maximum total amount sent</em></small></label>
                         </Box>
                         <CustomTextField fullWidth placeholder="0" value={maxTotalSent} onChange={(event: any) => setHopMaxTotalSent(event.target.value)} />
                       </Box>
 
                       <Box mb={2}>
                         <Box mb={1}>
-                          <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>Attested claim ID</em></small></label>
+                          <label>Attested Claim ID <small><em>(bytes32)</em></small> <small><em>ID of the attested claim</em></small></label>
                         </Box>
                         <CustomTextField fullWidth placeholder="0x" value={attestedClaimId} onChange={(event: any) => setHopAttestedClaimId(event.target.value)} />
                       </Box>
@@ -246,7 +219,7 @@ main().catch(console.error)
                             const newHops = [...hops]
                             newHops.splice(index, 1)
                             setHops(newHops)
-                          }}>Remove</Button>
+                          }}>Remove Hop</Button>
                         </Box>
                       )}
                     </Box>
@@ -274,7 +247,7 @@ main().catch(console.error)
           )}
           {!!transferDataHash && (
             <Box mb={4}>
-              <Alert severity="info">{transferDataHash}</Alert>
+              <Alert severity="success">Hash: {transferDataHash}</Alert>
             </Box>
           )}
         </Box>

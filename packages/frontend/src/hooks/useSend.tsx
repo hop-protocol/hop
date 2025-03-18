@@ -49,6 +49,7 @@ export type SendResponseProps = {
   error: string
   estimatedReceived: BigNumber
   estimatedReceivedDisplay: string
+  estimatedReceivedUsd: number
   estimatedReceivedUsdDisplay: string
   feeRefundDisplay: string
   feeRefundTokenSymbol: string
@@ -97,6 +98,7 @@ export type SendResponseProps = {
   toToken: Token
   toTokenAmount: string
   totalFeeDisplay: string
+  totalFeeUsd: number
   totalFeeUsdDisplay: string
   transferTimeDisplay: string
   tx: Transaction | undefined
@@ -308,12 +310,14 @@ export function useSend(): SendResponseProps {
     destinationTxFeeDisplay,
     destinationTxFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
     tokenUsdPrice,
     totalBonderFee,
     totalFeeDisplay, // this is: totalFee = bonderFee + messageRelayFee
+    totalFeeUsd,
     totalFeeUsdDisplay, // this is: totalFee = bonderFee + messageRelayFee
   } = useFeeConversions({
     destinationTxFee: adjustedDestinationTxFee,
@@ -589,8 +593,9 @@ export function useSend(): SendResponseProps {
       setIsApproving(true)
       await approveFromToken()
     } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
+      const errorMessage = formatError(err, fromNetwork)
+      if (!/cancelled/gi.test(errorMessage)) {
+        setError(errorMessage)
       }
       logger.error(err)
     }
@@ -891,6 +896,7 @@ export function useSend(): SendResponseProps {
     error,
     estimatedReceived,
     estimatedReceivedDisplay,
+    estimatedReceivedUsd,
     estimatedReceivedUsdDisplay,
     feeRefundDisplay,
     feeRefundTokenSymbol,
@@ -939,6 +945,7 @@ export function useSend(): SendResponseProps {
     toToken,
     toTokenAmount,
     totalFeeDisplay,
+    totalFeeUsd,
     totalFeeUsdDisplay,
     transferTimeDisplay,
     tx,

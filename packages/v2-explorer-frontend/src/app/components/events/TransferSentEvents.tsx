@@ -30,7 +30,7 @@ export function TransferSentEvents () {
     },
     {
       key: 'amount',
-      value: 'Amount Out',
+      value: 'Amount',
     },
     {
       key: 'sourcePool',
@@ -70,14 +70,9 @@ export function TransferSentEvents () {
         clipboardValue: event.amount
       },
       {
-        key: 'totalSent',
-        value: event.totalSent,
-        clipboardValue: event.totalSent
-      },
-      {
-        key: 'totalClaims',
-        value: event.totalClaims,
-        clipboardValue: event.totalClaims
+        key: 'sourcePool',
+        value: event.sourcePool,
+        clipboardValue: event.sourcePool
       },
       {
         key: 'eventChainId',

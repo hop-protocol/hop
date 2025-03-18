@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
-export function ClaimPostedEvents () {
-  const eventName = 'ClaimPosted'
+export function ClaimWithdrawnEvents () {
+  const eventName = 'ClaimWithdrawn'
   const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }

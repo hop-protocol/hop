@@ -93,7 +93,7 @@ export function Execute (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData, toChainId, signer)
         setTxHash(tx.hash)
       }
     } catch (err: any) {

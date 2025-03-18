@@ -20,7 +20,7 @@ export function NetworkSelect({ network, setNetwork }) {
         onChange={handleChange}
       >
         <MenuItem value="sepolia">Sepolia</MenuItem>
-        <MenuItem value="mainnet">Mainnet</MenuItem>
+        <MenuItem value="mainnet" disabled={true}>Mainnet</MenuItem>
       </Select>
     </FormControl>
   )

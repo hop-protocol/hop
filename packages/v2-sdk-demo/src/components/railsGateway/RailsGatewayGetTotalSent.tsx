@@ -115,7 +115,7 @@ main().catch(console.error)
           )}
           {!!totalSent && (
             <Box mb={4}>
-              <Alert severity="info">{totalSent}</Alert>
+              <Alert severity="success">Total Sent: {totalSent}</Alert>
             </Box>
           )}
         </Box>

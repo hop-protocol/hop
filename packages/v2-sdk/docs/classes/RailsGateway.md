@@ -52,6 +52,7 @@
 - [feeManager](RailsGateway.md#feemanager)
 - [feeOracle](RailsGateway.md#feeoracle)
 - [gateways](RailsGateway.md#gateways)
+- [getAllRailsPathAddresses](RailsGateway.md#getallrailspathaddresses)
 - [getAmountOut](RailsGateway.md#getamountout)
 - [getBucket](RailsGateway.md#getbucket)
 - [getBucketIndex](RailsGateway.md#getbucketindex)
@@ -701,6 +702,16 @@ ___
 
 ___
 
+### <a id="getallrailspathaddresses" name="getallrailspathaddresses"></a> getAllRailsPathAddresses
+
+▸ **getAllRailsPathAddresses**(): `Promise`\<`string`[]\>
+
+#### Returns
+
+`Promise`\<`string`[]\>
+
+___
+
 ### <a id="getamountout" name="getamountout"></a> getAmountOut
 
 ▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -1049,13 +1060,14 @@ ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`): `any`
+▸ **getEventFetcher**(`eventName`, `address?`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
+| `address` | `string` |
 
 #### Returns
 

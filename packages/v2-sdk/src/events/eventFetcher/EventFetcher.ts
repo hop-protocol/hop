@@ -117,7 +117,6 @@ export class EventFetcher {
     }))
   }
 
-
   private async fetchEventsWithAggregatedFilters(aggregatedFilters: Filter[]): Promise<EthersEvent[]> {
     const promises = aggregatedFilters.map(filter => this.provider.getLogs({ ...filter }))
     const promiseResults = await Promise.all(promises)

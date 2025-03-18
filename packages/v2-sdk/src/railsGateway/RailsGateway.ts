@@ -11,6 +11,7 @@ import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#rails
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
+import { PathInitializedEventFetcher } from '#railsGateway/events/PathInitialized.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -23,7 +24,7 @@ const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
+export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher | PathInitializedEventFetcher
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -32,6 +33,7 @@ export enum EventName {
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
   ClaimWithdrawn = 'ClaimWithdrawn',
+  PathInitialized = 'PathInitialized'
 }
 
 export type GetEventsInput = {
@@ -763,14 +765,13 @@ export class RailsGateway extends Base {
     return RailsGateway.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName): any { // TODO: return type
+  getEventFetcher(eventName: EventName, address: string = this.getRailsGatewayContractAddress()): any { // TODO: return type
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
-    const address = this.getRailsGatewayContractAddress()
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
@@ -779,6 +780,7 @@ export class RailsGateway extends Base {
       [EventName.TransferSent]: TransferSentEventFetcher,
       [EventName.TransferBonded]: TransferBondedEventFetcher,
       [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.PathInitialized]: PathInitializedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
       [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
@@ -891,8 +893,126 @@ export class RailsGateway extends Base {
       }
     }
 
-    const eventFetcher = this.getEventFetcher(eventName)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
+    console.log('hopV2Sdk: getEvents', fromBlock, toBlock, eventName)
+
+    // const eventFetcher = this.getEventFetcher(eventName)
+    // return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
+
+    // Get all RailsPath addresses for this chain
+    const railsPathAddresses = await this.getAllRailsPathAddresses()
+
+    console.log('hopV2Sdk: railsPathAddresses', railsPathAddresses)
+    
+    // Create event fetchers for each RailsPath address
+    const eventFetchers = railsPathAddresses.map((address: string) => 
+      this.getEventFetcher(eventName, address)
+    )
+
+    // Fetch events from all RailsPath contracts
+    const eventsPromises = eventFetchers.map((fetcher: any) => 
+      fetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
+    )
+
+    // Combine all events
+    const eventsArrays = await Promise.all(eventsPromises)
+    const allEvents = eventsArrays.flat()
+
+    // Sort events by block number and log index
+    allEvents.sort((a: any, b: any) => {
+      if (a.blockNumber === b.blockNumber) {
+        return a.logIndex - b.logIndex
+      }
+      return a.blockNumber - b.blockNumber
+    })
+
+    return allEvents
+  }
+
+  // Update the getAllRailsPathAddresses method
+  async getAllRailsPathAddresses(): Promise<string[]> {
+    const CHAIN_PATH_IDS: Record<string, Record<string, string[]>> = {
+      '11155111': { // Sepolia
+        'mock': [
+          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 42069
+          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155420
+          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2'  // to 84532
+        ],
+        'usdc': [
+          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
+          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
+          '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
+        ]
+      },
+      '42069': { // Base Sepolia
+        'mock': [
+          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 11155111
+          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 11155420
+          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262'  // to 84532
+        ],
+        'usdc': [
+          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 11155111
+          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 11155420
+          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe'  // to 84532
+        ]
+      },
+      '11155420': { // Optimism Sepolia
+        'mock': [
+          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155111
+          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 42069
+          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 84532
+        ],
+        'usdc': [
+          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155111
+          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 42069
+          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 84532
+        ]
+      },
+      '84532': { // Base Sepolia
+        'mock': [
+          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2', // to 11155111
+          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262', // to 42069
+          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
+        ],
+        'usdc': [
+          '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
+          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
+          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
+        ]
+      }
+    }
+
+    const chainId = this.chainId.toString()
+    const addresses = new Set<string>()
+
+    // Get path IDs for the current chain
+    const chainPathIds = CHAIN_PATH_IDS[chainId]
+    if (!chainPathIds) {
+      throw new ConfigError(`No path IDs configured for chain ID ${chainId}`)
+    }
+
+    // Get RailsPath addresses for all path IDs
+    for (const tokenPathIds of Object.values(chainPathIds)) {
+      for (const pathId of tokenPathIds) {
+        try {
+          const railsPath = await this.getRailsPath(pathId)
+          const address = await railsPath.getRailsPathContractAddress()
+          console.log('hopV2Sdk: address', address)
+          if (address && address !== constants.AddressZero) {
+            addresses.add(address)
+          }
+        } catch (err) {
+          console.warn(`Failed to get RailsPath address for pathId ${pathId}:`, err)
+          continue
+        }
+      }
+    }
+
+    const addressArray = Array.from(addresses)
+    if (addressArray.length === 0) {
+      throw new ConfigError(`No RailsPath addresses found for chain ID ${chainId}`)
+    }
+
+    return addressArray
   }
 
   async getTransferSentEvents (input: TransferSentEventInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {

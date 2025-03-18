@@ -764,64 +764,89 @@ export class Hop extends Base {
     if (!fromBlock) {
       throw new InputError('fromBlock is required')
     }
-
+  
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new CustomError(`Provider not found for chainId: ${chainId}`)
     }
-
+  
     const latestBlock = await provider.getBlockNumber()
     toBlock = toBlock ?? latestBlock
     fromBlock = fromBlock ?? (latestBlock - 1000)
-
+  
     if (fromBlock < 0) {
       fromBlock = toBlock + fromBlock
     }
-
+  
     if (eventName) {
       eventNames = [eventName]
     }
-
+  
     if (!eventNames?.length) {
       throw new InputError('expected eventName or eventNames')
     }
-
+  
     const filters: Filter[] = []
     const eventFetcher = new EventFetcher({ provider, batchBlocks: this.batchBlocks })
     const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
-
+  
     const allEventNames = [
       ...this.getMessenger(chainId).getEventNames(),
       ...this.getRailsGateway(chainId).getEventNames()
     ]
-
+  
+    // Get all RailsPath addresses for this chain
+    let railsPathAddresses: string[] = []
+    try {
+      const railsGateway = this.getRailsGateway(chainId)
+      railsPathAddresses = await railsGateway.getAllRailsPathAddresses()
+    } catch (err) {
+      console.warn('Failed to get RailsPath addresses:', err)
+    }
+  
     for (const name of eventNames) {
       let subclass: any = null
       if (this.getMessenger(chainId).getEventNames().includes(name)) {
         subclass = this.getMessenger(chainId)
+        const fetcher = subclass.getEventFetcher(name, chainId)
+        const filter = fetcher.getFilter()
+        filters.push(filter)
+        eventFetcherMap[filter.topics?.[0] as string] = fetcher
       } else if (this.getRailsGateway(chainId).getEventNames().includes(name)) {
+        // For RailsGateway events, create fetchers for each RailsPath address
         subclass = this.getRailsGateway(chainId)
+        for (const address of railsPathAddresses) {
+          const fetcher = subclass.getEventFetcher(name, address)
+          const filter = fetcher.getFilter()
+          filters.push(filter)
+          eventFetcherMap[filter.topics?.[0] as string] = fetcher
+        }
       } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
         subclass = this.getRailsGateway(chainId).getStakingRegistry()
-      }
-
-      if (subclass) {
         const fetcher = subclass.getEventFetcher(name, chainId)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       }
     }
-
+  
     const options = { fromBlock: fromBlock as number, toBlock: toBlock as number }
     const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
-
+  
     const decoded: EthersEvent[] = []
     for (const event of events) {
       const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event], fetchTxData) as EthersEvent[]
       decoded.push(...res)
     }
-
+  
+    // Sort events by block number and log index
+    decoded.sort((a, b) => {
+      if (a.blockNumber === b.blockNumber) {
+        return a.logIndex - b.logIndex
+      }
+      return a.blockNumber - b.blockNumber
+    })
+  
     return decoded as EthersEventWithDecodedTypesAndContext<AllEventTypes>[]
   }
 

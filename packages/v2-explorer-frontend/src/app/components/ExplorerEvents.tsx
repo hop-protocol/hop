@@ -22,6 +22,7 @@ import { useEvents } from '../hooks/useEvents'
 import { useRouter } from 'next/navigation'
 import { useQueryParams } from '@/app/hooks/useQueryParams'
 import { utils } from 'ethers'
+import SwapHorizontalCircleIcon from '@mui/icons-material/SwapHorizontalCircle'
 
 const { formatUnits } = utils
 
@@ -239,15 +240,31 @@ export function ExplorerEvents (props: any) {
           }}
         >
           <Box sx={{ mb: { xs: 2, md: 0 } }}>
-            <Typography 
-              variant="h4" 
-              component="h1" 
-              fontWeight="bold" 
-              color="text.primary"
-              sx={{ mb: 0.5 }}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                whiteSpace: 'nowrap',
+                mb: 0.5
+              }}
             >
-              Transfer Events
-            </Typography>
+              <SwapHorizontalCircleIcon 
+                sx={{ 
+                  fontSize: '2.2rem',
+                  color: theme.palette.primary.main,
+                  mr: 1
+                }} 
+              />
+              <Typography 
+                variant="h4" 
+                component="h1" 
+                fontWeight="bold" 
+                color="text.primary"
+              >
+                Transfer Events
+              </Typography>
+            </Box>
             <Typography variant="body2" color="text.secondary">
               View and track all transfers across the protocol
             </Typography>

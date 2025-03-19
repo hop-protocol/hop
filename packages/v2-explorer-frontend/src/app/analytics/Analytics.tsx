@@ -14,6 +14,7 @@ import { TotalVolumeStats } from '@/app/components/stats/TotalVolumeStats'
 import { TokenVolumeStats } from '@/app/components/stats/TokenVolumeStats'
 import { VolumeChart } from '@/app/components/VolumeChart'
 import { CumulativeVolumeChart } from '@/app/components/CumulativeVolumeChart'
+import InsightsIcon from '@mui/icons-material/Insights'
 
 export function Analytics() {
   const theme = useTheme()
@@ -28,9 +29,26 @@ export function Analytics() {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 5 }}>
-        <Typography variant="h3" component="h1" fontWeight="bold" color="text.primary" mb={1}>
-          Hop v2 Analytics
-        </Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            whiteSpace: 'nowrap',
+            mb: 1
+          }}
+        >
+          <InsightsIcon 
+            sx={{ 
+              fontSize: '2.2rem',
+              color: theme.palette.primary.main,
+              mr: 1
+            }} 
+          />
+          <Typography variant="h3" component="h1" fontWeight="bold" color="text.primary">
+            Analytics
+          </Typography>
+        </Box>
         <Typography variant="subtitle1" color="text.secondary">
           Track volume and activity across the network
         </Typography>

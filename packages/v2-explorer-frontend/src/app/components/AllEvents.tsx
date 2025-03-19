@@ -18,6 +18,7 @@ import { ClaimReaddedEvents } from './events/ClaimReaddedEvents'
 import { ClaimRemovedEvents } from './events/ClaimRemovedEvents'
 import { BonderPreferenceEvents } from './events/BonderPreferenceEvents'
 import { PathInitializedEvents } from './events/PathInitializedEvents'
+import EventIcon from '@mui/icons-material/Event'
 // import { ClaimWithdrawnEvents } from './events/ClaimWithdrawnEvents'
 
 export function Events () {
@@ -51,14 +52,36 @@ export function Events () {
         alignItems: { xs: 'flex-start', md: 'center' },
         mb: 4
       }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          fontWeight="bold" 
-          color="text.primary"
-        >
-          Events
-        </Typography>
+        <Box>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              whiteSpace: 'nowrap',
+              mb: 1
+            }}
+          >
+            <EventIcon 
+              sx={{ 
+                fontSize: '2.2rem',
+                color: theme.palette.primary.main,
+                mr: 1
+              }} 
+            />
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              fontWeight="bold" 
+              color="text.primary"
+            >
+              Events
+            </Typography>
+          </Box>
+          <Typography variant="subtitle1" color="text.secondary">
+            View all event types and activities across the protocol
+          </Typography>
+        </Box>
       </Box>
 
       <Box width="100%" mb={6} display="flex" flexDirection="column">

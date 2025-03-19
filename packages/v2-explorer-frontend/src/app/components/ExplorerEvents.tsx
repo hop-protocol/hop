@@ -1,14 +1,22 @@
 'use client'
 
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import CheckIcon from '@mui/icons-material/Check'
 import Chip from '@mui/material/Chip'
 import MenuItem from '@mui/material/MenuItem'
 import PendingIcon from '@mui/icons-material/Pending'
-import React, { useState, useEffect } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
+import Paper from '@mui/material/Paper'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import CircularProgress from '@mui/material/CircularProgress'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Table } from './Table'
 import { useEvents } from '../hooks/useEvents'
 import { useRouter } from 'next/navigation'
@@ -20,12 +28,15 @@ const { formatUnits } = utils
 export function ExplorerEvents (props: any) {
   const { initialEvents } = props
   const router = useRouter()
+  const theme = useTheme()
+  const isDarkMode = theme.palette.mode === 'dark'
   const { queryParams, updateQueryParams } = useQueryParams()
   const navigate = router.push
   const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   const { events: clientEvents, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading: clientEventsLoading } = useEvents('explorer', filter, onPagination, queryParams)
+  
   function onPagination (params: any) {
     const { page } = params
     updateQueryParams({ page })
@@ -97,16 +108,34 @@ export function ExplorerEvents (props: any) {
   ]
 
   const rows = events?.map((event: any, index: number) => {
-    let status = (
-      <Chip icon={<PendingIcon />} label="Pending" color="secondary" />
-    )
-    const isBonded = event.transferBondedEvents?.length > 0 // TODO
+    const isBonded = event.transferBondedEvents?.length > 0
     const isWithdrawn = event.claimWithdrawnEvents?.length > 0
     const isCompleted = isBonded || isWithdrawn
     const statusLabel = isBonded ? 'Bonded' : isWithdrawn ? 'Withdrawn' : 'Pending'
+    
+    let status
     if (isCompleted) {
       status = (
-        <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label={statusLabel} style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+        <Chip 
+          icon={<CheckIcon />} 
+          label={statusLabel} 
+          sx={{ 
+            backgroundColor: '#74d56e', 
+            color: '#fff',
+            fontWeight: 'medium',
+            '& .MuiChip-icon': {
+              color: '#fff'
+            }
+          }} 
+        />
+      )
+    } else {
+      status = (
+        <Chip 
+          icon={<PendingIcon />} 
+          label="Pending" 
+          color="secondary"
+        />
       )
     }
 
@@ -189,29 +218,124 @@ export function ExplorerEvents (props: any) {
   }
 
   return (
-    <Box width="100%" maxWidth="2800px" m="0 auto">
-      <Table title={'Transfers'} headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} onRowClick={handleRowClick} minWidth={'2100px'} filters={
-        <Box display="flex" justifyContent="flex-end" alignItems="center">
-          <Box mr={2}>
-            <Typography variant="body1" color="secondary">Filter</Typography>
+    <Box sx={{ width: "100%", maxWidth: "2800px", mx: "auto" }}>
+      <Paper 
+        elevation={isDarkMode ? 3 : 1} 
+        sx={{ 
+          p: { xs: 2, md: 3 }, 
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          mb: 4,
+          overflow: 'hidden'
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' }, 
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', md: 'center' },
+            mb: 3
+          }}
+        >
+          <Box sx={{ mb: { xs: 2, md: 0 } }}>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              fontWeight="bold" 
+              color="text.primary"
+              sx={{ mb: 0.5 }}
+            >
+              Transfer Events
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              View and track all transfers across the protocol
+            </Typography>
           </Box>
-          <Box mr={2}>
-            <Select
-              value={filterBy}
-              onChange={handleFilterByChange}>
+
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              gap: 2,
+              width: { xs: '100%', md: 'auto' }
+            }}
+          >
+            <FormControl 
+              variant="outlined" 
+              size="small"
+              sx={{ 
+                minWidth: 150,
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              <InputLabel id="filter-by-label">Filter by</InputLabel>
+              <Select
+                labelId="filter-by-label"
+                id="filter-by"
+                value={filterBy}
+                onChange={handleFilterByChange}
+                label="Filter by"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <FilterListIcon fontSize="small" />
+                  </InputAdornment>
+                }
+              >
                 <MenuItem value={'transferId'}>Transfer ID</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
                 <MenuItem value={'account'}>Account</MenuItem>
                 <MenuItem value={'recipient'}>Recipient</MenuItem>
                 <MenuItem value={'bonded'}>Bonded</MenuItem>
                 <MenuItem value={'pending'}>Pending</MenuItem>
-            </Select>
-          </Box>
-          <Box>
-            {!['bonded', 'pending'].includes(filterBy) ? <TextField placeholder="0x" value={filterValue} onChange={(event: any) => setFilterValue(event.target.value)} /> : null}
+              </Select>
+            </FormControl>
+
+            {!['bonded', 'pending'].includes(filterBy) && (
+              <TextField 
+                placeholder={filterBy === 'transferId' ? 'Enter transfer ID' : 'Enter 0x...'}
+                value={filterValue} 
+                onChange={(event: any) => setFilterValue(event.target.value)} 
+                size="small"
+                variant="outlined"
+                fullWidth
+                sx={{
+                  width: { xs: '100%', sm: '250px' }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
           </Box>
         </Box>
-      } />
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress size={40} thickness={4} />
+          </Box>
+        ) : (
+          <Table 
+            title={''} 
+            headers={headers} 
+            rows={rows} 
+            showNextButton={showNextButton} 
+            showPreviousButton={showPreviousButton} 
+            nextPage={nextPage} 
+            previousPage={previousPage} 
+            limit={limit} 
+            loading={loading} 
+            onRowClick={handleRowClick} 
+            minWidth={'2100px'}
+            filters={null}
+          />
+        )}
+      </Paper>
     </Box>
   )
 }

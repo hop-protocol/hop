@@ -11,6 +11,15 @@ const { formatUnits, formatEther } = utils
 export async function fetchEventDetails (options: any = {}) {
   const { transferId } = options
   const filter = { transferId }
-  const { events } = await fetchEvents({ eventName: 'explorer', filter })
-  return events?.[0]
+  const response = await fetchEvents({ eventName: 'explorer', filter })
+  
+  // Return the full response with the event details and lastUpdated
+  if (response && response.events && response.events[0]) {
+    return {
+      ...response.events[0],
+      lastUpdated: response.lastUpdated
+    }
+  }
+  
+  return null
 }

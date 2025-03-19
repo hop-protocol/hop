@@ -28,13 +28,16 @@ export async function fetchEvents (options: any = {}) {
     console.log('fetchEvents url', url)
     const res = await fetch(url)
     const json = await res.json()
-    // console.log('fetchEvents json', json.events[0])
+    console.log('fetchEvents response:', json) // Log the full response
+    
     if (json.error) {
       throw new Error(json.error)
     }
     if (!json.events) {
       throw new Error('no events')
     }
+    
+    // Return the entire response with events and lastUpdated
     return json
   } catch (error) {
     console.error(error)

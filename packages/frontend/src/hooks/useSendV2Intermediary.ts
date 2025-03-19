@@ -188,6 +188,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
   // Update the isTokenEligibleForV2 check in useSendV2Intermediary
   const isTokenEligibleForV2 = useMemo(() => {
+    // return true // for testing
     if (!v2Enabled) {
       return false
     }
@@ -204,6 +205,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
   // Determine which version has the best rate
   const useV2ForBestRate = useMemo(() => {
+    // return true // for testing
     if (
       isTokenEligibleForV2 &&
       sendV1.estimatedReceived &&
@@ -294,6 +296,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       fromChainId: sendV2.fromChainId,
       networkName: sendV2.fromChain?.slug,
       destNetworkName: sendV2.toChain?.slug,
+      destChainId: sendV2.toChainId,
       // destTxHash:
       token: sendV2.fromToken,
     } as any)

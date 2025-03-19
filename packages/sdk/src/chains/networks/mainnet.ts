@@ -10,6 +10,7 @@ export const chains: Chains = {
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/eth',
       'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+      // 'https://eth.llamarpc.com',
     ],
     explorerUrls: ['https://etherscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/ethereum',

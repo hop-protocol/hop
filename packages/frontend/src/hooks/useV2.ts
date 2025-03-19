@@ -92,7 +92,7 @@ export function useV2(): V2Hook {
       signersOrProviders: providers
     })
 
-    hop.setExplorerApiBaseUrl('http://localhost:8000')
+    // hop.setExplorerApiBaseUrl('http://localhost:8000')
 
     return hop
   }, [address, provider, connectedNetworkId])

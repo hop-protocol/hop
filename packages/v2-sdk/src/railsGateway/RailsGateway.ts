@@ -917,14 +917,14 @@ export class RailsGateway extends Base {
     const railsPathAddresses = await this.getAllRailsPathAddresses()
 
     console.log('hopV2Sdk: railsPathAddresses', railsPathAddresses)
-    
+
     // Create event fetchers for each RailsPath address
-    const eventFetchers = railsPathAddresses.map((address: string) => 
+    const eventFetchers = railsPathAddresses.map((address: string) =>
       this.getEventFetcher(eventName, address)
     )
 
     // Fetch events from all RailsPath contracts
-    const eventsPromises = eventFetchers.map((fetcher: any) => 
+    const eventsPromises = eventFetchers.map((fetcher: any) =>
       fetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
     )
 
@@ -2135,7 +2135,7 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        const updateFee = await this.getUpdateFee()
+        const updateFee = await this.getPushClaimFee()
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.removeClaim(pathId, claimId)
 

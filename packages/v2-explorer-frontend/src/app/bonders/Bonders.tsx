@@ -110,7 +110,7 @@ export function Bonders() {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 5 }}>
-        <Typography variant="h3" component="h1" fontWeight="bold" color="primary" mb={1}>
+        <Typography variant="h3" component="h1" fontWeight="bold" color="text.primary" mb={1}>
           Bonders
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
@@ -186,7 +186,7 @@ export function Bonders() {
 
           {/* Total Bonded By Token */}
           <Box sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+            <Typography variant="h6" fontWeight="bold" color="text.primary" mb={2}>
               Total Bonded by Token
             </Typography>
             
@@ -244,7 +244,7 @@ export function Bonders() {
             </Box>
 
             {/* Chain Balances */}
-            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+            <Typography variant="h6" fontWeight="bold" color="text.primary" mb={2}>
               Chain Balances
             </Typography>
             

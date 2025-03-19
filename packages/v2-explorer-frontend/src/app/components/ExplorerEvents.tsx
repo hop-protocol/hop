@@ -43,7 +43,7 @@ export function ExplorerEvents (props: any) {
   }
 
   const [loading, setLoading] = useState(() => {
-    return !initialEvents?.events
+    return !initialEvents?.events.length
   })
 
   const [events, setEvents] = useState(() => {
@@ -315,26 +315,20 @@ export function ExplorerEvents (props: any) {
           </Box>
         </Box>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress size={40} thickness={4} />
-          </Box>
-        ) : (
-          <Table 
-            title={''} 
-            headers={headers} 
-            rows={rows} 
-            showNextButton={showNextButton} 
-            showPreviousButton={showPreviousButton} 
-            nextPage={nextPage} 
-            previousPage={previousPage} 
-            limit={limit} 
-            loading={loading} 
-            onRowClick={handleRowClick} 
-            minWidth={'2100px'}
-            filters={null}
-          />
-        )}
+        <Table 
+          title={''} 
+          headers={headers} 
+          rows={rows} 
+          showNextButton={showNextButton} 
+          showPreviousButton={showPreviousButton} 
+          nextPage={nextPage} 
+          previousPage={previousPage} 
+          limit={limit} 
+          loading={loading} 
+          onRowClick={handleRowClick} 
+          minWidth={'2100px'}
+          filters={null}
+        />
       </Paper>
     </Box>
   )

@@ -2,6 +2,8 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
+import Paper from '@mui/material/Paper'
+import { useTheme } from '@mui/material/styles'
 import { BundleCommittedEvents } from './events/BundleCommittedEvents'
 import { BundleForwardedEvents } from './events/BundleForwardedEvents'
 import { BundleReceivedEvents } from './events/BundleReceivedEvents'
@@ -19,6 +21,9 @@ import { PathInitializedEvents } from './events/PathInitializedEvents'
 // import { ClaimWithdrawnEvents } from './events/ClaimWithdrawnEvents'
 
 export function Events () {
+  const theme = useTheme()
+  const isDarkMode = theme.palette.mode === 'dark'
+
   const tables = [
     <TransferSentEvents key="TransferSentEvents" />,
     <TransferBondedEvents key="TransferBondedEvents" />,
@@ -39,15 +44,41 @@ export function Events () {
 
   return (
     <Box width="100%" maxWidth="2000px">
-      <Typography variant="h4" color="textPrimary">Events</Typography>
-      <Box width="100%" mt={2} mb={6} display="flex" flexDirection="column">
-        <Box mb={8}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' },
+        justifyContent: 'space-between',
+        alignItems: { xs: 'flex-start', md: 'center' },
+        mb: 4
+      }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          fontWeight="bold" 
+          color="text.primary"
+        >
+          Events
+        </Typography>
+      </Box>
+
+      <Box width="100%" mb={6} display="flex" flexDirection="column">
+        <Box>
           <Box width="100%" maxWidth="2000px" m="0 auto">
             {tables.map((table, i) => {
               return (
-                <Box key={i} mb={8}>
+                <Paper 
+                  key={i} 
+                  elevation={isDarkMode ? 3 : 1} 
+                  sx={{ 
+                    p: { xs: 2, md: 3 }, 
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    mb: 4,
+                    overflow: 'hidden'
+                  }}
+                >
                   {table}
-                </Box>
+                </Paper>
               )
             })}
           </Box>

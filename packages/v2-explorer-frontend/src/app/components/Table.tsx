@@ -17,6 +17,8 @@ import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
 import { makeStyles } from '@mui/styles'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import Chip from '@mui/material/Chip'
+import { useTheme } from '@mui/material/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   titleContainer: {
@@ -74,6 +76,7 @@ type Props = {
 export function Table (props: Props) {
   const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick, minWidth = '0px', titleVariant = 'h4' } = props
   const styles = useStyles()
+  const theme = useTheme()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
   const page = 0
@@ -86,6 +89,64 @@ export function Table (props: Props) {
       setCopiedKey('')
     }, 1000)
   }
+
+  // Generate random width for skeleton cells
+  const getRandomWidth = () => {
+    return `${Math.floor(Math.random() * 30) + 70}%`;
+  }
+
+  // Function to render skeleton rows
+  const renderSkeletonRows = () => {
+    // Number of skeleton rows to show
+    const skeletonRowCount = 5;
+    const skeletonRows = [];
+    
+    for (let i = 0; i < skeletonRowCount; i++) {
+      skeletonRows.push(
+        <TableRow key={`skeleton-row-${i}`}>
+          {headers.filter(item => item.key !== 'subtable').map((header, index) => {
+            // Different skeleton types based on likely content
+            if (header.key === 'status') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton 
+                    variant="rounded" 
+                    width={80} 
+                    height={32} 
+                    sx={{ borderRadius: 4 }} 
+                  />
+                </TableCell>
+              );
+            } else if (header.key === 'index' || header.key === 'created') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton variant="text" width={50} />
+                </TableCell>
+              );
+            } else if (header.key === 'details') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton 
+                    variant="rounded" 
+                    width={60} 
+                    height={32} 
+                  />
+                </TableCell>
+              );
+            } else {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton variant="text" width={getRandomWidth()} />
+                </TableCell>
+              );
+            }
+          })}
+        </TableRow>
+      );
+    }
+    
+    return skeletonRows;
+  };
 
   return (
     <Box>
@@ -114,21 +175,8 @@ export function Table (props: Props) {
                     </TableCell>
                   </TableRow>
                 )}
-                {loading && (
-                  <>
-                    <TableRow>
-                      <TableCell colSpan={headers.length}>
-                        <Skeleton variant="rectangular" width={'100%'} height={20} />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={headers.length}>
-                        <Skeleton variant="rectangular" width={'100%'} height={20} />
-                      </TableCell>
-                    </TableRow>
-                  </>
-                )}
-                {rows.map((row: Row[], i: number) => {
+                {loading && renderSkeletonRows()}
+                {!loading && rows.map((row: Row[], i: number) => {
                   return <React.Fragment key={i}>
                     <TableRow key={i}>
                       {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
@@ -247,9 +295,9 @@ export function Table (props: Props) {
                                             </Box>
                                           )}
                                         </Box>
-                                    </TableCell>
-                                  )}
-                                )}
+                                      </TableCell>
+                                    )
+                                  })}
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -258,7 +306,6 @@ export function Table (props: Props) {
                       </TableRow>
                     )}
                   </React.Fragment>
-
                 })}
               </TableBody>
             </_Table>

@@ -4,11 +4,18 @@ import React, { useState } from 'react'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import { useTheme } from '@mui/material/styles'
 import { Table } from '@/app/components/Table'
 import { useEvents } from '@/app/hooks/useEvents'
 
 export function ClaimReaddedEvents () {
   const eventName = 'ClaimReadded'
+  const theme = useTheme()
   const [filterBy, setFilterBy] = useState('claimId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
@@ -75,26 +82,77 @@ export function ClaimReaddedEvents () {
 
   return (
     <Box>
-      <Table title={<><strong>{eventName}</strong> Events</>} titleVariant="h5" headers={headers} rows={rows} showNextButton={showNextButton} showPreviousButton={showPreviousButton} nextPage={nextPage} previousPage={previousPage} limit={limit} loading={loading} filters={
-      <Box display="flex" justifyContent="flex-end" alignItems="center">
-        <Box mr={2}>
-          <Typography variant="body1" color="secondary">Filter</Typography>
-        </Box>
-        <Box mr={2}>
-          <Select
-            value={filterBy}
-            onChange={handleFilterByChange}>
-              <MenuItem value={'claimId'}>Claim ID</MenuItem>
-              <MenuItem value={'pathId'}>Path ID</MenuItem>
-              <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
-              <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
-          </Select>
-        </Box>
-        <Box>
-          <TextField placeholder="0x" value={filterValue} onChange={(event: any) => setFilterValue(event.target.value)} />
-        </Box>
-      </Box>
-        } />
+      <Table 
+        title={<><strong>{eventName}</strong> Events</>} 
+        titleVariant="h5" 
+        headers={headers} 
+        rows={rows} 
+        showNextButton={showNextButton} 
+        showPreviousButton={showPreviousButton} 
+        nextPage={nextPage} 
+        previousPage={previousPage} 
+        limit={limit} 
+        loading={loading} 
+        filters={
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'flex-end',
+              gap: 2,
+              width: '100%'
+            }}
+          >
+            <FormControl 
+              variant="outlined" 
+              size="small"
+              sx={{ 
+                minWidth: 150,
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              <InputLabel id="filter-by-label">Filter by</InputLabel>
+              <Select
+                labelId="filter-by-label"
+                id="filter-by"
+                value={filterBy}
+                onChange={handleFilterByChange}
+                label="Filter by"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <FilterListIcon fontSize="small" />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value={'claimId'}>Claim ID</MenuItem>
+                <MenuItem value={'pathId'}>Path ID</MenuItem>
+                <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
+                <MenuItem value={'eventChainId'}>Event Chain ID</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField 
+              placeholder={filterBy === 'claimId' ? 'Enter claim ID' : 'Enter 0x...'}
+              value={filterValue} 
+              onChange={(event: any) => setFilterValue(event.target.value)} 
+              size="small"
+              variant="outlined"
+              fullWidth
+              sx={{
+                width: { xs: '100%', sm: '250px' }
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+        } 
+      />
     </Box>
   )
 }

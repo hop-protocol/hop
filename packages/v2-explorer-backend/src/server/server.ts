@@ -195,17 +195,12 @@ app.get('/v1/stats/daily-volume', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any) => {
   try {
-    const { days, pathId, startTimestamp, endTimestamp } = req.query
-    const stats = await controller.getCumulativeVolumeStatsForApi({
-      days: days ? parseInt(days) : undefined,
-      pathId,
-      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
-      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    const { days, pathId } = req.query
+    const result = await controller.getCumulativeVolumeStatsForApi({ 
+      days: Number(days) || undefined,
+      pathId
     })
-    res.status(200).json({
-      data: stats,
-      lastUpdated: new Date().toISOString()
-    })
+    res.status(200).json(result)
   } catch (err: any) {
     console.error(err)
     res.json({ error: err.message })
@@ -309,6 +304,23 @@ app.get('/v1/debug/transfers', async (req: any, res: any) => {
   } catch (err: any) {
     console.error('Error getting debug transfers:', err)
     return res.status(500).json({ error: err.message })
+  }
+})
+
+// Add new endpoint for transfer flow stats (Sankey chart)
+app.get('/v1/stats/flow', responseCache, async (req: any, res: any) => {
+  try {
+    const { days, sourceChainId, destinationChainId, tokenSymbol } = req.query
+    const result = await controller.getTransferFlowStatsForApi({ 
+      days: Number(days) || undefined,
+      sourceChainId,
+      destinationChainId,
+      tokenSymbol
+    })
+    res.status(200).json(result)
+  } catch (err: any) {
+    console.error(`Error fetching flow stats: ${err.message}`)
+    res.json({ error: err.message })
   }
 })
 

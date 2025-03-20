@@ -13,10 +13,6 @@ export enum EventName {
   BonderPreference = 'BonderPreference'
 }
 
-export type GetChallengesInput = {
-  challengeId: string
-}
-
 export type StakeHopInput = {
   staker: string
   amount: BigNumberish

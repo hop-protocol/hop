@@ -330,7 +330,7 @@ function useWithdrawV2() {
 
       let claim: any = null
       try {
-        claim = await destRailsGateway.getClaim({
+        claim = await destRailsGateway.helpers.getClaim({
           pathId: transferSentEvent.decoded.pathId,
           claimId: transferSentEvent.decoded.transferId
         })
@@ -386,7 +386,7 @@ function useWithdrawV2() {
         }
       }
 
-      claim = await destRailsGateway.getClaim({
+      claim = await destRailsGateway.helpers.getClaim({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId
       })

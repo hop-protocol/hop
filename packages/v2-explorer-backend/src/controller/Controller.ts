@@ -235,7 +235,7 @@ export class Controller {
     const counterpartChainId = pathInfo[0].counterpartChainId
 
     try {
-      const claim = await this.getRailsGateway(counterpartChainId).getClaim({
+      const claim = await this.getRailsGateway(counterpartChainId).helpers.getClaim({
         pathId,
         claimId: transferId
       })
@@ -360,7 +360,7 @@ export class Controller {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.context.chainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.getRailsGateway(item.context.chainId).getPathInfo({ pathId: item.pathId })
+        pathInfo = await this.getRailsGateway(item.context.chainId).helpers.getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -383,7 +383,7 @@ export class Controller {
       let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId, chainId: item.toChainId }})
       let pathInfo = pathInfos?.[0]
       if (!pathInfo) {
-        pathInfo = await this.getRailsGateway(item.toChainId).getPathInfo({ pathId: item.pathId })
+        pathInfo = await this.getRailsGateway(item.toChainId).helpers.getPathInfo({ pathId: item.pathId })
         await this.pgDb.nonEventTables.Path.upsertItem({
           pathId: pathInfo.pathId,
           chainId: pathInfo.chainId,
@@ -416,7 +416,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId, address: tokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.getRailsGateway(chainId).getTokenInfo({ address: tokenAddress })
+        tokenInfo = await this.getRailsGateway(chainId).helpers.getTokenInfo({ address: tokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -447,7 +447,7 @@ export class Controller {
       let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: counterpartChainId, address: counterpartTokenAddress }})
       let tokenInfo = tokenInfos?.[0]
       if (!tokenInfo) {
-        tokenInfo = await this.getRailsGateway(counterpartChainId).getTokenInfo({ address: counterpartTokenAddress })
+        tokenInfo = await this.getRailsGateway(counterpartChainId).helpers.getTokenInfo({ address: counterpartTokenAddress })
         await this.pgDb.nonEventTables.Token.upsertItem({
           chainId: tokenInfo.chainId,
           address: tokenInfo.address,
@@ -1127,27 +1127,26 @@ export class Controller {
           continue
         }
 
-        const headClaimId = await railsGateway.getHeadClaimId({ pathId })
+        const railsPath = await railsGateway.getRailsPath(pathId)
+
+        const headClaimId = await railsPath.getHeadClaimId()
         const [
-          tokenVault,
           sendFee,
-          totalClaims,
           totalConfirmed,
           totalSent,
           hardConfirmedBucketIndex,
           hardConfirmedClaimId,
+          bucketIndex,
           totalClaimsAtHeadClaimId,
-          bucketIndex
+
         ] = await Promise.all([
-          railsGateway.getTokenVault({ pathId }),
           railsGateway.getSendFee({ pathId }),
-          railsGateway.getTotalClaims({ pathId }),
-          railsGateway.getTotalConfirmed({ pathId }),
-          railsGateway.getTotalSent({ pathId }),
-          railsGateway.getHardConfirmedBucketIndex({ pathId }),
-          railsGateway.getHardConfirmedClaimId({ pathId }),
-          railsGateway.getTotalClaimsAtClaimId({ pathId, claimId: headClaimId }),
-          railsGateway.getBucketIndex({ pathId, claimId: headClaimId })
+          railsPath.getTotalConfirmed(),
+          railsPath.totalSent(),
+          railsPath.hardConfirmedBucketIndex(),
+          railsPath.hardConfirmedClaimId(),
+          railsPath.getBucketIndex({ claimId: headClaimId }),
+          railsPath.getTotalClaimsAtClaimId({ claimId: headClaimId })
         ])
 
         if (!result[chainId]) {
@@ -1173,10 +1172,7 @@ export class Controller {
         result[chainId] = this.addEventFields({
           chainId,
           pathId,
-          headClaimId,
-          tokenVault,
-          sendFee: sendFee.toString(),
-          totalClaims: totalClaims.toString(),
+          headClaimId,          sendFee: sendFee.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
           hardConfirmedBucketIndex: hardConfirmedBucketIndex.toString(),

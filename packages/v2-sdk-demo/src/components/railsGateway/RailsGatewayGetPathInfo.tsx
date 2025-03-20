@@ -48,7 +48,7 @@ export function RailsGatewayGetPathInfo (props: Props) {
       }
 
       console.log('args', args)
-      const pathInfo = await sdk.getRailsGateway(fromChainId).getPathInfo(args)
+      const pathInfo = await sdk.getRailsGateway(fromChainId).helpers.getPathInfo(args)
       setPathInfo(JSON.stringify(pathInfo, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -64,7 +64,7 @@ async function main() {
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const pathInfo = await hop.getRailsGateway('${fromChainId}').getPathInfo({
+  const pathInfo = await hop.getRailsGateway('${fromChainId}').helpers.getPathInfo({
     pathId
   })
   console.log(pathInfo)

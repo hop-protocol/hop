@@ -112,7 +112,7 @@ export function useV2(): V2Hook {
 
   async function getTokenInfoByTokenAddress (chainId: string, address: string): Promise<Token> {
     console.log('getTokenInfoByTokenAddress', chainId, address)
-    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).helpers.getTokenInfo({ address })
     return tokenInfo
   }
 
@@ -120,7 +120,7 @@ export function useV2(): V2Hook {
     console.log('getTokenInfoByTokenSymbol', chainId, tokenSymbol)
     const address = getTokenAddress(chainId, tokenSymbol)
     console.log('address', address)
-    const tokenInfo = await v2Sdk.getRailsGateway(chainId).getTokenInfo({ address })
+    const tokenInfo = await v2Sdk.getRailsGateway(chainId).helpers.getTokenInfo({ address })
     return tokenInfo
   }
 

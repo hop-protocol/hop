@@ -52,7 +52,7 @@ export function RailsGatewayGetBucketIndex (props: Props) {
       }
 
       console.log('args', args)
-      const index = await sdk.getRailsGateway(fromChainId).getBucketIndex(args)
+      const index = await sdk.getRailsGateway(fromChainId).helpers.getBucketIndex(args)
       setBucketIndex(`${index}`)
     } catch (err: any) {
       console.error(err)
@@ -69,7 +69,7 @@ async function main() {
   const claimId = "${claimId}"
 
   ${hopInstantiateDisplayString}
-  const bucketIndex = await hop.getRailsGateway('${fromChainId}').getBucketIndex({
+  const bucketIndex = await hop.getRailsGateway('${fromChainId}').helpers.getBucketIndex({
     pathId,
     claimId
   })

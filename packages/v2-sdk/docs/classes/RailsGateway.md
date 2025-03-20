@@ -280,6 +280,7 @@ ___
 | `decodeBondTxInputData` | (`data`: `string`) => `Promise`\<`DecodedBondInputData`\> |
 | `decodeSendTxInputData` | (`data`: `string`) => `Promise`\<`DecodedSendInputData`\> |
 | `getBucketIndex` | (`__namedParameters`: [`GetBucketIndexInput`](../modules.md#getbucketindexinput)) => `Promise`\<`number`\> |
+| `getClaim` | (`__namedParameters`: [`GetClaimInput`](../modules.md#getclaiminput)) => `Promise`\<[`Claim`](../modules.md#claim)\> |
 | `getComputedNextHopsHash` | (`input`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
 | `getComputedTransferDataHash` | (`input`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`__namedParameters`: `GetComputedTransferIdInput`) => `string` |

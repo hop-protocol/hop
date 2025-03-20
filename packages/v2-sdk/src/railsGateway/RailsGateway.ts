@@ -11,7 +11,7 @@ import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#rails
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
-import { PathInitialized, PathInitializedEventFetcher, PathInitializedIndexes } from '#railsGateway/events/PathInitialized.js'
+import { PathInitialized, PathInitializedEventFetcher } from '#railsGateway/events/PathInitialized.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import memcache from 'memory-cache'
@@ -129,18 +129,6 @@ export type ApproveBondInput = {
   amount: BigNumberish
 }
 
-export type PostClaimInput = {
-  pathId: string
-  transferId: string
-  to: string
-  amountOut: BigNumberish
-  maxBonderFee: BigNumberish
-  attestedClaimId: string
-  totalSent: BigNumberish
-  totalClaims: BigNumberish
-  nextHopsHash: string
-}
-
 export type RemoveClaimInput = {
   pathId: string
   claimId: string
@@ -160,11 +148,6 @@ export type GetWithdrawableBalanceInput = {
   pathId: string
   recipient: string
   claimId: string
-}
-
-export type GetRemovedBalanceInput = {
-  pathId: string
-  bonder: string
 }
 
 export type GetHasSufficientBalanceInput = {
@@ -200,23 +183,6 @@ export type GetSendFeeInput = {
 
 export type GetMessageFeeInput = {
   chainId: BigNumberish
-}
-
-export type GetClaimFeesFeeInput = {
-  chainId: BigNumberish
-}
-
-export type GetTotalClaimsInput = {
-  pathId: string
-}
-
-export type GetTotalClaimsAtClaimIdInput = {
-  pathId: string
-  claimId: string
-}
-
-export type GetTotalConfirmedInput = {
-  pathId: string
 }
 
 export type GetTransferSentEventFromTransactionReceiptInput = {
@@ -408,39 +374,6 @@ export type GetCounterpartChainIdInput = {
   pathId: string
 }
 
-export type GetFeeVaultInput = {
-  chainId: BigNumberish
-}
-
-export type GetHardConfirmedBucketIndexInput = {
-  pathId: string
-}
-
-export type GetHardConfirmedClaimIdInput = {
-  pathId: string
-}
-
-export type GetLastBondedClaimIdInput = {
-  pathId: string
-  bonder: string
-}
-
-export type GetTotalWithdrawableAtClaimIdInput = {
-  pathId: string
-  bonder: string
-  claimId: string
-}
-
-export type GetWithdrawnInput = {
-  pathId: string
-  bonder: string
-}
-
-export type GetTransferIndexInput = {
-  pathId: string
-  transferId: string
-}
-
 export type InitChainInput = {
   chainId: BigNumberish
   gateway: string
@@ -457,20 +390,8 @@ export type SetDefaultTokenFeeInput = {
   fee: BigNumberish
 }
 
-export type SetFeeOracleInput = {
-  newFeeOracle: string
-}
-
-export type SetSendFeeGasInput = {
-  gas: BigNumberish
-}
-
 export type SetStakingRegistryInput = {
   newStakingRegistry: string
-}
-
-export type SetUpdateFeeGasInput = {
-  gas: BigNumberish
 }
 
 export type UpdateDefaultTokenFeeInput = {
@@ -484,30 +405,6 @@ export type UpdateTokenFeeInput = {
 
 export type IsPathInitializedInput = {
   pathId: string
-}
-
-export type PostAndBondInput = {
-  pathId: string
-  claimId: string
-  to: string
-  amountOut: BigNumberish
-  maxBonderFee: BigNumberish
-  attestedClaimId: string
-  sourcePool: BigNumberish
-  bonderFee: BigNumberish
-  nextHops: HopStructInput[]
-}
-
-export type PostAndWithdrawInput = {
-  pathId: string
-  claimId: string
-  to: string
-  amountOut: BigNumberish
-  maxBonderFee: BigNumberish
-  attestedClaimId: string
-  sourcePool: BigNumberish
-  bonderFee: BigNumberish
-  nextHops: HopStructInput[]
 }
 
 export type PushClaimInput = {
@@ -542,11 +439,6 @@ export type GetInitialReserveByTokenAddressInput = {
 
 export type GetInitialReserveInput = {
   pathId: string
-}
-
-export type GetTransferIdInput = {
-  pathId: string
-  index: BigNumberish
 }
 
 export type CounterpartChainIdsInput = {
@@ -1976,6 +1868,25 @@ export class RailsGateway extends Base {
 
         const { initialReserve } = await this.helpers.getPathInfo({ pathId })
         return initialReserve
+      },
+
+      getClaim: async ({ pathId, claimId }: GetClaimInput): Promise<Claim> => {
+        if (!this.utils.isValidBytes32(pathId)) {
+          throw new InputError(`Invalid pathid "${pathId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimid "${claimId}"`)
+        }
+
+        const railsPath = await this.getRailsPath(pathId)
+
+        try {
+          const claim = await railsPath.getClaim({ claimId })
+          return claim
+        } catch (err: unknown) {
+          return this.throwError(err) as Claim
+        }
       }
     }
   }

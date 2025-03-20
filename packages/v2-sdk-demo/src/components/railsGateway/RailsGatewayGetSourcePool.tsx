@@ -49,7 +49,7 @@ export function RailsGatewayGetSourcePool (props: Props) {
       }
       console.log('args', args)
       const railsGateway = sdk.getRailsGateway(fromChainId)
-      const pool = await railsGateway.getSourcePool(args)
+      const pool = await railsGateway.helpers.getSourcePool(args)
       setSourcePool(pool?.toString())
     } catch (err: any) {
       console.error(err)
@@ -68,7 +68,7 @@ async function main() {
 
   ${hopInstantiateDisplayString}
   const railsGateway = hop.getRailsGateway(chainId)
-  const sourcePool = await railsGateway.getSourcePool({
+  const sourcePool = await railsGateway.helpers.getSourcePool({
     pathId,
     attestedClaimId
   })

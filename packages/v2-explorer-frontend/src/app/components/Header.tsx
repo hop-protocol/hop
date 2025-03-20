@@ -21,6 +21,7 @@ import TokenIcon from '@mui/icons-material/Token'
 import RouteIcon from '@mui/icons-material/Route'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import InsightsIcon from '@mui/icons-material/Insights'
+import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import Paper from '@mui/material/Paper'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
@@ -85,6 +86,7 @@ export function Header () {
     analytics: '/analytics',
     gateways: '/gateways',
     bonders: '/bonders',
+    sankey: '/sankey',
   }
 
   const currentTab = useMemo(() => {
@@ -97,6 +99,7 @@ export function Header () {
       '/analytics': 'analytics',
       '/gateways': 'gateways',
       '/bonders': 'bonders',
+      '/sankey': 'sankey',
     }
 
     return routesMap[pathname] ?? 'home'
@@ -263,6 +266,11 @@ export function Header () {
               label={isMobile ? "" : "Analytics"} 
               value="analytics" 
               icon={<InsightsIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
+            />
+            <StyledTab 
+              label={isMobile ? "" : "Sankey"} 
+              value="sankey" 
+              icon={<AccountTreeIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
             />
           </Tabs>
         </Box>

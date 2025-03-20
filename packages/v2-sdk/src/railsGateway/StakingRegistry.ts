@@ -370,11 +370,6 @@ export class StakingRegistry extends Base {
     return contract.fullAppeal()
   }
 
-  async challenges (challengeId: string): Promise<Challenge> {
-    const contract = this.getStakingRegistryContract()
-    return contract.challenges(challengeId)
-  }
-
   async minHopStake (): Promise<BigNumber> {
     const contract = this.getStakingRegistryContract()
     return contract.minHopStake()

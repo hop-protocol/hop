@@ -327,19 +327,19 @@ export class Hop extends Base {
 
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', destPathId)
-          attestedClaimId = await this.getRailsGateway(originChainId).getHeadClaimId({
+          attestedClaimId = await this.getRailsGateway(originChainId).helpers.getHeadClaimId({
             pathId: originPathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
-          isClaimIdValid = await this.getRailsGateway(nextChainId).getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.getIsClaimIdValid({
             pathId: originPathId,
             claimId: attestedClaimId
           })
 
           console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
         } else {
-          isClaimIdValid = await this.getRailsGateway(nextChainId).getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.getIsClaimIdValid({
             pathId: originPathId,
             claimId: attestedClaimId
           })
@@ -356,11 +356,11 @@ export class Hop extends Base {
           // throw new CustomError('Latest attestedClaimId is invalid')
         }
 
-        const nextMaxTotalSent = await this.getRailsGateway(originChainId).getTotalSent({ pathId: originPathId })
+        const nextMaxTotalSent = await this.getRailsGateway(originChainId).helpers.getTotalSent({ pathId: originPathId })
         const nextMaxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
 
-        const destMaxTotalSent = await this.getRailsGateway(nextChainId).getTotalSent({ pathId: destPathId })
-        const destAttestedClaimId = await this.getRailsGateway(nextChainId).getHeadClaimId({
+        const destMaxTotalSent = await this.getRailsGateway(nextChainId).helpers.getTotalSent({ pathId: destPathId })
+        const destAttestedClaimId = await this.getRailsGateway(nextChainId).helpers.getHeadClaimId({
           pathId: destPathId
         })
         const destMaxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
@@ -447,19 +447,19 @@ export class Hop extends Base {
 
         if (attestedClaimId == null) {
           console.log('hopV2Sdk: pathId', pathId)
-          attestedClaimId = await this.getRailsGateway(fromChainId).getHeadClaimId({
+          attestedClaimId = await this.getRailsGateway(fromChainId).helpers.getHeadClaimId({
             pathId
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
-          isClaimIdValid = await this.getRailsGateway(toChainId).getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.getIsClaimIdValid({
             pathId,
             claimId: attestedClaimId
           })
 
           console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
         } else {
-          isClaimIdValid = await this.getRailsGateway(toChainId).getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.getIsClaimIdValid({
             pathId,
             claimId: attestedClaimId
           })
@@ -477,7 +477,7 @@ export class Hop extends Base {
         }
 
         const maxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
-        const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
+        const maxTotalSent = await this.getRailsGateway(fromChainId).helpers.getTotalSent({ pathId })
 
         const hops: HopStructInput[] = [{
           pathId,
@@ -553,7 +553,7 @@ export class Hop extends Base {
   }
 
   async getPathInfo ({ chainId, pathId }: GetPathInfoInput): Promise<Path> {
-    return this.getRailsGateway(chainId).getPathInfo({ pathId })
+    return this.getRailsGateway(chainId).helpers.getPathInfo({ pathId })
   }
 
   async connectTargets (input: ConnectTargetsInput, txOverrides: TxOverrides = {}): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
@@ -625,12 +625,12 @@ export class Hop extends Base {
       initialReserve
     })
 
-    const attestedClaimId  = await this.getRailsGateway(fromChainId).getHeadClaimId({
+    const attestedClaimId  = await this.getRailsGateway(fromChainId).helpers.getHeadClaimId({
       pathId
     })
 
     const maxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
-    const maxTotalSent = await this.getRailsGateway(fromChainId).getTotalSent({ pathId })
+    const maxTotalSent = await this.getRailsGateway(fromChainId).helpers.getTotalSent({ pathId })
 
     const hops: HopStructInput[] = [{
       pathId,
@@ -667,11 +667,11 @@ export class Hop extends Base {
       initialReserve
     })
 
-    const attestedClaimId = await rails.getHeadClaimId({
+    const attestedClaimId = await rails.helpers.getHeadClaimId({
       pathId
     })
 
-    const sourcePool = await rails.getSourcePool({ pathId, attestedClaimId })
+    const sourcePool = await rails.helpers.getSourcePool({ pathId, attestedClaimId })
 
     const amountOut = await rails.getAmountOut({ pathId, amount, attestedClaimId, sourcePool })
     return amountOut
@@ -748,7 +748,7 @@ export class Hop extends Base {
   }
 
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {
-    return this.getRailsGateway(chainId).getTokenContract({ address })
+    return this.getRailsGateway(chainId).helpers.getTokenContract({ address })
   }
 
   async getEvents({
@@ -765,37 +765,37 @@ export class Hop extends Base {
     if (!fromBlock) {
       throw new InputError('fromBlock is required')
     }
-  
+
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new CustomError(`Provider not found for chainId: ${chainId}`)
     }
-  
+
     const latestBlock = await provider.getBlockNumber()
     toBlock = toBlock ?? latestBlock
     fromBlock = fromBlock ?? (latestBlock - 1000)
-  
+
     if (fromBlock < 0) {
       fromBlock = toBlock + fromBlock
     }
-  
+
     if (eventName) {
       eventNames = [eventName]
     }
-  
+
     if (!eventNames?.length) {
       throw new InputError('expected eventName or eventNames')
     }
-  
+
     const filters: Filter[] = []
     const eventFetcher = new EventFetcher({ provider, batchBlocks: this.batchBlocks })
     const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
-  
+
     const allEventNames = [
       ...this.getMessenger(chainId).getEventNames(),
       ...this.getRailsGateway(chainId).getEventNames()
     ]
-  
+
     // Get all RailsPath addresses for this chain
     let railsPathAddresses: string[] = []
     try {
@@ -804,7 +804,7 @@ export class Hop extends Base {
     } catch (err) {
       console.warn('Failed to get RailsPath addresses:', err)
     }
-  
+
     for (const name of eventNames) {
       let subclass: any = null
       if (this.getMessenger(chainId).getEventNames().includes(name)) {
@@ -836,17 +836,17 @@ export class Hop extends Base {
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       }
     }
-  
+
     // console.log('hopV2Sdk: getEvents filters', filters)
     const options = { fromBlock: fromBlock as number, toBlock: toBlock as number }
     const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
-  
+
     const decoded: EthersEvent[] = []
     for (const event of events) {
       const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event], fetchTxData) as EthersEvent[]
       decoded.push(...res)
     }
-  
+
     // Sort events by block number and log index
     decoded.sort((a, b) => {
       if (a.blockNumber === b.blockNumber) {
@@ -854,7 +854,7 @@ export class Hop extends Base {
       }
       return a.blockNumber - b.blockNumber
     })
-  
+
     return decoded as EthersEventWithDecodedTypesAndContext<AllEventTypes>[]
   }
 
@@ -1098,7 +1098,7 @@ export class Hop extends Base {
   }
 
   async getCounterpartChainId (originChainId: BigNumberish, pathId: string): Promise<string> {
-    const pathInfo = await this.getRailsGateway(originChainId).getPathInfo({ pathId })
+    const pathInfo = await this.getRailsGateway(originChainId).helpers.getPathInfo({ pathId })
     const { counterpartChainId, chainId } = pathInfo
 
     let toChainId = counterpartChainId

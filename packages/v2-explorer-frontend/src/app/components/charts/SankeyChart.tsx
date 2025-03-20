@@ -46,8 +46,6 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
           return
         }
 
-        console.log('[SankeyChart] Loading D3.js and related libraries...')
-        
         // Load D3.js v7
         const d3Script = document.createElement('script')
         d3Script.src = 'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js'
@@ -66,35 +64,26 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
           document.head.appendChild(sankeyScript)
           
           sankeyScript.onload = () => {
-            console.log('[SankeyChart] D3 libraries loaded successfully')
             setD3Loaded(true)
           }
           
           sankeyScript.onerror = () => {
-            console.error('[SankeyChart] Failed to load Sankey script')
             setError('Failed to load required visualization libraries')
             setIsLoading(false)
           }
         }
         
         d3Script.onerror = () => {
-          console.error('[SankeyChart] Failed to load D3 script')
           setError('Failed to load required visualization libraries')
           setIsLoading(false)
         }
       } catch (err) {
-        console.error('[SankeyChart] Error loading D3:', err)
         setError('Failed to load required visualization libraries')
         setIsLoading(false)
       }
     }
 
     loadD3()
-    
-    // Cleanup function
-    return () => {
-      console.log('[SankeyChart] Component unmounting, cleanup')
-    }
   }, [])
 
   // Render the chart when data and D3 are available
@@ -107,13 +96,11 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       const d3 = (window as any).d3
       
       if (!d3) {
-        console.error('[SankeyChart] D3 is not available')
         setError('Visualization library not available')
         setIsLoading(false)
         return
       }
       
-      console.log('[SankeyChart] Rendering chart with data:', data)
       setIsLoading(true)
       
       // Clear previous chart
@@ -200,8 +187,6 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
           }
         })
       }
-      
-      console.log('[SankeyChart] Prepared sankey data:', sankeyData)
     
       // Create the sankey generator
       const sankey = d3.sankey()
@@ -215,8 +200,6 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       // d3-sankey may need this depending on the version
       const sankeyNodes = sankey(sankeyData).nodes
       const sankeyLinks = sankey(sankeyData).links
-
-      console.log('[SankeyChart] Sankey layout computed:', { nodes: sankeyNodes.length, links: sankeyLinks.length })
       
       // Define gradients for links
       const defs = svg.append('defs')
@@ -358,7 +341,6 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       }
       
     } catch (err) {
-      console.error('[SankeyChart] Error rendering chart:', err)
       setError(`Error rendering chart: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setIsLoading(false)
     }
@@ -373,8 +355,6 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
     try {
       const d3 = (window as any).d3
       if (!d3) return
-      
-      console.log('[SankeyChart] Rendering fallback visualization')
       
       // Clear previous chart
       d3.select(chartRef.current).selectAll('*').remove()
@@ -514,7 +494,8 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       setIsLoading(false)
       
     } catch (err) {
-      console.error('[SankeyChart] Error rendering fallback:', err)
+      // Error handling is silent for fallback visualization
+      setIsLoading(false)
     }
   }, [d3Loaded, data, height, theme])
 

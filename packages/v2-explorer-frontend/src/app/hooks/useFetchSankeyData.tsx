@@ -38,14 +38,10 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
     const queryString = queryParams.toString();
     const endpoint = `${apiUrl}/v1/stats/flow${queryString ? `?${queryString}` : ''}`;
 
-    console.log('[useFetchSankeyData] Fetching data from:', endpoint);
     const response = await fetch(endpoint);
     
     if (!response.ok) {
       // If the API endpoint doesn't exist yet, generate mock data for development
-      console.warn('[useFetchSankeyData] API returned error, generating realistic mock data');
-      
-      // Use processApiResponse to generate realistic mock data
       const mockResponse = { transferFlows: [] };
       return {
         data: processApiResponse(mockResponse),
@@ -54,7 +50,6 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
     }
     
     const rawData = await response.json();
-    console.log('[useFetchSankeyData] API response:', rawData);
     
     // Process the data into the format required by the Sankey chart
     return {
@@ -62,7 +57,6 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
       lastUpdated: rawData.lastUpdated || new Date().toISOString()
     };
   } catch (error) {
-    console.error('[useFetchSankeyData] Error fetching data:', error);
     // Create a mock response with empty transferFlows to trigger realistic mock data generation
     const mockResponse = { transferFlows: [] };
     return {
@@ -76,8 +70,6 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
 function processApiResponse(apiData: any): typeof mockSankeyData {
   // If the API isn't implemented yet or returns no data, use realistic mock data
   if (!apiData || !apiData.transferFlows || apiData.transferFlows.length === 0) {
-    console.warn('[useFetchSankeyData] No data received from API, generating realistic mock data');
-    
     // Create realistic mock data based on the actual tokens and chains in the system
     const realisticMockData = {
       nodes: [
@@ -191,11 +183,8 @@ function processApiResponse(apiData: any): typeof mockSankeyData {
       });
     });
     
-    console.log('[useFetchSankeyData] Processed data:', { nodes, links });
     return { nodes, links };
   } catch (error) {
-    console.error('[useFetchSankeyData] Error processing API data:', error);
-    
     // Return realistic mock data here as well
     const realisticMockData = {
       nodes: [

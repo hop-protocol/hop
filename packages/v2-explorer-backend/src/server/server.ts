@@ -195,12 +195,17 @@ app.get('/v1/stats/daily-volume', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any) => {
   try {
-    const { days, pathId } = req.query
-    const result = await controller.getCumulativeVolumeStatsForApi({ 
-      days: Number(days) || undefined,
-      pathId
+    const { days, pathId, startTimestamp, endTimestamp } = req.query
+    const stats = await controller.getCumulativeVolumeStatsForApi({
+      days: days ? parseInt(days) : undefined,
+      pathId,
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
     })
-    res.status(200).json(result)
+    res.status(200).json({
+      data: stats,
+      lastUpdated: new Date().toISOString()
+    })
   } catch (err: any) {
     console.error(err)
     res.json({ error: err.message })

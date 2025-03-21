@@ -627,7 +627,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`MessengerEventName`](../enums/MessengerEventName.md) |
+| `eventName` | `string` |
 
 #### Returns
 

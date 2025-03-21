@@ -966,7 +966,7 @@ export class RailsPath extends Base {
     return RailsPath.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName): any { // TODO: return type
+  getEventFetcher(eventName: EventName | string): any { // TODO: return type
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -983,7 +983,7 @@ export class RailsPath extends Base {
       [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
     }
 
-    const EventFetcherClass = eventFetcher[eventName]
+    const EventFetcherClass = eventFetcher[eventName as EventName]
     if (!EventFetcherClass) {
       throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
     }

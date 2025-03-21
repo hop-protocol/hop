@@ -813,31 +813,31 @@ export class Hop extends Base {
     }
 
     for (const name of eventNames) {
-      let subclass: any = null
       if (messenger.getEventNames().includes(name)) {
-        subclass = messenger
-        const fetcher = subclass.getEventFetcher(name)
+        const fetcher = messenger.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       } else if (name == EventName.PathInitialized) {
-        subclass = railsGateway
-        const fetcher = subclass.getEventFetcher(name)
+        const fetcher = railsGateway.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       } else if (railsPath.getEventNames().includes(name)) {
         // For RailsGateway events, create fetchers for each RailsPath address
-        subclass = railsPath
         for (const address of railsPathAddresses) {
-          const fetcher = subclass.getEventFetcher(name, address)
-          const filter = fetcher.getFilter()
-          filters.push(filter)
-          eventFetcherMap[filter.topics?.[0] as string] = fetcher
+          try {
+            const railsPathWithAddress = await this.getRailsPath(chainId, undefined, address)
+            const fetcher = railsPathWithAddress.getEventFetcher(name)
+            const filter = fetcher.getFilter()
+            filters.push(filter)
+            eventFetcherMap[filter.topics?.[0] as string] = fetcher
+          } catch (err) {
+            console.warn(`Failed to create fetcher for event ${name} at address ${address} for chainId ${chainId}:`, err)
+          }
         }
       } else if (stakingRegistry.getEventNames().includes(name)) {
-        subclass = stakingRegistry
-        const fetcher = subclass.getEventFetcher(name)
+        const fetcher = stakingRegistry.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
@@ -1110,9 +1110,9 @@ export class Hop extends Base {
     return instance
   }
 
-  async getRailsPath (chainId: BigNumberish, pathId?: string): Promise<RailsPath> {
+  async getRailsPath (chainId: BigNumberish, pathId?: string, address?: string): Promise<RailsPath> {
     const railsGateway = this.getRailsGateway(chainId)
-    return railsGateway.getRailsPath(pathId)
+    return railsGateway.getRailsPath(pathId, address)
   }
 
   async getCounterpartChainId (originChainId: BigNumberish, pathId: string): Promise<string> {
@@ -1144,9 +1144,10 @@ export class Hop extends Base {
           '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
           '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
           //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
+          //'0xc9c011ed03fc264358deaf9401bf8363edc1d0406e9e79d181a97d5b0581c3de',
         ]
       },
-      '42069': { // Base Sepolia
+      '42069': { // Hub Sepolia
         'mock': [
           '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 11155111
           '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 11155420
@@ -1177,7 +1178,8 @@ export class Hop extends Base {
           '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
         ],
         'usdc': [
-          // '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
+          //'0xc9c011ed03fc264358deaf9401bf8363edc1d0406e9e79d181a97d5b0581c3de',
+          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
           '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
           '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
         ]

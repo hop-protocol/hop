@@ -164,6 +164,7 @@ export class Indexer {
       }
 
       if (!_db) {
+        console.log('no DB', chainId)
         return
       }
 
@@ -183,6 +184,9 @@ export class Indexer {
       let toBlock = headBlock
       if (syncState?.toBlock) {
         fromBlock = syncState.toBlock as number + 1
+        //if (chainId === '11155111') {
+        //   fromBlock = 7947668
+        //}
         // if (chainId === '42069') {
         //   fromBlock = 866229
         // }
@@ -193,6 +197,7 @@ export class Indexer {
         //   fromBlock = 18925085
         // }
         toBlock = headBlock
+
       }
 
       console.log('get', eventNames, 'chainId', chainId, 'fromBlock', fromBlock, 'toBlock', toBlock)

@@ -739,8 +739,7 @@ export class RailsGateway extends Base {
     })
   }
 
-  async getRailsPath (pathId?: string): Promise<RailsPath> {
-    let address : undefined | string = undefined
+  async getRailsPath (pathId?: string, address?: string): Promise<RailsPath> {
     if (pathId) {
       address = await this.getPath({ pathId })
     }
@@ -1947,7 +1946,7 @@ export class RailsGateway extends Base {
     return RailsGateway.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName): any { // TODO: return type
+  getEventFetcher(eventName: EventName | string): any { // TODO: return type
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -1964,7 +1963,7 @@ export class RailsGateway extends Base {
       [EventName.PathInitialized]: PathInitializedEventFetcher,
     }
 
-    const EventFetcherClass = eventFetcher[eventName]
+    const EventFetcherClass = eventFetcher[eventName as EventName]
     if (!EventFetcherClass) {
       throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
     }

@@ -736,7 +736,7 @@ ___
 
 ### <a id="getrailspath" name="getrailspath"></a> getRailsPath
 
-▸ **getRailsPath**(`chainId`, `pathId?`): `Promise`\<`RailsPath`\>
+▸ **getRailsPath**(`chainId`, `pathId?`, `address?`): `Promise`\<`RailsPath`\>
 
 #### Parameters
 
@@ -744,6 +744,7 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `pathId?` | `string` |
+| `address?` | `string` |
 
 #### Returns
 

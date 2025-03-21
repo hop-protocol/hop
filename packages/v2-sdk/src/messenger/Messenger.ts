@@ -276,7 +276,7 @@ export class Messenger extends Base {
     return Object.keys(EventName)
   }
 
-  getEventFetcher(eventName: EventName) {
+  getEventFetcher(eventName: EventName | string) {
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -302,7 +302,7 @@ export class Messenger extends Base {
       [EventName.MessageSent]: MessageSentEventFetcher,
     }
 
-    const EventFetcherClass = eventFetcher[eventName]
+    const EventFetcherClass = eventFetcher[eventName as EventName]
     if (!EventFetcherClass) {
       throw new CustomError(`Event fetcher not found for event name: ${eventName}`)
     }

@@ -489,7 +489,7 @@ export class StakingRegistry extends Base {
 
   /** EVENT HANDLERS */
 
-  getEventFetcher(eventName: EventName) {
+  getEventFetcher(eventName: EventName | string) {
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -505,7 +505,7 @@ export class StakingRegistry extends Base {
       [EventName.BonderPreference]: BonderPreferenceEventFetcher,
     }
 
-    const EventFetcherClass = eventFetcher[eventName]
+    const EventFetcherClass = eventFetcher[eventName as EventName]
     if (!EventFetcherClass) {
       throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
     }

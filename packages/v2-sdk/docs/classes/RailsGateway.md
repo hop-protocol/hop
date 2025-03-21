@@ -725,7 +725,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
+| `eventName` | `string` |
 
 #### Returns
 
@@ -906,13 +906,14 @@ ___
 
 ### <a id="getrailspath" name="getrailspath"></a> getRailsPath
 
-▸ **getRailsPath**(`pathId?`): `Promise`\<[`RailsPath`](RailsPath.md)\>
+▸ **getRailsPath**(`pathId?`, `address?`): `Promise`\<[`RailsPath`](RailsPath.md)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `pathId?` | `string` |
+| `address?` | `string` |
 
 #### Returns
 

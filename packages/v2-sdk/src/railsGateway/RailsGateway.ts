@@ -5,53 +5,53 @@ import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
-import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
-import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
-import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#railsGateway/events/ClaimPushed.js'
-import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
-import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
-import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
-import { PathInitialized, PathInitializedEventFetcher } from '#railsGateway/events/PathInitialized.js'
+import { HopStruct, TransferSent } from '#railsGateway/events/TransferSent.js'
+import { TransferBonded } from '#railsGateway/events/TransferBonded.js'
+import { PathInitialized, PathInitializedEventFetcher, PathInitializedIndexes } from '#railsGateway/events/PathInitialized.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import memcache from 'memory-cache'
 import { getComputedNextHopsHash } from '../utils/getComputedNextHopsHash.js'
 import { getComputedTransferId } from '../utils/getComputedTransferId.js'
 import { getComputedTransferDataHash, GetComputedTransferDataHashInput } from '../utils/getComputedTransferDataHash.js'
-import { RailsPath } from './RailsPath.js'
+import { RailsPath, EventFetcher as RailsPathEventFetcher, EventName as RailsPathEventName } from './RailsPath.js'
 
 const { getAddress: checksumAddress } = utils
 
 const cache = new memcache.Cache()
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher | PathInitializedEventFetcher
+export type EventFetcher = PathInitializedEventFetcher
+
+export type GetEventFilterInput = PathInitializedIndexes
 
 export enum EventName {
-  TransferSent = 'TransferSent',
-  TransferBonded = 'TransferBonded',
-  ClaimPushed = 'ClaimPushed',
-  ClaimReadded = 'ClaimReadded',
-  ClaimRemoved = 'ClaimRemoved',
-  ClaimWithdrawn = 'ClaimWithdrawn',
   PathInitialized = 'PathInitialized'
 }
 
-export type GetEventsInput = {
-  fromBlock: number
-  toBlock: number
-  eventName: EventName
-  fetchTxData?: boolean
+export type GetTransferSentEventFromTransactionHashInput = {
+  transactionHash: string
 }
 
-export type TransferSentEventInput = {
-  fromBlock: number
-  toBlock: number
-  fetchTxData?: boolean
+export type GetTransferSentEventFromTransactionReceiptInput = {
+  receipt: providers.TransactionReceipt
 }
 
-export type TransferBondedEventInput = {
-  fromBlock: number
-  toBlock: number
+export type GetTransferBondedEventFromTransactionHashInput = {
+  transactionHash: string
+}
+
+export type GetTransferBondedEventFromTransactionReceiptInput = {
+  receipt: providers.TransactionReceipt
+}
+
+export type GetTransferSentEventFromTransferIdInput = {
+  transferId: string
+  fromBlock?: number
+}
+
+export type GetTransferBondedEventFromTransferIdInput = {
+  transferId: string
+  fromBlock?: number
 }
 
 export type Path = {
@@ -177,41 +177,17 @@ export type GetIsClaimIdValidInput = {
   claimId: string
 }
 
+export type GetIsTransferIdValidInput = {
+  pathId: string
+  claimId: string
+}
+
 export type GetSendFeeInput = {
   pathId: string
 }
 
 export type GetMessageFeeInput = {
   chainId: BigNumberish
-}
-
-export type GetTransferSentEventFromTransactionReceiptInput = {
-  receipt: providers.TransactionReceipt
-}
-
-export type GetTransferSentEventFromTransactionHashInput = {
-  transactionHash: string
-}
-
-export type GetTransferSentEventFromTransferIdInput = {
-  transferId: string
-}
-
-export type GetTransferSentEventsFromPathIdInput = {
-  pathId: string
-}
-
-export type GetTransferBondedEventFromTransactionReceiptInput = {
-  receipt: providers.TransactionReceipt
-}
-
-export type GetTransferBondedEventFromTransactionHashInput = {
-  transactionHash: string
-}
-
-export type GetTransferBondedEventFromTransferIdInput = {
-  transferId: string
-  fromBlock?: number
 }
 
 export type GetTokenInfoInput = {
@@ -221,20 +197,6 @@ export type GetTokenInfoInput = {
 export type GetTokenContractInput = {
   address: string
 }
-
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
-
-export type GetTransferSentEventFilterInput = TransferSentIndexes
-
-export type GetTransferBondedEventFilterInput = TransferBondedIndexes
-
-export type GetClaimPushedEventFilterInput = ClaimPushedIndexes
-
-export type GetClaimReaddedEventFilterInput = ClaimReaddedIndexes
-
-export type GetClaimRemovedEventFilterInput = ClaimRemovedIndexes
-
-export type GetClaimWithdrawnEventFilterInput = ClaimWithdrawnIndexes
 
 export type Token = {
   chainId: string
@@ -275,12 +237,6 @@ export type DistributeClaimedFeesInput = {
   lastClaimId: string
 }
 
-export type DistributeExcessFeesInput = {
-  pathId: string
-  recipients: string[]
-  amounts: BigNumberish[]
-}
-
 export type GetTransferDataHashInput = {
   to: string
   amount: BigNumberish
@@ -288,18 +244,6 @@ export type GetTransferDataHashInput = {
   attestedClaimId?: string
   sourcePool: BigNumberish
   hops: HopStructInput[]
-}
-
-export type GetBucketInput = {
-  pathId: string
-  index: BigNumberish
-}
-
-export type Bucket = {
-  completedAt: BigNumber
-  finalClaimId: string
-  totalAttested: BigNumber
-  maxConfirmed: BigNumber
 }
 
 export type GetBucketIndexInput = {
@@ -312,30 +256,6 @@ export type GetAmountOutInput = {
   amount: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
-}
-
-export type IsValidClaimInput = {
-  pathId: string
-  claimId: string
-}
-
-export type IsValidTransferInput = {
-  pathId: string
-  claimId: string
-}
-
-export type SetFeePriceInput = {
-  chainId: BigNumberish
-  feePrice: BigNumberish
-}
-
-export type SetFeePricesInput = {
-  chainIds: BigNumberish[]
-  feePrices: BigNumberish[]
-}
-
-export type GetTokenVaultInput = {
-  pathId: string
 }
 
 export type GetSourcePoolInput = {
@@ -363,11 +283,6 @@ export type Claim = {
 export type GetClaimInput = {
   pathId: string
   claimId: string
-}
-
-export type GetClaimIdInput = {
-  pathId: string
-  index: BigNumberish
 }
 
 export type GetCounterpartChainIdInput = {
@@ -484,10 +399,6 @@ export type SetTokenFeeRecipientInput = {
 
 export type TokensInput = {
   pathId: string
-}
-
-export type GetPathInitializedEventFilterInput = {
-
 }
 
 export type RailsGatewayConstructorInput = {
@@ -828,8 +739,11 @@ export class RailsGateway extends Base {
     })
   }
 
-  async getRailsPath (pathId: string): Promise<RailsPath> {
-    const address = await this.getPath({ pathId })
+  async getRailsPath (pathId?: string): Promise<RailsPath> {
+    let address : undefined | string = undefined
+    if (pathId) {
+      address = await this.getPath({ pathId })
+    }
     return new RailsPath({
       chainId: this.chainId,
       address,
@@ -1828,13 +1742,22 @@ export class RailsGateway extends Base {
         return balance.lt(amount)
       },
 
-      getIsClaimIdValid: async ({ pathId, claimId }: GetIsClaimIdValidInput): Promise<boolean> => {
+      isValidClaim: async ({ pathId, claimId }: GetIsClaimIdValidInput): Promise<boolean> => {
         if (!this.utils.isValidBytes32(claimId)) {
           throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
         const railsPath = await this.getRailsPath(pathId)
         return railsPath.isValidClaim({ claimId })
+      },
+
+      isValidTransfer: async ({ pathId, claimId }: GetIsTransferIdValidInput): Promise<boolean> => {
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const railsPath = await this.getRailsPath(pathId)
+        return railsPath.isValidTransfer({ claimId })
       },
 
       getTotalSent: async ({ pathId }: GetTotalSentInput): Promise<BigNumber> => {
@@ -1887,7 +1810,37 @@ export class RailsGateway extends Base {
         } catch (err: unknown) {
           return this.throwError(err) as Claim
         }
-      }
+      },
+
+      getTransferSentEventFromTransactionHash: async ({ transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransactionHash({ eventName: RailsPathEventName.TransferSent, transactionHash })
+      },
+
+      getTransferSentEventFromTransactionReceipt: async ({ receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.TransferSent, receipt })
+      },
+
+      getTransferBondedEventFromTransactionHash: async ({ transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransactionHash({ eventName: RailsPathEventName.TransferBonded, transactionHash })
+      },
+
+      getTransferBondedEventFromTransactionReceipt: async ({ receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.TransferBonded, receipt })
+      },
+
+      getTransferSentEventFromTransferId: async ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferSent, transferId })
+      },
+
+      getTransferBondedEventFromTransferId: async ({ transferId }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+        const railsPath = await this.getRailsPath()
+        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferBonded, transferId })
+      },
     }
   }
 
@@ -1994,25 +1947,21 @@ export class RailsGateway extends Base {
     return RailsGateway.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName, address: string = this.getRailsGatewayContractAddress()): any { // TODO: return type
+  getEventFetcher(eventName: EventName): any { // TODO: return type
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
       throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
 
+    const address = this.getRailsGatewayContractAddress()
+
     if (!address) {
       throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
 
     const eventFetcher: Record<EventName, any> = {
-      [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
       [EventName.PathInitialized]: PathInitializedEventFetcher,
-      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
-      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
-      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
     }
 
     const EventFetcherClass = eventFetcher[eventName]
@@ -2023,481 +1972,16 @@ export class RailsGateway extends Base {
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
   }
 
-  async #getEvents ({ fromBlock, toBlock, eventName, fetchTxData = false }: GetEventsInput) {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid fromBlock "${toBlock}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const latestBlock = await provider.getBlockNumber()
-    if (latestBlock) {
-      if (!toBlock) {
-        toBlock = latestBlock
-      }
-      if (!fromBlock) {
-        const start = latestBlock - 1000
-        fromBlock = start
-      }
-      if (toBlock && fromBlock < 0) {
-        fromBlock = toBlock + fromBlock
-      }
-    }
-
-    console.log('hopV2Sdk: getEvents', fromBlock, toBlock, eventName)
-
-    if (eventName == EventName.PathInitialized) {
-      const eventFetcher = this.getEventFetcher(eventName)
-      return eventFetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
-    }
-
-    // Get all RailsPath addresses for this chain
-    const railsPathAddresses = await this.getAllRailsPathAddresses()
-
-    console.log('hopV2Sdk: railsPathAddresses', railsPathAddresses)
-
-    // Create event fetchers for each RailsPath address
-    const eventFetchers = railsPathAddresses.map((address: string) =>
-      this.getEventFetcher(eventName, address)
-    )
-
-    // Fetch events from all RailsPath contracts
-    const eventsPromises = eventFetchers.map((fetcher: any) =>
-      fetcher.getEventsForRange(fromBlock, toBlock, fetchTxData)
-    )
-
-    // Combine all events
-    const eventsArrays = await Promise.all(eventsPromises)
-    const allEvents = eventsArrays.flat()
-
-    // Sort events by block number and log index
-    allEvents.sort((a: any, b: any) => {
-      if (a.blockNumber === b.blockNumber) {
-        return a.logIndex - b.logIndex
-      }
-      return a.blockNumber - b.blockNumber
-    })
-
-    return allEvents
-  }
-
-  // Update the getAllRailsPathAddresses method
-  async getAllRailsPathAddresses(): Promise<string[]> {
-    const CHAIN_PATH_IDS: Record<string, Record<string, string[]>> = {
-      '11155111': { // Sepolia
-        'mock': [
-          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 42069
-          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155420
-          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2'  // to 84532
-        ],
-        'usdc': [
-          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
-          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
-          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
-        ]
-      },
-      '42069': { // Base Sepolia
-        'mock': [
-          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 11155111
-          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 11155420
-          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262'  // to 84532
-        ],
-        'usdc': [
-          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 11155111
-          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 11155420
-          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe'  // to 84532
-        ]
-      },
-      '11155420': { // Optimism Sepolia
-        'mock': [
-          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155111
-          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 42069
-          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 84532
-        ],
-        'usdc': [
-          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155111
-          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 42069
-          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 84532
-        ]
-      },
-      '84532': { // Base Sepolia
-        'mock': [
-          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2', // to 11155111
-          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262', // to 42069
-          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
-        ],
-        'usdc': [
-          // '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
-          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
-          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
-        ]
-      }
-    }
-
-    const chainId = this.chainId.toString()
-    const addresses = new Set<string>()
-
-    // Get path IDs for the current chain
-    const chainPathIds = CHAIN_PATH_IDS[chainId]
-    if (!chainPathIds) {
-      throw new ConfigError(`No path IDs configured for chain ID ${chainId}`)
-    }
-
-    // Get RailsPath addresses for all path IDs
-    for (const tokenPathIds of Object.values(chainPathIds)) {
-      for (const pathId of tokenPathIds) {
-        try {
-          const railsPath = await this.getRailsPath(pathId)
-          const address = await railsPath.getRailsPathContractAddress()
-          console.log('hopV2Sdk: address', address)
-          if (address && address !== constants.AddressZero) {
-            addresses.add(address)
-          }
-        } catch (err) {
-          console.warn(`Failed to get RailsPath address on chain ${chainId} for pathId ${pathId}:`, err)
-          continue
-        }
-      }
-    }
-
-    const addressArray = Array.from(addresses)
-    if (addressArray.length === 0) {
-      throw new ConfigError(`No RailsPath addresses found for chain ID ${chainId}`)
-    }
-
-    return addressArray
-  }
-
-  async getTransferSentEventFromTransactionReceipt ({ receipt }: GetTransferSentEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!receipt) {
-      throw new InputError('receipt is required')
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const address = this.getRailsGatewayContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
-    }
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
-    return events?.[0] ?? null
-  }
-
-  async getTransferSentEventFromTransactionHash ({ transactionHash }: GetTransferSentEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!transactionHash) {
-      throw new InputError('transactionHash is required')
-    }
-    if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const receipt = await provider.getTransactionReceipt(transactionHash)
-
-    if (!receipt) {
-      return null
-    }
-
-    return this.getTransferSentEventFromTransactionReceipt({ receipt })
-  }
-
-  async getTransferSentEventFromTransferId ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!this.utils.isValidBytes32(transferId)) {
-      throw new InputError(`Invalid transferId "${transferId}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const address = this.getRailsGatewayContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    const filter = eventFetcher.getTransferIdFilter(transferId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
-    return events?.[0] ?? null
-  }
-
-  async getTransferSentEventsFromPathId ({ pathId }: GetTransferSentEventsFromPathIdInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!this.utils.isValidBytes32(pathId)) {
-      throw new InputError(`Invalid pathId "${pathId}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const address = this.getRailsGatewayContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    const filter = eventFetcher.getPathIdFilter(pathId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events
-  }
-
-  async getTransferBondedEventFromTransactionReceipt ({ receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!receipt) {
-      throw new InputError('receipt is required')
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const address = this.getRailsGatewayContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
-    }
-    const eventFetcher = this.getEventFetcher(EventName.TransferBonded)
-    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
-    return events?.[0] ?? null
-  }
-
-  async getTransferBondedEventFromTransactionHash ({ transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!transactionHash) {
-      throw new InputError('transactionHash is required')
-    }
-    if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const receipt = await provider.getTransactionReceipt(transactionHash)
-
-    if (!receipt) {
-      return null
-    }
-
-    return this.getTransferBondedEventFromTransactionReceipt({ receipt })
-  }
-
-  async getTransferBondedEventFromTransferId ({ transferId, fromBlock = 0 }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!this.utils.isValidBytes32(transferId)) {
-      throw new InputError(`Invalid transferId "${transferId}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const address = this.getRailsGatewayContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferBonded)
-    const filter = eventFetcher.getClaimIdFilter(transferId)
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
-    return events?.[0] ?? null
-  }
-
   getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
-    if (eventName == EventName.TransferSent) {
-      return this.getTransferSentEventFilter(input)
-    }
-
-    if (eventName == EventName.TransferBonded) {
-      return this.getTransferBondedEventFilter(input)
-    }
-
-    if (eventName == EventName.ClaimPushed) {
-      return this.getClaimPushedEventFilter(input)
-    }
-
-    if (eventName == EventName.ClaimReadded) {
-      return this.getClaimReaddedEventFilter(input)
-    }
-
-    if (eventName == EventName.ClaimRemoved) {
-      return this.getClaimRemovedEventFilter(input)
-    }
-
-    if (eventName == EventName.ClaimWithdrawn) {
-      return this.getClaimWithdrawnEventFilter(input)
-    }
-
-    if (eventName == EventName.PathInitialized) {
-      return this.getPathInitializedEventFilter(input)
-    }
-
-    throw new InputError(`event name ${eventName} not found`)
-  }
-
-  getPathInitializedEventFilter(input: GetPathInitializedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.PathInitialized)
+    const eventFetcher = this.getEventFetcher(eventName)
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  getTransferSentEventFilter(input: GetTransferSentEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  getTransferBondedEventFilter(input: GetTransferBondedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.TransferBonded)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  getClaimPushedEventFilter(input: GetClaimPushedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.ClaimPushed)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  getClaimReaddedEventFilter(input: GetClaimReaddedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.ClaimReadded)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  getClaimRemovedEventFilter(input: GetClaimRemovedEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.ClaimRemoved)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  getClaimWithdrawnEventFilter(input: GetClaimWithdrawnEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(EventName.ClaimWithdrawn)
-    return eventFetcher.getFilterWithIndexes(input)
-  }
-
-  async getTransferSentEvents (input: TransferSentEventInput): Promise<EthersEventWithDecodedTypes<TransferSent>[]> {
-    return this.#getEvents({ ...input, eventName: EventName.TransferSent })
-  }
-
-  async *getTransferSentEventsInBatches({ fromBlock, toBlock }: TransferSentEventInput) {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const latestBlock = await provider.getBlockNumber()
-    const resolvedToBlock = toBlock ?? latestBlock
-    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000)
-
-    if (resolvedFromBlock < 0) {
-      resolvedFromBlock = resolvedToBlock + resolvedFromBlock
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.TransferSent)
-    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock)
-
-    for await (const events of eventsGenerator) {
-      yield events
-    }
-  }
-
-  async getTransferBondedEvents (input: TransferBondedEventInput): Promise<EthersEventWithDecodedTypes<TransferBonded>[]> {
-    return this.#getEvents({ ...input, eventName: EventName.TransferBonded })
-  }
-
-  addDecodedTypesToPathInitializedEvents (events: any[]): EthersEventWithDecodedTypes<PathInitialized>[] {
-    return RailsGateway.addDecodedTypesToPathInitializedEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToTransferSentEvents (events: any[]): EthersEventWithDecodedTypes<TransferSent>[] {
-    return RailsGateway.addDecodedTypesToTransferSentEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToTransferBondedEvents (events: any[]): EthersEventWithDecodedTypes<TransferBonded>[] {
-    return RailsGateway.addDecodedTypesToTransferBondedEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToClaimPushedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimPushed>[] {
-    return RailsGateway.addDecodedTypesToClaimPushedEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToClaimReaddedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimReadded>[] {
-    return RailsGateway.addDecodedTypesToClaimReaddedEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToClaimRemovedEvents (events: any[]): EthersEventWithDecodedTypes<ClaimRemoved>[] {
-    return RailsGateway.addDecodedTypesToClaimRemovedEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToClaimWithdrawnEvents (events: any[]): EthersEventWithDecodedTypes<ClaimWithdrawn>[] {
-    return RailsGateway.addDecodedTypesToClaimWithdrawnEvents(events, this.chainId)
-  }
-
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<PathInitialized> {
     return RailsGateway.addDecodedTypesToEvent(event, this.chainId)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<PathInitialized>[] {
     return RailsGateway.addDecodedTypesToEvents(events, this.chainId)
   }
 
@@ -2540,128 +2024,43 @@ export class RailsGateway extends Base {
     return Object.keys(EventName).sort()
   }
 
-  static getTransferSentEventSignature (): string {
-    const eventFetcher = new TransferSentEventFetcher()
+  static getEventSignature (eventName: EventName): string {
+    const eventFetchers: Record<EventName, any> = {
+      [EventName.PathInitialized]: PathInitializedEventFetcher,
+    }
+
+    const EventFetcherClass = eventFetchers[eventName]
+    if (!EventFetcherClass) {
+      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
+    }
+
+    const eventFetcher = new EventFetcherClass()
     return eventFetcher.getTopic0()
   }
 
-  static getTransferBondedEventSignature (): string {
-    const eventFetcher = new TransferBondedEventFetcher()
-    return eventFetcher.getTopic0()
-  }
-
-  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<PathInitialized> {
     const decoded = RailsGateway.addDecodedTypesToEvents([event], chainId)
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
-    const transferSentEventFetcher = new TransferSentEventFetcher()
-    const transferBondedEventFetcher = new TransferBondedEventFetcher()
-    const claimPostedEventFetcher = new ClaimPushedEventFetcher()
-    const claimReaddedEventFetcher = new ClaimReaddedEventFetcher()
-    const claimRemovedEventFetcher = new ClaimRemovedEventFetcher()
-    const claimWithdrawnEventFetcher = new ClaimWithdrawnEventFetcher()
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<PathInitialized>[] {
+    const eventFetchers: Record<EventName, any> = {
+      [EventName.PathInitialized]: PathInitializedEventFetcher,
+    }
+
     const result = events.map(event => {
-      if (transferSentEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferSent) {
-        return RailsGateway.addDecodedTypesToTransferSentEvent(event, chainId)
-      }
-
-      if (transferBondedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.TransferBonded) {
-        return RailsGateway.addDecodedTypesToTransferBondedEvent(event, chainId)
-      }
-
-      if (claimPostedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimPushed) {
-        return RailsGateway.addDecodedTypesToClaimPushedEvent(event, chainId)
-      }
-
-      if (claimReaddedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimReadded) {
-        return RailsGateway.addDecodedTypesToClaimReaddedEvent(event, chainId)
-      }
-
-      if (claimRemovedEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimRemoved) {
-        return RailsGateway.addDecodedTypesToClaimRemovedEvent(event, chainId)
-      }
-
-      if (claimWithdrawnEventFetcher.getEventNameFromTopic(event.topics[0]) === EventName.ClaimWithdrawn) {
-        return RailsGateway.addDecodedTypesToClaimWithdrawnEvent(event, chainId)
+      for (const eventName in eventFetchers) {
+        const fetcher = (eventFetchers as any)[eventName]
+        if (fetcher.getEventNameFromTopic(event.topics[0]) === eventName) {
+          return fetcher.addTypedEvent(event, chainId)
+        }
       }
 
       return event
     })
 
     return result
-  }
-
-  static addDecodedTypesToPathInitializedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<PathInitialized> {
-    const eventFetcher = new PathInitializedEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToTransferSentEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent> {
-    const eventFetcher = new TransferSentEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToTransferBondedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferBonded> {
-    const eventFetcher = new TransferBondedEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToClaimPushedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPushed> {
-    const eventFetcher = new ClaimPushedEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToClaimReaddedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimReadded> {
-    const eventFetcher = new ClaimReaddedEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToClaimRemovedEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimRemoved> {
-    const eventFetcher = new ClaimRemovedEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToClaimWithdrawnEvent (event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimWithdrawn> {
-    const eventFetcher = new ClaimWithdrawnEventFetcher(undefined, chainId)
-    return eventFetcher.addTypedEvent(event)
-  }
-
-  static addDecodedTypesToPathInitializedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<PathInitialized>[] {
-    const eventFetcher = new PathInitializedEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToTransferSentEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent>[] {
-    const eventFetcher = new TransferSentEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToTransferBondedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferBonded>[] {
-    const eventFetcher = new TransferBondedEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToClaimPushedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimPushed>[] {
-    const eventFetcher = new ClaimPushedEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToClaimReaddedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimReadded>[] {
-    const eventFetcher = new ClaimReaddedEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToClaimRemovedEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimRemoved>[] {
-    const eventFetcher = new ClaimRemovedEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
-  }
-
-  static addDecodedTypesToClaimWithdrawnEvents (events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<ClaimWithdrawn>[] {
-    const eventFetcher = new ClaimWithdrawnEventFetcher(undefined, chainId)
-    return events.map(event => eventFetcher.addTypedEvent(event))
   }
 
   /** END STATIC METHODS */

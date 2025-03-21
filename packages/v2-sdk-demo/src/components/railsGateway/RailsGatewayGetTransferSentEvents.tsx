@@ -62,11 +62,13 @@ export function RailsGatewayGetTransferSentEvents (props: Props) {
       }
     }
     const args = {
+      eventName: 'TransferSent',
+      chainId,
       fromBlock: _fromBlock,
       toBlock: _toBlock
     }
     console.log('args', args)
-    const _events = await sdk.getRailsGateway(chainId).getTransferSentEvents(args)
+    const _events = await sdk.getEvents(args)
     return _events
   }
 
@@ -89,11 +91,14 @@ export function RailsGatewayGetTransferSentEvents (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
+  const chainId = "${chainId}"
   const fromBlock = ${fromBlock || 'undefined'}
   const toBlock = ${toBlock || 'undefined'}
 
   ${hopInstantiateDisplayString}
-  const events = await hop.getRailsGateway('${chainId}').getTransferSentEvents({
+  const events = await hop.getEvents({
+    eventName: 'TransferSent',
+    chainId,
     fromBlock,
     toBlock
   })

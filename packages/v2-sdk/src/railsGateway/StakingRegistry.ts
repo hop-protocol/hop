@@ -487,6 +487,8 @@ export class StakingRegistry extends Base {
     return this.sendTransaction(populatedTx)
   }
 
+  /** EVENT HANDLERS */
+
   getEventFetcher(eventName: EventName) {
     const chainId = this.chainId
     const provider = this.getProvider(chainId)

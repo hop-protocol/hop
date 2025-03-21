@@ -86,7 +86,7 @@ export function TxStatusModalV2 (props: Props) {
       if (v2Sdk && tx && fromChain && toChain) {
         const fromChainId = fromChain.chainId
         const toChainId = toChain.chainId
-        const event = await v2Sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
+        const event = await v2Sdk.getRailsGateway(fromChainId).helpers.getTransferSentEventFromTransactionHash({
           transactionHash: tx.hash
         })
         if (!event) {

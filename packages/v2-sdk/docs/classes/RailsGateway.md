@@ -32,15 +32,8 @@
 
 ### Methods
 
-- [addDecodedTypesToClaimPushedEvents](RailsGateway.md#adddecodedtypestoclaimpushedevents)
-- [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents)
-- [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents)
-- [addDecodedTypesToClaimWithdrawnEvents](RailsGateway.md#adddecodedtypestoclaimwithdrawnevents)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents)
-- [addDecodedTypesToPathInitializedEvents](RailsGateway.md#adddecodedtypestopathinitializedevents)
-- [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents)
-- [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents)
 - [bond](RailsGateway.md#bond)
 - [claimFeesFromPath](RailsGateway.md#claimfeesfrompath)
 - [confirmClaim](RailsGateway.md#confirmclaim)
@@ -51,13 +44,8 @@
 - [executor](RailsGateway.md#executor)
 - [feeManager](RailsGateway.md#feemanager)
 - [gateways](RailsGateway.md#gateways)
-- [getAllRailsPathAddresses](RailsGateway.md#getallrailspathaddresses)
 - [getAmountOut](RailsGateway.md#getamountout)
 - [getChainIdsSupportedByTokenSymbol](RailsGateway.md#getchainidssupportedbytokensymbol)
-- [getClaimPushedEventFilter](RailsGateway.md#getclaimpushedeventfilter)
-- [getClaimReaddedEventFilter](RailsGateway.md#getclaimreaddedeventfilter)
-- [getClaimRemovedEventFilter](RailsGateway.md#getclaimremovedeventfilter)
-- [getClaimWithdrawnEventFilter](RailsGateway.md#getclaimwithdrawneventfilter)
 - [getColorForChainId](RailsGateway.md#getcolorforchainid)
 - [getConfigAddress](RailsGateway.md#getconfigaddress)
 - [getConfigStartBlock](RailsGateway.md#getconfigstartblock)
@@ -76,7 +64,6 @@
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPath](RailsGateway.md#getpath)
 - [getPathId](RailsGateway.md#getpathid)
-- [getPathInitializedEventFilter](RailsGateway.md#getpathinitializedeventfilter)
 - [getProvider](RailsGateway.md#getprovider)
 - [getPushClaimFee](RailsGateway.md#getpushclaimfee)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
@@ -95,19 +82,7 @@
 - [getSupportedTokenSymbolsByChainId](RailsGateway.md#getsupportedtokensymbolsbychainid)
 - [getTokenAddressByTokenSymbol](RailsGateway.md#gettokenaddressbytokensymbol)
 - [getTokenSymbolByTokenAddress](RailsGateway.md#gettokensymbolbytokenaddress)
-- [getTransferBondedEventFilter](RailsGateway.md#gettransferbondedeventfilter)
-- [getTransferBondedEventFromTransactionHash](RailsGateway.md#gettransferbondedeventfromtransactionhash)
-- [getTransferBondedEventFromTransactionReceipt](RailsGateway.md#gettransferbondedeventfromtransactionreceipt)
-- [getTransferBondedEventFromTransferId](RailsGateway.md#gettransferbondedeventfromtransferid)
-- [getTransferBondedEvents](RailsGateway.md#gettransferbondedevents)
 - [getTransferDataHash](RailsGateway.md#gettransferdatahash)
-- [getTransferSentEventFilter](RailsGateway.md#gettransfersenteventfilter)
-- [getTransferSentEventFromTransactionHash](RailsGateway.md#gettransfersenteventfromtransactionhash)
-- [getTransferSentEventFromTransactionReceipt](RailsGateway.md#gettransfersenteventfromtransactionreceipt)
-- [getTransferSentEventFromTransferId](RailsGateway.md#gettransfersenteventfromtransferid)
-- [getTransferSentEvents](RailsGateway.md#gettransfersentevents)
-- [getTransferSentEventsFromPathId](RailsGateway.md#gettransfersenteventsfrompathid)
-- [getTransferSentEventsInBatches](RailsGateway.md#gettransfersenteventsinbatches)
 - [getTxOverrides](RailsGateway.md#gettxoverrides)
 - [initChain](RailsGateway.md#initchain)
 - [initPath](RailsGateway.md#initpath)
@@ -137,29 +112,14 @@
 - [updateTokenFee](RailsGateway.md#updatetokenfee)
 - [withdrawBonds](RailsGateway.md#withdrawbonds)
 - [withdrawClaim](RailsGateway.md#withdrawclaim)
-- [addDecodedTypesToClaimPushedEvent](RailsGateway.md#adddecodedtypestoclaimpushedevent)
-- [addDecodedTypesToClaimPushedEvents](RailsGateway.md#adddecodedtypestoclaimpushedevents-1)
-- [addDecodedTypesToClaimReaddedEvent](RailsGateway.md#adddecodedtypestoclaimreaddedevent)
-- [addDecodedTypesToClaimReaddedEvents](RailsGateway.md#adddecodedtypestoclaimreaddedevents-1)
-- [addDecodedTypesToClaimRemovedEvent](RailsGateway.md#adddecodedtypestoclaimremovedevent)
-- [addDecodedTypesToClaimRemovedEvents](RailsGateway.md#adddecodedtypestoclaimremovedevents-1)
-- [addDecodedTypesToClaimWithdrawnEvent](RailsGateway.md#adddecodedtypestoclaimwithdrawnevent)
-- [addDecodedTypesToClaimWithdrawnEvents](RailsGateway.md#adddecodedtypestoclaimwithdrawnevents-1)
 - [addDecodedTypesToEvent](RailsGateway.md#adddecodedtypestoevent-1)
 - [addDecodedTypesToEvents](RailsGateway.md#adddecodedtypestoevents-1)
-- [addDecodedTypesToPathInitializedEvent](RailsGateway.md#adddecodedtypestopathinitializedevent)
-- [addDecodedTypesToPathInitializedEvents](RailsGateway.md#adddecodedtypestopathinitializedevents-1)
-- [addDecodedTypesToTransferBondedEvent](RailsGateway.md#adddecodedtypestotransferbondedevent)
-- [addDecodedTypesToTransferBondedEvents](RailsGateway.md#adddecodedtypestotransferbondedevents-1)
-- [addDecodedTypesToTransferSentEvent](RailsGateway.md#adddecodedtypestotransfersentevent)
-- [addDecodedTypesToTransferSentEvents](RailsGateway.md#adddecodedtypestotransfersentevents-1)
 - [deriveNetwork](RailsGateway.md#derivenetwork)
 - [getComputedNextHopsHash](RailsGateway.md#getcomputednexthopshash)
 - [getDefaultProvider](RailsGateway.md#getdefaultprovider-1)
 - [getDefaultProviders](RailsGateway.md#getdefaultproviders-1)
 - [getEventNames](RailsGateway.md#geteventnames-1)
-- [getTransferBondedEventSignature](RailsGateway.md#gettransferbondedeventsignature)
-- [getTransferSentEventSignature](RailsGateway.md#gettransfersenteventsignature)
+- [getEventSignature](RailsGateway.md#geteventsignature)
 
 ## Constructors
 
@@ -292,7 +252,6 @@ ___
 | `getInitialReserve` | (`__namedParameters`: [`GetInitialReserveInput`](../modules.md#getinitialreserveinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenAddress` | (`__namedParameters`: [`GetInitialReserveByTokenAddressInput`](../modules.md#getinitialreservebytokenaddressinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenSymbol` | (`__namedParameters`: [`GetInitialReserveByTokenSymbolInput`](../modules.md#getinitialreservebytokensymbolinput)) => `Promise`\<`BigNumber`\> |
-| `getIsClaimIdValid` | (`__namedParameters`: [`GetIsClaimIdValidInput`](../modules.md#getisclaimidvalidinput)) => `Promise`\<`boolean`\> |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
 | `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
@@ -303,7 +262,15 @@ ___
 | `getTokenContract` | (`__namedParameters`: [`GetTokenContractInput`](../modules.md#gettokencontractinput)) => `Contract` |
 | `getTokenInfo` | (`__namedParameters`: [`GetTokenInfoInput`](../modules.md#gettokeninfoinput)) => `Promise`\<[`Token`](../modules.md#token)\> |
 | `getTotalSent` | (`__namedParameters`: [`GetTotalSentInput`](../modules.md#gettotalsentinput)) => `Promise`\<`BigNumber`\> |
+| `getTransferBondedEventFromTransactionHash` | (`__namedParameters`: [`GetTransferBondedEventFromTransactionHashInput`](../modules.md#gettransferbondedeventfromtransactionhashinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
+| `getTransferBondedEventFromTransactionReceipt` | (`__namedParameters`: [`GetTransferBondedEventFromTransactionReceiptInput`](../modules.md#gettransferbondedeventfromtransactionreceiptinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
+| `getTransferBondedEventFromTransferId` | (`__namedParameters`: [`GetTransferBondedEventFromTransferIdInput`](../modules.md#gettransferbondedeventfromtransferidinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
+| `getTransferSentEventFromTransactionHash` | (`__namedParameters`: [`GetTransferSentEventFromTransactionHashInput`](../modules.md#gettransfersenteventfromtransactionhashinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
+| `getTransferSentEventFromTransactionReceipt` | (`__namedParameters`: [`GetTransferSentEventFromTransactionReceiptInput`](../modules.md#gettransfersenteventfromtransactionreceiptinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
+| `getTransferSentEventFromTransferId` | (`__namedParameters`: [`GetTransferSentEventFromTransferIdInput`](../modules.md#gettransfersenteventfromtransferidinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
 | `getWithdrawableBalance` | (`__namedParameters`: [`GetWithdrawableBalanceInput`](../modules.md#getwithdrawablebalanceinput)) => `Promise`\<`BigNumber`\> |
+| `isValidClaim` | (`__namedParameters`: [`GetIsClaimIdValidInput`](../modules.md#getisclaimidvalidinput)) => `Promise`\<`boolean`\> |
+| `isValidTransfer` | (`__namedParameters`: `GetIsTransferIdValidInput`) => `Promise`\<`boolean`\> |
 | `getAbi` | () => readonly [\{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"_stakingRegistry"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``"_dispatcher"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``"_executor"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``"_feeManager"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_railsPathImplementation"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"_defaultTokenFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"_tokenFeeRecipient"`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"constructor"``  }, \{ `stateMutability`: ``"payable"`` ; `type`: ``"receive"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"bond"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"claimFeesFromPath"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"confirmClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `name`: ``"counterpartChainIds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"defaultTokenFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"dispatcher"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageDispatcher"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"account"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"totalFees"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"lastClaimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"distributeClaimedFees"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"executor"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IMessageExecutor"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"feeManager"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IFeeManager"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `name`: ``"gateways"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getAmountOut"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getCounterpartChainId"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getMessageFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"messageFee"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getPath"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IRailsPath"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId0"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token0"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"chainId1"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token1"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"getPathId"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"pure"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getPushClaimFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"getRemoveFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"getSendFee"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``""`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"chainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"gateway"`` ; `type`: ``"address"``  }] ; `name`: ``"initChain"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }] ; `name`: ``"initPath"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"isPathInitialized"`` ; `outputs`: readonly [\{ `internalType`: ``"bool"`` ; `name`: ``""`` ; `type`: ``"bool"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"owner"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"nextHopsHash"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"pushClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"bonderFee"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"pushClaimAndBond"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amountOut"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"sourcePool"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"pushClaimAndWithdraw"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"railsPathImplementation"`` ; `outputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"transferDataHash"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"readdClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"removeClaim"`` ; `outputs`: readonly [] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"renounceOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"to"`` ; `type`: ``"address"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"hops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"send"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"setDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``"newStakingRegistry"`` ; `type`: ``"address"``  }] ; `name`: ``"setStakingRegistry"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"recipient"`` ; `type`: ``"address"``  }] ; `name`: ``"setTokenFeeRecipient"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [] ; `name`: ``"stakingRegistry"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IStakingRegistry"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``""`` ; `type`: ``"bytes32"``  }] ; `name`: ``"tokens"`` ; `outputs`: readonly [\{ `internalType`: ``"contract IERC20"`` ; `name`: ``""`` ; `type`: ``"address"``  }] ; `stateMutability`: ``"view"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"transferOwnership"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateDefaultTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"fee"`` ; `type`: ``"uint256"``  }] ; `name`: ``"updateTokenFee"`` ; `outputs`: readonly [] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }] ; `name`: ``"withdrawBonds"`` ; `outputs`: readonly [\{ `internalType`: ``"uint256"`` ; `name`: ``"amount"`` ; `type`: ``"uint256"``  }] ; `stateMutability`: ``"nonpayable"`` ; `type`: ``"function"``  }, \{ `inputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"claimId"`` ; `type`: ``"bytes32"``  }, \{ `components`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxBonderFee"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"uint256"`` ; `name`: ``"maxTotalSent"`` ; `type`: ``"uint256"``  }, \{ `internalType`: ``"bytes32"`` ; `name`: ``"attestedClaimId"`` ; `type`: ``"bytes32"``  }] ; `internalType`: ``"struct Hop[]"`` ; `name`: ``"nextHops"`` ; `type`: ``"tuple[]"``  }] ; `name`: ``"withdrawClaim"`` ; `outputs`: readonly [\{ `internalType`: ``"bytes32"`` ; `name`: ``"transferId"`` ; `type`: ``"bytes32"``  }] ; `stateMutability`: ``"payable"`` ; `type`: ``"function"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"previousOwner"`` ; `type`: ``"address"``  }, \{ `indexed`: ``true`` ; `internalType`: ``"address"`` ; `name`: ``"newOwner"`` ; `type`: ``"address"``  }] ; `name`: ``"OwnershipTransferred"`` ; `type`: ``"event"``  }, \{ `anonymous`: ``false`` ; `inputs`: readonly [\{ `indexed`: ``false`` ; `internalType`: ``"bytes32"`` ; `name`: ``"pathId"`` ; `type`: ``"bytes32"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"contract IERC20"`` ; `name`: ``"token"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"counterpartChainId"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"contract IERC20"`` ; `name`: ``"counterpartToken"`` ; `type`: ``"address"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"uint256"`` ; `name`: ``"initialReserve"`` ; `type`: ``"uint256"``  }, \{ `indexed`: ``false`` ; `internalType`: ``"address"`` ; `name`: ``"path"`` ; `type`: ``"address"``  }] ; `name`: ``"PathInitialized"`` ; `type`: ``"event"``  }] |
 
 ___
@@ -376,73 +343,9 @@ Base.utils
 
 ## Methods
 
-### <a id="adddecodedtypestoclaimpushedevents" name="adddecodedtypestoclaimpushedevents"></a> addDecodedTypesToClaimPushedEvents
-
-▸ **addDecodedTypesToClaimPushedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimPushed`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`ClaimPushed`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimreaddedevents" name="adddecodedtypestoclaimreaddedevents"></a> addDecodedTypesToClaimReaddedEvents
-
-▸ **addDecodedTypesToClaimReaddedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`ClaimReadded`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimremovedevents" name="adddecodedtypestoclaimremovedevents"></a> addDecodedTypesToClaimRemovedEvents
-
-▸ **addDecodedTypesToClaimRemovedEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`ClaimRemoved`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimwithdrawnevents" name="adddecodedtypestoclaimwithdrawnevents"></a> addDecodedTypesToClaimWithdrawnEvents
-
-▸ **addDecodedTypesToClaimWithdrawnEvents**(`events`): `EthersEventWithDecodedTypes`\<`ClaimWithdrawn`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`ClaimWithdrawn`\>[]
-
-___
-
 ### <a id="adddecodedtypestoevent" name="adddecodedtypestoevent"></a> addDecodedTypesToEvent
 
-▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+▸ **addDecodedTypesToEvent**(`event`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>
 
 #### Parameters
 
@@ -452,13 +355,13 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
+`EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>
 
 ___
 
 ### <a id="adddecodedtypestoevents" name="adddecodedtypestoevents"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
+▸ **addDecodedTypesToEvents**(`events`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>[]
 
 #### Parameters
 
@@ -468,55 +371,7 @@ ___
 
 #### Returns
 
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
-
-___
-
-### <a id="adddecodedtypestopathinitializedevents" name="adddecodedtypestopathinitializedevents"></a> addDecodedTypesToPathInitializedEvents
-
-▸ **addDecodedTypesToPathInitializedEvents**(`events`): `EthersEventWithDecodedTypes`\<`PathInitialized`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`PathInitialized`\>[]
-
-___
-
-### <a id="adddecodedtypestotransferbondedevents" name="adddecodedtypestotransferbondedevents"></a> addDecodedTypesToTransferBondedEvents
-
-▸ **addDecodedTypesToTransferBondedEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]
-
-___
-
-### <a id="adddecodedtypestotransfersentevents" name="adddecodedtypestotransfersentevents"></a> addDecodedTypesToTransferSentEvents
-
-▸ **addDecodedTypesToTransferSentEvents**(`events`): `EthersEventWithDecodedTypes`\<`TransferSent`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-
-#### Returns
-
-`EthersEventWithDecodedTypes`\<`TransferSent`\>[]
+`EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>[]
 
 ___
 
@@ -660,16 +515,6 @@ ___
 
 ___
 
-### <a id="getallrailspathaddresses" name="getallrailspathaddresses"></a> getAllRailsPathAddresses
-
-▸ **getAllRailsPathAddresses**(): `Promise`\<`string`[]\>
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-___
-
 ### <a id="getamountout" name="getamountout"></a> getAmountOut
 
 ▸ **getAmountOut**(`«destructured»`): `Promise`\<`BigNumber`\>
@@ -703,70 +548,6 @@ ___
 #### Inherited from
 
 Base.getChainIdsSupportedByTokenSymbol
-
-___
-
-### <a id="getclaimpushedeventfilter" name="getclaimpushedeventfilter"></a> getClaimPushedEventFilter
-
-▸ **getClaimPushedEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `ClaimPushedIndexes` |
-
-#### Returns
-
-`any`
-
-___
-
-### <a id="getclaimreaddedeventfilter" name="getclaimreaddedeventfilter"></a> getClaimReaddedEventFilter
-
-▸ **getClaimReaddedEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `ClaimReaddedIndexes` |
-
-#### Returns
-
-`any`
-
-___
-
-### <a id="getclaimremovedeventfilter" name="getclaimremovedeventfilter"></a> getClaimRemovedEventFilter
-
-▸ **getClaimRemovedEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `ClaimRemovedIndexes` |
-
-#### Returns
-
-`any`
-
-___
-
-### <a id="getclaimwithdrawneventfilter" name="getclaimwithdrawneventfilter"></a> getClaimWithdrawnEventFilter
-
-▸ **getClaimWithdrawnEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `ClaimWithdrawnIndexes` |
-
-#### Returns
-
-`any`
 
 ___
 
@@ -938,14 +719,13 @@ ___
 
 ### <a id="geteventfetcher" name="geteventfetcher"></a> getEventFetcher
 
-▸ **getEventFetcher**(`eventName`, `address?`): `any`
+▸ **getEventFetcher**(`eventName`): `any`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
-| `address` | `string` |
+| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
 
 #### Returns
 
@@ -961,8 +741,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) |
-| `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
+| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
+| `input` | `PathInitializedIndexes` |
 
 #### Returns
 
@@ -1074,22 +854,6 @@ ___
 
 ___
 
-### <a id="getpathinitializedeventfilter" name="getpathinitializedeventfilter"></a> getPathInitializedEventFilter
-
-▸ **getPathInitializedEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `GetPathInitializedEventFilterInput` |
-
-#### Returns
-
-`any`
-
-___
-
 ### <a id="getprovider" name="getprovider"></a> getProvider
 
 ▸ **getProvider**(`chainId`): ``null`` \| `Provider`
@@ -1142,13 +906,13 @@ ___
 
 ### <a id="getrailspath" name="getrailspath"></a> getRailsPath
 
-▸ **getRailsPath**(`pathId`): `Promise`\<[`RailsPath`](RailsPath.md)\>
+▸ **getRailsPath**(`pathId?`): `Promise`\<[`RailsPath`](RailsPath.md)\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `pathId` | `string` |
+| `pathId?` | `string` |
 
 #### Returns
 
@@ -1372,86 +1136,6 @@ Base.getTokenSymbolByTokenAddress
 
 ___
 
-### <a id="gettransferbondedeventfilter" name="gettransferbondedeventfilter"></a> getTransferBondedEventFilter
-
-▸ **getTransferBondedEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `TransferBondedIndexes` |
-
-#### Returns
-
-`any`
-
-___
-
-### <a id="gettransferbondedeventfromtransactionhash" name="gettransferbondedeventfromtransactionhash"></a> getTransferBondedEventFromTransactionHash
-
-▸ **getTransferBondedEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferBondedEventFromTransactionHashInput`](../modules.md#gettransferbondedeventfromtransactionhashinput) |
-
-#### Returns
-
-`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-___
-
-### <a id="gettransferbondedeventfromtransactionreceipt" name="gettransferbondedeventfromtransactionreceipt"></a> getTransferBondedEventFromTransactionReceipt
-
-▸ **getTransferBondedEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferBondedEventFromTransactionReceiptInput`](../modules.md#gettransferbondedeventfromtransactionreceiptinput) |
-
-#### Returns
-
-`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-___
-
-### <a id="gettransferbondedeventfromtransferid" name="gettransferbondedeventfromtransferid"></a> getTransferBondedEventFromTransferId
-
-▸ **getTransferBondedEventFromTransferId**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferBondedEventFromTransferIdInput`](../modules.md#gettransferbondedeventfromtransferidinput) |
-
-#### Returns
-
-`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\>
-
-___
-
-### <a id="gettransferbondedevents" name="gettransferbondedevents"></a> getTransferBondedEvents
-
-▸ **getTransferBondedEvents**(`input`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`TransferBondedEventInput`](../modules.md#transferbondedeventinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`TransferBonded`\>[]\>
-
-___
-
 ### <a id="gettransferdatahash" name="gettransferdatahash"></a> getTransferDataHash
 
 ▸ **getTransferDataHash**(`«destructured»`): `Promise`\<`string`\>
@@ -1465,118 +1149,6 @@ ___
 #### Returns
 
 `Promise`\<`string`\>
-
-___
-
-### <a id="gettransfersenteventfilter" name="gettransfersenteventfilter"></a> getTransferSentEventFilter
-
-▸ **getTransferSentEventFilter**(`input?`): `any`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | `TransferSentIndexes` |
-
-#### Returns
-
-`any`
-
-___
-
-### <a id="gettransfersenteventfromtransactionhash" name="gettransfersenteventfromtransactionhash"></a> getTransferSentEventFromTransactionHash
-
-▸ **getTransferSentEventFromTransactionHash**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferSentEventFromTransactionHashInput`](../modules.md#gettransfersenteventfromtransactionhashinput) |
-
-#### Returns
-
-`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-___
-
-### <a id="gettransfersenteventfromtransactionreceipt" name="gettransfersenteventfromtransactionreceipt"></a> getTransferSentEventFromTransactionReceipt
-
-▸ **getTransferSentEventFromTransactionReceipt**(`«destructured»`): `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferSentEventFromTransactionReceiptInput`](../modules.md#gettransfersenteventfromtransactionreceiptinput) |
-
-#### Returns
-
-`Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-___
-
-### <a id="gettransfersenteventfromtransferid" name="gettransfersenteventfromtransferid"></a> getTransferSentEventFromTransferId
-
-▸ **getTransferSentEventFromTransferId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferSentEventFromTransferIdInput`](../modules.md#gettransfersenteventfromtransferidinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>\>
-
-___
-
-### <a id="gettransfersentevents" name="gettransfersentevents"></a> getTransferSentEvents
-
-▸ **getTransferSentEvents**(`input`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`TransferSentEventInput`](../modules.md#transfersenteventinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
-
-___
-
-### <a id="gettransfersenteventsfrompathid" name="gettransfersenteventsfrompathid"></a> getTransferSentEventsFromPathId
-
-▸ **getTransferSentEventsFromPathId**(`«destructured»`): `Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`GetTransferSentEventsFromPathIdInput`](../modules.md#gettransfersenteventsfrompathidinput) |
-
-#### Returns
-
-`Promise`\<`EthersEventWithDecodedTypes`\<`TransferSent`\>[]\>
-
-___
-
-### <a id="gettransfersenteventsinbatches" name="gettransfersenteventsinbatches"></a> getTransferSentEventsInBatches
-
-▸ **getTransferSentEventsInBatches**(`«destructured»`): `AsyncGenerator`\<`any`, `void`, `unknown`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `«destructured»` | [`TransferSentEventInput`](../modules.md#transfersenteventinput) |
-
-#### Returns
-
-`AsyncGenerator`\<`any`, `void`, `unknown`\>
 
 ___
 
@@ -2089,179 +1661,9 @@ ___
 
 ___
 
-### <a id="adddecodedtypestoclaimpushedevent" name="adddecodedtypestoclaimpushedevent"></a> addDecodedTypesToClaimPushedEvent
-
-▸ **addDecodedTypesToClaimPushedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>
-
-___
-
-### <a id="adddecodedtypestoclaimpushedevents-1" name="adddecodedtypestoclaimpushedevents-1"></a> addDecodedTypesToClaimPushedEvents
-
-▸ **addDecodedTypesToClaimPushedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimPushed`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimreaddedevent" name="adddecodedtypestoclaimreaddedevent"></a> addDecodedTypesToClaimReaddedEvent
-
-▸ **addDecodedTypesToClaimReaddedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>
-
-___
-
-### <a id="adddecodedtypestoclaimreaddedevents-1" name="adddecodedtypestoclaimreaddedevents-1"></a> addDecodedTypesToClaimReaddedEvents
-
-▸ **addDecodedTypesToClaimReaddedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimReadded`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimremovedevent" name="adddecodedtypestoclaimremovedevent"></a> addDecodedTypesToClaimRemovedEvent
-
-▸ **addDecodedTypesToClaimRemovedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>
-
-___
-
-### <a id="adddecodedtypestoclaimremovedevents-1" name="adddecodedtypestoclaimremovedevents-1"></a> addDecodedTypesToClaimRemovedEvents
-
-▸ **addDecodedTypesToClaimRemovedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimRemoved`\>[]
-
-___
-
-### <a id="adddecodedtypestoclaimwithdrawnevent" name="adddecodedtypestoclaimwithdrawnevent"></a> addDecodedTypesToClaimWithdrawnEvent
-
-▸ **addDecodedTypesToClaimWithdrawnEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimWithdrawn`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimWithdrawn`\>
-
-___
-
-### <a id="adddecodedtypestoclaimwithdrawnevents-1" name="adddecodedtypestoclaimwithdrawnevents-1"></a> addDecodedTypesToClaimWithdrawnEvents
-
-▸ **addDecodedTypesToClaimWithdrawnEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`ClaimWithdrawn`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`ClaimWithdrawn`\>[]
-
-___
-
 ### <a id="adddecodedtypestoevent-1" name="adddecodedtypestoevent-1"></a> addDecodedTypesToEvent
 
-▸ **addDecodedTypesToEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>
-
-___
-
-### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
-
-▸ **addDecodedTypesToEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent` \| `TransferBonded` \| `ClaimPushed` \| `ClaimReadded` \| `ClaimRemoved` \| `ClaimWithdrawn`\>[]
-
-___
-
-### <a id="adddecodedtypestopathinitializedevent" name="adddecodedtypestopathinitializedevent"></a> addDecodedTypesToPathInitializedEvent
-
-▸ **addDecodedTypesToPathInitializedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>
+▸ **addDecodedTypesToEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>
 
 #### Parameters
 
@@ -2276,9 +1678,9 @@ ___
 
 ___
 
-### <a id="adddecodedtypestopathinitializedevents-1" name="adddecodedtypestopathinitializedevents-1"></a> addDecodedTypesToPathInitializedEvents
+### <a id="adddecodedtypestoevents-1" name="adddecodedtypestoevents-1"></a> addDecodedTypesToEvents
 
-▸ **addDecodedTypesToPathInitializedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>[]
+▸ **addDecodedTypesToEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>[]
 
 #### Parameters
 
@@ -2290,74 +1692,6 @@ ___
 #### Returns
 
 `EthersEventWithDecodedTypesAndBaseContext`\<`PathInitialized`\>[]
-
-___
-
-### <a id="adddecodedtypestotransferbondedevent" name="adddecodedtypestotransferbondedevent"></a> addDecodedTypesToTransferBondedEvent
-
-▸ **addDecodedTypesToTransferBondedEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>
-
-___
-
-### <a id="adddecodedtypestotransferbondedevents-1" name="adddecodedtypestotransferbondedevents-1"></a> addDecodedTypesToTransferBondedEvents
-
-▸ **addDecodedTypesToTransferBondedEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferBonded`\>[]
-
-___
-
-### <a id="adddecodedtypestotransfersentevent" name="adddecodedtypestotransfersentevent"></a> addDecodedTypesToTransferSentEvent
-
-▸ **addDecodedTypesToTransferSentEvent**(`event`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `event` | `any` |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>
-
-___
-
-### <a id="adddecodedtypestotransfersentevents-1" name="adddecodedtypestotransfersentevents-1"></a> addDecodedTypesToTransferSentEvents
-
-▸ **addDecodedTypesToTransferSentEvents**(`events`, `chainId?`): `EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `events` | `any`[] |
-| `chainId?` | `BigNumberish` |
-
-#### Returns
-
-`EthersEventWithDecodedTypesAndBaseContext`\<`TransferSent`\>[]
 
 ___
 
@@ -2445,19 +1779,15 @@ ___
 
 ___
 
-### <a id="gettransferbondedeventsignature" name="gettransferbondedeventsignature"></a> getTransferBondedEventSignature
+### <a id="geteventsignature" name="geteventsignature"></a> getEventSignature
 
-▸ **getTransferBondedEventSignature**(): `string`
+▸ **getEventSignature**(`eventName`): `string`
 
-#### Returns
+#### Parameters
 
-`string`
-
-___
-
-### <a id="gettransfersenteventsignature" name="gettransfersenteventsignature"></a> getTransferSentEventSignature
-
-▸ **getTransferSentEventSignature**(): `string`
+| Name | Type |
+| :------ | :------ |
+| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
 
 #### Returns
 

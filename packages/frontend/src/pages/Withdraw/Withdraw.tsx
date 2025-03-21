@@ -286,7 +286,7 @@ function useWithdrawV2() {
       const sourceMessenger = v2Sdk.getMessenger(chainId)
 
       if (!transferSentEvent) {
-        transferSentEvent = (await sourceRailsGateway.getTransferSentEventFromTransactionHash({
+        transferSentEvent = (await sourceRailsGateway.helpers.getTransferSentEventFromTransactionHash({
           transactionHash: sendTxHash,
         }))
 

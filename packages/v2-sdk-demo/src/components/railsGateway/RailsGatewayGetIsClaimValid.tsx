@@ -52,7 +52,7 @@ export function RailsGatewayGetIsClaimValid (props: Props) {
       }
 
       console.log('args', args)
-      const isClaimValid = await sdk.getRailsGateway(fromChainId).helpers.getIsClaimIdValid(args)
+      const isClaimValid = await sdk.getRailsGateway(fromChainId).helpers.isValidClaim(args)
       setIsClaimValid(`${isClaimValid}`)
     } catch (err: any) {
       console.error(err)
@@ -69,7 +69,7 @@ async function main() {
   const claimId = "${claimId}"
 
   ${hopInstantiateDisplayString}
-  const isClaimValid = await hop.getRailsGateway('${fromChainId}').helpers.getIsClaimIdValid({
+  const isClaimValid = await hop.getRailsGateway('${fromChainId}').helpers.isValidClaim({
     pathId,
     claimId
   })

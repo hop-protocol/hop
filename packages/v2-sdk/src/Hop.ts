@@ -1,11 +1,12 @@
 import { Base, SignersOrProviders, TxOverrides } from '#common/index.js'
-import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract } from 'ethers'
+import { BigNumber, BigNumberish, providers, Event as EthersEvent, Contract, constants } from 'ethers'
 import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName, PathInitialized } from '#railsGateway/index.js'
 import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
+import { EventName as RailsPathEventName, RailsPath } from '#railsGateway/RailsPath.js'
 import { Addresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
@@ -18,11 +19,11 @@ const cache = new memcache.Cache()
 export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent | PathInitialized
 
 export enum EventName {
-  TransferSent = RailsGatewayEventName.TransferSent,
-  TransferBonded = RailsGatewayEventName.TransferBonded,
-  ClaimPushed = RailsGatewayEventName.ClaimPushed,
-  ClaimReadded = RailsGatewayEventName.ClaimReadded,
-  ClaimRemoved = RailsGatewayEventName.ClaimRemoved,
+  TransferSent = RailsPathEventName.TransferSent,
+  TransferBonded = RailsPathEventName.TransferBonded,
+  ClaimPushed = RailsPathEventName.ClaimPushed,
+  ClaimReadded = RailsPathEventName.ClaimReadded,
+  ClaimRemoved = RailsPathEventName.ClaimRemoved,
   BonderPreference = StakingRegistryEventName.BonderPreference,
   PathInitialized = RailsGatewayEventName.PathInitialized,
 
@@ -172,7 +173,7 @@ export enum TransferState {
 export type TransferStatus = {
   state: TransferState
   transferId: string
-  transferSentEvent: EthersEventWithDecodedTypes<TransferSent>
+  transferSentEvent: EthersEventWithDecodedTypes<TransferSent> | null
   transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[]
 }
 
@@ -332,14 +333,14 @@ export class Hop extends Base {
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
-          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.isValidClaim({
             pathId: originPathId,
             claimId: attestedClaimId
           })
 
           console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
         } else {
-          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(nextChainId).helpers.isValidClaim({
             pathId: originPathId,
             claimId: attestedClaimId
           })
@@ -452,14 +453,14 @@ export class Hop extends Base {
           })
           console.log('hopV2Sdk: attestedClaimId', attestedClaimId)
 
-          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.isValidClaim({
             pathId,
             claimId: attestedClaimId
           })
 
           console.log('hopV2Sdk: isClaimIdValid', isClaimIdValid)
         } else {
-          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.getIsClaimIdValid({
+          isClaimIdValid = await this.getRailsGateway(toChainId).helpers.isValidClaim({
             pathId,
             claimId: attestedClaimId
           })
@@ -791,45 +792,51 @@ export class Hop extends Base {
     const eventFetcher = new EventFetcher({ provider, batchBlocks: this.batchBlocks })
     const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
 
+    const messenger = this.getMessenger(chainId)
+    const railsGateway = this.getRailsGateway(chainId)
+    const stakingRegistry = railsGateway.getStakingRegistry()
+    const railsPath = await this.getRailsPath(chainId)
+
     const allEventNames = [
-      ...this.getMessenger(chainId).getEventNames(),
-      ...this.getRailsGateway(chainId).getEventNames()
+      ...messenger.getEventNames(),
+      ...railsGateway.getEventNames(),
+      ...stakingRegistry.getEventNames(),
+      ...railsPath.getEventNames(),
     ]
 
     // Get all RailsPath addresses for this chain
     let railsPathAddresses: string[] = []
     try {
-      const railsGateway = this.getRailsGateway(chainId)
-      railsPathAddresses = await railsGateway.getAllRailsPathAddresses()
+      railsPathAddresses = await this.getAllRailsPathAddresses(chainId)
     } catch (err) {
       console.warn('Failed to get RailsPath addresses:', err)
     }
 
     for (const name of eventNames) {
       let subclass: any = null
-      if (this.getMessenger(chainId).getEventNames().includes(name)) {
-        subclass = this.getMessenger(chainId)
+      if (messenger.getEventNames().includes(name)) {
+        subclass = messenger
         const fetcher = subclass.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
       } else if (name == EventName.PathInitialized) {
-        subclass = this.getRailsGateway(chainId)
+        subclass = railsGateway
         const fetcher = subclass.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
         eventFetcherMap[filter.topics?.[0] as string] = fetcher
-      } else if (this.getRailsGateway(chainId).getEventNames().includes(name)) {
+      } else if (railsPath.getEventNames().includes(name)) {
         // For RailsGateway events, create fetchers for each RailsPath address
-        subclass = this.getRailsGateway(chainId)
+        subclass = railsPath
         for (const address of railsPathAddresses) {
           const fetcher = subclass.getEventFetcher(name, address)
           const filter = fetcher.getFilter()
           filters.push(filter)
           eventFetcherMap[filter.topics?.[0] as string] = fetcher
         }
-      } else if (this.getRailsGateway(chainId).getStakingRegistry().getEventNames().includes(name)) {
-        subclass = this.getRailsGateway(chainId).getStakingRegistry()
+      } else if (stakingRegistry.getEventNames().includes(name)) {
+        subclass = stakingRegistry
         const fetcher = subclass.getEventFetcher(name)
         const filter = fetcher.getFilter()
         filters.push(filter)
@@ -869,7 +876,9 @@ export class Hop extends Base {
   }
 
   async getTransferIdFromTransactionHash ({ chainId, transactionHash}: GetTransferIdFromTransactionHashInput): Promise<string> {
-    const transferSentEvent = await this.getRailsGateway(chainId).getTransferSentEventFromTransactionHash({
+    const railsPath = await this.getRailsPath(chainId)
+    const transferSentEvent = await railsPath.getEventFromTransactionHash<TransferSent>({
+      eventName: RailsPathEventName.TransferSent,
       transactionHash
     })
 
@@ -993,11 +1002,12 @@ export class Hop extends Base {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
 
-    const originalTransferSentEvent = await this.getRailsGateway(fromChainId).getTransferSentEventFromTransferId({
+    const railsGateway= await this.getRailsGateway(fromChainId)
+    const originalTransferSentEvent = await railsGateway.helpers.getTransferSentEventFromTransferId({
       transferId
     })
 
-    let transferSentEvent = originalTransferSentEvent
+    let transferSentEvent: any = originalTransferSentEvent
 
     const transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
     let originalHops : HopStructInput[] = []
@@ -1031,7 +1041,8 @@ export class Hop extends Base {
           console.log('hopV2Sdk: getBlockNumberFromDate error', err)
         }
 
-        const transferBondedEvent = await this.getRailsGateway(toChainId).getTransferBondedEventFromTransferId({
+        const railsGateway = await this.getRailsGateway(toChainId)
+        const transferBondedEvent = await railsGateway.helpers.getTransferBondedEventFromTransferId({
           transferId: currentTransferId,
           fromBlock: earliestBlock
         })
@@ -1041,9 +1052,11 @@ export class Hop extends Base {
         transferBondedEvents.push(transferBondedEvent)
         currentHopChainId = toChainId
         fromBlock = await toProvider.getBlock(transferBondedEvent.blockNumber)
-        transferSentEvent = (await this.getRailsGateway(toChainId).getTransferSentEventFromTransactionHash({
+        const railsPath = await this.getRailsPath(toChainId)
+        transferSentEvent = railsPath.getEventFromTransactionHash({
+          eventName: RailsPathEventName.TransferSent,
           transactionHash: transferBondedEvent.transactionHash
-        }))!
+        })!
         if (!transferSentEvent) {
           continue
         }
@@ -1097,6 +1110,11 @@ export class Hop extends Base {
     return instance
   }
 
+  async getRailsPath (chainId: BigNumberish, pathId?: string): Promise<RailsPath> {
+    const railsGateway = this.getRailsGateway(chainId)
+    return railsGateway.getRailsPath(pathId)
+  }
+
   async getCounterpartChainId (originChainId: BigNumberish, pathId: string): Promise<string> {
     const pathInfo = await this.getRailsGateway(originChainId).helpers.getPathInfo({ pathId })
     const { counterpartChainId, chainId } = pathInfo
@@ -1111,5 +1129,92 @@ export class Hop extends Base {
 
   async getMaxBonderFee ({ amountIn }: GetMaxBonderFeeInput): Promise<BigNumber> {
     return BigNumber.from(amountIn).mul(BigNumber.from(4)).div(BigNumber.from(10000))
+  }
+
+  // Update the getAllRailsPathAddresses method
+  async getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {
+    const CHAIN_PATH_IDS: Record<string, Record<string, string[]>> = {
+      '11155111': { // Sepolia
+        'mock': [
+          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 42069
+          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155420
+          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2'  // to 84532
+        ],
+        'usdc': [
+          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
+          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
+          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
+        ]
+      },
+      '42069': { // Base Sepolia
+        'mock': [
+          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 11155111
+          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 11155420
+          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262'  // to 84532
+        ],
+        'usdc': [
+          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 11155111
+          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 11155420
+          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe'  // to 84532
+        ]
+      },
+      '11155420': { // Optimism Sepolia
+        'mock': [
+          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155111
+          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 42069
+          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 84532
+        ],
+        'usdc': [
+          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155111
+          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 42069
+          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 84532
+        ]
+      },
+      '84532': { // Base Sepolia
+        'mock': [
+          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2', // to 11155111
+          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262', // to 42069
+          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
+        ],
+        'usdc': [
+          // '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
+          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
+          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
+        ]
+      }
+    }
+
+    chainId = chainId.toString()
+    const addresses = new Set<string>()
+
+    // Get path IDs for the current chain
+    const chainPathIds = CHAIN_PATH_IDS[chainId]
+    if (!chainPathIds) {
+      throw new ConfigError(`No path IDs configured for chain ID ${chainId}`)
+    }
+
+    // Get RailsPath addresses for all path IDs
+    for (const tokenPathIds of Object.values(chainPathIds)) {
+      for (const pathId of tokenPathIds) {
+        try {
+          const railsPath = await this.getRailsPath(chainId, pathId)
+          const address = await railsPath.getRailsPathContractAddress()
+          console.log('hopV2Sdk: address', address)
+          if (address && address !== constants.AddressZero) {
+            addresses.add(address)
+          }
+        } catch (err) {
+          console.warn(`Failed to get RailsPath address on chain ${chainId} for pathId ${pathId}:`, err)
+          continue
+        }
+      }
+    }
+
+    const addressArray = Array.from(addresses)
+    if (addressArray.length === 0) {
+      throw new ConfigError(`No RailsPath addresses found for chain ID ${chainId}`)
+    }
+
+    return addressArray
   }
 }

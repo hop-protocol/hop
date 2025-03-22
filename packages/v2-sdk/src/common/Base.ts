@@ -386,7 +386,7 @@ export class Base {
 
     for (const chainId in this.contractAddresses) {
       for (const token in this.contractAddresses[chainId].tokens) {
-        list.add(token)
+        list.add(token!)
       }
     }
 
@@ -395,9 +395,10 @@ export class Base {
 
   getSupportedTokenSymbolsByChainId(chainId: BigNumberish): string[] {
     const list : Set<string> = new Set<string>([])
+    const chainIdStr = chainId?.toString()
 
     if (this.contractAddresses[chainId?.toString()]) {
-      for (const token in this.contractAddresses[chainId?.toString()].tokens) {
+      for (const token in this.contractAddresses[chainIdStr].tokens) {
         list.add(token)
       }
     }
@@ -406,7 +407,7 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
-    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol]?.address
     console.log('hopV2Sdk: getTokenAddressByTokenSymbol', chainId, tokenSymbol, address)
     if (!address) {
       console.log('hopV2Sdk: getTokenAddressByTokenSymbol', this.network, chainId, tokenSymbol, JSON.stringify(this.contractAddresses))
@@ -416,7 +417,7 @@ export class Base {
 
   getTokenSymbolByTokenAddress (chainId: BigNumberish, tokenAddress: string): string {
     const tokens = (this.contractAddresses[chainId?.toString()]?.tokens as any) || {}
-    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol] === tokenAddress)
+    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol]?.address === tokenAddress)
     if (!tokenSymbol) {
       throw new Error(`tokenSymbol not found for token address ${tokenAddress} on chainId ${chainId?.toString()}`)
     }

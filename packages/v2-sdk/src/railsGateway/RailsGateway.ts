@@ -1547,12 +1547,12 @@ export class RailsGateway extends Base {
       },
 
       getInitialReserveByTokenSymbol: async ({ tokenSymbol }: GetInitialReserveByTokenSymbolInput): Promise<BigNumber> => {
-        if (tokenSymbol === 'MOCK') {
-          return utils.parseUnits(10_000_000_000..toString(), 18)
-        } else if (tokenSymbol === 'USDC') {
-          return utils.parseUnits(10_000_000_000..toString(), 6)
+        const initialReserve = this.contractAddresses[this.chainId.toString()].initialReserves[tokenSymbol.toUpperCase()]
+        if (!initialReserve) {
+          throw new InputError(`Invalid tokenSymbol "${tokenSymbol}", could not find initial reserve`)
         }
-        return BigNumber.from(0)
+
+        return initialReserve
       },
 
       getInitialReserveByTokenAddress: async ({ tokenAddress }: GetInitialReserveByTokenAddressInput): Promise<BigNumber> => {

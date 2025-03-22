@@ -7,7 +7,7 @@ import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName, PathInitialized } from '#railsGateway/index.js'
 import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
 import { EventName as RailsPathEventName, RailsPath } from '#railsGateway/RailsPath.js'
-import { Addresses } from '#addresses/types.js'
+import { Addresses, TokenConfig, TokenAddresses } from '#addresses/types.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext } from '#events/index.js'
 import { getBlockNumberFromDate } from '@hop-protocol/sdk'
@@ -807,7 +807,7 @@ export class Hop extends Base {
     // Get all RailsPath addresses for this chain
     let railsPathAddresses: string[] = []
     try {
-      railsPathAddresses = await this.getAllRailsPathAddresses(chainId)
+      railsPathAddresses = await this.#getAllRailsPathAddresses(chainId)
     } catch (err) {
       console.warn('Failed to get RailsPath addresses:', err)
     }
@@ -1131,73 +1131,24 @@ export class Hop extends Base {
     return BigNumber.from(amountIn).mul(BigNumber.from(4)).div(BigNumber.from(10000))
   }
 
-  // Update the getAllRailsPathAddresses method
-  async getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {
-    const CHAIN_PATH_IDS: Record<string, Record<string, string[]>> = {
-      '11155111': { // Sepolia
-        'mock': [
-          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 42069
-          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155420
-          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2'  // to 84532
-        ],
-        'usdc': [
-          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 42069
-          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155420
-          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'   // to 84532
-          //'0xc9c011ed03fc264358deaf9401bf8363edc1d0406e9e79d181a97d5b0581c3de',
-        ]
-      },
-      '42069': { // Hub Sepolia
-        'mock': [
-          '0x548cef5cfe8ecabab46bfec342ef722f201a04630dc7f9ae2327dd66d916fa3f', // to 11155111
-          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 11155420
-          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262'  // to 84532
-        ],
-        'usdc': [
-          '0xb11d88d122abd5a39e0015594ed52eb5e161a10f74430c032a692c0ddbcce6ba', // to 11155111
-          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 11155420
-          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe'  // to 84532
-        ]
-      },
-      '11155420': { // Optimism Sepolia
-        'mock': [
-          '0x5bc2ef90735775e882cfbd8d1a435d9d857cd4b44c30c0c00fb7d8188d0c61a8', // to 11155111
-          '0xd5c426055ea754595f988b34f49a5c9db2ced10a3b33b3a5317e6e3b39892582', // to 42069
-          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 84532
-        ],
-        'usdc': [
-          '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f', // to 11155111
-          '0xf62ba159a0d86df28c37f212a589d45ea6a507a286c21441e509914afd2f9470', // to 42069
-          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 84532
-        ]
-      },
-      '84532': { // Base Sepolia
-        'mock': [
-          '0x86649d3e4cb1d29f562051ebf7bcc10ea6c69853f76064aa4674c933ec7a53b2', // to 11155111
-          '0x4a216377b73851e314b778e848aa68391344794677f9853def38e30f7795c262', // to 42069
-          '0x50f1df98039398d91f00794eb591408d100c9f699488086e1986ee92d5c93346'  // to 11155420
-        ],
-        'usdc': [
-          //'0xc9c011ed03fc264358deaf9401bf8363edc1d0406e9e79d181a97d5b0581c3de',
-          //'0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',   // to 11155111
-          '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe', // to 42069
-          '0xd2d47e6d4c2b36ee88f1db857ba436161744b1348b41bb48ef4457a830ea3c18'  // to 11155420
-        ]
-      }
-    }
-
+  async #getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {
     chainId = chainId.toString()
     const addresses = new Set<string>()
 
-    // Get path IDs for the current chain
-    const chainPathIds = CHAIN_PATH_IDS[chainId]
-    if (!chainPathIds) {
-      throw new ConfigError(`No path IDs configured for chain ID ${chainId}`)
+    // Get token configs for the current chain
+    const chainConfig = this.contractAddresses[chainId]
+    if (!chainConfig?.tokens) {
+      throw new ConfigError(`No tokens configured for chain ID ${chainId}`)
     }
 
     // Get RailsPath addresses for all path IDs
-    for (const tokenPathIds of Object.values(chainPathIds)) {
-      for (const pathId of tokenPathIds) {
+    for (const [tokenSymbol, tokenConfig] of Object.entries(chainConfig.tokens)) {
+      if (!tokenConfig.railsPaths) continue
+      
+      for (const [targetChainId, pathConfig] of Object.entries(tokenConfig.railsPaths)) {
+        if (!(pathConfig as any).pathId) continue
+        const pathId = (pathConfig as any).pathId
+        
         try {
           const railsPath = await this.getRailsPath(chainId, pathId)
           const address = await railsPath.getRailsPathContractAddress()

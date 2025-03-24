@@ -94,10 +94,46 @@ export function Details(props: any) {
     <Box width="100%" maxWidth="1200px">
       <Box mb={4} width="100%" display="flex" justifyContent="space-between" alignItems="center">
         <Box display="flex" alignItems="center">
-          <IconButton onClick={navigateBack} aria-label="back">
+          <IconButton 
+            onClick={navigateBack} 
+            aria-label="back"
+            sx={{
+              color: theme.palette.primary.main,
+              background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+              mr: 2,
+              padding: '8px',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+                transform: 'translateX(-2px)'
+              }
+            }}
+          >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4" color="textPrimary">Transfer Details</Typography>
+          <Typography 
+            variant="h4" 
+            component="h1"
+            sx={{
+              fontWeight: 600,
+              letterSpacing: "0.5px",
+              position: "relative",
+              color: theme.palette.text.primary,
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                bottom: -4,
+                left: 0,
+                width: "40%",
+                height: 3,
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: 2
+              },
+              paddingBottom: "8px"
+            }}
+          >
+            Transfer Details
+          </Typography>
         </Box>
         
         {loading ? (

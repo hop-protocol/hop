@@ -20,13 +20,19 @@
     "deploy:local": "git stash && yarn build && yarn deploy"
   },
   "dependencies": {
+    "@arbitrum/sdk": "4.0.3",
+    "@consensys/linea-sdk": "0.1.6",
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.11.0",
+    "@eth-optimism/sdk": "3.3.2",
     "@ethersproject/abi": "5.7.0",
     "@ethersproject/providers": "5.7.2",
     "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
     "@gnosis.pm/safe-apps-sdk": "7.8.0",
     "@hop-protocol/sdk": "workspace:*",
+    "@maticnetwork/maticjs": "3.5.0",
+    "@maticnetwork/maticjs-ethers": "1.0.3",
+    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
     "@mui/icons-material": "5.15.6",
     "@mui/lab": "5.0.0-alpha.162",
     "@mui/material": "5.15.6",
@@ -69,13 +75,7 @@
     "use-async-memo": "1.2.4",
     "usehooks-ts": "2.9.1",
     "vite-plugin-svgr": "4.2.0",
-    "web-vitals": "0.2.4",
-    "@arbitrum/sdk": "3.4.1",
-    "@eth-optimism/sdk": "3.3.2",
-    "@maticnetwork/maticjs": "3.5.0",
-    "@maticnetwork/maticjs-ethers": "1.0.3",
-    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.8.0",
-    "@consensys/linea-sdk": "0.1.6"
+    "web-vitals": "0.2.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "5.17.0",

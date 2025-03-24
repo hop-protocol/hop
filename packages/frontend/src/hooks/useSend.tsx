@@ -833,7 +833,7 @@ export function useSend(): SendResponseProps {
     return false
   }, [fromNetwork, toNetwork, fromToken?.symbol, selectedBridge])
 
-  const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
+  const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated && !isLoadingSendData)
 
   const isSendButtonActive = useMemo(() => {
     return !!(

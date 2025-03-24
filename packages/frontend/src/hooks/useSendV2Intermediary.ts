@@ -207,6 +207,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
   const useV2ForBestRate = useMemo(() => {
     // return true // for testing
     if (
+      !sendV1.isLoadingSendData &&
+      !sendV2.isFetchingGetSendData &&
       isTokenEligibleForV2 &&
       sendV1.estimatedReceived &&
       sendV2.estimatedReceived
@@ -215,7 +217,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       return useV2
     }
     return false
-  }, [isTokenEligibleForV2, sendV1.estimatedReceivedUsd, sendV2.estimatedReceivedUsd])
+  }, [isTokenEligibleForV2, sendV1.estimatedReceivedUsd, sendV2.estimatedReceivedUsd, sendV1.isLoadingSendData, sendV2.isFetchingGetSendData])
 
   // Select the appropriate source based on eligibility and best rate
   const selectedSource = isTokenEligibleForV2
@@ -301,6 +303,17 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       token: sendV2.fromToken,
     } as any)
   }, [sendV2.sendTx])
+
+  const estimatedReceivedComparisonLoading = useMemo(() => {
+    if (!v2Enabled) {
+      return false
+    }
+    if (sendV1.fromTokenAmount === '') {
+      return false
+    }
+
+    return !(sendV1.estimatedReceived?.gt(0) && sendV2.estimatedReceived?.gt(0))
+  }, [sendV1.estimatedReceived, sendV2.estimatedReceived, v2Enabled, sendV1.fromTokenAmount])
 
   // Map variables to match useSend interface
   const mappedProps: UseSendV2IntermediaryProps = {
@@ -661,6 +674,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
       isV2: useV2ForBestRate,
 
       estimatedReceivedComparison: {
+        loading: estimatedReceivedComparisonLoading,
         v1: sendV1.estimatedReceivedDisplay,
         v2: sendV2.estimatedReceivedDisplay
       }

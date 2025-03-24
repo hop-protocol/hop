@@ -85,7 +85,7 @@ export class Multicall {
     if (!rpcUrl) {
       throw new Error(`rpcUrl not found for chain ${chainSlug}`)
     }
-    const provider = new providers.JsonRpcProvider(rpcUrl)
+    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     return provider
   }
 

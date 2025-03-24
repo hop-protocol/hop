@@ -30,12 +30,12 @@ async function getEstimateGasPrice(network: Network, sdk: Hop): Promise<BigNumbe
         gasPrice = maxFeePerGas
       }
     } catch (err) {
-      console.error('getEstimateGasPrice getFeeData error:', err)
+      console.warn('getEstimateGasPrice getFeeData error:', err)
     }
 
     return gasPrice
   } catch (err) {
-    logger.error('getEstimateGasPrice error:', err)
+    logger.warn('getEstimateGasPrice error:', err)
   }
 
   return gasPrice
@@ -163,7 +163,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             }
           )
         } catch (err) {
-          logger.error('estimateSendGasLimit error:', err)
+          logger.warn('estimateSendGasLimit error:', err)
           const defaultGasLimit = getDefaultSendGasLimit(fromNetwork.slug, token.symbol)
           logger.debug('using default gasLimit:', defaultGasLimit)
           estimatedGasLimit = BigNumber.from(defaultGasLimit)

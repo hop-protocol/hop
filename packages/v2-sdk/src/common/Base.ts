@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
-import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
+import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug, FallbackProvider } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
 import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl, isContractError } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
@@ -661,7 +661,12 @@ export class Base {
     const chains = getNetwork(network as NetworkSlug).chains
     for (const chainSlug in chains) {
       const item = (chains as any)[chainSlug] // TODO: type
-      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
+      const urls: string[] = [item.publicRpcUrl]
+      if (item.fallbackPublicRpcUrls && item.fallbackPublicRpcUrls.length > 0) {
+        urls.push(...item.fallbackPublicRpcUrls)
+      }
+
+      defaultProviders[item.chainId?.toString()] = FallbackProvider.fromUrls(urls)
     }
 
     return defaultProviders
@@ -676,7 +681,12 @@ export class Base {
       const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
 
       if (chain) {
-        return getProviderFromUrl(chain.publicRpcUrl)
+        const urls: string[] = [chain.publicRpcUrl]
+        if (chain.fallbackPublicRpcUrls && chain.fallbackPublicRpcUrls.length > 0) {
+          urls.push(...chain.fallbackPublicRpcUrls)
+        }
+
+        return FallbackProvider.fromUrls(urls)
       }
     }
 

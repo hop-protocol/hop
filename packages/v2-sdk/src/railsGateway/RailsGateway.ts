@@ -14,7 +14,7 @@ import memcache from 'memory-cache'
 import { getComputedNextHopsHash } from '../utils/getComputedNextHopsHash.js'
 import { getComputedTransferId } from '../utils/getComputedTransferId.js'
 import { getComputedTransferDataHash, GetComputedTransferDataHashInput } from '../utils/getComputedTransferDataHash.js'
-import { RailsPath, EventFetcher as RailsPathEventFetcher, EventName as RailsPathEventName } from './RailsPath.js'
+import { RailsPath, EventName as RailsPathEventName } from './RailsPath.js'
 
 const { getAddress: checksumAddress } = utils
 

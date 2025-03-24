@@ -80,8 +80,8 @@ export function useV2(): V2Hook {
     const signer = provider?.getSigner()
     //const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
     const providers = Object.assign({}, Hop.getDefaultProviders(networkSlug), {
-      '11155111': new ethers.providers.StaticJsonRpcProvider('https://1rpc.io/sepolia'),
-      '11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
+      //'11155111': new ethers.providers.StaticJsonRpcProvider('https://1rpc.io/sepolia'),
+      //'11155420': new ethers.providers.StaticJsonRpcProvider('https://sepolia.optimism.io')
       // '11155420': new ethers.providers.StaticJsonRpcProvider('https://optimism-sepolia.drpc.org')
     })
     if (connectedNetworkId && signer) {

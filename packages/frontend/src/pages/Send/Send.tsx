@@ -24,6 +24,7 @@ import { useApp } from '#contexts/AppContext/index.js'
 import { useSendV2Intermediary } from '#hooks/useSendV2Intermediary.js'
 import { useSendStyles } from './useSendStyles.js'
 import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk'
+import CircularProgress from '@mui/material/CircularProgress'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -202,13 +203,13 @@ const Send: FC = () => {
                         <Typography variant="body1" style={{
                           color: theme.palette.primary.contrastText,
                           fontWeight: !isV2 ? 'bold' : 'normal'
-                        }}>V1: {estimatedReceivedComparison.v1 ?? '-'} {!isV2 && '✓'}</Typography>
+                        }}>V1: {estimatedReceivedComparison.v1 ?? '-'} {(!isV2 && !estimatedReceivedComparison.loading) && '✓'}</Typography>
                       </Box>
                       <Box>
                         <Typography variant="body1" style={{
                           color: theme.palette.primary.contrastText,
                           fontWeight: isV2 ? 'bold' : 'normal'
-                        }}>V2: {estimatedReceivedComparison.v2 ?? '-'} {isV2 && '✓'}</Typography>
+                        }}>V2: {estimatedReceivedComparison.v2 ?? '-'} {(isV2 && !estimatedReceivedComparison.loading) && '✓'}</Typography>
                       </Box>
                     </Box>
                   </Box>
@@ -229,7 +230,20 @@ const Send: FC = () => {
               justifyContent: 'center',
               transition: theme => theme.transitions.create(['background-color', 'color'])
             }}>
-              {isV2 ? 'V2' : 'V1'}
+              {isV2 ? 'V2' : 'V1'} <Box sx={{
+                display: 'inline-block',
+                width: '6px'
+              }}>{estimatedReceivedComparison.loading ? (
+                <CircularProgress
+                  size={6}
+                  thickness={4}
+                  sx={{
+                    ml: 0.5,
+                    verticalAlign: 'middle',
+                    color: theme => theme.palette.primary.main
+                  }}
+                />
+              ) : ''}</Box>
             </Box>
           </InfoTooltip>
           )

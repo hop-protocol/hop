@@ -36,10 +36,10 @@ describe.skip('Sdk - Hop - e2e - send', () => {
     // ----------------
     const fromChainId = '11155111'
     // const fromChainId = '84532'
-    const fromToken = addresses[fromChainId]!.tokens!.MOCK!
+    const fromToken = addresses[fromChainId]!.tokens!.MOCK!.address!
     const toChainId = '84532'
     // const toChainId = '11155111'
-    const toToken = addresses[toChainId]!.tokens!.MOCK!
+    const toToken = addresses[toChainId]!.tokens!.MOCK!.address!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
@@ -174,7 +174,7 @@ async function watcher() {
   await watcher()
 }
 
-describe.skip('Sdk - e2e - bonder sim', () => {
+describe.only('Sdk - e2e - bonder sim watcher', () => {
   it('should watch and process transfer events', async () => {
     await watcher()
     expect(true).toBeDefined()
@@ -186,10 +186,10 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     const token: any = _token || 'MOCK'
     // const fromChainId = '11155111'
     const fromChainId: any = _fromChainId || '84532'
-    const fromToken = (addresses as any)[fromChainId]!.tokens![token]!
+    const fromToken = (addresses as any)[fromChainId]!.tokens![token]!.address!
     // const toChainId = '84532'
     const toChainId: any = _toChainId || '11155111'
-    const toToken = (addresses as any)[toChainId]!.tokens![token]!
+    const toToken = (addresses as any)[toChainId]!.tokens![token]!.address!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
@@ -514,7 +514,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     console.log('done')
 }
 
-describe.only('Sdk - RailsGateway - e2e - single hop', () => {
+describe.skip('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     await processTransfer()
     expect(true).toBeDefined()
@@ -527,8 +527,8 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const fromChainId = '11155111'
     const toChainId = '84532'
     const hubChainId = '11155420' // 42069
-    const fromToken = addresses[fromChainId]!.tokens!.MOCK!
-    const toToken = addresses[toChainId]!.tokens!.MOCK!
+    const fromToken = addresses[fromChainId]!.tokens!.MOCK!.address!
+    const toToken = addresses[toChainId]!.tokens!.MOCK!.address!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
@@ -536,7 +536,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const toProvider = chainProviders[toChainId]
     const nextChainId = hubChainId
     const nextProvider = chainProviders[nextChainId]
-    const nextToken = addresses[nextChainId]!.tokens!.MOCK!
+    const nextToken = addresses[nextChainId]!.tokens!.MOCK!.address!
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -952,10 +952,10 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
     const token = 'MOCK'
     // const fromChainId = '11155111'
     const fromChainId = '84532'
-    const fromToken = addresses[fromChainId]!.tokens![token]!
+    const fromToken = addresses[fromChainId]!.tokens![token]!.address!
     //const toChainId = '84532'
     const toChainId = '11155111'
-    const toToken = addresses[toChainId]!.tokens![token]!
+    const toToken = addresses[toChainId]!.tokens![token]!.address!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
 

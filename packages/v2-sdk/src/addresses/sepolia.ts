@@ -46,9 +46,9 @@ export const addresses: Addresses = {
           '11155420': {
             pathId: '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f',
           },
-          // '84532': {
-          //   // pathId: '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
-          // }
+          '84532': {
+            pathId: '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
+          }
         }
       }
     }
@@ -166,9 +166,9 @@ export const addresses: Addresses = {
       USDC: {
         address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
         railsPaths: {
-          // '11155111': {
-            // pathId: '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
-          // },
+          '11155111': {
+            pathId: '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
+          },
           '42069': {
             pathId: '0xad7a8a28d4cef1b36c7fbd1ee514311fc4bb66107617e9bb6056644faa114bfe',
           },

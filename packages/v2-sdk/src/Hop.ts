@@ -1144,15 +1144,15 @@ export class Hop extends Base {
     // Get RailsPath addresses for all path IDs
     for (const [tokenSymbol, tokenConfig] of Object.entries(chainConfig.tokens)) {
       if (!tokenConfig.railsPaths) continue
-      
+
       for (const [targetChainId, pathConfig] of Object.entries(tokenConfig.railsPaths)) {
         if (!(pathConfig as any).pathId) continue
         const pathId = (pathConfig as any).pathId
-        
+
         try {
           const railsPath = await this.getRailsPath(chainId, pathId)
           const address = await railsPath.getRailsPathContractAddress()
-          console.log('hopV2Sdk: address', address)
+          console.log('hopV2Sdk: pathId', pathId, 'address', address)
           if (address && address !== constants.AddressZero) {
             addresses.add(address)
           }

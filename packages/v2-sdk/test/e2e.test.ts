@@ -174,7 +174,7 @@ async function watcher() {
   await watcher()
 }
 
-describe.only('Sdk - e2e - bonder sim watcher', () => {
+describe.skip('Sdk - e2e - bonder sim watcher', () => {
   it('should watch and process transfer events', async () => {
     await watcher()
     expect(true).toBeDefined()
@@ -946,15 +946,16 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
+describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
   it('should do an end to end test', async () => {
     // ----------------
-    const token = 'MOCK'
-    // const fromChainId = '11155111'
-    const fromChainId = '84532'
+    const token = 'USDC'
+    const fromChainId = '11155111'
+    // const fromChainId = '84532'
     const fromToken = addresses[fromChainId]!.tokens![token]!.address!
     //const toChainId = '84532'
-    const toChainId = '11155111'
+    // const toChainId = '11155111'
+    const toChainId = '11155420'
     const toToken = addresses[toChainId]!.tokens![token]!.address!
     const sendAmount = parseUnits('0.1', 18)
     // ----------------
@@ -964,7 +965,8 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
     const shouldWithdraw = true // debug
     const shouldRemove = false // debug
 
-    let sendTxHash = '0x693a98fd4fbad3dff9e610ccf00d53f1cf79971741151311afd55ca796db0879'
+    let sendTxHash = '0xa8c9d60aa059682dc7be85971e596f0da9b766fef8cd29b21d4fd09cbf10600d'
+    let shouldSend = !sendTxHash // debug
 
     const senderSigner = new Wallet(privateKey)
     const sdk = new Hop({
@@ -1035,7 +1037,6 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
       maxBonderFee
     }]
 
-    const shouldSend = !sendTxHash // debug
     let sendTx: any
     if (shouldSend) {
       sendTx = await sdk.getRailsGateway(fromChainId).send({
@@ -1049,7 +1050,7 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
       await sendTx.wait()
     }
 
-    sendTxHash = sendTxHash || sendTx.hash
+    sendTxHash = sendTxHash || sendTx?.hash
 
     const transferSentEvent = (await sdk.getRailsGateway(fromChainId).helpers.getTransferSentEventFromTransactionHash({
       transactionHash: sendTxHash,
@@ -1160,7 +1161,16 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
     console.log('railsPath:', railsPath)
 
     if (shouldWithdraw) {
+      const tokenContract = sdk.getRailsGateway(toChainId).helpers.getTokenContract({ address: toToken })
+      const railsGatewayAddress = sdk.getRailsGateway(toChainId).getRailsGatewayContractAddress()
+      const railsPathAddress = (await sdk.getRailsGateway(toChainId).getRailsPath(transferSentEvent.decoded.pathId)).getRailsPathContractAddress()
+      const railsBalance = await tokenContract.balanceOf(railsGatewayAddress)
+      const pathBalance = await tokenContract.balanceOf(railsPathAddress)
+      console.log('rails balance dest chain:', formatUnits(railsBalance, 6))
+      console.log('path balance dest chain:', formatUnits(pathBalance, 6))
+
       console.log('calling withdraw')
+
       const withdrawTx = await sdk.getRailsGateway(toChainId).withdrawClaim({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId,

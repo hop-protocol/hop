@@ -431,6 +431,10 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
 
     console.log('isBonded:', isBonded)
 
+    const tokenContract = sdk.getRailsGateway(toChainId).helpers.getTokenContract({ address: toToken })
+    const tokenBalance = await tokenContract.balanceOf(bonderAddress)
+    console.log('bonder token balance dest chain:', formatUnits(tokenBalance, 6))
+
     let bondTx: any
     if (shouldBond) {
       console.log('calling bond')
@@ -514,7 +518,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     console.log('done')
 }
 
-describe.skip('Sdk - RailsGateway - e2e - single hop', () => {
+describe.only('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     await processTransfer()
     expect(true).toBeDefined()
@@ -946,7 +950,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - withdraw claim', () => {
+describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
   it('should do an end to end test', async () => {
     // ----------------
     const token = 'USDC'

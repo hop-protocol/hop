@@ -294,7 +294,7 @@ function useWithdrawV2() {
 
       const destinationChainId = (status.transferSentEvent as any)?.toChainId as number
       if (!destinationChainId) {
-        throw new Error('Destination chain ID not found on the transfer sent event.')
+        throw new Error('Destination chain ID not found on the transfer sent event. This could be due to an error with the explorer API.')
       }
 
       const sourceRailsGateway = v2Sdk.getRailsGateway(chainId)

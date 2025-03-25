@@ -170,11 +170,18 @@ export enum TransferState {
   NotFound = 'NotFound'
 }
 
+// TODO: replace with actual Event type once it's available
+type ClaimWithdrawn = {
+  claimId: string
+  pathId: string
+}
+
 export type TransferStatus = {
   state: TransferState
   transferId: string
   transferSentEvent: EthersEventWithDecodedTypes<TransferSent> | null
   transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[]
+  claimWithdrawnEvents: EthersEventWithDecodedTypes<ClaimWithdrawn>[]
 }
 
 export type CalcAmountOutMinInput = {
@@ -948,7 +955,8 @@ export class Hop extends Base {
         state: TransferState.NotFound,
         transferId: transferId ?? '',
         transferSentEvent: null as any,
-        transferBondedEvents: []
+        transferBondedEvents: [],
+        claimWithdrawnEvents: []
       }
     }
 
@@ -963,7 +971,7 @@ export class Hop extends Base {
       }
     })
 
-    const claimWithdrawnEvents = event.claimWithdrawnEvents
+    const claimWithdrawnEvents = event.claimWithdrawnEvents ?? []
 
     delete transferSentEvent.transferBondedEvents
 
@@ -985,7 +993,8 @@ export class Hop extends Base {
       state: transferState,
       transferId: event.transferId,
       transferSentEvent,
-      transferBondedEvents
+      transferBondedEvents,
+      claimWithdrawnEvents
     }
   }
 
@@ -1089,7 +1098,8 @@ export class Hop extends Base {
       state: transferState,
       transferId: originalTransferSentEvent?.decoded.transferId ?? '',
       transferSentEvent: originalTransferSentEvent,
-      transferBondedEvents: bondedEvents
+      transferBondedEvents: bondedEvents,
+      claimWithdrawnEvents: [] // TODO
     }
   }
 

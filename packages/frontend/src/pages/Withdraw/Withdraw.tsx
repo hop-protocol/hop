@@ -248,6 +248,8 @@ function useWithdrawV2() {
       updateQueryParams({
         transferId: transferIdOrTxHash || ''
       })
+      transferSentEvent = null
+      messageSentEvent = null
     } catch (err: any) {
       console.error(err)
     }
@@ -432,7 +434,15 @@ function useWithdrawV2() {
 
 export const Withdraw: FC = () => {
   const styles = useStyles()
-  const [isV2, setIsV2] = useState(false)
+  // Initialize isV2 from localStorage, defaulting to false if not found
+  const [isV2, setIsV2] = useState(() => {
+    // Only access localStorage in client environment
+    if (typeof window !== 'undefined') {
+      const savedPreference = localStorage.getItem('withdrawIsV2')
+      return savedPreference === 'true'
+    }
+    return false
+  })
 
   const v1 = useWithdrawV1()
   const v2 = useWithdrawV2()
@@ -447,7 +457,10 @@ export const Withdraw: FC = () => {
   } = isV2 ? v2 : v1
 
   const handleVersionToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsV2(event.target.checked)
+    const newValue = event.target.checked
+    setIsV2(newValue)
+    // Save preference to localStorage
+    localStorage.setItem('withdrawIsV2', newValue.toString())
   }
 
   return (
@@ -466,12 +479,12 @@ export const Withdraw: FC = () => {
             />
           }
           label={<>
-              <Typography variant="body2" color="secondary" component="span">v2</Typography>
-              <InfoTooltip
-                title={
-                  "Enable this if your transfer is using Hop v2 protocol."
-                }
-              />
+            <Typography variant="body2" color="secondary" component="span">v2</Typography>
+            <InfoTooltip
+              title={
+                "Enable this if your transfer is using Hop v2 protocol."
+              }
+            />
           </>}
         />
       </Box>

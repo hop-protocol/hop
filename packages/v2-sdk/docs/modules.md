@@ -1877,6 +1877,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimWithdrawnEvents` | `EthersEventWithDecodedTypes`\<`ClaimWithdrawn`\>[] |
 | `state` | [`TransferState`](enums/TransferState.md) |
 | `transferBondedEvents` | `EthersEventWithDecodedTypes`\<`TransferBonded`\>[] |
 | `transferId` | `string` |

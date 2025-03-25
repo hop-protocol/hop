@@ -175,7 +175,7 @@ export class Transaction extends EventEmitter {
       })
       console.log('v2 transferStatus', transferStatus)
       if (transferStatus?.state === TransferState.Bonded) {
-        this.destTxHash = transferStatus.transferBondedEvents[transferStatus?.transferBondedEvents?.length - 1].transactionHash
+        this.destTxHash = transferStatus.transferBondedEvents?.[transferStatus?.transferBondedEvents?.length - 1]?.transactionHash
         this.setPendingDestinationConfirmed()
         return true
       }

@@ -7,7 +7,7 @@ import { Button } from '#components/Button/index.js'
 import { Modal } from '#components/Modal/Modal.js'
 import { transferTimeDisplay } from '#utils/transferTimeDisplay.js'
 import { useTxStatusStyles } from '#components/Transaction/index.js'
-import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop, TransferState } from '@hop-protocol/v2-sdk'
 
 type Token = {
   symbol: string
@@ -102,10 +102,10 @@ export function TxStatusModalV2 (props: Props) {
           transferId
         })
 
-        setFromCompleted(!!transferStatus.transferSentEvent)
-        setToCompleted(transferStatus.transferBondedEvents.length > 0)
+        setFromCompleted(!!transferStatus?.transferSentEvent)
+        setToCompleted(transferStatus?.state === TransferState.Bonded)
 
-        if (!transferStatus.transferBondedEvents.length) {
+        if (transferStatus?.state !== TransferState.Bonded) {
           const provider = v2Sdk.getProvider(fromChainId)
           const blockNumber = await provider.getBlockNumber()
           const { blockNumber: receiptBlockNumber } = await provider.getTransactionReceipt(tx.hash)

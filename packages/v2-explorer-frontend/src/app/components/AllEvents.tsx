@@ -1,6 +1,6 @@
 'use client'
 import Box from '@mui/material/Box'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import { useTheme } from '@mui/material/styles'
@@ -25,22 +25,37 @@ export function Events () {
   const theme = useTheme()
   const isDarkMode = theme.palette.mode === 'dark'
 
+  useEffect(() => {
+    // Get the hash from the URL (excluding the '#' symbol)
+    const hash = window.location.hash.slice(1)
+    if (hash) {
+      // Find the element with the matching ID
+      const element = document.getElementById(hash)
+      if (element) {
+        // Add a small delay to ensure the page is fully loaded
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 100)
+      }
+    }
+  }, []) // Empty dependency array means this runs once when component mounts
+
   const tables = [
-    <TransferSentEvents key="TransferSentEvents" />,
-    <TransferBondedEvents key="TransferBondedEvents" />,
-    <ClaimPushedEvents key="ClaimPushedEvents" />,
-    <ClaimReaddedEvents key="ClaimReaddedEvents" />,
-    <ClaimRemovedEvents key="ClaimRemovedEvents" />,
-    // <ClaimWithdrawnEvents key="ClaimWithdrawnEvents" />,
-    <BonderPreferenceEvents key="BonderPreferenceEvents" />,
-    <PathInitializedEvents key="PathInitializedEvents" />,
-    <MessageSentEvents key="MessageSentEvents" />,
-    <MessageBundledEvents key="MessageBundledEvents" />,
-    <MessageExecutedEvents key="MessageExecutedEvents" />,
-    <BundleCommittedEvents key="BundleCommittedEvents" />,
-    <BundleForwardedEvents key="BundleForwardedEvents" />,
-    <BundleReceivedEvents key="BundleReceivedEvents" />,
-    <BundleSetEvents key="BundleSetEvents" />,
+    <div key="TransferSent" id="TransferSent"><TransferSentEvents /></div>,
+    <div key="TransferBonded" id="TransferBonded"><TransferBondedEvents /></div>,
+    <div key="ClaimPushed" id="ClaimPushed"><ClaimPushedEvents /></div>,
+    <div key="ClaimReadded" id="ClaimReadded"><ClaimReaddedEvents /></div>,
+    <div key="ClaimRemoved" id="ClaimRemoved"><ClaimRemovedEvents /></div>,
+    // <div key="ClaimWithdrawn" id="ClaimWithdrawn"><ClaimWithdrawnEvents /></div>,
+    <div key="BonderPreference" id="BonderPreference"><BonderPreferenceEvents /></div>,
+    <div key="PathInitialized" id="PathInitialized"><PathInitializedEvents /></div>,
+    <div key="MessageSent" id="MessageSent"><MessageSentEvents /></div>,
+    <div key="MessageBundled" id="MessageBundled"><MessageBundledEvents /></div>,
+    <div key="MessageExecuted" id="MessageExecuted"><MessageExecutedEvents /></div>,
+    <div key="BundleCommitted" id="BundleCommitted"><BundleCommittedEvents /></div>,
+    <div key="BundleForwarded" id="BundleForwarded"><BundleForwardedEvents /></div>,
+    <div key="BundleReceived" id="BundleReceived"><BundleReceivedEvents /></div>,
+    <div key="BundleSet" id="BundleSet"><BundleSetEvents /></div>,
   ]
 
   return (

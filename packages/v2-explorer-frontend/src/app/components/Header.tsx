@@ -245,14 +245,14 @@ export function Header () {
               icon={<StorageIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
             />
             <StyledTab 
-              label={isMobile ? "" : "Tokens"} 
-              value="tokens" 
-              icon={<TokenIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
-            />
-            <StyledTab 
               label={isMobile ? "" : "Paths"} 
               value="paths" 
               icon={<RouteIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
+            />
+            <StyledTab 
+              label={isMobile ? "" : "Tokens"} 
+              value="tokens" 
+              icon={<TokenIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.3rem' }} />} 
             />
             <StyledTab 
               label={isMobile ? "" : "Prices"} 

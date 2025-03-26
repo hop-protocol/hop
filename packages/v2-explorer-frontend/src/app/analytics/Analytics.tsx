@@ -250,7 +250,6 @@ export function Analytics() {
         
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            This Sankey diagram visualizes the flow of tokens across different blockchain networks. 
             The width of each flow represents the volume of tokens transferred between networks.
           </Typography>
         </Box>

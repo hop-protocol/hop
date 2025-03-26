@@ -164,7 +164,17 @@ export class TransferSentTable extends EventDb {
 
     // Aggregate hops back into an array
     const itemsWithHops = this.#aggregateHops(results)
-    const normalizedItems = itemsWithHops.map(item => this.#normalizeDataForGet(item))
+    
+    // Add pagination-aware index to each item
+    const normalizedItems = itemsWithHops.map((item, index) => {
+      // Calculate the global index based on page number and limit
+      const globalIndex = (page - 1) * limit + index + 1 // Adding 1 to make it 1-indexed
+      return {
+        ...item,
+        i: globalIndex
+      }
+    })
+    
     console.log('TransferSent itemsWithHops', normalizedItems.length)
 
     return normalizedItems

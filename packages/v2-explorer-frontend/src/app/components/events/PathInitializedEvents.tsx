@@ -24,6 +24,10 @@ export function PathInitializedEvents () {
 
   const headers = [
     {
+      key: 'index',
+      value: '#',
+    },
+    {
       key: 'timestamp',
       value: 'Timestamp',
     },
@@ -59,6 +63,10 @@ export function PathInitializedEvents () {
 
   const rows = events.map((event: any) => {
     return [
+      {
+        key: 'index',
+        value: event.i,
+      },
       {
         key: 'timestamp',
         value: `${event.context.blockTimestamp} (${event.context.blockTimestampRelative})`,

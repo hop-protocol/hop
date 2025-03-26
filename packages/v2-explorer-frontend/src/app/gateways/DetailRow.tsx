@@ -74,7 +74,7 @@ export const DetailRow = ({
       </ul>
     </Box>
 
-    label = `${label} (${rawValue.length})`
+    // label = `${label} (${rawValue.length})`
   }
 
   return (

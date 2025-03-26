@@ -145,7 +145,7 @@ export function ExplorerEvents (props: any) {
     return [
       {
         key: 'index',
-        value: index+1
+        value: event.i
       },
       {
         key: 'status',
@@ -154,7 +154,8 @@ export function ExplorerEvents (props: any) {
       },
       {
         key: 'created',
-        value: `${event.context?.blockTimestampRelative}`
+        value: `${event.context?.blockTimestampRelative}`,
+        hoverTooltip: `${event.context?.blockTimestampISO}`
       },
       {
         key: 'token',

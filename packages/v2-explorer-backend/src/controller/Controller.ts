@@ -623,6 +623,7 @@ export class Controller {
 
     if (item.context?.blockTimestamp) {
       item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
+      item.context.blockTimestampISO = DateTime.fromSeconds(item.context.blockTimestamp).toISO()
     }
     if (item.context?.transactionHash) {
       item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
@@ -672,6 +673,10 @@ export class Controller {
       item.pushClaimFeeFormatted = formatUnits(item.pushClaimFee, 18)
       item.pushClaimFeeDisplay = `${item.pushClaimFeeFormatted} ETH`
     }
+    if (item.defaultTokenFee != null) {
+      item.defaultTokenFeeFormatted = formatUnits(item.defaultTokenFee, 18)
+      item.defaultTokenFeeDisplay = `${item.defaultTokenFeeFormatted} ETH`
+    }
     if (item.claimFeesFee != null) {
       item.claimFeesFeeFormatted = formatUnits(item.claimFeesFee, 18)
       item.claimFeesFeeDisplay = `${item.claimFeesFeeFormatted} ETH`
@@ -687,6 +692,22 @@ export class Controller {
     if (item.stakingRegistryAddress) {
       item.stakingRegistryAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.stakingRegistryAddress, item.context.chainId)
       item.stakingRegistryAddressTruncated = truncateString(item.stakingRegistryAddress, 4)
+    }
+    if (item.dispatcher) {
+      item.dispatcherExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.dispatcher, item.context.chainId)
+      item.dispatcherTruncated = truncateString(item.dispatcher, 4)
+    }
+    if (item.executor) {
+      item.executorExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.executor, item.context.chainId)
+      item.executorTruncated = truncateString(item.executor, 4)
+    }
+    if (item.feeManager) {
+      item.feeManagerExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.feeManager, item.context.chainId)
+      item.feeManagerTruncated = truncateString(item.feeManager, 4)
+    }
+    if (item.railsPathImplementation) {
+      item.railsPathImplementationExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.railsPathImplementation, item.context.chainId)
+      item.railsPathImplementationTruncated = truncateString(item.railsPathImplementation, 4)
     }
     if (item.hopToken) {
       item.hopTokenExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.hopToken, item.context.chainId)
@@ -1310,12 +1331,24 @@ export class Controller {
           railsGatewayAddress,
           removeFee,
           pushClaimFee,
-          stakingRegistryAddress
+          stakingRegistryAddress,
+          defaultTokenFee,
+          dispatcher,
+          executor,
+          feeManager,
+          railsPathImplementation,
+          eventNames
         ] = await Promise.all([
           railsGateway.getRailsGatewayContractAddress(),
           railsGateway.getRemoveFee(),
           railsGateway.getPushClaimFee(),
-          railsGateway.getStakingRegistryContractAddress()
+          railsGateway.getStakingRegistryContractAddress(),
+          railsGateway.defaultTokenFee(),
+          railsGateway.dispatcher(),
+          railsGateway.executor(),
+          railsGateway.feeManager(),
+          railsGateway.railsPathImplementation(),
+          railsGateway.getEventNames(),
         ])
 
         const chainIdStates : any = {}
@@ -1350,6 +1383,12 @@ export class Controller {
           removeFee: removeFee.toString(),
           pushClaimFee: pushClaimFee.toString(),
           stakingRegistryAddress,
+          defaultTokenFee: defaultTokenFee.toString(),
+          dispatcher,
+          executor,
+          feeManager,
+          railsPathImplementation,
+          eventNames,
           chainIdStates,
           context: { chainId }
         })
@@ -1378,7 +1417,8 @@ export class Controller {
           minChallengeIncrease,
           fullAppeal,
           minHopStake,
-          hopToken
+          hopToken,
+          eventNames
         ] = await Promise.all([
           stakingRegistry.getStakingRegistryContractAddress(),
           stakingRegistry.challengePeriod(),
@@ -1386,7 +1426,8 @@ export class Controller {
           stakingRegistry.minChallengeIncrease(),
           stakingRegistry.fullAppeal(),
           stakingRegistry.minHopStake(),
-          stakingRegistry.hopToken()
+          stakingRegistry.hopToken(),
+          stakingRegistry.getEventNames()
         ])
 
         result[chainId] = this.addEventFields({
@@ -1399,6 +1440,7 @@ export class Controller {
           fullAppeal: fullAppeal.toString(),
           minHopStake: minHopStake.toString(),
           hopToken,
+          eventNames,
           context: { chainId }
         })
       } catch (err: any) {

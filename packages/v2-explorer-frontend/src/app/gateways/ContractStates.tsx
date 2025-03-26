@@ -50,8 +50,14 @@ export function ContractStates() {
     { key: 'railsGatewayAddress', label: 'Gateway Address' },
     { key: 'removeFee', label: 'Remove Fee' },
     { key: 'pushClaimFee', label: 'Push Claim Fee' },
+    { key: 'defaultTokenFee', label: 'Default Token Fee' },
+    { key: 'dispatcher', label: 'Dispatcher' },
+    { key: 'executor', label: 'Executor' },
+    { key: 'feeManager', label: 'Fee Manager' },
+    { key: 'railsPathImplementation', label: 'Rails Path Implementation' },
     { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
     { key: 'pathIds', label: 'Path Ids' },
+    { key: 'eventNames', label: 'Events' },
   ]
 
   const pathsFields = [
@@ -74,6 +80,7 @@ export function ContractStates() {
     { key: 'fullAppeal', label: 'Full Appeal' },
     { key: 'minHopStake', label: 'Min Hop Stake' },
     { key: 'hopToken', label: 'Hop Token' },
+    { key: 'eventNames', label: 'Events' },
   ]
 
   // Render skeleton rows for tables
@@ -264,6 +271,10 @@ export function ContractStates() {
                     link = rawValue.map((pathId: string) => `/p/${pathId}`)
                   }
 
+                  if (field.key === 'eventNames') {
+                    link = rawValue.map((eventName: string) => `/events#${eventName}`)
+                  }
+
                   return (
                     <DetailRow
                       key={`rails-${contract.chainId}-${field.key}`}
@@ -331,9 +342,14 @@ export function ContractStates() {
                   const displayValue = contract.stakingRegistry
                     ? contract.stakingRegistry[field.key + 'Display'] || ''
                     : ''
-                  const link = contract.stakingRegistry
+                  let link = contract.stakingRegistry
                     ? contract.stakingRegistry[field.key + 'ExplorerUrl'] || ''
                     : ''
+
+                  if (field.key === 'eventNames') {
+                    link = rawValue.map((eventName: string) => `/events#${eventName}`)
+                  }
+
                   return (
                     <DetailRow
                       key={`registry-${contract.chainId}-${field.key}`}

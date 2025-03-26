@@ -79,7 +79,14 @@ export class MessageBundledTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return getItemsWithContext(items)
+    const itemsWithContext = getItemsWithContext(items)
+
+    return itemsWithContext.map((item, index) => {
+      return {
+        ...item,
+        i: (page - 1) * limit + index + 1
+      }
+    })
   }
 
   override async upsertItem (item: any) {

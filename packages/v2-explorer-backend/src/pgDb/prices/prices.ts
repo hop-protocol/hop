@@ -61,7 +61,12 @@ export class PriceTable extends EventDb {
       OFFSET $4`,
       args)
 
-    return items
+    return items.map((item: any, index: number) => {
+      return {
+        ...item,
+        i: (page - 1) * limit + index + 1
+      }
+    })
   }
 
   override async upsertItem (item: any) {

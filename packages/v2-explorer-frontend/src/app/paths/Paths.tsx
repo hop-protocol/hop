@@ -32,6 +32,10 @@ export function Paths () {
 
   const headers = [
     {
+      key: 'index',
+      value: '#'
+    },
+    {
       key: 'pathId',
       value: 'Path ID'
     },
@@ -59,6 +63,10 @@ export function Paths () {
 
   const rows = paths.map((path: any) => {
     return [
+      {
+        key: 'index',
+        value: path.i
+      },
       {
         key: 'pathId',
         value: path.pathIdTruncated,

@@ -25,6 +25,10 @@ export function Prices () {
 
   const headers = [
     {
+      key: 'index',
+      value: '#'
+    },
+    {
       key: 'timestamp',
       value: 'Timestamp'
     },
@@ -40,6 +44,10 @@ export function Prices () {
 
   const rows = prices.map((price: any) => {
     return [
+      {
+        key: 'index',
+        value: price.i
+      },
       {
         key: 'timestamp',
         value: `${price.timestamp} (${price.timestampRelative})`,

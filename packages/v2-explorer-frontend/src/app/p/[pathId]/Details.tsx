@@ -23,18 +23,23 @@ export function Details(props: any) {
   const pathsFields = [
     { key: 'chainId', label: 'Chain ID' },
     { key: 'pathId', label: 'Path ID' },
-    { key: 'headClaimId', label: 'Head Claim ID' },
-    { key: 'tokenVault', label: 'Token Vault' },
+    { key: 'pathAddress', label: 'Path Address' },
+    { key: 'initialId', label: 'Initial ID' },
+    { key: 'initialReserve', label: 'Initial Reserve' },
     { key: 'sendFee', label: 'Send Fee' },
-    { key: 'totalClaims', label: 'Total Claims' },
+    { key: 'headClaimId', label: 'Head Claim ID' },
+    { key: 'headTransferId', label: 'Head Transfer ID' },
+    { key: 'bucketIndex', label: 'Bucket Index' },
     { key: 'totalConfirmed', label: 'Total Confirmed' },
     { key: 'totalSent', label: 'Total Sent' },
-    { key: 'tokenLabel', label: 'Token Name' },
-    { key: 'tokenAddress', label: 'Token Address' },
     { key: 'totalClaimsAtHeadClaimId', label: 'Total Claims at Head Claim ID' },
-    { key: 'bucketIndex', label: 'Bucket Index' },
     { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
-    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' }
+    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' },
+    { key: 'counterpartChainId', label: 'Counterpart Chain ID' },
+    { key: 'tokenAddress', label: 'Token Address' },
+    { key: 'counterpartTokenAddress', label: 'Counterpart Token Address' },
+    { key: 'tokenLabel', label: 'Token Name' },
+
   ]
 
   if (loading) {
@@ -76,7 +81,7 @@ export function Details(props: any) {
                       rawValue = path.token.symbol
                     }
 
-                    if (field.key === 'tokenAddress') {
+                    if (field.key === 'tokenAddress' || field.key === 'pathAddress') {
                       displayValue = path.token.address
                       link = path.token.tokenExplorerUrl
                       rawValue = path.token.address

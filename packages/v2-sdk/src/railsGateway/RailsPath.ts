@@ -611,7 +611,7 @@ export class RailsPath extends Base {
 
   async counterpartToken (): Promise<string> {
     const contract = await this.getRailsPathContract()
-    return contract.counterpartChainIds()
+    return contract.counterpartToken()
   }
 
   async gateway (): Promise<string> {
@@ -916,11 +916,6 @@ export class RailsPath extends Base {
   async token (): Promise<string> {
     const contract = await this.getRailsPathContract()
     return contract.token()
-  }
-
-  async tokenClaims (): Promise<BigNumber> {
-    const contract = await this.getRailsPathContract()
-    return contract.tokenClaims()
   }
 
   async totalSent (): Promise<BigNumber> {

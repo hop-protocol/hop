@@ -25,6 +25,10 @@ export function Tokens () {
 
   const headers = [
     {
+      key: 'index',
+      value: '#'
+    },
+    {
       key: 'name',
       value: 'Name'
     },
@@ -48,6 +52,10 @@ export function Tokens () {
 
   const rows = tokens.map((token: any) => {
     return [
+      {
+        key: 'index',
+        value: token.i
+      },
       {
         key: 'name',
         value: token.name,

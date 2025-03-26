@@ -564,6 +564,10 @@ export class Controller {
       item.bonderFeeUsd = Number(item.bonderFeeFormatted) * Number(item.tokenPriceUsd)
       item.bonderFeeUsdDisplay = `${formatToUSD(item.bonderFeeUsd.toFixed(2))} USD`
     }
+    if (item.initialReserve != null && item.token) {
+      item.initialReserveFormatted = formatUnits(item.initialReserve, item.token.decimals)
+      item.initialReserveDisplay = `${item.initialReserveFormatted} ${item.token.symbol}`
+    }
     if (item.attestationFee != null) {
       item.attestationFeeFormatted = formatUnits(item.attestationFee, 18)
       item.attestationFeeDisplay = `${item.attestationFeeFormatted} ETH`
@@ -708,6 +712,18 @@ export class Controller {
     if (item.railsPathImplementation) {
       item.railsPathImplementationExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.railsPathImplementation, item.context.chainId)
       item.railsPathImplementationTruncated = truncateString(item.railsPathImplementation, 4)
+    }
+    if (item.pathAddress) {
+      item.pathAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathAddress, item.context.chainId)
+      item.pathAddressTruncated = truncateString(item.pathAddress, 4)
+    }
+    if (item.tokenAddress) {
+      item.tokenAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.tokenAddress, item.context.chainId)
+      item.tokenAddressTruncated = truncateString(item.tokenAddress, 4)
+    }
+    if (item.counterpartTokenAddress) {
+      item.counterpartTokenAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.counterpartTokenAddress, item.context.chainId)
+      item.counterpartTokenAddressTruncated = truncateString(item.counterpartTokenAddress, 4)
     }
     if (item.hopToken) {
       item.hopTokenExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.hopToken, item.context.chainId)
@@ -1483,7 +1499,13 @@ export class Controller {
           hardConfirmedClaimId,
           bucketIndex,
           totalClaimsAtHeadClaimId,
-
+          pathAddress,
+          counterpartChainId,
+          headTransferId,
+          initialId,
+          initialReserve,
+          tokenAddress,
+          counterpartTokenAddress,
         ] = await Promise.all([
           railsGateway.getSendFee({ pathId }),
           railsPath.getTotalConfirmed(),
@@ -1491,7 +1513,14 @@ export class Controller {
           railsPath.hardConfirmedBucketIndex(),
           railsPath.hardConfirmedClaimId(),
           railsPath.getBucketIndex({ claimId: headClaimId }),
-          railsPath.getTotalClaimsAtClaimId({ claimId: headClaimId })
+          railsPath.getTotalClaimsAtClaimId({ claimId: headClaimId }),
+          railsGateway.getPath({ pathId }),
+          railsPath.counterpartChainId(),
+          railsPath.getHeadTransferId(),
+          railsPath.getInitialId(),
+          railsPath.initialReserve(),
+          railsPath.token(),
+          railsPath.counterpartToken(),
         ])
 
         if (!result[chainId]) {
@@ -1517,13 +1546,21 @@ export class Controller {
         result[chainId] = this.addEventFields({
           chainId,
           pathId,
-          headClaimId,          sendFee: sendFee.toString(),
+          headClaimId,          
+          sendFee: sendFee.toString(),
           totalConfirmed: totalConfirmed.toString(),
           totalSent: totalSent.toString(),
           hardConfirmedBucketIndex: hardConfirmedBucketIndex.toString(),
           hardConfirmedClaimId,
           totalClaimsAtHeadClaimId: totalClaimsAtHeadClaimId.toString(),
           bucketIndex: bucketIndex.toString(),
+          pathAddress,
+          counterpartChainId: counterpartChainId.toString(),
+          headTransferId,
+          initialId,
+          initialReserve: initialReserve.toString(),
+          tokenAddress,
+          counterpartTokenAddress,
           context: { chainId },
           token: tokenInfo
         })

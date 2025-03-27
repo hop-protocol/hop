@@ -13,9 +13,7 @@ export interface PathInitialized {
 }
 
 export type PathInitializedIndexes = {
-  pathId?: string
-  token?: string
-  path?: string
+
 }
 
 export class PathInitializedEventFetcher extends Event<PathInitialized> {
@@ -23,21 +21,9 @@ export class PathInitializedEventFetcher extends Event<PathInitialized> {
   override abi = RailsGateway__factory.abi
   override factory = RailsGateway__factory
 
-  getPathIdFilter (pathId: string): EventFilter {
-    return this.getFilterWithIndexes({ pathId })
-  }
-
-  getTokenFilter (token: string): EventFilter {
-    return this.getFilterWithIndexes({ token })
-  }
-
-  getPathFilter (path: string): EventFilter {
-    return this.getFilterWithIndexes({ path })
-  }
-
-  getFilterWithIndexes ({ pathId, token, path }: PathInitializedIndexes): EventFilter {
+  getFilterWithIndexes ({}: PathInitializedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.PathInitialized(pathId ?? null, token ?? null, null, null, null, path ?? null)
+    const filter = railsGateway.filters.PathInitialized()
     return filter
   }
 

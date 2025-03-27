@@ -13,10 +13,6 @@ export enum EventName {
   BonderPreference = 'BonderPreference'
 }
 
-export type GetChallengesInput = {
-  challengeId: string
-}
-
 export type StakeHopInput = {
   staker: string
   amount: BigNumberish
@@ -370,11 +366,6 @@ export class StakingRegistry extends Base {
     return contract.fullAppeal()
   }
 
-  async challenges (challengeId: string): Promise<Challenge> {
-    const contract = this.getStakingRegistryContract()
-    return contract.challenges(challengeId)
-  }
-
   async minHopStake (): Promise<BigNumber> {
     const contract = this.getStakingRegistryContract()
     return contract.minHopStake()
@@ -496,7 +487,9 @@ export class StakingRegistry extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  getEventFetcher(eventName: EventName) {
+  /** EVENT HANDLERS */
+
+  getEventFetcher(eventName: EventName | string) {
     const chainId = this.chainId
     const provider = this.getProvider(chainId)
     if (!provider) {
@@ -512,7 +505,7 @@ export class StakingRegistry extends Base {
       [EventName.BonderPreference]: BonderPreferenceEventFetcher,
     }
 
-    const EventFetcherClass = eventFetcher[eventName]
+    const EventFetcherClass = eventFetcher[eventName as EventName]
     if (!EventFetcherClass) {
       throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
     }

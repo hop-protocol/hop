@@ -180,7 +180,7 @@ export const useTransferDetails = (props: any) => {
     }
   })
 
-  const loading = false // !(!isFetching && event)
+  const loading = isFetching || eventsFetching || !event
 
   const statusDisplay = isCompleted ? (
     <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label={statusLabel} style={{ backgroundColor: '#74d56e', color: '#fff' }} />
@@ -211,6 +211,7 @@ export const useTransferDetails = (props: any) => {
     destinationChainImageUrl,
     loading,
     hops,
-    destinationTxs
+    destinationTxs,
+    lastUpdated: event?.lastUpdated
   }
 }

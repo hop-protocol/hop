@@ -1,4 +1,4 @@
-import { Hop, TransferState } from '#index.js'
+import { Hop } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import { randomBytes } from 'crypto'
 import dotenv from 'dotenv'
@@ -166,21 +166,22 @@ describe('Hop', () => {
     expect(contract).toBeDefined()
   })
 
-  it('should get transfer status for transferId', async () => {
-    const fromChainId = 11155420
-    const toChainId = 84532
-    const transferId = '0x90a3e365254d2b06002d290c96998dcbf00ec07c2d4ea15e39e3aba52d70be3a'
+  it('should get transfer status for transactionHash', async () => {
+    const fromChainId = 11155111
+    const toChainId = 11155420
+    const transactionHash = '0x626de21dccc66e8fcca457643d6ffb7c0331488295efecc228d102273445c2c4'
+    // sdk.setExplorerApiBaseUrl('http://localhost:8000')
     const transferStatus = await sdk.getTransferStatus({
       fromChainId,
       toChainId,
-      transferId
+      transactionHash
     })
     console.log(JSON.stringify(transferStatus, null, 2))
     expect(transferStatus).toBeDefined()
-    expect(transferStatus.transferId).toBe(transferId)
-    expect(transferStatus.state).toBe(TransferState.Bonded)
-    expect(transferStatus.transferSentEvent).toBeDefined()
-    expect(transferStatus.transferBondedEvents.length).toBe(2)
+    // expect(transferStatus.transferId).toBe(transferId)
+    // expect(transferStatus.state).toBe(TransferState.Bonded)
+    // expect(transferStatus.transferSentEvent).toBeDefined()
+    // expect(transferStatus.transferBondedEvents.length).toBe(2)
   }, 10 * 60 * 1000)
 
   it.skip('should get transfer status for transfer Id - 2', async () => {

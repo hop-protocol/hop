@@ -46,7 +46,7 @@ export function RailsGatewayGetTotalSent (props: Props) {
         pathId,
       }
       console.log('args', args)
-      const total = await sdk.getRailsGateway(fromChainId).getTotalSent(args)
+      const total = await sdk.getRailsGateway(fromChainId).helpers.getTotalSent(args)
       setTotalSent(total?.toString())
     } catch (err: any) {
       console.error(err)
@@ -62,7 +62,7 @@ async function main() {
   const pathId = "${pathId}"
 
   ${hopInstantiateDisplayString}
-  const totalSent = await hop.getRailsGateway('${fromChainId}').getTotalSent({
+  const totalSent = await hop.getRailsGateway('${fromChainId}').helpers.getTotalSent({
     pathId
   })
   console.log(totalSent)

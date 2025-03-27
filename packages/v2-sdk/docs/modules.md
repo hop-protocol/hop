@@ -56,7 +56,6 @@
 - [ApproveSendTokensInput](modules.md#approvesendtokensinput)
 - [BondInput](modules.md#bondinput)
 - [BonderPreferenceIndexes](modules.md#bonderpreferenceindexes)
-- [Bucket](modules.md#bucket)
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
 - [Claim](modules.md#claim)
@@ -68,7 +67,6 @@
 - [ConnectTargetsInput](modules.md#connecttargetsinput)
 - [CounterpartChainIdsInput](modules.md#counterpartchainidsinput)
 - [DistributeClaimedFeesInput](modules.md#distributeclaimedfeesinput)
-- [DistributeExcessFeesInput](modules.md#distributeexcessfeesinput)
 - [EthersEventWithDecodedTypes](modules.md#etherseventwithdecodedtypes)
 - [EthersEventWithDecodedTypesAndBaseContext](modules.md#etherseventwithdecodedtypesandbasecontext)
 - [EthersEventWithDecodedTypesAndContext](modules.md#etherseventwithdecodedtypesandcontext)
@@ -77,25 +75,16 @@
 - [ExitBundleInput](modules.md#exitbundleinput)
 - [GetAmountOutInput](modules.md#getamountoutinput)
 - [GetBucketIndexInput](modules.md#getbucketindexinput)
-- [GetBucketInput](modules.md#getbucketinput)
 - [GetBundleExitPopulatedTxInput](modules.md#getbundleexitpopulatedtxinput)
 - [GetBundleProofFromMessageIdInput](modules.md#getbundleprooffrommessageidinput)
 - [GetBundleProofFromTransactionHashInput](modules.md#getbundleprooffromtransactionhashinput)
-- [GetClaimFeesFeeInput](modules.md#getclaimfeesfeeinput)
-- [GetClaimIdInput](modules.md#getclaimidinput)
 - [GetClaimInput](modules.md#getclaiminput)
-- [GetClaimPushedEventFilterInput](modules.md#getclaimpushedeventfilterinput)
-- [GetClaimReaddedEventFilterInput](modules.md#getclaimreaddedeventfilterinput)
-- [GetClaimRemovedEventFilterInput](modules.md#getclaimremovedeventfilterinput)
 - [GetCounterpartChainIdInput](modules.md#getcounterpartchainidinput)
 - [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
 - [GetEventsInput](modules.md#geteventsinput)
-- [GetFeeVaultInput](modules.md#getfeevaultinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
-- [GetHardConfirmedBucketIndexInput](modules.md#gethardconfirmedbucketindexinput)
-- [GetHardConfirmedClaimIdInput](modules.md#gethardconfirmedclaimidinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
 - [GetHeadClaimIdInput](modules.md#getheadclaimidinput)
 - [GetHopBalanceInput](modules.md#gethopbalanceinput)
@@ -109,7 +98,6 @@
 - [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
 - [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
 - [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
-- [GetLastBondedClaimIdInput](modules.md#getlastbondedclaimidinput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
 - [GetMessageBundleIdFromMessageIdInput](modules.md#getmessagebundleidfrommessageidinput)
@@ -138,35 +126,23 @@
 - [GetRelayMessageDataFromTransactionHashInput](modules.md#getrelaymessagedatafromtransactionhashinput)
 - [GetRelayMessagePopulatedTxInput](modules.md#getrelaymessagepopulatedtxinput)
 - [GetRelayRewardInput](modules.md#getrelayrewardinput)
-- [GetRemovedBalanceInput](modules.md#getremovedbalanceinput)
 - [GetRouteDataInput](modules.md#getroutedatainput)
 - [GetSendFeeInput](modules.md#getsendfeeinput)
 - [GetSendMessagePopulatedTxInput](modules.md#getsendmessagepopulatedtxinput)
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
-- [GetTokenVaultInput](modules.md#gettokenvaultinput)
-- [GetTotalClaimsAtClaimIdInput](modules.md#gettotalclaimsatclaimidinput)
-- [GetTotalClaimsInput](modules.md#gettotalclaimsinput)
-- [GetTotalConfirmedInput](modules.md#gettotalconfirmedinput)
 - [GetTotalSentInput](modules.md#gettotalsentinput)
-- [GetTotalWithdrawableAtClaimIdInput](modules.md#gettotalwithdrawableatclaimidinput)
-- [GetTransferBondedEventFilterInput](modules.md#gettransferbondedeventfilterinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
 - [GetTransferDataHashInput](modules.md#gettransferdatahashinput)
 - [GetTransferIdFromTransactionHashInput](modules.md#gettransferidfromtransactionhashinput)
-- [GetTransferIdInput](modules.md#gettransferidinput)
-- [GetTransferIndexInput](modules.md#gettransferindexinput)
-- [GetTransferSentEventFilterInput](modules.md#gettransfersenteventfilterinput)
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
 - [GetTransferSentEventFromTransactionReceiptInput](modules.md#gettransfersenteventfromtransactionreceiptinput)
 - [GetTransferSentEventFromTransferIdInput](modules.md#gettransfersenteventfromtransferidinput)
-- [GetTransferSentEventsFromPathIdInput](modules.md#gettransfersenteventsfrompathidinput)
 - [GetTransferStatusInput](modules.md#gettransferstatusinput)
 - [GetWithdrawableBalanceInput](modules.md#getwithdrawablebalanceinput)
-- [GetWithdrawnInput](modules.md#getwithdrawninput)
 - [HasAuctionStartedInput](modules.md#hasauctionstartedinput)
 - [HopConstructorInput](modules.md#hopconstructorinput)
 - [HopStructInput](modules.md#hopstructinput)
@@ -174,14 +150,9 @@
 - [InitChainInput](modules.md#initchaininput)
 - [InitPathInput](modules.md#initpathinput)
 - [IsPathInitializedInput](modules.md#ispathinitializedinput)
-- [IsValidClaimInput](modules.md#isvalidclaiminput)
-- [IsValidTransferInput](modules.md#isvalidtransferinput)
 - [MessengerConstructorInput](modules.md#messengerconstructorinput)
 - [Path](modules.md#path)
 - [PathInitializedIndexes](modules.md#pathinitializedindexes)
-- [PostAndBondInput](modules.md#postandbondinput)
-- [PostAndWithdrawInput](modules.md#postandwithdrawinput)
-- [PostClaimInput](modules.md#postclaiminput)
 - [PushClaimAndBondInput](modules.md#pushclaimandbondinput)
 - [PushClaimAndWithdrawInput](modules.md#pushclaimandwithdrawinput)
 - [PushClaimInput](modules.md#pushclaiminput)
@@ -195,13 +166,8 @@
 - [SendInput](modules.md#sendinput)
 - [SendTokensInput](modules.md#sendtokensinput)
 - [SetDefaultTokenFeeInput](modules.md#setdefaulttokenfeeinput)
-- [SetFeeOracleInput](modules.md#setfeeoracleinput)
-- [SetFeePriceInput](modules.md#setfeepriceinput)
-- [SetFeePricesInput](modules.md#setfeepricesinput)
-- [SetSendFeeGasInput](modules.md#setsendfeegasinput)
 - [SetStakingRegistryInput](modules.md#setstakingregistryinput)
 - [SetTokenFeeRecipientInput](modules.md#settokenfeerecipientinput)
-- [SetUpdateFeeGasInput](modules.md#setupdatefeegasinput)
 - [ShouldAttemptForwardMessageInput](modules.md#shouldattemptforwardmessageinput)
 - [SignalPreferenceInput](modules.md#signalpreferenceinput)
 - [SignersOrProviders](modules.md#signersorproviders)
@@ -210,9 +176,7 @@
 - [Token](modules.md#token)
 - [TokensInput](modules.md#tokensinput)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
-- [TransferBondedEventInput](modules.md#transferbondedeventinput)
 - [TransferBondedIndexes](modules.md#transferbondedindexes)
-- [TransferSentEventInput](modules.md#transfersenteventinput)
 - [TransferSentIndexes](modules.md#transfersentindexes)
 - [TransferStatus](modules.md#transferstatus)
 - [TxOverrides](modules.md#txoverrides)
@@ -227,11 +191,15 @@
 
 - [utils](modules.md#utils)
 
+### Functions
+
+- [getBlockNumberFromDate](modules.md#getblocknumberfromdate)
+
 ## Type Aliases
 
 ### <a id="alleventtypes" name="alleventtypes"></a> AllEventTypes
 
-Ƭ **AllEventTypes**: `TransferSent` \| `TransferBonded` \| `FeesSentToHub` \| `BundleCommitted` \| `BundleForwarded` \| `BundleReceived` \| `BundleSet` \| `MessageBundled` \| `MessageExecuted` \| `MessageSent`
+Ƭ **AllEventTypes**: `TransferSent` \| `TransferBonded` \| `FeesSentToHub` \| `BundleCommitted` \| `BundleForwarded` \| `BundleReceived` \| `BundleSet` \| `MessageBundled` \| `MessageExecuted` \| `MessageSent` \| `PathInitialized`
 
 ___
 
@@ -303,21 +271,6 @@ ___
 | `bonder?` | `string` |
 | `feeTier?` | `BigNumber` |
 | `pathId?` | `string` |
-
-___
-
-### <a id="bucket" name="bucket"></a> Bucket
-
-Ƭ **Bucket**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `completedAt` | `BigNumber` |
-| `finalClaimId` | `string` |
-| `maxConfirmed` | `BigNumber` |
-| `totalAttested` | `BigNumber` |
 
 ___
 
@@ -476,20 +429,6 @@ ___
 
 ___
 
-### <a id="distributeexcessfeesinput" name="distributeexcessfeesinput"></a> DistributeExcessFeesInput
-
-Ƭ **DistributeExcessFeesInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amounts` | `BigNumberish`[] |
-| `pathId` | `string` |
-| `recipients` | `string`[] |
-
-___
-
 ### <a id="etherseventwithdecodedtypes" name="etherseventwithdecodedtypes"></a> EthersEventWithDecodedTypes
 
 Ƭ **EthersEventWithDecodedTypes**\<`T`\>: `EthersEvent` & \{ `decoded`: `T`  }
@@ -590,19 +529,6 @@ ___
 
 ___
 
-### <a id="getbucketinput" name="getbucketinput"></a> GetBucketInput
-
-Ƭ **GetBucketInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `index` | `BigNumberish` |
-| `pathId` | `string` |
-
-___
-
 ### <a id="getbundleexitpopulatedtxinput" name="getbundleexitpopulatedtxinput"></a> GetBundleExitPopulatedTxInput
 
 Ƭ **GetBundleExitPopulatedTxInput**: `Object`
@@ -640,31 +566,6 @@ ___
 
 ___
 
-### <a id="getclaimfeesfeeinput" name="getclaimfeesfeeinput"></a> GetClaimFeesFeeInput
-
-Ƭ **GetClaimFeesFeeInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-___
-
-### <a id="getclaimidinput" name="getclaimidinput"></a> GetClaimIdInput
-
-Ƭ **GetClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `index` | `BigNumberish` |
-| `pathId` | `string` |
-
-___
-
 ### <a id="getclaiminput" name="getclaiminput"></a> GetClaimInput
 
 Ƭ **GetClaimInput**: `Object`
@@ -675,24 +576,6 @@ ___
 | :------ | :------ |
 | `claimId` | `string` |
 | `pathId` | `string` |
-
-___
-
-### <a id="getclaimpushedeventfilterinput" name="getclaimpushedeventfilterinput"></a> GetClaimPushedEventFilterInput
-
-Ƭ **GetClaimPushedEventFilterInput**: `ClaimPushedIndexes`
-
-___
-
-### <a id="getclaimreaddedeventfilterinput" name="getclaimreaddedeventfilterinput"></a> GetClaimReaddedEventFilterInput
-
-Ƭ **GetClaimReaddedEventFilterInput**: `ClaimReaddedIndexes`
-
-___
-
-### <a id="getclaimremovedeventfilterinput" name="getclaimremovedeventfilterinput"></a> GetClaimRemovedEventFilterInput
-
-Ƭ **GetClaimRemovedEventFilterInput**: `ClaimRemovedIndexes`
 
 ___
 
@@ -739,7 +622,7 @@ ___
 
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
-Ƭ **GetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPushedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes` \| `ClaimWithdrawnIndexes`
+Ƭ **GetEventFilterInput**: `PathInitializedIndexes`
 
 ___
 
@@ -757,18 +640,6 @@ ___
 
 ___
 
-### <a id="getfeevaultinput" name="getfeevaultinput"></a> GetFeeVaultInput
-
-Ƭ **GetFeeVaultInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-
-___
-
 ### <a id="getgeneraleventsinput" name="getgeneraleventsinput"></a> GetGeneralEventsInput
 
 Ƭ **GetGeneralEventsInput**: `Object`
@@ -783,30 +654,6 @@ ___
 | `fetchTxData?` | `boolean` |
 | `fromBlock` | `number` |
 | `toBlock?` | `number` |
-
-___
-
-### <a id="gethardconfirmedbucketindexinput" name="gethardconfirmedbucketindexinput"></a> GetHardConfirmedBucketIndexInput
-
-Ƭ **GetHardConfirmedBucketIndexInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="gethardconfirmedclaimidinput" name="gethardconfirmedclaimidinput"></a> GetHardConfirmedClaimIdInput
-
-Ƭ **GetHardConfirmedClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
 
 ___
 
@@ -967,19 +814,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `transferId` | `string` |
-
-___
-
-### <a id="getlastbondedclaimidinput" name="getlastbondedclaimidinput"></a> GetLastBondedClaimIdInput
-
-Ƭ **GetLastBondedClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
-| `pathId` | `string` |
 
 ___
 
@@ -1339,19 +1173,6 @@ ___
 
 ___
 
-### <a id="getremovedbalanceinput" name="getremovedbalanceinput"></a> GetRemovedBalanceInput
-
-Ƭ **GetRemovedBalanceInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
-| `pathId` | `string` |
-
-___
-
 ### <a id="getroutedatainput" name="getroutedatainput"></a> GetRouteDataInput
 
 Ƭ **GetRouteDataInput**: `Object`
@@ -1429,55 +1250,6 @@ ___
 
 ___
 
-### <a id="gettokenvaultinput" name="gettokenvaultinput"></a> GetTokenVaultInput
-
-Ƭ **GetTokenVaultInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="gettotalclaimsatclaimidinput" name="gettotalclaimsatclaimidinput"></a> GetTotalClaimsAtClaimIdInput
-
-Ƭ **GetTotalClaimsAtClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="gettotalclaimsinput" name="gettotalclaimsinput"></a> GetTotalClaimsInput
-
-Ƭ **GetTotalClaimsInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="gettotalconfirmedinput" name="gettotalconfirmedinput"></a> GetTotalConfirmedInput
-
-Ƭ **GetTotalConfirmedInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-
-___
-
 ### <a id="gettotalsentinput" name="gettotalsentinput"></a> GetTotalSentInput
 
 Ƭ **GetTotalSentInput**: `Object`
@@ -1487,26 +1259,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
-
-___
-
-### <a id="gettotalwithdrawableatclaimidinput" name="gettotalwithdrawableatclaimidinput"></a> GetTotalWithdrawableAtClaimIdInput
-
-Ƭ **GetTotalWithdrawableAtClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="gettransferbondedeventfilterinput" name="gettransferbondedeventfilterinput"></a> GetTransferBondedEventFilterInput
-
-Ƭ **GetTransferBondedEventFilterInput**: `TransferBondedIndexes`
 
 ___
 
@@ -1577,38 +1329,6 @@ ___
 
 ___
 
-### <a id="gettransferidinput" name="gettransferidinput"></a> GetTransferIdInput
-
-Ƭ **GetTransferIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `index` | `BigNumberish` |
-| `pathId` | `string` |
-
-___
-
-### <a id="gettransferindexinput" name="gettransferindexinput"></a> GetTransferIndexInput
-
-Ƭ **GetTransferIndexInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
-| `transferId` | `string` |
-
-___
-
-### <a id="gettransfersenteventfilterinput" name="gettransfersenteventfilterinput"></a> GetTransferSentEventFilterInput
-
-Ƭ **GetTransferSentEventFilterInput**: `TransferSentIndexes`
-
-___
-
 ### <a id="gettransfersenteventfromtransactionhashinput" name="gettransfersenteventfromtransactionhashinput"></a> GetTransferSentEventFromTransactionHashInput
 
 Ƭ **GetTransferSentEventFromTransactionHashInput**: `Object`
@@ -1641,19 +1361,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `fromBlock?` | `number` |
 | `transferId` | `string` |
-
-___
-
-### <a id="gettransfersenteventsfrompathidinput" name="gettransfersenteventsfrompathidinput"></a> GetTransferSentEventsFromPathIdInput
-
-Ƭ **GetTransferSentEventsFromPathIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `pathId` | `string` |
 
 ___
 
@@ -1683,19 +1392,6 @@ ___
 | `claimId` | `string` |
 | `pathId` | `string` |
 | `recipient` | `string` |
-
-___
-
-### <a id="getwithdrawninput" name="getwithdrawninput"></a> GetWithdrawnInput
-
-Ƭ **GetWithdrawnInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
-| `pathId` | `string` |
 
 ___
 
@@ -1787,32 +1483,6 @@ ___
 
 ___
 
-### <a id="isvalidclaiminput" name="isvalidclaiminput"></a> IsValidClaimInput
-
-Ƭ **IsValidClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
-### <a id="isvalidtransferinput" name="isvalidtransferinput"></a> IsValidTransferInput
-
-Ƭ **IsValidTransferInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `claimId` | `string` |
-| `pathId` | `string` |
-
-___
-
 ### <a id="messengerconstructorinput" name="messengerconstructorinput"></a> MessengerConstructorInput
 
 Ƭ **MessengerConstructorInput**: `Object`
@@ -1850,74 +1520,6 @@ ___
 ### <a id="pathinitializedindexes" name="pathinitializedindexes"></a> PathInitializedIndexes
 
 Ƭ **PathInitializedIndexes**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `path?` | `string` |
-| `pathId?` | `string` |
-| `token?` | `string` |
-
-___
-
-### <a id="postandbondinput" name="postandbondinput"></a> PostAndBondInput
-
-Ƭ **PostAndBondInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amountOut` | `BigNumberish` |
-| `attestedClaimId` | `string` |
-| `bonderFee` | `BigNumberish` |
-| `claimId` | `string` |
-| `maxBonderFee` | `BigNumberish` |
-| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
-| `pathId` | `string` |
-| `sourcePool` | `BigNumberish` |
-| `to` | `string` |
-
-___
-
-### <a id="postandwithdrawinput" name="postandwithdrawinput"></a> PostAndWithdrawInput
-
-Ƭ **PostAndWithdrawInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amountOut` | `BigNumberish` |
-| `attestedClaimId` | `string` |
-| `bonderFee` | `BigNumberish` |
-| `claimId` | `string` |
-| `maxBonderFee` | `BigNumberish` |
-| `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
-| `pathId` | `string` |
-| `sourcePool` | `BigNumberish` |
-| `to` | `string` |
-
-___
-
-### <a id="postclaiminput" name="postclaiminput"></a> PostClaimInput
-
-Ƭ **PostClaimInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `amountOut` | `BigNumberish` |
-| `attestedClaimId` | `string` |
-| `maxBonderFee` | `BigNumberish` |
-| `nextHopsHash` | `string` |
-| `pathId` | `string` |
-| `to` | `string` |
-| `totalClaims` | `BigNumberish` |
-| `totalSent` | `BigNumberish` |
-| `transferId` | `string` |
 
 ___
 
@@ -2123,56 +1725,6 @@ ___
 
 ___
 
-### <a id="setfeeoracleinput" name="setfeeoracleinput"></a> SetFeeOracleInput
-
-Ƭ **SetFeeOracleInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `newFeeOracle` | `string` |
-
-___
-
-### <a id="setfeepriceinput" name="setfeepriceinput"></a> SetFeePriceInput
-
-Ƭ **SetFeePriceInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainId` | `BigNumberish` |
-| `feePrice` | `BigNumberish` |
-
-___
-
-### <a id="setfeepricesinput" name="setfeepricesinput"></a> SetFeePricesInput
-
-Ƭ **SetFeePricesInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `chainIds` | `BigNumberish`[] |
-| `feePrices` | `BigNumberish`[] |
-
-___
-
-### <a id="setsendfeegasinput" name="setsendfeegasinput"></a> SetSendFeeGasInput
-
-Ƭ **SetSendFeeGasInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `gas` | `BigNumberish` |
-
-___
-
 ### <a id="setstakingregistryinput" name="setstakingregistryinput"></a> SetStakingRegistryInput
 
 Ƭ **SetStakingRegistryInput**: `Object`
@@ -2194,18 +1746,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `recipient` | `string` |
-
-___
-
-### <a id="setupdatefeegasinput" name="setupdatefeegasinput"></a> SetUpdateFeeGasInput
-
-Ƭ **SetUpdateFeeGasInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `gas` | `BigNumberish` |
 
 ___
 
@@ -2305,19 +1845,6 @@ ___
 
 ___
 
-### <a id="transferbondedeventinput" name="transferbondedeventinput"></a> TransferBondedEventInput
-
-Ƭ **TransferBondedEventInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `fromBlock` | `number` |
-| `toBlock` | `number` |
-
-___
-
 ### <a id="transferbondedindexes" name="transferbondedindexes"></a> TransferBondedIndexes
 
 Ƭ **TransferBondedIndexes**: `Object`
@@ -2329,20 +1856,6 @@ ___
 | `claimId?` | `string` |
 | `pathId?` | `string` |
 | `to?` | `string` |
-
-___
-
-### <a id="transfersenteventinput" name="transfersenteventinput"></a> TransferSentEventInput
-
-Ƭ **TransferSentEventInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `fetchTxData?` | `boolean` |
-| `fromBlock` | `number` |
-| `toBlock` | `number` |
 
 ___
 
@@ -2368,10 +1881,11 @@ ___
 
 | Name | Type |
 | :------ | :------ |
+| `claimWithdrawnEvents` | `EthersEventWithDecodedTypes`\<`ClaimWithdrawn`\>[] |
 | `state` | [`TransferState`](enums/TransferState.md) |
 | `transferBondedEvents` | `EthersEventWithDecodedTypes`\<`TransferBonded`\>[] |
 | `transferId` | `string` |
-| `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> |
+| `transferSentEvent` | `EthersEventWithDecodedTypes`\<`TransferSent`\> \| ``null`` |
 
 ___
 
@@ -2497,3 +2011,21 @@ ___
 | `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getTxHashExplorerUrl` | (`network`: `string`, `chainId`: `string`, `txHash`: `string`) => `string` |
 | `isContractError` | (`err`: `unknown`) => `boolean` |
+
+## Functions
+
+### <a id="getblocknumberfromdate" name="getblocknumberfromdate"></a> getBlockNumberFromDate
+
+▸ **getBlockNumberFromDate**(`provider`, `timestamp`, `etherscanApiKey?`): `Promise`\<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `provider` | `Provider` |
+| `timestamp` | `number` |
+| `etherscanApiKey?` | `string` |
+
+#### Returns
+
+`Promise`\<`number`\>

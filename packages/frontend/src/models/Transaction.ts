@@ -39,12 +39,14 @@ interface ContructorArgs {
   isV2?: boolean
   v2Sdk?: HopV2
   fromChainId?: number
+  destChainId?: number
 }
 
 export class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   destNetworkName: string | null = null
+  destChainId: number | null = null
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
   destProvider: ethers.providers.Provider | null = null
@@ -85,6 +87,7 @@ export class Transaction extends EventEmitter {
     isV2,
     v2Sdk,
     fromChainId,
+    destChainId
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -110,6 +113,7 @@ export class Transaction extends EventEmitter {
     this.v2Sdk = v2Sdk
     this.isV2 = isV2 || !!v2Sdk
     this.fromChainId = fromChainId
+    this.destChainId = destChainId
 
     if (this.isV2) {
       this.provider = this.v2Sdk.getProvider(this.fromChainId)
@@ -169,8 +173,9 @@ export class Transaction extends EventEmitter {
         fromChainId: this.fromChainId,
         transactionHash: this.hash
       })
+      console.log('v2 transferStatus', transferStatus)
       if (transferStatus?.state === TransferState.Bonded) {
-        this.destTxHash = transferStatus.transferBondedEvents[transferStatus?.transferBondedEvents?.length - 1].transactionHash
+        this.destTxHash = transferStatus.transferBondedEvents?.[transferStatus?.transferBondedEvents?.length - 1]?.transactionHash
         this.setPendingDestinationConfirmed()
         return true
       }
@@ -183,6 +188,10 @@ export class Transaction extends EventEmitter {
   get explorerLink(): string {
     if (!(this.networkName)) return ''
 
+    if (this.isV2) {
+      return this.v2Sdk.utils.getTransactionHashExplorerUrl(this.hash, this.fromChainId)
+    }
+
     const chainSlug = getChainSlugFromName(this.networkName)
     let url = getBaseExplorerUrl(chainSlug)
     if (this.hash) {
@@ -193,6 +202,10 @@ export class Transaction extends EventEmitter {
 
   get destExplorerLink(): string {
     if (!(this.destTxHash && this.destNetworkName)) return ''
+
+    if (this.isV2) {
+      return this.v2Sdk.utils.getTransactionHashExplorerUrl(this.destTxHash, this.destChainId)
+    }
 
     const chainSlug = getChainSlugFromName(this.destNetworkName)
     const url = `${getBaseExplorerUrl(chainSlug)}/tx/${this.destTxHash}`

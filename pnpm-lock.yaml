@@ -234,8 +234,8 @@ importers:
   packages/frontend:
     dependencies:
       '@arbitrum/sdk':
-        specifier: 3.4.1
-        version: 3.4.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: 4.0.3
+        version: 4.0.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@consensys/linea-sdk':
         specifier: 0.1.6
         version: 0.1.6(bufferutil@4.0.8)(sqlite3@5.1.7)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))(utf-8-validate@5.0.10)
@@ -1185,6 +1185,10 @@ packages:
 
   '@arbitrum/sdk@3.4.1':
     resolution: {integrity: sha512-NNGef0Enuf2DDV0IO0FHEClRCJohof6KgHH+vVU5hFYwssxV+Tc/yVoGYbttfGX1Ea6yYjA3HjiUSXPvQJ7xQg==}
+    engines: {node: '>=v11', npm: please-use-yarn, yarn: '>= 1.0.0'}
+
+  '@arbitrum/sdk@4.0.3':
+    resolution: {integrity: sha512-iwXAORup8hfgdS7S4xEqIvBFtrJ1osh8uZOJbGmJSQ8yLzDZz19LfjLoPAEfU9yQbh3EzOgEuDV4YIkCpOZamA==}
     engines: {node: '>=v11', npm: please-use-yarn, yarn: '>= 1.0.0'}
 
   '@aws-crypto/crc32@3.0.0':
@@ -13779,6 +13783,17 @@ snapshots:
       leven: 3.1.0
 
   '@arbitrum/sdk@3.4.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/bytes': 5.7.0
+      async-mutex: 0.4.1
+      ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@arbitrum/sdk@4.0.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
       '@ethersproject/address': 5.7.0
       '@ethersproject/bignumber': 5.7.0

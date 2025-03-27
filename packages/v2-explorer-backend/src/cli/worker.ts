@@ -23,15 +23,26 @@ export const workerProgram = root
     'The number of seconds to wait between indexer polls',
     parseNumber
   )
+  .option(
+    '--sync-from <number>',
+    'Unix timestamp to start syncing from',
+    parseNumber
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dry: dryMode, apiServer, indexerPollSeconds } = source
+  const { dry: dryMode, apiServer, indexerPollSeconds, syncFrom } = source
 
   console.log('starting worker')
   console.log('dryMode:', !!dryMode)
   console.log('apiServer:', !!apiServer)
   console.log('indexerPollSeconds:', indexerPollSeconds || 'default')
+  if (syncFrom) {
+    const date = new Date(syncFrom * 1000)
+    console.log('syncFrom:', syncFrom, '(' + date.toLocaleString() + ')')
+  } else {
+    console.log('syncFrom: default')
+  }
 
   if (apiServer) {
     server()
@@ -39,7 +50,8 @@ async function main (source: any) {
 
   const worker = new Worker({
     indexerPollSeconds,
-    skipChainIds
+    skipChainIds,
+    syncFromTimestamp: syncFrom
   })
 
   await worker.start()

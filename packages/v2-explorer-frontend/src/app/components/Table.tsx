@@ -17,6 +17,14 @@ import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
 import { makeStyles } from '@mui/styles'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import FirstPageIcon from '@mui/icons-material/FirstPage'
+import LastPageIcon from '@mui/icons-material/LastPage'
+import Chip from '@mui/material/Chip'
+import { useTheme } from '@mui/material/styles'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 
 const useStyles = makeStyles((theme: any) => ({
   titleContainer: {
@@ -36,6 +44,39 @@ const useStyles = makeStyles((theme: any) => ({
     [theme.breakpoints.down('md')]: {
       flexDirection: 'column',
       alignItems: 'flex-start'
+    }
+  },
+  paginationContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: theme.spacing(2),
+    borderTop: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper,
+    [theme.breakpoints.down('sm')]: {
+      flexDirection: 'column',
+      gap: theme.spacing(2)
+    }
+  },
+  paginationControls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1)
+  },
+  paginationInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      justifyContent: 'center',
+      width: '100%'
+    }
+  },
+  limitSelect: {
+    minWidth: 80,
+    '& .MuiSelect-select': {
+      paddingTop: 4,
+      paddingBottom: 4
     }
   }
 }))
@@ -63,7 +104,9 @@ type Props = {
   showPreviousButton: boolean
   nextPage: any
   previousPage: any
-  limit: number
+  limit?: number
+  defaultLimit?: number
+  onPageLimitChange?: (newLimit: number) => void
   loading?: boolean
   onRowClick?: any
   filters?: any
@@ -72,11 +115,36 @@ type Props = {
 }
 
 export function Table (props: Props) {
-  const { title, headers, rows, showNextButton, showPreviousButton, nextPage, previousPage, limit, loading = false, onRowClick, minWidth = '0px', titleVariant = 'h4' } = props
+  const { 
+    title, 
+    headers, 
+    rows, 
+    showNextButton, 
+    showPreviousButton, 
+    nextPage, 
+    previousPage, 
+    limit = 10,
+    defaultLimit = 10,
+    onPageLimitChange,
+    loading = false, 
+    onRowClick, 
+    minWidth = '0px', 
+    titleVariant = 'h4' 
+  } = props
+
   const styles = useStyles()
+  const theme = useTheme()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
-  const page = 0
+  const [pageLimit, setPageLimit] = useState(defaultLimit)
+
+  const handleLimitChange = (event: any) => {
+    const newLimit = event.target.value
+    setPageLimit(newLimit)
+    if (onPageLimitChange) {
+      onPageLimitChange(newLimit)
+    }
+  }
 
   function handleCopy (value: string, key: string) {
     setCopied(value)
@@ -86,6 +154,64 @@ export function Table (props: Props) {
       setCopiedKey('')
     }, 1000)
   }
+
+  // Generate random width for skeleton cells
+  const getRandomWidth = () => {
+    return `${Math.floor(Math.random() * 30) + 70}%`;
+  }
+
+  // Function to render skeleton rows
+  const renderSkeletonRows = () => {
+    // Number of skeleton rows to show
+    const skeletonRowCount = 5;
+    const skeletonRows = [];
+    
+    for (let i = 0; i < skeletonRowCount; i++) {
+      skeletonRows.push(
+        <TableRow key={`skeleton-row-${i}`}>
+          {headers.filter(item => item.key !== 'subtable').map((header, index) => {
+            // Different skeleton types based on likely content
+            if (header.key === 'status') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton 
+                    variant="rounded" 
+                    width={80} 
+                    height={32} 
+                    sx={{ borderRadius: 4 }} 
+                  />
+                </TableCell>
+              );
+            } else if (header.key === 'index' || header.key === 'created') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton variant="text" width={50} />
+                </TableCell>
+              );
+            } else if (header.key === 'details') {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton 
+                    variant="rounded" 
+                    width={60} 
+                    height={32} 
+                  />
+                </TableCell>
+              );
+            } else {
+              return (
+                <TableCell key={`skeleton-cell-${index}`}>
+                  <Skeleton variant="text" width={getRandomWidth()} />
+                </TableCell>
+              );
+            }
+          })}
+        </TableRow>
+      );
+    }
+    
+    return skeletonRows;
+  };
 
   return (
     <Box>
@@ -114,21 +240,8 @@ export function Table (props: Props) {
                     </TableCell>
                   </TableRow>
                 )}
-                {loading && (
-                  <>
-                    <TableRow>
-                      <TableCell colSpan={headers.length}>
-                        <Skeleton variant="rectangular" width={'100%'} height={20} />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={headers.length}>
-                        <Skeleton variant="rectangular" width={'100%'} height={20} />
-                      </TableCell>
-                    </TableRow>
-                  </>
-                )}
-                {rows.map((row: Row[], i: number) => {
+                {loading && renderSkeletonRows()}
+                {!loading && rows.map((row: Row[], i: number) => {
                   return <React.Fragment key={i}>
                     <TableRow key={i}>
                       {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
@@ -247,9 +360,9 @@ export function Table (props: Props) {
                                             </Box>
                                           )}
                                         </Box>
-                                    </TableCell>
-                                  )}
-                                )}
+                                      </TableCell>
+                                    )
+                                  })}
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -258,37 +371,88 @@ export function Table (props: Props) {
                       </TableRow>
                     )}
                   </React.Fragment>
-
                 })}
               </TableBody>
             </_Table>
           </TableContainer>
+
+          <Box sx={{ mt: 2, mb: 1 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box display="flex" alignItems="center" gap={2}>
+                <Typography variant="body2" color="textSecondary">
+                  Showing {rows.length} items
+                </Typography>
+                {limit && onPageLimitChange && (
+                  <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel id="page-limit-select-label">Items per page</InputLabel>
+                    <Select
+                      labelId="page-limit-select-label"
+                      id="page-limit-select"
+                      value={limit}
+                      onChange={handleLimitChange}
+                      label="Items per page"
+                    >
+                      <MenuItem value={5}>5</MenuItem>
+                      <MenuItem value={10}>10</MenuItem>
+                      <MenuItem value={25}>25</MenuItem>
+                      <MenuItem value={50}>50</MenuItem>
+                      <MenuItem value={100}>100</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
+              <Box>
+                {(showPreviousButton || showNextButton) && (
+                  <Box display="flex" gap={1}>
+                    <IconButton
+                      onClick={previousPage}
+                      disabled={!showPreviousButton}
+                      size="small"
+                      title="Previous page"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        backgroundColor: 'transparent',
+                        border: `1px solid ${theme.palette.divider}`,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                        '&.Mui-disabled': {
+                          opacity: 0.3,
+                          backgroundColor: 'transparent',
+                          border: `1px solid ${theme.palette.divider}`
+                        }
+                      }}
+                    >
+                      <KeyboardArrowLeft />
+                    </IconButton>
+                    <IconButton
+                      onClick={nextPage}
+                      disabled={!showNextButton}
+                      size="small"
+                      title="Next page"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        backgroundColor: 'transparent',
+                        border: `1px solid ${theme.palette.divider}`,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                        '&.Mui-disabled': {
+                          opacity: 0.3,
+                          backgroundColor: 'transparent',
+                          border: `1px solid ${theme.palette.divider}`
+                        }
+                      }}
+                    >
+                      <KeyboardArrowRight />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
         </Box>
       </Box>
-      <_Table>
-        <TableFooter style={{ display: 'flex', width: '100%' }}>
-          <TableRow style={{ display: 'flex', width: '100%' }}>
-            <TableCell colSpan={headers.length} style={{ display: 'flex', width: '100%' }}>
-              <Box width="100%" display="flex" justifyContent="flex-end">
-                  <IconButton
-                    onClick={previousPage}
-                    disabled={!showPreviousButton}
-                    aria-label="previous page"
-                  >
-                  <KeyboardArrowLeft />
-                </IconButton>
-                  <IconButton
-                    onClick={nextPage}
-                    disabled={!showNextButton}
-                    aria-label="next page"
-                  >
-                  <KeyboardArrowRight />
-                </IconButton>
-              </Box>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </_Table>
     </Box>
   )
 }

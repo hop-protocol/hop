@@ -1,34 +1,34 @@
 import { BaseType, EventDb } from '../BaseType.js'
 import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
+import { BigNumber } from 'ethers'
 
-export interface ClaimReadded extends BaseType {
+export interface PathInitialized extends BaseType {
   pathId: string
-  claimId: string
+  token: string
+  counterpartChainId: BigNumber
+  counterpartToken: string
+  initialReserve: BigNumber
+  path: string
 }
 
-export class ClaimReaddedTable extends EventDb {
+export class PathInitializedTable extends EventDb {
   override async createTable () {
-    await this.db.query(`CREATE TABLE IF NOT EXISTS claim_readded_events (
+    await this.db.query(`CREATE TABLE IF NOT EXISTS path_initialized_events (
         id TEXT PRIMARY KEY,
         path_id CHAR(66) NOT NULL,
-        claim_id CHAR(66) NOT NULL UNIQUE,
+        token VARCHAR(42) NOT NULL,
+        counterpart_chain_id NUMERIC(78, 0) NOT NULL CHECK (initial_reserve >= 0),
+        counterpart_token VARCHAR(42) NOT NULL,
+        initial_reserve NUMERIC NOT NULL CHECK (initial_reserve >= 0),
+        path VARCHAR(42) NOT NULL,
         ${eventContextIdCreationSql}
     )`)
   }
 
   override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_readded_events_claim_id ON claim_readded_events (claim_id);'
-    )
-    await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_readded_events_path_id ON claim_readded_events (path_id);'
-    )
-    await this.db.query(
-      'CREATE INDEX IF NOT EXISTS idx_claim_readded_events_event_context_id ON claim_readded_events (event_context_id);'
-    )
-    await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_claim_readded_events_path_id_and_claim_id ON claim_readded_events (path_id, claim_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_path_initialized_events_path_id_token_counterpart_chain_id ON path_initialized_events (path_id, token, counterpart_chain_id);'
     )
   }
 
@@ -40,9 +40,7 @@ export class ClaimReaddedTable extends EventDb {
     }
 
     const args = [startTimestamp, endTimestamp, limit, offset]
-    if (filter?.claimId) {
-      args.push(filter.claimId)
-    } else if (filter?.pathId) {
+    if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
       args.push(filter.transactionHash)
@@ -53,17 +51,20 @@ export class ClaimReaddedTable extends EventDb {
     const items = await this.db.any(
       `SELECT
         path_id AS "pathId",
-        claim_id AS "claimId",
+        token AS "token",
+        counterpart_chain_id AS "counterpartChainId",
+        counterpart_token AS "counterpartToken",
+        initial_reserve AS "initialReserve",
+        path AS "path",
         ${selectEventContextSql}
       FROM
-        claim_readded_events e
+        path_initialized_events e
       JOIN
         event_context ec ON e.event_context_id = ec.id
       WHERE
         ec.block_timestamp >= $1
         AND
         ec.block_timestamp <= $2
-        ${filter?.claimId ? 'AND claim_id = $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
         ${filter?.eventChainId ? 'AND ec.chain_id = $5' : ''}
@@ -85,24 +86,24 @@ export class ClaimReaddedTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { pathId, claimId, context } = this.#normalizeDataForPut(item)
+    const { pathId, token, counterpartChainId, counterpartToken, initialReserve, path, context } = this.#normalizeDataForPut(item)
     const {
       contextId,
       insertEventContextArgs,
       insertEventContextSql
     } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), contextId, pathId, claimId
+      id: uuid(), contextId, pathId, token, counterpartChainId, counterpartToken, initialReserve, path
     }
     const sql = `
       INSERT INTO
-        claim_readded_events
+        path_initialized_events
       (
-        id, event_context_id, path_id, claim_id
+        id, event_context_id, path_id, token, counterpart_chain_id, counterpart_token, initial_reserve, path
       )
-      VALUES ${'(${id}, ${contextId}, ${pathId}, ${claimId})'}
-      ON CONFLICT (path_id, claim_id)
-      ${'DO UPDATE SET claim_id = ${claimId}, path_id = ${pathId}'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${token}, ${counterpartChainId}, ${counterpartToken}, ${initialReserve}, ${path})'}
+      ON CONFLICT (path_id, token, counterpart_chain_id)
+      ${'DO UPDATE SET path_id = ${pathId}, token = ${token}, counterpart_chain_id = ${counterpartChainId}, counterpart_token = ${counterpartToken}, initial_reserve = ${initialReserve}, path = ${path}'}
     `
 
     await this.db.tx(async (t: any) => {
@@ -111,17 +112,24 @@ export class ClaimReaddedTable extends EventDb {
     })
   }
 
-  #normalizeDataForGet (getData: Partial<ClaimReadded>): Partial<ClaimReadded> {
+  #normalizeDataForGet (getData: Partial<PathInitialized>): Partial<PathInitialized> {
     if (!getData) {
       return getData
     }
 
     const data = Object.assign({}, getData)
+
+    data.counterpartChainId = BigNumber.from(data.counterpartChainId)
+    data.initialReserve = BigNumber.from(data.initialReserve)
+
     return data
   }
 
-  #normalizeDataForPut (putData: Partial<ClaimReadded>): Partial<ClaimReadded> {
+  #normalizeDataForPut (putData: Partial<PathInitialized>): Partial<PathInitialized> {
     const data = Object.assign({}, putData) as any
+
+    data.counterpartChainId = data.counterpartChainId.toString()
+    data.initialReserve = data.initialReserve.toString()
 
     return data
   }

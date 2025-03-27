@@ -8,14 +8,11 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import LinearProgress from '@mui/material/LinearProgress';
+import LinearProgress from '@mui/material/LinearProgress'
 
 export default function Loading() {
   return (
     <Box sx={{ width: '100%', maxWidth: '900px' }}>
-      <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
-        <Typography variant="h5" color="textPrimary">Transfers</Typography>
-      </Box>
       <Paper elevation={0} style={{ padding: 16, marginBottom: 16, background: 'transparent' }}>
         <Box sx={{ width: '400px' }}>
           <LinearProgress />

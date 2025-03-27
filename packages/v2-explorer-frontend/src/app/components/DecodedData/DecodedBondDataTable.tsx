@@ -1,24 +1,8 @@
-'use client'
-import React, { memo, useEffect, useState } from 'react'
-import { 
-  Box, 
-  Typography, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableRow
-} from '@mui/material'
+import React from 'react'
+import { Table, TableBody, TableCell, TableContainer, TableRow, Typography, Box } from '@mui/material'
 
-export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }: any) {
-  // Client-only rendering to avoid hydration mismatch
-  const [isClient, setIsClient] = useState(false)
-  
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-  
-  if (!data || !isClient) {
+export function DecodedBondDataTable({ data }: any) {
+  if (!data) {
     return null
   }
 
@@ -31,13 +15,7 @@ export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }:
               if (key === 'nextHops') return null
               return (
                 <TableRow key={key}>
-                  <TableCell 
-                    sx={{ 
-                      minWidth: '95px', 
-                      width: '95px',
-                      whiteSpace: 'nowrap' 
-                    }}
-                  >
+                  <TableCell style={{ minWidth: '95px' }}>
                     <Typography variant="body2">{key}:</Typography>
                   </TableCell>
                   <TableCell>
@@ -65,13 +43,7 @@ export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }:
                   </TableRow>
                   {Object.entries(hop).map(([hopKey, hopValue]: any[]) => (
                     <TableRow key={hopKey}>
-                      <TableCell 
-                        sx={{ 
-                          minWidth: '150px', 
-                          width: '150px',
-                          whiteSpace: 'nowrap' 
-                        }}
-                      >
+                      <TableCell style={{ minWidth: '150px' }}>
                         <Typography variant="body2">{hopKey}:</Typography>
                       </TableCell>
                       <TableCell>
@@ -83,13 +55,7 @@ export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }:
               ))
             ) : (
               <TableRow>
-                <TableCell 
-                  sx={{ 
-                    minWidth: '95px', 
-                    width: '95px',
-                    whiteSpace: 'nowrap' 
-                  }}
-                >
+                <TableCell style={{ width: '95px' }}>
                   <Typography variant="body2">nextHops:</Typography>
                 </TableCell>
                 <TableCell>
@@ -102,4 +68,4 @@ export const DecodedBondDataTable = memo(function DecodedBondDataTable({ data }:
       </TableContainer>
     </Box>
   )
-})
+}

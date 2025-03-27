@@ -51,7 +51,7 @@ export function RailsGatewayGetClaim (props: Props) {
         claimId
       }
       console.log('args', args)
-      const claim = await sdk.getRailsGateway(fromChainId).getClaim(args)
+      const claim = await sdk.getRailsGateway(fromChainId).helpers.getClaim(args)
       setClaim(JSON.stringify(claim, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -68,7 +68,7 @@ async function main() {
   const claimId = "${claimId}"
 
   ${hopInstantiateDisplayString}
-  const claim = await hop.getRailsGateway('${fromChainId}').getClaim({
+  const claim = await hop.getRailsGateway('${fromChainId}').helpers.getClaim({
     pathId,
     claimId
   })

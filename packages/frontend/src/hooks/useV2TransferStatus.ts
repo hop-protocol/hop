@@ -36,7 +36,7 @@ export function useV2TransferStatus(props: any): V2SendHook {
     [`transferStatus:${transactionHash}`, fromChainId, toChainId, transactionHash],
     async () => {
       if (v2Sdk && fromChainId && toChainId && transactionHash) {
-          const event = await v2Sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionHash({
+          const event = await v2Sdk.getRailsGateway(fromChainId).helpers.getTransferSentEventFromTransactionHash({
             transactionHash
           })
           if (!event) {

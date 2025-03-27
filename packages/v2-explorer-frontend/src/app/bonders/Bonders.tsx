@@ -22,6 +22,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import Avatar from '@mui/material/Avatar'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 import { DetailRow } from '@/app/gateways/DetailRow'
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
 
 export function Bonders() {
   const theme = useTheme()
@@ -110,9 +111,26 @@ export function Bonders() {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 5 }}>
-        <Typography variant="h3" component="h1" fontWeight="bold" color="primary" mb={1}>
-          Bonders
-        </Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            whiteSpace: 'nowrap',
+            mb: 1
+          }}
+        >
+          <SupervisorAccountIcon 
+            sx={{ 
+              fontSize: '2.2rem',
+              color: theme.palette.primary.main,
+              mr: 1
+            }} 
+          />
+          <Typography variant="h3" component="h1" fontWeight="bold" color="text.primary">
+            Bonders
+          </Typography>
+        </Box>
         <Typography variant="subtitle1" color="text.secondary">
           View active bonders and their balances across chains
         </Typography>
@@ -186,7 +204,7 @@ export function Bonders() {
 
           {/* Total Bonded By Token */}
           <Box sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+            <Typography variant="h6" fontWeight="bold" color="text.primary" mb={2}>
               Total Bonded by Token
             </Typography>
             
@@ -244,7 +262,7 @@ export function Bonders() {
             </Box>
 
             {/* Chain Balances */}
-            <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+            <Typography variant="h6" fontWeight="bold" color="text.primary" mb={2}>
               Chain Balances
             </Typography>
             

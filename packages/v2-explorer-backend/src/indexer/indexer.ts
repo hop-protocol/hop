@@ -4,6 +4,7 @@ import { SyncStateDb } from '#db/syncStateDb/index.js'
 import { db } from '#db/index.js'
 import { network, dbPath, rpcUrls, coingeckoApiKey } from '#config/index.js'
 import { pgDb } from '#pgDb/index.js'
+import { getBlockNumberFromDate } from '@hop-protocol/v2-sdk'
 
 type StartBlocks = {
   [chainId: string]: number
@@ -20,6 +21,7 @@ type Options = {
   pollIntervalSeconds?: number
   sdkContractAddresses?: any
   skipChainIds?: string[]
+  syncFromTimestamp?: number
 }
 
 export const defaultPollSeconds = 10
@@ -32,6 +34,7 @@ export class Indexer {
   chainIds: Record<string, boolean> = {}
   skipChainIds: string[] = []
   priceFeed: PriceFeed
+  syncFromTimestamp?: number
 
   paused: boolean = false
   syncIndex: number = 0
@@ -56,6 +59,12 @@ export class Indexer {
     this.priceFeed = new PriceFeed({
       coingecko: coingeckoApiKey
     })
+
+    // Store syncFromTimestamp if provided
+    if (options?.syncFromTimestamp) {
+      this.syncFromTimestamp = options.syncFromTimestamp
+    }
+
     if (options?.startBlocks) {
       this.startBlocks = options.startBlocks
     }
@@ -95,6 +104,7 @@ export class Indexer {
       ClaimRemoved: new SyncStateDb(dbPath, 'ClaimRemoved'),
      // ClaimWithdrawn: new SyncStateDb(dbPath, 'ClaimWithdrawn'),
       BonderPreference: new SyncStateDb(dbPath, 'BonderPreference'),
+      PathInitialized: new SyncStateDb(dbPath, 'PathInitialized')
     }
   }
 
@@ -125,6 +135,35 @@ export class Indexer {
     }
   }
 
+  async getFromBlock(chainId: string, syncState: any): Promise<number> {
+    const provider = this.sdk.getProvider(chainId)
+    if (!provider) {
+      throw new Error(`No provider found for chain ${chainId}`)
+    }
+
+    // If syncFromTimestamp is set, use it to determine the fromBlock
+    if (this.syncFromTimestamp) {
+      try {
+        const block = await getBlockNumberFromDate(provider, this.syncFromTimestamp)
+        const date = new Date(this.syncFromTimestamp * 1000)
+        console.log(`Chain ${chainId} start block from timestamp ${this.syncFromTimestamp} (${date.toLocaleString()}):`, block)
+        return block
+      } catch (err) {
+        console.error(`Error getting block from timestamp for chain ${chainId}:`, err)
+      }
+    }
+
+    // If no syncFromTimestamp or error occurred, use normal logic
+    if (syncState?.toBlock) {
+      const nextBlock = syncState.toBlock as number + 1
+      console.log(`Chain ${chainId} continuing from last synced block:`, nextBlock)
+      return nextBlock
+    }
+
+    console.log(`Chain ${chainId} starting from default block:`, this.startBlocks[chainId])
+    return this.startBlocks[chainId]
+  }
+
   async syncEvents (): Promise<any[]> {
     const l1Events = ['BundleForwarded', 'BundleReceived']
     const baseEvents = [
@@ -140,7 +179,8 @@ export class Indexer {
       'ClaimReadded',
       'ClaimRemoved',
       // 'ClaimWithdrawn',
-      'BonderPreference'
+      'BonderPreference',
+      'PathInitialized'
     ]
 
     const _events: any[] = []
@@ -162,6 +202,7 @@ export class Indexer {
       }
 
       if (!_db) {
+        console.log('no DB', chainId)
         return
       }
 
@@ -173,27 +214,15 @@ export class Indexer {
         console.error('provider not found for chainId', chainId)
         return
       }
-      let fromBlock = this.startBlocks[chainId]
+
+      const fromBlock = await this.getFromBlock(chainId, syncState)
       let headBlock = await provider.getBlockNumber()
       if (this.endBlocks[chainId]) {
         headBlock = this.endBlocks[chainId]
       }
-      let toBlock = headBlock
-      if (syncState?.toBlock) {
-        fromBlock = syncState.toBlock as number + 1
-        // if (chainId === '42069') {
-        //   fromBlock = 866229
-        // }
-        // if (chainId === '84532') {
-        //   fromBlock = 20620236
-        // }
-        // if (chainId === '11155420') {
-        //   fromBlock = 18925085
-        // }
-        toBlock = headBlock
-      }
+      const toBlock = headBlock
 
-      console.log('get', eventNames, 'chainId', chainId, 'fromBlock', fromBlock, 'toBlock', toBlock)
+      console.log(`Chain ${chainId} syncing blocks ${fromBlock} -> ${toBlock} (range of ${toBlock - fromBlock} blocks)`)
       const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })
       console.log('events', eventNames, events.length, fromBlock, toBlock, chainId)
       for (const event of events) {

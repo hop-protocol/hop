@@ -115,7 +115,7 @@ const rpcProviderOverrides: Record<string, providers.Provider>  = {}
 for (const chain in WaitConfirmations) {
   const rpcUrl = process.env[`REACT_APP_${chain.toUpperCase()}_RPC_URL`]
   if (rpcUrl) {
-    rpcProviderOverrides[chain] = new providers.JsonRpcProvider(rpcUrl)
+    rpcProviderOverrides[chain] = new providers.StaticJsonRpcProvider(rpcUrl)
   }
 }
 

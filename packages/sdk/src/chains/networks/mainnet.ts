@@ -8,7 +8,10 @@ export const chains: Chains = {
     parentChainId: NO_PARENT_CHAIN_ID,
     publicRpcUrl: 'https://1rpc.io/eth',
     fallbackPublicRpcUrls: [
+      'https://eth.drpc.org',
+      'https://rpc.eth.gateway.fm',
       'https://rpc.ankr.com/eth',
+      'https://rpc.flashbots.net',
       'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     ],
     explorerUrls: ['https://etherscan.io'],
@@ -38,7 +41,10 @@ export const chains: Chains = {
     parentChainId: '1',
     publicRpcUrl: 'https://1rpc.io/op',
     fallbackPublicRpcUrls: [
-      'https://rpc.ankr.com/optimism',
+      'https://optimism.drpc.org',
+      'https://optimism-rpc.publicnode.com',
+      'https://optimism.gateway.tenderly.co',
+      //'https://rpc.ankr.com/optimism',
       'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
       'https://mainnet.optimism.io'
     ],

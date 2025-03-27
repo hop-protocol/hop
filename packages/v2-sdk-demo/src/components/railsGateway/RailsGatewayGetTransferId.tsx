@@ -25,11 +25,11 @@ export function RailsGatewayGetTransferId (props: Props) {
     defaultValue: defaultChainIds.from,
   })
 
-  const [pathId, setPathId] = useLocalStorageState(`${cacheKey}:pathId`, {
+  const [previousTransferId, setPreviousTransferId] = useLocalStorageState(`${cacheKey}:previousTransferId`, {
     defaultValue: '',
   })
 
-  const [index, setIndex] = useLocalStorageState(`${cacheKey}:index`, {
+  const [transferDataHash, setTransferDataHash] = useLocalStorageState(`${cacheKey}:transferDataHash`, {
     defaultValue: '',
   })
 
@@ -47,11 +47,11 @@ export function RailsGatewayGetTransferId (props: Props) {
       setTransferId('')
       setLoading(true)
       const args = {
-        pathId,
-        index
+        previousTransferId,
+        transferDataHash
       }
       console.log('args', args)
-      const transferId = await sdk.getRailsGateway(fromChainId).getTransferId(args)
+      const transferId = await sdk.getRailsGateway(fromChainId).helpers.getComputedTransferId(args)
       setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
@@ -64,13 +64,13 @@ export function RailsGatewayGetTransferId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const pathId = "${pathId}"
-  const index = ${index}
+  const previousTransferId = "${previousTransferId}"
+  const transferDataHash = "${transferDataHash}"
 
   ${hopInstantiateDisplayString}
-  const transferId = await hop.getRailsGateway('${fromChainId}').getTransferId({
-    pathId,
-    index
+  const transferId = await hop.getRailsGateway('${fromChainId}').helpers.getComputedTransferId({
+    previousTransferId,
+    transferDataHash
   })
   console.log(transferId)
 }
@@ -105,15 +105,15 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>The path ID hex string</em></small></label>
+                  <label>Previous Transfer ID <small><em>(bytes32)</em></small> <small><em>The previous transfer ID hex string</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={previousTransferId} onChange={event => setPreviousTransferId(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Index <small><em>(uint256)</em></small> <small><em>The index value</em></small></label>
+                  <label>Transfer Data Hash <small><em>(bytes32)</em></small> <small><em>The transfer data hash hex string</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={index} onChange={event => setIndex(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={transferDataHash} onChange={event => setTransferDataHash(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">

@@ -56,7 +56,7 @@ export function RailsGatewayGetWithdrawableBalance (props: Props) {
         claimId
       }
       console.log('args', args)
-      const balance = await sdk.getRailsGateway(fromChainId).getWithdrawableBalance(args)
+      const balance = await sdk.getRailsGateway(fromChainId).helpers.getWithdrawableBalance(args)
       setBalance(balance?.toString())
     } catch (err: any) {
       console.error(err)
@@ -74,7 +74,7 @@ async function main() {
   const claimId = ${claimId}
 
   ${hopInstantiateDisplayString}
-  const fee = await hop.getRailsGateway('${fromChainId}').getWithdrawableBalance({
+  const fee = await hop.getRailsGateway('${fromChainId}').helpers.getWithdrawableBalance({
     pathId,
     recipient,
     claimId

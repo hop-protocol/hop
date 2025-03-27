@@ -419,6 +419,7 @@ export function useV2Send(): V2SendHook {
     async function update() {
       try {
         setError('')
+        console.log('v2 getSendData', fromChainId, toChainId, fromTokenAddress, toTokenAddress, parsedAmountIn != '0')
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
           const requestId = ++latestRequestId.current
 

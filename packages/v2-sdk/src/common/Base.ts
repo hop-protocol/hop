@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
-import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk'
+import { getProviderFromUrl, rateLimitRetry, getNetwork, NetworkSlug, FallbackProvider } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
 import { getChainSlug, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl, isContractError } from '#utils/index.js'
 import { Addresses } from '#addresses/types.js'
@@ -386,7 +386,7 @@ export class Base {
 
     for (const chainId in this.contractAddresses) {
       for (const token in this.contractAddresses[chainId].tokens) {
-        list.add(token)
+        list.add(token!)
       }
     }
 
@@ -395,9 +395,10 @@ export class Base {
 
   getSupportedTokenSymbolsByChainId(chainId: BigNumberish): string[] {
     const list : Set<string> = new Set<string>([])
+    const chainIdStr = chainId?.toString()
 
     if (this.contractAddresses[chainId?.toString()]) {
-      for (const token in this.contractAddresses[chainId?.toString()].tokens) {
+      for (const token in this.contractAddresses[chainIdStr].tokens) {
         list.add(token)
       }
     }
@@ -406,7 +407,7 @@ export class Base {
   }
 
   getTokenAddressByTokenSymbol (chainId: BigNumberish, tokenSymbol: string): string {
-    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol] // TODO: type
+    const address = (this.contractAddresses[chainId?.toString()]?.tokens as any)?.[tokenSymbol]?.address
     console.log('hopV2Sdk: getTokenAddressByTokenSymbol', chainId, tokenSymbol, address)
     if (!address) {
       console.log('hopV2Sdk: getTokenAddressByTokenSymbol', this.network, chainId, tokenSymbol, JSON.stringify(this.contractAddresses))
@@ -416,7 +417,7 @@ export class Base {
 
   getTokenSymbolByTokenAddress (chainId: BigNumberish, tokenAddress: string): string {
     const tokens = (this.contractAddresses[chainId?.toString()]?.tokens as any) || {}
-    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol] === tokenAddress)
+    const tokenSymbol = Object.keys(tokens).find(symbol => tokens[symbol]?.address === tokenAddress)
     if (!tokenSymbol) {
       throw new Error(`tokenSymbol not found for token address ${tokenAddress} on chainId ${chainId?.toString()}`)
     }
@@ -660,7 +661,12 @@ export class Base {
     const chains = getNetwork(network as NetworkSlug).chains
     for (const chainSlug in chains) {
       const item = (chains as any)[chainSlug] // TODO: type
-      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
+      const urls: string[] = [item.publicRpcUrl]
+      if (item.fallbackPublicRpcUrls && item.fallbackPublicRpcUrls.length > 0) {
+        urls.push(...item.fallbackPublicRpcUrls)
+      }
+
+      defaultProviders[item.chainId?.toString()] = FallbackProvider.fromUrls(urls)
     }
 
     return defaultProviders
@@ -675,7 +681,12 @@ export class Base {
       const chain = Object.values(network.chains).find(chain => chain.chainId === chainIdStr)
 
       if (chain) {
-        return getProviderFromUrl(chain.publicRpcUrl)
+        const urls: string[] = [chain.publicRpcUrl]
+        if (chain.fallbackPublicRpcUrls && chain.fallbackPublicRpcUrls.length > 0) {
+          urls.push(...chain.fallbackPublicRpcUrls)
+        }
+
+        return FallbackProvider.fromUrls(urls)
       }
     }
 

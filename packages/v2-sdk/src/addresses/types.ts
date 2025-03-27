@@ -1,9 +1,16 @@
-export interface TokenAddresses {
-  MOCK: string
-  USDC: string
+import { BigNumber } from 'ethers'
+
+export interface TokenConfig {
+  address: string
+  railsPaths: Record<string, { pathId: string }>
+}
+
+export type TokenAddresses = {
+  [token: string]: TokenConfig
 }
 
 export interface ChainConfig {
+  initialReserves: Record<string, BigNumber>
   chainId: string
   startBlock?: number
   hubCoreMessenger?: string

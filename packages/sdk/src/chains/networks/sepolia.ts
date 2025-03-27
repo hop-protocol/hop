@@ -6,8 +6,12 @@ export const chains: Chains = {
     ...sharedChain.ethereum,
     chainId: '11155111',
     parentChainId: NO_PARENT_CHAIN_ID,
-    publicRpcUrl: 'https://rpc2.sepolia.org',
-    fallbackPublicRpcUrls: [],
+    publicRpcUrl: 'https://sepolia.drpc.org',
+    fallbackPublicRpcUrls: [
+      'https://1rpc.io/sepolia',
+      'https://rpc2.sepolia.org',
+      'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    ],
     explorerUrls: ['https://sepolia.etherscan.io'],
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-sepolia',
     etherscanApiUrl: '',

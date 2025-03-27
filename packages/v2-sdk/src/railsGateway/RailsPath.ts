@@ -1,26 +1,31 @@
 import { Base, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils, constants } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils } from 'ethers'
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
-import { StakingRegistry } from './StakingRegistry.js'
-import { TransferSent, HopStruct, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
+import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
+import { TransferSent, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
 import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#railsGateway/events/ClaimPushed.js'
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
+import { HopStructInput } from '#railsGateway/index.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
-import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
-import memcache from 'memory-cache'
-import { getComputedNextHopsHash } from '../utils/getComputedNextHopsHash.js'
-import { getComputedTransferId } from '../utils/getComputedTransferId.js'
-import { getComputedTransferDataHash, GetComputedTransferDataHashInput } from '../utils/getComputedTransferDataHash.js'
 
 const { getAddress: checksumAddress } = utils
 
 export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
+
+export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
+
+export type GetEventsInBatchesInput = {
+  eventName: EventName
+  fromBlock: number
+  toBlock: number
+  fetchTxData?: boolean
+}
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -29,6 +34,22 @@ export enum EventName {
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
   ClaimWithdrawn = 'ClaimWithdrawn',
+}
+
+export type GetEventFromTransactionHashInput = {
+  eventName: EventName
+  transactionHash: string
+}
+
+export type GetEventFromTransactionReceiptInput = {
+  eventName: EventName
+  receipt: providers.TransactionReceipt
+}
+
+export type GetEventFromTransferIdInput = {
+  fromBlock?: number
+  eventName: EventName
+  transferId: string
 }
 
 export type BondInput = {
@@ -85,13 +106,6 @@ export type Claim = {
   totalAttested: BigNumber
   totalAddedToBucketMaxConfirmed: BigNumber
   bondedOrWithdrawnBy: string
-}
-
-export type HopStructInput = {
-  pathId: string
-  maxBonderFee: BigNumberish
-  maxTotalSent: BigNumberish
-  attestedClaimId: string
 }
 
 export type GetNextHopsHashInput = {
@@ -198,7 +212,7 @@ export type WithdrawnInput = {
 
 export type RailsPathConstructorInput = {
   network?: string
-  address: string
+  address?: string
   gasPriceMultiplier?: number
   signersOrProviders?: SignersOrProviders
   contractAddresses?: Addresses
@@ -219,28 +233,10 @@ export class RailsPath extends Base {
       },
       network: network ?? RailsPath.deriveNetwork(chainId)
     })
-    this.address = address
-    this.chainId = chainId
-  }
-
-  static deriveNetwork (chainId: BigNumberish): string {
-    chainId = chainId?.toString()
-    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
-
-    for (const net of networks) {
-      const network = getNetwork(net)
-      const chain = Object.values(network.chains).find((chain: any) => chain.chainId === chainId)
-
-      if (chain) {
-        return net
-      }
+    if (address) {
+      this.address = address
     }
-
-    throw new Error('could not derive network')
-  }
-
-  static getEventNames (): string[] {
-    return Object.keys(EventName).sort()
+    this.chainId = chainId
   }
 
   getRailsPathContractAddress (): string {
@@ -615,7 +611,7 @@ export class RailsPath extends Base {
 
   async counterpartToken (): Promise<string> {
     const contract = await this.getRailsPathContract()
-    return contract.counterpartChainIds()
+    return contract.counterpartToken()
   }
 
   async gateway (): Promise<string> {
@@ -922,11 +918,6 @@ export class RailsPath extends Base {
     return contract.token()
   }
 
-  async tokenClaims (): Promise<BigNumber> {
-    const contract = await this.getRailsPathContract()
-    return contract.tokenClaims()
-  }
-
   async totalSent (): Promise<BigNumber> {
     const contract = await this.getRailsPathContract()
     return contract.totalSent()
@@ -962,5 +953,230 @@ export class RailsPath extends Base {
   async withdrawClaim (input: WithdrawClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.withdrawClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
+  }
+
+  /** EVENT HANDLERS */
+
+  getEventNames (): string[] {
+    return RailsPath.getEventNames()
+  }
+
+  getEventFetcher(eventName: EventName | string): any { // TODO: return type
+    const chainId = this.chainId
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const address = this.getRailsPathContractAddress()
+    const eventFetcher: Record<EventName, any> = {
+      [EventName.TransferSent]: TransferSentEventFetcher,
+      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
+      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
+      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
+    }
+
+    const EventFetcherClass = eventFetcher[eventName as EventName]
+    if (!EventFetcherClass) {
+      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
+    }
+
+    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
+  }
+
+  async getEventFromTransactionHash<T>({ eventName, transactionHash }: GetEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<T> | null> {
+    const chainId = this.chainId
+
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+    if (!transactionHash) {
+      throw new InputError('transactionHash is required')
+    }
+    if (!this.utils.isValidTxHash(transactionHash)) {
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
+    }
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
+    const receipt = await provider.getTransactionReceipt(transactionHash)
+
+    if (!receipt) {
+      return null
+    }
+
+    return this.getEventFromTransactionReceipt<T>({
+      eventName,
+      receipt
+    })
+  }
+
+  async getEventFromTransactionReceipt<T>({ eventName, receipt }: GetEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<T> | null> {
+    const chainId = this.chainId
+
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!receipt) {
+      throw new InputError('receipt is required')
+    }
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
+    const eventFetcher = this.getEventFetcher(eventName)
+    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
+    return events?.[0] ?? null
+  }
+
+  async getEventFromTransferId<T>({ eventName, transferId, fromBlock = 0 }: GetEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<T>> {
+    const chainId = this.chainId
+
+    if (!chainId || !this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new InputError(`Invalid transferId "${transferId}"`)
+    }
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
+    }
+
+    const address = this.getRailsPathContractAddress()
+    if (!address) {
+      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
+    }
+
+    const eventFetcher = this.getEventFetcher(eventName)
+    const filter = eventFetcher.getTransferIdFilter(transferId)
+    const toBlock = await provider.getBlockNumber()
+    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
+    return events?.[0] ?? null
+  }
+
+  async *getEventsInBatches({ eventName, fromBlock, toBlock }: GetEventsInBatchesInput) {
+    const chainId = this.chainId
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new InputError(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidFilterBlock(fromBlock)) {
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
+    }
+
+    if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
+    }
+
+    const provider = this.getProvider(chainId)
+    if (!provider) {
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const latestBlock = await provider.getBlockNumber()
+    const resolvedToBlock = toBlock ?? latestBlock
+    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000)
+
+    if (resolvedFromBlock < 0) {
+      resolvedFromBlock = resolvedToBlock + resolvedFromBlock
+    }
+
+    const eventFetcher = this.getEventFetcher(eventName)
+    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock)
+
+    for await (const events of eventsGenerator) {
+      yield events
+    }
+  }
+
+  getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
+    const eventFetcher = this.getEventFetcher(eventName)
+    return eventFetcher.getFilterWithIndexes(input)
+  }
+
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+    return RailsPath.addDecodedTypesToEvent(event, this.chainId)
+  }
+
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+    return RailsPath.addDecodedTypesToEvents(events, this.chainId)
+  }
+
+  /** END EVENT HANDLERS */
+
+  /** STATIC METHODS */
+
+  static deriveNetwork (chainId: BigNumberish): string {
+    chainId = chainId?.toString()
+    const networks = [NetworkSlug.Mainnet, NetworkSlug.Sepolia]
+
+    for (const net of networks) {
+      const network = getNetwork(net)
+      const chain = Object.values(network.chains).find((chain: any) => chain.chainId === chainId)
+
+      if (chain) {
+        return net
+      }
+    }
+
+    throw new Error('could not derive network')
+  }
+
+  static getEventNames (): string[] {
+    return Object.keys(EventName).sort()
+  }
+
+  static getEventSignature (eventName: EventName): string {
+    const eventFetchers: Record<EventName, any> = {
+      [EventName.TransferSent]: TransferSentEventFetcher,
+      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
+      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
+      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
+    }
+
+    const EventFetcherClass = eventFetchers[eventName]
+    if (!EventFetcherClass) {
+      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
+    }
+
+    const eventFetcher = new EventFetcherClass()
+    return eventFetcher.getTopic0()
+  }
+
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+    const decoded = RailsPath.addDecodedTypesToEvents([event], chainId)
+
+    return decoded?.[0]
+  }
+
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+    const eventFetchers: Record<EventName, any> = {
+      [EventName.TransferSent]: TransferSentEventFetcher,
+      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
+      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
+      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
+    }
+
+    const result = events.map(event => {
+      for (const eventName in eventFetchers) {
+        const fetcher = (eventFetchers as any)[eventName]
+        if (fetcher.getEventNameFromTopic(event.topics[0]) === eventName) {
+          return fetcher.addTypedEvent(event, chainId)
+        }
+      }
+
+      return event
+    })
+
+    return result
   }
 }

@@ -312,6 +312,23 @@ app.get('/v1/debug/transfers', async (req: any, res: any) => {
   }
 })
 
+// Add new endpoint for transfer flow stats (Sankey chart)
+app.get('/v1/stats/flow', responseCache, async (req: any, res: any) => {
+  try {
+    const { days, sourceChainId, destinationChainId, tokenSymbol } = req.query
+    const result = await controller.getTransferFlowStatsForApi({ 
+      days: Number(days) || undefined,
+      sourceChainId,
+      destinationChainId,
+      tokenSymbol
+    })
+    res.status(200).json(result)
+  } catch (err: any) {
+    console.error(`Error fetching flow stats: ${err.message}`)
+    res.json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

@@ -49,7 +49,14 @@ export class FeesSentToHubTable extends EventDb {
       args
     )
 
-    return getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
+    const itemsWithContext = getItemsWithContext(items).map(item => this.#normalizeDataForGet(item))
+
+    return itemsWithContext.map((item, index) => {
+      return {
+        ...item,
+        i: (page - 1) * limit + index + 1
+      }
+    })
   }
 
   override async upsertItem (item: any) {

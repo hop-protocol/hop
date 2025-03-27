@@ -72,7 +72,12 @@ export class TokenTable extends BaseDb {
       OFFSET $2`,
       args)
 
-    return items
+    return items.map((item: any, index: number) => {
+      return {
+        ...item,
+        i: (page - 1) * limit + index + 1
+      }
+    })
   }
 
   override async upsertItem (item: any) {

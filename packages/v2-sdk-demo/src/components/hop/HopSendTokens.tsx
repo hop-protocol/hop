@@ -137,7 +137,8 @@ export function HopSendTokens (props: Props) {
           setTxHash(tx.hash)
 
           const receipt = await tx.wait()
-          const event = await sdk.getRailsGateway(fromChainId).getTransferSentEventFromTransactionReceipt({
+          const railsGateway = sdk.getRailsGateway(fromChainId)
+          const event = await railsGateway.helpers.getTransferSentEventFromTransactionReceipt({
             receipt
           })
           const transferId = event?.decoded.transferId

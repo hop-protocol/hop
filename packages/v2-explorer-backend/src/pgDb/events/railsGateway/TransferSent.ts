@@ -130,8 +130,9 @@ export class TransferSentTable extends EventDb {
         WHERE
           ec.block_timestamp >= $1
           AND ec.block_timestamp <= $2
-          ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
-          ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+          ${filter?.transferId ? 'AND e.transfer_id = $5' : (
+            filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''
+          )}
           ${filter?.account ? 'AND ec.from_address = $5' : ''}
           ${filter?.recipient ? 'AND e."to" = $5' : ''}
           ${filter?.bonded != null ? 'AND tbe.claim_id IS NOT NULL' : ''}
@@ -164,7 +165,17 @@ export class TransferSentTable extends EventDb {
 
     // Aggregate hops back into an array
     const itemsWithHops = this.#aggregateHops(results)
-    const normalizedItems = itemsWithHops.map(item => this.#normalizeDataForGet(item))
+    
+    // Add pagination-aware index to each item
+    const normalizedItems = itemsWithHops.map((item, index) => {
+      // Calculate the global index based on page number and limit
+      const globalIndex = (page - 1) * limit + index + 1 // Adding 1 to make it 1-indexed
+      return {
+        ...item,
+        i: globalIndex
+      }
+    })
+    
     console.log('TransferSent itemsWithHops', normalizedItems.length)
 
     return normalizedItems

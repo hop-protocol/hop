@@ -59,6 +59,7 @@
 - [getProvider](Hop.md#getprovider)
 - [getRailsGateway](Hop.md#getrailsgateway)
 - [getRailsGatewayContractAddress](Hop.md#getrailsgatewaycontractaddress)
+- [getRailsPath](Hop.md#getrailspath)
 - [getSendData](Hop.md#getsenddata)
 - [getSendDataMultiHop](Hop.md#getsenddatamultihop)
 - [getSendFee](Hop.md#getsendfee)
@@ -713,6 +714,24 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getrailspath" name="getrailspath"></a> getRailsPath
+
+▸ **getRailsPath**(`chainId`, `pathId?`, `address?`): `Promise`\<`RailsPath`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+| `pathId?` | `string` |
+| `address?` | `string` |
+
+#### Returns
+
+`Promise`\<`RailsPath`\>
 
 ___
 

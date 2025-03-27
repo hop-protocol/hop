@@ -37,7 +37,7 @@ export function RailsGatewayGetUpdateFee (props: Props) {
       setError('')
       setFee('')
       setLoading(true)
-      const fee = await sdk.getRailsGateway(fromChainId).getUpdateFee()
+      const fee = await sdk.getRailsGateway(fromChainId).getRemoveFee()
       setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
@@ -51,7 +51,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   ${hopInstantiateDisplayString}
-  const fee = await hop.getRailsGateway('${fromChainId}').getUpdateFee()
+  const fee = await hop.getRailsGateway('${fromChainId}').getRemoveFee()
   console.log(fee)
 }
 
@@ -68,10 +68,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Get Update Fee</Typography>
+        <Typography variant="h5">Rails Gateway - Get Remove Fee</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Gateway Update Fee for updating Claim Chain</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Remove Fee for removing Claim</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -96,7 +96,7 @@ main().catch(console.error)
           )}
           {!!fee && (
             <Box mb={4}>
-              <Alert severity="success">Update Fee: {fee}</Alert>
+              <Alert severity="success">Remove Fee: {fee}</Alert>
             </Box>
           )}
         </Box>

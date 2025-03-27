@@ -19,6 +19,11 @@ import { useV2 } from '#hooks/useV2.js'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { constants } from 'ethers'
+import Stepper from '@mui/material/Stepper'
+import Step from '@mui/material/Step'
+import StepLabel from '@mui/material/StepLabel'
+import StepIcon from '@mui/material/StepIcon'
+import { useTheme } from '@mui/material/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -242,12 +247,21 @@ function useWithdrawV2() {
   const [pushClaimTxHash, setPushClaimTxHash] = useState<string>('')
   const [executeTxHash, setExecuteTxHash] = useState<string>('')
   const [withdrawTxHash, setWithdrawTxHash] = useState<string>('')
+  const [alreadyWithdrawn, setAlreadyWithdrawn] = useState<boolean>(false)
 
   useEffect(() => {
     try {
       updateQueryParams({
         transferId: transferIdOrTxHash || ''
       })
+      setTransferSentEvent(null)
+      setMessageSentEvent(null)
+      setPushClaimTxHash('')
+      setExecuteTxHash('')
+      setWithdrawTxHash('')
+      setAlreadyWithdrawn(false)
+      setLoading(false)
+      setError('')
     } catch (err: any) {
       console.error(err)
     }
@@ -261,6 +275,7 @@ function useWithdrawV2() {
       setPushClaimTxHash('')
       setExecuteTxHash('')
       setWithdrawTxHash('')
+      setAlreadyWithdrawn(false)
 
       const chainId = connectedNetworkId
       const sendTxHash = transferIdOrTxHash
@@ -279,14 +294,14 @@ function useWithdrawV2() {
 
       const destinationChainId = (status.transferSentEvent as any)?.toChainId as number
       if (!destinationChainId) {
-        throw new Error('Destination chain ID not found on the transfer sent event.')
+        throw new Error('Destination chain ID not found on the transfer sent event. This could be due to an error with the explorer API.')
       }
 
       const sourceRailsGateway = v2Sdk.getRailsGateway(chainId)
       const sourceMessenger = v2Sdk.getMessenger(chainId)
 
       if (!transferSentEvent) {
-        transferSentEvent = (await sourceRailsGateway.getTransferSentEventFromTransactionHash({
+        transferSentEvent = (await sourceRailsGateway.helpers.getTransferSentEventFromTransactionHash({
           transactionHash: sendTxHash,
         }))
 
@@ -330,7 +345,7 @@ function useWithdrawV2() {
 
       let claim: any = null
       try {
-        claim = await destRailsGateway.getClaim({
+        claim = await destRailsGateway.helpers.getClaim({
           pathId: transferSentEvent.decoded.pathId,
           claimId: transferSentEvent.decoded.transferId
         })
@@ -345,6 +360,7 @@ function useWithdrawV2() {
         
       let shouldWithdraw = !claim || claim.bondedOrWithdrawnBy === constants.AddressZero
       if (!shouldWithdraw) {
+        setAlreadyWithdrawn(true)
         throw new Error(`Claim already bonded or withdrawn by "${claim.bondedOrWithdrawnBy}. No further action is required.`)
       }
 
@@ -386,7 +402,7 @@ function useWithdrawV2() {
         }
       }
 
-      claim = await destRailsGateway.getClaim({
+      claim = await destRailsGateway.helpers.getClaim({
         pathId: transferSentEvent.decoded.pathId,
         claimId: transferSentEvent.decoded.transferId
       })
@@ -405,6 +421,7 @@ function useWithdrawV2() {
       }
 
       if (!shouldWithdraw) {
+        setAlreadyWithdrawn(true)
         throw new Error('Claim already bonded or withdrawn. No further action is required.')
       }
     } catch (err: any) {
@@ -425,6 +442,7 @@ function useWithdrawV2() {
     pushClaimTxHash,
     executeTxHash,
     withdrawTxHash,
+    alreadyWithdrawn,
     handleSubmit,
     handleInputChange
   }
@@ -432,7 +450,16 @@ function useWithdrawV2() {
 
 export const Withdraw: FC = () => {
   const styles = useStyles()
-  const [isV2, setIsV2] = useState(false)
+  const theme = useTheme()
+  // Initialize isV2 from localStorage, defaulting to false if not found
+  const [isV2, setIsV2] = useState(() => {
+    // Only access localStorage in client environment
+    if (typeof window !== 'undefined') {
+      const savedPreference = localStorage.getItem('withdrawIsV2')
+      return savedPreference === 'true'
+    }
+    return false
+  })
 
   const v1 = useWithdrawV1()
   const v2 = useWithdrawV2()
@@ -447,7 +474,20 @@ export const Withdraw: FC = () => {
   } = isV2 ? v2 : v1
 
   const handleVersionToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsV2(event.target.checked)
+    const newValue = event.target.checked
+    setIsV2(newValue)
+    // Save preference to localStorage
+    localStorage.setItem('withdrawIsV2', newValue.toString())
+  }
+
+  // Calculate active step for the stepper
+  const getActiveStep = () => {
+    // If already withdrawn by someone else, show as completed
+    if (v2.alreadyWithdrawn) return 3
+    if (v2.withdrawTxHash) return 3 // All steps completed
+    if (v2.executeTxHash) return 2 // Execute completed
+    if (v2.pushClaimTxHash) return 1 // Push claim completed
+    return 0 // No steps completed yet
   }
 
   return (
@@ -466,12 +506,12 @@ export const Withdraw: FC = () => {
             />
           }
           label={<>
-              <Typography variant="body2" color="secondary" component="span">v2</Typography>
-              <InfoTooltip
-                title={
-                  "Enable this if your transfer is using Hop v2 protocol."
-                }
-              />
+            <Typography variant="body2" color="secondary" component="span">v2</Typography>
+            <InfoTooltip
+              title={
+                "Enable this if your transfer is using Hop v2 protocol."
+              }
+            />
           </>}
         />
       </Box>
@@ -508,6 +548,42 @@ export const Withdraw: FC = () => {
           </Button>
         </Box>
       </form>
+
+      {/* V2 Withdrawal Progress Stepper - Always show when V2 is selected */}
+      {isV2 && (
+        <Box mt={4} mb={4}>
+          <Typography variant="h6" gutterBottom>
+            Withdrawal Progress
+          </Typography>
+          <Stepper 
+            activeStep={getActiveStep()} 
+            alternativeLabel
+            sx={{
+              '& .MuiStepIcon-root': {
+                // Keep default styles for active and completed
+                '&.Mui-active, &.Mui-completed': {
+                  color: theme.palette.primary.main,
+                },
+                // Change color for inactive steps
+                '&:not(.Mui-active):not(.Mui-completed)': {
+                  color: theme.palette.grey[400],
+                },
+              }
+            }}
+          >
+            <Step key="pushClaim">
+              <StepLabel>Push Claim</StepLabel>
+            </Step>
+            <Step key="execute">
+              <StepLabel>Execute</StepLabel>
+            </Step>
+            <Step key="withdraw">
+              <StepLabel>Withdraw</StepLabel>
+            </Step>
+          </Stepper>
+        </Box>
+      )}
+
       <Box className={styles.notice}>
         <Alert severity="error">{error}</Alert>
       </Box>

@@ -220,7 +220,7 @@ export class Indexer {
       if (this.endBlocks[chainId]) {
         headBlock = this.endBlocks[chainId]
       }
-      let toBlock = headBlock
+      const toBlock = headBlock
 
       console.log(`Chain ${chainId} syncing blocks ${fromBlock} -> ${toBlock} (range of ${toBlock - fromBlock} blocks)`)
       const events: any[] = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock, fetchTxData: true })

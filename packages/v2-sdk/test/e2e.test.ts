@@ -970,7 +970,7 @@ describe.skip('Sdk - RailsGateway - e2e - withdraw claim', () => {
     const shouldRemove = false // debug
 
     let sendTxHash = '0xa8c9d60aa059682dc7be85971e596f0da9b766fef8cd29b21d4fd09cbf10600d'
-    let shouldSend = !sendTxHash // debug
+    const shouldSend = !sendTxHash // debug
 
     const senderSigner = new Wallet(privateKey)
     const sdk = new Hop({

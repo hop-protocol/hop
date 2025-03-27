@@ -162,6 +162,7 @@ export type GetTransferStatusFromEventsInput = {
 export type GetTransferStatusFromApiInput = {
   transferId?: string
   transactionHash?: string
+  chainId?: BigNumberish
 }
 
 export enum TransferState {
@@ -917,18 +918,22 @@ export class Hop extends Base {
 
   async getTransferStatus({ fromChainId, toChainId, transferId, transactionHash }: GetTransferStatusInput): Promise<TransferStatus> {
     if (transactionHash && fromChainId) {
-      transferId = await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash })
+      try {
+        transferId = await this.getTransferIdFromTransactionHash({ chainId: fromChainId, transactionHash })
 
-      if (!transferId) {
-        throw new InputError('could not find transferId from transaction hash')
+        if (!transferId) {
+          throw new InputError('could not find transferId from transaction hash')
+        }
+      } catch(err: any) {
+        console.warn('hopV2Sdk: getTransferStatus error', err)
       }
     }
 
-    return this.getTransferStatusFromApi({ transferId, transactionHash })
+    return this.getTransferStatusFromApi({ transferId, transactionHash, chainId: fromChainId })
     // return this.getTransferStatusFromEvents({ fromChainId, toChainId, transferId })
   }
 
-  async getTransferStatusFromApi ({ transferId, transactionHash }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
+  async getTransferStatusFromApi ({ transferId, transactionHash, chainId }: GetTransferStatusFromApiInput): Promise<TransferStatus> {
     if (transferId && !this.utils.isValidBytes32(transferId)) {
       throw new InputError(`Invalid transferId "${transferId}"`)
     }
@@ -941,12 +946,24 @@ export class Hop extends Base {
       throw new InputError('expected transferId or transactionHash')
     }
 
-    let filter = `transferId%5D=${transferId}`
-    if (transactionHash) {
-      filter = `transactionHash%5D=${transactionHash}`
+    const params = new URLSearchParams({
+      eventName: 'explorer'
+    })
+
+    // Add filter parameters
+    if (transferId) {
+      params.append('filter[transferId]', transferId)
     }
 
-    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?eventName=explorer&filter%5B${filter}`
+    if (transactionHash) {
+      params.append('filter[transactionHash]', transactionHash)
+    }
+
+    if (chainId) {
+      params.append('filter[chainId]', chainId?.toString())
+    }
+
+    const url = `${this.getExplorerApiBaseUrl()}/v1/explorer?${params.toString()}`
     const json = await fetchJsonOrThrow(url.toString())
 
     const event = json?.events?.[0]
@@ -975,13 +992,13 @@ export class Hop extends Base {
 
     delete transferSentEvent.transferBondedEvents
 
-    let transferState = TransferState.NotFound
+    let transferState = event?.state ?? TransferState.NotFound
 
-    if (event && transferBondedEvents.length !== event.hops.length) {
+    if (event && event.hops?.length > 0 && transferBondedEvents.length !== event.hops?.length) {
       transferState = TransferState.PendingBond
     }
 
-    if (event && transferBondedEvents.length === event.hops.length) {
+    if (event && transferBondedEvents.length > 0 && transferBondedEvents.length === event.hops?.length) {
       transferState = TransferState.Bonded
     }
 
@@ -991,7 +1008,7 @@ export class Hop extends Base {
 
     return {
       state: transferState,
-      transferId: event.transferId,
+      transferId: event?.transferId ?? '',
       transferSentEvent,
       transferBondedEvents,
       claimWithdrawnEvents

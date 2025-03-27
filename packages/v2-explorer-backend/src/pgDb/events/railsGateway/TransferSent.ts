@@ -130,8 +130,9 @@ export class TransferSentTable extends EventDb {
         WHERE
           ec.block_timestamp >= $1
           AND ec.block_timestamp <= $2
-          ${filter?.transferId ? 'AND e.transfer_id = $5' : ''}
-          ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
+          ${filter?.transferId ? 'AND e.transfer_id = $5' : (
+            filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''
+          )}
           ${filter?.account ? 'AND ec.from_address = $5' : ''}
           ${filter?.recipient ? 'AND e."to" = $5' : ''}
           ${filter?.bonded != null ? 'AND tbe.claim_id IS NOT NULL' : ''}

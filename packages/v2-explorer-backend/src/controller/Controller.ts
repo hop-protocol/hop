@@ -267,6 +267,8 @@ export class Controller {
 
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
 
+    console.log('getExplorerEventsForApi', input)
+
     const promises = items.map(async (item: any) => {
       const { transferId, context: { transactionHash } } = item
       // const bondedEvents  = await this.getEvents({
@@ -341,6 +343,32 @@ export class Controller {
     })
 
     const explorerItems = await Promise.all(promises)
+
+    console.log('getExplorerEventsForApi', 'explorerItems', explorerItems.length, filter.chainId, filter.transactionHash)
+    if (explorerItems.length === 1 && filter.chainId && filter.transactionHash) {
+      try {
+        const chainId = filter.chainId
+        const transactionHash = filter.transactionHash
+        const provider = this.sdk.getProvider(chainId)
+        const tx = await provider?.waitForTransaction(transactionHash)
+        const transferId = await this.sdk.getTransferIdFromTransactionHash({ chainId, transactionHash })
+        if (tx) {
+          explorerItems.push({
+            transferId,
+            context: {
+              ...tx,
+              chainId
+            },
+            state: 'PendingBond',
+            transferBondedEvents: [],
+            claimWithdrawnEvents: []
+          })
+        }
+        console.log('getExplorerEventsForApi', 'tx', tx)
+      } catch (err: any) {
+        console.error(`getExplorerEventsForApi, filter: ${JSON.stringify(filter)}, error: ${err.message}`)
+      }
+    }
 
     return {
       items: explorerItems.map((item: any) => this.normalizeEventForApi(item)),
@@ -1146,7 +1174,7 @@ export class Controller {
           }
           
           const sourceChainId = event.context.chainId
-          let destChainId = event.toChainId
+          const destChainId = event.toChainId
           
           // Skip if we can't determine destination chain
           if (!destChainId) {

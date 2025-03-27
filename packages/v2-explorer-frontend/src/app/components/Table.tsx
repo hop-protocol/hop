@@ -17,6 +17,8 @@ import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
 import { makeStyles } from '@mui/styles'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import FirstPageIcon from '@mui/icons-material/FirstPage'
+import LastPageIcon from '@mui/icons-material/LastPage'
 import Chip from '@mui/material/Chip'
 import { useTheme } from '@mui/material/styles'
 
@@ -38,6 +40,32 @@ const useStyles = makeStyles((theme: any) => ({
     [theme.breakpoints.down('md')]: {
       flexDirection: 'column',
       alignItems: 'flex-start'
+    }
+  },
+  paginationContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: theme.spacing(2),
+    borderTop: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper,
+    [theme.breakpoints.down('sm')]: {
+      flexDirection: 'column',
+      gap: theme.spacing(2)
+    }
+  },
+  paginationControls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1)
+  },
+  paginationInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    [theme.breakpoints.down('sm')]: {
+      justifyContent: 'center',
+      width: '100%'
     }
   }
 }))
@@ -310,32 +338,63 @@ export function Table (props: Props) {
               </TableBody>
             </_Table>
           </TableContainer>
-        </Box>
-      </Box>
-      <_Table>
-        <TableFooter style={{ display: 'flex', width: '100%' }}>
-          <TableRow style={{ display: 'flex', width: '100%' }}>
-            <TableCell colSpan={headers.length} style={{ display: 'flex', width: '100%' }}>
-              <Box width="100%" display="flex" justifyContent="flex-end">
-                  <IconButton
-                    onClick={previousPage}
-                    disabled={!showPreviousButton}
-                    aria-label="previous page"
-                  >
+
+          {/* Updated Pagination */}
+          {(showPreviousButton || showNextButton) && (
+            <Box className={styles.paginationContainer}>
+              <Box className={styles.paginationInfo}>
+                <Typography variant="body2" color="textSecondary">
+                  Showing {rows.length} items
+                </Typography>
+              </Box>
+              <Box className={styles.paginationControls}>
+                <IconButton
+                  onClick={previousPage}
+                  disabled={!showPreviousButton}
+                  size="small"
+                  title="Previous page"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${theme.palette.divider}`,
+                    '&:hover': {
+                      backgroundColor: theme.palette.action.hover,
+                    },
+                    '&.Mui-disabled': {
+                      opacity: 0.3,
+                      backgroundColor: 'transparent',
+                      border: `1px solid ${theme.palette.divider}`
+                    }
+                  }}
+                >
                   <KeyboardArrowLeft />
                 </IconButton>
-                  <IconButton
-                    onClick={nextPage}
-                    disabled={!showNextButton}
-                    aria-label="next page"
-                  >
+                <IconButton
+                  onClick={nextPage}
+                  disabled={!showNextButton}
+                  size="small"
+                  title="Next page"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${theme.palette.divider}`,
+                    '&:hover': {
+                      backgroundColor: theme.palette.action.hover,
+                    },
+                    '&.Mui-disabled': {
+                      opacity: 0.3,
+                      backgroundColor: 'transparent',
+                      border: `1px solid ${theme.palette.divider}`
+                    }
+                  }}
+                >
                   <KeyboardArrowRight />
                 </IconButton>
               </Box>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </_Table>
+            </Box>
+          )}
+        </Box>
+      </Box>
     </Box>
   )
 }

@@ -191,6 +191,10 @@
 
 - [utils](modules.md#utils)
 
+### Functions
+
+- [getBlockNumberFromDate](modules.md#getblocknumberfromdate)
+
 ## Type Aliases
 
 ### <a id="alleventtypes" name="alleventtypes"></a> AllEventTypes
@@ -2007,3 +2011,21 @@ ___
 | `getTokenExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getTxHashExplorerUrl` | (`network`: `string`, `chainId`: `string`, `txHash`: `string`) => `string` |
 | `isContractError` | (`err`: `unknown`) => `boolean` |
+
+## Functions
+
+### <a id="getblocknumberfromdate" name="getblocknumberfromdate"></a> getBlockNumberFromDate
+
+▸ **getBlockNumberFromDate**(`provider`, `timestamp`, `etherscanApiKey?`): `Promise`\<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `provider` | `Provider` |
+| `timestamp` | `number` |
+| `etherscanApiKey?` | `string` |
+
+#### Returns
+
+`Promise`\<`number`\>

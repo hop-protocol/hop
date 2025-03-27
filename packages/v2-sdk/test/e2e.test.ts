@@ -174,11 +174,11 @@ async function watcher() {
   await watcher()
 }
 
-describe.skip('Sdk - e2e - bonder sim watcher', () => {
+describe.only('Sdk - e2e - bonder sim watcher', () => {
   it('should watch and process transfer events', async () => {
     await watcher()
     expect(true).toBeDefined()
-  }, 10 * 60 * 1000)
+  }, 30 * 60 * 1000)
 })
 
 async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toChainId?: string, _token?: string) {
@@ -518,7 +518,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     console.log('done')
 }
 
-describe.only('Sdk - RailsGateway - e2e - single hop', () => {
+describe.skip('Sdk - RailsGateway - e2e - single hop', () => {
   it('should do an end to end test', async () => {
     await processTransfer()
     expect(true).toBeDefined()

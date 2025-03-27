@@ -5,6 +5,7 @@ import { network } from '#config/index.js'
 export type Options = {
   indexerPollSeconds?: number
   skipChainIds?: string[]
+  syncFromTimestamp?: number
 }
 
 export const defaultPollSeconds = 10
@@ -21,6 +22,8 @@ export class Worker {
     })
 
     const startBlocks: any = {}
+
+    // Initialize start blocks with default values
     Object.keys(this.sdk.contractAddresses).forEach((chainId: string) => {
       startBlocks[chainId] = this.sdk.contractAddresses[chainId].startBlock
     })
@@ -28,7 +31,8 @@ export class Worker {
     this.indexer = new Indexer({
       pollIntervalSeconds: options.indexerPollSeconds,
       startBlocks,
-      skipChainIds: options.skipChainIds
+      skipChainIds: options.skipChainIds,
+      syncFromTimestamp: options.syncFromTimestamp
     })
   }
 

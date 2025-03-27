@@ -198,6 +198,7 @@ import {
   getTxHashExplorerUrl,
   isContractError,
 } from './utils/index.js'
+export { getBlockNumberFromDate } from '@hop-protocol/sdk'
 export const utils = {
   formatUSD,
   getAddressExplorerUrl,

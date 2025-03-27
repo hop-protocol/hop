@@ -252,9 +252,9 @@ ___
 | `getInitialReserve` | (`__namedParameters`: [`GetInitialReserveInput`](../modules.md#getinitialreserveinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenAddress` | (`__namedParameters`: [`GetInitialReserveByTokenAddressInput`](../modules.md#getinitialreservebytokenaddressinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenSymbol` | (`__namedParameters`: [`GetInitialReserveByTokenSymbolInput`](../modules.md#getinitialreservebytokensymbolinput)) => `Promise`\<`BigNumber`\> |
+| `getIsClaimBondedOrWithdrawn` | (`__namedParameters`: [`GetIsClaimBondedOrWithdrawnInput`](../modules.md#getisclaimbondedorwithdrawninput)) => `Promise`\<`boolean`\> |
+| `getIsClaimPushed` | (`__namedParameters`: `GetIsClaimPushedInput`) => `Promise`\<`boolean`\> |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
-| `getIsTransferBonded` | (`__namedParameters`: [`GetIsTransferBondedInput`](../modules.md#getistransferbondedinput)) => `Promise`\<`boolean`\> |
-| `getIsTransferClaimed` | (`__namedParameters`: [`GetIsTransferClaimedInput`](../modules.md#getistransferclaimedinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
 | `getPathInfo` | (`__namedParameters`: [`GetPathInfoInput`](../modules.md#getpathinfoinput)) => `Promise`\<[`Path`](../modules.md#path)\> |
@@ -741,8 +741,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
-| `input` | `PathInitializedIndexes` |
+| `eventName` | `any` |
+| `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
 
 #### Returns
 

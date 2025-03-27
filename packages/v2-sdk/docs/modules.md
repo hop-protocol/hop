@@ -7,6 +7,7 @@
 - [EventName](enums/EventName.md)
 - [MessengerEventName](enums/MessengerEventName.md)
 - [RailsGatewayEventName](enums/RailsGatewayEventName.md)
+- [RailsGatewayMethodName](enums/RailsGatewayMethodName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes
@@ -92,12 +93,12 @@
 - [GetInitialReserveByTokenSymbolInput](modules.md#getinitialreservebytokensymbolinput)
 - [GetInitialReserveInput](modules.md#getinitialreserveinput)
 - [GetIsBundleSetInput](modules.md#getisbundlesetinput)
+- [GetIsClaimBondedOrWithdrawnInput](modules.md#getisclaimbondedorwithdrawninput)
 - [GetIsClaimIdValidInput](modules.md#getisclaimidvalidinput)
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
 - [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
-- [GetIsTransferBondedInput](modules.md#getistransferbondedinput)
-- [GetIsTransferClaimedInput](modules.md#getistransferclaimedinput)
+- [GetLastBondedClaimIdInput](modules.md#getlastbondedclaimidinput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
 - [GetMessageBundleIdFromMessageIdInput](modules.md#getmessagebundleidfrommessageidinput)
@@ -744,6 +745,19 @@ ___
 
 ___
 
+### <a id="getisclaimbondedorwithdrawninput" name="getisclaimbondedorwithdrawninput"></a> GetIsClaimBondedOrWithdrawnInput
+
+Ƭ **GetIsClaimBondedOrWithdrawnInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `pathId` | `string` |
+
+___
+
 ### <a id="getisclaimidvalidinput" name="getisclaimidvalidinput"></a> GetIsClaimIdValidInput
 
 Ƭ **GetIsClaimIdValidInput**: `Object`
@@ -793,27 +807,16 @@ ___
 
 ___
 
-### <a id="getistransferbondedinput" name="getistransferbondedinput"></a> GetIsTransferBondedInput
+### <a id="getlastbondedclaimidinput" name="getlastbondedclaimidinput"></a> GetLastBondedClaimIdInput
 
-Ƭ **GetIsTransferBondedInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `transferId` | `string` |
-
-___
-
-### <a id="getistransferclaimedinput" name="getistransferclaimedinput"></a> GetIsTransferClaimedInput
-
-Ƭ **GetIsTransferClaimedInput**: `Object`
+Ƭ **GetLastBondedClaimIdInput**: `Object`
 
 #### Type declaration
 
 | Name | Type |
 | :------ | :------ |
-| `transferId` | `string` |
+| `bonder` | `string` |
+| `pathId` | `string` |
 
 ___
 
@@ -2004,7 +2007,7 @@ ___
 | `getAddressExplorerUrl` | (`network`: `string`, `chainId`: `string`, `address`: `string`) => `string` |
 | `getChainSlug` | (`chainId`: `BigNumberish`) => `string` |
 | `getComputedNextHopsHash` | (`nextHops`: [`HopStructInput`](modules.md#hopstructinput)[]) => `string` |
-| `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`) => `string` |
+| `getComputedPathId` | (`chainId0`: `BigNumberish`, `token0`: `string`, `chainId1`: `BigNumberish`, `token1`: `string`, `initialReserve`: `BigNumberish`) => `string` |
 | `getComputedTransferDataHash` | (`__namedParameters`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`previousTransferId`: `string`, `transferDataHash`: `string`) => `string` |
 | `getExplorerUrl` | (`network`: `string`, `chainId`: `string`) => `string` |

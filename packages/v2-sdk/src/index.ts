@@ -102,7 +102,6 @@ export {
   GetPathInput,
   PushClaimAndBondInput,
   PushClaimAndWithdrawInput,
-  ReaddClaimInput,
   SetTokenFeeRecipientInput,
   TokensInput,
   PathInitialized,

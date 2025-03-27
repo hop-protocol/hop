@@ -149,58 +149,31 @@ describe.skip('Sdk - Hop - e2e - send', () => {
   }, 10 * 60 * 1000)
 })
 
-async function watcher() {
-  const url = 'https://v2-explorer-sepolia.hop.exchange/api?pathname=%2Fexplorer&limit=10&page=1&eventName=explorer'
-  const { events } = await fetch(url).then(res => res.json())
-  const reverseEvents = events.reverse()
-  const filtered = reverseEvents.filter((event: any) => {
-    // console.log('event', event)
-    const isBonded = event.transferBondedEvents.length > 0 || event.claimWithdrawnEvents.length > 0
-    return !isBonded
-  })
-  .map((event: any) => {
-    return {
-      hash: event.context.transactionHash,
-      fromChainId: event.context.chainId,
-      toChainId: event.toChainId,
-      token: event.token.symbol,
-    }
-  })
-  console.log('events', filtered)
-  for (const event of filtered) {
-    await processTransfer(event.hash, event.fromChainId, event.toChainId, event.token)
-  }
-  await wait(5 * 1000)
-  await watcher()
-}
-
-describe.only('Sdk - e2e - bonder sim watcher', () => {
-  it('should watch and process transfer events', async () => {
-    await watcher()
-    expect(true).toBeDefined()
-  }, 30 * 60 * 1000)
-})
-
-async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toChainId?: string, _token?: string) {
+describe.only('Sdk - RailsGateway - e2e - single hop', () => {
+  it('should do an end to end test', async () => {
     // ----------------
-    const token: any = _token || 'MOCK'
-    // const fromChainId = '11155111'
-    const fromChainId: any = _fromChainId || '84532'
-    const fromToken = (addresses as any)[fromChainId]!.tokens![token]!.address!
-    // const toChainId = '84532'
-    const toChainId: any = _toChainId || '11155111'
-    const toToken = (addresses as any)[toChainId]!.tokens![token]!.address!
-    const sendAmount = parseUnits('0.1', 18)
+    const token = 'MOCK'
+    const fromChainId = '11155111'
+    const fromToken = addresses[fromChainId]!.tokens![token]!
+    const toChainId = '84532'
+    const toToken = addresses[toChainId]!.tokens![token]!
+    const sendAmount = parseUnits('0.1', 6)
+    // const fromChainId = '84532'
+    // const fromToken = addresses[fromChainId]!.tokens!.MOCK!
+    // const toChainId = '11155111'
+    // const toToken = addresses[toChainId]!.tokens!.MOCK!
+    // const sendAmount = parseUnits('0.1', 18)
     // ----------------
 
-    const shouldPushClaim = true // debug
-    const shouldBond = true // debug
-    const shouldExecute = true // debug
+    const shouldPushClaim = false // debug
+    const shouldBond = false // debug
+    // const shouldExecute = true // debug
+    const shouldExecute = false // debug
     const shouldConfirm = false // debug
-    const shouldWithdraw = true // debug
+    const shouldWithdraw = false // debug
 
-    let sendTxHash = _sendTxHash || ''
-    let bondTxHash = ''
+    // let sendTxHash = '0x144f1fc54c44655527e3a2e9533b084be7ef3420bdd2ffbc6575de40eb221612'
+    // let bondTxHash = '0x69d6a4a136ece09edb0d017762810dbc681dddb471cd30755d25576c050afb87'
 
     const senderSigner = new Wallet(privateKey)
     const bonderSigner = new Wallet(bonderPrivateKey)
@@ -272,21 +245,19 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
       maxBonderFee
     }]
 
-    const shouldSend = !sendTxHash // debug
-    let sendTx: any
-    if (shouldSend) {
-      sendTx = await sdk.getRailsGateway(fromChainId).send({
-        amount: sendAmount,
-        to,
-        hops,
-        fee
-      })
+    // const shouldSend = !sendTxHash // debug
+    console.log('??')
+    const sendTx = await sdk.getRailsGateway(fromChainId).send({
+      amount: sendAmount,
+      to,
+      hops,
+      fee
+    })
 
-      console.log('send tx:', sendTx.hash)
-      await sendTx.wait()
-    }
+    console.log('send tx:', sendTx.hash)
+    await sendTx.wait()
 
-    sendTxHash = sendTxHash || sendTx.hash
+    const sendTxHash = sendTx.hash
 
     const transferSentEvent = (await sdk.getRailsGateway(fromChainId).helpers.getTransferSentEventFromTransactionHash({
       transactionHash: sendTxHash,
@@ -425,11 +396,11 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
       await approveTx.wait()
     }
 
-    const isBonded = await sdk.getRailsGateway(toChainId).helpers.getIsTransferBonded({
-      transferId: transferSentEvent.decoded.transferId,
-    })
+    // const isBonded = await sdk.getRailsGateway(toChainId).helpers.getIsTransferBonded({
+    //   transferId: transferSentEvent.decoded.transferId,
+    // })
 
-    console.log('isBonded:', isBonded)
+    // console.log('isBonded:', isBonded)
 
     const tokenContract = sdk.getRailsGateway(toChainId).helpers.getTokenContract({ address: toToken })
     const tokenBalance = await tokenContract.balanceOf(bonderAddress)
@@ -449,17 +420,17 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
       await bondTx.wait()
     }
 
-    const isClaimed = await sdk.getRailsGateway(toChainId).helpers.getIsTransferClaimed({
-      transferId: transferSentEvent.decoded.transferId,
-    })
+    // const isClaimed = await sdk.getRailsGateway(toChainId).helpers.getIsTransferClaimed({
+    //   transferId: transferSentEvent.decoded.transferId,
+    // })
 
-    console.log('isClaimed:', isClaimed)
+    // console.log('isClaimed:', isClaimed)
 
-    if (!bondTxHash && bondTx) {
-      bondTxHash = bondTx.hash
-    }
-    const lastBond = await sdk.getRailsGateway(toChainId).helpers.getTransferBondedEventFromTransactionHash({
-      transactionHash: bondTxHash
+    // if (!bondTxHash && bondTx) {
+    //   bondTxHash = bondTx.hash
+    // }
+    const lastBond = await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
+      transactionHash: ''
     })
 
     const bucketIndex = await sdk.getRailsGateway(toChainId).helpers.getBucketIndex({ pathId, claimId: lastBond!.decoded.claimId })

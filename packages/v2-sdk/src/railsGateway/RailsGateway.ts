@@ -134,11 +134,6 @@ export type RemoveClaimInput = {
   claimId: string
 }
 
-export type ReaddClaimInput = {
-  pathId: string
-  claimId: string
-}
-
 export type ConfirmClaimInput = {
   pathId: string
   claimId: string

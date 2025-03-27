@@ -7,6 +7,7 @@
 - [EventName](enums/EventName.md)
 - [MessengerEventName](enums/MessengerEventName.md)
 - [RailsGatewayEventName](enums/RailsGatewayEventName.md)
+- [RailsPathEventName](enums/RailsPathEventName.md)
 - [TransferState](enums/TransferState.md)
 
 ### Classes
@@ -59,6 +60,7 @@
 - [BundleProof](modules.md#bundleproof)
 - [CalcAmountOutMinInput](modules.md#calcamountoutmininput)
 - [Claim](modules.md#claim)
+- [ClaimChainInput](modules.md#claimchaininput)
 - [ClaimFeesFromPathInput](modules.md#claimfeesfrompathinput)
 - [ClaimPushedIndexes](modules.md#claimpushedindexes)
 - [ClaimReaddedIndexes](modules.md#claimreaddedindexes)
@@ -83,6 +85,10 @@
 - [GetEstimatedReceivedInput](modules.md#getestimatedreceivedinput)
 - [GetEventContextInput](modules.md#geteventcontextinput)
 - [GetEventFilterInput](modules.md#geteventfilterinput)
+- [GetEventFromTransactionHashInput](modules.md#geteventfromtransactionhashinput)
+- [GetEventFromTransactionReceiptInput](modules.md#geteventfromtransactionreceiptinput)
+- [GetEventFromTransferIdInput](modules.md#geteventfromtransferidinput)
+- [GetEventsInBatchesInput](modules.md#geteventsinbatchesinput)
 - [GetEventsInput](modules.md#geteventsinput)
 - [GetGeneralEventsInput](modules.md#getgeneraleventsinput)
 - [GetHasSufficientBalanceInput](modules.md#gethassufficientbalanceinput)
@@ -118,6 +124,7 @@
 - [GetNeedsApprovalForBondInput](modules.md#getneedsapprovalforbondinput)
 - [GetNeedsApprovalForSendInput](modules.md#getneedsapprovalforsendinput)
 - [GetNeedsApprovalForSendTokensInput](modules.md#getneedsapprovalforsendtokensinput)
+- [GetNextHopsHashFromHopsInput](modules.md#getnexthopshashfromhopsinput)
 - [GetNextHopsHashInput](modules.md#getnexthopshashinput)
 - [GetPathIdInput](modules.md#getpathidinput)
 - [GetPathInfoInput](modules.md#getpathinfoinput)
@@ -126,18 +133,23 @@
 - [GetRelayMessageDataFromTransactionHashInput](modules.md#getrelaymessagedatafromtransactionhashinput)
 - [GetRelayMessagePopulatedTxInput](modules.md#getrelaymessagepopulatedtxinput)
 - [GetRelayRewardInput](modules.md#getrelayrewardinput)
+- [GetRemovedBalanceInput](modules.md#getremovedbalanceinput)
 - [GetRouteDataInput](modules.md#getroutedatainput)
 - [GetSendFeeInput](modules.md#getsendfeeinput)
 - [GetSendMessagePopulatedTxInput](modules.md#getsendmessagepopulatedtxinput)
+- [GetSourcePoolInput](modules.md#getsourcepoolinput)
 - [GetSpokeExitTimeInput](modules.md#getspokeexittimeinput)
 - [GetTokenContractInput](modules.md#gettokencontractinput)
 - [GetTokenInfoInput](modules.md#gettokeninfoinput)
+- [GetTotalClaimsAtClaimIdInput](modules.md#gettotalclaimsatclaimidinput)
 - [GetTotalSentInput](modules.md#gettotalsentinput)
+- [GetTotalWithdrawableAtClaimIdInput](modules.md#gettotalwithdrawableatclaimidinput)
 - [GetTransferBondedEventFromTransactionHashInput](modules.md#gettransferbondedeventfromtransactionhashinput)
 - [GetTransferBondedEventFromTransactionReceiptInput](modules.md#gettransferbondedeventfromtransactionreceiptinput)
 - [GetTransferBondedEventFromTransferIdInput](modules.md#gettransferbondedeventfromtransferidinput)
 - [GetTransferDataHashInput](modules.md#gettransferdatahashinput)
 - [GetTransferIdFromTransactionHashInput](modules.md#gettransferidfromtransactionhashinput)
+- [GetTransferInput](modules.md#gettransferinput)
 - [GetTransferSentEventFromTransactionHashInput](modules.md#gettransfersenteventfromtransactionhashinput)
 - [GetTransferSentEventFromTransactionReceiptInput](modules.md#gettransfersenteventfromtransactionreceiptinput)
 - [GetTransferSentEventFromTransferIdInput](modules.md#gettransfersenteventfromtransferidinput)
@@ -150,6 +162,7 @@
 - [InitChainInput](modules.md#initchaininput)
 - [InitPathInput](modules.md#initpathinput)
 - [IsPathInitializedInput](modules.md#ispathinitializedinput)
+- [LastBondedClaimIdForBonderInput](modules.md#lastbondedclaimidforbonderinput)
 - [MessengerConstructorInput](modules.md#messengerconstructorinput)
 - [Path](modules.md#path)
 - [PathInitializedIndexes](modules.md#pathinitializedindexes)
@@ -159,6 +172,29 @@
 - [RailsGatewayConstructorInput](modules.md#railsgatewayconstructorinput)
 - [RailsGatewayGetMessageFeeInput](modules.md#railsgatewaygetmessagefeeinput)
 - [RailsGatewayGetSendFeeInput](modules.md#railsgatewaygetsendfeeinput)
+- [RailsPathApproveSendInput](modules.md#railspathapprovesendinput)
+- [RailsPathBondInput](modules.md#railspathbondinput)
+- [RailsPathBucket](modules.md#railspathbucket)
+- [RailsPathClaim](modules.md#railspathclaim)
+- [RailsPathConfirmClaimInput](modules.md#railspathconfirmclaiminput)
+- [RailsPathConstructorInput](modules.md#railspathconstructorinput)
+- [RailsPathEventFetcher](modules.md#railspatheventfetcher)
+- [RailsPathGetAmountOutInput](modules.md#railspathgetamountoutinput)
+- [RailsPathGetBucketIndexInput](modules.md#railspathgetbucketindexinput)
+- [RailsPathGetBucketInput](modules.md#railspathgetbucketinput)
+- [RailsPathGetClaimInput](modules.md#railspathgetclaiminput)
+- [RailsPathGetEventFilterInput](modules.md#railspathgeteventfilterinput)
+- [RailsPathGetNextHopsHashInput](modules.md#railspathgetnexthopshashinput)
+- [RailsPathGetWithdrawableBalanceInput](modules.md#railspathgetwithdrawablebalanceinput)
+- [RailsPathIsValidClaimInput](modules.md#railspathisvalidclaiminput)
+- [RailsPathIsValidTransferInput](modules.md#railspathisvalidtransferinput)
+- [RailsPathPath](modules.md#railspathpath)
+- [RailsPathPushClaimInput](modules.md#railspathpushclaiminput)
+- [RailsPathReaddClaimInput](modules.md#railspathreaddclaiminput)
+- [RailsPathRemoveClaimInput](modules.md#railspathremoveclaiminput)
+- [RailsPathSendInput](modules.md#railspathsendinput)
+- [RailsPathWithdrawBondsInput](modules.md#railspathwithdrawbondsinput)
+- [RailsPathWithdrawClaimInput](modules.md#railspathwithdrawclaiminput)
 - [ReaddClaimInput](modules.md#readdclaiminput)
 - [RelayMessageData](modules.md#relaymessagedata)
 - [RemoveClaimInput](modules.md#removeclaiminput)
@@ -176,7 +212,9 @@
 - [Token](modules.md#token)
 - [TokensInput](modules.md#tokensinput)
 - [TransactionReceiptWithEvents](modules.md#transactionreceiptwithevents)
+- [Transfer](modules.md#transfer)
 - [TransferBondedIndexes](modules.md#transferbondedindexes)
+- [TransferChainInput](modules.md#transferchaininput)
 - [TransferSentIndexes](modules.md#transfersentindexes)
 - [TransferStatus](modules.md#transferstatus)
 - [TxOverrides](modules.md#txoverrides)
@@ -186,6 +224,7 @@
 - [WillSendTokensFailInput](modules.md#willsendtokensfailinput)
 - [WithdrawBondsInput](modules.md#withdrawbondsinput)
 - [WithdrawClaimInput](modules.md#withdrawclaiminput)
+- [WithdrawnInput](modules.md#withdrawninput)
 
 ### Variables
 
@@ -320,6 +359,18 @@ ___
 | `totalAddedToBucketMaxConfirmed` | `BigNumber` |
 | `totalAttested` | `BigNumber` |
 | `totalClaims` | `BigNumber` |
+
+___
+
+### <a id="claimchaininput" name="claimchaininput"></a> ClaimChainInput
+
+Ƭ **ClaimChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `index` | `BigNumberish` |
 
 ___
 
@@ -623,6 +674,61 @@ ___
 ### <a id="geteventfilterinput" name="geteventfilterinput"></a> GetEventFilterInput
 
 Ƭ **GetEventFilterInput**: `PathInitializedIndexes`
+
+___
+
+### <a id="geteventfromtransactionhashinput" name="geteventfromtransactionhashinput"></a> GetEventFromTransactionHashInput
+
+Ƭ **GetEventFromTransactionHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | [`RailsPathEventName`](enums/RailsPathEventName.md) |
+| `transactionHash` | `string` |
+
+___
+
+### <a id="geteventfromtransactionreceiptinput" name="geteventfromtransactionreceiptinput"></a> GetEventFromTransactionReceiptInput
+
+Ƭ **GetEventFromTransactionReceiptInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | [`RailsPathEventName`](enums/RailsPathEventName.md) |
+| `receipt` | `providers.TransactionReceipt` |
+
+___
+
+### <a id="geteventfromtransferidinput" name="geteventfromtransferidinput"></a> GetEventFromTransferIdInput
+
+Ƭ **GetEventFromTransferIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | [`RailsPathEventName`](enums/RailsPathEventName.md) |
+| `fromBlock?` | `number` |
+| `transferId` | `string` |
+
+___
+
+### <a id="geteventsinbatchesinput" name="geteventsinbatchesinput"></a> GetEventsInBatchesInput
+
+Ƭ **GetEventsInBatchesInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `eventName` | [`RailsPathEventName`](enums/RailsPathEventName.md) |
+| `fetchTxData?` | `boolean` |
+| `fromBlock` | `number` |
+| `toBlock` | `number` |
 
 ___
 
@@ -1067,6 +1173,18 @@ ___
 
 ___
 
+### <a id="getnexthopshashfromhopsinput" name="getnexthopshashfromhopsinput"></a> GetNextHopsHashFromHopsInput
+
+Ƭ **GetNextHopsHashFromHopsInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `hops` | `HopStructInput`[] |
+
+___
+
 ### <a id="getnexthopshashinput" name="getnexthopshashinput"></a> GetNextHopsHashInput
 
 Ƭ **GetNextHopsHashInput**: `Object`
@@ -1173,6 +1291,18 @@ ___
 
 ___
 
+### <a id="getremovedbalanceinput" name="getremovedbalanceinput"></a> GetRemovedBalanceInput
+
+Ƭ **GetRemovedBalanceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder` | `string` |
+
+___
+
 ### <a id="getroutedatainput" name="getroutedatainput"></a> GetRouteDataInput
 
 Ƭ **GetRouteDataInput**: `Object`
@@ -1214,6 +1344,18 @@ ___
 
 ___
 
+### <a id="getsourcepoolinput" name="getsourcepoolinput"></a> GetSourcePoolInput
+
+Ƭ **GetSourcePoolInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `attestedClaimId` | `string` |
+
+___
+
 ### <a id="getspokeexittimeinput" name="getspokeexittimeinput"></a> GetSpokeExitTimeInput
 
 Ƭ **GetSpokeExitTimeInput**: `Object`
@@ -1250,6 +1392,18 @@ ___
 
 ___
 
+### <a id="gettotalclaimsatclaimidinput" name="gettotalclaimsatclaimidinput"></a> GetTotalClaimsAtClaimIdInput
+
+Ƭ **GetTotalClaimsAtClaimIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
 ### <a id="gettotalsentinput" name="gettotalsentinput"></a> GetTotalSentInput
 
 Ƭ **GetTotalSentInput**: `Object`
@@ -1259,6 +1413,19 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
+
+___
+
+### <a id="gettotalwithdrawableatclaimidinput" name="gettotalwithdrawableatclaimidinput"></a> GetTotalWithdrawableAtClaimIdInput
+
+Ƭ **GetTotalWithdrawableAtClaimIdInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder` | `string` |
+| `claimId` | `string` |
 
 ___
 
@@ -1326,6 +1493,18 @@ ___
 | :------ | :------ |
 | `chainId` | `BigNumberish` |
 | `transactionHash` | `string` |
+
+___
+
+### <a id="gettransferinput" name="gettransferinput"></a> GetTransferInput
+
+Ƭ **GetTransferInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `transferId` | `string` |
 
 ___
 
@@ -1483,6 +1662,18 @@ ___
 
 ___
 
+### <a id="lastbondedclaimidforbonderinput" name="lastbondedclaimidforbonderinput"></a> LastBondedClaimIdForBonderInput
+
+Ƭ **LastBondedClaimIdForBonderInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder` | `string` |
+
+___
+
 ### <a id="messengerconstructorinput" name="messengerconstructorinput"></a> MessengerConstructorInput
 
 Ƭ **MessengerConstructorInput**: `Object`
@@ -1619,6 +1810,308 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `pathId` | `string` |
+
+___
+
+### <a id="railspathapprovesendinput" name="railspathapprovesendinput"></a> RailsPathApproveSendInput
+
+Ƭ **RailsPathApproveSendInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+
+___
+
+### <a id="railspathbondinput" name="railspathbondinput"></a> RailsPathBondInput
+
+Ƭ **RailsPathBondInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonderFee` | `BigNumberish` |
+| `claimId` | `string` |
+| `nextHops` | `HopStructInput`[] |
+
+___
+
+### <a id="railspathbucket" name="railspathbucket"></a> RailsPathBucket
+
+Ƭ **RailsPathBucket**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `completedAt` | `BigNumber` |
+| `finalClaimId` | `string` |
+| `maxConfirmed` | `BigNumber` |
+| `totalAttested` | `BigNumber` |
+
+___
+
+### <a id="railspathclaim" name="railspathclaim"></a> RailsPathClaim
+
+Ƭ **RailsPathClaim**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amountOut` | `BigNumber` |
+| `bondedOrWithdrawnBy` | `string` |
+| `createdAt` | `BigNumber` |
+| `index` | `BigNumber` |
+| `maxBonderFee` | `BigNumber` |
+| `nextHopsHash` | `string` |
+| `to` | `string` |
+| `totalAddedToBucketMaxConfirmed` | `BigNumber` |
+| `totalAttested` | `BigNumber` |
+| `totalClaims` | `BigNumber` |
+
+___
+
+### <a id="railspathconfirmclaiminput" name="railspathconfirmclaiminput"></a> RailsPathConfirmClaimInput
+
+Ƭ **RailsPathConfirmClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathconstructorinput" name="railspathconstructorinput"></a> RailsPathConstructorInput
+
+Ƭ **RailsPathConstructorInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `address?` | `string` |
+| `chainId` | `BigNumberish` |
+| `contractAddresses?` | `Addresses` |
+| `gasPriceMultiplier?` | `number` |
+| `network?` | `string` |
+| `signerOrProvider?` | `Signer` \| `providers.Provider` |
+| `signersOrProviders?` | `SignersOrProviders` |
+
+___
+
+### <a id="railspatheventfetcher" name="railspatheventfetcher"></a> RailsPathEventFetcher
+
+Ƭ **RailsPathEventFetcher**: `TransferSentEventFetcher` \| `TransferBondedEventFetcher` \| `ClaimPushedEventFetcher` \| `ClaimReaddedEventFetcher` \| `ClaimRemovedEventFetcher` \| `ClaimWithdrawnEventFetcher`
+
+___
+
+### <a id="railspathgetamountoutinput" name="railspathgetamountoutinput"></a> RailsPathGetAmountOutInput
+
+Ƭ **RailsPathGetAmountOutInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `sourcePool` | `BigNumberish` |
+
+___
+
+### <a id="railspathgetbucketindexinput" name="railspathgetbucketindexinput"></a> RailsPathGetBucketIndexInput
+
+Ƭ **RailsPathGetBucketIndexInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathgetbucketinput" name="railspathgetbucketinput"></a> RailsPathGetBucketInput
+
+Ƭ **RailsPathGetBucketInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `index` | `BigNumberish` |
+
+___
+
+### <a id="railspathgetclaiminput" name="railspathgetclaiminput"></a> RailsPathGetClaimInput
+
+Ƭ **RailsPathGetClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathgeteventfilterinput" name="railspathgeteventfilterinput"></a> RailsPathGetEventFilterInput
+
+Ƭ **RailsPathGetEventFilterInput**: `TransferSentIndexes` \| `TransferBondedIndexes` \| `ClaimPushedIndexes` \| `ClaimReaddedIndexes` \| `ClaimRemovedIndexes` \| `ClaimWithdrawnIndexes`
+
+___
+
+### <a id="railspathgetnexthopshashinput" name="railspathgetnexthopshashinput"></a> RailsPathGetNextHopsHashInput
+
+Ƭ **RailsPathGetNextHopsHashInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `nextHops` | `HopStructInput`[] |
+
+___
+
+### <a id="railspathgetwithdrawablebalanceinput" name="railspathgetwithdrawablebalanceinput"></a> RailsPathGetWithdrawableBalanceInput
+
+Ƭ **RailsPathGetWithdrawableBalanceInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder` | `string` |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathisvalidclaiminput" name="railspathisvalidclaiminput"></a> RailsPathIsValidClaimInput
+
+Ƭ **RailsPathIsValidClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathisvalidtransferinput" name="railspathisvalidtransferinput"></a> RailsPathIsValidTransferInput
+
+Ƭ **RailsPathIsValidTransferInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathpath" name="railspathpath"></a> RailsPathPath
+
+Ƭ **RailsPathPath**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `string` |
+| `counterpartChainId` | `string` |
+| `counterpartToken` | `string` |
+| `initialReserve` | `BigNumber` |
+| `token` | `string` |
+
+___
+
+### <a id="railspathpushclaiminput" name="railspathpushclaiminput"></a> RailsPathPushClaimInput
+
+Ƭ **RailsPathPushClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `attestedClaimId` | `string` |
+| `claimId` | `string` |
+| `maxBonderFee` | `BigNumberish` |
+| `nextHopsHash` | `string` |
+| `sourcePool` | `BigNumberish` |
+| `to` | `string` |
+
+___
+
+### <a id="railspathreaddclaiminput" name="railspathreaddclaiminput"></a> RailsPathReaddClaimInput
+
+Ƭ **RailsPathReaddClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `transferDataHash` | `string` |
+
+___
+
+### <a id="railspathremoveclaiminput" name="railspathremoveclaiminput"></a> RailsPathRemoveClaimInput
+
+Ƭ **RailsPathRemoveClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathsendinput" name="railspathsendinput"></a> RailsPathSendInput
+
+Ƭ **RailsPathSendInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+| `fee` | `BigNumberish` |
+| `hops` | `HopStructInput`[] |
+| `to` | `string` |
+
+___
+
+### <a id="railspathwithdrawbondsinput" name="railspathwithdrawbondsinput"></a> RailsPathWithdrawBondsInput
+
+Ƭ **RailsPathWithdrawBondsInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+
+___
+
+### <a id="railspathwithdrawclaiminput" name="railspathwithdrawclaiminput"></a> RailsPathWithdrawClaimInput
+
+Ƭ **RailsPathWithdrawClaimInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `claimId` | `string` |
+| `nextHops` | `HopStructInput`[] |
 
 ___
 
@@ -1845,6 +2338,19 @@ ___
 
 ___
 
+### <a id="transfer" name="transfer"></a> Transfer
+
+Ƭ **Transfer**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `index` | `BigNumber` |
+| `totalSent` | `BigNumber` |
+
+___
+
 ### <a id="transferbondedindexes" name="transferbondedindexes"></a> TransferBondedIndexes
 
 Ƭ **TransferBondedIndexes**: `Object`
@@ -1856,6 +2362,18 @@ ___
 | `claimId?` | `string` |
 | `pathId?` | `string` |
 | `to?` | `string` |
+
+___
+
+### <a id="transferchaininput" name="transferchaininput"></a> TransferChainInput
+
+Ƭ **TransferChainInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `index` | `BigNumberish` |
 
 ___
 
@@ -1989,6 +2507,18 @@ ___
 | `claimId` | `string` |
 | `nextHops` | [`HopStructInput`](modules.md#hopstructinput)[] |
 | `pathId` | `string` |
+
+___
+
+### <a id="withdrawninput" name="withdrawninput"></a> WithdrawnInput
+
+Ƭ **WithdrawnInput**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bonder` | `string` |
 
 ## Variables
 

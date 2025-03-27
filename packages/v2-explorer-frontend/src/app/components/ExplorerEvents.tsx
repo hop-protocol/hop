@@ -36,11 +36,16 @@ export function ExplorerEvents (props: any) {
   const [filterBy, setFilterBy] = useState('transferId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
+  const defaultLimit = Number(queryParams?.limit) || 10
   const { events: clientEvents, nextPage, previousPage, showNextButton, showPreviousButton, limit, loading: clientEventsLoading } = useEvents('explorer', filter, onPagination, queryParams)
   
   function onPagination (params: any) {
-    const { page } = params
-    updateQueryParams({ page })
+    const { page, limit } = params
+    updateQueryParams({ page, limit })
+  }
+
+  function handlePageLimitChange(newLimit: number) {
+    onPagination({ page: 1, limit: newLimit })
   }
 
   const [loading, setLoading] = useState(() => {
@@ -342,6 +347,8 @@ export function ExplorerEvents (props: any) {
           nextPage={nextPage} 
           previousPage={previousPage} 
           limit={limit} 
+          defaultLimit={defaultLimit}
+          onPageLimitChange={handlePageLimitChange}
           loading={loading} 
           onRowClick={handleRowClick} 
           minWidth={'2100px'}

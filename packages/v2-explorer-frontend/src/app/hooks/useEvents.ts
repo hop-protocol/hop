@@ -5,7 +5,7 @@ import { fetchEvents } from './fetchEvents'
 export function useEvents (eventName: string, filter: any = {}, onPagination?: any, queryParams?: any) {
   const [hasNextPage, setHasNextPage] = useState(false)
   const [page, setPage] = useState(queryParams?.page || 1)
-  const limit = 10
+  const [limit, setLimit] = useState(queryParams?.limit || 10)
   const intervalMs = 10 * 1000
 
   const filterString = useMemo(() => {
@@ -19,7 +19,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     return str
   }, [filter])
 
-  const { isLoading: loading, data, error } = useQuery([`events:${eventName}-${page}-${filterString}`, page, eventName, filterString], async () => {
+  const { isLoading: loading, data, error } = useQuery([`events:${eventName}-${page}-${limit}-${filterString}`, page, limit, eventName, filterString], async () => {
     try {
       return await fetchEvents({
         eventName,
@@ -40,7 +40,7 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     const newPage = (Number(page) - 1) || 1
     setPage(newPage)
     if (onPagination) {
-      onPagination({ page: newPage })
+      onPagination({ page: newPage, limit })
     }
   }
 
@@ -49,9 +49,16 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     const newPage = (Number(page) + 1) || 1
     setPage(newPage)
     if (onPagination) {
-      onPagination({ page: newPage })
+      onPagination({ page: newPage, limit })
     }
   }
+
+  // Update limit when queryParams change
+  useMemo(() => {
+    if (queryParams?.limit && queryParams.limit !== limit) {
+      setLimit(Number(queryParams.limit))
+    }
+  }, [queryParams?.limit])
 
   const showPreviousButton = page > 1
   const events = data?.events || []
@@ -67,3 +74,4 @@ export function useEvents (eventName: string, filter: any = {}, onPagination?: a
     loading
   }
 }
+

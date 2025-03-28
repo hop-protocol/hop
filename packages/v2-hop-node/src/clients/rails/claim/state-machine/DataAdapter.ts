@@ -2,22 +2,19 @@ import { DataAdapter } from '#state-machine/index.js'
 import {
   type TransferSent,
   type ClaimPushed,
-  // type ClaimRemoved,
-  // type ClaimReadded,
   RailsEventName,
-  getComputedNextHopsHash
+  getComputedNextHopsHash,
+  getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
 import {
   type IRailsClaim,
   type ISentRailsClaim,
   type IPushedRailsClaim,
-  // type IRemovedRailsClaim,
-  // type IReaddedRailsClaim,
   RailsClaimEventName,
   RailsClaimState
 } from './types.js'
 import { getCounterpartChainIdForPathId } from '../../utils.js'
-import type { DecodedLogWithContext } from '#types/index.js'
+import type { DecodedLogWithContext, EventContext } from '#types/index.js'
 
 export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsClaim, RailsEventName> {
 
@@ -32,10 +29,6 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsClaim
       case RailsEventName.ClaimPushed:
         return this.#formatClaimPushedLog(log as DecodedLogWithContext<ClaimPushed>) as IRailsClaim
-      // case RailsEventName.ClaimReadded:
-      //   return this.#formatClaimRemovedLog(log as DecodedLogWithContext<ClaimRemoved>) as IRailsClaim
-      // case RailsEventName.ClaimRemoved:
-      //   return this.#formatClaimReaddedLog(log as DecodedLogWithContext<ClaimReadded>) as IRailsClaim
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -47,44 +40,33 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
         return RailsClaimState.Sent
       case RailsEventName.ClaimPushed:
         return RailsClaimState.Pushed
-      // case RailsEventName.ClaimRemoved:
-      //   return RailsClaimState.Removed
-      // case RailsEventName.ClaimConfirmed:
-      //   return RailsClaimState.Confirmed
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
-  protected override getEventNameFromState (state: RailsClaimState): RailsEventName {
-    switch (state) {
-      case RailsClaimState.Sent:
-        return RailsEventName.TransferSent
-      case RailsClaimState.Pushed:
-        return RailsEventName.ClaimPushed
-      // case RailsClaimState.Removed:
-      //   return RailsEventName.ClaimRemoved
-      // case RailsClaimState.Confirmed:
-      //   return RailsEventName.ClaimConfirmed
-      default:
-        throw new Error('Invalid state')
-    }
-  }
-
-  protected override getEventChainIdForState (state: RailsClaimState, value: IRailsClaim): string {
+  protected override async getEventContextFromState (state: RailsClaimState, value: IRailsClaim): Promise<EventContext<RailsEventName>> {
     const { pathId, txContext } = value
     const { chainId } = txContext
     const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
     switch (state) {
-      case RailsClaimState.Sent:
-        return chainId
-      case RailsClaimState.Pushed:
-        return counterpartChainId
-      // case RailsClaimState.Removed:
-      //   return counterpartChainId
-      // case RailsClaimState.Confirmed:
-      //   return counterpartChainId
+      case RailsClaimState.Sent: {
+        const eventAddress = await getRailsPathAddress(pathId, chainId)
+        return {
+          eventChainId: chainId,
+          eventAddress,
+          eventName: RailsEventName.TransferSent
+        }
+      }
+      case RailsClaimState.Pushed: {
+        const eventAddress = await getRailsPathAddress(pathId, counterpartChainId)
+        return {
+          eventChainId: counterpartChainId,
+          eventAddress,
+          eventName: RailsEventName.ClaimPushed
+        }
+      }
       default:
         throw new Error('Invalid state')
     }

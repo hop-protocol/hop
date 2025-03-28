@@ -55,7 +55,6 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndexes
   #started: boolean = false
   protected readonly logger: Logger
 
-  protected abstract getEventFilter(chainId: string, eventName: EventName): RequiredEventFilter
   protected abstract getDesiredEventIndexes (eventName: EventName): EventIndexes
   protected abstract getStartBlockNumber (chainId: string): number
   protected abstract getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext
@@ -159,9 +158,10 @@ export abstract class OnchainEventIndexer<EventName extends string, EventIndexes
   // but if they are incorrect then this method will error. If the values are correct but the data
   // does not exist, then this method will return null.
   async fetchItem(input: IndexedEventDataWithContext<EventName>): Promise<DecodedLogWithContext | null> {
-    const { eventChainId, eventName, eventIndexValues } = input
-    const eventFilter: RequiredEventFilter = this.getEventFilter(eventChainId, eventName)
-    const filterId: string = getUniqueFilterId(eventName, eventChainId, eventFilter.address)
+    const { eventContext, eventIndexValues } = input
+    const { eventChainId, eventAddress, eventName } = eventContext
+
+    const filterId: string = getUniqueFilterId(eventName, eventChainId, eventAddress)
 
     const desiredEventIndexes: EventIndexes = this.getDesiredEventIndexes(eventName)
     const stringifiedDBIndexes: string[] = this.#getStringifiedDBIndexes(desiredEventIndexes, eventIndexValues)

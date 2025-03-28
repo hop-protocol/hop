@@ -34,35 +34,6 @@ export function getRailsStartBlockNumber (chainId: string): number {
 }
 
 /**
- * Events
- */
-
-// TODO: Move this to #indexer/utils.ts when aggregation is implemented at the indexer level
-export function aggregateFilters(filters: RequiredEventFilter[]): RequiredEventFilter[] {
-  const filtersByAddress: Record<string, RequiredEventFilter> = {}
-
-  filters.forEach((filter: RequiredEventFilter) => {
-    const address = filter.address
-    const existingFilter = filtersByAddress[address] ?? { address, topics: [] }
-
-    filter.topics.forEach((topic, i) => {
-      if (!existingFilter.topics![i]) {
-        existingFilter.topics![i] = []
-      }
-      if (!existingFilter.topics![i]!.includes(topic as string)) {
-        (existingFilter.topics![i] as string[]).push(topic as string)
-      }
-    })
-
-    filtersByAddress[address] = existingFilter
-  })
-
-  return Object.values(filtersByAddress).map(filter => ({
-    ...filter,
-  }))
-}
-
-/**
  * Paths
  */
 
@@ -110,7 +81,6 @@ export function getCounterpartChainIdForPathId(chainId: string, pathId: string):
   }
   throw new Error(`ChainId not found in path: ${chainId}`)
 }
-
 
 /**
  * Type Guards

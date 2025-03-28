@@ -30,17 +30,6 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventInd
    * Implementation
    */
 
-  protected override getEventFilter(chainId: string, eventName: CCTPEventName): RequiredEventFilter {
-    switch (eventName) {
-      case CCTPEventName.CCTPTransferSent:
-        return CCTPSDK.getCCTPTransferSentEventFilter(chainId)
-      case CCTPEventName.MessageReceived:
-        return CCTPSDK.getMessageReceivedEventFilter(chainId)
-      default:
-        throw new Error(`Invalid event name: ${String(eventName)}`)
-    }
-  }
-
   protected override getDesiredEventIndexes (eventName: CCTPEventName): CCTPEventIndexes {
     switch (eventName) {
       case CCTPEventName.CCTPTransferSent:

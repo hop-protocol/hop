@@ -21,12 +21,17 @@ export type DecodedLogWithContext<T extends object = object> = LogWithContext & 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
+export interface EventContext<EventName> {
+  eventChainId: string
+  eventAddress: string
+  eventName: EventName
+}
+
 export interface IndexedEventDataWithContext<
   EventName,
   IndexValue extends object = object
 > {
-  eventChainId: string
-  eventName: EventName
+  eventContext: EventContext<EventName>
   eventIndexValues: IndexValue
 }
 

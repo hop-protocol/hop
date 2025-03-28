@@ -4,7 +4,7 @@ import { Logger } from '#logger/index.js'
 import { DATA_PROCESSED_EVENT } from '#constants/index.js'
 import type { IDataAdapter } from './IDataAdapter.js'
 import type { IOnchainEventIndexer } from '#indexer/index.js'
-import type { DecodedLogWithContext, IndexedEventDataWithContext } from '#types/index.js'
+import type { DecodedLogWithContext, IndexedEventDataWithContext, EventContext } from '#types/index.js'
 import type { StateTxContext } from './types.js'
 
 // TODO: Optimize: Generalize for additional data sources beyond onchain events
@@ -27,8 +27,7 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
   protected abstract formatDecodedLog (log: DecodedLogWithContext): StateData
   protected abstract isValidEventName(eventName: EventName | string): eventName is EventName
   protected abstract getStateFromEventName (eventName: string): State
-  protected abstract getEventNameFromState (state: State): EventName
-  protected abstract getEventChainIdForState (state: State, value: StateData): string
+  protected abstract getEventContextFromState (state: State, value: StateData): Promise<EventContext<EventName>>
   // @dev this is not strictly typed since it should not be used by most clients. This
   // is custom for CCTP and there is no need to add complex typing or tight coupling to
   // accommodate this. All clients that don't modify event names should be unconcerned.
@@ -141,12 +140,10 @@ export abstract class DataAdapter<State, StateData extends StateTxContext, Event
     state: State,
     value: StateData
   ): Promise<IndexedEventDataWithContext<EventName>> {
-    const eventChainId = this.getEventChainIdForState(state, value)
-    const eventName = this.getEventNameFromState(state)
+    const eventContext = await this.getEventContextFromState(state, value)
     const modifiedValue = this.parseStateMachineData(state, value)
     return {
-      eventChainId,
-      eventName,
+      eventContext,
       eventIndexValues: modifiedValue
     }
   }

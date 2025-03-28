@@ -27,6 +27,15 @@ export type RailsPath = {
   initialReserve: string
 }
 
+export type RailsPathAddresses = {
+  pathAddress: string
+  counterpartPathAddress: string
+}
+
+export type RailsPathWithAddresses = RailsPath & {
+  pathAddresses: RailsPathAddresses
+}
+
 export type {
   BondInput,
   PushClaimInput,

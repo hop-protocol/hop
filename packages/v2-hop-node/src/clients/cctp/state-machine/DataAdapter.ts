@@ -5,7 +5,7 @@ import {
   type HopCCTPTransferReceivedDecoded
 } from '../CCTPSDKWrapper.js'
 import { DataAdapter } from '#state-machine/index.js'
-import type { DecodedLogWithContext } from '#types/index.js'
+import type { DecodedLogWithContext, EventContext } from '#types/index.js'
 import {
   type ISentCCTPMessage,
   type IRelayedCCTPMessage,
@@ -65,23 +65,24 @@ export class CCTPDataAdapter extends DataAdapter<CCTPMessageState, ICCTPMessage,
     }
   }
 
-  protected override getEventNameFromState (state: CCTPMessageState): CCTPEventName {
+  protected override async getEventContextFromState (state: CCTPMessageState, value: ICCTPMessage): Promise<EventContext<CCTPEventName>> {
     switch (state) {
-      case CCTPMessageState.Sent:
-        return CCTPEventName.CCTPTransferSent
-      case CCTPMessageState.Relayed:
-        return CCTPEventName.MessageReceived
-      default:
-        throw new Error('Invalid state')
-    }
-  }
-
-  protected override getEventChainIdForState (state: CCTPMessageState, value: ICCTPMessage): string {
-    switch (state) {
-      case CCTPMessageState.Sent:
-        return value.sourceChainId
-      case CCTPMessageState.Relayed:
-        return value.destinationChainId
+      case CCTPMessageState.Sent: {
+        const eventAddress = (CCTPSDK.getMessageSentEventFilter(value.sourceChainId)).address
+        return {
+          eventChainId: value.sourceChainId,
+          eventAddress,
+          eventName: CCTPEventName.CCTPTransferSent,
+        }
+      }
+      case CCTPMessageState.Relayed: {
+        const eventAddress = (CCTPSDK.getMessageSentEventFilter(value.destinationChainId)).address
+        return {
+          eventChainId: value.destinationChainId,
+          eventAddress,
+          eventName: CCTPEventName.MessageReceived,
+        }
+      }
       default:
         throw new Error('Invalid state')
     }

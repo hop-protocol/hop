@@ -85,7 +85,7 @@ export abstract class Relayer<RelayTxMethodName extends string, RelayItem> imple
   // The relayItem can be any format, since the sender does not care about the relay format type.
   // The relayer validates that there is sufficient data to process the relay.
   async relay (relayTxMethodName: RelayTxMethodName, relayItem: any, relayChainId: string): Promise<void> {
-    this.logger.info(`Adding item to relay: ${JSON.stringify(relayItem)}`)
+    this.logger.info(`Adding item for relayTxMethodName ${relayTxMethodName} with relayChainId ${relayChainId}: ${JSON.stringify(relayItem)}`)
     const formattedRelayItem: RelayItem = this.formatRelayItem(relayTxMethodName, relayItem)
     const relayTxContext: RelayTxContext<RelayTxMethodName> = {
         relayChainId,

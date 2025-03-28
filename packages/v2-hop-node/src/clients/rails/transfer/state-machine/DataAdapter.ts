@@ -3,7 +3,8 @@ import { getCounterpartChainIdForPathId } from '../../utils.js'
 import {
   type TransferBonded,
   type TransferSent,
-  RailsEventName
+  RailsEventName,
+  getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
 import {
   type IBondedRailsTransfer,
@@ -12,7 +13,7 @@ import {
   RailsTransferEventName,
   RailsTransferState
 } from './types.js'
-import type { DecodedLogWithContext } from '#types/index.js'
+import type { DecodedLogWithContext, EventContext } from '#types/index.js'
 
 export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
 
@@ -43,26 +44,28 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     }
   }
 
-  protected override getEventNameFromState (state: RailsTransferState): RailsEventName {
-    switch (state) {
-      case RailsTransferState.Sent:
-        return RailsEventName.TransferSent
-      case RailsTransferState.Bonded:
-        return RailsEventName.TransferBonded
-      default:
-        throw new Error('Invalid state')
-    }
-  }
-
-  protected override getEventChainIdForState (state: RailsTransferState, value: IRailsTransfer): string {
+  protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsEventName>> {
     const { pathId, txContext } = value
     const { chainId } = txContext
     const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+
     switch (state) {
-      case RailsTransferState.Sent:
-        return chainId
-      case RailsTransferState.Bonded:
-        return counterpartChainId
+      case RailsTransferState.Sent: {
+        const eventAddress = await getRailsPathAddress(pathId, chainId)
+        return {
+          eventChainId: chainId,
+          eventAddress,
+          eventName: RailsEventName.TransferSent,
+        }
+      }
+      case RailsTransferState.Bonded: {
+        const eventAddress = await getRailsPathAddress(pathId, counterpartChainId)
+        return {
+          eventChainId: counterpartChainId,
+          eventAddress,
+          eventName: RailsEventName.TransferBonded,
+        }
+      }
       default:
         throw new Error('Invalid state')
     }

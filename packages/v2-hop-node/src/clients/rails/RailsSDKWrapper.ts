@@ -8,20 +8,20 @@ import {
   type ClaimPushed as ClaimPushedSDK,
   type ClaimRemoved as ClaimRemovedSDK,
   type ClaimReadded as ClaimReaddedSDK,
-  type GetTransferSentEventFilterInput,
-  type GetTransferBondedEventFilterInput,
-  type GetClaimPushedEventFilterInput,
-  type GetClaimReaddedEventFilterInput,
-  type GetClaimRemovedEventFilterInput,
+  type TransferSentIndexes,
+  type TransferBondedIndexes,
+  type ClaimPushedIndexes,
+  type ClaimReaddedIndexes,
+  type ClaimRemovedIndexes,
   type PushClaimInput,
   type BondInput,
   type EthersEventWithDecodedTypesAndBaseContext,
   type RemoveClaimInput,
   type ReaddClaimInput,
+  EventName as RailsPathEventName,
+  RailsPath as RailsPathSDK,
   RailsGateway as RailsGatewaySDK,
   utils as RailsUtils,
-  RailsGatewayEventName as RailsGatewayEventNameSDK,
-  RailsGatewayMethodName as RailsMethodName
 } from '@hop-protocol/v2-sdk'
 import type {
   EventFilter,
@@ -30,15 +30,15 @@ import type {
   providers
 } from 'ethers'
 import { wallets } from '#wallets/index.js'
-import type { RailsHop, RailsPath } from './types.js'
+import type { RailsHop, RailsPath, RailsPathAddresses } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
 
 export type RailsFilterInputs = &
-  GetTransferSentEventFilterInput &
-  GetTransferBondedEventFilterInput &
-  GetClaimPushedEventFilterInput &
-  GetClaimReaddedEventFilterInput &
-  GetClaimRemovedEventFilterInput
+  TransferSentIndexes &
+  TransferBondedIndexes &
+  ClaimPushedIndexes &
+  ClaimReaddedIndexes &
+  ClaimRemovedIndexes
 
 export type RailsEvent = |
   TransferSent |
@@ -47,13 +47,20 @@ export type RailsEvent = |
   ClaimRemoved |
   ClaimReadded
 
-
 export enum RailsEventName {
-  TransferSent = RailsGatewayEventNameSDK.TransferSent,
-  TransferBonded = RailsGatewayEventNameSDK.TransferBonded,
-  ClaimPushed = RailsGatewayEventNameSDK.ClaimPushed,
-  ClaimRemoved = RailsGatewayEventNameSDK.ClaimRemoved,
-  ClaimReadded = RailsGatewayEventNameSDK.ClaimReadded,
+  TransferSent = RailsPathEventName.TransferSent,
+  TransferBonded = RailsPathEventName.TransferBonded,
+  ClaimPushed = RailsPathEventName.ClaimPushed,
+  ClaimReadded = RailsPathEventName.ClaimReadded,
+  ClaimRemoved = RailsPathEventName.ClaimRemoved,
+}
+
+// TODO: Get this from SDK
+enum RailsMethodName {
+  Bond = 'bond',
+  PushClaim = 'pushClaim',
+  RemoveClaim = 'removeClaim',
+  ReaddClaim = 'readdClaim'
 }
 
 export {
@@ -128,19 +135,18 @@ export class RailsGateway {
  * Utils
  */
 
-export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: RailsEventName, chainId: string, indexes?: T): EventFilter {
+export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: RailsEventName, chainId: string, railsPathAddress: string, indexes?: T): EventFilter {
   const wallet = wallets.get(chainId)
-  const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet })
-  // TODO: Fix this
-  // return gateway.getEventFilter(eventName as RailsGatewayEventName, indexes)
-  return gateway.getEventFilter(eventName as any, indexes)
+  const railsPath = new RailsPathSDK({ chainId, signerOrProvider: wallet, address: railsPathAddress })
+  // TODO: Not any
+  return railsPath.getEventFilter(eventName as any, indexes)
 }
 
 // TODO: Consider way to not pass in chainId. Right now, SDK needs it since it has large response. However, from the perspective
 // of the hn it is not necessary and adds confusion. This is because the response to the method should not care about
 // the chainId, so the intention of the method is not clear.
 export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | TransferBondedSDK | ClaimPushedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
-  const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsGatewaySDK.addDecodedTypesToEvent(log, chainId)
+  const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsPathSDK.addDecodedTypesToEvent(log, chainId)
 
   // TODO: Temp do this until hn and sdk are in sync
   if (!res?.context?.eventName) {
@@ -154,6 +160,14 @@ export function addDecodedTypesToEvent(log: providers.Log, chainId: string): Dec
       chainId
     }
   }
+}
+
+export async function getRailsPathAddress(pathId: string, chainId: string): Promise<string> {
+  const wallet = wallets.get(chainId)
+  const gateway = new RailsGatewaySDK({ chainId: chainId, signerOrProvider: wallet })
+  const pathInstance = await gateway.getRailsPath(pathId)
+
+  return pathInstance.getRailsPathContractAddress()
 }
 
 export function getComputedNextHopsHash (nextHops: RailsHop[]): string {
@@ -175,4 +189,25 @@ export function getPathId(path: RailsPath): string {
 // should not export it (as it currently, correctly does).
 export function isContractError (err: unknown): err is Error /*ContractFunctionRevertedError*/ {
   return true
+}
+
+export async function getAddressesForRailsPath (path: RailsPath): Promise<RailsPathAddresses> {
+  if (!path || !path.chainId || !path.token) {
+    throw new Error('Invalid path input: chainId and token are required')
+  }
+
+  const pathId = getPathId(path)
+
+  const wallet = wallets.get(path.chainId)
+  const gateway = new RailsGatewaySDK({ chainId: path.chainId, signerOrProvider: wallet })
+  const pathInstance = await gateway.getRailsPath(pathId)
+
+  const counterpartWallet = wallets.get(path.counterpartChainId)
+  const gatewayCounterpart = new RailsGatewaySDK({ chainId: path.counterpartChainId, signerOrProvider: counterpartWallet })
+  const counterpartPathInstance = await gatewayCounterpart.getRailsPath(pathId)
+
+  return {
+    pathAddress: pathInstance.getRailsPathContractAddress(),
+    counterpartPathAddress: counterpartPathInstance.getRailsPathContractAddress()
+  }
 }

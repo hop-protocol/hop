@@ -36,6 +36,7 @@
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [calcAmountOutMin](Hop.md#calcamountoutmin)
 - [connectTargets](Hop.md#connecttargets)
+- [getAllRailsPathAddresses](Hop.md#getallrailspathaddresses)
 - [getAmountOut](Hop.md#getamountout)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
 - [getColorForChainId](Hop.md#getcolorforchainid)
@@ -319,6 +320,22 @@ ___
 #### Returns
 
 `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+
+___
+
+### <a id="getallrailspathaddresses" name="getallrailspathaddresses"></a> getAllRailsPathAddresses
+
+▸ **getAllRailsPathAddresses**(`chainId`): `Promise`\<`string`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainId` | `BigNumberish` |
+
+#### Returns
+
+`Promise`\<`string`[]\>
 
 ___
 

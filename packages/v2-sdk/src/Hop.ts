@@ -815,7 +815,7 @@ export class Hop extends Base {
     // Get all RailsPath addresses for this chain
     let railsPathAddresses: string[] = []
     try {
-      railsPathAddresses = await this.#getAllRailsPathAddresses(chainId)
+      railsPathAddresses = await this.getAllRailsPathAddresses(chainId)
     } catch (err) {
       console.warn('Failed to get RailsPath addresses:', err)
     }
@@ -1158,7 +1158,7 @@ export class Hop extends Base {
     return BigNumber.from(amountIn).mul(BigNumber.from(4)).div(BigNumber.from(10000))
   }
 
-  async #getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {
+  async getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {
     chainId = chainId.toString()
     const addresses = new Set<string>()
 
@@ -1179,7 +1179,7 @@ export class Hop extends Base {
         try {
           const railsPath = await this.getRailsPath(chainId, pathId)
           const address = await railsPath.getRailsPathContractAddress()
-          console.log('hopV2Sdk: pathId', pathId, 'address', address)
+          console.log('hopV2Sdk:', 'chainId', chainId, 'pathId', pathId, 'address', address)
           if (address && address !== constants.AddressZero) {
             addresses.add(address)
           }

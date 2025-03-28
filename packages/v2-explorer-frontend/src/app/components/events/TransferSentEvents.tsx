@@ -128,7 +128,7 @@ export function TransferSentEvents () {
               {
                 key: 'pathId',
                 value: hop.pathIdTruncated,
-                valueUrl: `/paths?pathId=${hop.pathId}`,
+                valueUrl: `/p/${hop.pathId}`,
                 clipboardValue: hop.pathId
               },
               {
@@ -159,21 +159,21 @@ export function TransferSentEvents () {
 
   return (
     <Box>
-      <Table 
-        title={<><strong>{eventName}</strong> Events</>} 
-        titleVariant="h5" 
-        headers={headers} 
-        rows={rows} 
-        showNextButton={showNextButton} 
-        showPreviousButton={showPreviousButton} 
-        nextPage={nextPage} 
-        previousPage={previousPage} 
-        limit={limit} 
-        loading={loading} 
+      <Table
+        title={<><strong>{eventName}</strong> Events</>}
+        titleVariant="h5"
+        headers={headers}
+        rows={rows}
+        showNextButton={showNextButton}
+        showPreviousButton={showPreviousButton}
+        nextPage={nextPage}
+        previousPage={previousPage}
+        limit={limit}
+        loading={loading}
         filters={
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
               alignItems: { xs: 'flex-start', sm: 'center' },
               justifyContent: 'flex-end',
@@ -181,10 +181,10 @@ export function TransferSentEvents () {
               width: '100%'
             }}
           >
-            <FormControl 
-              variant="outlined" 
+            <FormControl
+              variant="outlined"
               size="small"
-              sx={{ 
+              sx={{
                 minWidth: 150,
                 width: { xs: '100%', sm: 'auto' }
               }}
@@ -210,10 +210,10 @@ export function TransferSentEvents () {
               </Select>
             </FormControl>
 
-            <TextField 
+            <TextField
               placeholder={filterBy === 'transferId' ? 'Enter transfer ID' : 'Enter 0x...'}
-              value={filterValue} 
-              onChange={(event: any) => setFilterValue(event.target.value)} 
+              value={filterValue}
+              onChange={(event: any) => setFilterValue(event.target.value)}
               size="small"
               variant="outlined"
               fullWidth
@@ -229,7 +229,7 @@ export function TransferSentEvents () {
               }}
             />
           </Box>
-        } 
+        }
       />
     </Box>
   )

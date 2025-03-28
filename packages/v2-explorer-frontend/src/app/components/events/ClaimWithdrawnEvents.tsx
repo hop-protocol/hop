@@ -61,7 +61,7 @@ export function ClaimWithdrawnEvents () {
       {
         key: 'pathId',
         value: event.pathIdTruncated,
-        valueUrl: `/paths?pathId=${event.pathId}`,
+        valueUrl: `/p/${event.pathId}`,
         clipboardValue: event.pathId
       },
       {

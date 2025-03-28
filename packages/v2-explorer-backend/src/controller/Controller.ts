@@ -532,6 +532,12 @@ export class Controller {
         item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.context.chainId)
       }
     }
+    if (item.fromAddress && item.fromChainId) {
+      item.fromAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.fromAddress, item.fromChainId)
+    }
+    if (item.toAddress && item.toChainId) {
+      item.toAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.toAddress, item.toChainId)
+    }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
       item.chainLabel = getChainLabel(item.chainId)
@@ -1598,6 +1604,42 @@ export class Controller {
     }
 
     return result
+  }
+
+  async getMessageDetailsState({ messageId }: any = {}): Promise<any> {
+    const messageSentEvents = await this.pgDb.events.MessageSent.getItems({ filter: { messageId }})
+    const messageSentEvent = messageSentEvents?.[0]
+
+    const result: any = {
+      messageId,
+    }
+
+    try {
+      if (messageSentEvent) {
+        const messageBundledEvents = await this.pgDb.events.MessageBundled.getItems({ filter: { messageId }})
+        const messageBundledEvent = messageBundledEvents?.[0]
+
+        const messageExecutedEvents = await this.pgDb.events.MessageExecuted.getItems({ filter: { messageId }})
+        const messageExecutedEvent = messageExecutedEvents?.[0]
+
+        result.fromChainId = messageSentEvent?.context?.chainId
+        result.toChainId = messageSentEvent?.toChainId
+        result.fromAddress = messageSentEvent?.context?.from
+        result.toAddress = messageSentEvent?.to
+        result.data = messageSentEvent?.data
+
+        result.bundleId = messageBundledEvent?.bundleId
+        result.treeIndex = messageBundledEvent?.treeIndex
+
+        result.messageSentEvent = messageSentEvent
+        result.messageBundledEvent = messageBundledEvent
+        result.messageExecutedEvent = messageExecutedEvent
+      }
+    } catch (err: any) {
+      console.error(`getMessageDetailsState, messageId: ${messageId}, error: ${err.message}`)
+    }
+
+    return this.addEventFields({ ...result, context: { chainId: result?.messageSentEvent?.context?.chainId }})
   }
 
   async getBondersState({ filter }: any = {}): Promise<any> {

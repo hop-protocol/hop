@@ -176,6 +176,21 @@ async function watcher() {
 
 describe.only('Sdk - e2e - bonder sim watcher', () => {
   it('should watch and process transfer events', async () => {
+
+    // const wallet = new Wallet(privateKey).connect(baseProvider)
+    // const gateway = new RailsGateway({ chainId: '84532', signerOrProvider: wallet })
+    // const pathId = '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'
+    // const railsPath = await gateway.getRailsPath(pathId)
+    // console.log('address', railsPath.address)
+    // const filter = railsPath.getEventFilter('TransferSent' as any, {})
+    // console.log('filter', filter)
+
+    // const sdk = new Hop({
+    //   network: 'sepolia',
+    //   signersOrProviders: Hop.getDefaultProviders('sepolia')
+    // })
+    // await sdk.getAllRailsPathAddresses('84532')
+
     await watcher()
     expect(true).toBeDefined()
   }, 30 * 60 * 1000)

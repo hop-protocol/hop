@@ -397,8 +397,22 @@ describe('Server', () => {
     console.log(JSON.stringify(res.body, null, 2))
     expect(data).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.only('/v1/bonders', async () => {
+  it('/v1/bonders', async () => {
     const res = await request(app).get('/v1/bonders').send()
+    const { data } = res.body
+    console.log(JSON.stringify(res.body, null, 2))
+    expect(data).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it('/v1/path-details', async () => {
+    const pathId = '0x3541ab0d01eacfd4bf63a96f8651aef9db4396ab9944d3acada716c2378cb07f'
+    const res = await request(app).get(`/v1/path-details?pathId=${pathId}`).send()
+    const { data } = res.body
+    console.log(JSON.stringify(res.body, null, 2))
+    expect(data).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it.only('/v1/message-details', async () => {
+    const pathId = '0x7cb71955a8adca40db7b4e4957738a2dea6980f96d971c7c1e67a8155564a012'
+    const res = await request(app).get(`/v1/message-details?messageId=${pathId}`).send()
     const { data } = res.body
     console.log(JSON.stringify(res.body, null, 2))
     expect(data).toBeTruthy()

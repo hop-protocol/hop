@@ -68,6 +68,7 @@ export function MessageExecutedEvents () {
       {
         key: 'messageId',
         value: event.messageIdTruncated,
+        valueUrl: `/m/${event.messageId}`,
         clipboardValue: event.messageId
       },
       {
@@ -89,21 +90,21 @@ export function MessageExecutedEvents () {
 
   return (
     <Box>
-      <Table 
-        title={<><strong>{eventName}</strong> Events</>} 
-        titleVariant="h5" 
-        headers={headers} 
-        rows={rows} 
-        showNextButton={showNextButton} 
-        showPreviousButton={showPreviousButton} 
-        nextPage={nextPage} 
-        previousPage={previousPage} 
-        limit={limit} 
-        loading={loading} 
+      <Table
+        title={<><strong>{eventName}</strong> Events</>}
+        titleVariant="h5"
+        headers={headers}
+        rows={rows}
+        showNextButton={showNextButton}
+        showPreviousButton={showPreviousButton}
+        nextPage={nextPage}
+        previousPage={previousPage}
+        limit={limit}
+        loading={loading}
         filters={
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
               alignItems: { xs: 'flex-start', sm: 'center' },
               justifyContent: 'flex-end',
@@ -111,10 +112,10 @@ export function MessageExecutedEvents () {
               width: '100%'
             }}
           >
-            <FormControl 
-              variant="outlined" 
+            <FormControl
+              variant="outlined"
               size="small"
-              sx={{ 
+              sx={{
                 minWidth: 150,
                 width: { xs: '100%', sm: 'auto' }
               }}
@@ -139,10 +140,10 @@ export function MessageExecutedEvents () {
               </Select>
             </FormControl>
 
-            <TextField 
+            <TextField
               placeholder={filterBy === 'messageId' ? 'Enter message ID' : filterBy === 'fromChainId' ? 'Enter chain ID' : 'Enter 0x...'}
-              value={filterValue} 
-              onChange={(event: any) => setFilterValue(event.target.value)} 
+              value={filterValue}
+              onChange={(event: any) => setFilterValue(event.target.value)}
               size="small"
               variant="outlined"
               fullWidth
@@ -158,7 +159,7 @@ export function MessageExecutedEvents () {
               }}
             />
           </Box>
-        } 
+        }
       />
     </Box>
   )

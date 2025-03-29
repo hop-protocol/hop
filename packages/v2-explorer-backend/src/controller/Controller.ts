@@ -832,6 +832,21 @@ export class Controller {
       item.hopBalanceUsd = Number(item.hopBalanceFormatted) * Number(item.tokenPriceUsd)
       item.hopBalanceUsdDisplay = `${formatToUSD(item.hopBalanceUsd.toFixed(2))} USD`
     }
+    if (item.counterpartToken) {
+      try {
+        item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
+        item.counterpartTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.counterpartTokenSymbol)
+      } catch (err: any) {
+        console.error(err)
+        item.counterpartTokenExplorerUrl = ''
+      }
+      item.counterpartTokenTruncated = truncateString(item.counterpartToken, 4)
+    }
+    if (item.counterpartChainId) {
+      item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
+      item.counterpartChainLabel = getChainLabel(item.counterpartChainId)
+      item.counterpartChainImageUrl = this.sdk.utils.getLogoForChainId(item.counterpartChainId)
+    }
 
     return item
   }

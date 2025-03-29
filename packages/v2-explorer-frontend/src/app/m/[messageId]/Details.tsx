@@ -10,7 +10,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import { DetailRow } from '@/app/gateways/DetailRow'
+import { DetailRow } from '@/app/t/[transferId]/DetailRow'
 
 export function Details(props: any) {
   const { initialMessageDetails } = props
@@ -21,14 +21,14 @@ export function Details(props: any) {
   console.log('initialMessageDetails', initialMessageDetails)
 
   const fields = [
-    { key: 'messageId', label: 'Message ID' },
-    { key: 'fromChainId', label: 'From Chain ID' },
-    { key: 'toChainId', label: 'To Chain ID' },
-    { key: 'fromAddress', label: 'From Address' },
-    { key: 'toAddress', label: 'To Address' },
-    { key: 'data', label: 'Data' },
-    { key: 'bundleId', label: 'Bundle ID' },
-    { key: 'treeIndex', label: 'Tree Index' },
+    { value: 'messageId', label: 'Message ID' },
+    { value: 'fromChainLabel', label: 'From Chain ID', imageUrl: 'fromChainImageUrl' },
+    { value: 'toChainLabel', label: 'To Chain ID', imageUrl: 'toChainImageUrl' },
+    { value: 'fromAddress', label: 'From Address', link: 'fromAddressExplorerUrl' },
+    { value: 'toAddress', label: 'To Address', link: 'toAddressExplorerUrl' },
+    { value: 'data', label: 'Data' },
+    { value: 'bundleId', label: 'Bundle ID' },
+    { value: 'treeIndex', label: 'Tree Index' },
   ]
 
   if (loading) {
@@ -51,35 +51,30 @@ export function Details(props: any) {
       </Box>
 
           <Box sx={{ mb: 2, ml: 2 }}>
-            <Typography variant="subtitle1" gutterBottom color="textPrimary">
-              Message
-            </Typography>
             <TableContainer>
               <Table>
                 <TableBody>
-                  {fields.map((field) => {
-                    let rawValue = details[field.key] || ''
-                    let displayValue = details[field.key + 'Display'] || ''
-                    let link = details[field.key + 'ExplorerUrl'] || ''
-
-                    if (field.key === 'fromChainId' ) {
-                      rawValue = details.fromChainLabel
-                      displayValue = details.fromChainLabel
+                  {fields.map((field: any) => {
+                    const label = field.label
+                    let value = details[field.value]
+                    const imageUrl = details[field.imageUrl]
+  
+                    if (Array.isArray(field.value)) {
+                      value = `${details[field.value[0]]} (${details[field.value[1]]})`
                     }
-
-                    if (field.key === 'toChainId') {
-                      rawValue = details.toChainLabel
-                      displayValue = details.toChainLabel
-                    }
-                    
+  
+                    let link = details[field.link]
+  
+                    const key = `key-${label}-${value}`
+  
                     return (
                       <DetailRow
-                        key={field.key}
-                        label={field.label}
-                        rawValue={rawValue}
-                        displayValue={displayValue}
-                        link={link}
+                        key={key}
                         loading={loading}
+                        label={label}
+                        value={value}
+                        link={link}
+                        imageUrl={imageUrl}
                         maxWidth={600}
                       />
                     )

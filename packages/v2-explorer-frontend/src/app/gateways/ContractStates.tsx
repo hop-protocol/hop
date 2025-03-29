@@ -47,6 +47,7 @@ export function ContractStates() {
   }, [])
 
   const railsGatewayFields = [
+    { value: 'chainLabel', label: 'Chain ID', imageUrl: 'chainImageUrl' },
     { value: 'railsGatewayAddress', label: 'Gateway Address', link: 'railsGatewayExplorerUrl' },
     { value: ['removeFee', 'removeFeeDisplay'], label: 'Remove Fee' },
     { value: ['pushClaimFee', 'pushClaimFeeDisplay'], label: 'Push Claim Fee' },
@@ -61,13 +62,14 @@ export function ContractStates() {
   ]
 
   const stakingRegistryFields = [
+    { value: 'chainLabel', label: 'Chain ID', imageUrl: 'chainImageUrl' },
     { value: 'stakingRegistryAddress', label: 'Registry Address', link: 'stakingRegistryExplorerUrl' },
     { value: 'challengePeriod', label: 'Challenge Period (Seconds)' },
     { value: 'appealPeriod', label: 'Appeal Period (Seconds)' },
     { value: ['minChallengeIncrease', 'minChallengeIncreaseDisplay'], label: 'Min Challenge Increase' },
     { value: ['fullAppeal', 'fullAppealDisplay'], label: 'Full Appeal' },
     { value: ['minHopStake', 'minHopStakeDisplay'], label: 'Min Hop Stake' },
-    { value: 'hopToken', label: 'Hop Token', link: 'hopTokenExplorerUrl', image: 'hopTokenImageUrl' },
+    { value: 'hopToken', label: 'Hop Token', link: 'hopTokenExplorerUrl', imageUrl: 'hopTokenImageUrl' },
     { value: 'eventNames', label: 'Events' },
   ]
 
@@ -247,7 +249,7 @@ export function ContractStates() {
                 {railsGatewayFields.map((field: any, index: number ) => {
                   const label = field.label
                   let value = contract.railsGateway[field.value]
-                  const imageUrl = contract.railsGateway[field.image]
+                  const imageUrl = contract.railsGateway[field.imageUrl]
 
                   if (Array.isArray(field.value)) {
                     value = `${contract.railsGateway[field.value[0]]} (${contract.railsGateway[field.value[1]]})`
@@ -289,7 +291,7 @@ export function ContractStates() {
                 {stakingRegistryFields.map((field: any, index: number) => {
                   const label = field.label
                   let value = contract.stakingRegistry[field.value]
-                  const imageUrl = contract.stakingRegistry[field.image]
+                  const imageUrl = contract.stakingRegistry[field.imageUrl]
 
                   if (Array.isArray(field.value)) {
                     value = `${contract.stakingRegistry[field.value[0]]} (${contract.stakingRegistry[field.value[1]]})`

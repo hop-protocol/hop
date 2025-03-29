@@ -21,7 +21,6 @@ import { useTheme } from '@mui/material/styles'
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import Avatar from '@mui/material/Avatar'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
-import { DetailRow } from '@/app/gateways/DetailRow'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
 
 export function Bonders() {

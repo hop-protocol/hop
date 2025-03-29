@@ -832,7 +832,7 @@ export class Controller {
       item.hopBalanceUsd = Number(item.hopBalanceFormatted) * Number(item.tokenPriceUsd)
       item.hopBalanceUsdDisplay = `${formatToUSD(item.hopBalanceUsd.toFixed(2))} USD`
     }
-    if (item.counterpartToken) {
+    if (typeof item.counterpartToken === 'string') {
       try {
         item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
         item.counterpartTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.counterpartTokenSymbol)

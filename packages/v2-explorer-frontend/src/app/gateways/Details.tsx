@@ -14,8 +14,8 @@ import { useTheme } from '@mui/material/styles'
 import { DetailRow } from '@/app/t/[transferId]/DetailRow'
 import StorageIcon from '@mui/icons-material/Storage'
 
-export function ContractStates() {
-  const [contractState, setContractState] = useState<any[]>([])
+export function Details() {
+  const [details, setDetails] = useState<any[]>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -36,7 +36,7 @@ export function ContractStates() {
       })
       .then((json) => {
         console.log('json', json)
-        setContractState(Object.values(json.data))
+        setDetails(Object.values(json.data))
         setLastUpdated(json.lastUpdated)
         setLoading(false)
       })
@@ -225,18 +225,18 @@ export function ContractStates() {
         </Typography>
       </Box>
 
-      {contractState.map((contract, contractIndex) => (
-        <Paper key={`contract-${contract.chainId}-${contractIndex}`} elevation={2} sx={{ mb: 4, p: 2 }}>
+      {details.map((detail, detailIndex) => (
+        <Paper key={`contract-${detail.chainId}-${detailIndex}`} elevation={2} sx={{ mb: 4, p: 2 }}>
           <Box display="flex" alignItems="center" mb={2}>
-            {contract.railsGateway?.chainImageUrl && (
+            {detail.railsGateway?.chainImageUrl && (
               <img
-                src={contract.railsGateway.chainImageUrl}
-                alt={contract.railsGateway?.context?.chainName || 'Chain'}
+                src={detail.railsGateway.chainImageUrl}
+                alt={detail.railsGateway?.context?.chainName || 'Chain'}
                 style={{ width: 24, height: 24, marginRight: 8 }}
               />
             )}
             <Typography variant="h5">
-              {contract.railsGateway?.context?.chainLabel || 'Unknown Chain'}
+              {detail.railsGateway?.context?.chainLabel || 'Unknown Chain'}
             </Typography>
           </Box>
 
@@ -248,14 +248,14 @@ export function ContractStates() {
               <TableBody>
                 {railsGatewayFields.map((field: any, index: number ) => {
                   const label = field.label
-                  let value = contract.railsGateway[field.value]
-                  const imageUrl = contract.railsGateway[field.imageUrl]
+                  let value = detail.railsGateway[field.value]
+                  const imageUrl = detail.railsGateway[field.imageUrl]
 
                   if (Array.isArray(field.value)) {
-                    value = `${contract.railsGateway[field.value[0]]} (${contract.railsGateway[field.value[1]]})`
+                    value = `${detail.railsGateway[field.value[0]]} (${detail.railsGateway[field.value[1]]})`
                   }
 
-                  let link = contract.railsGateway[field.link]
+                  let link = detail.railsGateway[field.link]
 
                   if (field.value === 'pathIds') {
                     link = value.map((pathId: string) => `/p/${pathId}`)
@@ -290,14 +290,14 @@ export function ContractStates() {
               <TableBody>
                 {stakingRegistryFields.map((field: any, index: number) => {
                   const label = field.label
-                  let value = contract.stakingRegistry[field.value]
-                  const imageUrl = contract.stakingRegistry[field.imageUrl]
+                  let value = detail.stakingRegistry[field.value]
+                  const imageUrl = detail.stakingRegistry[field.imageUrl]
 
                   if (Array.isArray(field.value)) {
-                    value = `${contract.stakingRegistry[field.value[0]]} (${contract.stakingRegistry[field.value[1]]})`
+                    value = `${detail.stakingRegistry[field.value[0]]} (${detail.stakingRegistry[field.value[1]]})`
                   }
 
-                  let link = contract.stakingRegistry[field.link]
+                  let link = detail.stakingRegistry[field.link]
 
                   if (field.value === 'pathIds') {
                     link = value.map((pathId: string) => `/p/${pathId}`)

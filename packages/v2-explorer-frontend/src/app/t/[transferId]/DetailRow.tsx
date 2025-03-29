@@ -23,9 +23,6 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
     value = <Box>
       <ul>
         {value.map((v: string, i: number) => {
-
-
-          console.log('foo', v, i, link?.[i])
           return (
             <li key={i}>
               <Link href={link?.[i]} target="_blank" rel="noreferrer">

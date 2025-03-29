@@ -39,7 +39,6 @@ export function Details(props: any) {
     { value: 'tokenAddress', label: 'Token Address', link: 'tokenAddressExplorerUrl' },
     { value: 'counterpartTokenAddress', label: 'Counterpart Token Address', link: 'counterpartTokenAddressExplorerUrl' },
     { value: 'tokenLabel', label: 'Token Name' },
-
   ]
 
   if (loading) {

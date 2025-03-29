@@ -762,6 +762,7 @@ export class Controller {
     if (item.hopToken) {
       item.hopTokenExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.hopToken, item.context.chainId)
       item.hopTokenTruncated = truncateString(item.hopToken, 4)
+      item.hopTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol('HOP')
     }
     if (item.pathVault) {
       item.pathVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathVault, item.context.chainId)

@@ -18,6 +18,25 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
   if (!isClient) {
     return null
   }
+
+  if (value && Array.isArray(value)) {
+    value = <Box>
+      <ul>
+        {value.map((v: string, i: number) => {
+
+
+          console.log('foo', v, i, link?.[i])
+          return (
+            <li key={i}>
+              <Link href={link?.[i]} target="_blank" rel="noreferrer">
+                {v}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </Box>
+  }
   
   return (
     <TableRow sx={{ 
@@ -66,6 +85,9 @@ export const DetailRow = ({ loading, label, value, link, imageUrl, skeletonWidth
           {loading ? (
             <Skeleton variant="rectangular" width={skeletonWidth} height={20} />
           ) : (
+            (typeof value === 'object') ? (
+              value
+            ) :
             (link && value) ? (
               <CopyToClipboardText text={value}>
                 <Link 

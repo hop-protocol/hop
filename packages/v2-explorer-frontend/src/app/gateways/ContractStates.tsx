@@ -11,7 +11,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
 import Skeleton from '@mui/material/Skeleton'
 import { useTheme } from '@mui/material/styles'
-import { DetailRow } from './DetailRow'
+import { DetailRow } from '@/app/t/[transferId]/DetailRow'
 import StorageIcon from '@mui/icons-material/Storage'
 
 export function ContractStates() {
@@ -47,40 +47,28 @@ export function ContractStates() {
   }, [])
 
   const railsGatewayFields = [
-    { key: 'railsGatewayAddress', label: 'Gateway Address' },
-    { key: 'removeFee', label: 'Remove Fee' },
-    { key: 'pushClaimFee', label: 'Push Claim Fee' },
-    { key: 'defaultTokenFee', label: 'Default Token Fee' },
-    { key: 'dispatcher', label: 'Dispatcher' },
-    { key: 'executor', label: 'Executor' },
-    { key: 'feeManager', label: 'Fee Manager' },
-    { key: 'railsPathImplementation', label: 'Rails Path Implementation' },
-    { key: 'stakingRegistryAddress', label: 'Staking Registry Address' },
-    { key: 'pathIds', label: 'Path Ids' },
-    { key: 'eventNames', label: 'Events' },
-  ]
-
-  const pathsFields = [
-    { key: 'pathId', label: 'Path ID' },
-    { key: 'headClaimId', label: 'Head Claim ID' },
-    { key: 'pathVault', label: 'Path Vault' },
-    { key: 'sendFee', label: 'Send Fee' },
-    { key: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
-    { key: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' },
-    { key: 'totalClaims', label: 'Total Claims' },
-    { key: 'totalConfirmed', label: 'Total Confirmed' },
-    { key: 'totalSent', label: 'Total Sent' },
+    { value: 'railsGatewayAddress', label: 'Gateway Address', link: 'railsGatewayExplorerUrl' },
+    { value: ['removeFee', 'removeFeeDisplay'], label: 'Remove Fee' },
+    { value: ['pushClaimFee', 'pushClaimFeeDisplay'], label: 'Push Claim Fee' },
+    { value: ['defaultTokenFee', 'defaultTokenFeeDisplay'], label: 'Default Token Fee' },
+    { value: 'dispatcher', label: 'Dispatcher', link: 'dispatcherExplorerUrl' },
+    { value: 'executor', label: 'Executor', link: 'executorExplorerUrl' },
+    { value: 'feeManager', label: 'Fee Manager', link: 'feeManagerExplorerUrl' },
+    { value: 'railsPathImplementation', label: 'Rails Path Implementation', link: 'railsPathImplementationExplorerUrl' },
+    { value: 'stakingRegistryAddress', label: 'Staking Registry Address', link: 'stakingRegistryExplorerUrl' },
+    { value: 'pathIds', label: 'Path Ids' },
+    { value: 'eventNames', label: 'Events' },
   ]
 
   const stakingRegistryFields = [
-    { key: 'stakingRegistryAddress', label: 'Registry Address' },
-    { key: 'challengePeriod', label: 'Challenge Period (Seconds)' },
-    { key: 'appealPeriod', label: 'Appeal Period (Seconds)' },
-    { key: 'minChallengeIncrease', label: 'Min Challenge Increase' },
-    { key: 'fullAppeal', label: 'Full Appeal' },
-    { key: 'minHopStake', label: 'Min Hop Stake' },
-    { key: 'hopToken', label: 'Hop Token' },
-    { key: 'eventNames', label: 'Events' },
+    { value: 'stakingRegistryAddress', label: 'Registry Address', link: 'stakingRegistryExplorerUrl' },
+    { value: 'challengePeriod', label: 'Challenge Period (Seconds)' },
+    { value: 'appealPeriod', label: 'Appeal Period (Seconds)' },
+    { value: ['minChallengeIncrease', 'minChallengeIncreaseDisplay'], label: 'Min Challenge Increase' },
+    { value: ['fullAppeal', 'fullAppealDisplay'], label: 'Full Appeal' },
+    { value: ['minHopStake', 'minHopStakeDisplay'], label: 'Min Hop Stake' },
+    { value: 'hopToken', label: 'Hop Token', link: 'hopTokenExplorerUrl', image: 'hopTokenImageUrl' },
+    { value: 'eventNames', label: 'Events' },
   ]
 
   // Render skeleton rows for tables
@@ -256,33 +244,35 @@ export function ContractStates() {
           <TableContainer>
             <Table>
               <TableBody>
-                {railsGatewayFields.map((field) => {
-                  const rawValue = contract.railsGateway
-                    ? contract.railsGateway[field.key] || ''
-                    : ''
-                  const displayValue = contract.railsGateway
-                    ? contract.railsGateway[field.key + 'Display'] || ''
-                    : ''
-                  let link = contract.railsGateway
-                    ? contract.railsGateway[field.key + 'ExplorerUrl'] || ''
-                    : ''
+                {railsGatewayFields.map((field: any, index: number ) => {
+                  const label = field.label
+                  let value = contract.railsGateway[field.value]
+                  const imageUrl = contract.railsGateway[field.image]
 
-                  if (field.key === 'pathIds') {
-                    link = rawValue.map((pathId: string) => `/p/${pathId}`)
+                  if (Array.isArray(field.value)) {
+                    value = `${contract.railsGateway[field.value[0]]} (${contract.railsGateway[field.value[1]]})`
                   }
 
-                  if (field.key === 'eventNames') {
-                    link = rawValue.map((eventName: string) => `/events#${eventName}`)
+                  let link = contract.railsGateway[field.link]
+
+                  if (field.value === 'pathIds') {
+                    link = value.map((pathId: string) => `/p/${pathId}`)
                   }
+
+                  if (field.value === 'eventNames') {
+                    link = value.map((eventName: string) => `/events#${eventName}`)
+                  }
+
+                  const key = `key-${label}-${value}`
 
                   return (
                     <DetailRow
-                      key={`rails-${contract.chainId}-${field.key}`}
-                      label={field.label}
-                      rawValue={rawValue}
-                      displayValue={displayValue}
-                      link={link}
+                      key={key}
                       loading={loading}
+                      label={label}
+                      value={value}
+                      link={link}
+                      imageUrl={imageUrl}
                     />
                   )
                 })}
@@ -290,75 +280,42 @@ export function ContractStates() {
             </Table>
           </TableContainer>
 
-          {contract.railsGateway?.paths && (
-            <>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Paths
-              </Typography>
-              {Object.values(contract.railsGateway.paths).map(
-                (path: any, pathIndex: number) => (
-                  <Box key={`path-${contract.chainId}-${pathIndex}`} sx={{ mb: 2, ml: 2 }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Path {pathIndex + 1}
-                    </Typography>
-                    <TableContainer>
-                      <Table>
-                        <TableBody>
-                          {pathsFields.map((field) => {
-                            const rawValue = path[field.key] || ''
-                            const displayValue = path[field.key + 'Display'] || ''
-                            const link = path[field.key + 'ExplorerUrl'] || ''
-
-                            return (
-                              <DetailRow
-                                key={`path-${contract.chainId}-${pathIndex}-${field.key}`}
-                                label={field.label}
-                                rawValue={rawValue}
-                                displayValue={displayValue}
-                                link={link}
-                                loading={loading}
-                              />
-                            )
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                )
-              )}
-            </>
-          )}
-
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Staking Registry
           </Typography>
           <TableContainer>
             <Table>
               <TableBody>
-                {stakingRegistryFields.map((field) => {
-                  const rawValue = contract.stakingRegistry
-                    ? contract.stakingRegistry[field.key] || ''
-                    : ''
-                  const displayValue = contract.stakingRegistry
-                    ? contract.stakingRegistry[field.key + 'Display'] || ''
-                    : ''
-                  let link = contract.stakingRegistry
-                    ? contract.stakingRegistry[field.key + 'ExplorerUrl'] || ''
-                    : ''
+                {stakingRegistryFields.map((field: any, index: number) => {
+                  const label = field.label
+                  let value = contract.stakingRegistry[field.value]
+                  const imageUrl = contract.stakingRegistry[field.image]
 
-                  if (field.key === 'eventNames') {
-                    link = rawValue.map((eventName: string) => `/events#${eventName}`)
+                  if (Array.isArray(field.value)) {
+                    value = `${contract.stakingRegistry[field.value[0]]} (${contract.stakingRegistry[field.value[1]]})`
                   }
+
+                  let link = contract.stakingRegistry[field.link]
+
+                  if (field.value === 'pathIds') {
+                    link = value.map((pathId: string) => `/p/${pathId}`)
+                  }
+
+                  if (field.value === 'eventNames') {
+                    link = value.map((eventName: string) => `/events#${eventName}`)
+                  }
+
+                  const key = `key-${label}-${value}`
 
                   return (
                     <DetailRow
-                      key={`registry-${contract.chainId}-${field.key}`}
-                      label={field.label}
-                      rawValue={rawValue}
-                      displayValue={displayValue}
-                      link={link}
-                      loading={loading}
-                    />
+                    key={key}
+                    loading={loading}
+                    label={label}
+                    value={value}
+                    link={link}
+                    imageUrl={imageUrl}
+                  />
                   )
                 })}
               </TableBody>

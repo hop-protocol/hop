@@ -160,7 +160,7 @@ export function ExplorerEvents (props: any) {
       {
         key: 'created',
         value: `${event.context?.blockTimestampRelative}`,
-        hoverTooltip: `${event.context?.blockTimestampISO}`
+        hoverTitle: `${event.context?.blockTimestampISO}`
       },
       {
         key: 'token',

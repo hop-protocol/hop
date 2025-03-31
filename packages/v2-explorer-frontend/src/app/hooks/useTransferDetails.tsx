@@ -104,10 +104,11 @@ export const useTransferDetails = (props: any) => {
     to: context?.to,
     toExplorerUrl: context?.to && context?.chainId ? sdk.utils.getAddressExplorerUrl(context.to, context.chainId) : '',
     blockTimestamp: context?.blockTimestamp,
+    blockTimestampISO: context?.blockTimestampISO,
     blockTimestampRelative: context?.blockTimestampRelative,
     timestampDisplay:
       context?.blockTimestamp
-        ? `${context?.blockTimestamp} ${context?.blockTimestampRelative ? `(${context?.blockTimestampRelative})` : ''}`
+        ? `${context?.blockTimestampISO} (${context?.blockTimestamp}) ${context?.blockTimestampRelative ? `(${context?.blockTimestampRelative})` : ''}`
         : null,
     blockNumber: context?.blockNumber,
     data: context?.data,
@@ -133,9 +134,9 @@ export const useTransferDetails = (props: any) => {
       blockTimestampRelative: destinationContext?.blockTimestampRelative,
       timestampDisplay: formatField(destinationContext?.blockTimestamp, (timestamp) =>
         timestamp
-          ? `${timestamp} ${
-              destinationContext?.blockTimestampRelative
-                ? `(${destinationContext.blockTimestampRelative})`
+          ? `${destinationContext?.blockTimestampISO} ${
+              destinationContext?.blockTimestampISO
+                ? `(${destinationContext?.blockTimestamp}) (${destinationContext.blockTimestampRelative})`
                 : ''
             }`
           : null

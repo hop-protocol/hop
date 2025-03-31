@@ -66,7 +66,8 @@ export function TransferSentEvents () {
       {
         key: 'timestamp',
         value: `${event.context.blockTimestamp} (${event.context.blockTimestampRelative})`,
-        clipboardValue: event.context.blockTimestamp
+        clipboardValue: event.context.blockTimestamp,
+        hoverTitle: `${event.context.blockTimestampISO}`
       },
       {
         key: 'transactionHash',

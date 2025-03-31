@@ -51,12 +51,14 @@ export function Prices () {
       {
         key: 'timestamp',
         value: `${price.timestamp} (${price.timestampRelative})`,
-        clipboardValue: price.timestamp
+        clipboardValue: price.timestamp,
+        hoverTitle: `${price.timestampISO}`
       },
       {
         key: 'token',
         value: price.token,
-        clipboardValue: price.token
+        clipboardValue: price.token,
+        imageUrl: price.tokenImageUrl
       },
       {
         key: 'priceUsd',

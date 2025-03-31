@@ -647,6 +647,15 @@ export class Controller {
       item.maxTotalSentUsdDisplay = `${formatToUSD(item.maxTotalSentUsd.toFixed(2))} USD`
     }
 
+    if (item.tokenAddress && typeof item.token === 'object') {
+      item.tokenImageUrl = item.token.imageUrl
+      item.tokenLabel = `${item.token.symbol} (${item.token.name})`
+    }
+    if (item.counterpartTokenAddress && typeof item.token === 'object') {
+      item.counterpartTokenImageUrl = item.token.imageUrl
+      item.counterpartTokenLabel = `${item.token.symbol} (${item.token.name})`
+    }
+
     if (item.totalClaimsAtHeadClaimId) {
       item.totalClaimsAtHeadClaimId = item.totalClaimsAtHeadClaimId.toString()
     }
@@ -927,7 +936,7 @@ export class Controller {
     if (item.pathId) {
       item.pathIdTruncated = truncateString(item.pathId, 4)
     }
-    if (item.token) {
+    if (typeof item.token === 'string') {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
         item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.tokenSymbol)
@@ -964,6 +973,10 @@ export class Controller {
     }
     if (item.timestamp) {
       item.timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+      item.timestampISO = DateTime.fromSeconds(item.timestamp).toISO()
+    }
+    if (item.token) {
+      item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.token)
     }
     return item
   }

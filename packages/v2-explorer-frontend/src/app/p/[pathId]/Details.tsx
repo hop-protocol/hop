@@ -36,9 +36,8 @@ export function Details(props: any) {
     { value: 'hardConfirmedClaimId', label: 'Hard Confirmed Claim ID' },
     { value: 'hardConfirmedBucketIndex', label: 'Hard Confirmed Bucket Index' },
     { value: 'counterpartChainLabel', label: 'Counterpart Chain ID', imageUrl: 'counterpartChainImageUrl' },
-    { value: 'tokenAddress', label: 'Token Address', link: 'tokenAddressExplorerUrl' },
-    { value: 'counterpartTokenAddress', label: 'Counterpart Token Address', link: 'counterpartTokenAddressExplorerUrl' },
-    { value: 'tokenLabel', label: 'Token Name' },
+    { value: 'tokenAddress', label: 'Token Address', link: 'tokenAddressExplorerUrl', imageUrl: 'tokenImageUrl' },
+    { value: 'counterpartTokenAddress', label: 'Counterpart Token Address', link: 'counterpartTokenAddressExplorerUrl', imageUrl: 'counterpartTokenImageUrl' },
   ]
 
   if (loading) {

@@ -97,7 +97,6 @@ export function Footer () {
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   color: iconHoverColor,
-                  transform: 'translateY(-2px)',
                 },
                 display: 'flex',
                 padding: { xs: '4px', sm: 0 },
@@ -117,7 +116,6 @@ export function Footer () {
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   color: iconHoverColor,
-                  transform: 'translateY(-2px)',
                 },
                 display: 'flex',
                 padding: { xs: '4px', sm: 0 },
@@ -137,7 +135,6 @@ export function Footer () {
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   color: iconHoverColor,
-                  transform: 'translateY(-2px)',
                 },
                 display: 'flex',
                 padding: { xs: '4px', sm: 0 },

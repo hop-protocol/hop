@@ -369,7 +369,7 @@ export function Main () {
                     onChange={(e) => setExplorerNetwork(e.target.value as string)}
                     displayEmpty
                     startAdornment={
-                      <Box mr={1} display="flex" alignItems="center">
+                      <Box mr={1} display="flex" alignItems="center" pl={1}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M15.5 12C15.5 14.21 13.71 16 11.5 16C9.29 16 7.5 14.21 7.5 12C7.5 9.79 9.29 8 11.5 8C13.71 8 15.5 9.79 15.5 12Z" stroke="currentColor" strokeWidth="1.5"/>
                           <path d="M20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12Z" stroke="currentColor" strokeWidth="1.5"/>
@@ -410,9 +410,12 @@ export function Main () {
                         sx={{ 
                           fontWeight: 500,
                           lineHeight: 1.5,
+                          paddingLeft: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
                         }}
                       >
-                View Explorer
+                        View Explorer
                       </Typography>
                     )}
                   >
@@ -827,7 +830,7 @@ export function Main () {
                           borderRadius: '50%',
                           width: { xs: 28, sm: 32 },
                           height: { xs: 28, sm: 32 },
-                          boxShadow: expanded[components.findIndex(comp => comp[0] === title)] ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                          boxShadow: 'none',
                         })}
                       >
                         <CategoryIcon fontSize="small" />

@@ -199,10 +199,7 @@ export function Header () {
               sx={{ 
                 ml: { xs: 1, sm: 2 },
                 color: muiTheme.palette.primary.main,
-                transition: 'transform 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'rotate(30deg)'
-                },
+                transition: 'color 0.2s ease-in-out',
                 padding: { xs: 1, sm: 1.5 },
               }}
               aria-label="Toggle dark mode"

@@ -34,7 +34,7 @@ export const HighlightedButton = styled(LoadingButton)<LoadingButtonProps>(({ th
     boxShadow: theme.palette.mode === 'dark'
       ? '0px 4px 16px rgba(179, 46, 255, 0.3), 0px 2px 8px rgba(242, 164, 152, 0.2)'
       : 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px',
-    transition: 'background-color 0.15s ease-out 0s, box-shadow 0.15s ease-out 0s, transform 0.15s ease-out 0s',
+    transition: 'background-color 0.15s ease-out 0s, box-shadow 0.15s ease-out 0s',
     borderRadius: '3rem',
     textTransform: 'none',
     letterSpacing: '0',
@@ -43,10 +43,8 @@ export const HighlightedButton = styled(LoadingButton)<LoadingButtonProps>(({ th
         boxShadow: theme.palette.mode === 'dark'
           ? '0px 6px 20px rgba(179, 46, 255, 0.4), 0px 4px 12px rgba(242, 164, 152, 0.3)'
           : 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px',
-        transform: 'translateY(-2px)'
     },
     '&:active': {
-        transform: 'translateY(1px)',
         boxShadow: theme.palette.mode === 'dark'
           ? '0px 2px 8px rgba(179, 46, 255, 0.25), 0px 1px 4px rgba(242, 164, 152, 0.15)'
           : 'rgb(255, 255, 255) 5px -5px 15px, rgba(216, 213, 220, 0.6) -5px 5px 15px'

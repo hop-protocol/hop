@@ -25,9 +25,7 @@ export const CustomSelect = styled(Select)<SelectProps>(({ theme }) => ({
     minHeight: '0',
     backgroundColor: theme.palette.background.paper,
     color: theme.palette.text.primary,
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0px 3px 8px rgba(0, 0, 0, 0.3)' 
-      : '-6px 6px 12px #D8D5DC',
+    boxShadow: 'none',
     fontWeight: '700',
     lineHeight: '1',
     borderRadius: '0.5rem',
@@ -39,11 +37,11 @@ export const CustomSelect = styled(Select)<SelectProps>(({ theme }) => ({
     },
     '&:hover': {
       borderColor: `${theme.palette.primary.main}80`,
-      boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
+      boxShadow: 'none',
     },
     '&.Mui-focused': {
       borderColor: theme.palette.primary.main,
-      boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
+      boxShadow: 'none',
     },
     '> div': {
       display: 'flex',

@@ -31,17 +31,33 @@ export const HighlightedButton = styled(LoadingButton)<LoadingButtonProps>(({ th
     padding: '0.8rem 2.8rem',
     fontSize: '1rem',
     background: 'linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%)',
-    boxShadow: 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px',
-    transition: 'background-color 0.15s ease-out 0s, box-shadow 0.15s ease-out 0s',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0px 4px 16px rgba(179, 46, 255, 0.3), 0px 2px 8px rgba(242, 164, 152, 0.2)'
+      : 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px',
+    transition: 'background-color 0.15s ease-out 0s, box-shadow 0.15s ease-out 0s, transform 0.15s ease-out 0s',
     borderRadius: '3rem',
     textTransform: 'none',
     letterSpacing: '0',
     lineHeight: '1',
     '&:hover': {
-        boxShadow: 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px'
+        boxShadow: theme.palette.mode === 'dark'
+          ? '0px 6px 20px rgba(179, 46, 255, 0.4), 0px 4px 12px rgba(242, 164, 152, 0.3)'
+          : 'rgb(255, 255, 255) 10px -10px 30px, rgba(216, 213, 220, 0.8) -10px 10px 30px',
+        transform: 'translateY(-2px)'
+    },
+    '&:active': {
+        transform: 'translateY(1px)',
+        boxShadow: theme.palette.mode === 'dark'
+          ? '0px 2px 8px rgba(179, 46, 255, 0.25), 0px 1px 4px rgba(242, 164, 152, 0.15)'
+          : 'rgb(255, 255, 255) 5px -5px 15px, rgba(216, 213, 220, 0.6) -5px 5px 15px'
     },
     '&:disabled': {
-      background: '#FDF7F9',
-      color: '#6660777f'
+      background: theme.palette.mode === 'dark' 
+        ? 'rgba(179, 46, 255, 0.15)'
+        : '#FDF7F9',
+      color: theme.palette.mode === 'dark'
+        ? 'rgba(255, 255, 255, 0.4)'
+        : '#6660777f',
+      boxShadow: 'none'
     },
 }))

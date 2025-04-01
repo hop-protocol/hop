@@ -2,14 +2,12 @@ import { styled } from '@mui/material/styles'
 import MenuItem, { MenuItemProps } from '@mui/material/MenuItem'
 
 export const CustomMenuItem = styled(MenuItem)<MenuItemProps>(({ theme }) => ({
-    backgroundColor: '#fdf7f9',
-    foregroundColor: '#ffffff',
-    textColor: '#4a4a4a',
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
     borderColor: 'transparent',
     borderRadius: '0',
     WebkitFontSmoothing: 'antialiased',
     listStyle: 'none',
-    color: 'inherit',
     border: '0',
     cursor: 'pointer',
     margin: '0',
@@ -37,5 +35,20 @@ export const CustomMenuItem = styled(MenuItem)<MenuItemProps>(({ theme }) => ({
     paddingTop: '6px',
     whiteSpace: 'nowrap',
     paddingBottom: '6px',
-    minHeight: 'auto'
+    minHeight: 'auto',
+    '&:hover': {
+        backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.08)'
+            : 'rgba(0, 0, 0, 0.04)'
+    },
+    '&.Mui-selected': {
+        backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(144, 202, 249, 0.16)'
+            : 'rgba(25, 118, 210, 0.08)',
+        '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark'
+                ? 'rgba(144, 202, 249, 0.24)'
+                : 'rgba(25, 118, 210, 0.12)'
+        }
+    }
 }))

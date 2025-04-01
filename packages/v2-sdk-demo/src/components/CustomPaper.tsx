@@ -2,15 +2,36 @@ import { styled } from '@mui/material/styles'
 import Paper, { PaperProps } from '@mui/material/Paper'
 
 export const CustomPaper = styled(Paper)<PaperProps>(({ theme }) => ({
-    backgroundColor: '#fdf7f9',
-    foregroundColor: '#ffffff',
-    textColor: '#4a4a4a',
-    borderColor: 'transparent',
-    color: '#0F0524',
-    padding: '2.8rem',
-    overflow: 'hidden',
-    borderRadius: '3.0rem',
-    boxShadow: 'inset 4px -4px 3px #FFFFFF, inset 8px -8px 60px -5px #F1E9EC, inset -7px 7px 5px -4px rgba(174, 174, 192, 0.4)',
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    padding: theme.spacing(2),
+    overflow: 'auto',
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[1],
+    border: `1px solid ${theme.palette.divider}`,
     boxSizing: 'border-box',
-    transition: 'all 0.15s ease-out'
+    transition: theme.transitions.create(['box-shadow', 'background-color'], {
+        duration: theme.transitions.duration.short
+    }),
+    '&:hover': {
+        boxShadow: theme.shadows[2],
+    },
+    [theme.breakpoints.up('sm')]: {
+        padding: theme.spacing(3),
+    },
+    '& pre, & code': {
+        maxWidth: '100%',
+        overflowX: 'auto',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word'
+    },
+    '& img': {
+        maxWidth: '100%',
+        height: 'auto'
+    },
+    '& table': {
+        width: '100%',
+        display: 'block',
+        overflowX: 'auto'
+    }
 }))

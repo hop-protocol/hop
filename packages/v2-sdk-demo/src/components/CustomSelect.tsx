@@ -2,15 +2,9 @@ import { styled } from '@mui/material/styles'
 import Select, { SelectProps } from '@mui/material/Select'
 
 export const CustomSelect = styled(Select)<SelectProps>(({ theme }) => ({
-    '--w3o-background-color': '#fdf7f9',
-    '--w3o-foreground-color': '#ffffff',
-    '--w3o-text-color': '#4a4a4a',
-    '--w3o-border-color': 'transparent',
-    '--w3o-border-radius': '2px',
     '-webkit-font-smoothing': 'antialiased',
     font: 'inherit',
     width: 'auto',
-    border: '0',
     margin: '0',
     display: 'flex',
     boxSizing: 'content-box',
@@ -29,15 +23,28 @@ export const CustomSelect = styled(Select)<SelectProps>(({ theme }) => ({
     fontSize: '1rem',
     minWidth: '0',
     minHeight: '0',
-    // background: 'linear-gradient(101.98deg, rgb(179, 46, 255) -23.47%, rgb(225, 133, 179) 125.55%)',
-    // color: 'rgb(255, 255, 255)',
-    backgroundColor: '#FDF7F9',
-    boxShadow: '-6px 6px 12px #D8D5DC',
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    boxShadow: theme.palette.mode === 'dark' 
+      ? '0px 3px 8px rgba(0, 0, 0, 0.3)' 
+      : '-6px 6px 12px #D8D5DC',
     fontWeight: '700',
     lineHeight: '1',
-    borderRadius: '2.3rem',
+    borderRadius: '0.5rem',
     paddingRight: '2.8rem',
     alignItems: 'center',
+    border: `1px solid ${theme.palette.divider}`,
+    '& .MuiSelect-select': {
+      padding: '10px 14px',
+    },
+    '&:hover': {
+      borderColor: `${theme.palette.primary.main}80`,
+      boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
+    },
+    '&.Mui-focused': {
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
+    },
     '> div': {
       display: 'flex',
       alignItems: 'center',
@@ -47,5 +54,10 @@ export const CustomSelect = styled(Select)<SelectProps>(({ theme }) => ({
     },
     '&:hover > fieldset': {
       borderColor: 'transparent !important',
+    },
+    '& .MuiSvgIcon-root': {
+      color: theme.palette.mode === 'dark' 
+        ? theme.palette.primary.light 
+        : theme.palette.primary.main,
     }
 }))

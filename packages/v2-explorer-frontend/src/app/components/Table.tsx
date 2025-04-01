@@ -15,7 +15,6 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
-import { makeStyles } from '@mui/styles'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import FirstPageIcon from '@mui/icons-material/FirstPage'
 import LastPageIcon from '@mui/icons-material/LastPage'
@@ -25,61 +24,6 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-
-const useStyles = makeStyles((theme: any) => ({
-  titleContainer: {
-    '& > div': {
-      [theme.breakpoints.down('md')]: {
-        display: 'flex',
-        marginTop: '1rem',
-        flexDirection: 'column',
-        alignItems: 'flex-start'
-      }
-    },
-    '& > div > div': {
-      [theme.breakpoints.down('md')]: {
-        marginTop: '0.5rem'
-      }
-    },
-    [theme.breakpoints.down('md')]: {
-      flexDirection: 'column',
-      alignItems: 'flex-start'
-    }
-  },
-  paginationContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: theme.spacing(2),
-    borderTop: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-      gap: theme.spacing(2)
-    }
-  },
-  paginationControls: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1)
-  },
-  paginationInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(2),
-    [theme.breakpoints.down('sm')]: {
-      justifyContent: 'center',
-      width: '100%'
-    }
-  },
-  limitSelect: {
-    minWidth: 80,
-    '& .MuiSelect-select': {
-      paddingTop: 4,
-      paddingBottom: 4
-    }
-  }
-}))
 
 export type Header = {
   key: string
@@ -132,7 +76,6 @@ export function Table (props: Props) {
     titleVariant = 'h4' 
   } = props
 
-  const styles = useStyles()
   const theme = useTheme()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
@@ -215,7 +158,31 @@ export function Table (props: Props) {
 
   return (
     <Box>
-      <Box mb={2} display="flex" alignItems="center" justifyContent="space-between" className={styles.titleContainer}>
+      <Box 
+        mb={2} 
+        display="flex" 
+        alignItems="center" 
+        justifyContent="space-between" 
+        sx={{
+          '& > div': {
+            [theme.breakpoints.down('md')]: {
+              display: 'flex',
+              marginTop: '1rem',
+              flexDirection: 'column',
+              alignItems: 'flex-start'
+            }
+          },
+          '& > div > div': {
+            [theme.breakpoints.down('md')]: {
+              marginTop: '0.5rem'
+            }
+          },
+          [theme.breakpoints.down('md')]: {
+            flexDirection: 'column',
+            alignItems: 'flex-start'
+          }
+        }}
+      >
         <Typography variant={titleVariant as any} color="textPrimary">{title}</Typography>
         {props.filters ? props.filters : null}
       </Box>

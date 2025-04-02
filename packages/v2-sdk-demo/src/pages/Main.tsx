@@ -683,7 +683,7 @@ export function Main () {
           sx={(theme) => ({
             backgroundColor: 'transparent',
             borderRadius: theme.shape.borderRadius,
-            overflow: 'hidden',
+            overflow: 'visible',
           })}
         >
           <Paper
@@ -701,14 +701,13 @@ export function Main () {
               border: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.background.paper,
               position: 'relative',
-              overflow: 'hidden',
+              overflow: 'visible',
               '&:hover': {
                 borderColor: `${theme.palette.primary.main}80`,
                 boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
               },
               '&:focus-within': {
                 borderColor: theme.palette.primary.main,
-                borderWidth: '1px',
                 boxShadow: `0 0 0 1px ${theme.palette.primary.main}30`,
               },
               '&::after': searchQuery ? {
@@ -720,7 +719,11 @@ export function Main () {
                 height: '2px',
                 background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 transition: 'opacity 0.3s ease',
-                opacity: 1
+                opacity: 1,
+                borderBottomLeftRadius: '0.5rem',
+                borderBottomRightRadius: '0.5rem',
+                zIndex: 1,
+                transform: 'translateY(-1px)'
               } : {}
             })}
           >
@@ -774,7 +777,8 @@ export function Main () {
                         '@keyframes fadeIn': {
                           '0%': { opacity: 0 },
                           '100%': { opacity: 1 }
-                        }
+                        },
+                        zIndex: 2
                       })}
                     >
                       <ClearIcon fontSize="small" />
@@ -801,7 +805,8 @@ export function Main () {
                   '@keyframes fadeIn': {
                     '0%': { opacity: 0 },
                     '100%': { opacity: 1 }
-                  }
+                  },
+                  zIndex: 2
                 }}
               >
                 {filteredComponents.length} {filteredComponents.length === 1 ? 'result' : 'results'}

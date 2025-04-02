@@ -1,0 +1,61 @@
+{{#if settings.hideGenerator}}
+    <header class="tsd-page-toolbar">
+        <div class="tsd-toolbar-contents container">
+            <div class="table-cell" id="tsd-search" data-base="{{ relativeURL "" }}">
+                <div class="field">
+                    <label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label>
+                    <input type="text" id="tsd-search-field" aria-label="Search" />
+                </div>
+
+                <div class="field">
+                    <div id="tsd-toolbar-links">
+                        <a href="https://app.hop.exchange/" target="_blank" rel="noopener">Visit App</a>
+                        <a href="https://v2-playground.hop.exchange/" target="_blank" rel="noopener">V2 Playground</a>
+                        <a href="https://v2-explorer.hop.exchange/" target="_blank" rel="noopener">Explorer</a>
+                    </div>
+                </div>
+
+                <ul class="results">
+                    <li class="state loading">Preparing search index...</li>
+                    <li class="state failure">The search index is not available</li>
+                </ul>
+
+                <a href="{{ relativeURL "index.html" }}" class="title">{{ project.name }} - v{{ project.version }}</a>
+            </div>
+
+            <div class="table-cell" id="tsd-widgets">
+                <a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-menu"></use></svg></a>
+            </div>
+        </div>
+    </header>
+{{else}}
+    <header class="tsd-page-toolbar">
+        <div class="tsd-toolbar-contents container">
+            <div class="table-cell" id="tsd-search" data-base="{{ relativeURL "" }}">
+                <div class="field">
+                    <label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label>
+                    <input type="text" id="tsd-search-field" aria-label="Search" />
+                </div>
+
+                <div class="field">
+                    <div id="tsd-toolbar-links">
+                        <a href="https://app.hop.exchange/" target="_blank" rel="noopener">Visit App</a>
+                        <a href="https://v2-playground.hop.exchange/" target="_blank" rel="noopener">V2 Playground</a>
+                        <a href="https://v2-explorer.hop.exchange/" target="_blank" rel="noopener">Explorer</a>
+                    </div>
+                </div>
+
+                <ul class="results">
+                    <li class="state loading">Preparing search index...</li>
+                    <li class="state failure">The search index is not available</li>
+                </ul>
+
+                <a href="{{ relativeURL "index.html" }}" class="title">{{ project.name }} - v{{ project.version }}</a>
+            </div>
+
+            <div class="table-cell" id="tsd-widgets">
+                <a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-menu"></use></svg></a>
+            </div>
+        </div>
+    </header>
+{{/if}} 

@@ -340,25 +340,34 @@ export function Main () {
           <Box 
             display="flex" 
             justifyContent="space-between" 
-            alignItems={{ xs: 'center', sm: 'center' }}
-            flexDirection={{ xs: 'column', sm: 'row' }}
-            gap={{ xs: 2, sm: 0 }}
+            alignItems={{ xs: 'center', sm: 'center', md: 'center', lg: 'flex-start' }}
+            flexDirection={{ xs: 'column', md: 'row', lg: 'row' }}
+            gap={{ xs: 2, sm: 2, md: 2 }}
             width="100%"
           >
             <Box 
-              display="flex" 
+              display="flex"
               alignItems="center"
-              justifyContent={{ xs: 'center', sm: 'flex-start' }}
+              justifyContent={{ xs: 'center', sm: 'center', md: 'flex-start' }}
               flexWrap="wrap"
-              gap={{ xs: 2, sm: 3 }}
-              width={{ xs: '100%', sm: 'auto' }}
+              gap={{ xs: 1.5, sm: 2 }}
+              width="100%"
+              flexDirection={{ xs: 'column', sm: 'column', md: 'row' }}
+              sx={{
+                maxWidth: { md: '65%', lg: '70%' },
+                '& > div': {
+                  width: { xs: '100%', sm: '100%', md: 'auto' }
+                }
+              }}
             >
-            <Box>
+            <Box width={{ xs: '100%', sm: '100%', lg: 'auto' }}>
                 <FormControl 
                   variant="outlined" 
                   size="medium"
                   sx={(theme) => ({ 
                     minWidth: '180px',
+                    width: { xs: '100%', sm: '100%', md: '200px', lg: 'auto' },
+                    maxWidth: { xs: '100%', sm: '300px' },
                     '& .MuiOutlinedInput-root': {
                       height: { xs: '40px', sm: '40px' },
                     },
@@ -467,36 +476,145 @@ export function Main () {
                   </CustomSelect>
                 </FormControl>
             </Box>
-              <Box 
-                sx={(theme) => ({ 
-                  minWidth: '160px',
-                  maxWidth: '200px',
-                })}
+
+            <Box 
+              display="flex"
+              flexDirection={{ xs: 'column', sm: 'row' }}
+              gap={{ xs: 1.5, sm: 2 }}
+              width={{ xs: '100%', sm: '100%', md: 'auto', lg: 'auto' }}
+              sx={{
+                flexWrap: { sm: 'wrap', md: 'wrap', lg: 'nowrap' },
+                justifyContent: { xs: 'stretch', sm: 'flex-start' },
+                '& > a': {
+                  width: { xs: '100%', sm: 'auto' },
+                  flex: { xs: '1 0 100%', sm: '0 1 auto', md: '0 0 auto', lg: '0 0 auto' },
+                  marginRight: { sm: 1.5 },
+                  marginBottom: { sm: 1, lg: 0 },
+                  minWidth: { sm: '120px' },
+                  maxWidth: { sm: '200px' }
+                }
+              }}
+            >
+              <Button
+                component="a"
+                href="https://app.hop.exchange/"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                color="primary"
+                size="medium"
+                endIcon={<OpenInNewIcon fontSize="small" />}
+                sx={{
+                  height: { xs: '40px', sm: '40px' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: '100%', sm: 'auto' },
+                  fontWeight: 500,
+                  borderRadius: '0.5rem',
+                  '&:hover': {
+                    borderColor: theme => `${theme.palette.primary.main}`,
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.05)'
+                      : 'rgba(0, 0, 0, 0.02)',
+                  }
+                }}
               >
-              <NetworkSelect network={network} setNetwork={setNetwork} />
-              </Box>
+                Visit App
+              </Button>
+
+              <Button
+                component="a"
+                href="https://docs.hop.exchange/v2"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                color="secondary"
+                size="medium"
+                endIcon={<OpenInNewIcon fontSize="small" />}
+                sx={{
+                  height: { xs: '40px', sm: '40px' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: '100%', sm: 'auto' },
+                  fontWeight: 500,
+                  borderRadius: '0.5rem',
+                  '&:hover': {
+                    borderColor: theme => `${theme.palette.secondary.main}`,
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.05)'
+                      : 'rgba(0, 0, 0, 0.02)',
+                  }
+                }}
+              >
+                Read Docs
+              </Button>
+
+              <Button
+                component="a"
+                href="https://v2-sdk-docs.hop.exchange/"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                color="secondary"
+                size="medium"
+                endIcon={<OpenInNewIcon fontSize="small" />}
+                sx={{
+                  height: { xs: '40px', sm: '40px' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: '100%', sm: 'auto' },
+                  fontWeight: 500,
+                  borderRadius: '0.5rem',
+                  '&:hover': {
+                    borderColor: theme => `${theme.palette.secondary.main}`,
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.05)'
+                      : 'rgba(0, 0, 0, 0.02)',
+                  }
+                }}
+              >
+                API Reference
+              </Button>
+            </Box>
             </Box>
             
             <Box
               display="flex"
               alignItems="center"
-              justifyContent={{ xs: 'center', sm: 'flex-end' }}
-              width={{ xs: '100%', sm: 'auto' }}
+              justifyContent={{ xs: 'center', sm: 'center', md: 'flex-end', lg: 'flex-end' }}
+              width={{ xs: '100%', sm: '100%', md: '250px', lg: 'auto' }}
+              gap={{ xs: 2, sm: 2, md: 2 }}
+              mt={{ xs: 1, sm: 2, md: 0, lg: 0 }}
+              flexDirection={{ xs: 'column', sm: 'row' }}
+              sx={{
+                flexWrap: { sm: 'wrap', md: 'nowrap', lg: 'nowrap' },
+              }}
             >
-            {!address && (
+              <Box 
+                sx={(theme) => ({ 
+                  minWidth: { xs: '100%', sm: '160px' },
+                  maxWidth: { xs: '100%', sm: '200px', md: '180px' },
+                  width: { xs: '100%', sm: 'auto' },
+                  flex: { sm: '0 0 auto' },
+                })}
+              >
+                <NetworkSelect network={network} setNetwork={setNetwork} />
+              </Box>
+
+              {!address && (
                 <HighlightedButton 
                   onClick={requestWallet} 
                   variant="contained"
                   color="primary"
                   size="medium"
                   sx={{
-                    minWidth: { xs: '160px', sm: '180px' },
+                    minWidth: { xs: '100%', sm: '120px', md: '150px' },
+                    maxWidth: { xs: '100%', sm: '200px', md: '180px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    flex: { sm: '0 0 auto' },
                   }}
                 >
                   Connect a Wallet
                 </HighlightedButton>
               )}
-            
+              
               {showAccountInfo && !!address && (
                 <Box 
                   display="flex" 
@@ -1036,13 +1154,13 @@ export function Main () {
                               })}
                             >
                               <Box p={{ xs: 2, sm: 4 }}>{component}</Box>
-                          </CustomPaper>
+                            </CustomPaper>
+                          </Box>
                         </Box>
-                      </Box>
-                    </Suspense>
-                  )}
-                </AccordionDetails>
-              </Accordion>
+                      </Suspense>
+                    )}
+                  </AccordionDetails>
+                </Accordion>
             )
             })
           ) : (

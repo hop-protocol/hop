@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import { networkName } from '@/app/config'
+import { networkName, networkSlug } from '@/app/config'
 import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
@@ -21,6 +21,9 @@ import TokenIcon from '@mui/icons-material/Token'
 import RouteIcon from '@mui/icons-material/Route'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import InsightsIcon from '@mui/icons-material/Insights'
+import CodeIcon from '@mui/icons-material/Code'
+import SyncAltIcon from '@mui/icons-material/SyncAlt'
+import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
@@ -75,6 +78,27 @@ export function Header () {
   const { theme, dark, toggleTheme } = useTheme()
   const muiTheme = useMuiTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'))
+  const [alternativeExplorer, setAlternativeExplorer] = useState({
+    url: '',
+    label: ''
+  })
+
+  useEffect(() => {
+    // Check network slug from config instead of hostname
+    const isMainnet = networkSlug === 'mainnet'
+    
+    if (isMainnet) {
+      setAlternativeExplorer({
+        url: 'https://v2-explorer-sepolia.hop.exchange/',
+        label: 'Sepolia Explorer'
+      })
+    } else {
+      setAlternativeExplorer({
+        url: 'https://v2-explorer.hop.exchange/',
+        label: 'Mainnet Explorer'
+      })
+    }
+  }, [])
 
   const routes: Record<string, string> = {
     home: '/',
@@ -166,7 +190,41 @@ export function Header () {
           </Box>
         </Box>
         
-        <Box>
+        <Box display="flex" alignItems="center" gap={2}>
+          {alternativeExplorer.url && (
+            <Button
+              variant="outlined"
+              size="small"
+              href={alternativeExplorer.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              startIcon={<SyncAltIcon />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                display: { xs: 'none', sm: 'flex' }
+              }}
+            >
+              {alternativeExplorer.label}
+            </Button>
+          )}
+          <Button
+            variant="outlined"
+            size="small"
+            href="https://v2-playground.hop.exchange/"
+            target="_blank"
+            rel="noopener noreferrer"
+            startIcon={<CodeIcon />}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+              display: { xs: 'none', sm: 'flex' }
+            }}
+          >
+            V2 Playground
+          </Button>
           <IconButton 
             onClick={toggleTheme} 
             title="Toggle theme color mode"
@@ -267,6 +325,48 @@ export function Header () {
           </Tabs>
         </Box>
       </Paper>
+
+      <Box 
+        sx={{ 
+          display: { xs: 'flex', sm: 'none' }, 
+          justifyContent: 'center', 
+          width: '100%',
+          mt: 2,
+          gap: 2,
+          flexWrap: 'wrap'
+        }}
+      >
+        {alternativeExplorer.url && (
+          <Button
+            variant="outlined"
+            size="small"
+            href={alternativeExplorer.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            startIcon={<SyncAltIcon />}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+            }}
+          >
+            {alternativeExplorer.label}
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          size="small"
+          href="https://v2-playground.hop.exchange/"
+          target="_blank"
+          rel="noopener noreferrer"
+          startIcon={<CodeIcon />}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+          }}
+        >
+          V2 Playground
+        </Button>
+      </Box>
     </Box>
   )
 }

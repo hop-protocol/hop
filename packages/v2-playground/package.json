@@ -1,5 +1,5 @@
 {
-  "name": "@hop-protocol/v2-sdk-demo",
+  "name": "@hop-protocol/v2-playground",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

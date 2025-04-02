@@ -992,7 +992,7 @@ importers:
         specifier: 3.17.1
         version: 3.17.1(typedoc@0.25.7(typescript@5.4.3))
 
-  packages/v2-sdk-demo:
+  packages/v2-playground:
     dependencies:
       '@emotion/react':
         specifier: ^11.9.3

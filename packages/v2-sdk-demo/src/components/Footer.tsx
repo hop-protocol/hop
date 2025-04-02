@@ -1,13 +1,13 @@
 import React from 'react'
 import Box from '@mui/material/Box'
 import GitHubIcon from '@mui/icons-material/GitHub'
-import TwitterIcon from '@mui/icons-material/Twitter'
 import Link from '@mui/material/Link'
 import { useTheme as useMuiTheme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import DiscordIcon from '@mui/icons-material/Chat'
 import { useTheme } from '../contexts/ThemeContext.js'
+import discordSvg from '../assets/logos/discord.svg'
+import twitterXSvg from '../assets/logos/twitter-x.svg'
 
 export function Footer () {
   const muiTheme = useMuiTheme()
@@ -102,7 +102,20 @@ export function Footer () {
                 padding: { xs: '4px', sm: 0 },
               }}
             >
-              <TwitterIcon fontSize={muiTheme.breakpoints.down('sm') ? 'small' : 'medium'} />
+              <Box 
+                component="img" 
+                src={twitterXSvg} 
+                alt="Twitter"
+                sx={{
+                  width: '20px',
+                  height: '20px',
+                  filter: darkMode ? 'invert(80%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(95%) contrast(80%)' : 'invert(60%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(95%) contrast(80%)',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    filter: darkMode ? 'invert(80%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(100%) contrast(90%)' : 'invert(60%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(100%) contrast(90%)'
+                  }
+                }}
+              />
             </Link>
           </Tooltip>
           
@@ -121,7 +134,20 @@ export function Footer () {
                 padding: { xs: '4px', sm: 0 },
               }}
             >
-              <DiscordIcon fontSize={muiTheme.breakpoints.down('sm') ? 'small' : 'medium'} />
+              <Box 
+                component="img" 
+                src={discordSvg} 
+                alt="Discord"
+                sx={{
+                  width: '20px',
+                  height: '20px',
+                  filter: darkMode ? 'invert(80%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(95%) contrast(80%)' : 'invert(60%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(95%) contrast(80%)',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    filter: darkMode ? 'invert(80%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(100%) contrast(90%)' : 'invert(60%) sepia(19%) saturate(2000%) hue-rotate(270deg) brightness(100%) contrast(90%)'
+                  }
+                }}
+              />
             </Link>
           </Tooltip>
           

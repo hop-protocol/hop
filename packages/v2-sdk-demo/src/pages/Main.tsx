@@ -415,7 +415,7 @@ export function Main () {
                           alignItems: 'center',
                         }}
                       >
-                        View Explorer
+                View Explorer
                       </Typography>
                     )}
                   >
@@ -986,7 +986,7 @@ export function Main () {
                         )}
                       </Box>
                     </Box>
-                  </AccordionSummary>
+                </AccordionSummary>
 
                   <AccordionDetails
                     sx={(theme) => ({
@@ -1036,7 +1036,7 @@ export function Main () {
                               })}
                             >
                               <Box p={{ xs: 2, sm: 4 }}>{component}</Box>
-                            </CustomPaper>
+                          </CustomPaper>
                         </Box>
                       </Box>
                     </Suspense>

@@ -78,6 +78,7 @@ export function Header () {
   const { theme, dark, toggleTheme } = useTheme()
   const muiTheme = useMuiTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'))
+  const isSmallMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
   const [alternativeExplorer, setAlternativeExplorer] = useState({
     url: '',
     label: ''
@@ -133,15 +134,18 @@ export function Header () {
   const logoImage = dark ? logoDark : logo
 
   return (
-    <Box width="100%" mb={{ xs: 2, sm: 3, md: 4 }} mt={{ xs: 1, sm: 2 }}>
+    <Box width="100%" mb={{ xs: 3, sm: 3, md: 4 }} mt={{ xs: 2, sm: 2 }}>
       {/* Header top row - logo and theme toggle */}
       <Box 
         display="flex" 
         width="100%"
         justifyContent="space-between"
-        alignItems="center" 
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        flexDirection={{ xs: 'column', sm: 'row' }}
         mb={{ xs: 2, md: 2 }}
+        gap={{ xs: 2, sm: 0 }}
       >
+        {/* Logo and title area */}
         <Box 
           display="flex" 
           flexDirection={{ xs: 'column', sm: 'row' }}
@@ -152,7 +156,11 @@ export function Header () {
             <Typography 
               variant="h4" 
               color="textPrimary"
-              sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}
+              sx={{ 
+                fontSize: { xs: '1.6rem', sm: '2rem' },
+                fontWeight: { xs: 600, sm: 500 },
+                lineHeight: 1.2
+              }}
             >
               <a href="/" style={{
                 textDecoration: 'none',
@@ -160,13 +168,13 @@ export function Header () {
                 display: 'flex',
                 alignItems: 'center',
               }}>
-                <Box display="flex" justifyContent="center" alignItems="center">
-                  <Box display="flex" mr={1}>
+                <Box display="flex" justifyContent="center" alignItems="center" gap={1}>
+                  <Box display="flex">
                     <img 
                       src={logoImage} 
                       alt="Hop" 
                       style={{ 
-                        height: isMobile ? '24px' : '32px',
+                        height: isMobile ? '28px' : '32px',
                         width: 'auto'
                       }} 
                     />
@@ -176,67 +184,86 @@ export function Header () {
               </a>
             </Typography>
           </Box>
-          <Box>
-            <Typography 
-              variant="subtitle1" 
-              color="secondary"
-              sx={{ 
-                fontSize: { xs: '0.8rem', sm: '1rem' },
-                mt: { xs: 0, sm: 0 }
-              }}
-            >
-              {networkName}
-            </Typography>
-          </Box>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              fontWeight: 'medium',
+              color: 'primary.main',
+              padding: { xs: '0.25rem 0', sm: '0.25rem 0.75rem' },
+              backgroundColor: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              borderRadius: 1
+            }}
+          >
+            {networkName}
+          </Typography>
         </Box>
         
-        <Box display="flex" alignItems="center" gap={2}>
-          {alternativeExplorer.url && (
+        {/* Actions area - links and theme toggle */}
+        <Box 
+          display="flex" 
+          width={{ xs: '100%', sm: 'auto' }}
+          justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
+          alignItems="center" 
+          gap={1.5}
+          flexWrap="wrap"
+        >
+          <Box display="flex" gap={1.5}>
+            {alternativeExplorer.url && (
+              <Button
+                variant="outlined"
+                size="small"
+                href={alternativeExplorer.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                startIcon={!isSmallMobile && <SyncAltIcon />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  px: { xs: 1, sm: 1.5 },
+                  py: { xs: 0.5, sm: 0.75 },
+                  minWidth: { xs: 'auto', sm: 'auto' }
+                }}
+              >
+                {isSmallMobile ? <SyncAltIcon fontSize="small" /> : alternativeExplorer.label}
+              </Button>
+            )}
             <Button
               variant="outlined"
               size="small"
-              href={alternativeExplorer.url}
+              href="https://v2-playground.hop.exchange/"
               target="_blank"
               rel="noopener noreferrer"
-              startIcon={<SyncAltIcon />}
+              startIcon={!isSmallMobile && <CodeIcon />}
               sx={{
                 borderRadius: 2,
                 textTransform: 'none',
                 whiteSpace: 'nowrap',
-                display: { xs: 'none', sm: 'flex' }
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                px: { xs: 1, sm: 1.5 },
+                py: { xs: 0.5, sm: 0.75 },
+                minWidth: { xs: 'auto', sm: 'auto' }
               }}
             >
-              {alternativeExplorer.label}
+              {isSmallMobile ? <CodeIcon fontSize="small" /> : "V2 Playground"}
             </Button>
-          )}
-          <Button
-            variant="outlined"
-            size="small"
-            href="https://v2-playground.hop.exchange/"
-            target="_blank"
-            rel="noopener noreferrer"
-            startIcon={<CodeIcon />}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              whiteSpace: 'nowrap',
-              display: { xs: 'none', sm: 'flex' }
-            }}
-          >
-            V2 Playground
-          </Button>
+          </Box>
           <IconButton 
             onClick={toggleTheme} 
             title="Toggle theme color mode"
+            size={isMobile ? "small" : "medium"}
             sx={{
               backgroundColor: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease',
               '&:hover': {
                 backgroundColor: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-              }
+              },
+              p: { xs: 1, sm: 1.25 }
             }}
           >
-            {dark ? <LightModeIcon /> : <DarkModeIcon />}
+            {dark ? <LightModeIcon fontSize={isMobile ? "small" : "medium"} /> : <DarkModeIcon fontSize={isMobile ? "small" : "medium"} />}
           </IconButton>
         </Box>
       </Box>
@@ -258,7 +285,7 @@ export function Header () {
             overflowX: 'auto',
             display: 'flex',
             justifyContent: { xs: 'flex-start', md: 'flex-start' },
-            padding: { xs: '4px', sm: '4px 8px' }
+            padding: { xs: '2px', sm: '4px 8px' }
           }}
         >
           <Tabs 
@@ -268,7 +295,7 @@ export function Header () {
             scrollButtons="auto"
             allowScrollButtonsMobile
             sx={{
-              minHeight: { xs: '36px', sm: '48px' },
+              minHeight: { xs: '40px', sm: '48px' },
               '.MuiTabs-scrollButtons': {
                 '&.Mui-disabled': {
                   opacity: 0.3,
@@ -325,48 +352,6 @@ export function Header () {
           </Tabs>
         </Box>
       </Paper>
-
-      <Box 
-        sx={{ 
-          display: { xs: 'flex', sm: 'none' }, 
-          justifyContent: 'center', 
-          width: '100%',
-          mt: 2,
-          gap: 2,
-          flexWrap: 'wrap'
-        }}
-      >
-        {alternativeExplorer.url && (
-          <Button
-            variant="outlined"
-            size="small"
-            href={alternativeExplorer.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            startIcon={<SyncAltIcon />}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-            }}
-          >
-            {alternativeExplorer.label}
-          </Button>
-        )}
-        <Button
-          variant="outlined"
-          size="small"
-          href="https://v2-playground.hop.exchange/"
-          target="_blank"
-          rel="noopener noreferrer"
-          startIcon={<CodeIcon />}
-          sx={{
-            borderRadius: 2,
-            textTransform: 'none',
-          }}
-        >
-          V2 Playground
-        </Button>
-      </Box>
     </Box>
   )
 }

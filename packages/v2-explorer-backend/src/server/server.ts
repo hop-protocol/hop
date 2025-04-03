@@ -26,7 +26,7 @@ app.get('/health', (req: any, res: any) => {
 
 app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
   try {
-    let { limit = 10, filter, page = 1 } = req.query
+    let { limit = 10, filter, page = 1, startTimestamp, endTimestamp } = req.query
     limit = Number(limit)
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
@@ -34,10 +34,22 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     if (limit > maxPageSize) {
       throw new Error(`limit must be less than ${maxPageSize}`)
     }
+
+    // Parse timestamps if provided
+    if (startTimestamp) {
+      startTimestamp = parseInt(startTimestamp)
+    }
+    
+    if (endTimestamp) {
+      endTimestamp = parseInt(endTimestamp)
+    }
+
     const { items, hasNextPage } = await controller.getExplorerEventsForApi({
       limit,
       filter,
-      page: Number(page)
+      page: Number(page),
+      startTimestamp,
+      endTimestamp
     })
     res.status(200).json({
       events: items,
@@ -52,7 +64,7 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {
-    let { eventName, page = 1, limit = 10, filter } = req.query
+    let { eventName, page = 1, limit = 10, filter, startTimestamp, endTimestamp } = req.query
     if (!eventName) {
       throw new Error('missing eventName')
     }
@@ -63,11 +75,23 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     if (limit > maxPageSize) {
       throw new Error(`limit must be less than ${maxPageSize}`)
     }
+    
+    // Parse timestamps if provided
+    if (startTimestamp) {
+      startTimestamp = parseInt(startTimestamp)
+    }
+    
+    if (endTimestamp) {
+      endTimestamp = parseInt(endTimestamp)
+    }
+    
     const { items, hasNextPage } = await controller.getEventsForApi({
       eventName,
       limit,
       filter,
-      page: Number(page)
+      page: Number(page),
+      startTimestamp,
+      endTimestamp
     })
     res.status(200).json({
       events: items,

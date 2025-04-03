@@ -38,6 +38,8 @@ type EventsApiInput = {
   limit?: number
   page?: number | null
   filter: any
+  startTimestamp?: number
+  endTimestamp?: number
 }
 
 type PathsApiInput = {
@@ -110,10 +112,17 @@ export class Controller {
   }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {
-    const { eventName, limit = 10, page = 1 } = input
+    const { eventName, limit = 10, page = 1, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
-    const { items, hasNextPage } = await this.getEvents({ eventName, limit, page, filter })
+    const { items, hasNextPage } = await this.getEvents({ 
+      eventName, 
+      limit, 
+      page, 
+      filter, 
+      startTimestamp, 
+      endTimestamp 
+    })
 
     return {
       items: items.map((item: any) => this.normalizeEventForApi(item)),
@@ -122,15 +131,27 @@ export class Controller {
   }
 
   async getEvents (input: any): Promise<any> {
-    const { eventName, limit = 10, page = 1 } = input
+    const { eventName, limit = 10, page = 1, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
     if (!this.pgDb.events[eventName]) {
       throw new Error(`Event ${eventName} not found`)
     }
 
-    const items = await this.pgDb.events[eventName].getItems({ limit, filter, page })
-    const itemsNext = await this.pgDb.events[eventName].getItems({ limit, filter, page: Number(page) + 1 })
+    const items = await this.pgDb.events[eventName].getItems({ 
+      limit, 
+      filter, 
+      page,
+      startTimestamp,
+      endTimestamp 
+    })
+    const itemsNext = await this.pgDb.events[eventName].getItems({ 
+      limit, 
+      filter, 
+      page: Number(page) + 1,
+      startTimestamp,
+      endTimestamp 
+    })
     const hasNextPage = itemsNext.length > 0
     console.log('getEvents', eventName, items.length, limit, page)
 
@@ -262,10 +283,17 @@ export class Controller {
 
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
-    const { limit = 10, page } = input
+    const { limit = 10, page, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
-    const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
+    const { items, hasNextPage } = await this.getEvents({ 
+      limit, 
+      filter, 
+      eventName: 'TransferSent', 
+      page,
+      startTimestamp,
+      endTimestamp 
+    })
 
     console.log('getExplorerEventsForApi', input)
 
@@ -699,6 +727,9 @@ export class Controller {
     if (item.context?.value != null && item.context?.valueFormatted != null && item.ethPriceUsd != null) {
       item.context.valueUsd = Number(item.context.valueFormatted) * Number(item.ethPriceUsd)
       item.context.valueUsdDisplay = `${formatToUSD(item.context.valueUsd.toFixed(2))} USD`
+    }
+    if (item.context?.chainId && !item.context?.chainSlug) {
+      item.context.chainSlug = this.sdk.utils.getChainSlug(item.context.chainId)
     }
     if (item.sendFee != null) {
       item.sendFeeFormatted = formatUnits(item.sendFee, 18)

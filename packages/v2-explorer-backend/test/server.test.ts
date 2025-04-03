@@ -46,6 +46,22 @@ async function queryEvents(eventName: string) {
   return events
 }
 
+async function queryEventsWithTimestamps(eventName: string, startTimestamp?: number, endTimestamp?: number) {
+  const query: any = { eventName }
+  if (startTimestamp !== undefined) {
+    query.startTimestamp = startTimestamp
+  }
+  if (endTimestamp !== undefined) {
+    query.endTimestamp = endTimestamp
+  }
+  
+  const res = await request(app).get('/v1/events').query(query).send()
+  const { events } = res.body
+  console.log(JSON.stringify(events, null, 2))
+  expect(events).toBeTruthy()
+  return events
+}
+
 describe('Server', () => {
   it('/health', async () => {
     const res = await request(app).get('/health').send()
@@ -410,11 +426,58 @@ describe('Server', () => {
     console.log(JSON.stringify(res.body, null, 2))
     expect(data).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.only('/v1/message-details', async () => {
+  it('/v1/message-details', async () => {
     const pathId = '0x7cb71955a8adca40db7b4e4957738a2dea6980f96d971c7c1e67a8155564a012'
     const res = await request(app).get(`/v1/message-details?messageId=${pathId}`).send()
     const { data } = res.body
     console.log(JSON.stringify(res.body, null, 2))
     expect(data).toBeTruthy()
+  }, 10 * 60 * 1000)
+  
+  it.only('/v1/events - TransferSent with timestamps', async () => {
+    // First get events without timestamp filtering
+    const allEvents = await queryEvents('TransferSent')
+    expect(allEvents.length).toBeGreaterThan(0)
+    
+    if (allEvents.length > 0) {
+      // Get the timestamp from the first event
+      const referenceEvent = allEvents[0]
+      const referenceTimestamp = referenceEvent.context.blockTimestamp
+      
+      // Get events after the reference timestamp
+      const afterEvents = await queryEventsWithTimestamps('TransferSent', referenceTimestamp, undefined)
+      expect(afterEvents.length).toBeGreaterThan(0)
+      expect(afterEvents.length).toBeLessThanOrEqual(allEvents.length)
+      
+      // Verify all returned events have timestamps >= referenceTimestamp
+      afterEvents.forEach((event: any) => {
+        expect(event.context.blockTimestamp).toBeGreaterThanOrEqual(referenceTimestamp)
+      })
+      
+      // Get events before the reference timestamp
+      const beforeEvents = await queryEventsWithTimestamps('TransferSent', undefined, referenceTimestamp)
+      expect(beforeEvents.length).toBeGreaterThan(0)
+      expect(beforeEvents.length).toBeLessThanOrEqual(allEvents.length)
+      
+      // Verify all returned events have timestamps <= referenceTimestamp
+      beforeEvents.forEach((event: any) => {
+        expect(event.context.blockTimestamp).toBeLessThanOrEqual(referenceTimestamp)
+      })
+      
+      // Get events between specific time range
+      if (allEvents.length > 1) {
+        const firstTimestamp = allEvents[0].context.blockTimestamp
+        const lastTimestamp = allEvents[allEvents.length - 1].context.blockTimestamp
+        const midTimestamp = Math.floor((firstTimestamp + lastTimestamp) / 2)
+        
+        const rangeEvents = await queryEventsWithTimestamps('TransferSent', midTimestamp, lastTimestamp)
+        
+        // Verify all returned events have timestamps within specified range
+        rangeEvents.forEach((event: any) => {
+          expect(event.context.blockTimestamp).toBeGreaterThanOrEqual(midTimestamp)
+          expect(event.context.blockTimestamp).toBeLessThanOrEqual(lastTimestamp)
+        })
+      }
+    }
   }, 10 * 60 * 1000)
 })

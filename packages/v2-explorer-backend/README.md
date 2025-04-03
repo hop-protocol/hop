@@ -873,6 +873,16 @@ curl "https://v2-explorer-api-sepolia.hop.exchange/v1/events?type=BundleCommitte
 
 > Retrieve events and their details for path-based token transfers, including hops, claims, and associated metadata.
 
+### Parameters
+
+| Parameter        | Type    | Description                                                      | Required |
+| ---------------- | ------- | ---------------------------------------------------------------- | -------- |
+| `limit`          | number  | Maximum number of items to return                                | No       |
+| `page`           | number  | Page number for pagination                                       | No       |
+| `filter`         | object  | Filter parameters for events                                     | No       |
+| `startTimestamp` | number  | Unix timestamp to filter events from (inclusive)                 | No       |
+| `endTimestamp`   | number  | Unix timestamp to filter events until (inclusive)                | No       |
+
 ---
 
 ### Response:
@@ -904,49 +914,6 @@ curl "https://v2-explorer-api-sepolia.hop.exchange/v1/events?type=BundleCommitte
 | `attestedClaimId`               | (string) The claim ID associated with the hop.                                                 |
 | `pathIdTruncated`               | (string) A truncated version of the path ID.                                                   |
 | `attestedClaimIdTruncated`      | (string) A truncated version of the attested claim ID.                                          |
-
----
-
-### Example Request:
-
-```bash
-curl "https://v2-explorer-api-sepolia.hop.exchange/v1/explorer"
-```
-
-### Example Response:
-
-```json
-{
-  "events": [
-    {
-      "pathId": "0x...14",
-      "transferId": "0x...24",
-      "to": "0x1234567890abcdef1234567890abcdef12345678",
-      "amountOut": "1000000",
-      "totalSent": "1100000",
-      "totalClaims": "900000",
-      "hops": [
-        {
-          "index": 0,
-          "pathId": "0x...14",
-          "maxBonderFee": "50000",
-          "maxTotalSent": "1100000",
-          "attestedClaimId": "0x...34",
-          "pathIdTruncated": "0x...14",
-          "attestedClaimIdTruncated": "0x...34"
-        }
-      ],
-      "transferIdTruncated": "0x...24",
-      "transferIdExplorerUrl": "https://etherscan.io/tx/0x...24",
-      "pathIdTruncated": "0x...14",
-      "toTruncated": "0x123...5678",
-      "context": {
-        "key": "value"
-      }
-    }
-  ]
-}
-```
 
 ### Context Object Fields:
 
@@ -1010,7 +977,54 @@ curl "https://v2-explorer-api-sepolia.hop.exchange/v1/explorer"
 }
 ```
 
-$## Pagination
+### Example Request:
+
+```bash
+curl "https://v2-explorer-api-sepolia.hop.exchange/v1/explorer"
+```
+
+### Example Request with timestamp filtering:
+
+```bash
+curl "https://v2-explorer-api-sepolia.hop.exchange/v1/explorer?startTimestamp=1704067200&endTimestamp=1706745600"
+```
+
+### Example Response:
+
+```json
+{
+  "events": [
+    {
+      "pathId": "0x...14",
+      "transferId": "0x...24",
+      "to": "0x1234567890abcdef1234567890abcdef12345678",
+      "amountOut": "1000000",
+      "totalSent": "1100000",
+      "totalClaims": "900000",
+      "hops": [
+        {
+          "index": 0,
+          "pathId": "0x...14",
+          "maxBonderFee": "50000",
+          "maxTotalSent": "1100000",
+          "attestedClaimId": "0x...34",
+          "pathIdTruncated": "0x...14",
+          "attestedClaimIdTruncated": "0x...34"
+        }
+      ],
+      "transferIdTruncated": "0x...24",
+      "transferIdExplorerUrl": "https://etherscan.io/tx/0x...24",
+      "pathIdTruncated": "0x...14",
+      "toTruncated": "0x123...5678",
+      "context": {
+        "key": "value"
+      }
+    }
+  ]
+}
+```
+
+## Pagination
 
 ### Request Query Parameters
 

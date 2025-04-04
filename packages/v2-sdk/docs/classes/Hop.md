@@ -36,6 +36,7 @@
 - [approveSendTokens](Hop.md#approvesendtokens)
 - [calcAmountOutMin](Hop.md#calcamountoutmin)
 - [connectTargets](Hop.md#connecttargets)
+- [estimateGasCostForSend](Hop.md#estimategascostforsend)
 - [getAllRailsPathAddresses](Hop.md#getallrailspathaddresses)
 - [getAmountOut](Hop.md#getamountout)
 - [getChainIdsSupportedByTokenSymbol](Hop.md#getchainidssupportedbytokensymbol)
@@ -320,6 +321,22 @@ ___
 #### Returns
 
 `Promise`\<\{ `connectorAddress`: `string` ; `tx`: `TransactionResponse`  }\>
+
+___
+
+### <a id="estimategascostforsend" name="estimategascostforsend"></a> estimateGasCostForSend
+
+▸ **estimateGasCostForSend**(`«destructured»`): `Promise`\<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `«destructured»` | `EstimateGasCostForSendInput` |
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
 
 ___
 

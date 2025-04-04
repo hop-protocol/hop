@@ -415,13 +415,13 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     feeRefundDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide this
+        ? getValue(sendV2, 'feeRefundDisplay', '')
         : getValue(sendV1, 'feeRefundDisplay', '')
       : getValue(sendV1, 'feeRefundDisplay', ''),
 
     feeRefundTokenSymbol: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide this
+        ? getValue(sendV2, 'feeRefundTokenSymbol', '')
         : getValue(sendV1, 'feeRefundTokenSymbol', '')
       : getValue(sendV1, 'feeRefundTokenSymbol', ''),
 
@@ -617,7 +617,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     showFeeRefund: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? false // Placeholder as v2 may not have this
+        ? getValue(sendV2, 'showFeeRefund', false)
         : getValue(sendV1, 'showFeeRefund', false)
       : getValue(sendV1, 'showFeeRefund', false),
 

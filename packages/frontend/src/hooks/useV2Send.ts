@@ -9,10 +9,14 @@ import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
 import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
 import { getNetworks } from '#config/networks.js'
+import { isMainnet, showRewards } from '#config/index.js'
 import {
   useBalance,
   useFeeConversionsV2,
+  useEstimateTxCost,
+  useTxResult
 } from '#hooks/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 const { formatUnits, parseUnits } = utils
 const { formatUSD } = v2Utils
@@ -93,6 +97,9 @@ type V2SendHook = {
   transferStatus: any,
   fromTokenDecimals: number,
   setFromTokenDecimals: (decimals: number) => void
+  showFeeRefund: boolean
+  feeRefundTokenSymbol: string
+  feeRefundDisplay: string
 }
 
 class Token {
@@ -121,7 +128,7 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, estimateGasCostForSend, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
   const {
     txConfirm
   } = useApp()
@@ -182,7 +189,7 @@ export function useV2Send(): V2SendHook {
         setParsedAmountIn('0')
       }
     } catch (err) {
-      console.error('setParsedAmountIn error', err)
+      console.error('v2 setParsedAmountIn error', err)
     }
   }, [amountIn, fromTokenDecimals])
 
@@ -423,7 +430,7 @@ export function useV2Send(): V2SendHook {
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
           const requestId = ++latestRequestId.current
 
-          console.log('getSendData', {
+          console.log('v2 getSendData', {
             fromChainId,
             fromTokenAddress,
             toChainId,
@@ -465,7 +472,7 @@ export function useV2Send(): V2SendHook {
           setMaxBonderFee(BigNumber.from(0))
         }
       } catch (err) {
-        console.error('getSendData error:', err)
+        console.error('v2 getSendData error:', err)
         setIsFetchingGetSendData(false)
         // setError(formatError(err.message))
       }
@@ -572,6 +579,119 @@ export function useV2Send(): V2SendHook {
     return ''
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
+ // ==============================================================================================
+  // Fee refund
+  // ==============================================================================================
+  const [feeRefund, setFeeRefund] = useState<string>('')
+  const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
+  const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
+  const feeRefundEnabled = showRewards
+  const totalBonderFee = maxBonderFee
+
+  async function estimateSend() {
+    try {
+      const estimatedGasCost = await estimateGasCostForSend({
+        fromChainId,
+        toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        to: '0x' + '1'.repeat(40),
+        amount: '1',
+        minAmountOut: '0'
+      })
+
+      console.log('v2 estimatedGasCost', estimatedGasCost)
+      return estimatedGasCost
+    } catch (err: any) {
+      console.error('v2 estimatedGasCost error:', err)
+      return BigNumber.from(0)
+    }
+  }
+
+  const fromNetwork = {
+    chainId: Number(fromChainId),
+    slug: fromChain?.slug
+  } as any
+
+  const toNetwork = {
+    chainId: Number(toChainId),
+    slug: toChain?.slug
+  } as any
+
+  const fromTokenAmountBN = BigNumber.from(parsedAmountIn)
+
+  const { data: estimatedGasCost, error: estimatedGasCostError } = useTxResult(
+    fromToken as any,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN,
+    estimateSend,
+    { }
+  )
+
+  useEffect(() => {
+    async function update () {
+      try {
+        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism].includes(toNetwork?.slug as ChainSlug))) {
+          setFeeRefund('')
+          setFeeRefundUsd('')
+          return
+        }
+
+        let gasCost = estimatedGasCost?.toString()
+
+        // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
+        // this can be removed once the sdk txOverrides is fixed.
+        if (fromNetwork?.slug === 'ethereum') {
+          if (toNetwork.slug === ChainSlug.Optimism) {
+            gasCost = BigNumber.from(gasCost).div(2).toString()
+          }
+          if (toNetwork.slug === ChainSlug.Arbitrum) {
+            gasCost = BigNumber.from(gasCost).div(6).toString()
+          }
+        }
+
+        const payload :Record<string, string> = {
+          gasCost,
+          amount: fromTokenAmountBN?.toString(),
+          token: fromToken?.symbol,
+          bonderFee: totalBonderFee.toString(),
+          fromChain: fromNetwork?.slug
+        }
+
+        const query = new URLSearchParams(payload).toString()
+        const apiBaseUrl = `https://${toNetwork.slug}-fee-refund-api.hop.exchange`
+        // const apiBaseUrl = 'http://localhost:8000'
+        const url = `${apiBaseUrl}/v1/refund-amount?${query}`
+        const res = await fetch(url)
+        const json = await res.json()
+        console.log('v2 fee refund', json)
+        if (json.error) {
+          throw new Error(json.error)
+        }
+        console.log(json.data.refund)
+        const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
+        setFeeRefundTokenSymbol(refundTokenSymbol)
+        if (refundAmountInUsd > 0) {
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+        } else {
+          setFeeRefund('')
+          setFeeRefundUsd('')
+        }
+      } catch (err) {
+        console.error('v2 fee refund fetch error:', err)
+        setFeeRefund('')
+        setFeeRefundUsd('')
+      }
+    }
+
+    update().catch(err => console.error('v2 fee refund fetch error:', err))
+  }, [feeRefundEnabled, fromNetwork, toNetwork, fromToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
+
+  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
+  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
+
   return {
     parsedAmountIn,
     accountAddress,
@@ -647,6 +767,9 @@ export function useV2Send(): V2SendHook {
     hasEnoughBalance,
     transferStatus,
     fromTokenDecimals,
-    setFromTokenDecimals
+    setFromTokenDecimals,
+    showFeeRefund,
+    feeRefundTokenSymbol,
+    feeRefundDisplay
   }
 }

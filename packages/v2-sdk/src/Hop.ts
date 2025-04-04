@@ -204,6 +204,17 @@ export type GetMaxBonderFeeInput = {
   amountIn: BigNumberish
 }
 
+export type EstimateGasCostForSendInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  to?: string
+  amount: BigNumberish
+  minAmountOut: BigNumberish
+  gasPrice?: BigNumberish
+}
+
 export class Hop extends Base {
   static EventName = EventName
   private readonly eventFetcher: EventFetcher
@@ -1156,6 +1167,84 @@ export class Hop extends Base {
 
   async getMaxBonderFee ({ amountIn }: GetMaxBonderFeeInput): Promise<BigNumber> {
     return BigNumber.from(amountIn).mul(BigNumber.from(4)).div(BigNumber.from(10000))
+  }
+
+  async estimateGasCostForSend({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> {
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
+    }
+
+    if (!this.utils.isValidChainId(toChainId)) {
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
+    }
+
+    if (fromChainId?.toString() === toChainId?.toString()) {
+      throw new InputError('fromChainId and toChainId must be different')
+    }
+
+    if (!this.utils.isValidAddress(fromToken)) {
+      throw new InputError(`Invalid fromToken "${fromToken}"`)
+    }
+
+    if (!this.utils.isValidAddress(toToken)) {
+      throw new InputError(`Invalid toToken "${toToken}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(amount)) {
+      throw new InputError(`Invalid amount "${amount}"`)
+    }
+
+    if (!this.utils.isValidNumericValue(minAmountOut)) {
+      throw new InputError(`Invalid minAmountOut "${minAmountOut}"`)
+    }
+
+    if (!to) {
+      to = (await this.getSignerAddress(fromChainId)) as string
+    }
+
+    if (!this.utils.isValidAddress(to)) {
+      throw new InputError(`Invalid "to" address "${to}"`)
+    }
+
+    try {
+      const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
+
+      const pathId = await this.getRailsGateway(fromChainId).getPathId({
+        chainId0: fromChainId,
+        token0: fromToken,
+        chainId1: toChainId,
+        token1: toToken,
+        initialReserve
+      })
+
+      const attestedClaimId = await this.getRailsGateway(fromChainId).helpers.getHeadClaimId({
+        pathId
+      })
+
+      const maxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
+      const maxTotalSent = await this.getRailsGateway(fromChainId).helpers.getTotalSent({ pathId })
+
+      const hops: HopStructInput[] = [{
+        pathId,
+        maxBonderFee,
+        maxTotalSent,
+        attestedClaimId
+      }]
+
+      const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
+
+      // Use the RailsGateway's estimateGasCostForSend method
+      return this.getRailsGateway(fromChainId).helpers.estimateGasCostForSend({
+        to,
+        amount,
+        hops,
+        fee,
+        gasPrice
+      })
+    } catch (err: unknown) {
+      console.warn('hopV2Sdk: estimateGasCostForSend error', err)
+      return this.throwError(err) as BigNumber
+    }
   }
 
   async getAllRailsPathAddresses(chainId: BigNumberish): Promise<string[]> {

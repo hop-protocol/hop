@@ -683,7 +683,8 @@ export function useV2Send(): V2SendHook {
           amount: fromTokenAmountBN?.toString(),
           token: fromToken?.symbol,
           bonderFee: totalBonderFee.toString(),
-          fromChain: fromNetwork?.slug
+          fromChain: fromNetwork?.slug,
+          version: 'v2'
         }
 
         const query = new URLSearchParams(payload).toString()

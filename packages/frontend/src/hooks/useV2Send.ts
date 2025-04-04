@@ -582,11 +582,38 @@ export function useV2Send(): V2SendHook {
  // ==============================================================================================
   // Fee refund
   // ==============================================================================================
+  const { priceUsd: ethPriceUsd } = useTokenPrice('ETH')
+
   const [feeRefund, setFeeRefund] = useState<string>('')
   const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const feeRefundEnabled = showRewards
-  const totalBonderFee = maxBonderFee
+  const totalBonderFee = useMemo(() => {
+    if (!maxBonderFee || !sendFee || !tokenPriceUsd || !fromTokenDecimals) {
+      return maxBonderFee || BigNumber.from(0)
+    }
+
+    try {
+      // Convert ETH fee to USD
+      const sendFeeUsd = Number(formatUnits(sendFee, 18)) * Number(ethPriceUsd)
+
+      // Convert USD amount to token amount
+      const sendFeeInToken = parseUnits(
+        (sendFeeUsd / Number(tokenPriceUsd)).toFixed(fromTokenDecimals),
+        fromTokenDecimals
+      )
+
+      console.log('v2 estimate fees', maxBonderFee.toString(), sendFeeInToken.toString())
+
+      // Add converted fee to bonder fee
+      return maxBonderFee.add(sendFeeInToken)
+    } catch (err) {
+      console.error('Error calculating total bonder fee:', err)
+      return maxBonderFee
+    }
+  }, [maxBonderFee, sendFee, tokenPriceUsd, fromTokenDecimals, ethPriceUsd])
+
+  console.log('v2 totalBonderFee', totalBonderFee)
 
   async function estimateSend() {
     try {

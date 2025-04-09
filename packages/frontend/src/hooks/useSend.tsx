@@ -33,6 +33,7 @@ import { useApp } from '#contexts/AppContext/index.js'
 import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
 import { useSendTransaction } from '#hooks/useSendTransaction.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
+import { useFeeRefund } from './useFeeRefund.js'
 
 export type SendResponseProps = {
   accountAddress: Address | undefined
@@ -136,9 +137,7 @@ export function useSend(): SendResponseProps {
   const [manualWarning, setManualWarning] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
-  const [feeRefund, setFeeRefund] = useState<string>('')
-  const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
-  const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
+
   const [isDestinationChainPaused, setIsDestinationChainPaused] = useState<boolean>(false)
   const [slippageToleranceTooLowWarning, setSlippageToleranceTooLowWarning] = useState<boolean>(false)
   const feeRefundEnabled = showRewards
@@ -606,68 +605,20 @@ export function useSend(): SendResponseProps {
   // Fee refund
   // ==============================================================================================
 
-  useEffect(() => {
-    async function update () {
-      try {
-        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism].includes(toNetwork?.slug as ChainSlug))) {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-          return
-        }
-
-        let gasCost = estimatedGasCost?.toString()
-
-        // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
-        // this can be removed once the sdk txOverrides is fixed.
-        if (fromNetwork?.isL1) {
-          if (toNetwork.slug === ChainSlug.Optimism) {
-            gasCost = BigNumber.from(gasCost).div(2).toString()
-          }
-          if (toNetwork.slug === ChainSlug.Arbitrum) {
-            gasCost = BigNumber.from(gasCost).div(6).toString()
-          }
-        }
-
-        let tokenSymbol = fromToken?.symbol
-        if (tokenSymbol === 'USDC.e') {
-          tokenSymbol = 'USDC'
-        }
-        const payload :Record<string, string> = {
-          gasCost,
-          amount: fromTokenAmountBN?.toString(),
-          token: tokenSymbol,
-          bonderFee: totalBonderFee.toString(),
-          fromChain: fromNetwork?.slug
-        }
-
-        const query = new URLSearchParams(payload).toString()
-        const apiBaseUrl = `https://${toNetwork.slug}-fee-refund-api.hop.exchange`
-        // const apiBaseUrl = 'http://localhost:8000'
-        const url = `${apiBaseUrl}/v1/refund-amount?${query}`
-        const res = await fetch(url)
-        const json = await res.json()
-        if (json.error) {
-          throw new Error(json.error)
-        }
-        logger.log(json.data.refund)
-        const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-        setFeeRefundTokenSymbol(refundTokenSymbol)
-        if (refundAmountInUsd > 0) {
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
-        } else {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-        }
-      } catch (err) {
-        logger.error('fee refund fetch error:', err)
-        setFeeRefund('')
-        setFeeRefundUsd('')
-      }
-    }
-
-    update().catch(logger.error)
-  }, [feeRefundEnabled, fromNetwork, toNetwork, fromToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
+  const {
+    showFeeRefund,
+    feeRefundTokenSymbol,
+    feeRefundDisplay,
+    feeRefund,
+    feeRefundUsd
+  } = useFeeRefund({
+    fromNetwork,
+    toNetwork,
+    fromToken,
+    fromTokenAmountBN,
+    totalBonderFee,
+    estimatedGasCost
+  })
 
   // ==============================================================================================
   // Send tokens
@@ -877,8 +828,6 @@ export function useSend(): SendResponseProps {
     toTokenAmount,
   ])
 
-  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
-  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
   const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 
   return {

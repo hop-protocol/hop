@@ -17,6 +17,7 @@ import {
   useTxResult
 } from '#hooks/index.js'
 import { ChainSlug } from '@hop-protocol/sdk'
+import { useFeeRefund } from './useFeeRefund.js'
 
 const { formatUnits, parseUnits } = utils
 const { formatUSD } = v2Utils
@@ -579,15 +580,49 @@ export function useV2Send(): V2SendHook {
     return ''
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
- // ==============================================================================================
-  // Fee refund
-  // ==============================================================================================
+  const fromNetwork = {
+    chainId: Number(fromChainId),
+    slug: fromChain?.slug
+  } as any
+
+  const toNetwork = {
+    chainId: Number(toChainId),
+    slug: toChain?.slug
+  } as any
+
+  const fromTokenAmountBN = BigNumber.from(parsedAmountIn)
+  
+  async function estimateSend() {
+    try {
+      const estimatedGasCost = await estimateGasCostForSend({
+        fromChainId,
+        toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        to: '0x' + '1'.repeat(40),
+        amount: '1',
+        minAmountOut: '0'
+      })
+
+      console.log('v2 estimatedGasCost', estimatedGasCost)
+      return estimatedGasCost
+    } catch (err: any) {
+      console.error('v2 estimatedGasCost error:', err)
+      return BigNumber.from(0)
+    }
+  }
+
+  const { data: estimatedGasCost, error: estimatedGasCostError } = useTxResult(
+    fromToken as any,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN,
+    estimateSend,
+    { }
+  )
+
   const { priceUsd: ethPriceUsd } = useTokenPrice('ETH')
 
-  const [feeRefund, setFeeRefund] = useState<string>('')
-  const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
-  const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
-  const feeRefundEnabled = showRewards
   const totalBonderFee = useMemo(() => {
     if (!maxBonderFee || !sendFee || !tokenPriceUsd || !fromTokenDecimals) {
       return maxBonderFee || BigNumber.from(0)
@@ -614,111 +649,22 @@ export function useV2Send(): V2SendHook {
   }, [maxBonderFee, sendFee, tokenPriceUsd, fromTokenDecimals, ethPriceUsd])
 
   console.log('v2 totalBonderFee', totalBonderFee)
-
-  async function estimateSend() {
-    try {
-      const estimatedGasCost = await estimateGasCostForSend({
-        fromChainId,
-        toChainId,
-        fromToken: fromTokenAddress,
-        toToken: toTokenAddress,
-        to: '0x' + '1'.repeat(40),
-        amount: '1',
-        minAmountOut: '0'
-      })
-
-      console.log('v2 estimatedGasCost', estimatedGasCost)
-      return estimatedGasCost
-    } catch (err: any) {
-      console.error('v2 estimatedGasCost error:', err)
-      return BigNumber.from(0)
-    }
-  }
-
-  const fromNetwork = {
-    chainId: Number(fromChainId),
-    slug: fromChain?.slug
-  } as any
-
-  const toNetwork = {
-    chainId: Number(toChainId),
-    slug: toChain?.slug
-  } as any
-
-  const fromTokenAmountBN = BigNumber.from(parsedAmountIn)
-
-  const { data: estimatedGasCost, error: estimatedGasCostError } = useTxResult(
-    fromToken as any,
+    
+  const {
+    showFeeRefund,
+    feeRefundTokenSymbol,
+    feeRefundDisplay,
+    feeRefund,
+    feeRefundUsd
+  } = useFeeRefund({
     fromNetwork,
     toNetwork,
+    fromToken,
     fromTokenAmountBN,
-    estimateSend,
-    { }
-  )
-
-  useEffect(() => {
-    async function update () {
-      try {
-        if (!(isMainnet && feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && [ChainSlug.Optimism].includes(toNetwork?.slug as ChainSlug))) {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-          return
-        }
-
-        let gasCost = estimatedGasCost?.toString()
-
-        // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
-        // this can be removed once the sdk txOverrides is fixed.
-        if (fromNetwork?.slug === 'ethereum') {
-          if (toNetwork.slug === ChainSlug.Optimism) {
-            gasCost = BigNumber.from(gasCost).div(2).toString()
-          }
-          if (toNetwork.slug === ChainSlug.Arbitrum) {
-            gasCost = BigNumber.from(gasCost).div(6).toString()
-          }
-        }
-
-        const payload :Record<string, string> = {
-          gasCost,
-          amount: fromTokenAmountBN?.toString(),
-          token: fromToken?.symbol,
-          bonderFee: totalBonderFee.toString(),
-          fromChain: fromNetwork?.slug,
-          version: 'v2'
-        }
-
-        const query = new URLSearchParams(payload).toString()
-        const apiBaseUrl = `https://${toNetwork.slug}-fee-refund-api.hop.exchange`
-        // const apiBaseUrl = 'http://localhost:8000'
-        const url = `${apiBaseUrl}/v1/refund-amount?${query}`
-        const res = await fetch(url)
-        const json = await res.json()
-        console.log('v2 fee refund', json)
-        if (json.error) {
-          throw new Error(json.error)
-        }
-        console.log(json.data.refund)
-        const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-        setFeeRefundTokenSymbol(refundTokenSymbol)
-        if (refundAmountInUsd > 0) {
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
-        } else {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-        }
-      } catch (err) {
-        console.error('v2 fee refund fetch error:', err)
-        setFeeRefund('')
-        setFeeRefundUsd('')
-      }
-    }
-
-    update().catch(err => console.error('v2 fee refund fetch error:', err))
-  }, [feeRefundEnabled, fromNetwork, toNetwork, fromToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
-
-  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
-  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
+    totalBonderFee,
+    estimatedGasCost,
+    version: 'v2'
+  })
 
   return {
     parsedAmountIn,

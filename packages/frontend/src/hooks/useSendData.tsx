@@ -2,8 +2,21 @@ import Network from '#models/Network.js'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from '#contexts/AppContext/index.js'
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useQuery } from 'react-query'
+
+// Constants
+const REFETCH_INTERVAL = 30 * 1000 // 30 seconds
+const STALE_TIME = 10 * 1000 // 10 seconds
+const CACHE_TIME = 60 * 1000 // 1 minute
+const BPS_DENOMINATOR = 10000
+
+// Memoized helper functions
+const calculateMinAmount = (amount: BigNumber, slippageToleranceBps: number) => {
+  if (!amount) return BigNumber.from(0)
+  const minBps = Math.ceil(BPS_DENOMINATOR - slippageToleranceBps)
+  return amount.mul(minBps).div(BPS_DENOMINATOR)
+}
 
 const useSendData = (
   token?: Token,
@@ -14,56 +27,94 @@ const useSendData = (
 ) => {
   const { sdk } = useApp()
 
-  const queryKey = `sendData:${token?.symbol}:${fromNetwork?.slug}:${
-    toNetwork?.slug
-  }:${fromAmount?.toString()}`
+  // Memoize the query key to prevent unnecessary cache invalidation
+  const queryKey = useMemo(() => [
+    'sendData',
+    token?.symbol,
+    token?.address,
+    fromNetwork?.slug,
+    toNetwork?.slug,
+    fromAmount?.toString()
+  ], [token?.symbol, token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount])
+
+  // Memoize the bridge instance
+  const bridge = useMemo(() => {
+    if (!token?.symbol) return null
+    return sdk.bridge(token.symbol)
+  }, [sdk, token?.symbol])
+
+  // Memoize the check for deprecated route
+  const isDeprecatedRoute = useMemo(() => {
+    if (!(fromNetwork && toNetwork && token?.symbol && bridge)) return false
+    return ['USDC', 'USDC.e', 'MAGIC'].includes(token.symbol) && 
+           !bridge.getIsSupportedCctpRoute(fromNetwork.slug, toNetwork.slug)
+  }, [bridge, token?.symbol, fromNetwork?.slug, toNetwork?.slug])
+
+  // Memoize the fetch function
+  const fetchSendData = useCallback(async () => {
+    if (!(token && fromNetwork && toNetwork && fromAmount && bridge)) {
+      return undefined
+    }
+
+    if (isDeprecatedRoute) {
+      return undefined
+    }
+
+    try {
+      return await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+    } catch (error) {
+      console.error('Error fetching send data:', error)
+      throw error
+    }
+  }, [token, fromNetwork, toNetwork, fromAmount, bridge, isDeprecatedRoute])
+
+  // Memoize the enabled condition
+  const isQueryEnabled = useMemo(() => (
+    !!token?.address && 
+    !!fromNetwork?.slug && 
+    !!toNetwork?.slug && 
+    !!fromAmount?.toString() &&
+    !isDeprecatedRoute
+  ), [token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount, isDeprecatedRoute])
 
   const { isLoading, data, error } = useQuery(
-    [queryKey, token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount?.toString()],
-    async () => {
-      if (!(token && fromNetwork && toNetwork && fromAmount)) {
-        return
-      }
-
-      const bridge = sdk.bridge(token?.symbol)
-
-      const isDeprecatedRoute = fromNetwork && toNetwork && ['USDC', 'USDC.e', 'MAGIC'].includes(token?.symbol) && !bridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)
-      if (isDeprecatedRoute) {
-        return
-      }
-
-      return bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
-    },
+    queryKey,
+    fetchSendData,
     {
-      enabled:
-        !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
-      refetchInterval: 5 * 1000,
+      enabled: isQueryEnabled,
+      refetchInterval: REFETCH_INTERVAL,
+      staleTime: STALE_TIME,
+      cacheTime: CACHE_TIME,
+      retry: 4,
+      refetchOnWindowFocus: false,
+      keepPreviousData: true
     }
   )
 
-  const amountOutMin = useMemo(() => {
-    if (slippageTolerance && data?.amountOut) {
-      const slippageToleranceBps = slippageTolerance * 100
-      const minBps = Math.ceil(10000 - slippageToleranceBps)
-      return data.amountOut.mul(minBps).div(10000)
-    }
-  }, [data?.amountOut, slippageTolerance])
+  // Memoize slippage calculations
+  const slippageToleranceBps = useMemo(() => 
+    slippageTolerance ? slippageTolerance * 100 : 0,
+    [slippageTolerance]
+  )
 
-  const intermediaryAmountOutMin = useMemo(() => {
-    if (slippageTolerance && data?.requiredLiquidity) {
-      const slippageToleranceBps = slippageTolerance * 100
-      const minBps = Math.ceil(10000 - slippageToleranceBps)
-      return data.requiredLiquidity.mul(minBps).div(10000)
-    }
-  }, [data?.requiredLiquidity, slippageTolerance])
+  const amountOutMin = useMemo(() => 
+    calculateMinAmount(data?.amountOut, slippageToleranceBps),
+    [data?.amountOut, slippageToleranceBps]
+  )
 
-  return {
+  const intermediaryAmountOutMin = useMemo(() => 
+    calculateMinAmount(data?.requiredLiquidity, slippageToleranceBps),
+    [data?.requiredLiquidity, slippageToleranceBps]
+  )
+
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     ...data,
     amountOutMin,
     intermediaryAmountOutMin,
     loading: isLoading,
-    error,
-  }
+    error
+  }), [data, amountOutMin, intermediaryAmountOutMin, isLoading, error])
 }
 
 export default useSendData

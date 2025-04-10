@@ -9,7 +9,7 @@ WORKDIR /app
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm --filter-prod=stats-worker... install
 RUN pnpm --filter=stats-worker... build
-RUN pnpm --filter=stats-worker deploy --prod /prod/app
+RUN pnpm --filter=stats-worker deploy --prod /prod/app --legacy
 
 FROM base
 COPY --from=build /prod/app /prod/app

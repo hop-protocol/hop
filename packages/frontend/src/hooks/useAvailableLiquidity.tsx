@@ -4,8 +4,11 @@ import { getNativeTokenSymbol } from '#utils/getNativeTokenSymbol.js'
 import { useQuery } from 'react-query'
 import { useMemo, useCallback } from 'react'
 
-// Move this outside the component to prevent recreation
-const REFETCH_INTERVAL = 20 * 1000
+// Constants
+const REFETCH_INTERVAL = 20 * 1000 // 20 seconds
+const STALE_TIME = 60 * 1000 // 1 minute
+const CACHE_TIME = REFETCH_INTERVAL // Cache for same duration as refetch
+const MAX_RETRIES = 2
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
   const nativeTokenSymbol = getNativeTokenSymbol(sourceChain)
@@ -49,7 +52,7 @@ const useAvailableLiquidity = (
     [tokenSymbol, sourceChain, destinationChain]
   )
 
-  // Memoize the async query function
+  // Memoize the fetch function
   const fetchLiquidity = useCallback(async () => {
     if (sourceChain && destinationChain && tokenSymbol) {
       const isDeprecatedRoute = sourceChain && destinationChain && 
@@ -75,10 +78,11 @@ const useAvailableLiquidity = (
     {
       enabled: !!bridge && !!tokenSymbol && !!sourceChain && !!destinationChain,
       refetchInterval: REFETCH_INTERVAL,
-      staleTime: 60000, // Consider data fresh for 1 minute
-      cacheTime: REFETCH_INTERVAL, // Cache the data for the same duration as refetch interval
-      retry: 2, // Retry failed requests twice
-      refetchOnWindowFocus: false, // Don't refetch when window regains focus
+      staleTime: STALE_TIME,
+      cacheTime: CACHE_TIME,
+      retry: MAX_RETRIES,
+      refetchOnWindowFocus: false,
+      keepPreviousData: true
     }
   )
 

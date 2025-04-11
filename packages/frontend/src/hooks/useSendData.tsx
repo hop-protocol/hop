@@ -9,11 +9,12 @@ import { useQuery } from 'react-query'
 const REFETCH_INTERVAL = 30 * 1000 // 30 seconds
 const STALE_TIME = 10 * 1000 // 10 seconds
 const CACHE_TIME = 60 * 1000 // 1 minute
+const MAX_RETRIES = 2
 const BPS_DENOMINATOR = 10000
 
-// Memoized helper functions
-const calculateMinAmount = (amount: BigNumber, slippageToleranceBps: number) => {
-  if (!amount) return BigNumber.from(0)
+// Helper function for calculating min amounts
+const calculateMinAmount = (amount: BigNumber | undefined, slippageToleranceBps: number) => {
+  if (!amount) return undefined
   const minBps = Math.ceil(BPS_DENOMINATOR - slippageToleranceBps)
   return amount.mul(minBps).div(BPS_DENOMINATOR)
 }
@@ -27,6 +28,12 @@ const useSendData = (
 ) => {
   const { sdk } = useApp()
 
+  // Memoize the bridge instance
+  const bridge = useMemo(() => {
+    if (!token?.symbol) return null
+    return sdk.bridge(token.symbol)
+  }, [sdk, token?.symbol])
+
   // Memoize the query key to prevent unnecessary cache invalidation
   const queryKey = useMemo(() => [
     'sendData',
@@ -37,36 +44,12 @@ const useSendData = (
     fromAmount?.toString()
   ], [token?.symbol, token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount])
 
-  // Memoize the bridge instance
-  const bridge = useMemo(() => {
-    if (!token?.symbol) return null
-    return sdk.bridge(token.symbol)
-  }, [sdk, token?.symbol])
-
   // Memoize the check for deprecated route
   const isDeprecatedRoute = useMemo(() => {
     if (!(fromNetwork && toNetwork && token?.symbol && bridge)) return false
     return ['USDC', 'USDC.e', 'MAGIC'].includes(token.symbol) && 
            !bridge.getIsSupportedCctpRoute(fromNetwork.slug, toNetwork.slug)
   }, [bridge, token?.symbol, fromNetwork?.slug, toNetwork?.slug])
-
-  // Memoize the fetch function
-  const fetchSendData = useCallback(async () => {
-    if (!(token && fromNetwork && toNetwork && fromAmount && bridge)) {
-      return undefined
-    }
-
-    if (isDeprecatedRoute) {
-      return undefined
-    }
-
-    try {
-      return await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
-    } catch (error) {
-      console.error('Error fetching send data:', error)
-      throw error
-    }
-  }, [token, fromNetwork, toNetwork, fromAmount, bridge, isDeprecatedRoute])
 
   // Memoize the enabled condition
   const isQueryEnabled = useMemo(() => (
@@ -77,6 +60,20 @@ const useSendData = (
     !isDeprecatedRoute
   ), [token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount, isDeprecatedRoute])
 
+  // Memoize the fetch function
+  const fetchSendData = useCallback(async () => {
+    if (!isQueryEnabled || !bridge || !(token && fromNetwork && toNetwork && fromAmount)) {
+      return undefined
+    }
+
+    try {
+      return await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+    } catch (error) {
+      console.error('Error fetching send data:', error)
+      throw error
+    }
+  }, [isQueryEnabled, bridge, token, fromNetwork, toNetwork, fromAmount])
+
   const { isLoading, data, error } = useQuery(
     queryKey,
     fetchSendData,
@@ -85,9 +82,12 @@ const useSendData = (
       refetchInterval: REFETCH_INTERVAL,
       staleTime: STALE_TIME,
       cacheTime: CACHE_TIME,
-      retry: 4,
+      retry: MAX_RETRIES,
       refetchOnWindowFocus: false,
-      keepPreviousData: true
+      keepPreviousData: true,
+      onError: (error) => {
+        console.error('Send data query error:', error)
+      }
     }
   )
 

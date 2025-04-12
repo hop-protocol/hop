@@ -6,8 +6,8 @@ import { useApp } from '#contexts/AppContext/index.js'
 import { useTransactionReplacement } from '#hooks/useTransactionReplacement.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { reactAppNetwork } from '#config/index.js'
-import { useCallback, useMemo } from 'react'
-import { useQuery, useQueryClient } from 'react-query'
+import { useCallback } from 'react'
+import { useQueryClient } from 'react-query'
 
 // Constants
 const REFETCH_INTERVAL = 15 * 1000 // 15 seconds

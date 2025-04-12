@@ -9,14 +9,11 @@ import { commafy } from '#utils/commafy.js'
 import { useTokenPrice } from '#hooks/useTokenPrice.js'
 import { useV2TransferStatus } from '#hooks/useV2TransferStatus.js'
 import { getNetworks } from '#config/networks.js'
-import { isMainnet, showRewards } from '#config/index.js'
 import {
   useBalance,
   useFeeConversionsV2,
-  useEstimateTxCost,
   useTxResult
 } from '#hooks/index.js'
-import { ChainSlug } from '@hop-protocol/sdk'
 import { useFeeRefund } from './useFeeRefund.js'
 
 const { formatUnits, parseUnits } = utils

@@ -34,7 +34,9 @@ const useBalance = (token?: ContractType, address?: Addressish, chainId?: string
       return null
     }
     try {
-      return await token.balanceOf(address.toString())
+      const balance = await token.balanceOf(address.toString())
+      // console.log('balance', balance)
+      return balance
     } catch (error) {
       console.error('Error fetching balance:', error)
       throw error

@@ -22,7 +22,6 @@ import { constants } from 'ethers'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
-import StepIcon from '@mui/material/StepIcon'
 import { useTheme } from '@mui/material/styles'
 
 const useStyles = makeStyles((theme: any) => ({

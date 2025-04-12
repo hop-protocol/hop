@@ -31,7 +31,7 @@ type Props = {
 export function useV2TransferStatus({ transactionHash, fromChainId, toChainId }: Props): V2SendHook {
   const { v2Sdk } = useV2()
   const { networks, txConfirm } = useApp()
-  const { address, provider } = useWeb3Context()
+  const { address } = useWeb3Context()
 
   // Memoize the query key to prevent unnecessary cache invalidation
   const queryKey = useMemo(() => [

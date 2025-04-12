@@ -607,7 +607,7 @@ export function useV2Send(): V2SendHook {
       console.log('v2 estimatedGasCost', estimatedGasCost)
       return estimatedGasCost
     } catch (err: any) {
-      console.error('v2 estimatedGasCost error:', err)
+      console.warn('v2 estimatedGasCost error:', err)
       return BigNumber.from(0)
     }
   }
@@ -624,7 +624,7 @@ export function useV2Send(): V2SendHook {
   const { priceUsd: ethPriceUsd } = useTokenPrice('ETH')
 
   const totalBonderFee = useMemo(() => {
-    if (!maxBonderFee || !sendFee || !tokenPriceUsd || !fromTokenDecimals) {
+    if (!maxBonderFee || !sendFee || !tokenPriceUsd || !fromTokenDecimals || !ethPriceUsd) {
       return maxBonderFee || BigNumber.from(0)
     }
 
@@ -647,8 +647,6 @@ export function useV2Send(): V2SendHook {
       return maxBonderFee
     }
   }, [maxBonderFee, sendFee, tokenPriceUsd, fromTokenDecimals, ethPriceUsd])
-
-  console.log('v2 totalBonderFee', totalBonderFee)
     
   const {
     showFeeRefund,

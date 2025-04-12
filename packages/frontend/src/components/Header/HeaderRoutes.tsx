@@ -3,7 +3,6 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import { isMainnet, showRewards } from '#config/index.js'
 import { makeStyles, useTheme } from '@mui/styles'
-import { useClaim } from '#pages/Claim/useClaim.js'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
@@ -27,7 +26,6 @@ export const HeaderRoutes: FC = () => {
   }
 
   const value = pathname.split('/').slice(0, 2).join('/')
-  const { canClaim } = useClaim()
 
   const hasRewards = false
 
@@ -51,14 +49,6 @@ export const HeaderRoutes: FC = () => {
         }}>•</mark>}</span>} value="/rewards" />
       )}
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}
-      {canClaim && (
-        <Tab label="Claim HOP" value="/claim" style={{
-          color: '#fff',
-          padding: '1rem 3rem',
-          margin: '1rem 0 1rem 1rem',
-          opacity: 1
-        }}/>
-      )}
     </Tabs>
   )
 }

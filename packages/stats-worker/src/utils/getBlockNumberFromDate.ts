@@ -9,14 +9,20 @@ export async function getBlockNumberFromDate (
   timestamp: number
 ): Promise<number> {
   try {
-    const useEtherscan = etherscanApiKeys[chain]
-    if (useEtherscan) {
-      return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
-    }
+    try {
+      const useEtherscan = etherscanApiKeys[chain]
+      if (useEtherscan) {
+        return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
+      }
 
-    return await getBlockNumberFromDateUsingLib(provider, timestamp)
+      return await getBlockNumberFromDateUsingLib(provider, timestamp)
+    } catch (err) {
+      console.warn('getBlockNumberFromDate: error', chain, err)
+      return await getBlockNumberFromDateUsingLib(provider, timestamp)
+    }
   } catch (err) {
-    return await getBlockNumberFromDateUsingLib(provider, timestamp)
+    console.error('getBlockNumberFromDateUsingLib: error', chain, err)
+    throw err
   }
 }
 

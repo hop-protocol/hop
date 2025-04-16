@@ -1,5 +1,5 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { getChain, NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 
 export function getEtherscanApiUrl (chain: string) {
-  return (mainnetAddresses as any)?.[chain]?.etherscanApiUrl
+  return getChain(NetworkSlug.Mainnet, chain as ChainSlug)?.etherscanApiUrl
 }

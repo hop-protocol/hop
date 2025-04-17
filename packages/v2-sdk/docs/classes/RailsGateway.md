@@ -1481,13 +1481,13 @@ ___
 
 ### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
 
-▸ **setProviderUrls**(`signersOrProviders`): `void`
+▸ **setProviderUrls**(`signersOrProvidersUrls`): `void`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+| `signersOrProvidersUrls` | `Record`\<`string`, `string` \| `string`[]\> |
 
 #### Returns
 

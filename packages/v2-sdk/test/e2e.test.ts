@@ -1,4 +1,4 @@
-import { Hop, HopStructInput, TransferState, RailsGateway, RailsPath, RailsGatewayEventName, RailsPathEventName } from '#index.js'
+import { Hop, HopStructInput, TransferState } from '#index.js'
 import { providers, Wallet, utils } from 'ethers'
 import dotenv from 'dotenv'
 import { addresses } from '#addresses/sepolia.js'

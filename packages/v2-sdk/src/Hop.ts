@@ -1235,7 +1235,7 @@ export class Hop extends Base {
       const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
 
       // Use the RailsGateway's estimateGasCostForSend method
-      return this.getRailsGateway(fromChainId).helpers.estimateGasCostForSend({
+      return await this.getRailsGateway(fromChainId).helpers.estimateGasCostForSend({
         from,
         to,
         amount,

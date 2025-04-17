@@ -247,6 +247,9 @@ export function Details() {
             <Table>
               <TableBody>
                 {railsGatewayFields.map((field: any, index: number ) => {
+                  if (!detail.railsGateway) {
+                    return null
+                  }
                   const label = field.label
                   let value = detail.railsGateway[field.value]
                   const imageUrl = detail.railsGateway[field.imageUrl]

@@ -1436,7 +1436,7 @@ export class Controller {
         continue
       }
       try {
-        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const railsGateway = this.getRailsGateway(chainId)
         const [
           railsGatewayAddress,
           removeFee,
@@ -1519,7 +1519,8 @@ export class Controller {
         continue
       }
       try {
-        const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+        const railsGateway = this.getRailsGateway(chainId)
+        const stakingRegistry = railsGateway.getStakingRegistry()
         const [
           stakingRegistryAddress,
           challengePeriod,
@@ -1574,7 +1575,7 @@ export class Controller {
       }
 
       try {
-        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const railsGateway = this.getRailsGateway(chainId)
 
         const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
         console.log('isLive', isLive, pathId)
@@ -1739,7 +1740,10 @@ export class Controller {
 
       if (!bonderData.balances.has(chainId)) {
         try {
-          const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+          const railsGateway = this.getRailsGateway(chainId)
+          const stakingRegistry = railsGateway.getStakingRegistry()
+          
+          console.log('fetching balances for bonder', address, chainId)
           const [stakedBalance, withdrawableBalance, hopBalance] = await Promise.all([
             stakingRegistry.getStakedBalance({ staker: address }),
             stakingRegistry.getWithdrawableBalance({ staker: address }),

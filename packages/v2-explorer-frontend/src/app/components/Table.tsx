@@ -24,6 +24,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import { alpha } from '@mui/material/styles'
 
 export type Header = {
   key: string
@@ -191,10 +192,30 @@ export function Table (props: Props) {
           <TableContainer>
             <_Table width="100%" style={{ minWidth }}>
               <TableHead>
-                <TableRow>
+                <TableRow
+                  sx={{
+                    '& th': {
+                      borderBottom: (theme) => 
+                        `1px solid ${isDarkMode ? 
+                          alpha(theme.palette.primary.main, 0.15) : 
+                          theme.palette.divider}`,
+                      background: (theme) => isDarkMode ? 
+                        alpha(theme.palette.primary.main, 0.03) : 
+                        'transparent',
+                    }
+                  }}
+                >
                   {headers.filter(item => item.key !== 'subtable').map((header: Header, i: number) => {
                     return (
-                      <TableCell key={i}>{header.value}</TableCell>
+                      <TableCell 
+                        key={i}
+                        sx={{
+                          color: 'text.primary',
+                          fontWeight: 'medium'
+                        }}
+                      >
+                        {header.value}
+                      </TableCell>
                     )
                   })}
                 </TableRow>
@@ -202,7 +223,15 @@ export function Table (props: Props) {
               <TableBody>
                 {(!loading && !rows.length) && (
                   <TableRow>
-                    <TableCell colSpan={headers.length}>
+                    <TableCell 
+                      colSpan={headers.length}
+                      sx={{
+                        borderBottom: (theme) => 
+                          `1px solid ${isDarkMode ? 
+                            alpha(theme.palette.primary.main, 0.1) : 
+                            theme.palette.divider}`
+                      }}
+                    >
                       <Typography variant="body2"><em>No events found</em></Typography>
                     </TableCell>
                   </TableRow>
@@ -210,14 +239,31 @@ export function Table (props: Props) {
                 {loading && renderSkeletonRows()}
                 {!loading && rows.map((row: Row[], i: number) => {
                   return <React.Fragment key={i}>
-                    <TableRow key={i}>
+                    <TableRow
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: (theme) => isDarkMode ? 
+                            alpha(theme.palette.primary.main, 0.05) : 
+                            alpha(theme.palette.primary.main, 0.02)
+                        },
+                        '& td': {
+                          borderBottom: (theme) => 
+                            `1px solid ${isDarkMode ? 
+                              alpha(theme.palette.primary.main, 0.1) : 
+                              theme.palette.divider}`
+                        }
+                      }}
+                    >
                       {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
                         const allowClick = !!onRowClick
                         const cellKey = `${i}${j}`
                         return (
-                          <TableCell key={j} title={col.hoverTitle || col.clipboardValue || col.value}
-                            style={{
-                              cursor: allowClick ? 'pointer' : 'default'
+                          <TableCell 
+                            key={j} 
+                            title={col.hoverTitle || col.clipboardValue || col.value}
+                            sx={{
+                              cursor: allowClick ? 'pointer' : 'default',
+                              transition: 'background-color 0.2s ease'
                             }}
                             onClick={(event) => {
                               if (allowClick) {

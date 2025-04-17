@@ -737,10 +737,10 @@ export class RailsGateway extends Base {
 
   getStakingRegistry(): StakingRegistry {
     return new StakingRegistry({
+      network: this.network,
       chainId: this.chainId,
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,
-      network: this.network
     })
   }
 
@@ -1858,7 +1858,7 @@ export class RailsGateway extends Base {
         try {
           // Get the populated transaction
           const txData = await this.populateTransaction.send({ to, amount, hops, fee })
-          
+
           // Get the provider
           const provider = this.getProvider(chainId)
           if (!provider) {
@@ -1871,13 +1871,13 @@ export class RailsGateway extends Base {
 
           // Estimate gas limit
           const gasLimit = await provider.estimateGas(txData)
-          
+
           // Get gas price if not provided
           const currentGasPrice = gasPrice ? BigNumber.from(gasPrice) : await provider.getGasPrice()
-          
+
           // Calculate total gas cost (gasLimit * gasPrice)
           const gasCost = gasLimit.mul(currentGasPrice)
-          
+
           return gasCost
         } catch (err: unknown) {
           console.warn('hopV2Sdk: estimateGasCostForSend error', err)

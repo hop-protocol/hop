@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { TotalVolumeStats } from '@/app/components/stats/TotalVolumeStats'
 import { TokenVolumeStats } from '@/app/components/stats/TokenVolumeStats'
 import { VolumeChart } from '@/app/components/VolumeChart'
@@ -19,7 +19,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import SankeyChart from '@/app/components/charts/SankeyChart'
 import { useFetchSankeyData } from '@/app/hooks/useFetchSankeyData'
 import CircularProgress from '@mui/material/CircularProgress'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@/app/hooks/useTheme'
 
 // Helper function for formatting dates
 const formatDate = (date: Date): string => {
@@ -34,7 +34,7 @@ const formatDate = (date: Date): string => {
 };
 
 export function Analytics() {
-  const theme = useTheme()
+  const { theme, dark: isDarkMode } = useTheme()
   const [timeRange, setTimeRange] = useState<string>("30")
   const timeRangeNum = parseInt(timeRange)
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -44,8 +44,6 @@ export function Analytics() {
     setTimeRange(event.target.value)
   }
 
-  const isDarkMode = theme.palette.mode === 'dark'
-  
   // Calculate responsive heights with more granular breakpoints
   const sankeyChartHeight = isMobile 
     ? 350  // Smaller height for mobile devices
@@ -73,7 +71,6 @@ export function Analytics() {
         return `Last ${timeRangeNum} days`
     }
   }
-
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 5 }}>

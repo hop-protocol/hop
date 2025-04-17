@@ -70,7 +70,7 @@ export function Details(props: any) {
                   style={{ width: 24, height: 24, marginRight: 8 }}
                 />
               )}
-              <Typography variant="h5">
+              <Typography variant="h5" color="textPrimary">
                 Path on {index === 1 ? 'Counterpart' : ''} Chain <strong>{path?.context?.chainName}</strong>
               </Typography>
             </Box>

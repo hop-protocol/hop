@@ -17,15 +17,14 @@ import Chip from '@mui/material/Chip'
 import Skeleton from '@mui/material/Skeleton'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import { useTheme } from '@mui/material/styles'
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import Avatar from '@mui/material/Avatar'
 import { CopyToClipboardText } from '@/app/components/CopyToClipboardText'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
+import { useTheme } from '@/app/hooks/useTheme'
 
 export function Bonders() {
-  const theme = useTheme()
-  const isDarkMode = theme.palette.mode === 'dark'
+  const { theme, dark: isDarkMode } = useTheme()
   const [contractState, setContractState] = useState<any>({})
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
@@ -159,7 +158,7 @@ export function Bonders() {
             sx={{ 
               p: { xs: 2, sm: 3 }, 
               background: isDarkMode 
-                ? `linear-gradient(145deg, ${theme.palette.background.paper} 0%, rgba(40, 50, 60, 0.8) 100%)`
+                ? `linear-gradient(145deg, ${theme.palette.background.paper} 0%, rgba(25, 25, 35, 0.9) 100%)`
                 : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(245,247,250,0.9) 100%)',
               borderBottom: `1px solid ${theme.palette.divider}`
             }}

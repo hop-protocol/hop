@@ -19,7 +19,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import FirstPageIcon from '@mui/icons-material/FirstPage'
 import LastPageIcon from '@mui/icons-material/LastPage'
 import Chip from '@mui/material/Chip'
-import { useTheme } from '@mui/material/styles'
+import { useTheme } from '@/app/hooks/useTheme'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -76,7 +76,7 @@ export function Table (props: Props) {
     titleVariant = 'h4' 
   } = props
 
-  const theme = useTheme()
+  const { theme, dark: isDarkMode } = useTheme()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
   const [pageLimit, setPageLimit] = useState(defaultLimit)

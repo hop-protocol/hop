@@ -141,7 +141,7 @@ export class StakingRegistry extends Base {
 
   constructor ({ contractAddresses, chainId, signerOrProvider, signersOrProviders, network }: StakingRegistryConstructorInput) {
     signersOrProviders ??= {}
-    if (signerOrProvider) {
+    if (signerOrProvider && chainId) {
       signersOrProviders[chainId?.toString()] = signerOrProvider
     }
     super({

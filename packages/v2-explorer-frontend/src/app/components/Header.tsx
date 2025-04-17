@@ -25,6 +25,7 @@ import CodeIcon from '@mui/icons-material/Code'
 import SyncAltIcon from '@mui/icons-material/SyncAlt'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
+import Tooltip from '@mui/material/Tooltip'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
@@ -75,7 +76,7 @@ export function Header () {
   const router = useRouter()
   const navigate = router.push
   const pathname = usePathname()
-  const { theme, dark, toggleTheme } = useTheme()
+  const { theme, dark: isDarkMode, toggleTheme } = useTheme()
   const muiTheme = useMuiTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'))
   const isSmallMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
@@ -131,7 +132,7 @@ export function Header () {
     navigate(routes[newValue])
   }
 
-  const logoImage = dark ? logoDark : logo
+  const logoImage = isDarkMode ? logoDark : logo
 
   return (
     <Box width="100%" mb={{ xs: 3, sm: 3, md: 4 }} mt={{ xs: 2, sm: 2 }}>
@@ -191,7 +192,7 @@ export function Header () {
               fontWeight: 'medium',
               color: 'primary.main',
               padding: { xs: '0.25rem 0', sm: '0.25rem 0.75rem' },
-              backgroundColor: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
               borderRadius: 1
             }}
           >
@@ -210,25 +211,41 @@ export function Header () {
         >
           <Box display="flex" gap={1.5}>
             {alternativeExplorer.url && (
-              <Button
-                variant="outlined"
-                size="small"
-                href={alternativeExplorer.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                startIcon={!isSmallMobile && <SyncAltIcon />}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  whiteSpace: 'nowrap',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  px: { xs: 1, sm: 1.5 },
-                  py: { xs: 0.5, sm: 0.75 },
-                  minWidth: { xs: 'auto', sm: 'auto' }
-                }}
+              <Tooltip 
+                title={alternativeExplorer.label === 'Mainnet Explorer' ? 'Coming soon' : ''} 
+                arrow
               >
-                {isSmallMobile ? <SyncAltIcon fontSize="small" /> : alternativeExplorer.label}
-              </Button>
+                <span>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={alternativeExplorer.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={!isSmallMobile && <SyncAltIcon />}
+                    disabled={alternativeExplorer.label === 'Mainnet Explorer'}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      whiteSpace: 'nowrap',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      py: { xs: 0.5, sm: 0.75 },
+                      minWidth: { xs: 'auto', sm: 'auto' },
+                      opacity: 1,
+                      cursor: alternativeExplorer.label === 'Mainnet Explorer' ? 'not-allowed' : 'pointer',
+                      pointerEvents: alternativeExplorer.label === 'Mainnet Explorer' ? 'auto' : 'auto',
+                      '&.Mui-disabled': {
+                        color: theme => theme.palette.mode === 'dark' ? 'text.secondary' : 'rgba(0, 0, 0, 0.3)',
+                        borderColor: theme => theme.palette.mode === 'dark' ? 'text.disabled' : 'rgba(0, 0, 0, 0.12)',
+                        backgroundColor: theme => theme.palette.mode === 'dark' ? 'action.disabledBackground' : 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    {isSmallMobile ? <SyncAltIcon fontSize="small" /> : alternativeExplorer.label}
+                  </Button>
+                </span>
+              </Tooltip>
             )}
             <Button
               variant="outlined"
@@ -255,15 +272,15 @@ export function Header () {
             title="Toggle theme color mode"
             size={isMobile ? "small" : "medium"}
             sx={{
-              backgroundColor: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
               },
               p: { xs: 1, sm: 1.25 }
             }}
           >
-            {dark ? <LightModeIcon fontSize={isMobile ? "small" : "medium"} /> : <DarkModeIcon fontSize={isMobile ? "small" : "medium"} />}
+            {isDarkMode ? <LightModeIcon fontSize={isMobile ? "small" : "medium"} /> : <DarkModeIcon fontSize={isMobile ? "small" : "medium"} />}
           </IconButton>
         </Box>
       </Box>
@@ -274,8 +291,8 @@ export function Header () {
         sx={{
           width: '100%',
           borderRadius: 2,
-          backgroundColor: dark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
-          border: `1px solid ${dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'}`,
+          backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'}`,
           overflow: 'hidden'
         }}
       >

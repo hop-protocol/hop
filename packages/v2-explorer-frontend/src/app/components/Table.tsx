@@ -188,8 +188,75 @@ export function Table (props: Props) {
         {props.filters ? props.filters : null}
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between">
-        <Box width="100%" mr={4} overflow="auto">
-          <TableContainer>
+        <Box 
+          width="100%" 
+          mr={4} 
+          overflow="auto"
+          sx={{
+            // Webkit scrollbar styles
+            '&::-webkit-scrollbar': {
+              width: '12px',
+              height: '12px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: isDarkMode ? 
+                alpha(theme.palette.primary.main, 0.05) : 
+                alpha(theme.palette.primary.main, 0.03),
+              borderRadius: '6px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: isDarkMode ? 
+                alpha(theme.palette.primary.main, 0.3) : 
+                alpha(theme.palette.primary.main, 0.2),
+              borderRadius: '6px',
+              border: '3px solid transparent',
+              backgroundClip: 'padding-box',
+              '&:hover': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.4) : 
+                  alpha(theme.palette.primary.main, 0.3),
+              }
+            },
+            // Firefox scrollbar styles
+            scrollbarWidth: 'auto',
+            scrollbarColor: isDarkMode ?
+              `${alpha(theme.palette.primary.main, 0.3)} ${alpha(theme.palette.primary.main, 0.05)}` :
+              `${alpha(theme.palette.primary.main, 0.2)} ${alpha(theme.palette.primary.main, 0.03)}`,
+          }}
+        >
+          <TableContainer
+            sx={{
+              // Webkit scrollbar styles
+              '&::-webkit-scrollbar': {
+                width: '12px',
+                height: '12px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.05) : 
+                  alpha(theme.palette.primary.main, 0.03),
+                borderRadius: '6px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.3) : 
+                  alpha(theme.palette.primary.main, 0.2),
+                borderRadius: '6px',
+                border: '3px solid transparent',
+                backgroundClip: 'padding-box',
+                '&:hover': {
+                  background: isDarkMode ? 
+                    alpha(theme.palette.primary.main, 0.4) : 
+                    alpha(theme.palette.primary.main, 0.3),
+                }
+              },
+              // Firefox scrollbar styles
+              scrollbarWidth: 'auto',
+              scrollbarColor: isDarkMode ?
+                `${alpha(theme.palette.primary.main, 0.3)} ${alpha(theme.palette.primary.main, 0.05)}` :
+                `${alpha(theme.palette.primary.main, 0.2)} ${alpha(theme.palette.primary.main, 0.03)}`,
+            }}
+          >
             <_Table width="100%" style={{ minWidth }}>
               <TableHead>
                 <TableRow

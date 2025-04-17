@@ -205,6 +205,7 @@ export type GetMaxBonderFeeInput = {
 }
 
 export type EstimateGasCostForSendInput = {
+  from: string
   fromChainId: BigNumberish
   toChainId: BigNumberish
   fromToken: string
@@ -1169,7 +1170,7 @@ export class Hop extends Base {
     return BigNumber.from(amountIn).mul(BigNumber.from(4)).div(BigNumber.from(10000))
   }
 
-  async estimateGasCostForSend({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> {
+  async estimateGasCostForSend({ from, fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> {
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
@@ -1235,6 +1236,7 @@ export class Hop extends Base {
 
       // Use the RailsGateway's estimateGasCostForSend method
       return this.getRailsGateway(fromChainId).helpers.estimateGasCostForSend({
+        from,
         to,
         amount,
         hops,

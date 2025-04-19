@@ -47,25 +47,6 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
     instance: any
   }}>({})
 
-  // Fetch token prices
-  const { data: tokenPrices } = useQuery<TokenPrice>({
-    queryKey: ['tokenPrices'],
-    queryFn: async () => {
-      const response = await fetch('/api/token-prices')
-      const data = await response.json()
-      const prices: TokenPrice = {}
-      for (const item of data.items) {
-        prices[item.token] = item.priceUsd
-      }
-      // Set default prices for stablecoins
-      prices['USDC'] = 1
-      prices['DAI'] = 1
-      prices['MOCK'] = 1
-      return prices
-    },
-    staleTime: 5 * 60 * 1000 // 5 minutes
-  })
-  
   // Format numbers for display with proper token amounts
   const formatTokenAmount = (value: number, tokenSymbol: string): string => {
     if (value === 0) return '0'

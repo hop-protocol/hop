@@ -39,11 +39,14 @@ type DailyVolumeStatsInput = {
   pathId?: string
 }
 
-type DailyVolumeStatsResult = {
+export type DailyVolumeStatsResult = {
   date: string
   tokenSymbol: string
   tokenDecimals: number
   volume: string
+  volumeUsd: number
+  chainId?: number
+  chainName?: string
 }
 
 export class TransferSentTable extends EventDb {
@@ -638,5 +641,86 @@ export class TransferSentTable extends EventDb {
     return {
       count: result.count.toString()
     }
+  }
+
+  async getCumulativeVolumeByChainStats(input: { days?: number; startTimestamp?: number; endTimestamp?: number } = {}): Promise<any[]> {
+    const { days = 30, startTimestamp, endTimestamp } = input
+    const now = Math.floor(Date.now() / 1000)
+    const start = startTimestamp || now - (days * 24 * 60 * 60)
+    const end = endTimestamp || now
+
+    const query = `
+      WITH 
+      -- Generate a series of dates covering the requested range
+      date_series AS (
+        SELECT generate_series(
+          date_trunc('day', to_timestamp($1)),
+          date_trunc('day', to_timestamp($2)),
+          '1 day'::interval
+        ) AS day_date
+      ),
+      -- Get all unique chain IDs and names from paths
+      unique_chains AS (
+        SELECT DISTINCT p.chain_id, p.chain_id::text as name
+        FROM paths p
+        JOIN transfer_sent_events e ON p.path_id = e.path_id
+        JOIN event_context ec ON e.event_context_id = ec.id
+        WHERE ec.block_timestamp >= $1
+          AND ec.block_timestamp <= $2
+      ),
+      -- Create a cross product of all dates and chains
+      date_chain_combinations AS (
+        SELECT
+          day_date,
+          chain_id,
+          name
+        FROM date_series
+        CROSS JOIN unique_chains
+      ),
+      -- First get a deduplicated set of transfers with their dates and chain info
+      unique_transfers AS (
+        SELECT DISTINCT ON (e.transfer_id)
+          e.transfer_id,
+          e.amount,
+          p.chain_id,
+          p.chain_id::text as name,
+          ec.block_timestamp,
+          date_trunc('day', to_timestamp(ec.block_timestamp)) AS day_timestamp
+        FROM transfer_sent_events e
+        JOIN event_context ec ON e.event_context_id = ec.id
+        JOIN paths p ON e.path_id = p.path_id
+        WHERE ec.block_timestamp >= $1
+          AND ec.block_timestamp <= $2
+        ORDER BY e.transfer_id, e.id
+      ),
+      -- Calculate cumulative volume for each day and chain
+      cumulative_volumes AS (
+        SELECT
+          dt.day_date,
+          dt.chain_id,
+          dt.name,
+          SUM(CASE WHEN ut.day_timestamp <= dt.day_date THEN ut.amount ELSE 0 END) AS cumulative_volume
+        FROM date_chain_combinations dt
+        CROSS JOIN unique_transfers ut
+        WHERE dt.chain_id = ut.chain_id
+        GROUP BY dt.day_date, dt.chain_id, dt.name
+      )
+      
+      -- Format the results
+      SELECT
+        to_char(dtc.day_date, 'YYYY-MM-DD') AS date,
+        dtc.chain_id AS "chainId",
+        dtc.name AS "chainName",
+        COALESCE(cv.cumulative_volume, '0') AS volume
+      FROM date_chain_combinations dtc
+      LEFT JOIN cumulative_volumes cv
+        ON dtc.day_date = cv.day_date AND dtc.chain_id = cv.chain_id
+      ORDER BY
+        dtc.day_date ASC,
+        dtc.chain_id ASC
+    `
+
+    const result = await this.db.any(query, [start, end])
+    return result
   }
 }

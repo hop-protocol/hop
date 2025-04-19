@@ -22,6 +22,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { useTheme } from '@/app/hooks/useTheme'
 import { CumulativeTransfersChart } from '@/app/components/CumulativeTransfersChart'
 import { TotalTransfersStats } from '@/app/components/stats/TotalTransfersStats'
+import { CumulativeVolumeByChainChart } from '@/app/components/stats/CumulativeVolumeByChainChart'
 
 // Helper function for formatting dates
 const formatDate = (date: Date): string => {
@@ -196,6 +197,25 @@ export function Analytics() {
           title="Cumulative Transfers" 
           key="cumulative-transfers"
         />
+      </Paper>
+
+      {/* Cumulative Volume by Chain Chart */}
+      <Paper 
+        elevation={2} 
+        sx={{ 
+          p: 3, 
+          mb: 4,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h5" fontWeight="bold">Cumulative Volume by Chain</Typography>
+          <Typography variant="subtitle2" color="text.secondary">
+            Total volume by chain over time
+          </Typography>
+        </Box>
+        <CumulativeVolumeByChainChart days={timeRangeNum} />
       </Paper>
       
       {/* Daily Volume Chart */}

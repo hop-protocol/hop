@@ -2038,4 +2038,65 @@ export class Controller {
       throw err
     }
   }
+
+  async getCumulativeVolumeByChainStatsForApi(req: any, res: any): Promise<void> {
+    try {
+      const days = parseInt(req.query.days as string) || 30
+      const startTimestamp = req.query.startTimestamp ? parseInt(req.query.startTimestamp as string) : undefined
+      const endTimestamp = req.query.endTimestamp ? parseInt(req.query.endTimestamp as string) : undefined
+
+      const results = await this.pgDb.events.TransferSent.getCumulativeVolumeByChainStats({
+        days,
+        startTimestamp,
+        endTimestamp
+      })
+
+      if (!results || results.length === 0) {
+        res.json({ datasets: [] })
+        return
+      }
+
+      // Group results by chain
+      const groupedResults: Record<string, any[]> = results.reduce((acc: Record<string, any[]>, curr: any) => {
+        const chainId = curr.chainId
+        if (chainId === undefined) {
+          return acc
+        }
+        if (!acc[chainId]) {
+          acc[chainId] = []
+        }
+        acc[chainId].push(curr)
+        return acc
+      }, {})
+
+      // Get token prices for each chain's data
+      const response = {
+        datasets: await Promise.all(Object.entries(groupedResults).map(async ([chainId, data]) => {
+          // Get the token symbol and timestamp for price lookup
+          const tokenSymbol = data[0].tokenSymbol
+          const timestamp = Math.floor(Date.now() / 1000) // Use current timestamp for latest price
+
+          // Get the token price from the price table
+          const priceData = await this.pgDb.priceTable.getClosestPrice(tokenSymbol, timestamp)
+          const priceUsd = priceData?.priceUsd ?? 1 // Default to 1 if no price found
+
+          return {
+            chainId: parseInt(chainId),
+            chainName: data[0].chainName,
+            data: data.map((item: any) => ({
+              date: item.date,
+              volume: item.volume,
+              volumeUsd: parseFloat(this.formatUnits(item.volume, item.tokenDecimals)) * priceUsd
+            })),
+            priceUsd
+          }
+        }))
+      }
+
+      res.json(response)
+    } catch (error) {
+      console.error('Error getting cumulative volume by chain stats:', error)
+      res.status(500).json({ error: 'Failed to get cumulative volume by chain stats' })
+    }
+  }
 }

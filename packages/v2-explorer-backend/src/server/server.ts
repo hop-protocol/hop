@@ -253,6 +253,15 @@ app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any)
   }
 })
 
+app.get('/v1/stats/cumulative-volume-by-chain', responseCache, async (req: any, res: any) => {
+  try {
+    await controller.getCumulativeVolumeByChainStatsForApi(req, res)
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
     const { filter, chainIds } = req.query

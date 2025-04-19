@@ -576,15 +576,13 @@ export class TransferSentTable extends EventDb {
   }
 
   async getCumulativeTransferCounts(input: { days?: number } = {}) {
-    const { days = 30 } = input
     const now = Math.floor(Date.now() / 1000)
-    const startTimestamp = now - (days * 24 * 60 * 60)
 
     const query = `
       WITH date_series AS (
         SELECT generate_series(
+          (SELECT MIN(date_trunc('day', to_timestamp(ec.block_timestamp))) FROM transfer_sent_events e JOIN event_context ec ON e.event_context_id = ec.id),
           date_trunc('day', to_timestamp($1)),
-          date_trunc('day', to_timestamp($2)),
           '1 day'::interval
         ) AS date
       ),
@@ -594,7 +592,7 @@ export class TransferSentTable extends EventDb {
           COUNT(*) as count
         FROM transfer_sent_events e
         JOIN event_context ec ON e.event_context_id = ec.id
-        WHERE ec.block_timestamp <= $2
+        WHERE ec.block_timestamp <= $1
         GROUP BY date_trunc('day', to_timestamp(ec.block_timestamp))
       )
       SELECT 
@@ -605,7 +603,7 @@ export class TransferSentTable extends EventDb {
       ORDER BY ds.date
     `
 
-    const result = await this.db.query(query, [startTimestamp, now])
+    const result = await this.db.query(query, [now])
     return result.map((row: any) => ({
       date: row.date.toISOString().split('T')[0],
       count: row.count.toString()

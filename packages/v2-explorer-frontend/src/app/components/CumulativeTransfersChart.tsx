@@ -11,10 +11,9 @@ import { apiUrl, appApiHost } from '@/app/config'
 
 interface CumulativeTransfersChartProps {
   title: string
-  days: number
 }
 
-export function CumulativeTransfersChart({ title, days }: CumulativeTransfersChartProps) {
+export function CumulativeTransfersChart({ title }: CumulativeTransfersChartProps) {
   const { theme, dark: isDarkMode } = useTheme()
   const [data, setData] = React.useState<any>(null)
   const [loading, setLoading] = React.useState(true)
@@ -28,7 +27,7 @@ export function CumulativeTransfersChart({ title, days }: CumulativeTransfersCha
         const hostname = typeof window === 'undefined' ? appApiHost : window.location.host
         const protocol = hostname.includes('localhost') ? 'http' : 'https'
         
-        let url = `${protocol}://${hostname}/api/?pathname=/analytics/cumulative-transfer-counts&days=${days}`
+        let url = `${protocol}://${hostname}/api/?pathname=/analytics/cumulative-transfer-counts`
 
         const response = await fetch(url)
         const result = await response.json()
@@ -41,7 +40,7 @@ export function CumulativeTransfersChart({ title, days }: CumulativeTransfersCha
     }
 
     fetchData()
-  }, [days])
+  }, [])
 
   useEffect(() => {
     const loadChartJs = async () => {

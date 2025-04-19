@@ -1882,6 +1882,16 @@ export class Controller {
       // Group by token
       const tokenMap = new Map<string, number[]>()
       const tokenDecimalsMap = new Map<string, number>()
+      const tokenPricesMap = new Map<string, number>()
+      
+      // Get token prices for each token
+      for (const item of data) {
+        const { tokenSymbol, timestamp } = item
+        if (!tokenPricesMap.has(tokenSymbol)) {
+          const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenSymbol, timestamp)
+          tokenPricesMap.set(tokenSymbol, tokenPrice?.priceUsd || 1) // Default to 1 for stablecoins
+        }
+      }
       
       data.forEach((item: any) => {
         const { tokenSymbol, tokenDecimals } = item
@@ -1909,6 +1919,7 @@ export class Controller {
       const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
         label: tokenSymbol,
         data: values,
+        priceUsd: tokenPricesMap.get(tokenSymbol) || 1
       }))
       
       // Create raw data with formatted values

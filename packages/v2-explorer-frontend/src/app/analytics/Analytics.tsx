@@ -172,8 +172,7 @@ export function Analytics() {
       >
         <CumulativeVolumeChart 
           title="Cumulative Volume by Token" 
-          days={timeRangeNum} 
-          key={`cumulative-volume-${timeRangeNum}`}
+          key="cumulative-volume"
         />
       </Paper>
 
@@ -195,8 +194,7 @@ export function Analytics() {
         </Box>
         <CumulativeTransfersChart 
           title="Cumulative Transfers" 
-          days={timeRangeNum} 
-          key={`cumulative-transfers-${timeRangeNum}`}
+          key="cumulative-transfers"
         />
       </Paper>
       

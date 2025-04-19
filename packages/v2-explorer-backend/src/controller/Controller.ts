@@ -2017,4 +2017,14 @@ export class Controller {
       throw err
     }
   }
+
+  async getTotalTransferCountsForApi(input: { startTimestamp?: number, endTimestamp?: number } = {}): Promise<{ count: string }> {
+    try {
+      const result = await this.pgDb.events.TransferSent.getTotalTransferCounts(input)
+      return result
+    } catch (err: any) {
+      console.error('Error getting total transfer counts', err)
+      throw err
+    }
+  }
 }

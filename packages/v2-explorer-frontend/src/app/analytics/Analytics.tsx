@@ -21,6 +21,7 @@ import { useFetchSankeyData } from '@/app/hooks/useFetchSankeyData'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useTheme } from '@/app/hooks/useTheme'
 import { CumulativeTransfersChart } from '@/app/components/CumulativeTransfersChart'
+import { TotalTransfersStats } from '@/app/components/stats/TotalTransfersStats'
 
 // Helper function for formatting dates
 const formatDate = (date: Date): string => {
@@ -100,13 +101,9 @@ export function Analytics() {
         </Typography>
       </Box>
 
-
-
-
-
       {/* Main Stats Overview */}
       <Grid container spacing={4} mb={10}>
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ height: '100%' }}>
             <Paper 
               elevation={isDarkMode ? 3 : 2}
@@ -127,7 +124,28 @@ export function Analytics() {
             </Paper>
           </Box>
         </Grid>
-        <Grid item xs={12} md={7}>
+        <Grid item xs={12} md={4}>
+          <Box sx={{ height: '100%' }}>
+            <Paper 
+              elevation={isDarkMode ? 3 : 2}
+              sx={{ 
+                p: 3, 
+                height: '100%',
+                background: isDarkMode 
+                  ? `linear-gradient(145deg, rgba(30, 40, 50, 0.8) 0%, rgba(25, 25, 35, 0.9) 100%)`
+                  : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.9) 100%)',
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                boxShadow: isDarkMode 
+                  ? '0 4px 20px rgba(0,0,0,0.25)' 
+                  : undefined
+              }}
+            >
+              <TotalTransfersStats />
+            </Paper>
+          </Box>
+        </Grid>
+        <Grid item xs={12} md={4}>
           <Paper 
             elevation={2} 
             sx={{ 

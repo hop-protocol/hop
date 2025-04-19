@@ -581,27 +581,64 @@ export class TransferSentTable extends EventDb {
     const startTimestamp = now - (days * 24 * 60 * 60)
 
     const query = `
-      WITH daily_counts AS (
+      WITH date_series AS (
+        SELECT generate_series(
+          date_trunc('day', to_timestamp($1)),
+          date_trunc('day', to_timestamp($2)),
+          '1 day'::interval
+        ) AS date
+      ),
+      daily_counts AS (
         SELECT 
-          DATE_TRUNC('day', TO_TIMESTAMP(block_timestamp)) as date,
+          date_trunc('day', to_timestamp(ec.block_timestamp)) as date,
           COUNT(*) as count
         FROM transfer_sent_events e
         JOIN event_context ec ON e.event_context_id = ec.id
-        WHERE ec.block_timestamp >= $1
-        GROUP BY DATE_TRUNC('day', TO_TIMESTAMP(block_timestamp))
-        ORDER BY date
+        WHERE ec.block_timestamp <= $2
+        GROUP BY date_trunc('day', to_timestamp(ec.block_timestamp))
       )
       SELECT 
-        date,
-        SUM(count) OVER (ORDER BY date) as count
-      FROM daily_counts
-      ORDER BY date
+        ds.date,
+        COALESCE(SUM(dc.count) OVER (ORDER BY ds.date), 0) as count
+      FROM date_series ds
+      LEFT JOIN daily_counts dc ON ds.date = dc.date
+      ORDER BY ds.date
     `
 
-    const result = await this.db.query(query, [startTimestamp])
+    const result = await this.db.query(query, [startTimestamp, now])
     return result.map((row: any) => ({
       date: row.date.toISOString().split('T')[0],
       count: row.count.toString()
     }))
+  }
+
+  async getTotalTransferCounts(input: { startTimestamp?: number, endTimestamp?: number } = {}) {
+    const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000) } = input
+
+    console.log('Getting total transfer counts with timestamps:', { startTimestamp, endTimestamp })
+
+    // Debug query to check total transfers without time filter
+    const debugQuery = `
+      SELECT COUNT(*) as total_count
+      FROM transfer_sent_events e
+      JOIN event_context ec ON e.event_context_id = ec.id
+    `
+    const debugResult = await this.db.one(debugQuery)
+    console.log('Debug - Total transfers in database:', debugResult)
+
+    const query = `
+      SELECT COUNT(*) as count
+      FROM transfer_sent_events e
+      JOIN event_context ec ON e.event_context_id = ec.id
+      WHERE ec.block_timestamp >= $1
+      AND ec.block_timestamp <= $2
+    `
+
+    const result = await this.db.one(query, [startTimestamp, endTimestamp])
+    console.log('Total transfer counts result:', result)
+    
+    return {
+      count: result.count.toString()
+    }
   }
 }

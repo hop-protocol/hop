@@ -198,6 +198,23 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/stats/total-transfers', responseCache, async (req: any, res: any) => {
+  try {
+    const { startTimestamp, endTimestamp } = req.query
+    const stats = await controller.getTotalTransferCountsForApi({
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    })
+    res.status(200).json({
+      stats,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/v1/stats/daily-volume', responseCache, async (req: any, res: any) => {
   try {
     const { days, pathId, startTimestamp, endTimestamp } = req.query

@@ -574,4 +574,34 @@ export class TransferSentTable extends EventDb {
     console.log(`Got ${results.length} cumulative volume results`)
     return results
   }
+
+  async getCumulativeTransferCounts(input: { days?: number } = {}) {
+    const { days = 30 } = input
+    const now = Math.floor(Date.now() / 1000)
+    const startTimestamp = now - (days * 24 * 60 * 60)
+
+    const query = `
+      WITH daily_counts AS (
+        SELECT 
+          DATE_TRUNC('day', TO_TIMESTAMP(block_timestamp)) as date,
+          COUNT(*) as count
+        FROM transfer_sent_events e
+        JOIN event_context ec ON e.event_context_id = ec.id
+        WHERE ec.block_timestamp >= $1
+        GROUP BY DATE_TRUNC('day', TO_TIMESTAMP(block_timestamp))
+        ORDER BY date
+      )
+      SELECT 
+        date,
+        SUM(count) OVER (ORDER BY date) as count
+      FROM daily_counts
+      ORDER BY date
+    `
+
+    const result = await this.db.query(query, [startTimestamp])
+    return result.map((row: any) => ({
+      date: row.date.toISOString().split('T')[0],
+      count: row.count.toString()
+    }))
+  }
 }

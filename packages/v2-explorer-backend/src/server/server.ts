@@ -372,6 +372,19 @@ app.get('/v1/stats/flow', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/analytics/cumulative-transfer-counts', responseCache, async (req: any, res: any) => {
+  try {
+    const { days = 30 } = req.query
+    const result = await controller.getCumulativeTransferCountsForApi({
+      days: Number(days)
+    })
+    res.status(200).json(result)
+  } catch (err: any) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 const host = '0.0.0.0'
 
 export function server () {

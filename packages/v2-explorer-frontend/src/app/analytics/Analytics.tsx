@@ -20,6 +20,7 @@ import SankeyChart from '@/app/components/charts/SankeyChart'
 import { useFetchSankeyData } from '@/app/hooks/useFetchSankeyData'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useTheme } from '@/app/hooks/useTheme'
+import { CumulativeTransfersChart } from '@/app/components/CumulativeTransfersChart'
 
 // Helper function for formatting dates
 const formatDate = (date: Date): string => {
@@ -155,6 +156,29 @@ export function Analytics() {
           title="Cumulative Volume by Token" 
           days={timeRangeNum} 
           key={`cumulative-volume-${timeRangeNum}`}
+        />
+      </Paper>
+
+      {/* Cumulative Transfers Chart */}
+      <Paper 
+        elevation={2} 
+        sx={{ 
+          p: 3, 
+          mb: 4,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h5" fontWeight="bold">Cumulative Transfers</Typography>
+          <Typography variant="subtitle2" color="text.secondary">
+            Total number of transfers over time
+          </Typography>
+        </Box>
+        <CumulativeTransfersChart 
+          title="Cumulative Transfers" 
+          days={timeRangeNum} 
+          key={`cumulative-transfers-${timeRangeNum}`}
         />
       </Paper>
       

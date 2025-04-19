@@ -1965,4 +1965,56 @@ export class Controller {
       return '0'
     }
   }
+
+  async getCumulativeTransferCountsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getCumulativeTransferCountsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getCumulativeTransferCounts(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Create a single dataset for total transfers
+      const transferCounts = sortedDates.map(() => 0)
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, count } = item
+        const dateIndex = sortedDates.indexOf(date)
+        if (dateIndex >= 0) {
+          transferCounts[dateIndex] = parseInt(count)
+        }
+      })
+      
+      // Create datasets
+      const datasets = [{
+        label: 'Total Transfers',
+        data: transferCounts,
+      }]
+      
+      // Create raw data
+      const rawData = data.map((item: any) => ({
+        ...item,
+        count: parseInt(item.count)
+      }))
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting cumulative transfer counts', err)
+      throw err
+    }
+  }
 }

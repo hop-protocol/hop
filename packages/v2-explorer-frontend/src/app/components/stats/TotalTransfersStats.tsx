@@ -1,8 +1,9 @@
-import { Box, Typography, CircularProgress, Paper } from '@mui/material'
+import { Box, Typography, CircularProgress, Paper, Stack } from '@mui/material'
 import { useFetchTotalTransfers } from '@/app/hooks/useFetchTotalTransfers'
 import { formatNumber } from '@/app/utils/format'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import { useTheme } from '@mui/material/styles'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 
 export const TotalTransfersStats = () => {
   const { totalTransfersStats, loading, error } = useFetchTotalTransfers()
@@ -10,39 +11,17 @@ export const TotalTransfersStats = () => {
 
   if (loading) {
     return (
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 4, 
-          borderRadius: 2,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
-          minHeight: 200,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      >
-        <CircularProgress />
-      </Paper>
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%" minHeight={120}>
+        <CircularProgress size={40} thickness={4} suppressHydrationWarning />
+      </Box>
     )
   }
 
   if (error) {
     return (
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 4, 
-          borderRadius: 2,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
-          minHeight: 200,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      >
-        <Typography color="error">Error loading total transfers: {error}</Typography>
-      </Paper>
+      <Box p={2} color="error.main">
+        <Typography variant="subtitle1">Failed to load transfer statistics</Typography>
+      </Box>
     )
   }
 
@@ -50,73 +29,64 @@ export const TotalTransfersStats = () => {
   const lastUpdated = totalTransfersStats?.lastUpdated
 
   return (
-    <Paper 
-      elevation={3} 
-      sx={{ 
-        p: 4, 
-        borderRadius: 2,
-        background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
-        position: 'relative',
-        overflow: 'hidden',
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          transition: 'transform 0.2s ease-in-out'
-        }
-      }}
-    >
-      <Box 
-        sx={{ 
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: 100,
-          height: 100,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main}10, ${theme.palette.secondary.main}10)`,
-          borderRadius: '50%',
-          transform: 'translate(30%, -30%)'
-        }}
-      />
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Box display="flex" alignItems="center" mb={2}>
-          <TrendingUpIcon 
-            sx={{ 
-              fontSize: 32, 
-              color: theme.palette.primary.main,
-              mr: 2
-            }} 
-          />
-          <Typography 
-            variant="h6" 
-            color="text.secondary"
-            sx={{ fontWeight: 500 }}
-          >
+    <Box>
+      <Stack spacing={0.5}>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+          <Typography variant="h5" fontWeight="bold" color="primary">
             Total Transfers
           </Typography>
+          {lastUpdated && (
+            <Typography variant="caption" color="text.secondary">
+              Updated: {new Date(lastUpdated).toLocaleString()}
+            </Typography>
+          )}
         </Box>
-        <Typography 
-          variant="h3" 
-          component="div" 
-          sx={{ 
-            fontWeight: 'bold',
-            color: theme.palette.primary.main,
-            mb: 1
-          }}
+
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center"
+          py={1}
+          position="relative"
         >
-          {formatNumber(parseInt(count))}
-        </Typography>
-        {lastUpdated && (
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            sx={{ 
-              opacity: 0.8,
-              fontStyle: 'italic'
+          {/* Background icon */}
+          <Box 
+            sx={{
+              position: 'absolute',
+              opacity: 0.07,
+              transform: 'scale(3.5)',
+              zIndex: 0,
             }}
           >
-            Last updated: {new Date(lastUpdated).toLocaleString()}
+            <SwapHorizIcon fontSize="large" />
+          </Box>
+          
+          {/* Main value */}
+          <Typography variant="h3" fontWeight="bold" color="primary" sx={{ zIndex: 1 }}>
+            {formatNumber(parseInt(count))}
           </Typography>
-        )}
-      </Box>
-    </Paper>
+          
+          <Box 
+            mt={0.5}
+            display="flex" 
+            alignItems="center" 
+            px={2} 
+            py={0.5} 
+            bgcolor={theme.palette.info.light} 
+            borderRadius={5}
+            sx={{ zIndex: 1 }}
+          >
+            <SwapHorizIcon 
+              fontSize="small" 
+              sx={{ color: theme.palette.info.dark, mr: 0.5 }} 
+            />
+            <Typography variant="body2" fontWeight="medium" color={theme.palette.info.dark}>
+              All-time transfers
+            </Typography>
+          </Box>
+        </Box>
+      </Stack>
+    </Box>
   )
 }

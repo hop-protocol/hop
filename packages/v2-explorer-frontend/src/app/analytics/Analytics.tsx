@@ -23,6 +23,7 @@ import { useTheme } from '@/app/hooks/useTheme'
 import { CumulativeTransfersChart } from '@/app/components/CumulativeTransfersChart'
 import { TotalTransfersStats } from '@/app/components/stats/TotalTransfersStats'
 import { CumulativeVolumeByChainChart } from '@/app/components/stats/CumulativeVolumeByChainChart'
+import { CombinedVolumeTransferStats } from '@/app/components/stats/CombinedVolumeTransferStats'
 
 // Helper function for formatting dates
 const formatDate = (date: Date): string => {
@@ -126,57 +127,24 @@ export function Analytics() {
       </Box>
 
       {/* Main Stats Overview */}
-      <Grid container spacing={4} mb={10}>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ height: '100%' }}>
-            <Paper 
-              elevation={isDarkMode ? 3 : 2}
-              sx={{ 
-                p: 3, 
-                height: '100%',
-                background: isDarkMode 
-                  ? `linear-gradient(145deg, rgba(30, 40, 50, 0.8) 0%, rgba(25, 25, 35, 0.9) 100%)`
-                  : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.9) 100%)',
-                borderRadius: 2,
-                border: `1px solid ${theme.palette.divider}`,
-                boxShadow: isDarkMode 
-                  ? '0 4px 20px rgba(0,0,0,0.25)' 
-                  : undefined
-              }}
-            >
-              <TotalVolumeStats />
-            </Paper>
+      <Grid container spacing={4} mb={4}>
+        <Grid item xs={12} md={6}>
+          <Box sx={{ height: '100%', minHeight: 400 }}>
+            <CombinedVolumeTransferStats isDarkMode={isDarkMode} />
           </Box>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ height: '100%' }}>
-            <Paper 
-              elevation={isDarkMode ? 3 : 2}
-              sx={{ 
-                p: 3, 
-                height: '100%',
-                background: isDarkMode 
-                  ? `linear-gradient(145deg, rgba(30, 40, 50, 0.8) 0%, rgba(25, 25, 35, 0.9) 100%)`
-                  : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.9) 100%)',
-                borderRadius: 2,
-                border: `1px solid ${theme.palette.divider}`,
-                boxShadow: isDarkMode 
-                  ? '0 4px 20px rgba(0,0,0,0.25)' 
-                  : undefined
-              }}
-            >
-              <TotalTransfersStats />
-            </Paper>
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Paper 
-            elevation={2} 
+            elevation={isDarkMode ? 3 : 2}
             sx={{ 
               p: 3, 
               height: '100%',
+              height: 400,
               borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`
+              border: `1px solid ${theme.palette.divider}`,
+              background: isDarkMode 
+                ? `linear-gradient(145deg, rgba(30, 40, 50, 0.8) 0%, rgba(25, 25, 35, 0.9) 100%)`
+                : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.9) 100%)',
             }}
           >
             <TokenVolumeStats />

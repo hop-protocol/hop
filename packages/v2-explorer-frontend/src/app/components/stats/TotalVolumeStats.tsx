@@ -11,7 +11,7 @@ export const TotalVolumeStats: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100%" minHeight={180}>
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%" minHeight={120}>
         <CircularProgress size={40} thickness={4} />
       </Box>
     )
@@ -28,7 +28,7 @@ export const TotalVolumeStats: React.FC = () => {
 
   return (
     <Box>
-      <Stack spacing={2}>
+      <Stack spacing={1}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-start">
           <Typography variant="h5" fontWeight="bold" color="primary">
             Total Protocol Volume
@@ -45,7 +45,7 @@ export const TotalVolumeStats: React.FC = () => {
           flexDirection="column" 
           alignItems="center" 
           justifyContent="center"
-          py={4}
+          py={2}
           position="relative"
         >
           {/* Background icon */}
@@ -53,7 +53,7 @@ export const TotalVolumeStats: React.FC = () => {
             sx={{
               position: 'absolute',
               opacity: 0.07,
-              transform: 'scale(5)',
+              transform: 'scale(4)',
               zIndex: 0,
             }}
           >
@@ -61,7 +61,7 @@ export const TotalVolumeStats: React.FC = () => {
           </Box>
           
           {/* Main value */}
-          <Typography variant="h2" fontWeight="bold" color="primary" sx={{ zIndex: 1 }}>
+          <Typography variant="h3" fontWeight="bold" color="primary" sx={{ zIndex: 1 }}>
             {volumeStats?.stats?.totalVolume?.totalUsdDisplay ?? '$0'}
           </Typography>
           

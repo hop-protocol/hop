@@ -9,6 +9,7 @@ import {
   Divider, 
   useTheme 
 } from '@mui/material'
+import { formatNumberWithMaxDecimals } from '@/app/utils/format'
 
 export const TokenVolumeStats: React.FC = () => {
   const { volumeStats, loading, error } = useFetchVolumeStats()
@@ -118,7 +119,7 @@ export const TokenVolumeStats: React.FC = () => {
                     letterSpacing: '0.02em'
                   }}
                 >
-                  {tokenData.totalVolumeFormatted ?? '0'} {tokenSymbol}
+                  {formatNumberWithMaxDecimals(tokenData.totalVolumeFormatted ?? '0')} {tokenSymbol}
                 </Typography>
               </Box>
               

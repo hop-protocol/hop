@@ -31,12 +31,11 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({
   days = 30,
   title = 'Daily Volume by Token'
 }) => {
-  const [periodDays, setPeriodDays] = useState<string>(String(days))
   const [useLogScale, setUseLogScale] = useState<boolean>(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const { dailyVolumeStats, loading, error } = useFetchDailyVolumeStats({ 
     pathId, 
-    days: parseInt(periodDays) 
+    days
   })
   
   // Prepare individual token charts
@@ -270,10 +269,6 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({
     }
   }, [dailyVolumeStats?.data, tokenData, useLogScale, selectedTokens])
 
-  const handlePeriodChange = (event: SelectChangeEvent) => {
-    setPeriodDays(event.target.value)
-  }
-
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUseLogScale(event.target.checked)
   }
@@ -286,16 +281,6 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({
     } else {
       setSelectedTokens([...selectedTokens, tokenSymbol]);
     }
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <Box p={4} textAlign="center" color="error.main">
-        <Typography variant="h6">Unable to load volume data</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>Please try again later</Typography>
-      </Box>
-    )
   }
 
   return (
@@ -323,123 +308,99 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({
           </Box>
           
           <Box display="flex" alignItems="center" gap={2}>
-            <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="period-select-label">Time Period</InputLabel>
-              <Select
-                labelId="period-select-label"
-                id="period-select"
-                value={periodDays}
-                onChange={handlePeriodChange}
-                label="Time Period"
-              >
-                <MenuItem value="7">7 days</MenuItem>
-                <MenuItem value="30">30 days</MenuItem>
-                <MenuItem value="90">90 days</MenuItem>
-                <MenuItem value="180">180 days</MenuItem>
-                <MenuItem value="365">365 days</MenuItem>
-              </Select>
-            </FormControl>
-            
             <FormControlLabel
               control={
                 <Switch
                   checked={useLogScale}
                   onChange={handleScaleChange}
-                  color="primary"
-                  size="small"
+                  name="logScale"
                 />
               }
-              label={
-                <Typography variant="body2" color="text.secondary">
-                  Log Scale
-                </Typography>
-              }
+              label="Log Scale"
             />
           </Box>
         </Box>
         
-        {loading && (
-          <Box p={4} display="flex" justifyContent="center">
-            <Box textAlign="center">
-              <CircularProgress size={40} thickness={4} sx={{ mb: 2 }} />
-              <Typography variant="body2" color="text.secondary">
-                Loading chart data...
-              </Typography>
-            </Box>
-          </Box>
-        )}
-        
-        {!loading && dailyVolumeStats?.data?.datasets && (
-          <Box>
-            {/* Token filter chips */}
-            <Stack 
-              direction="row" 
-              spacing={1} 
-              sx={{ 
-                mb: 2, 
-                flexWrap: 'wrap', 
-                gap: 1,
-                '& > *': { my: 0.5 }
-              }}
-            >
-              {dailyVolumeStats.data.datasets.map(dataset => (
-                <Chip 
-                  key={dataset.label}
-                  label={dataset.label}
-                  onClick={() => handleTokenToggle(dataset.label)}
-                  variant={selectedTokens.includes(dataset.label) ? "filled" : "outlined"}
-                  sx={{ 
-                    fontWeight: selectedTokens.includes(dataset.label) ? 'bold' : 'normal',
-                    backgroundColor: selectedTokens.includes(dataset.label) 
-                      ? 'primary.main' 
-                      : 'transparent',
-                    color: selectedTokens.includes(dataset.label)
-                      ? 'primary.contrastText'
-                      : 'text.primary',
+        {/* Token Selection */}
+        <Box mb={2}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+            {dailyVolumeStats?.data?.datasets?.map((dataset: any) => (
+              <Chip
+                key={dataset.label}
+                label={dataset.label}
+                onClick={() => handleTokenToggle(dataset.label)}
+                sx={{
+                  '&.MuiChip-root': {
+                    backgroundColor: selectedTokens.includes(dataset.label) ? 'primary.main' : 'transparent',
+                    color: selectedTokens.includes(dataset.label) ? '#fff' : 'text.primary',
                     borderColor: selectedTokens.includes(dataset.label) ? 'primary.main' : 'divider',
                     '&:hover': {
                       backgroundColor: selectedTokens.includes(dataset.label) 
-                        ? 'primary.main' 
-                        : 'rgba(0, 0, 0, 0.04)',
+                        ? 'primary.dark'
+                        : 'action.hover'
                     }
-                  }}
-                />
-              ))}
-            </Stack>
-            
-            <Grid container spacing={4}>
+                  }
+                }}
+                variant={selectedTokens.includes(dataset.label) ? 'filled' : 'outlined'}
+              />
+            ))}
+          </Stack>
+        </Box>
+        
+        {/* Loading State */}
+        {loading && (
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            minHeight={400}
+          >
+            <CircularProgress 
+            />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+            <Typography color="error">
+              Error loading volume data
+            </Typography>
+          </Box>
+        )}
+        
+        {!loading && !error && dailyVolumeStats?.data?.datasets && (
+          <Box>
+            <Grid container spacing={2}>
               {dailyVolumeStats.data.datasets
                 .filter(dataset => selectedTokens.includes(dataset.label))
                 .map(dataset => (
-                <Grid item xs={12} key={dataset.label}>
-                  <Paper 
-                    elevation={2} 
-                    sx={{ 
-                      p: 2, 
-                      height: 300,
-                      borderRadius: 2,
-                      border: '1px solid rgba(230, 235, 250, 0.8)'
-                    }}
-                  >
-                    <Box mb={2}>
-                      <Typography 
-                        variant="h6" 
-                        fontWeight="bold"
-                        color="text.primary"
-                      >
-                        {dataset.label} Volume
-                      </Typography>
-                    </Box>
-                    <Box sx={{ height: 'calc(100% - 40px)' }}>
-                      {tokenData[dataset.label] ? (
-                        <canvas ref={tokenData[dataset.label].ref} />
-                      ) : (
-                        <Skeleton variant="rectangular" height="100%" animation="wave" />
-                      )}
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
+                  <Grid item xs={12} key={dataset.label}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        height: '400px'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <Typography variant="h6">
+                          {dataset.label}
+                        </Typography>
+                        <Tooltip title="Daily volume for this token">
+                          <InfoOutlinedIcon
+                            fontSize="small"
+                            sx={{ ml: 1, color: 'text.secondary' }}
+                          />
+                        </Tooltip>
+                      </Box>
+                      <Box height="calc(100% - 40px)">
+                        <canvas ref={tokenData[dataset.label]?.ref} />
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
             </Grid>
           </Box>
         )}

@@ -36,15 +36,37 @@ const formatDate = (date: Date): string => {
   }).format(date);
 };
 
+// Time range options component
+const TimeRangeSelect = ({ value, onChange, label = "Time Range" }: { value: string, onChange: (event: SelectChangeEvent) => void, label?: string }) => (
+  <FormControl sx={{ minWidth: 150 }}>
+    <InputLabel id={`${label.toLowerCase()}-select-label`}>{label}</InputLabel>
+    <Select
+      labelId={`${label.toLowerCase()}-select-label`}
+      value={value}
+      label={label}
+      onChange={onChange}
+    >
+      <MenuItem value={"7"}>7 days</MenuItem>
+      <MenuItem value={"30"}>30 days</MenuItem>
+      <MenuItem value={"90"}>90 days</MenuItem>
+      <MenuItem value={"365"}>365 days</MenuItem>
+    </Select>
+  </FormControl>
+);
+
 export function Analytics() {
   const { theme, dark: isDarkMode } = useTheme()
-  const [timeRange, setTimeRange] = useState<string>("30")
-  const timeRangeNum = parseInt(timeRange)
+  const [volumeTimeRange, setVolumeTimeRange] = useState<string>("30")
+  const [sankeyTimeRange, setSankeyTimeRange] = useState<string>("30")
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
-  const handleTimeRangeChange = (event: SelectChangeEvent) => {
-    setTimeRange(event.target.value)
+  const handleVolumeTimeRangeChange = (event: SelectChangeEvent) => {
+    setVolumeTimeRange(event.target.value)
+  }
+
+  const handleSankeyTimeRangeChange = (event: SelectChangeEvent) => {
+    setSankeyTimeRange(event.target.value)
   }
 
   // Calculate responsive heights with more granular breakpoints
@@ -56,12 +78,12 @@ export function Analytics() {
   
   // Fetch sankey data using our custom hook
   const { sankeyData, loading: sankeyLoading, error: sankeyError, lastUpdated } = useFetchSankeyData({
-    days: timeRangeNum
+    days: parseInt(sankeyTimeRange)
   })
 
   // Get time range text for subtitle
-  const getTimeRangeText = () => {
-    switch (timeRangeNum) {
+  const getTimeRangeText = (days: number) => {
+    switch (days) {
       case 7:
         return 'Last 7 days'
       case 30:
@@ -71,9 +93,10 @@ export function Analytics() {
       case 365:
         return 'Last year'
       default:
-        return `Last ${timeRangeNum} days`
+        return `Last ${days} days`
     }
   }
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 5 }}>
@@ -215,7 +238,7 @@ export function Analytics() {
             Total volume by chain over time
           </Typography>
         </Box>
-        <CumulativeVolumeByChainChart days={timeRangeNum} />
+        <CumulativeVolumeByChainChart days={parseInt(volumeTimeRange)} />
       </Paper>
       
       {/* Daily Volume Chart */}
@@ -228,10 +251,18 @@ export function Analytics() {
           mb: 5
         }}
       >
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+          <Box>
+            <Typography variant="h5" fontWeight="bold">Daily Volume by Token</Typography>
+            <Typography variant="subtitle2" color="text.secondary">
+              {getTimeRangeText(parseInt(volumeTimeRange))}
+            </Typography>
+          </Box>
+          <TimeRangeSelect value={volumeTimeRange} onChange={handleVolumeTimeRangeChange} />
+        </Box>
         <VolumeChart 
-          title="Daily Volume by Token" 
-          days={timeRangeNum}
-          key={`daily-volume-${timeRangeNum}`}
+          days={parseInt(volumeTimeRange)}
+          key={`daily-volume-${volumeTimeRange}`}
         />
       </Paper>
      {/* Sankey Chart */}
@@ -244,27 +275,32 @@ export function Analytics() {
           border: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <AccountTreeIcon 
-            sx={{ 
-              fontSize: '2rem',
-              color: theme.palette.primary.main,
-              mr: 1.5
-            }} 
-          />
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
           <Box>
-            <Typography variant="h5" fontWeight="bold">Token Flow Visualization</Typography>
-            <Typography variant="subtitle2" color="text.secondary">
-              {getTimeRangeText()} • {lastUpdated ? `Last updated: ${formatDate(new Date(lastUpdated))}` : 'Loading data...'}
-            </Typography>
+            <Box display="flex" alignItems="center">
+              <AccountTreeIcon 
+                sx={{ 
+                  fontSize: '2rem',
+                  color: theme.palette.primary.main,
+                  mr: 1.5
+                }} 
+              />
+              <Box>
+                <Typography variant="h5" fontWeight="bold">Token Flow Visualization</Typography>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {getTimeRangeText(parseInt(sankeyTimeRange))} • {lastUpdated ? `Last updated: ${formatDate(new Date(lastUpdated))}` : 'Loading data...'}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
+          <TimeRangeSelect value={sankeyTimeRange} onChange={handleSankeyTimeRangeChange} />
         </Box>
         
         <Box sx={{ 
           height: sankeyChartHeight, 
           width: '100%', 
           position: 'relative',
-          transition: 'height 0.3s ease-in-out' // Add smooth transition
+          transition: 'height 0.3s ease-in-out'
         }}>
           {sankeyLoading && (
             <Box sx={{ 
@@ -279,27 +315,26 @@ export function Analytics() {
               bgcolor: 'rgba(255, 255, 255, 0.5)',
               zIndex: 10
             }}>
-              <CircularProgress />
+              <CircularProgress suppressHydrationWarning />
             </Box>
           )}
           
-          {sankeyData && (
+          {sankeyData ? (
             <SankeyChart 
               data={sankeyData} 
-              height={sankeyChartHeight} 
+              height={sankeyChartHeight}
+              key={`sankey-${sankeyTimeRange}`}
             />
-          )}
-          
-          {!sankeyData && !sankeyLoading && !sankeyError && (
+          ) : (
             <Box sx={{
-              p: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              height: '100%'
+              height: sankeyChartHeight,
+              color: 'text.secondary'
             }}>
-              <Typography color="text.secondary">
-                No data available for the selected time range.
+              <Typography>
+                No transfers found in the selected time range
               </Typography>
             </Box>
           )}
@@ -311,26 +346,6 @@ export function Analytics() {
           </Typography>
         </Box>
       </Paper>
-
-     {/* Time Range Selection */}
-     <Box mb={3} display="flex" justifyContent="flex-end">
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel id="time-range-select-label">Time Range</InputLabel>
-          <Select
-            labelId="time-range-select-label"
-            id="time-range-select"
-            value={timeRange}
-            label="Time Range"
-            onChange={handleTimeRangeChange}
-          >
-            <MenuItem value={"7"}>7 days</MenuItem>
-            <MenuItem value={"30"}>30 days</MenuItem>
-            <MenuItem value={"90"}>90 days</MenuItem>
-            <MenuItem value={"365"}>365 days</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
     </Container>
   )
 }

@@ -1097,132 +1097,24 @@ export class Controller {
       console.log('getTransferFlowStatsForApi input:', input)
       const { days = 30, sourceChainId, destinationChainId, tokenSymbol } = input
       
-      // First, check if there are any TransferSent events in the database at all
-      const { items: anyEvents } = await this.getEvents({
-        eventName: 'TransferSent',
-        limit: 10
-      })
-      
-      console.log(`Found ${anyEvents.length} transfer events in initial check`)
-      
-      // If there are no events at all, return mock data
-      if (anyEvents.length === 0) {
-        console.log('No transfer events found in database, returning mock data')
-        return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '11155420',
-              destinationChainName: '11155420 - Optimism Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '4000000000000000000',
-              formattedAmount: '4'
-            },
-            {
-              sourceChainId: '11155420',
-              sourceChainName: '11155420 - Optimism Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '2500000000000000000',
-              formattedAmount: '2.5'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '84532',
-              destinationChainName: '84532 - Base Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3500000000000000000',
-              formattedAmount: '3.5'
-            }
-          ],
-          lastUpdated: new Date().toISOString()
-        }
-      }
-      
-      // Continue with actual data retrieval if there are events
       // Calculate timestamp filter based on days
       const now = Math.floor(Date.now() / 1000)
       const startTimestamp = now - (days * 24 * 60 * 60)
       
-      // Prepare filter for getEvents
-      const filter: any = {
-        blockTimestampGte: startTimestamp
-      }
-      
-      // Add optional filters
-      if (sourceChainId) {
-        filter.chainId = sourceChainId
-      }
-      
-      // Get TransferSent events with a more lenient filter
+      // Get TransferSent events with proper time filtering
       const { items: transferEvents } = await this.getExplorerEventsForApi({
         limit: 1000,
+        startTimestamp,
+        // ...(sourceChainId ? { chainId: sourceChainId } : {})
       })
       
       console.log(`Found ${transferEvents.length} filtered transfer events`)
       
-      // If no events match the filter, return mock data
+      // If no events match the filter, return empty result
       if (transferEvents.length === 0) {
-        console.log('No transfer events found with current filters, returning mock data')
+        console.log('No transfer events found with current filters')
         return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '11155420',
-              destinationChainName: '11155420 - Optimism Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '4000000000000000000',
-              formattedAmount: '4'
-            }
-          ],
+          transferFlows: [],
           lastUpdated: new Date().toISOString()
         }
       }
@@ -1277,120 +1169,49 @@ export class Controller {
             continue
           }
           
-          console.log(`Found valid transfer: ${sourceChainId} -> ${destChainId} (${tokenInfo.symbol})`)
+          // Get chain names
+          const sourceChainName = getChainLabel(sourceChainId)
+          const destinationChainName = getChainLabel(destChainId)
           
           // Create flow key
           const flowKey = `${sourceChainId}-${destChainId}-${tokenInfo.symbol}`
           
           // Get or create flow entry
-          if (!flowMap.has(flowKey)) {
-            flowMap.set(flowKey, {
+          let flow = flowMap.get(flowKey)
+          if (!flow) {
+            flow = {
               sourceChainId,
+              sourceChainName,
               destinationChainId: destChainId,
+              destinationChainName,
               tokenSymbol: tokenInfo.symbol,
               tokenDecimals: tokenInfo.decimals,
-              amount: BigInt(0)
-            })
+              amount: '0',
+              formattedAmount: '0'
+            }
+            flowMap.set(flowKey, flow)
           }
           
           // Add amount to flow
-          const flow = flowMap.get(flowKey)
-          flow.amount = flow.amount + BigInt(event.amount || 0)
-        } catch (err) {
-          console.error('Error processing transfer event:', err)
+          const currentAmount = BigInt(flow.amount)
+          const newAmount = currentAmount + BigInt(event.amount)
+          flow.amount = newAmount.toString()
+          flow.formattedAmount = this.formatUnits(flow.amount, flow.tokenDecimals)
+          
+        } catch (error) {
+          console.error('Error processing event:', error)
+          continue
         }
       }
-      
-      // Convert map to array and format
-      const transferFlows = Array.from(flowMap.values()).map(flow => {
-        // Format amount
-        const formattedAmount = this.formatUnits(flow.amount.toString(), flow.tokenDecimals)
-        
-        // Get chain names
-        const sourceChainName = getChainLabel(flow.sourceChainId)
-        const destChainName = getChainLabel(flow.destinationChainId)
-        
-        return {
-          sourceChainId: flow.sourceChainId,
-          sourceChainName,
-          destinationChainId: flow.destinationChainId,
-          destinationChainName: destChainName,
-          tokenSymbol: flow.tokenSymbol,
-          tokenDecimals: flow.tokenDecimals,
-          amount: flow.amount.toString(),
-          formattedAmount
-        }
-      })
-      
-      // If after all processing we still have no flows, return mock data
-      if (transferFlows.length === 0) {
-        console.log('No valid transfer flows found after processing, returning mock data')
-        return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            }
-          ],
-          lastUpdated: new Date().toISOString()
-        }
-      }
-      
-      // Sort by amount (descending)
-      transferFlows.sort((a, b) => 
-        BigInt(b.amount) > BigInt(a.amount) ? 1 : 
-        (BigInt(b.amount) < BigInt(a.amount) ? -1 : 0)
-      )
       
       return {
-        transferFlows,
+        transferFlows: Array.from(flowMap.values()),
         lastUpdated: new Date().toISOString()
       }
+      
     } catch (error) {
       console.error('Error in getTransferFlowStatsForApi:', error)
-      
-      // Return mock data in case of error
-      return {
-        transferFlows: [
-          {
-            sourceChainId: '11155111',
-            sourceChainName: '11155111 - Sepolia',
-            destinationChainId: '421614',
-            destinationChainName: '421614 - Arbitrum Sepolia',
-            tokenSymbol: 'ETH',
-            tokenDecimals: 18,
-            amount: '5000000000000000000',
-            formattedAmount: '5'
-          },
-          {
-            sourceChainId: '11155111',
-            sourceChainName: '11155111 - Sepolia',
-            destinationChainId: '11155420',
-            destinationChainName: '11155420 - Optimism Sepolia',
-            tokenSymbol: 'ETH',
-            tokenDecimals: 18,
-            amount: '4000000000000000000',
-            formattedAmount: '4'
-          }
-        ],
-        lastUpdated: new Date().toISOString()
-      }
+      throw error
     }
   }
 

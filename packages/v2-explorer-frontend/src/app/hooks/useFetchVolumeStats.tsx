@@ -11,6 +11,7 @@ type VolumeStats = {
       tokenImageUrl: string
       totalUsd: number
       totalUsdDisplay: string
+      totalVolumeFormatted: string
     }>
   }
   lastUpdated: string

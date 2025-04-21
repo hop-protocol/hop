@@ -315,7 +315,7 @@ export function Analytics() {
               bgcolor: 'rgba(255, 255, 255, 0.5)',
               zIndex: 10
             }}>
-              <CircularProgress suppressHydrationWarning />
+              <CircularProgress />
             </Box>
           )}
           

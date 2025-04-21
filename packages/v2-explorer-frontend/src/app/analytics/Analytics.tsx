@@ -138,7 +138,6 @@ export function Analytics() {
             elevation={isDarkMode ? 3 : 2}
             sx={{ 
               p: 3, 
-              height: '100%',
               height: 400,
               borderRadius: 2,
               border: `1px solid ${theme.palette.divider}`,

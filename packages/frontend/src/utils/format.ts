@@ -87,6 +87,8 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg = `Please check your wallet is connected to the correct network ${network?.slug ?? ''} and try again. Error: ${errMsg}`
   } else if (errMsg.includes('withdrawal has not been proven by proof submitter address yet')) {
     errMsg = `Please make sure that the same account that submitted the prove transaction is submitting this finalize transaction. Error: ${errMsg}`
+  } else if (errMsg.includes('Store error: database unavailable')) {
+    errMsg = `The subgraph is not responding. Please try again later or reach out to support. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

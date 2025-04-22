@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
 import React, { FC, Suspense, lazy, useEffect } from 'react'
-import Send from '#pages/Send/index.js'
 import { SendV2 } from '#pages/Send/SendV2.js'
 import { AirdropPreview } from '#pages/Airdrop/AirdropPreview/index.js'
 import { Claim } from '#pages/Claim/index.js'
 import { Loading } from '#components/Loading/index.js'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
+const Send = lazy(() => import(/* webpackChunkName: "Send" */ '#pages/Send/index.js'))
 const PoolsOverview = lazy(() => import(/* webpackChunkName: "Pools" */ '#pages/Pools/PoolsOverview/index.js'))
 const PoolDetails = lazy(() => import(/* webpackChunkName: "Pools" */ '#pages/Pools/index.js'))
 const Convert = lazy(() => import(/* webpackChunkName: "Convert" */ '#pages/Convert/index.js'))

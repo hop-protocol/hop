@@ -20,7 +20,6 @@ const AppRoutes: FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // root and airdrop paths
   useEffect(() => {
     if (location.pathname === '/') {
       navigate('/send')

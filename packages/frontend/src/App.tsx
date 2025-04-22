@@ -9,22 +9,32 @@ import { AccountDetails } from '#components/AccountDetails/index.js'
 import { Footer } from '#components/Footer/index.js'
 import { Header } from '#components/Header/index.js'
 import { useThemeMode } from '#theme/ThemeProvider.js'
+import type { Theme } from '@mui/material'
 
-const AppWrapper = styled(Box)<any>`
+interface AppWrapperProps {
+  isdarkmode: string
+  theme?: Theme
+}
+
+const AppWrapper = styled(Box)<AppWrapperProps>`
   display: flex;
   flex-direction: column;
   align-items: stretch;
   background-size: 120%;
   min-height: 100vh;
-  background-image: ${({ isdarkmode }: any) => (isdarkmode === 'true' ? `url('/assets/circles-bg-dark.svg')` : `url('/assets/circles-bg.svg')`)};
-  background-color: ${({ theme }: any) => theme.colors?.background?.default};
+  background-image: ${({ isdarkmode }) => 
+    isdarkmode === 'true' 
+      ? 'url("/assets/circles-bg-dark.svg")'
+      : 'url("/assets/circles-bg.svg")'
+  };
+  background-color: ${({ theme }) => theme.colors?.background?.default};
 `
 
-function App() {
+const App: React.FC = () => {
   const { isDarkMode } = useThemeMode()
 
   return (
-    <AppWrapper isdarkmode={`${isDarkMode}`}>
+    <AppWrapper isdarkmode={String(isDarkMode)}>
       <Header />
       <AccountDetails />
       <AppRoutes />

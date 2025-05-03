@@ -1,7 +1,7 @@
 import fs from 'fs'
 import dotenv from 'dotenv'
 import { BigNumber, Wallet, constants, providers, utils } from 'ethers'
-import { Hop } from '#index.js'
+import { Hop, NetworkSlug } from '#index.js'
 import { addresses } from '#addresses/index.js'
 import { Swap__factory } from '#contracts/index.js'
 import { FallbackProvider } from '#provider/index.js'
@@ -12,11 +12,10 @@ import pkg from '../package.json'
 
 dotenv.config()
 
-export const privateKey = process.env.PRIVATE_KEY
+export const privateKey = process.env.PRIVATE_KEY ?? `0x${require('crypto').randomBytes(32).toString('hex')}`
 
 describe.skip('sdk setup', () => {
   const hop = new Hop('goerli')
-  const signer = new Wallet(privateKey!)
   it('should return version', () => {
     expect(hop.version).toBe(pkg.version)
   })
@@ -654,9 +653,9 @@ describe('supported assets', () => {
     const hop = new Hop(network)
     const bridge = hop.bridge('SNX')
     expect(bridge.isSupportedAsset('polygon')).toBe(false)
-    expect(bridge.isSupportedAsset(getChain(network, 'polygon'))).toBe(false)
+    expect(bridge.isSupportedAsset(getChain(network as NetworkSlug, 'polygon' as ChainSlug))).toBe(false)
     expect(bridge.isSupportedAsset('optimism')).toBe(true)
-    expect(bridge.isSupportedAsset(getChain(network, 'optimism'))).toBe(true)
+    expect(bridge.isSupportedAsset(getChain(network as NetworkSlug, 'optimism' as ChainSlug))).toBe(true)
   })
 })
 
@@ -1407,4 +1406,31 @@ describe.skip('cctp', () => {
     const isEnabled = await bridge.getIsCctpEnabled()
     expect(typeof isEnabled).toBe('boolean')
   }, 60 * 1000)
+})
+
+describe.only('getSendData - ETH using Socket API', () => {
+  it.only('getSendData', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      enableSocket: true
+    })
+    const signer = new Wallet(privateKey!)
+    const bridge = sdk.connect(signer).bridge('ETH')
+
+    const amountIn = utils.parseUnits('1', 18)
+    const sendData = await bridge.getSendData(
+      amountIn,
+      ChainSlug.Arbitrum,
+      ChainSlug.Ethereum
+    )
+
+    console.log(JSON.stringify(sendData, null, 2))
+    console.log('amountOut', utils.formatUnits(sendData.amountOut.toString(), 18))
+    console.log('destinationChainGasPrice', utils.formatUnits(sendData.destinationChainGasPrice.toString(), 9))
+    console.log('requiredLiquidity', utils.formatUnits(sendData.requiredLiquidity.toString(), 18))
+    console.log('estimatedReceived', utils.formatUnits(sendData.estimatedReceived.toString(), 18))
+
+    expect(sendData).toBeTruthy()
+    expect(sendData.isSocket).toBe(true)
+  })
 })

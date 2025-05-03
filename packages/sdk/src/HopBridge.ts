@@ -256,7 +256,8 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
+      enableSocket: this.enableSocket
     })
 
     // port over exiting properties
@@ -366,7 +367,7 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
     })
   }
 
@@ -844,6 +845,10 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ) : Promise<any> {
+    if (this.enableSocket && this.tokenSymbol === 'ETH' && !isHTokenSend) {
+      return this.getSendDataSocket(amountIn, sourceChain, destinationChain)
+    }
+
     if (this.getShouldUseCctpBridge({ isHTokenSend })) {
       return this.#getSendDataCctp(amountIn, sourceChain, destinationChain)
     }
@@ -2048,7 +2053,7 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
     })
   }
 
@@ -3669,6 +3674,96 @@ export class HopBridge extends Base {
       return BigNumber.from(result).eq(1)
     } catch (err) {
       return false
+    }
+  }
+
+  public async getSendDataSocket (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) : Promise<any> {
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for Socket API calls')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for Socket API calls')
+    }
+
+    // Convert chains to models
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    // Construct URL parameters for Bungee API
+    const params = new URLSearchParams({
+      userAddress,
+      originChainId: sourceChainModel.chainId.toString(),
+      destinationChainId: destinationChainModel.chainId.toString(),
+      inputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+      inputAmount: amountIn.toString(),
+      receiverAddress: userAddress,
+      outputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+      slippage: '0.5', // 0.5% slippage
+      delegateAddress: userAddress,
+      refuel: 'false'
+    })
+
+    // console.log('params', params)
+
+    const baseUrl = 'https://public-backend.bungee.exchange/bungee/quote'
+    const url = `${baseUrl}?${params.toString()}`
+    const response = await fetchJsonOrThrow(url)
+
+    if (!response.success || !response.result?.autoRoute) {
+      throw new Error('Failed to get quote from Bungee API')
+    }
+
+    const { autoRoute } = response.result
+    const { output, gasFee } = autoRoute
+
+    // console.log('response', response)
+    // console.log('output', output)
+    //console.log('gasFee', gasFee)
+
+    const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const [chainNativeTokenPrice] = await Promise.all([
+      this.getPriceByTokenSymbol(
+        chainNativeToken.symbol
+      )
+    ])
+
+    const tokenPrice = response.result.input.priceInUsd
+    const tokenPriceRate = chainNativeTokenPrice / tokenPrice
+
+    // Map Bungee API response to getSendData interface
+    return {
+      amountIn,
+      sourceChain,
+      destinationChain,
+      isHTokenSend: false,
+      amountOut: BigNumber.from(output.amount),
+      rate: 1, // Since it's ETH to ETH, rate should be 1
+      priceImpact: 0,
+      requiredLiquidity: amountIn,
+      lpFees: BigNumber.from(0),
+      bonderFeeRelative: BigNumber.from(0),
+      adjustedBonderFee: BigNumber.from(0),
+      destinationTxFee: BigNumber.from(gasFee.estimatedFee),
+      adjustedDestinationTxFee: BigNumber.from(gasFee.estimatedFee),
+      totalFee: BigNumber.from(gasFee.estimatedFee),
+      estimatedReceived: BigNumber.from(output.amount),
+      feeBps: 0,
+      lpFeeBps: 0,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice: BigNumber.from(gasFee.gasPrice),
+      relayFeeEth: BigNumber.from(0),
+      isLiquidityAvailable: true,
+      isSocket: true,
+      originalSocketResponse: response
     }
   }
 }

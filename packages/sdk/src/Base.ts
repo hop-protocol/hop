@@ -128,7 +128,8 @@ export type BaseConstructorOptions = {
   blocklist?: Record<string, boolean> | string[] | null
   debugTimeLogsEnabled?: boolean
   debugTimeLogsCacheEnabled?: boolean
-  debugTimeLogsCache?: any[]
+  debugTimeLogsCache?: any[],
+  enableSocket?: boolean
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -167,6 +168,8 @@ export class Base {
   debugTimeLogsEnabled: boolean = false
   debugTimeLogsCacheEnabled: boolean = false
   debugTimeLogsCache: any[] = []
+
+  enableSocket: boolean = false
 
   /**
    * @desc Instantiates Base class.
@@ -219,6 +222,9 @@ export class Base {
       }
       if (options.debugTimeLogsCache) {
         this.debugTimeLogsCache = options.debugTimeLogsCache
+      }
+      if (options.enableSocket) {
+        this.enableSocket = options.enableSocket
       }
     } else {
       network = networkOrOptionsObject

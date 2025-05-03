@@ -123,6 +123,7 @@ type SendOptions = {
   destinationAmountOutMin: TAmount
   destinationDeadline: BigNumberish
   checkAllowance?: boolean
+  isHTokenSend?: boolean
 }
 
 type AddLiquidityOptions = {
@@ -401,6 +402,12 @@ export class HopBridge extends Base {
       throw new Error('sourceChain is required')
     }
     sourceChain = this.toChainModel(sourceChain)
+
+    // Check if we should use Socket for ETH transfers
+    if (this.enableSocket && this.tokenSymbol === 'ETH' && !options.isHTokenSend) {
+      return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
+    }
+
     const populatedTx = await this.populateSendTx(
       tokenAmount,
       sourceChain,
@@ -447,6 +454,103 @@ export class HopBridge extends Base {
     }
 
     return this.sendTransaction(populatedTx, sourceChain)
+  }
+
+  async #sendSocket (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    const signer = this.signer as Signer
+    if (!signer) {
+      throw new Error('Signer is required for Socket API calls')
+    }
+
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    await this.checkConnectedChain(signer, sourceChainModel)
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for Socket API calls')
+    }
+
+    // Get quote from Socket API
+    const sendData = await this.#getSendDataSocket(tokenAmount, sourceChain, destinationChain)
+    if (!sendData.isSocket) {
+      throw new Error('Failed to get Socket quote')
+    }
+
+    const { originalSocketResponse } = sendData
+    const { result } = originalSocketResponse
+    const { autoRoute } = result
+    const { output, gasFee } = autoRoute
+
+    // Get current timestamp and deadline
+    const currentTime = Math.floor(Date.now() / 1000)
+    const deadline = currentTime + 3600 // 1 hour deadline
+
+    // Prepare request data
+    const requestData = {
+      request: {
+        basicReq: {
+          originChainId: sourceChainModel.chainId,
+          destinationChainId: destinationChainModel.chainId,
+          deadline: deadline,
+          nonce: currentTime.toString(),
+          sender: userAddress,
+          receiver: options?.recipient ?? userAddress,
+          delegate: userAddress,
+          bungeeGateway: '0xcdea28ee7bd5bf7710b294d9391e1b6a318d809a', // TODO: make this dynamic
+          switchboardId: 1,
+          inputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+          inputAmount: tokenAmount.toString(),
+          outputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+          minOutputAmount: output.amount,
+          refuelAmount: '0'
+        },
+        swapOutputToken: '0x0000000000000000000000000000000000000000',
+        minSwapOutput: '0',
+        metadata: '0x0000000000000000000000000000000000000000000000000000000000042069',
+        affiliateFees: '0x',
+        minDestGas: '0',
+        destinationPayload: '0x',
+        exclusiveTransmitter: '0x0000000000000000000000000000000000000000'
+      },
+      requestType: 'SINGLE_OUTPUT_REQUEST',
+      quoteId: result.quoteId
+    }
+
+    // Sign the request data
+    const message = JSON.stringify(requestData.request)
+    const signature = await signer.signMessage(message)
+
+    // Submit the request to Socket API
+    const submitUrl = 'https://public-backend.bungee.exchange/bungee/submit'
+    const response = await fetch(submitUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        ...requestData,
+        signature
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to submit transaction to Socket API')
+    }
+
+    const json = await response.json()
+    if (!json.success) {
+      throw new Error('Failed to submit transaction to Socket API')
+    }
+
+    return json
   }
 
   public async populateSendTx (
@@ -846,7 +950,7 @@ export class HopBridge extends Base {
     isHTokenSend: boolean = false
   ) : Promise<any> {
     if (this.enableSocket && this.tokenSymbol === 'ETH' && !isHTokenSend) {
-      return this.getSendDataSocket(amountIn, sourceChain, destinationChain)
+      return this.#getSendDataSocket(amountIn, sourceChain, destinationChain)
     }
 
     if (this.getShouldUseCctpBridge({ isHTokenSend })) {
@@ -3677,7 +3781,7 @@ export class HopBridge extends Base {
     }
   }
 
-  public async getSendDataSocket (
+  async #getSendDataSocket (
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain

@@ -462,9 +462,9 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
   ): Promise<any> {
-    const signer = this.signer as Signer
+    const signer = this.signer as Signer & { signTypedData?: (data: any) => Promise<string> }
     if (!signer) {
-      throw new Error('Signer is required for Socket API calls')
+      throw new Error('Signer is required for Bungee API calls')
     }
 
     const sourceChainModel = this.toChainModel(sourceChain)
@@ -474,60 +474,47 @@ export class HopBridge extends Base {
 
     const userAddress = await this.getSignerAddress()
     if (!userAddress) {
-      throw new Error('User address is required for Socket API calls')
+      throw new Error('User address is required for Bungee API calls')
     }
 
-    // Get quote from Socket API
+    // Get quote from Bungee API
     const sendData = await this.#getSendDataSocket(tokenAmount, sourceChain, destinationChain)
     if (!sendData.isSocket) {
-      throw new Error('Failed to get Socket quote')
+      throw new Error('Failed to get Bungee quote')
     }
 
     const { originalSocketResponse } = sendData
     const { result } = originalSocketResponse
     const { autoRoute } = result
-    const { output, gasFee } = autoRoute
+    const { output, gasFee, signTypedData } = autoRoute
+    const { txData } = autoRoute
 
     // Get current timestamp and deadline
     const currentTime = Math.floor(Date.now() / 1000)
     const deadline = currentTime + 3600 // 1 hour deadline
 
-    // Prepare request data
-    const requestData = {
-      request: {
-        basicReq: {
-          originChainId: sourceChainModel.chainId,
-          destinationChainId: destinationChainModel.chainId,
-          deadline: deadline,
-          nonce: currentTime.toString(),
-          sender: userAddress,
-          receiver: options?.recipient ?? userAddress,
-          delegate: userAddress,
-          bungeeGateway: '0xcdea28ee7bd5bf7710b294d9391e1b6a318d809a', // TODO: make this dynamic
-          switchboardId: 1,
-          inputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
-          inputAmount: tokenAmount.toString(),
-          outputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
-          minOutputAmount: output.amount,
-          refuelAmount: '0'
-        },
-        swapOutputToken: '0x0000000000000000000000000000000000000000',
-        minSwapOutput: '0',
-        metadata: '0x0000000000000000000000000000000000000000000000000000000000042069',
-        affiliateFees: '0x',
-        minDestGas: '0',
-        destinationPayload: '0x',
-        exclusiveTransmitter: '0x0000000000000000000000000000000000000000'
-      },
-      requestType: 'SINGLE_OUTPUT_REQUEST',
-      quoteId: result.quoteId
+    let signature: string
+    if (signTypedData && signer.signTypedData) {
+      // Sign the typed data for ERC20 tokens
+      signature = await signer.signTypedData({
+        types: signTypedData.types,
+        primaryType: 'PermitWitnessTransferFrom',
+        message: signTypedData.values,
+        domain: signTypedData.domain
+      })
+    } else {
+      const tx = await this.sendTransaction(txData, sourceChain)
+      return tx
     }
 
-    // Sign the request data
-    const message = JSON.stringify(requestData.request)
-    const signature = await signer.signMessage(message)
+    const requestBody = {
+      quoteId: autoRoute.quoteId,
+      request: signTypedData.values.witness,
+      requestType: autoRoute.requestType,
+      userSignature: signature
+    }
 
-    // Submit the request to Socket API
+    // Submit the request to Bungee API
     const submitUrl = 'https://public-backend.bungee.exchange/bungee/submit'
     const response = await fetch(submitUrl, {
       method: 'POST',
@@ -535,22 +522,50 @@ export class HopBridge extends Base {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        ...requestData,
-        signature
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
-      throw new Error('Failed to submit transaction to Socket API')
+      throw new Error('Failed to submit transaction to Bungee API')
     }
 
     const json = await response.json()
     if (!json.success) {
-      throw new Error('Failed to submit transaction to Socket API')
+      throw new Error('Failed to submit transaction to Bungee API')
     }
 
-    return json
+    return {
+      hash: json.result.requestHash,
+      wait: async () => {
+        // Poll for transaction status
+        const statusUrl = `https://public-backend.bungee.exchange/bungee/status?id=${json.result.requestHash}`
+        let attempts = 0
+        const maxAttempts = 60
+        const interval = 5000 // 5 seconds
+
+        while (attempts < maxAttempts) {
+          const statusResponse = await fetch(statusUrl)
+          const statusData = await statusResponse.json()
+
+          if (!statusData.success) {
+            throw new Error('Failed to check transaction status')
+          }
+
+          const status = statusData.result[0]
+          if (status?.bungeeStatusCode === 3) {
+            return {
+              ...status,
+              hash: status.destinationData.txHash
+            }
+          }
+
+          attempts++
+          await new Promise(resolve => setTimeout(resolve, interval))
+        }
+
+        throw new Error('Transaction polling timed out')
+      }
+    }
   }
 
   public async populateSendTx (
@@ -3788,12 +3803,17 @@ export class HopBridge extends Base {
   ) : Promise<any> {
     const signer = this.signer
     if (!signer) {
-      throw new Error('Signer is required for Socket API calls')
+      throw new Error('Signer is required for Bungee API calls')
     }
 
     const userAddress = await this.getSignerAddress()
     if (!userAddress) {
-      throw new Error('User address is required for Socket API calls')
+      throw new Error('User address is required for Bungee API calls')
+    }
+
+    const isSupported = await this.#getIsSupportedSocket(sourceChain, destinationChain)
+    if (!isSupported) {
+      throw new Error('Route not supported by Bungee')
     }
 
     // Convert chains to models
@@ -3809,7 +3829,7 @@ export class HopBridge extends Base {
       inputAmount: amountIn.toString(),
       receiverAddress: userAddress,
       outputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
-      slippage: '0.5', // 0.5% slippage
+      slippage: '1', // 1% slippage
       delegateAddress: userAddress,
       refuel: 'false'
     })
@@ -3820,8 +3840,14 @@ export class HopBridge extends Base {
     const url = `${baseUrl}?${params.toString()}`
     const response = await fetchJsonOrThrow(url)
 
-    if (!response.success || !response.result?.autoRoute) {
-      throw new Error('Failed to get quote from Bungee API')
+    if (!response.success) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no success')
+    }
+
+    if (!response.result?.autoRoute) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no autoRoute found')
     }
 
     const { autoRoute } = response.result
@@ -3868,6 +3894,58 @@ export class HopBridge extends Base {
       isLiquidityAvailable: true,
       isSocket: true,
       originalSocketResponse: response
+    }
+  }
+
+  async #getIsSupportedSocket(sourceChain: TChain, destinationChain: TChain): Promise<boolean> {
+    try {
+      // Get supported chains
+      const chainsUrl = 'https://public-backend.bungee.exchange/supported-chains'
+      const chainsResponse = await fetchJsonOrThrow(chainsUrl)
+      
+      // console.log('chainsResponse', chainsResponse)
+      if (!chainsResponse.success) {
+        // console.warn('chainsResponse', chainsResponse)
+        return false
+      }
+
+      const supportedChains = chainsResponse.result
+      const sourceChainModel = this.toChainModel(sourceChain)
+      const destinationChainModel = this.toChainModel(destinationChain)
+
+      // Check if both chains are supported and have sending/receiving enabled
+      const sourceChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === sourceChainModel.chainId.toString())
+      const destinationChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === destinationChainModel.chainId.toString())
+
+      if (!sourceChainInfo?.sendingEnabled || !destinationChainInfo?.receivingEnabled) {
+        return false
+      }
+
+      // Get supported tokens for both chains
+      const tokensUrl = `https://public-backend.bungee.exchange/tokens/list?chainIds=${sourceChainModel.chainId},${destinationChainModel.chainId}`
+      const tokensResponse = await fetchJsonOrThrow(tokensUrl)
+
+      // console.log('tokensResponse', tokensResponse)
+      if (!tokensResponse.success) {
+        return false
+      }
+
+      const sourceTokens = tokensResponse.result[sourceChainModel.chainId] || []
+      const destinationTokens = tokensResponse.result[destinationChainModel.chainId] || []
+
+      // Check if the token is supported on both chains
+      const tokenSymbol = this.tokenSymbol
+      const isSourceTokenSupported = sourceTokens.some((token: any) => 
+        token.symbol === tokenSymbol || (this.isNativeToken(sourceChain) && token.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
+      )
+      const isDestinationTokenSupported = destinationTokens.some((token: any) => 
+        token.symbol === tokenSymbol || (this.isNativeToken(destinationChain) && token.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
+      )
+
+      return isSourceTokenSupported && isDestinationTokenSupported
+    } catch (err) {
+      console.error('Error checking Bungee support:', err)
+      return false
     }
   }
 }

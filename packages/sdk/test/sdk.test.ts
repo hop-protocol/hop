@@ -1421,7 +1421,7 @@ describe.only('getSendData - ETH using Socket API', () => {
     const sendData = await bridge.getSendData(
       amountIn,
       ChainSlug.Arbitrum,
-      ChainSlug.Ethereum
+      ChainSlug.Optimism
     )
 
     console.log(JSON.stringify(sendData, null, 2))

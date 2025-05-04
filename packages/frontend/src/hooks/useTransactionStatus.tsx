@@ -9,6 +9,7 @@ import { loadState, saveState } from '#utils/localStorage.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInterval } from 'usehooks-ts'
+import { enableSocket } from '#config/index.js'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { sdk, txHistory } = useApp()
@@ -27,6 +28,29 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     return _provider
   }, [chain])
 
+  const checkSocketStatus = useCallback(async () => {
+    if (!enableSocket || !transaction?.token?.symbol || transaction.token.symbol !== 'ETH') {
+      return false
+    }
+
+    try {
+      const status = await sdk.bridge(transaction.token.symbol).getTransactionStatusSocket(transaction.hash)
+      console.log('status', status)
+      if (status.status === 'COMPLETED') {
+        setCompleted(true)
+        setDestCompleted(true)
+        updateTransaction(transaction, { 
+          pending: false,
+          pendingDestinationConfirmation: false 
+        })
+        return true
+      }
+    } catch (err) {
+      logger.error('Error checking Socket transaction status:', err)
+    }
+    return false
+  }, [transaction, sdk])
+
   const updateTxStatus = useCallback(async () => {
     if (!provider || !transaction?.hash || !chain) {
       setCompleted(false)
@@ -35,6 +59,12 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
     // Return quickly if already completed
     if (completed) {
+      return
+    }
+
+    // Check Socket status first
+    const isSocketCompleted = await checkSocketStatus()
+    if (isSocketCompleted) {
       return
     }
 
@@ -83,7 +113,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
       setCompleted(true)
       updateTransaction(transaction, { pending: false })
     }
-  }, [transactions, transaction, provider])
+  }, [transactions, transaction, provider, checkSocketStatus])
 
   const updateDestTxStatus = useCallback(async () => {
     if (
@@ -94,14 +124,19 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         !transaction.destTxHash ||
         transaction.pendingDestinationConfirmation)
     ) {
+      // Check Socket status first
+      const isSocketCompleted = await checkSocketStatus()
+      if (isSocketCompleted) {
+        return
+      }
+
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-      // logger.debug(`tx ${transaction.hash.slice(0, 10)} isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
         updateTransaction(transaction, { pendingDestinationConfirmation: false })
       }
     }
-  }, [transactions, transaction])
+  }, [transactions, transaction, checkSocketStatus])
 
   useEffect(() => {
     if (!completed) {

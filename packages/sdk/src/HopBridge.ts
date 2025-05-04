@@ -537,33 +537,6 @@ export class HopBridge extends Base {
     return {
       hash: json.result.requestHash,
       wait: async () => {
-        // Poll for transaction status
-        const statusUrl = `https://public-backend.bungee.exchange/bungee/status?id=${json.result.requestHash}`
-        let attempts = 0
-        const maxAttempts = 60
-        const interval = 5000 // 5 seconds
-
-        while (attempts < maxAttempts) {
-          const statusResponse = await fetch(statusUrl)
-          const statusData = await statusResponse.json()
-
-          if (!statusData.success) {
-            throw new Error('Failed to check transaction status')
-          }
-
-          const status = statusData.result[0]
-          if (status?.bungeeStatusCode === 3) {
-            return {
-              ...status,
-              hash: status.destinationData.txHash
-            }
-          }
-
-          attempts++
-          await new Promise(resolve => setTimeout(resolve, interval))
-        }
-
-        throw new Error('Transaction polling timed out')
       }
     }
   }
@@ -3946,6 +3919,36 @@ export class HopBridge extends Base {
     } catch (err) {
       console.error('Error checking Bungee support:', err)
       return false
+    }
+  }
+
+  async getTransactionStatusSocket(hash: string): Promise<{ 
+    status: 'PENDING' | 'COMPLETED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalSocketResponse: any;
+  }> {
+    const statusUrl = `https://public-backend.bungee.exchange/bungee/status?txHash=${hash}`
+    const response = await fetch(statusUrl)
+    if (!response.ok) {
+      throw new Error('Failed to get transaction status from Bungee API')
+    }
+
+    const json = await response.json()
+    if (!json.success) {
+      throw new Error('Failed to get transaction status from Bungee API')
+    }
+
+    const result = json.result[0]
+    const status = result.originData.status === 'COMPLETED' && result.destinationData.status === 'COMPLETED' 
+      ? 'COMPLETED' 
+      : 'PENDING'
+
+    return {
+      status,
+      txHash: result.originData.txHash || null,
+      destTxHash: result.destinationData.txHash || null,
+      originalSocketResponse: json
     }
   }
 }

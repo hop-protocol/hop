@@ -163,7 +163,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             }
           )
         } catch (err) {
-          logger.error('estimateSendGasLimit error:', err)
+          logger.warn('estimateSendGasLimit error:', err)
           const defaultGasLimit = getDefaultSendGasLimit(fromNetwork.slug, token.symbol)
           logger.debug('using default gasLimit:', defaultGasLimit)
           estimatedGasLimit = BigNumber.from(defaultGasLimit)

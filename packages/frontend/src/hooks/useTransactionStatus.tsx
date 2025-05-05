@@ -29,7 +29,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [chain])
 
   const checkSocketStatus = useCallback(async () => {
-    if (!enableSocket || !transaction?.token?.symbol || transaction.token.symbol !== 'ETH') {
+    if (!enableSocket || !transaction?.token?.symbol || !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')) {
       return false
     }
 

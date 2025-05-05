@@ -33,7 +33,7 @@ import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
 import { WithdrawalProof } from '#utils/WithdrawalProof.js'
-import { bondableChains } from './config/index.js'
+import { bondableChains, SOCKET_API_KEY } from './config/index.js'
 import { utils } from 'ethers'
 import { getUSDCSwapParams, getCctpDomain } from '#utils/index.js'
 import { TokenModel } from '#models/index.js'
@@ -160,6 +160,8 @@ type FeeAndAmountOutMinData = {
   amountOutMin: BigNumber
   destinationAmountOutMin: BigNumber | null
 }
+
+const socketSupportCache = new Map<string, boolean>()
 
 /**
  * Class representing Hop bridge.
@@ -404,7 +406,7 @@ export class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
 
     // Check if we should use Socket for ETH transfers
-    if (this.enableSocket && this.tokenSymbol === 'ETH' && !options.isHTokenSend) {
+    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
       return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
     }
 
@@ -494,15 +496,17 @@ export class HopBridge extends Base {
     const deadline = currentTime + 3600 // 1 hour deadline
 
     let signature: string
-    if (signTypedData && signer.signTypedData) {
+    if (signTypedData) {
       // Sign the typed data for ERC20 tokens
-      signature = await signer.signTypedData({
-        types: signTypedData.types,
-        primaryType: 'PermitWitnessTransferFrom',
-        message: signTypedData.values,
-        domain: signTypedData.domain
-      })
+      signature = await (signer as any)._signTypedData(
+        signTypedData.domain,
+        signTypedData.types,
+        signTypedData.values
+      )
     } else {
+      if (!txData) {
+        throw new Error('Failed to get txData')
+      }
       const tx = await this.sendTransaction(txData, sourceChain)
       return tx
     }
@@ -520,7 +524,9 @@ export class HopBridge extends Base {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'api-key': SOCKET_API_KEY,
+        'x-api-key': SOCKET_API_KEY
       },
       body: JSON.stringify(requestBody)
     })
@@ -534,11 +540,33 @@ export class HopBridge extends Base {
       throw new Error('Failed to submit transaction to Bungee API')
     }
 
-    return {
-      hash: json.result.requestHash,
-      wait: async () => {
+    // please fix this
+    const requestHash = json.result.requestHash
+    let originTxHash: string | null = null
+    let attempts = 0
+    const maxAttempts = 100
+    const pollInterval = 10000
+
+    while (!originTxHash && attempts < maxAttempts) {
+      try {
+        const { originalSocketResponse: status } = await this.getTransactionStatusSocket(requestHash, true)
+        if (status.result?.[0]?.originData?.txHash) {
+          originTxHash = status.result[0].originData.txHash
+          break
+        }
+      } catch (err) {
+        console.warn('Error polling transaction status:', err)
       }
+      await new Promise(resolve => setTimeout(resolve, pollInterval))
+      attempts++
     }
+
+    if (!originTxHash) {
+      throw new Error('Failed to get origin transaction hash after polling')
+    }
+
+    const provider = this.getChainProvider(sourceChain)
+    return provider.getTransaction(originTxHash)
   }
 
   public async populateSendTx (
@@ -937,7 +965,7 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ) : Promise<any> {
-    if (this.enableSocket && this.tokenSymbol === 'ETH' && !isHTokenSend) {
+    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
       return this.#getSendDataSocket(amountIn, sourceChain, destinationChain)
     }
 
@@ -3793,15 +3821,27 @@ export class HopBridge extends Base {
     const sourceChainModel = this.toChainModel(sourceChain)
     const destinationChainModel = this.toChainModel(destinationChain)
 
+    // Get WETH addresses for chains that don't support native ETH
+    const getWethAddress = (chain: string) => {
+      switch (chain) {
+        case 'gnosis':
+          return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+        case 'polygon':
+          return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+        default:
+          return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
+      }
+    }
+
     // Construct URL parameters for Bungee API
     const params = new URLSearchParams({
       userAddress,
       originChainId: sourceChainModel.chainId.toString(),
       destinationChainId: destinationChainModel.chainId.toString(),
-      inputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+      inputToken: getWethAddress(sourceChainModel.slug),
       inputAmount: amountIn.toString(),
       receiverAddress: userAddress,
-      outputToken: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH address
+      outputToken: getWethAddress(destinationChainModel.slug),
       slippage: '1', // 1% slippage
       delegateAddress: userAddress,
       refuel: 'false'
@@ -3811,7 +3851,15 @@ export class HopBridge extends Base {
 
     const baseUrl = 'https://public-backend.bungee.exchange/bungee/quote'
     const url = `${baseUrl}?${params.toString()}`
-    const response = await fetchJsonOrThrow(url)
+    const res = await fetch(url, {
+      headers: {
+        'api-key': 'D1mx54qg0a6ZVmk7BCW9B35GK6p1ABYzaAspIkze',
+        'x-api-key': SOCKET_API_KEY,
+      }
+    })
+
+    const response = await res.json()
+    // console.warn('response', response)
 
     if (!response.success) {
       console.warn('response', response)
@@ -3823,12 +3871,22 @@ export class HopBridge extends Base {
       throw new Error('Failed to get quote from Bungee API; no autoRoute found')
     }
 
+    if (!response.result.autoRoute.output) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no output found')
+    }
+
+    if (!response.result.autoRoute.gasFee) {
+      console.warn('response', response)
+      // throw new Error('Failed to get quote from Bungee API; no gasFee found')
+    }
+
     const { autoRoute } = response.result
     const { output, gasFee } = autoRoute
 
     // console.log('response', response)
     // console.log('output', output)
-    //console.log('gasFee', gasFee)
+    // console.log('gasFee', gasFee)
 
     const chainNativeToken = this.getChainNativeToken(destinationChain)
     const [chainNativeTokenPrice] = await Promise.all([
@@ -3853,16 +3911,16 @@ export class HopBridge extends Base {
       lpFees: BigNumber.from(0),
       bonderFeeRelative: BigNumber.from(0),
       adjustedBonderFee: BigNumber.from(0),
-      destinationTxFee: BigNumber.from(gasFee.estimatedFee),
-      adjustedDestinationTxFee: BigNumber.from(gasFee.estimatedFee),
-      totalFee: BigNumber.from(gasFee.estimatedFee),
+      destinationTxFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
+      adjustedDestinationTxFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
+      totalFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
       estimatedReceived: BigNumber.from(output.amount),
       feeBps: 0,
       lpFeeBps: 0,
       tokenPriceRate,
       chainNativeTokenPrice,
       tokenPrice,
-      destinationChainGasPrice: BigNumber.from(gasFee.gasPrice),
+      destinationChainGasPrice: BigNumber.from(gasFee?.gasPrice ?? 0),
       relayFeeEth: BigNumber.from(0),
       isLiquidityAvailable: true,
       isSocket: true,
@@ -3872,69 +3930,111 @@ export class HopBridge extends Base {
 
   async #getIsSupportedSocket(sourceChain: TChain, destinationChain: TChain): Promise<boolean> {
     try {
+      // Create cache key from chain IDs
+      const sourceChainModel = this.toChainModel(sourceChain)
+      const destinationChainModel = this.toChainModel(destinationChain)
+      const cacheKey = `${sourceChainModel.chainId}-${destinationChainModel.chainId}`
+
+      // Check cache first
+      if (socketSupportCache.has(cacheKey)) {
+        return socketSupportCache.get(cacheKey)!
+      }
+
       // Get supported chains
       const chainsUrl = 'https://public-backend.bungee.exchange/supported-chains'
-      const chainsResponse = await fetchJsonOrThrow(chainsUrl)
+      let res = await fetch(chainsUrl, {
+        headers: {
+          'api-key': SOCKET_API_KEY,
+          'x-api-key': SOCKET_API_KEY,
+        }
+      })
+  
+      const chainsResponse = await res.json()
       
-      // console.log('chainsResponse', chainsResponse)
       if (!chainsResponse.success) {
-        // console.warn('chainsResponse', chainsResponse)
         return false
       }
 
       const supportedChains = chainsResponse.result
-      const sourceChainModel = this.toChainModel(sourceChain)
-      const destinationChainModel = this.toChainModel(destinationChain)
 
       // Check if both chains are supported and have sending/receiving enabled
       const sourceChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === sourceChainModel.chainId.toString())
       const destinationChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === destinationChainModel.chainId.toString())
 
       if (!sourceChainInfo?.sendingEnabled || !destinationChainInfo?.receivingEnabled) {
+        socketSupportCache.set(cacheKey, false)
         return false
       }
 
       // Get supported tokens for both chains
       const tokensUrl = `https://public-backend.bungee.exchange/tokens/list?chainIds=${sourceChainModel.chainId},${destinationChainModel.chainId}`
-      const tokensResponse = await fetchJsonOrThrow(tokensUrl)
+      res = await fetch(tokensUrl, {
+        headers: {
+          'api-key': SOCKET_API_KEY,
+          'x-api-key': SOCKET_API_KEY,
+        }
+      })
+  
+      const tokensResponse = await res.json()
 
-      // console.log('tokensResponse', tokensResponse)
       if (!tokensResponse.success) {
+        socketSupportCache.set(cacheKey, false)
         return false
       }
 
       const sourceTokens = tokensResponse.result[sourceChainModel.chainId] || []
       const destinationTokens = tokensResponse.result[destinationChainModel.chainId] || []
 
+      // Get the appropriate token address based on chain
+      const getWethAddress = (chain: string) => {
+        switch (chain) {
+          case 'gnosis':
+            return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+          case 'polygon':
+            return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+          default:
+            return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
+        }
+      }
+
+      const sourceTokenAddress = getWethAddress(sourceChainModel.slug)
+      const destinationTokenAddress = getWethAddress(destinationChainModel.slug)
+
       // Check if the token is supported on both chains
-      const tokenSymbol = this.tokenSymbol
       const isSourceTokenSupported = sourceTokens.some((token: any) => 
-        token.symbol === tokenSymbol || (this.isNativeToken(sourceChain) && token.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
+        token.address.toLowerCase() === sourceTokenAddress.toLowerCase()
       )
       const isDestinationTokenSupported = destinationTokens.some((token: any) => 
-        token.symbol === tokenSymbol || (this.isNativeToken(destinationChain) && token.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
+        token.address.toLowerCase() === destinationTokenAddress.toLowerCase()
       )
 
-      return isSourceTokenSupported && isDestinationTokenSupported
+      const isSupported = isSourceTokenSupported && isDestinationTokenSupported
+      socketSupportCache.set(cacheKey, isSupported)
+      return isSupported
     } catch (err) {
       console.error('Error checking Bungee support:', err)
+      if (err.message.includes('Failed to fetch')) {
+        throw new Error('Bungee API rate limit exceeded. Try again later.')
+      }
       return false
     }
   }
 
-  async getTransactionStatusSocket(hash: string): Promise<{ 
+  async getTransactionStatusSocket(hash: string, isRequestHash: boolean = false): Promise<{ 
     status: 'PENDING' | 'COMPLETED';
     txHash: string | null;
     destTxHash: string | null;
     originalSocketResponse: any;
   }> {
-    const statusUrl = `https://public-backend.bungee.exchange/bungee/status?txHash=${hash}`
-    const response = await fetch(statusUrl)
-    if (!response.ok) {
-      throw new Error('Failed to get transaction status from Bungee API')
-    }
+    const statusUrl = `https://public-backend.bungee.exchange/bungee/status?${isRequestHash ? 'requestHash' : 'txHash'}=${hash}`
+    const res = await fetch(statusUrl, {
+      headers: {
+        'api-key': SOCKET_API_KEY,
+        'x-api-key': SOCKET_API_KEY,
+      }
+    })
 
-    const json = await response.json()
+    const json = await res.json()
     if (!json.success) {
       throw new Error('Failed to get transaction status from Bungee API')
     }

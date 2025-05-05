@@ -46,9 +46,14 @@ const useSendData = (
       return sendData
     },
     {
-      enabled:
-        !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
+      enabled: !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
       refetchInterval: 5 * 1000,
+      staleTime: 5 * 1000,
+      cacheTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      keepPreviousData: true,
     }
   )
 

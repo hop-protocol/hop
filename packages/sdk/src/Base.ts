@@ -130,6 +130,7 @@ export type BaseConstructorOptions = {
   debugTimeLogsCacheEnabled?: boolean
   debugTimeLogsCache?: any[],
   enableSocket?: boolean
+  enableLifi?: boolean
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -170,7 +171,7 @@ export class Base {
   debugTimeLogsCache: any[] = []
 
   enableSocket: boolean = false
-
+  enableLifi: boolean = false
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
@@ -223,8 +224,11 @@ export class Base {
       if (options.debugTimeLogsCache) {
         this.debugTimeLogsCache = options.debugTimeLogsCache
       }
-      if (options.enableSocket) {
+      if (typeof options.enableSocket === 'boolean') {
         this.enableSocket = options.enableSocket
+      }
+      if (typeof options.enableLifi === 'boolean') {
+        this.enableLifi = options.enableLifi
       }
     } else {
       network = networkOrOptionsObject

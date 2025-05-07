@@ -260,7 +260,8 @@ export class HopBridge extends Base {
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
       debugTimeLogsCache: this.debugTimeLogsCache,
-      enableSocket: this.enableSocket
+      enableSocket: this.enableSocket,
+      enableLifi: this.enableLifi
     })
 
     // port over exiting properties
@@ -408,6 +409,10 @@ export class HopBridge extends Base {
     // Check if we should use Socket for ETH transfers
     if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
       return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
+    }
+
+    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
+      return this.#sendLifi(tokenAmount, sourceChain, destinationChain, options)
     }
 
     const populatedTx = await this.populateSendTx(
@@ -567,6 +572,43 @@ export class HopBridge extends Base {
 
     const provider = this.getChainProvider(sourceChain)
     return provider.getTransaction(originTxHash)
+  }
+
+  async #sendLifi (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for LI.FI transactions')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for LI.FI transactions')
+    }
+
+    // Get quote from LI.FI
+    const sendData = await this.#getSendDataLifi(tokenAmount, sourceChain, destinationChain)
+    if (!sendData) {
+      throw new Error('Failed to get quote from LI.FI')
+    }
+
+    const { transactionRequest } = sendData
+
+    // Execute the transaction
+    return this.sendTransaction(transactionRequest, sourceChain)
+  }
+
+  async #sendCctp (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    // ... existing code ...
   }
 
   public async populateSendTx (
@@ -969,11 +1011,108 @@ export class HopBridge extends Base {
       return this.#getSendDataSocket(amountIn, sourceChain, destinationChain)
     }
 
+    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
+      return this.#getSendDataLifi(amountIn, sourceChain, destinationChain)
+    }
+
     if (this.getShouldUseCctpBridge({ isHTokenSend })) {
       return this.#getSendDataCctp(amountIn, sourceChain, destinationChain)
     }
 
     return this.#getSendData(amountIn, sourceChain, destinationChain, isHTokenSend)
+  }
+
+  async #getSendDataLifi (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
+  ): Promise<any> {
+    if (isHTokenSend) {
+      throw new Error('LI.FI does not support hToken sends')
+    }
+
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for LI.FI API calls')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for LI.FI API calls')
+    }
+
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    // Construct URL parameters for LI.FI API
+    const params = new URLSearchParams({
+      fromChain: sourceChainModel.chainId.toString(),
+      toChain: destinationChainModel.chainId.toString(),
+      fromToken: this.tokenSymbol,
+      toToken: this.tokenSymbol,
+      fromAmount: amountIn.toString(),
+      fromAddress: userAddress,
+      slippage: '0.01', // 1% slippage
+    })
+
+    const baseUrl = 'https://li.quest/v1/quote'
+    const url = `${baseUrl}?${params.toString()}`
+    const res = await fetch(url)
+
+    console.log('url', url)
+
+    if (!res.ok) {
+      throw new Error('Failed to get quote from LI.FI API')
+    }
+
+    const response = await res.json()
+
+    console.log('response', response)
+
+    // Map LI.FI response to our interface
+    const { action, estimate, includedSteps, transactionRequest } = response
+
+    const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const [chainNativeTokenPrice] = await Promise.all([
+      this.getPriceByTokenSymbol(chainNativeToken.symbol)
+    ])
+
+    const tokenPrice = Number(estimate.fromAmountUSD) / Number(estimate.fromAmount)
+    const tokenPriceRate = chainNativeTokenPrice / tokenPrice
+
+    const gasCosts = estimate.gasCosts.reduce((total: BigNumber, gas: any) => {
+      return total.add(BigNumber.from(gas.amount))
+    }, BigNumber.from(0))
+
+    return {
+      amountIn: BigNumber.from(action.fromAmount),
+      sourceChain,
+      destinationChain,
+      isHTokenSend: false,
+      amountOut: BigNumber.from(estimate.toAmount),
+      rate: Number(estimate.toAmount) / Number(estimate.fromAmount),
+      priceImpact: 0, // LI.FI doesn't provide this directly
+      requiredLiquidity: BigNumber.from(action.fromAmount),
+      lpFees: BigNumber.from(0),
+      bonderFeeRelative: BigNumber.from(0),
+      adjustedBonderFee: BigNumber.from(0),
+      destinationTxFee: gasCosts,
+      adjustedDestinationTxFee: gasCosts,
+      totalFee: gasCosts,
+      estimatedReceived: BigNumber.from(estimate.toAmount),
+      feeBps: 0,
+      lpFeeBps: 0,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice: estimate.gasCosts[0] ? BigNumber.from(estimate.gasCosts[0].price) : BigNumber.from(0),
+      relayFeeEth: BigNumber.from(0),
+      isLiquidityAvailable: true,
+      isLifi: true,
+      originalLifiResponse: response,
+      transactionRequest
+    }
   }
 
   async #getSendDataCctp (
@@ -4049,6 +4188,77 @@ export class HopBridge extends Base {
       txHash: result.originData.txHash || null,
       destTxHash: result.destinationData.txHash || null,
       originalSocketResponse: json
+    }
+  }
+
+  async getTransactionStatusLifi(hash: string): Promise<{
+    status: 'PENDING' | 'COMPLETED' | 'FAILED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalLifiResponse: any;
+  }> {
+    // Construct URL parameters for LI.FI API
+    const params = new URLSearchParams({
+      txHash: hash
+    })
+
+    const baseUrl = 'https://li.quest/v1/status'
+    const url = `${baseUrl}?${params.toString()}`
+    const res = await fetch(url)
+
+    if (!res.ok) {
+      throw new Error('Failed to get status from LI.FI API')
+    }
+
+    const response = await res.json()
+
+    // Map LI.FI status to our interface
+    let status: 'PENDING' | 'COMPLETED' | 'FAILED'
+    switch (response.status) {
+      case 'DONE':
+        status = 'COMPLETED'
+        break
+      case 'FAILED':
+        status = 'FAILED'
+        break
+      case 'PENDING':
+      case 'NOT_FOUND':
+      case 'INVALID':
+        status = 'PENDING'
+        break
+      default:
+        status = 'PENDING'
+    }
+
+    return {
+      status,
+      txHash: response.sending?.txHash || null,
+      destTxHash: response.receiving?.txHash || null,
+      originalLifiResponse: response
+    }
+  }
+
+  async getTransactionStatusCctp(
+    transactionHash: string,
+    fromChain: TChain,
+    toChain: TChain
+  ): Promise<{
+    status: 'PENDING' | 'COMPLETED' | 'FAILED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalCctpResponse: any;
+  }> {
+    // Implement CCTP transaction status check logic
+    // This might involve querying the CCTP contract on the destination chain
+    // and checking the status of the transaction
+    // For example, you can use a method like `getCctpTransactionStatus`
+    // to get the status of the transaction on the destination chain
+    // This is a placeholder implementation
+    return {
+      status: 'PENDING',
+      txHash: null,
+      destTxHash: null,
+      originalCctpResponse: null
     }
   }
 }

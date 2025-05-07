@@ -1408,8 +1408,8 @@ describe.skip('cctp', () => {
   }, 60 * 1000)
 })
 
-describe.only('getSendData - ETH using Socket API', () => {
-  it.only('getSendData', async () => {
+describe.skip('Socket API', () => {
+  it('should call getSendData', async () => {
     const sdk = new Hop({
       network: 'mainnet',
       enableSocket: true
@@ -1432,5 +1432,58 @@ describe.only('getSendData - ETH using Socket API', () => {
 
     expect(sendData).toBeTruthy()
     expect(sendData.isSocket).toBe(true)
+  })
+
+  it('should get transaction status', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      enableSocket: true
+    })
+    const bridge = sdk.bridge('ETH')
+
+    const txHash = '0xafe0bf6f4552338d9c2a33d5ab0d8e8914acdbe3871d51e942b839d9cdc2a287'
+    const status = await bridge.getTransactionStatusSocket(txHash)
+    console.log(status)
+    expect(status).toBeTruthy()
+  })
+})
+
+describe.skip('LI.FI API', () => {
+  it('should callgetSendData', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      enableLifi: true
+    })
+    const signer = new Wallet(privateKey!)
+    const bridge = sdk.connect(signer).bridge('ETH')
+
+    const amountIn = utils.parseUnits('1', 18)
+    const sendData = await bridge.getSendData(
+      amountIn,
+      ChainSlug.Arbitrum,
+      ChainSlug.Optimism
+    )
+
+    console.log(JSON.stringify(sendData, null, 2))
+    console.log('amountOut', utils.formatUnits(sendData.amountOut.toString(), 18))
+    console.log('destinationChainGasPrice', utils.formatUnits(sendData.destinationChainGasPrice.toString(), 9))
+    console.log('requiredLiquidity', utils.formatUnits(sendData.requiredLiquidity.toString(), 18))
+    console.log('estimatedReceived', utils.formatUnits(sendData.estimatedReceived.toString(), 18))
+
+    expect(sendData).toBeTruthy()
+    expect(sendData.isLifi).toBe(true)
+  })
+
+  it('should get transaction status', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      enableLifi: true
+    })
+    const bridge = sdk.bridge('ETH')
+
+    const txHash = '0xad91b6a81ac5900458c528db96a791b0ca0f87c588db1bad4880af92d281821d'
+    const status = await bridge.getTransactionStatusLifi(txHash)
+    console.log(status)
+    expect(status).toBeTruthy()
   })
 })

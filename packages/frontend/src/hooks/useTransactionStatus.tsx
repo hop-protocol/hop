@@ -9,7 +9,7 @@ import { loadState, saveState } from '#utils/localStorage.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInterval } from 'usehooks-ts'
-import { enableSocket } from '#config/index.js'
+import { enableLifi, enableSocket } from '#config/index.js'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { sdk, txHistory } = useApp()
@@ -51,6 +51,29 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     return false
   }, [transaction, sdk])
 
+  const checkLifiStatus = useCallback(async () => {
+    if (!enableLifi || !transaction?.token?.symbol || !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')) {
+      return false
+    }
+
+    try {
+      const status = await sdk.bridge(transaction.token.symbol).getTransactionStatusLifi(transaction.hash)
+      console.log('status', status)
+      if (status.status === 'COMPLETED') {
+        setCompleted(true)
+        setDestCompleted(true)
+        updateTransaction(transaction, { 
+          pending: false,
+          pendingDestinationConfirmation: false 
+        })
+        return true
+      }
+    } catch (err) {
+      logger.error('Error checking Socket transaction status:', err)
+    }
+    return false
+  }, [transaction, sdk])
+
   const updateTxStatus = useCallback(async () => {
     if (!provider || !transaction?.hash || !chain) {
       setCompleted(false)
@@ -65,6 +88,12 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     // Check Socket status first
     const isSocketCompleted = await checkSocketStatus()
     if (isSocketCompleted) {
+      return
+    }
+
+    // Check Lifi status next
+    const isLifiCompleted = await checkLifiStatus()
+    if (isLifiCompleted) {
       return
     }
 

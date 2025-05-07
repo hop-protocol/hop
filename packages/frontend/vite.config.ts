@@ -107,7 +107,8 @@ const connectSrc = new Set([
   "https://iris-api.circle.com",
   "https://iris-api-sandbox.circle.com",
   "https://*.polygon.technology", 
-  "https://public-backend.bungee.exchange"
+  "https://public-backend.bungee.exchange",
+  "https://li.quest"
 ])
 
 for (const network of getNetworks()) {
@@ -203,7 +204,8 @@ export default defineConfig({
     "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,
     "process.env.REACT_APP_GIT_SHA": process.env.REACT_APP_GIT_SHA ? `"${process.env.REACT_APP_GIT_SHA}"` : undefined,
     "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined,
-    "process.env.REACT_APP_ENABLE_SOCKET": process.env.REACT_APP_ENABLE_SOCKET ? `"${process.env.REACT_APP_ENABLE_SOCKET}"` : undefined
+    "process.env.REACT_APP_ENABLE_SOCKET": process.env.REACT_APP_ENABLE_SOCKET ? `"${process.env.REACT_APP_ENABLE_SOCKET}"` : undefined,
+    "process.env.REACT_APP_ENABLE_LIFI": process.env.REACT_APP_ENABLE_LIFI ? `"${process.env.REACT_APP_ENABLE_LIFI}"` : undefined
   },
 
   resolve: {

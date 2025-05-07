@@ -28,7 +28,7 @@ import { Transaction } from '#models/Transaction.js'
 import { amountToBN, formatError } from '#utils/format.js'
 import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from '#utils/index.js'
 import { getTransferTimeString } from '#utils/getTransferTimeString.js'
-import { isMainnet, showRewards, enableSocket } from '#config/index.js'
+import { isMainnet, showRewards, enableSocket, enableLifi } from '#config/index.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
 import { useSendTransaction } from './useSendTransaction'
@@ -871,8 +871,8 @@ export function useSend(): SendResponseProps {
     toTokenAmount,
   ])
 
-  const usingSocket = fromToken?.symbol === 'ETH' && enableSocket
-  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol && !usingSocket
+  const usingAggregator = (fromToken?.symbol === 'ETH' || fromToken?.symbol === 'USDC') && (enableSocket || enableLifi)
+  const showFeeRefund = feeRefundEnabled && [ChainSlug.Optimism, ChainSlug.Arbitrum].includes(toNetwork?.slug as ChainSlug) && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol && !usingAggregator
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
   const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 

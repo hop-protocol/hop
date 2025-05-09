@@ -116,19 +116,19 @@ Example response
 Install dependencies
 
 ```sh
-npm install
+pnpm install
 ```
 
 Start server
 
 ```sh
-npm start
+pnpm start
 ```
 
 Build
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 Available environment variables:

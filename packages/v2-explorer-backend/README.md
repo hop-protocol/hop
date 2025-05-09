@@ -7,19 +7,19 @@
 Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 Run worker
 
 ```bash
-npm start
+pnpm run start:worker
 ```
 
 ## Test
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## License

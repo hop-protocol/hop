@@ -31,6 +31,7 @@ PUBLIC_URL=.
 REACT_APP_IPFS_BUILD=true
 REACT_APP_ENABLED_CHAINS=ethereum,polygon,gnosis,optimism,arbitrum
 REACT_APP_ENABLED_TOKENS=ETH,USDC,USDT,DAI
+REACT_APP_DEPRECATED_POOLS=USDC.e,MAGIC
 REACT_APP_NETWORK=goerli
 ```
 
@@ -46,12 +47,14 @@ Build distribution build:
 pnpm build
 ```
 
+Allowed environment variable need be configured in `vite.config.ts` and in at the root `.github/workflows/ui-deploy.yml` for the build to work correctly.
+
 ## Deployments
 
 | Branch       | Network | URL                                                  | Release  | Description                                 |
 | ------------ | ------- | ---------------------------------------------------- | -------- | ------------------------------------------- |
 | `production` | mainnet | [app.hop.exchange](https://app.hop.exchange)         | Stable   | Production mainnet environment              |
-| `mainnet`    | mainnet | [mainnet.hop.exchange](https://mainnet.hop.exchange) | Beta     | Mainnet pre-release environment             |
-| `preprod`    | mainnet | [preprod.hop.exchange](https://preprod.hop.exchange) | Beta     | Alternative mainnet pre-release environment |
-| `develop`    | mainnet | [dev.hop.exchange](https://dev.hop.exchange)         | Unstable | Unstable mainnet staging environment        |
-| `goerli`     | kovan   | [goerli.hop.exchange](https://goerli.hop.exchange)   | Stable   | Goerli staging environment                  |
+| `staging`    | mainnet | [mainnet.hop.exchange](https://mainnet.hop.exchange) | Beta     | Mainnet pre-release environment             |
+| (deprecated) `preprod`    | mainnet | [preprod.hop.exchange](https://preprod.hop.exchange) | Beta     | Alternative mainnet pre-release environment |
+| (deprecated) `develop`    | mainnet | [dev.hop.exchange](https://dev.hop.exchange)         | Unstable | Unstable mainnet staging environment        |
+| (deprecated) `goerli`     | goerli | [goerli.hop.exchange](https://goerli.hop.exchange)   | Stable   | Goerli staging environment                  |

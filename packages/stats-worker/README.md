@@ -7,13 +7,13 @@
 Install dependencies
 
 ```sh
-npm install
+pnpm install
 ```
 
 Build
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 ## Running
@@ -38,43 +38,43 @@ Some examples on running workers.
 Run all bonder stats workers
 
 ```sh
-ts-node src/index.ts --bonder --bonderDays=30 --bonderTokens=USDC
+npx tsx src/index.ts --bonder --bonderDays=30 --bonderTokens=USDC
 ```
 
 Run bonder profit stats worker only
 
 ```sh
-ts-node src/index.ts --bonderProfit --bonderDays=30 --bonderTokens=USDC
+ npx tsx src/index.ts --bonderProfit --bonderDays=30 --bonderTokens=USDC
 ```
 
 Run yields worker
 
 ```sh
-ts-node src/index.ts --yields
+npx tsx src/index.ts --yields
 ```
 
 Run prices worker
 
 ```sh
-ts-node src/index.ts --prices --pricesPollIntervalSeconds=10
+npx tsx src/index.ts --prices --pricesPollIntervalSeconds=10
 ```
 
 Run volume stats worker
 
 ```sh
-ts-node src/index.ts --volume
+npx tsx src/index.ts --volume
 ```
 
 Run tvl stats worker
 
 ```sh
-ts-node src/index.ts --tvl --tvlDays=30
+npx tsx src/index.ts --tvl --tvlDays=30
 ```
 
 Run amm stats worker
 
 ```sh
-ts-node src/index.ts --amm --ammDays=2
+npx tsx src/index.ts --amm --ammDays=2
 ```
 
 ### Metabase charts

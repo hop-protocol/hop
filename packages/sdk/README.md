@@ -62,6 +62,8 @@ Generate documentation
 pnpm run docs
 ```
 
+The markdown API reference docs are generated in `docs/`. There's is also a generated website for API reference the docs at `docs-ui/`.
+
 ## Test
 
 ```bash

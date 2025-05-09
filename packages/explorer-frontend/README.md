@@ -8,25 +8,47 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 [https://explorer.hop.exchange/](https://explorer.hop.exchange/)
 
-## Environment variables
-
-```sh
-# (optional) specify tokens/chains to display on dropdowns
-NEXT_PUBLIC_ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
-NEXT_PUBLIC_ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
-```
-
 ## Getting Started
 
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Development
+
+Install
+
+```sh
+pnpm install
+```
+
+Run dev server, connects to live API
+
+```bash
+pnpm run dev
+```
+
+Run dev server, connects to local API from explorer-backend repo
+
+```bash
+pnpm run dev:local
+```
+
+Build
+
+```sh
+pnpm build
+```
+
+Run built server
+
+```sh
+pnpm start
+```
 
 You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 

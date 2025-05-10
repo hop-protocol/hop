@@ -24,7 +24,7 @@ export interface UpdateTransactionOptions {
 }
 
 const MAX_TRANSACTION_COUNT = 4
-
+const shouldUseCache = false
 const cacheKey = 'recentTransactions:v000'
 
 const localStorageSerializationOptions = {
@@ -43,16 +43,18 @@ const useTxHistory = (sdk: Hop): TxHistory => {
   const [transactions, setTransactions] = useState<Transaction[] | undefined>([])
 
   useEffect(() => {
-    // on mount, load from local storage
-    const storedTxs = localStorage.getItem(cacheKey)
-    if (storedTxs) {
-      setTransactions(localStorageSerializationOptions.deserializer(storedTxs))
+    // on mount, load from local storage only if caching is enabled
+    if (shouldUseCache) {
+      const storedTxs = localStorage.getItem(cacheKey)
+      if (storedTxs) {
+        setTransactions(localStorageSerializationOptions.deserializer(storedTxs))
+      }
     }
   }, [])
 
   useEffect(() => {
-    // on transactions change, save to local storage
-    if (transactions) {
+    // on transactions change, save to local storage only if caching is enabled
+    if (shouldUseCache && transactions) {
       localStorage.setItem(cacheKey, localStorageSerializationOptions.serializer(transactions))
     }
   }, [transactions])

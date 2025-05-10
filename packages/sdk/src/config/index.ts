@@ -71,3 +71,4 @@ export const bondableChains = Array.from(bondableChainsSet)
 
 export const RPC_TIMEOUT_SECONDS: number = 60
 export const RATE_LIMIT_MAX_RETRIES: number = 3
+export const SOCKET_API_KEY: string = 'D1mx54qg0a6ZVmk7BCW9B35GK6p1ABYzaAspIkze'

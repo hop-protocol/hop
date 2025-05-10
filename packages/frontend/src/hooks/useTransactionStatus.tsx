@@ -9,6 +9,7 @@ import { loadState, saveState } from '#utils/localStorage.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInterval } from 'usehooks-ts'
+import { enableLifi, enableSocket } from '#config/index.js'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { sdk, txHistory } = useApp()
@@ -23,9 +24,64 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   const provider = useMemo(() => {
     if (!chain) return
-    const _provider = transaction?.isV2 ? transaction.v2Sdk?.getProvider(transaction?.fromChainId) : sdk.getChainProvider(chain)
-    return _provider
-  }, [chain])
+    return transaction?.isV2
+      ? transaction.v2Sdk?.getProvider(transaction?.fromChainId)
+      : sdk.getChainProvider(chain)
+  }, [chain, transaction])
+
+  const checkSocketStatus = useCallback(async () => {
+    if (
+      !enableSocket ||
+      !transaction?.token?.symbol ||
+      !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')
+    ) {
+      return false
+    }
+
+    try {
+      const status = await sdk.bridge(transaction.token.symbol).getTransactionStatusSocket(transaction.hash)
+      console.log('Socket status', status)
+      if (status.status === 'COMPLETED') {
+        setCompleted(true)
+        setDestCompleted(true)
+        updateTransaction(transaction, {
+          pending: false,
+          pendingDestinationConfirmation: false
+        })
+        return true
+      }
+    } catch (err) {
+      logger.error('Error checking Socket transaction status:', err)
+    }
+    return false
+  }, [transaction, sdk])
+
+  const checkLifiStatus = useCallback(async () => {
+    if (
+      !enableLifi ||
+      !transaction?.token?.symbol ||
+      !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')
+    ) {
+      return false
+    }
+
+    try {
+      const status = await sdk.bridge(transaction.token.symbol).getTransactionStatusLifi(transaction.hash)
+      console.log('Lifi status', status)
+      if (status.status === 'COMPLETED') {
+        setCompleted(true)
+        setDestCompleted(true)
+        updateTransaction(transaction, {
+          pending: false,
+          pendingDestinationConfirmation: false
+        })
+        return true
+      }
+    } catch (err) {
+      logger.error('Error checking Lifi transaction status:', err)
+    }
+    return false
+  }, [transaction, sdk])
 
   const updateTxStatus = useCallback(async () => {
     try {
@@ -34,15 +90,23 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         return
       }
 
-      // Return quickly if already completed
       if (completed) {
+        return
+      }
+
+      const isSocketCompleted = await checkSocketStatus()
+      if (isSocketCompleted) {
+        return
+      }
+
+      const isLifiCompleted = await checkLifiStatus()
+      if (isLifiCompleted) {
         return
       }
 
       const txHash = transaction.hash
       const cacheKey = `txReceipt:${txHash}`
 
-      // Load local storage
       let tx: any = loadState(cacheKey)
 
       if (!tx) {
@@ -63,15 +127,13 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         const txCount = await provider.getTransactionCount(transaction.from)
         if (transaction.nonce && txCount > transaction.nonce) {
           const matchingTxs = await getRecentTransactionsByFromAddress(provider, transaction.from)
-          if (matchingTxs.length) {
-            const match = find(matchingTxs, ['nonce', transaction.nonce])
-            if (match) {
-              return updateTransaction(transaction, {
-                hash: match.hash,
-                pendingDestinationConfirmation: true,
-                replaced: transaction.hash,
-              })
-            }
+          const match = find(matchingTxs, ['nonce', transaction.nonce])
+          if (match) {
+            return updateTransaction(transaction, {
+              hash: match.hash,
+              pendingDestinationConfirmation: true,
+              replaced: transaction.hash
+            })
           }
           return setReplaced(transaction)
         }
@@ -80,14 +142,13 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
       setConfirmations(txResponse?.confirmations)
 
       let isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string, provider)
-      if (!isFinalized) {
-        if (transaction?.isV2) {
-          const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-          if (isSpent) {
-            isFinalized = true
-          }
-        } 
+      if (!isFinalized && transaction?.isV2) {
+        const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
+        if (isSpent) {
+          isFinalized = true
+        }
       }
+
       if (isFinalized) {
         setCompleted(true)
         updateTransaction(transaction, { pending: false })
@@ -95,7 +156,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     } catch (err: any) {
       console.error('updateTxStatus error', err)
     }
-  }, [transactions, transaction, provider])
+  }, [transactions, transaction, provider, checkSocketStatus])
 
   const updateDestTxStatus = useCallback(async () => {
     if (
@@ -106,14 +167,18 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         !transaction.destTxHash ||
         transaction.pendingDestinationConfirmation)
     ) {
+      const isSocketCompleted = await checkSocketStatus()
+      if (isSocketCompleted) {
+        return
+      }
+
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-      // logger.debug(`tx ${transaction.hash.slice(0, 10)} isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
         updateTransaction(transaction, { pendingDestinationConfirmation: false })
       }
     }
-  }, [transactions, transaction])
+  }, [transactions, transaction, checkSocketStatus])
 
   useEffect(() => {
     if (!completed) {
@@ -135,7 +200,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     destCompleted,
     confirmations,
     networkConfirmations,
-    replaced,
+    replaced
   }
 }
 

@@ -28,7 +28,7 @@ import { Transaction } from '#models/Transaction.js'
 import { amountToBN, formatError } from '#utils/format.js'
 import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from '#utils/index.js'
 import { getTransferTimeString } from '#utils/getTransferTimeString.js'
-import { isMainnet, showRewards } from '#config/index.js'
+import { isMainnet, showRewards, enableSocket, enableLifi } from '#config/index.js'
 import { useApp } from '#contexts/AppContext/index.js'
 import { useCheckTokenDeprecated } from '#hooks/useCheckTokenDeprecated.js'
 import { useSendTransaction } from '#hooks/useSendTransaction.js'
@@ -828,6 +828,7 @@ export function useSend(): SendResponseProps {
     toTokenAmount,
   ])
 
+  const usingAggregator = (fromToken?.symbol === 'ETH' || fromToken?.symbol === 'USDC') && (enableSocket || enableLifi)
   const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 
   return {

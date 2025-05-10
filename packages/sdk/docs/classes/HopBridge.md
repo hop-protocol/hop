@@ -35,6 +35,8 @@ Class representing Hop bridge.
 - [destinationChain](HopBridge.md#destinationchain)
 - [destinationFeeGasPriceMultiplier](HopBridge.md#destinationfeegaspricemultiplier)
 - [doesUseAmm](HopBridge.md#doesuseamm)
+- [enableLifi](HopBridge.md#enablelifi)
+- [enableSocket](HopBridge.md#enablesocket)
 - [fees](HopBridge.md#fees)
 - [gasPriceMultiplier](HopBridge.md#gaspricemultiplier)
 - [getContract](HopBridge.md#getcontract)
@@ -195,6 +197,9 @@ Class representing Hop bridge.
 - [getTokenSymbol](HopBridge.md#gettokensymbol)
 - [getTotalDebit](HopBridge.md#gettotaldebit)
 - [getTotalFee](HopBridge.md#gettotalfee)
+- [getTransactionStatusCctp](HopBridge.md#gettransactionstatuscctp)
+- [getTransactionStatusLifi](HopBridge.md#gettransactionstatuslifi)
+- [getTransactionStatusSocket](HopBridge.md#gettransactionstatussocket)
 - [getTransferStatus](HopBridge.md#gettransferstatus)
 - [getTransferTimes](HopBridge.md#gettransfertimes)
 - [getTvl](HopBridge.md#gettvl)
@@ -456,6 +461,26 @@ ___
 ### <a id="doesuseamm" name="doesuseamm"></a> doesUseAmm
 
 • **doesUseAmm**: `boolean`
+
+___
+
+### <a id="enablelifi" name="enablelifi"></a> enableLifi
+
+• **enableLifi**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableLifi](Base.md#enablelifi)
+
+___
+
+### <a id="enablesocket" name="enablesocket"></a> enableSocket
+
+• **enableSocket**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableSocket](Base.md#enablesocket)
 
 ___
 
@@ -3234,6 +3259,57 @@ ___
 #### Returns
 
 `Promise`\<`BigNumber`\>
+
+___
+
+### <a id="gettransactionstatuscctp" name="gettransactionstatuscctp"></a> getTransactionStatusCctp
+
+▸ **getTransactionStatusCctp**(`transactionHash`, `fromChain`, `toChain`): `Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalCctpResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` \| ``"FAILED"`` ; `txHash`: ``null`` \| `string`  }\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionHash` | `string` |
+| `fromChain` | [`TChain`](../modules.md#tchain) |
+| `toChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalCctpResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` \| ``"FAILED"`` ; `txHash`: ``null`` \| `string`  }\>
+
+___
+
+### <a id="gettransactionstatuslifi" name="gettransactionstatuslifi"></a> getTransactionStatusLifi
+
+▸ **getTransactionStatusLifi**(`hash`): `Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalLifiResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` \| ``"FAILED"`` ; `txHash`: ``null`` \| `string`  }\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `hash` | `string` |
+
+#### Returns
+
+`Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalLifiResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` \| ``"FAILED"`` ; `txHash`: ``null`` \| `string`  }\>
+
+___
+
+### <a id="gettransactionstatussocket" name="gettransactionstatussocket"></a> getTransactionStatusSocket
+
+▸ **getTransactionStatusSocket**(`hash`, `isRequestHash?`): `Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalSocketResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` ; `txHash`: ``null`` \| `string`  }\>
+
+#### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `hash` | `string` | `undefined` |
+| `isRequestHash` | `boolean` | `false` |
+
+#### Returns
+
+`Promise`\<\{ `destTxHash`: ``null`` \| `string` ; `originalSocketResponse`: `any` ; `status`: ``"PENDING"`` \| ``"COMPLETED"`` ; `txHash`: ``null`` \| `string`  }\>
 
 ___
 

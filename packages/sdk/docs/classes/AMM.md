@@ -34,6 +34,8 @@ Class representing AMM contract
 - [debugTimeLogsCacheEnabled](AMM.md#debugtimelogscacheenabled)
 - [debugTimeLogsEnabled](AMM.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](AMM.md#destinationfeegaspricemultiplier)
+- [enableLifi](AMM.md#enablelifi)
+- [enableSocket](AMM.md#enablesocket)
 - [fees](AMM.md#fees)
 - [gasPriceMultiplier](AMM.md#gaspricemultiplier)
 - [getContract](AMM.md#getcontract)
@@ -381,6 +383,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
+
+___
+
+### <a id="enablelifi" name="enablelifi"></a> enableLifi
+
+• **enableLifi**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableLifi](Base.md#enablelifi)
+
+___
+
+### <a id="enablesocket" name="enablesocket"></a> enableSocket
+
+• **enableSocket**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableSocket](Base.md#enablesocket)
 
 ___
 

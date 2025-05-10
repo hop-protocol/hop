@@ -33,7 +33,7 @@ import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
 import { WithdrawalProof } from '#utils/WithdrawalProof.js'
-import { bondableChains } from './config/index.js'
+import { bondableChains, SOCKET_API_KEY } from './config/index.js'
 import { utils } from 'ethers'
 import { getUSDCSwapParams, getCctpDomain } from '#utils/index.js'
 import { TokenModel } from '#models/index.js'
@@ -123,6 +123,7 @@ type SendOptions = {
   destinationAmountOutMin: TAmount
   destinationDeadline: BigNumberish
   checkAllowance?: boolean
+  isHTokenSend?: boolean
 }
 
 type AddLiquidityOptions = {
@@ -159,6 +160,8 @@ type FeeAndAmountOutMinData = {
   amountOutMin: BigNumber
   destinationAmountOutMin: BigNumber | null
 }
+
+const socketSupportCache = new Map<string, boolean>()
 
 /**
  * Class representing Hop bridge.
@@ -256,7 +259,9 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
+      enableSocket: this.enableSocket,
+      enableLifi: this.enableLifi
     })
 
     // port over exiting properties
@@ -366,7 +371,7 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
     })
   }
 
@@ -400,6 +405,16 @@ export class HopBridge extends Base {
       throw new Error('sourceChain is required')
     }
     sourceChain = this.toChainModel(sourceChain)
+
+    // Check if we should use Socket for ETH transfers
+    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
+      return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
+    }
+
+    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
+      return this.#sendLifi(tokenAmount, sourceChain, destinationChain, options)
+    }
+
     const populatedTx = await this.populateSendTx(
       tokenAmount,
       sourceChain,
@@ -446,6 +461,154 @@ export class HopBridge extends Base {
     }
 
     return this.sendTransaction(populatedTx, sourceChain)
+  }
+
+  async #sendSocket (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    const signer = this.signer as Signer & { signTypedData?: (data: any) => Promise<string> }
+    if (!signer) {
+      throw new Error('Signer is required for Bungee API calls')
+    }
+
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    await this.checkConnectedChain(signer, sourceChainModel)
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for Bungee API calls')
+    }
+
+    // Get quote from Bungee API
+    const sendData = await this.#getSendDataSocket(tokenAmount, sourceChain, destinationChain)
+    if (!sendData.isSocket) {
+      throw new Error('Failed to get Bungee quote')
+    }
+
+    const { originalSocketResponse } = sendData
+    const { result } = originalSocketResponse
+    const { autoRoute } = result
+    const { output, gasFee, signTypedData } = autoRoute
+    const { txData } = autoRoute
+
+    // Get current timestamp and deadline
+    const currentTime = Math.floor(Date.now() / 1000)
+    const deadline = currentTime + 3600 // 1 hour deadline
+
+    let signature: string
+    if (signTypedData) {
+      // Sign the typed data for ERC20 tokens
+      signature = await (signer as any)._signTypedData(
+        signTypedData.domain,
+        signTypedData.types,
+        signTypedData.values
+      )
+    } else {
+      if (!txData) {
+        throw new Error('Failed to get txData')
+      }
+      const tx = await this.sendTransaction(txData, sourceChain)
+      return tx
+    }
+
+    const requestBody = {
+      quoteId: autoRoute.quoteId,
+      request: signTypedData.values.witness,
+      requestType: autoRoute.requestType,
+      userSignature: signature
+    }
+
+    // Submit the request to Bungee API
+    const submitUrl = 'https://public-backend.bungee.exchange/bungee/submit'
+    const response = await fetch(submitUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'api-key': SOCKET_API_KEY,
+        'x-api-key': SOCKET_API_KEY
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to submit transaction to Bungee API')
+    }
+
+    const json = await response.json()
+    if (!json.success) {
+      throw new Error('Failed to submit transaction to Bungee API')
+    }
+
+    // please fix this
+    const requestHash = json.result.requestHash
+    let originTxHash: string | null = null
+    let attempts = 0
+    const maxAttempts = 100
+    const pollInterval = 10000
+
+    while (!originTxHash && attempts < maxAttempts) {
+      try {
+        const { originalSocketResponse: status } = await this.getTransactionStatusSocket(requestHash, true)
+        if (status.result?.[0]?.originData?.txHash) {
+          originTxHash = status.result[0].originData.txHash
+          break
+        }
+      } catch (err) {
+        console.warn('Error polling transaction status:', err)
+      }
+      await new Promise(resolve => setTimeout(resolve, pollInterval))
+      attempts++
+    }
+
+    if (!originTxHash) {
+      throw new Error('Failed to get origin transaction hash after polling')
+    }
+
+    const provider = this.getChainProvider(sourceChain)
+    return provider.getTransaction(originTxHash)
+  }
+
+  async #sendLifi (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for LI.FI transactions')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for LI.FI transactions')
+    }
+
+    // Get quote from LI.FI
+    const sendData = await this.#getSendDataLifi(tokenAmount, sourceChain, destinationChain)
+    if (!sendData) {
+      throw new Error('Failed to get quote from LI.FI')
+    }
+
+    const { transactionRequest } = sendData
+
+    // Execute the transaction
+    return this.sendTransaction(transactionRequest, sourceChain)
+  }
+
+  async #sendCctp (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ): Promise<any> {
+    // ... existing code ...
   }
 
   public async populateSendTx (
@@ -844,11 +1007,112 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ) : Promise<any> {
+    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
+      return this.#getSendDataSocket(amountIn, sourceChain, destinationChain)
+    }
+
+    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
+      return this.#getSendDataLifi(amountIn, sourceChain, destinationChain)
+    }
+
     if (this.getShouldUseCctpBridge({ isHTokenSend })) {
       return this.#getSendDataCctp(amountIn, sourceChain, destinationChain)
     }
 
     return this.#getSendData(amountIn, sourceChain, destinationChain, isHTokenSend)
+  }
+
+  async #getSendDataLifi (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
+  ): Promise<any> {
+    if (isHTokenSend) {
+      throw new Error('LI.FI does not support hToken sends')
+    }
+
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for LI.FI API calls')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for LI.FI API calls')
+    }
+
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    // Construct URL parameters for LI.FI API
+    const params = new URLSearchParams({
+      fromChain: sourceChainModel.chainId.toString(),
+      toChain: destinationChainModel.chainId.toString(),
+      fromToken: this.tokenSymbol,
+      toToken: this.tokenSymbol,
+      fromAmount: amountIn.toString(),
+      fromAddress: userAddress,
+      slippage: '0.01', // 1% slippage
+    })
+
+    const baseUrl = 'https://li.quest/v1/quote'
+    const url = `${baseUrl}?${params.toString()}`
+    const res = await fetch(url)
+
+    console.log('url', url)
+
+    if (!res.ok) {
+      throw new Error('Failed to get quote from LI.FI API')
+    }
+
+    const response = await res.json()
+
+    console.log('response', response)
+
+    // Map LI.FI response to our interface
+    const { action, estimate, includedSteps, transactionRequest } = response
+
+    const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const [chainNativeTokenPrice] = await Promise.all([
+      this.getPriceByTokenSymbol(chainNativeToken.symbol)
+    ])
+
+    const tokenPrice = Number(estimate.fromAmountUSD) / Number(estimate.fromAmount)
+    const tokenPriceRate = chainNativeTokenPrice / tokenPrice
+
+    const gasCosts = estimate.gasCosts.reduce((total: BigNumber, gas: any) => {
+      return total.add(BigNumber.from(gas.amount))
+    }, BigNumber.from(0))
+
+    return {
+      amountIn: BigNumber.from(action.fromAmount),
+      sourceChain,
+      destinationChain,
+      isHTokenSend: false,
+      amountOut: BigNumber.from(estimate.toAmount),
+      rate: Number(estimate.toAmount) / Number(estimate.fromAmount),
+      priceImpact: 0, // LI.FI doesn't provide this directly
+      requiredLiquidity: BigNumber.from(action.fromAmount),
+      lpFees: BigNumber.from(0),
+      bonderFeeRelative: BigNumber.from(0),
+      adjustedBonderFee: BigNumber.from(0),
+      destinationTxFee: gasCosts,
+      adjustedDestinationTxFee: gasCosts,
+      totalFee: gasCosts,
+      estimatedReceived: BigNumber.from(estimate.toAmount),
+      feeBps: 0,
+      lpFeeBps: 0,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice: estimate.gasCosts[0] ? BigNumber.from(estimate.gasCosts[0].price) : BigNumber.from(0),
+      relayFeeEth: BigNumber.from(0),
+      isLiquidityAvailable: true,
+      isLifi: true,
+      originalLifiResponse: response,
+      transactionRequest
+    }
   }
 
   async #getSendDataCctp (
@@ -2048,7 +2312,7 @@ export class HopBridge extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
     })
   }
 
@@ -3669,6 +3933,332 @@ export class HopBridge extends Base {
       return BigNumber.from(result).eq(1)
     } catch (err) {
       return false
+    }
+  }
+
+  async #getSendDataSocket (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) : Promise<any> {
+    const signer = this.signer
+    if (!signer) {
+      throw new Error('Signer is required for Bungee API calls')
+    }
+
+    const userAddress = await this.getSignerAddress()
+    if (!userAddress) {
+      throw new Error('User address is required for Bungee API calls')
+    }
+
+    const isSupported = await this.#getIsSupportedSocket(sourceChain, destinationChain)
+    if (!isSupported) {
+      throw new Error('Route not supported by Bungee')
+    }
+
+    // Convert chains to models
+    const sourceChainModel = this.toChainModel(sourceChain)
+    const destinationChainModel = this.toChainModel(destinationChain)
+
+    // Get WETH addresses for chains that don't support native ETH
+    const getWethAddress = (chain: string) => {
+      switch (chain) {
+        case 'gnosis':
+          return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+        case 'polygon':
+          return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+        default:
+          return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
+      }
+    }
+
+    // Construct URL parameters for Bungee API
+    const params = new URLSearchParams({
+      userAddress,
+      originChainId: sourceChainModel.chainId.toString(),
+      destinationChainId: destinationChainModel.chainId.toString(),
+      inputToken: getWethAddress(sourceChainModel.slug),
+      inputAmount: amountIn.toString(),
+      receiverAddress: userAddress,
+      outputToken: getWethAddress(destinationChainModel.slug),
+      slippage: '1', // 1% slippage
+      delegateAddress: userAddress,
+      refuel: 'false'
+    })
+
+    // console.log('params', params)
+
+    const baseUrl = 'https://public-backend.bungee.exchange/bungee/quote'
+    const url = `${baseUrl}?${params.toString()}`
+    const res = await fetch(url, {
+      headers: {
+        'api-key': 'D1mx54qg0a6ZVmk7BCW9B35GK6p1ABYzaAspIkze',
+        'x-api-key': SOCKET_API_KEY,
+      }
+    })
+
+    const response = await res.json()
+    // console.warn('response', response)
+
+    if (!response.success) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no success')
+    }
+
+    if (!response.result?.autoRoute) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no autoRoute found')
+    }
+
+    if (!response.result.autoRoute.output) {
+      console.warn('response', response)
+      throw new Error('Failed to get quote from Bungee API; no output found')
+    }
+
+    if (!response.result.autoRoute.gasFee) {
+      console.warn('response', response)
+      // throw new Error('Failed to get quote from Bungee API; no gasFee found')
+    }
+
+    const { autoRoute } = response.result
+    const { output, gasFee } = autoRoute
+
+    // console.log('response', response)
+    // console.log('output', output)
+    // console.log('gasFee', gasFee)
+
+    const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const [chainNativeTokenPrice] = await Promise.all([
+      this.getPriceByTokenSymbol(
+        chainNativeToken.symbol
+      )
+    ])
+
+    const tokenPrice = response.result.input.priceInUsd
+    const tokenPriceRate = chainNativeTokenPrice / tokenPrice
+
+    // Map Bungee API response to getSendData interface
+    return {
+      amountIn,
+      sourceChain,
+      destinationChain,
+      isHTokenSend: false,
+      amountOut: BigNumber.from(output.amount),
+      rate: 1, // Since it's ETH to ETH, rate should be 1
+      priceImpact: 0,
+      requiredLiquidity: amountIn,
+      lpFees: BigNumber.from(0),
+      bonderFeeRelative: BigNumber.from(0),
+      adjustedBonderFee: BigNumber.from(0),
+      destinationTxFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
+      adjustedDestinationTxFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
+      totalFee: BigNumber.from(gasFee?.estimatedFee ?? 0),
+      estimatedReceived: BigNumber.from(output.amount),
+      feeBps: 0,
+      lpFeeBps: 0,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice: BigNumber.from(gasFee?.gasPrice ?? 0),
+      relayFeeEth: BigNumber.from(0),
+      isLiquidityAvailable: true,
+      isSocket: true,
+      originalSocketResponse: response
+    }
+  }
+
+  async #getIsSupportedSocket(sourceChain: TChain, destinationChain: TChain): Promise<boolean> {
+    try {
+      // Create cache key from chain IDs
+      const sourceChainModel = this.toChainModel(sourceChain)
+      const destinationChainModel = this.toChainModel(destinationChain)
+      const cacheKey = `${sourceChainModel.chainId}-${destinationChainModel.chainId}`
+
+      // Check cache first
+      if (socketSupportCache.has(cacheKey)) {
+        return socketSupportCache.get(cacheKey)!
+      }
+
+      // Get supported chains
+      const chainsUrl = 'https://public-backend.bungee.exchange/supported-chains'
+      let res = await fetch(chainsUrl, {
+        headers: {
+          'api-key': SOCKET_API_KEY,
+          'x-api-key': SOCKET_API_KEY,
+        }
+      })
+  
+      const chainsResponse = await res.json()
+      
+      if (!chainsResponse.success) {
+        return false
+      }
+
+      const supportedChains = chainsResponse.result
+
+      // Check if both chains are supported and have sending/receiving enabled
+      const sourceChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === sourceChainModel.chainId.toString())
+      const destinationChainInfo = supportedChains.find((chain: any) => chain.chainId.toString() === destinationChainModel.chainId.toString())
+
+      if (!sourceChainInfo?.sendingEnabled || !destinationChainInfo?.receivingEnabled) {
+        socketSupportCache.set(cacheKey, false)
+        return false
+      }
+
+      // Get supported tokens for both chains
+      const tokensUrl = `https://public-backend.bungee.exchange/tokens/list?chainIds=${sourceChainModel.chainId},${destinationChainModel.chainId}`
+      res = await fetch(tokensUrl, {
+        headers: {
+          'api-key': SOCKET_API_KEY,
+          'x-api-key': SOCKET_API_KEY,
+        }
+      })
+  
+      const tokensResponse = await res.json()
+
+      if (!tokensResponse.success) {
+        socketSupportCache.set(cacheKey, false)
+        return false
+      }
+
+      const sourceTokens = tokensResponse.result[sourceChainModel.chainId] || []
+      const destinationTokens = tokensResponse.result[destinationChainModel.chainId] || []
+
+      // Get the appropriate token address based on chain
+      const getWethAddress = (chain: string) => {
+        switch (chain) {
+          case 'gnosis':
+            return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+          case 'polygon':
+            return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+          default:
+            return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
+        }
+      }
+
+      const sourceTokenAddress = getWethAddress(sourceChainModel.slug)
+      const destinationTokenAddress = getWethAddress(destinationChainModel.slug)
+
+      // Check if the token is supported on both chains
+      const isSourceTokenSupported = sourceTokens.some((token: any) => 
+        token.address.toLowerCase() === sourceTokenAddress.toLowerCase()
+      )
+      const isDestinationTokenSupported = destinationTokens.some((token: any) => 
+        token.address.toLowerCase() === destinationTokenAddress.toLowerCase()
+      )
+
+      const isSupported = isSourceTokenSupported && isDestinationTokenSupported
+      socketSupportCache.set(cacheKey, isSupported)
+      return isSupported
+    } catch (err) {
+      console.error('Error checking Bungee support:', err)
+      if (err.message.includes('Failed to fetch')) {
+        throw new Error('Bungee API rate limit exceeded. Try again later.')
+      }
+      return false
+    }
+  }
+
+  async getTransactionStatusSocket(hash: string, isRequestHash: boolean = false): Promise<{ 
+    status: 'PENDING' | 'COMPLETED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalSocketResponse: any;
+  }> {
+    const statusUrl = `https://public-backend.bungee.exchange/bungee/status?${isRequestHash ? 'requestHash' : 'txHash'}=${hash}`
+    const res = await fetch(statusUrl, {
+      headers: {
+        'api-key': SOCKET_API_KEY,
+        'x-api-key': SOCKET_API_KEY,
+      }
+    })
+
+    const json = await res.json()
+    if (!json.success) {
+      throw new Error('Failed to get transaction status from Bungee API')
+    }
+
+    const result = json.result[0]
+    const status = result.originData.status === 'COMPLETED' && result.destinationData.status === 'COMPLETED' 
+      ? 'COMPLETED' 
+      : 'PENDING'
+
+    return {
+      status,
+      txHash: result.originData.txHash || null,
+      destTxHash: result.destinationData.txHash || null,
+      originalSocketResponse: json
+    }
+  }
+
+  async getTransactionStatusLifi(hash: string): Promise<{
+    status: 'PENDING' | 'COMPLETED' | 'FAILED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalLifiResponse: any;
+  }> {
+    // Construct URL parameters for LI.FI API
+    const params = new URLSearchParams({
+      txHash: hash
+    })
+
+    const baseUrl = 'https://li.quest/v1/status'
+    const url = `${baseUrl}?${params.toString()}`
+    const res = await fetch(url)
+
+    if (!res.ok) {
+      throw new Error('Failed to get status from LI.FI API')
+    }
+
+    const response = await res.json()
+
+    // Map LI.FI status to our interface
+    let status: 'PENDING' | 'COMPLETED' | 'FAILED'
+    switch (response.status) {
+      case 'DONE':
+        status = 'COMPLETED'
+        break
+      case 'FAILED':
+        status = 'FAILED'
+        break
+      case 'PENDING':
+      case 'NOT_FOUND':
+      case 'INVALID':
+        status = 'PENDING'
+        break
+      default:
+        status = 'PENDING'
+    }
+
+    return {
+      status,
+      txHash: response.sending?.txHash || null,
+      destTxHash: response.receiving?.txHash || null,
+      originalLifiResponse: response
+    }
+  }
+
+  async getTransactionStatusCctp(
+    transactionHash: string,
+    fromChain: TChain,
+    toChain: TChain
+  ): Promise<{
+    status: 'PENDING' | 'COMPLETED' | 'FAILED';
+    txHash: string | null;
+    destTxHash: string | null;
+    originalCctpResponse: any;
+  }> {
+    // Implement CCTP transaction status check logic
+    // This might involve querying the CCTP contract on the destination chain
+    // and checking the status of the transaction
+    // For example, you can use a method like `getCctpTransactionStatus`
+    // to get the status of the transaction on the destination chain
+    // This is a placeholder implementation
+    return {
+      status: 'PENDING',
+      txHash: null,
+      destTxHash: null,
+      originalCctpResponse: null
     }
   }
 }

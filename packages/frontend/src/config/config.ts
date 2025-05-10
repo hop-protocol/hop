@@ -124,3 +124,5 @@ export { rpcProviderOverrides }
 export const walletConnectProjectId = '651b16cdb6b0f490f68e0c4c5f5c35ce' // This is is meant to be public
 
 export const v2ExplorerBaseUrl = process.env.REACT_APP_V2_EXPLORER_BASE_URL ?? 'http://localhost:8000'
+export const enableSocket = process.env.REACT_APP_ENABLE_SOCKET === 'true'
+export const enableLifi = process.env.REACT_APP_ENABLE_LIFI === 'true'

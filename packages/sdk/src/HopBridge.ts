@@ -583,6 +583,38 @@ export class HopBridge extends Base {
     return provider.getTransaction(originTxHash)
   }
 
+  #getCanonicalTokenLifi (chain: TChain): string {
+    chain = this.toChainModel(chain)
+    const token = this.getCanonicalToken(chain)
+
+    const getWethAddress = (chain: string) => {
+      switch (chain) {
+        case ChainSlug.Gnosis:
+          return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+        case ChainSlug.Polygon:
+          return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+        default:
+          return '0x0000000000000000000000000000000000000000' // Native ETH
+      }
+    }
+
+
+    if (this.tokenSymbol === TokenSymbol.ETH || this.tokenSymbol === TokenSymbol.WETH) {
+      const address = getWethAddress(chain.slug)
+      return address
+    }
+
+    if (this.tokenSymbol === TokenSymbol.XDAI && chain.slug === ChainSlug.Gnosis) {
+      return '0x0000000000000000000000000000000000000000'
+    }
+
+    if (this.tokenSymbol === TokenSymbol.MATIC && chain.slug === ChainSlug.Polygon) {
+      return '0x0000000000000000000000000000000000000000'
+    }
+
+    return token.address
+  }
+
   async #sendLifi (
     tokenAmount: TAmount,
     sourceChain: TChain,
@@ -600,17 +632,32 @@ export class HopBridge extends Base {
     }
 
     // Get quote from LI.FI
-    const sendData = await this.#getSendDataLifi(
+    const { originalLifiResponse } = await this.#getSendDataLifi(
       tokenAmount,
       sourceChain,
       destinationChain,
       options.slippageTolerance
     )
-    if (!sendData) {
+    if (!originalLifiResponse) {
       throw new Error('Failed to get quote from LI.FI')
     }
 
-    const { transactionRequest } = sendData
+    const { action, estimate, transactionRequest } = originalLifiResponse
+
+    // Check if approval is needed for non-native tokens
+    const sourceToken = this.#getCanonicalTokenLifi(sourceChain)
+    if (sourceToken !== '0x0000000000000000000000000000000000000000') {
+      const token = this.getCanonicalToken(sourceChain)
+      const spender = estimate.approvalAddress
+      const needsApproval = await token.needsApproval(spender, tokenAmount, userAddress)
+
+      if (needsApproval) {
+        const token = this.getCanonicalToken(sourceChain)
+        const populatedTx = await token.populateApproveTx(spender, tokenAmount)
+        const approvalTx = await this.sendTransaction(populatedTx, sourceChain)
+        await approvalTx.wait()
+      }
+    }
 
     // Execute the transaction
     return this.sendTransaction(transactionRequest, sourceChain)
@@ -1050,15 +1097,15 @@ export class HopBridge extends Base {
     const destinationChainModel = this.toChainModel(destinationChain)
 
     // Get token addresses for source and destination chains
-    const sourceToken = this.getCanonicalToken(sourceChain)
-    const destToken = this.getCanonicalToken(destinationChain)
+    const sourceToken = this.#getCanonicalTokenLifi(sourceChain)
+    const destToken = this.#getCanonicalTokenLifi(destinationChain)
 
     // Construct URL parameters for LI.FI API
     const params = new URLSearchParams({
       fromChain: sourceChainModel.chainId.toString(),
       toChain: destinationChainModel.chainId.toString(),
-      fromToken: sourceToken.address,
-      toToken: destToken.address,
+      fromToken: sourceToken,
+      toToken: destToken,
       fromAmount: amountIn.toString(),
       fromAddress: userAddress,
       slippage: slippageTolerance.toString() // e.g. '1'=1%, '0.5'=0.5%, etc

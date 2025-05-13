@@ -4083,18 +4083,27 @@ export class HopBridge extends Base {
     // Get the appropriate token address based on chain
     const getWethAddress = (chain: string) => {
       switch (chain) {
-        case 'gnosis':
+        case ChainSlug.Gnosis:
           return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
-        case 'polygon':
+        case ChainSlug.Polygon:
           return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
         default:
           return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
       }
     }
 
-    if (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') {
+
+    if (this.tokenSymbol === TokenSymbol.ETH || this.tokenSymbol === TokenSymbol.WETH) {
       const address = getWethAddress(chain.slug)
       return address
+    }
+
+    if (this.tokenSymbol === TokenSymbol.XDAI && chain.slug === ChainSlug.Gnosis) {
+      return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+    }
+
+    if (this.tokenSymbol === TokenSymbol.MATIC && chain.slug === ChainSlug.Polygon) {
+      return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
     }
 
     return token.address
@@ -4122,9 +4131,9 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-  
+
       const chainsResponse = await res.json()
-      
+
       if (!chainsResponse.success) {
         return false
       }
@@ -4148,7 +4157,7 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-  
+
       const tokensResponse = await res.json()
 
       if (!tokensResponse.success) {
@@ -4160,12 +4169,12 @@ export class HopBridge extends Base {
       const destinationTokens = tokensResponse.result[destinationChainModel.chainId] || []
 
       // Check if the tokens are supported on both chains
-      const isSourceTokenSupported = sourceTokens.some((token: any) => 
-        token.address.toLowerCase() === sourceToken.toLowerCase()
-      )
-      const isDestinationTokenSupported = destinationTokens.some((token: any) => 
-        token.address.toLowerCase() === destToken.toLowerCase()
-      )
+      const isSourceTokenSupported = sourceTokens.some((token: any) => {
+        return token.address.toLowerCase() === sourceToken.toLowerCase()
+      })
+      const isDestinationTokenSupported = destinationTokens.some((token: any) => {
+        return token.address.toLowerCase() === destToken.toLowerCase()
+      })
 
       const isSupported = isSourceTokenSupported && isDestinationTokenSupported
       socketSupportCache.set(cacheKey, isSupported)

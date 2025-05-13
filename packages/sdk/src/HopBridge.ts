@@ -124,6 +124,7 @@ type SendOptions = {
   destinationDeadline: BigNumberish
   checkAllowance?: boolean
   isHTokenSend?: boolean
+  slippageTolerance?: number
 }
 
 type AddLiquidityOptions = {
@@ -182,6 +183,8 @@ export class HopBridge extends Base {
   priceFeed: PriceFeedFromS3
   priceFeedApiKeys: PriceFeedApiKeys | null = null
   doesUseAmm: boolean
+
+  defaultSlippageTolerance = 0.5 // e.g. 0.1=0.1%, 0.5=0.5%, 1=1%, etc
 
   /**
    * @desc Instantiates Hop Bridge.
@@ -485,7 +488,12 @@ export class HopBridge extends Base {
     }
 
     // Get quote from Bungee API
-    const sendData = await this.#getSendDataSocket(tokenAmount, sourceChain, destinationChain)
+    const sendData = await this.#getSendDataSocket(
+      tokenAmount,
+      sourceChain,
+      destinationChain,
+      options.slippageTolerance
+    )
     if (!sendData.isSocket) {
       throw new Error('Failed to get Bungee quote')
     }
@@ -591,7 +599,12 @@ export class HopBridge extends Base {
     }
 
     // Get quote from LI.FI
-    const sendData = await this.#getSendDataLifi(tokenAmount, sourceChain, destinationChain)
+    const sendData = await this.#getSendDataLifi(
+      tokenAmount,
+      sourceChain,
+      destinationChain,
+      options.slippageTolerance
+    )
     if (!sendData) {
       throw new Error('Failed to get quote from LI.FI')
     }
@@ -1005,14 +1018,15 @@ export class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,
-    isHTokenSend: boolean = false
+    isHTokenSend: boolean = false,
+    slippageTolerance: number = this.defaultSlippageTolerance
   ) : Promise<any> {
     if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
-      return this.#getSendDataSocket(amountIn, sourceChain, destinationChain)
+      return this.#getSendDataSocket(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 
     if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
-      return this.#getSendDataLifi(amountIn, sourceChain, destinationChain)
+      return this.#getSendDataLifi(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 
     if (this.getShouldUseCctpBridge({ isHTokenSend })) {
@@ -1026,12 +1040,8 @@ export class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,
-    isHTokenSend: boolean = false
+    slippageTolerance: number = this.defaultSlippageTolerance,
   ): Promise<any> {
-    if (isHTokenSend) {
-      throw new Error('LI.FI does not support hToken sends')
-    }
-
     const signer = this.signer
     if (!signer) {
       throw new Error('Signer is required for LI.FI API calls')
@@ -1053,7 +1063,7 @@ export class HopBridge extends Base {
       toToken: this.tokenSymbol,
       fromAmount: amountIn.toString(),
       fromAddress: userAddress,
-      slippage: '0.01', // 1% slippage
+      slippage: slippageTolerance.toString() // e.g. '1'=1%, '0.5'=0.5%, etc
     })
 
     const baseUrl = 'https://li.quest/v1/quote'
@@ -3939,7 +3949,8 @@ export class HopBridge extends Base {
   async #getSendDataSocket (
     amountIn: BigNumberish,
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    slippageTolerance: number = this.defaultSlippageTolerance
   ) : Promise<any> {
     const signer = this.signer
     if (!signer) {
@@ -3981,7 +3992,7 @@ export class HopBridge extends Base {
       inputAmount: amountIn.toString(),
       receiverAddress: userAddress,
       outputToken: getWethAddress(destinationChainModel.slug),
-      slippage: '1', // 1% slippage
+      slippage: (Number(slippageTolerance) / 100).toString(), // e.g. 0.01=1%, 0.005=0.5%, etc
       delegateAddress: userAddress,
       refuel: 'false'
     })
@@ -3992,7 +4003,7 @@ export class HopBridge extends Base {
     const url = `${baseUrl}?${params.toString()}`
     const res = await fetch(url, {
       headers: {
-        'api-key': 'D1mx54qg0a6ZVmk7BCW9B35GK6p1ABYzaAspIkze',
+        'api-key': SOCKET_API_KEY,
         'x-api-key': SOCKET_API_KEY,
       }
     })
@@ -4087,9 +4098,9 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-  
+
       const chainsResponse = await res.json()
-      
+
       if (!chainsResponse.success) {
         return false
       }
@@ -4113,7 +4124,7 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-  
+
       const tokensResponse = await res.json()
 
       if (!tokensResponse.success) {
@@ -4140,10 +4151,10 @@ export class HopBridge extends Base {
       const destinationTokenAddress = getWethAddress(destinationChainModel.slug)
 
       // Check if the token is supported on both chains
-      const isSourceTokenSupported = sourceTokens.some((token: any) => 
+      const isSourceTokenSupported = sourceTokens.some((token: any) =>
         token.address.toLowerCase() === sourceTokenAddress.toLowerCase()
       )
-      const isDestinationTokenSupported = destinationTokens.some((token: any) => 
+      const isDestinationTokenSupported = destinationTokens.some((token: any) =>
         token.address.toLowerCase() === destinationTokenAddress.toLowerCase()
       )
 
@@ -4159,7 +4170,7 @@ export class HopBridge extends Base {
     }
   }
 
-  async getTransactionStatusSocket(hash: string, isRequestHash: boolean = false): Promise<{ 
+  async getTransactionStatusSocket(hash: string, isRequestHash: boolean = false): Promise<{
     status: 'PENDING' | 'COMPLETED';
     txHash: string | null;
     destTxHash: string | null;
@@ -4179,8 +4190,8 @@ export class HopBridge extends Base {
     }
 
     const result = json.result[0]
-    const status = result.originData.status === 'COMPLETED' && result.destinationData.status === 'COMPLETED' 
-      ? 'COMPLETED' 
+    const status = result.originData.status === 'COMPLETED' && result.destinationData.status === 'COMPLETED'
+      ? 'COMPLETED'
       : 'PENDING'
 
     return {

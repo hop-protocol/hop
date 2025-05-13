@@ -13,7 +13,7 @@ const useSendData = (
   toNetwork?: Network,
   fromAmount?: BigNumber
 ) => {
-  const { sdk } = useApp()
+  const { sdk, settings } = useApp()
   const { provider } = useWeb3Context()
 
   const queryKey = `sendData:${token?.symbol}:${fromNetwork?.slug}:${
@@ -38,7 +38,8 @@ const useSendData = (
         return
       }
 
-      const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+      const isHTokenSend = false
+      const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug, isHTokenSend, Number(settings.slippageTolerance))
       console.log('sendData', sendData)
       if (sendData?.isSocket) {
         console.log('sendData.originalSocketResponse', sendData.originalSocketResponse)

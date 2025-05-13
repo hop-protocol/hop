@@ -10,6 +10,7 @@ import { isGoerli } from '#config/index.js'
 import { useEffect, useMemo, useState } from 'react'
 import { useTransactionReplacement } from '#hooks/index.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
+import { useApp } from '#contexts/AppContext/index.js'
 
 export type TransactionHandled = {
   transaction: any
@@ -48,6 +49,7 @@ export function useSendTransaction (props: any) {
     txConfirm,
     estimatedReceived,
   } = props
+  const { settings } = useApp()
   const [tx, setTx] = useState<Transaction>()
   const [sending, setSending] = useState<boolean>(false)
   const [isGnosisSafeWallet, setIsGnosisSafeWallet] = useState<boolean>(false)
@@ -234,7 +236,8 @@ export function useSendTransaction (props: any) {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,
-          amountOutMin: amountOutMin.sub(relayerFeeWithId)
+          amountOutMin: amountOutMin.sub(relayerFeeWithId),
+          slippageTolerance: Number(settings.slippageTolerance),
         })
       },
     })
@@ -279,6 +282,7 @@ export function useSendTransaction (props: any) {
           deadline: deadline(),
           destinationAmountOutMin: 0,
           destinationDeadline: 0,
+          slippageTolerance: Number(settings.slippageTolerance),
         })
       },
     })
@@ -323,6 +327,7 @@ export function useSendTransaction (props: any) {
           deadline: deadline(),
           destinationAmountOutMin: amountOutMin.sub(bonderFeeWithId),
           destinationDeadline: deadline(),
+          slippageTolerance: Number(settings.slippageTolerance),
         })
       },
     })

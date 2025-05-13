@@ -524,7 +524,7 @@ export class HopBridge extends Base {
     }
 
     // Submit the request to Bungee API
-    const submitUrl = 'https://public-backend.bungee.exchange/bungee/submit'
+    const submitUrl = 'https://public-backend.bungee.exchange/api/v1/bungee/submit'
     const response = await fetch(submitUrl, {
       method: 'POST',
       headers: {
@@ -3988,7 +3988,7 @@ export class HopBridge extends Base {
 
     // console.log('params', params)
 
-    const baseUrl = 'https://public-backend.bungee.exchange/bungee/quote'
+    const baseUrl = 'https://public-backend.bungee.exchange/api/v1/bungee/quote'
     const url = `${baseUrl}?${params.toString()}`
     const res = await fetch(url, {
       headers: {
@@ -4080,7 +4080,7 @@ export class HopBridge extends Base {
       }
 
       // Get supported chains
-      const chainsUrl = 'https://public-backend.bungee.exchange/supported-chains'
+      const chainsUrl = 'https://public-backend.bungee.exchange/api/v1/supported-chains'
       let res = await fetch(chainsUrl, {
         headers: {
           'api-key': SOCKET_API_KEY,
@@ -4106,7 +4106,7 @@ export class HopBridge extends Base {
       }
 
       // Get supported tokens for both chains
-      const tokensUrl = `https://public-backend.bungee.exchange/tokens/list?chainIds=${sourceChainModel.chainId},${destinationChainModel.chainId}`
+      const tokensUrl = `https://public-backend.bungee.exchange/api/v1/tokens/list?chainIds=${sourceChainModel.chainId},${destinationChainModel.chainId}`
       res = await fetch(tokensUrl, {
         headers: {
           'api-key': SOCKET_API_KEY,
@@ -4165,7 +4165,7 @@ export class HopBridge extends Base {
     destTxHash: string | null;
     originalSocketResponse: any;
   }> {
-    const statusUrl = `https://public-backend.bungee.exchange/bungee/status?${isRequestHash ? 'requestHash' : 'txHash'}=${hash}`
+    const statusUrl = `https://public-backend.bungee.exchange/api/v1/bungee/status?${isRequestHash ? 'requestHash' : 'txHash'}=${hash}`
     const res = await fetch(statusUrl, {
       headers: {
         'api-key': SOCKET_API_KEY,

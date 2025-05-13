@@ -1449,7 +1449,7 @@ describe.skip('Socket API', () => {
 })
 
 describe.skip('LI.FI API', () => {
-  it('should callgetSendData', async () => {
+  it('should call getSendData', async () => {
     const sdk = new Hop({
       network: 'mainnet',
       enableLifi: true

@@ -33,6 +33,9 @@ REACT_APP_ENABLED_CHAINS=ethereum,polygon,gnosis,optimism,arbitrum
 REACT_APP_ENABLED_TOKENS=ETH,USDC,USDT,DAI
 REACT_APP_DEPRECATED_POOLS=USDC.e,MAGIC
 REACT_APP_NETWORK=goerli
+
+REACT_APP_ENABLE_SOCKET=false
+REACT_APP_ENABLE_LIFI=false
 ```
 
 To disable certain routes, use this environment variable, for example this disables gnosis→anyDestination anyToken route and optimism→arbitrum USDC route:

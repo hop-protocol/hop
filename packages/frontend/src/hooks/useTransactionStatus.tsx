@@ -29,7 +29,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [chain])
 
   const checkSocketStatus = useCallback(async () => {
-    if (!enableSocket || !transaction?.token?.symbol || !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')) {
+    if (!enableSocket) {
       return false
     }
 
@@ -52,7 +52,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [transaction, sdk])
 
   const checkLifiStatus = useCallback(async () => {
-    if (!enableLifi || !transaction?.token?.symbol || !(transaction.token.symbol === 'ETH' || transaction.token.symbol === 'WETH')) {
+    if (!enableLifi) {
       return false
     }
 

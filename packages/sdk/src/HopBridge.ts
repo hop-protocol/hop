@@ -409,12 +409,13 @@ export class HopBridge extends Base {
     }
     sourceChain = this.toChainModel(sourceChain)
 
-    // Check if we should use Socket for ETH transfers
-    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
+    // Check if we should use Socket for transfers
+    if (this.enableSocket && !options.isHTokenSend) {
       return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
     }
 
-    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !options.isHTokenSend) {
+    // Check if we should use LI.FI for transfers
+    if (this.enableLifi && !options.isHTokenSend) {
       return this.#sendLifi(tokenAmount, sourceChain, destinationChain, options)
     }
 
@@ -613,15 +614,6 @@ export class HopBridge extends Base {
 
     // Execute the transaction
     return this.sendTransaction(transactionRequest, sourceChain)
-  }
-
-  async #sendCctp (
-    tokenAmount: TAmount,
-    sourceChain: TChain,
-    destinationChain: TChain,
-    options: Partial<SendOptions> = {}
-  ): Promise<any> {
-    // ... existing code ...
   }
 
   public async populateSendTx (
@@ -1021,11 +1013,13 @@ export class HopBridge extends Base {
     isHTokenSend: boolean = false,
     slippageTolerance: number = this.defaultSlippageTolerance
   ) : Promise<any> {
-    if (this.enableSocket && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
+    // Check if we should use Socket for transfers
+    if (this.enableSocket && !isHTokenSend) {
       return this.#getSendDataSocket(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 
-    if (this.enableLifi && (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') && !isHTokenSend) {
+    // Check if we should use LI.FI for transfers
+    if (this.enableLifi && !isHTokenSend) {
       return this.#getSendDataLifi(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 
@@ -1055,12 +1049,16 @@ export class HopBridge extends Base {
     const sourceChainModel = this.toChainModel(sourceChain)
     const destinationChainModel = this.toChainModel(destinationChain)
 
+    // Get token addresses for source and destination chains
+    const sourceToken = this.getCanonicalToken(sourceChain)
+    const destToken = this.getCanonicalToken(destinationChain)
+
     // Construct URL parameters for LI.FI API
     const params = new URLSearchParams({
       fromChain: sourceChainModel.chainId.toString(),
       toChain: destinationChainModel.chainId.toString(),
-      fromToken: this.tokenSymbol,
-      toToken: this.tokenSymbol,
+      fromToken: sourceToken.address,
+      toToken: destToken.address,
       fromAmount: amountIn.toString(),
       fromAddress: userAddress,
       slippage: slippageTolerance.toString() // e.g. '1'=1%, '0.5'=0.5%, etc
@@ -1929,6 +1927,10 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     bonder: string
   ): Promise<BigNumber> {
+    if (this.enableSocket || this.enableLifi) {
+      return parseUnits('100000', this.getTokenDecimals())
+    }
+
     const [credit, debit] = await Promise.all([
       this.getCredit(destinationChain, bonder),
       this.getTotalDebit(destinationChain, bonder)
@@ -1977,6 +1979,10 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ): Promise<BigNumber> {
+    if (!isHTokenSend && (this.enableSocket || this.enableLifi)) {
+      return parseUnits('100000', this.getTokenDecimals())
+    }
+
     if (!(this.isSupportedAsset(sourceChain) && this.isSupportedAsset(destinationChain))) {
       return BigNumber.from(0)
     }
@@ -3971,27 +3977,19 @@ export class HopBridge extends Base {
     const sourceChainModel = this.toChainModel(sourceChain)
     const destinationChainModel = this.toChainModel(destinationChain)
 
-    // Get WETH addresses for chains that don't support native ETH
-    const getWethAddress = (chain: string) => {
-      switch (chain) {
-        case 'gnosis':
-          return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
-        case 'polygon':
-          return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
-        default:
-          return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
-      }
-    }
+    // Get token addresses for source and destination chains
+    const sourceToken = this.#getCanonicalTokenSocket(sourceChain)
+    const destToken = this.#getCanonicalTokenSocket(destinationChain)
 
     // Construct URL parameters for Bungee API
     const params = new URLSearchParams({
       userAddress,
       originChainId: sourceChainModel.chainId.toString(),
       destinationChainId: destinationChainModel.chainId.toString(),
-      inputToken: getWethAddress(sourceChainModel.slug),
+      inputToken: sourceToken,
       inputAmount: amountIn.toString(),
       receiverAddress: userAddress,
-      outputToken: getWethAddress(destinationChainModel.slug),
+      outputToken: destToken,
       slippage: (Number(slippageTolerance) / 100).toString(), // e.g. 0.01=1%, 0.005=0.5%, etc
       delegateAddress: userAddress,
       refuel: 'false'
@@ -4078,12 +4076,38 @@ export class HopBridge extends Base {
     }
   }
 
+  #getCanonicalTokenSocket(chain: TChain): string {
+    chain = this.toChainModel(chain)
+    const token = this.getCanonicalToken(chain)
+
+    // Get the appropriate token address based on chain
+    const getWethAddress = (chain: string) => {
+      switch (chain) {
+        case 'gnosis':
+          return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
+        case 'polygon':
+          return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
+        default:
+          return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
+      }
+    }
+
+    if (this.tokenSymbol === 'ETH' || this.tokenSymbol === 'WETH') {
+      const address = getWethAddress(chain.slug)
+      return address
+    }
+
+    return token.address
+  }
+
   async #getIsSupportedSocket(sourceChain: TChain, destinationChain: TChain): Promise<boolean> {
     try {
-      // Create cache key from chain IDs
+      // Create cache key from chain IDs and token
       const sourceChainModel = this.toChainModel(sourceChain)
       const destinationChainModel = this.toChainModel(destinationChain)
-      const cacheKey = `${sourceChainModel.chainId}-${destinationChainModel.chainId}`
+      const sourceToken = this.#getCanonicalTokenSocket(sourceChain)
+      const destToken = this.#getCanonicalTokenSocket(destinationChain)
+      const cacheKey = `${sourceChainModel.chainId}-${destinationChainModel.chainId}-${sourceToken}-${destToken}`
 
       // Check cache first
       if (socketSupportCache.has(cacheKey)) {
@@ -4098,9 +4122,9 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-
+  
       const chainsResponse = await res.json()
-
+      
       if (!chainsResponse.success) {
         return false
       }
@@ -4124,7 +4148,7 @@ export class HopBridge extends Base {
           'x-api-key': SOCKET_API_KEY,
         }
       })
-
+  
       const tokensResponse = await res.json()
 
       if (!tokensResponse.success) {
@@ -4135,27 +4159,12 @@ export class HopBridge extends Base {
       const sourceTokens = tokensResponse.result[sourceChainModel.chainId] || []
       const destinationTokens = tokensResponse.result[destinationChainModel.chainId] || []
 
-      // Get the appropriate token address based on chain
-      const getWethAddress = (chain: string) => {
-        switch (chain) {
-          case 'gnosis':
-            return '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1' // WETH on Gnosis
-          case 'polygon':
-            return '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' // WETH on Polygon
-          default:
-            return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Native ETH
-        }
-      }
-
-      const sourceTokenAddress = getWethAddress(sourceChainModel.slug)
-      const destinationTokenAddress = getWethAddress(destinationChainModel.slug)
-
-      // Check if the token is supported on both chains
-      const isSourceTokenSupported = sourceTokens.some((token: any) =>
-        token.address.toLowerCase() === sourceTokenAddress.toLowerCase()
+      // Check if the tokens are supported on both chains
+      const isSourceTokenSupported = sourceTokens.some((token: any) => 
+        token.address.toLowerCase() === sourceToken.toLowerCase()
       )
-      const isDestinationTokenSupported = destinationTokens.some((token: any) =>
-        token.address.toLowerCase() === destinationTokenAddress.toLowerCase()
+      const isDestinationTokenSupported = destinationTokens.some((token: any) => 
+        token.address.toLowerCase() === destToken.toLowerCase()
       )
 
       const isSupported = isSourceTokenSupported && isDestinationTokenSupported

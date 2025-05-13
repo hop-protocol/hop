@@ -44,7 +44,13 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
           historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug, tokenSymbol)
         } catch (error: any) {
           console.error('Failed to fetch time estimates:', error)
-          return
+        }
+        if (!historicalTimeStats) {
+          historicalTimeStats = {
+            avg: 600,
+            median: 600,
+            percentile90: 600,
+          }
         }
 
         cache.current.route = route

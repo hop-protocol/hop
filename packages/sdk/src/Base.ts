@@ -1083,6 +1083,14 @@ export class Base {
   }
 
   async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, tokenSymbol?: string):Promise<any> {
+    if (this.enableSocket || this.enableLifi) {
+      return {
+        avg: 300,
+        median: 300,
+        percentile90: 300,
+      }
+    }
+
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}&token=${tokenSymbol ?? ''}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))

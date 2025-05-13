@@ -532,6 +532,9 @@ export function useSend(): SendResponseProps {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
+      if (enableSocket || enableLifi) {
+        return false
+      }
       if (!(fromNetwork && toNetwork && fromToken && fromTokenAmount)) {
         return false
       }

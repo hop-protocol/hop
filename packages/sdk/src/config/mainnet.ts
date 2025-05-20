@@ -21,11 +21,11 @@ export const config: Config = {
       base: 12
     },
     USDT: {
-      ethereum: 100,
-      polygon: 100,
-      gnosis: 100,
-      optimism: 100,
-      arbitrum: 100
+      ethereum: 5,
+      polygon: 200,
+      gnosis: 200,
+      optimism: 200,
+      arbitrum: 200
     },
     DAI: {
       ethereum: 35,
@@ -36,23 +36,23 @@ export const config: Config = {
     },
     MATIC: {
       ethereum: 5,
-      polygon: 5,
-      gnosis: 5,
+      polygon: 50,
+      gnosis: 50,
       optimism: 0,
       arbitrum: 0
     },
     ETH: {
-      ethereum: 2,
-      polygon: 2,
-      gnosis: 2,
-      optimism: 2,
-      arbitrum: 2,
-      nova: 2,
-      zksync: 2,
-      linea: 2,
-      polygonzk: 2,
-      scrollzk: 2,
-      base: 2
+      ethereum: 5,
+      polygon: 20,
+      gnosis: 20,
+      optimism: 20,
+      arbitrum: 20,
+      nova: 20,
+      zksync: 20,
+      linea: 20,
+      polygonzk: 20,
+      scrollzk: 20,
+      base: 20
     },
     WBTC: {
       ethereum: 23,
@@ -63,14 +63,14 @@ export const config: Config = {
     },
     HOP: {
       ethereum: 5,
-      polygon: 20,
-      gnosis: 20,
-      optimism: 5,
-      arbitrum: 5,
-      nova: 20,
-      base: 20,
-      linea: 20,
-      polygonzk: 20
+      polygon: 80,
+      gnosis: 80,
+      optimism: 20,
+      arbitrum: 20,
+      nova: 80,
+      base: 80,
+      linea: 80,
+      polygonzk: 80
     },
     SNX: {
       ethereum: 20
@@ -79,9 +79,9 @@ export const config: Config = {
       ethereum: 20
     },
     rETH: {
-      ethereum: 15,
-      optimism: 15,
-      arbitrum: 15
+      ethereum: 5,
+      optimism: 50,
+      arbitrum: 50
     },
     MAGIC: {
       ethereum: 20,
@@ -102,7 +102,7 @@ export const config: Config = {
     rETH: 550,
     MAGIC: 1000000
   },
-  destinationFeeGasPriceMultiplier: 1.2,
+  destinationFeeGasPriceMultiplier: 1.9,
   relayerFeeEnabled: {
     polygon: false,
     gnosis: false,

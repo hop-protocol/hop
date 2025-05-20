@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 import React, { useEffect, useState } from 'react'
 import { Circle } from '#components/ui/Circle.js'
 import { Icon } from '#components/ui/Icon.js'
@@ -28,6 +27,8 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const showPendingTxs = true
+
 export const TxPill = () => {
   const { accountDetails, txHistory } = useApp()
   const transactions = txHistory?.transactions
@@ -52,9 +53,9 @@ export const TxPill = () => {
 
   return (
     <div className={styles.root}>
-      {numPendingTxs > 0 ? (
+      {showPendingTxs && numPendingTxs > 0 ? (
         <StyledButton flat onClick={handleClick}>
-          {numPendingTxs > 3 ? "3+" : numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
+          {numPendingTxs > 3 ? "3+" : numPendingTxs} Pending
         </StyledButton>
       ) : (
         <StyledButton

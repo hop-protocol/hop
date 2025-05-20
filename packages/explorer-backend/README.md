@@ -4,20 +4,37 @@
 
 ## Development
 
+Install
+
 ```sh
-npm run dev
+pnpm install
+```
+
+Watch
+
+```sh
+pnpm run dev
 ```
 
 Serve
 
+First run Postgres in seperate terminal:
+
 ```sh
-npm start
+cd scripts/
+./postgres_dev.sh
+```
+
+Then run the server
+
+```sh
+pnpm start
 ```
 
 Build
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 Docker build

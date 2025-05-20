@@ -30,6 +30,12 @@ pnpm install
 pnpm build
 ```
 
+Clean node_modules and build artifacts
+
+```sh
+pnpm clean
+```
+
 #### Guidelines for using PNPM workspaces
 
 All commands should be run from the root of the monorepo.

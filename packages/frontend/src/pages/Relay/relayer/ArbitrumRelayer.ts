@@ -1,18 +1,18 @@
 import {
-  type L1ToL2MessageWriter,
-  type L2ToL1MessageWriter,
-  L1ToL2MessageStatus,
-  L1TransactionReceipt,
-  L2ToL1MessageStatus,
-  L2TransactionReceipt
+  type ParentToChildMessageWriter,
+  type ChildToParentMessageWriter,
+  ParentToChildMessageStatus,
+  ParentTransactionReceipt,
+  ChildToParentMessageStatus,
+  ChildTransactionReceipt
 } from '@arbitrum/sdk'
 import type { Overrides, Signer, providers } from 'ethers'
 import { MessageDirection } from './types.js'
 import { Relayer } from './Relayer.js'
 import { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 
-type Message = L1ToL2MessageWriter | L2ToL1MessageWriter
-type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
+type Message = ParentToChildMessageWriter | ChildToParentMessageWriter
+type MessageStatus = ParentToChildMessageStatus | ChildToParentMessageStatus
 
 type Provider = providers.Provider
 
@@ -25,13 +25,13 @@ export class ArbitrumRelayer extends Relayer<Message, MessageStatus> {
 
   protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return (message as L1ToL2MessageWriter).redeem()
+      return (message as ParentToChildMessageWriter).redeem()
     }
 
     const overrides: Overrides = {
       gasLimit: DefaultL1RelayGasLimit
     }
-    return (message as L2ToL1MessageWriter).execute(this.l2Wallet as Provider, overrides)
+    return (message as ChildToParentMessageWriter).execute(this.l2Wallet as Provider, overrides)
   }
 
   protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<Message> {
@@ -47,8 +47,8 @@ export class ArbitrumRelayer extends Relayer<Message, MessageStatus> {
     if (!txReceipt) {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
-    const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-    const messages: Message[] = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet) as Message[]
+    const arbitrumTxReceipt: ParentTransactionReceipt = new ParentTransactionReceipt(txReceipt)
+    const messages: Message[] = await arbitrumTxReceipt.getParentToChildMessages(this.l2Wallet) as Message[]
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
@@ -65,8 +65,8 @@ export class ArbitrumRelayer extends Relayer<Message, MessageStatus> {
     if (!txReceipt) {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
-    const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-    const messages: Message[] = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet) as Message[]
+    const arbitrumTxReceipt: ChildTransactionReceipt = new ChildTransactionReceipt(txReceipt)
+    const messages: Message[] = await arbitrumTxReceipt.getChildToParentMessages(this.l1Wallet) as Message[]
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
@@ -85,27 +85,28 @@ export class ArbitrumRelayer extends Relayer<Message, MessageStatus> {
       return message.status(this.l2Wallet as Provider)
     }
     // TODO: Shouldn't need to cast
-    return (message as L1ToL2MessageWriter).status()
+    return (message as ParentToChildMessageWriter).status()
   }
 
   protected isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED
+      return messageStatus === ParentToChildMessageStatus.NOT_YET_CREATED
     }
-    return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
+    return messageStatus === ChildToParentMessageStatus.UNCONFIRMED
   }
 
   protected isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
+    console.log('messageStatus', messageStatus, ChildToParentMessageStatus)
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2
+      return messageStatus === ParentToChildMessageStatus.FUNDS_DEPOSITED_ON_CHILD
     }
-    return messageStatus === L2ToL1MessageStatus.CONFIRMED
+    return messageStatus === ChildToParentMessageStatus.CONFIRMED
   }
 
   protected isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return messageStatus === L1ToL2MessageStatus.REDEEMED
+      return messageStatus === ParentToChildMessageStatus.REDEEMED
     }
-    return messageStatus === L2ToL1MessageStatus.EXECUTED
+    return messageStatus === ChildToParentMessageStatus.EXECUTED
   }
 }

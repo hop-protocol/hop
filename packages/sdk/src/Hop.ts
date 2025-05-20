@@ -89,7 +89,9 @@ export class Hop extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
+      enableSocket: this.enableSocket,
+      enableLifi: this.enableLifi
     })
     // port over exiting properties
     if (this.priceFeedApiKeys) {
@@ -126,7 +128,9 @@ export class Hop extends Base {
       blocklist: this.blocklist,
       debugTimeLogsEnabled: this.debugTimeLogsEnabled,
       debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
+      debugTimeLogsCache: this.debugTimeLogsCache,
+      enableSocket: this.enableSocket,
+      enableLifi: this.enableLifi
     })
   }
 

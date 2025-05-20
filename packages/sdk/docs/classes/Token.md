@@ -37,6 +37,8 @@ Class representing ERC20 Token
 - [debugTimeLogsEnabled](Token.md#debugtimelogsenabled)
 - [decimals](Token.md#decimals)
 - [destinationFeeGasPriceMultiplier](Token.md#destinationfeegaspricemultiplier)
+- [enableLifi](Token.md#enablelifi)
+- [enableSocket](Token.md#enablesocket)
 - [fees](Token.md#fees)
 - [gasPriceMultiplier](Token.md#gaspricemultiplier)
 - [getContract](Token.md#getcontract)
@@ -375,6 +377,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
+
+___
+
+### <a id="enablelifi" name="enablelifi"></a> enableLifi
+
+• **enableLifi**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableLifi](Base.md#enablelifi)
+
+___
+
+### <a id="enablesocket" name="enablesocket"></a> enableSocket
+
+• **enableSocket**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableSocket](Base.md#enablesocket)
 
 ___
 

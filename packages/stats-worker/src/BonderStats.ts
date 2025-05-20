@@ -605,6 +605,7 @@ class BonderStats {
       }
 
       try {
+        console.log('upserting bonder balance', token, timestamp)
         await this.db.upsertBonderBalances(
           token,
           dbData.polygonBlockNumber,
@@ -776,6 +777,10 @@ class BonderStats {
                   const bridgeMap = (mainnetAddresses as any).bridges[token][
                     chain
                   ]
+                  if (!bridgeMap) {
+                    console.warn('bridgeMap not found for', token, chain)
+                    return
+                  }
                   const tokenAddress =
                     bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
                   const hTokenAddress = bridgeMap.l2HopBridgeToken
@@ -803,6 +808,8 @@ class BonderStats {
                       ?.bridgeDeployedBlockNumber
 
                   const balancePromises: Promise<any>[] = []
+
+                  // balancePromises #0
                   if (
                     tokenAddress !== constants.AddressZero &&
                     isContractDeployed
@@ -822,6 +829,7 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
+                  // balancePromises #1
                   if (hTokenContract && isContractDeployed) {
                     balancePromises.push(
                       hTokenContract
@@ -838,10 +846,12 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
+                  // balancePromises #2
                   balancePromises.push(
                     archiveProvider.getBalance(bonder, blockTag)
                   )
 
+                  // balancePromises #3
                   if (chain === 'arbitrum') {
                     let aliasAddress = (arbitrumAliases as Record<string, string>)[token]
                     if (
@@ -857,16 +867,23 @@ class BonderStats {
                     balancePromises.push(
                       archiveProvider.getBalance(aliasAddress, blockTag)
                     )
+                    console.log('aliasAddress', aliasAddress, chain, token)
                   } else {
                     balancePromises.push(Promise.resolve(0))
                   }
 
+                  // balancePromises #4
                   if (chain === 'ethereum') {
                     const messengerWrapperAddress = (mainnetAddresses as any)
                       .bridges[token].arbitrum.l1MessengerWrapper
-                    balancePromises.push(
-                      provider.getBalance(messengerWrapperAddress, blockTag)
-                    )
+                    if (messengerWrapperAddress) {
+                      balancePromises.push(
+                        provider.getBalance(messengerWrapperAddress, blockTag)
+                      )
+                    } else {
+                      console.warn('messengerWrapperAddress not found for', token, chain)
+                      balancePromises.push(Promise.resolve(0))
+                    }
                   } else {
                     balancePromises.push(Promise.resolve(0))
                   }
@@ -997,7 +1014,7 @@ class BonderStats {
 
                   resolve(null)
                 } catch (err) {
-                  console.error(err)
+                  console.error('fetchBonderBalances error', err)
                   reject(err)
                 }
               })

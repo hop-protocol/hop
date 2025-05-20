@@ -34,6 +34,8 @@ Class representing Hop
 - [debugTimeLogsCacheEnabled](Hop.md#debugtimelogscacheenabled)
 - [debugTimeLogsEnabled](Hop.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](Hop.md#destinationfeegaspricemultiplier)
+- [enableLifi](Hop.md#enablelifi)
+- [enableSocket](Hop.md#enablesocket)
 - [fees](Hop.md#fees)
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
 - [getContract](Hop.md#getcontract)
@@ -351,6 +353,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
+
+___
+
+### <a id="enablelifi" name="enablelifi"></a> enableLifi
+
+• **enableLifi**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableLifi](Base.md#enablelifi)
+
+___
+
+### <a id="enablesocket" name="enablesocket"></a> enableSocket
+
+• **enableSocket**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[enableSocket](Base.md#enablesocket)
 
 ___
 

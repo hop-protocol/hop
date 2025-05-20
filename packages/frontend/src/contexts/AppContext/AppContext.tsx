@@ -9,7 +9,7 @@ import useTxHistory, { TxHistory } from '#contexts/AppContext/useTxHistory.js'
 import { AccountDetails, useAccountDetails } from '#contexts/AppContext/useAccountDetails.js'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { TxConfirm, useTxConfirm } from '#contexts/AppContext/useTxConfirm.js'
-import { blocklist, reactAppNetwork, rpcProviderOverrides } from '#config/index.js'
+import { blocklist, reactAppNetwork, rpcProviderOverrides, enableSocket, enableLifi } from '#config/index.js'
 import { allNetworks as networks } from '#config/networks.js'
 import { useTheme } from '@mui/styles'
 import { useWeb3Context } from '#contexts/Web3Context.js'
@@ -41,7 +41,9 @@ const AppContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       blocklist,
       chainProviders: {
         ...rpcProviderOverrides,
-      }
+      },
+      enableSocket,
+      enableLifi
     })
     return hop
   }, [provider])

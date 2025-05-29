@@ -1118,7 +1118,7 @@ export class HopBridge extends Base {
     console.log('url', url)
 
     if (!res.ok) {
-      throw new Error('Failed to get quote from LI.FI API')
+      throw new Error('This route is not available at this time. Please try a different chain.')
     }
 
     const response = await res.json()

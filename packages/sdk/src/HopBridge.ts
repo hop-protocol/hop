@@ -1061,12 +1061,12 @@ export class HopBridge extends Base {
     slippageTolerance: number = this.defaultSlippageTolerance
   ) : Promise<any> {
     // Check if we should use Socket for transfers
-    if (this.enableSocket && !isHTokenSend) {
+    if (this.enableSocket && !isHTokenSend && !this.tokenSymbol === TokenSymbol.HOP) {
       return this.#getSendDataSocket(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 
     // Check if we should use LI.FI for transfers
-    if (this.enableLifi && !isHTokenSend) {
+    if (this.enableLifi && !isHTokenSend && !this.tokenSymbol === TokenSymbol.HOP) {
       return this.#getSendDataLifi(amountIn, sourceChain, destinationChain, slippageTolerance)
     }
 

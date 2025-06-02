@@ -410,12 +410,12 @@ export class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
 
     // Check if we should use Socket for transfers
-    if (this.enableSocket && !options.isHTokenSend && !this.tokenSymbol === TokenSymbol.HOP) {
+    if (this.enableSocket && !options.isHTokenSend && this.tokenSymbol !== TokenSymbol.HOP) {
       return this.#sendSocket(tokenAmount, sourceChain, destinationChain, options)
     }
 
     // Check if we should use LI.FI for transfers
-    if (this.enableLifi && !options.isHTokenSend && !this.tokenSymbol === TokenSymbol.HOP) {
+    if (this.enableLifi && !options.isHTokenSend && this.tokenSymbol !== TokenSymbol.HOP) {
       return this.#sendLifi(tokenAmount, sourceChain, destinationChain, options)
     }
 

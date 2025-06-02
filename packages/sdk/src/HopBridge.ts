@@ -1974,7 +1974,7 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     bonder: string
   ): Promise<BigNumber> {
-    if (this.enableSocket || this.enableLifi) {
+    if ((this.enableSocket || this.enableLifi) && this.tokenSymbol !== TokenSymbol.HOP) {
       return parseUnits('100000', this.getTokenDecimals())
     }
 
@@ -2026,7 +2026,7 @@ export class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ): Promise<BigNumber> {
-    if (!isHTokenSend && (this.enableSocket || this.enableLifi)) {
+    if (!isHTokenSend && (this.enableSocket || this.enableLifi) && this.tokenSymbol !== TokenSymbol.HOP) {
       return parseUnits('100000', this.getTokenDecimals())
     }
 

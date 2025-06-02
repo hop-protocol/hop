@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.41",
+  "version": "0.0.40",
   "description": "The v1 Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",

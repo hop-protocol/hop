@@ -28,7 +28,7 @@ export interface IMessageService {
  * - messageDirection and messageIndex should in a single object, along with child class specific options, such
  *   as messageBlockNumber or API response. They should all be optional. The former two items resolve the case
  *   where a getMessage call by a child class needs the messageIndex but not the direction. The latter allows
- *   for cacheing of data that is used in multiple methods, such as the block number of a message so that it
+ *   for caching of data that is used in multiple methods, such as the block number of a message so that it
  *   does not need to be derived via an RPC call for each status check method.
  */
 

@@ -26,7 +26,7 @@ app.get('/health', (req: any, res: any) => {
 
 app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
   try {
-    let { limit = 10, filter, page = 1 } = req.query
+    let { limit = 10, filter, page = 1, startTimestamp, endTimestamp } = req.query
     limit = Number(limit)
     if (limit < 1) {
       throw new Error('limit must be greater than 0')
@@ -34,10 +34,22 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
     if (limit > maxPageSize) {
       throw new Error(`limit must be less than ${maxPageSize}`)
     }
+
+    // Parse timestamps if provided
+    if (startTimestamp) {
+      startTimestamp = parseInt(startTimestamp)
+    }
+    
+    if (endTimestamp) {
+      endTimestamp = parseInt(endTimestamp)
+    }
+
     const { items, hasNextPage } = await controller.getExplorerEventsForApi({
       limit,
       filter,
-      page: Number(page)
+      page: Number(page),
+      startTimestamp,
+      endTimestamp
     })
     res.status(200).json({
       events: items,
@@ -52,7 +64,7 @@ app.get('/v1/explorer', responseCache, async (req: any, res: any) => {
 
 app.get('/v1/events', responseCache, async (req: any, res: any) => {
   try {
-    let { eventName, page = 1, limit = 10, filter } = req.query
+    let { eventName, page = 1, limit = 10, filter, startTimestamp, endTimestamp } = req.query
     if (!eventName) {
       throw new Error('missing eventName')
     }
@@ -63,11 +75,23 @@ app.get('/v1/events', responseCache, async (req: any, res: any) => {
     if (limit > maxPageSize) {
       throw new Error(`limit must be less than ${maxPageSize}`)
     }
+    
+    // Parse timestamps if provided
+    if (startTimestamp) {
+      startTimestamp = parseInt(startTimestamp)
+    }
+    
+    if (endTimestamp) {
+      endTimestamp = parseInt(endTimestamp)
+    }
+    
     const { items, hasNextPage } = await controller.getEventsForApi({
       eventName,
       limit,
       filter,
-      page: Number(page)
+      page: Number(page),
+      startTimestamp,
+      endTimestamp
     })
     res.status(200).json({
       events: items,
@@ -174,6 +198,23 @@ app.get('/v1/stats/volume', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/stats/total-transfers', responseCache, async (req: any, res: any) => {
+  try {
+    const { startTimestamp, endTimestamp } = req.query
+    const stats = await controller.getTotalTransferCountsForApi({
+      startTimestamp: startTimestamp ? parseInt(startTimestamp) : undefined,
+      endTimestamp: endTimestamp ? parseInt(endTimestamp) : undefined
+    })
+    res.status(200).json({
+      stats,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/v1/stats/daily-volume', responseCache, async (req: any, res: any) => {
   try {
     const { days, pathId, startTimestamp, endTimestamp } = req.query
@@ -212,6 +253,15 @@ app.get('/v1/stats/cumulative-volume', responseCache, async (req: any, res: any)
   }
 })
 
+app.get('/v1/stats/cumulative-volume-by-chain', responseCache, async (req: any, res: any) => {
+  try {
+    await controller.getCumulativeVolumeByChainStatsForApi(req, res)
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/v1/contract-state', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
   try {
     const { filter, chainIds } = req.query
@@ -237,6 +287,25 @@ app.get('/v1/path-details', responseCacheHandler(5 * 60 * 1000), async (req: any
     }
     const data = await controller.getPathDetailsState({
       pathId
+    })
+    res.status(200).json({
+      data,
+      lastUpdated: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error(err)
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/message-details', responseCacheHandler(5 * 60 * 1000), async (req: any, res: any) => {
+  try {
+    const { messageId } = req.query
+    if (!messageId) {
+      throw new Error('messageId is required')
+    }
+    const data = await controller.getMessageDetailsState({
+      messageId
     })
     res.status(200).json({
       data,
@@ -326,6 +395,19 @@ app.get('/v1/stats/flow', responseCache, async (req: any, res: any) => {
   } catch (err: any) {
     console.error(`Error fetching flow stats: ${err.message}`)
     res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/analytics/cumulative-transfer-counts', responseCache, async (req: any, res: any) => {
+  try {
+    const { days = 30 } = req.query
+    const result = await controller.getCumulativeTransferCountsForApi({
+      days: Number(days)
+    })
+    res.status(200).json(result)
+  } catch (err: any) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
   }
 })
 

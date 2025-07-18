@@ -12,12 +12,12 @@ import SearchIcon from '@mui/icons-material/Search'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import { useTheme } from '@mui/material/styles'
+import { useTheme } from '@/app/hooks/useTheme'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import Paper from '@mui/material/Paper'
 
 export function Prices () {
-  const theme = useTheme()
+  const { theme, dark: isDarkMode } = useTheme()
   const [filterBy, setFilterBy] = useState('token')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
@@ -51,12 +51,14 @@ export function Prices () {
       {
         key: 'timestamp',
         value: `${price.timestamp} (${price.timestampRelative})`,
-        clipboardValue: price.timestamp
+        clipboardValue: price.timestamp,
+        hoverTitle: `${price.timestampISO}`
       },
       {
         key: 'token',
         value: price.token,
-        clipboardValue: price.token
+        clipboardValue: price.token,
+        imageUrl: price.tokenImageUrl
       },
       {
         key: 'priceUsd',

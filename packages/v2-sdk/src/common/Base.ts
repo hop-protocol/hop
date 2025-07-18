@@ -97,6 +97,7 @@ export class Base {
   setProvider (chainId: BigNumberish, provider: Provider | Signer): void {
     chainId = chainId.toString()
     if (!this.utils.isValidChainId(chainId)) {
+      console.warn(`hopV2Sdk: setProvider invalid chainId "${chainId}"`)
       return
     }
     this.signersOrProviders[chainId] = provider
@@ -121,13 +122,14 @@ export class Base {
     }
   }
 
-  setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {
-    for (const chainId in signersOrProviders) {
+  setProviderUrls (signersOrProvidersUrls: Record<string, string | string[]>): void {
+    for (const chainId in signersOrProvidersUrls) {
       if (!this.utils.isValidChainId(chainId)) {
+        console.warn(`hopV2Sdk: setProviderUrls invalid chainId "${chainId}"`)
         continue
       }
-      if (signersOrProviders[chainId]) {
-        this.signersOrProviders[chainId?.toString()] = getProviderFromUrl(signersOrProviders[chainId])
+      if (signersOrProvidersUrls[chainId]) {
+        this.setProviderUrl(chainId, signersOrProvidersUrls[chainId])
       }
     }
   }

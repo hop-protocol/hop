@@ -164,31 +164,8 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
   const sendV1 = useSend()
   const sendV2 = useV2Send()
 
-  useEffect(() => {
-    // for testing
-    async function update() {
-      const hash = ''
-      const chainId = ''
-
-      // const hash = '0xe0ff8a31f0b2c7cba9f3250481e009f621451905d20175ce4885d8a220827234'
-      // const chainId = '11155111'
-
-      // const hash = '0xb10cf2887fecb5e6a7ae0cdba32d270bfc6f1fa07823f7c912b90e9ad452d70c'
-      // const chainId = '84532'
-
-      if (hash) {
-        const provider = sendV2.v2Sdk?.getProvider(chainId)
-        const _tx = await provider.getTransaction(hash)
-        sendV2.setSendTx(_tx)
-      }
-    }
-
-    update().catch(console.error)
-  }, [sendV2.v2Sdk])
-
   // Update the isTokenEligibleForV2 check in useSendV2Intermediary
   const isTokenEligibleForV2 = useMemo(() => {
-    // return true // for testing
     if (!v2Enabled) {
       return false
     }
@@ -205,7 +182,6 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
   // Determine which version has the best rate
   const useV2ForBestRate = useMemo(() => {
-    // return true // for testing
     if (
       !sendV1.isLoadingSendData &&
       !sendV2.isFetchingGetSendData &&
@@ -257,7 +233,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
       // Synchronize fromToken.symbol
       if (sendV1.fromToken && sendV1.fromToken.symbol && sendV2.setTokenSymbol) {
-        sendV2.setTokenSymbol(sendV1.fromToken.symbol === 'ETH' ? 'MOCK' : sendV1.fromToken.symbol) // for testing
+        sendV2.setTokenSymbol(sendV1.fromToken.symbol)
       }
 
       // Synchronize fromTokenAmount to amountIn
@@ -373,9 +349,9 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     customRecipient: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? getValue(sendV2, 'recipient', '')
-        : getValue(sendV1, 'customRecipient', '')
-      : getValue(sendV1, 'customRecipient', ''),
+        ? getValue(sendV2, 'recipient', '') || ''
+        : getValue(sendV1, 'customRecipient', '') || ''
+      : getValue(sendV1, 'customRecipient', '') || '',
 
     deadline: isTokenEligibleForV2
       ? useV2ForBestRate
@@ -415,13 +391,13 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     feeRefundDisplay: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide this
+        ? getValue(sendV2, 'feeRefundDisplay', '')
         : getValue(sendV1, 'feeRefundDisplay', '')
       : getValue(sendV1, 'feeRefundDisplay', ''),
 
     feeRefundTokenSymbol: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? '' // Placeholder as v2 may not provide this
+        ? getValue(sendV2, 'feeRefundTokenSymbol', '')
         : getValue(sendV1, 'feeRefundTokenSymbol', '')
       : getValue(sendV1, 'feeRefundTokenSymbol', ''),
 
@@ -617,7 +593,7 @@ export function useSendV2Intermediary(): UseSendV2IntermediaryProps {
 
     showFeeRefund: isTokenEligibleForV2
       ? useV2ForBestRate
-        ? false // Placeholder as v2 may not have this
+        ? getValue(sendV2, 'showFeeRefund', false)
         : getValue(sendV1, 'showFeeRefund', false)
       : getValue(sendV1, 'showFeeRefund', false),
 

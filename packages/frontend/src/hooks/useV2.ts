@@ -61,6 +61,7 @@ type V2Hook = {
   getTokenInfoByTokenSymbol: (chainId: string, tokenSymbol: string) => Promise<Token>
   getTokenInfoByTokenAddress: (chainId: string, address: string) => Promise<Token>
   sendTokens: (input: SendTokensInput) => Promise<ethers.providers.TransactionResponse>
+  estimateGasCostForSend: (input: SendTokensInput) => Promise<BigNumber>
   getWillSendTokensFail: (input: GetWillSendTokensFailInput) => Promise<boolean>
   getEstimatedReceived: (input: SendTokensInput) => Promise<any>
   getSendData: (input: GetSendDataInput) => Promise<any>
@@ -278,6 +279,48 @@ export function useV2(): V2Hook {
     return tx
   }
 
+  async function estimateGasCostForSend (input: SendTokensInput): Promise<BigNumber> {
+    if (!v2Sdk) {
+      throw new Error('Hop SDK not initialized')
+    }
+
+    const from = account
+
+    const {
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount,
+      minAmountOut
+    } = input
+
+    console.log('estimateGasCostForSend input', {
+      from,
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount,
+      minAmountOut
+    })
+
+    const estimatedGasCost = await v2Sdk.estimateGasCostForSend({
+      from,
+      fromChainId,
+      toChainId,
+      fromToken,
+      toToken,
+      to,
+      amount,
+      minAmountOut
+    })
+
+    return estimatedGasCost
+  }
+
   async function getEstimatedReceived (input: SendTokensInput): Promise<any> {
     const {
       fromChainId,
@@ -367,6 +410,7 @@ export function useV2(): V2Hook {
     getEstimatedReceived,
     getSendData,
     v2Sdk,
-    account
+    account,
+    estimateGasCostForSend
   }
 }

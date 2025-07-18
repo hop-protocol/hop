@@ -344,7 +344,7 @@ const Send: FC = () => {
             <FeeRefund
               title={`${feeRefundTokenSymbol} Onboarding Reward`}
               tokenSymbol={feeRefundTokenSymbol}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into this L2. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee. The refund is capped at 20 ${feeRefundTokenSymbol} per transfer.`}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into this L2. This refund includes a percentage of the ${isV2 ? 'send fee + bonder fee' : 'source transaction cost + bonder fee + AMM LP fee'}. The refund is capped at 20 ${feeRefundTokenSymbol} per transfer.`}
               value={feeRefundDisplay}
             />
           )}

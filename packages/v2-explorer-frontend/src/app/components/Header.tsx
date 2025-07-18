@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import { networkName } from '@/app/config'
+import { networkName, networkSlug } from '@/app/config'
 import { usePathname } from 'next/navigation'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
@@ -21,7 +21,11 @@ import TokenIcon from '@mui/icons-material/Token'
 import RouteIcon from '@mui/icons-material/Route'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import InsightsIcon from '@mui/icons-material/Insights'
+import CodeIcon from '@mui/icons-material/Code'
+import SyncAltIcon from '@mui/icons-material/SyncAlt'
+import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
+import Tooltip from '@mui/material/Tooltip'
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
@@ -72,9 +76,31 @@ export function Header () {
   const router = useRouter()
   const navigate = router.push
   const pathname = usePathname()
-  const { theme, dark, toggleTheme } = useTheme()
+  const { theme, dark: isDarkMode, toggleTheme } = useTheme()
   const muiTheme = useMuiTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'))
+  const isSmallMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
+  const [alternativeExplorer, setAlternativeExplorer] = useState({
+    url: '',
+    label: ''
+  })
+
+  useEffect(() => {
+    // Check network slug from config instead of hostname
+    const isMainnet = networkSlug === 'mainnet'
+    
+    if (isMainnet) {
+      setAlternativeExplorer({
+        url: 'https://v2-explorer-sepolia.hop.exchange/',
+        label: 'Sepolia Explorer'
+      })
+    } else {
+      setAlternativeExplorer({
+        url: 'https://v2-explorer.hop.exchange/',
+        label: 'Mainnet Explorer'
+      })
+    }
+  }, [])
 
   const routes: Record<string, string> = {
     home: '/',
@@ -106,18 +132,21 @@ export function Header () {
     navigate(routes[newValue])
   }
 
-  const logoImage = dark ? logoDark : logo
+  const logoImage = isDarkMode ? logoDark : logo
 
   return (
-    <Box width="100%" mb={{ xs: 2, sm: 3, md: 4 }} mt={{ xs: 1, sm: 2 }}>
+    <Box width="100%" mb={{ xs: 3, sm: 3, md: 4 }} mt={{ xs: 2, sm: 2 }}>
       {/* Header top row - logo and theme toggle */}
       <Box 
         display="flex" 
         width="100%"
         justifyContent="space-between"
-        alignItems="center" 
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        flexDirection={{ xs: 'column', sm: 'row' }}
         mb={{ xs: 2, md: 2 }}
+        gap={{ xs: 2, sm: 0 }}
       >
+        {/* Logo and title area */}
         <Box 
           display="flex" 
           flexDirection={{ xs: 'column', sm: 'row' }}
@@ -128,7 +157,11 @@ export function Header () {
             <Typography 
               variant="h4" 
               color="textPrimary"
-              sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}
+              sx={{ 
+                fontSize: { xs: '1.6rem', sm: '2rem' },
+                fontWeight: { xs: 600, sm: 500 },
+                lineHeight: 1.2
+              }}
             >
               <a href="/" style={{
                 textDecoration: 'none',
@@ -136,13 +169,13 @@ export function Header () {
                 display: 'flex',
                 alignItems: 'center',
               }}>
-                <Box display="flex" justifyContent="center" alignItems="center">
-                  <Box display="flex" mr={1}>
+                <Box display="flex" justifyContent="center" alignItems="center" gap={1}>
+                  <Box display="flex">
                     <img 
                       src={logoImage} 
                       alt="Hop" 
                       style={{ 
-                        height: isMobile ? '24px' : '32px',
+                        height: isMobile ? '28px' : '32px',
                         width: 'auto'
                       }} 
                     />
@@ -152,33 +185,102 @@ export function Header () {
               </a>
             </Typography>
           </Box>
-          <Box>
-            <Typography 
-              variant="subtitle1" 
-              color="secondary"
-              sx={{ 
-                fontSize: { xs: '0.8rem', sm: '1rem' },
-                mt: { xs: 0, sm: 0 }
-              }}
-            >
-              {networkName}
-            </Typography>
-          </Box>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              fontWeight: 'medium',
+              color: 'primary.main',
+              padding: { xs: '0.25rem 0', sm: '0.25rem 0.75rem' },
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              borderRadius: 1
+            }}
+          >
+            {networkName}
+          </Typography>
         </Box>
         
-        <Box>
+        {/* Actions area - links and theme toggle */}
+        <Box 
+          display="flex" 
+          width={{ xs: '100%', sm: 'auto' }}
+          justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
+          alignItems="center" 
+          gap={1.5}
+          flexWrap="wrap"
+        >
+          <Box display="flex" gap={1.5}>
+            {alternativeExplorer.url && (
+              <Tooltip 
+                title={alternativeExplorer.label === 'Mainnet Explorer' ? 'Coming soon' : ''} 
+                arrow
+              >
+                <span>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={alternativeExplorer.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={!isSmallMobile && <SyncAltIcon />}
+                    disabled={alternativeExplorer.label === 'Mainnet Explorer'}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      whiteSpace: 'nowrap',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      py: { xs: 0.5, sm: 0.75 },
+                      minWidth: { xs: 'auto', sm: 'auto' },
+                      opacity: 1,
+                      cursor: alternativeExplorer.label === 'Mainnet Explorer' ? 'not-allowed' : 'pointer',
+                      pointerEvents: alternativeExplorer.label === 'Mainnet Explorer' ? 'auto' : 'auto',
+                      '&.Mui-disabled': {
+                        color: theme => theme.palette.mode === 'dark' ? 'text.secondary' : 'rgba(0, 0, 0, 0.3)',
+                        borderColor: theme => theme.palette.mode === 'dark' ? 'text.disabled' : 'rgba(0, 0, 0, 0.12)',
+                        backgroundColor: theme => theme.palette.mode === 'dark' ? 'action.disabledBackground' : 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    {isSmallMobile ? <SyncAltIcon fontSize="small" /> : alternativeExplorer.label}
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
+            <Button
+              variant="outlined"
+              size="small"
+              href="https://v2-playground.hop.exchange/"
+              target="_blank"
+              rel="noopener noreferrer"
+              startIcon={!isSmallMobile && <CodeIcon />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                px: { xs: 1, sm: 1.5 },
+                py: { xs: 0.5, sm: 0.75 },
+                minWidth: { xs: 'auto', sm: 'auto' }
+              }}
+            >
+              {isSmallMobile ? <CodeIcon fontSize="small" /> : "V2 Playground"}
+            </Button>
+          </Box>
           <IconButton 
             onClick={toggleTheme} 
             title="Toggle theme color mode"
+            size={isMobile ? "small" : "medium"}
             sx={{
-              backgroundColor: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-              }
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              },
+              p: { xs: 1, sm: 1.25 }
             }}
           >
-            {dark ? <LightModeIcon /> : <DarkModeIcon />}
+            {isDarkMode ? <LightModeIcon fontSize={isMobile ? "small" : "medium"} /> : <DarkModeIcon fontSize={isMobile ? "small" : "medium"} />}
           </IconButton>
         </Box>
       </Box>
@@ -189,8 +291,8 @@ export function Header () {
         sx={{
           width: '100%',
           borderRadius: 2,
-          backgroundColor: dark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
-          border: `1px solid ${dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'}`,
+          backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'}`,
           overflow: 'hidden'
         }}
       >
@@ -200,7 +302,7 @@ export function Header () {
             overflowX: 'auto',
             display: 'flex',
             justifyContent: { xs: 'flex-start', md: 'flex-start' },
-            padding: { xs: '4px', sm: '4px 8px' }
+            padding: { xs: '2px', sm: '4px 8px' }
           }}
         >
           <Tabs 
@@ -210,7 +312,7 @@ export function Header () {
             scrollButtons="auto"
             allowScrollButtonsMobile
             sx={{
-              minHeight: { xs: '36px', sm: '48px' },
+              minHeight: { xs: '40px', sm: '48px' },
               '.MuiTabs-scrollButtons': {
                 '&.Mui-disabled': {
                   opacity: 0.3,

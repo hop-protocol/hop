@@ -9,21 +9,13 @@ type CumulativeVolumeStatsProps = {
 }
 
 type CumulativeVolumeStats = {
-  data: {
-    labels: string[]  // dates
-    datasets: Array<{
-      label: string   // token symbol
-      data: number[]  // token amount values
-    }>
-    rawData: Array<{
-      date: string
-      tokenSymbol: string
-      tokenDecimals: number
-      volume: string
-      volumeFormatted: string
-    }>
-  }
-  lastUpdated: string
+  labels: string[]
+  datasets: {
+    label: string
+    data: number[]
+    priceUsd: number
+  }[]
+  rawData: any[]
 }
 
 // Helper function to format token amounts correctly
@@ -120,7 +112,7 @@ const fetchCumulativeVolumeStats = async (options: CumulativeVolumeStatsProps = 
     }
   }
   
-  return data
+  return data.data
 }
 
 export const useFetchCumulativeVolumeStats = (options: CumulativeVolumeStatsProps = {}): { 

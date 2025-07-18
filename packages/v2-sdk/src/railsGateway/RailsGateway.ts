@@ -412,6 +412,11 @@ export type RailsGatewayConstructorInput = {
   signerOrProvider?: Signer | providers.Provider
 }
 
+export type EstimateGasCostForSendInput = SendInput & {
+  from?: string
+  gasPrice?: BigNumberish
+}
+
 export class RailsGateway extends Base {
   static EventName = EventName
   chainId: BigNumberish
@@ -734,10 +739,10 @@ export class RailsGateway extends Base {
 
   getStakingRegistry(): StakingRegistry {
     return new StakingRegistry({
+      network: this.network,
       chainId: this.chainId,
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,
-      network: this.network
     })
   }
 
@@ -806,6 +811,8 @@ export class RailsGateway extends Base {
         const txData = await contract.populateTransaction.send(to, amount, hops, {
           value: fee
         })
+
+        console.log('v2 rails send txData', txData)
 
         return {
           ...txData,
@@ -1851,6 +1858,43 @@ export class RailsGateway extends Base {
       getTransferBondedEventFromTransferId: async ({ transferId }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
         const railsPath = await this.getRailsPath()
         return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferBonded, transferId })
+      },
+
+      estimateGasCostForSend: async ({ from, to, amount, hops = [], fee, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        try {
+          // Get the populated transaction
+          const txData = await this.populateTransaction.send({ to, amount, hops, fee })
+
+          // Get the provider
+          const provider = this.getProvider(chainId)
+          if (!provider) {
+            throw new ConfigError(`Provider not found for chainId: ${chainId}`)
+          }
+
+          if (!txData.from) {
+            txData.from = from ?? await this.getSignerAddress(chainId) ?? '0x' + '1'.repeat(40)
+          }
+
+          // Estimate gas limit
+          const gasLimit = await provider.estimateGas(txData)
+
+          // Get gas price if not provided
+          const currentGasPrice = gasPrice ? BigNumber.from(gasPrice) : await provider.getGasPrice()
+
+          // Calculate total gas cost (gasLimit * gasPrice)
+          const gasCost = gasLimit.mul(currentGasPrice)
+
+          return gasCost
+        } catch (err: unknown) {
+          console.warn('hopV2Sdk: estimateGasCostForSend error', err)
+          return this.throwError(err) as BigNumber
+        }
       },
     }
   }

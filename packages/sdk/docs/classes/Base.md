@@ -38,6 +38,8 @@ Class with base methods.
 - [debugTimeLogsCacheEnabled](Base.md#debugtimelogscacheenabled)
 - [debugTimeLogsEnabled](Base.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
+- [enableLifi](Base.md#enablelifi)
+- [enableSocket](Base.md#enablesocket)
 - [fees](Base.md#fees)
 - [gasPriceMultiplier](Base.md#gaspricemultiplier)
 - [getContract](Base.md#getcontract)
@@ -248,6 +250,18 @@ ___
 ### <a id="destinationfeegaspricemultiplier" name="destinationfeegaspricemultiplier"></a> destinationFeeGasPriceMultiplier
 
 • **destinationFeeGasPriceMultiplier**: `number` = `1`
+
+___
+
+### <a id="enablelifi" name="enablelifi"></a> enableLifi
+
+• **enableLifi**: `boolean` = `false`
+
+___
+
+### <a id="enablesocket" name="enablesocket"></a> enableSocket
+
+• **enableSocket**: `boolean` = `false`
 
 ___
 

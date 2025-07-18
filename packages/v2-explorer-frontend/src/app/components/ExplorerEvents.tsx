@@ -16,21 +16,21 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import CircularProgress from '@mui/material/CircularProgress'
 import FilterListIcon from '@mui/icons-material/FilterList'
-import { alpha, useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material/styles'
 import { Table } from './Table'
 import { useEvents } from '../hooks/useEvents'
 import { useRouter } from 'next/navigation'
 import { useQueryParams } from '@/app/hooks/useQueryParams'
 import { utils } from 'ethers'
 import SwapHorizontalCircleIcon from '@mui/icons-material/SwapHorizontalCircle'
+import { useTheme } from '@/app/hooks/useTheme'
 
 const { formatUnits } = utils
 
 export function ExplorerEvents (props: any) {
   const { initialEvents } = props
   const router = useRouter()
-  const theme = useTheme()
-  const isDarkMode = theme.palette.mode === 'dark'
+  const { theme, dark: isDarkMode } = useTheme()
   const { queryParams, updateQueryParams } = useQueryParams()
   const navigate = router.push
   const [filterBy, setFilterBy] = useState('transferId')
@@ -160,7 +160,7 @@ export function ExplorerEvents (props: any) {
       {
         key: 'created',
         value: `${event.context?.blockTimestampRelative}`,
-        hoverTooltip: `${event.context?.blockTimestampISO}`
+        hoverTitle: `${event.context?.blockTimestampISO}`
       },
       {
         key: 'token',

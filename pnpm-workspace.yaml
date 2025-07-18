@@ -11,6 +11,6 @@ packages:
   - 'packages/stats-worker'
   - 'packages/v2-explorer-backend'
   - 'packages/v2-explorer-frontend'
-  - 'packages/v2-hop-node'
+  #- 'packages/v2-hop-node'
   - 'packages/v2-sdk'
-  - 'packages/v2-sdk-demo'
+  - 'packages/v2-playground'

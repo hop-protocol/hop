@@ -6,41 +6,54 @@ import { useApp } from '#contexts/AppContext/index.js'
 import { useTransactionReplacement } from '#hooks/useTransactionReplacement.js'
 import { useWeb3Context } from '#contexts/Web3Context.js'
 import { reactAppNetwork } from '#config/index.js'
+import { useCallback } from 'react'
+import { useQueryClient } from 'react-query'
 
-const useApprove = (token: any) => {
+// Constants
+const REFETCH_INTERVAL = 15 * 1000 // 15 seconds
+const STALE_TIME = 5 * 1000 // 5 seconds
+const CACHE_TIME = 30 * 1000 // 30 seconds
+const MAX_RETRIES = 2
+
+interface AllowanceResult {
+  approved: BigNumber
+  needsApproval: boolean
+}
+
+const useApprove = (token: Token) => {
   const { provider } = useWeb3Context()
   const { txConfirm } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
+  const queryClient = useQueryClient()
 
-  const checkApproval = async (amount: BigNumber, token: Token, spender: string): Promise<boolean> => {
+  const signer = provider?.getSigner()
+
+  // Memoize the check approval function to maintain same signature
+  const checkApproval = useCallback(async (amount: BigNumber, token: Token, spender: string): Promise<boolean> => {
     try {
       if (!spender) {
         return false
       }
 
-      const signer = provider?.getSigner()
-      if (!signer) {
-        throw new Error('Wallet not connected')
+      // Use cached data if available
+      const queryKey = ['allowance', token.address, spender, token.chain?.chainId]
+      const cachedData = queryClient.getQueryData<AllowanceResult>(queryKey)
+      
+      if (cachedData) {
+        return cachedData.needsApproval
       }
 
-      if (token.isNativeToken) {
-        return false
-      }
-
+      // Fallback to direct check if no cache
       const approved = await token.allowance(spender)
-      if (approved.gte(amount)) {
-        return false
-      }
-
-      return true
+      return approved.lt(amount)
     } catch (err: any) {
       console.error('checkApproval error:', err)
       return false
     }
-  }
+  }, [signer, queryClient])
 
-  const approve = async (amount: BigNumber, token: Token, spender: string) => {
-    const signer = provider?.getSigner()
+  // Memoize the approve function
+  const approve = useCallback(async (amount: BigNumber, token: Token, spender: string) => {
     if (!signer) {
       throw new Error('Wallet not connected')
     }
@@ -76,27 +89,37 @@ const useApprove = (token: any) => {
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? constants.MaxUint256 : amount
-        return token.approve(spender, approveAmount)
+        const tx = await token.approve(spender, approveAmount)
+
+        // Invalidate allowance cache after approval
+        const queryKey = ['allowance', token.address, spender, token.chain?.chainId]
+        queryClient.invalidateQueries(queryKey)
+
+        return tx
       },
     })
 
     if (tx?.hash) {
-      addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: token.chain.slug,
-          token,
-        })
-      )
+      const transaction = new Transaction({
+        hash: tx?.hash,
+        networkName: token.chain.slug,
+        token,
+      })
 
-      const res = await waitForTransaction(tx, { networkName: token.chain.slug, token })
+      addTransaction(transaction)
+
+      const res = await waitForTransaction(tx, {
+        networkName: token.chain.slug,
+        token
+      })
+
       if (res && 'replacementTx' in res) {
         return res.replacementTx
       }
     }
 
     return tx
-  }
+  }, [signer, txConfirm, waitForTransaction, addTransaction, queryClient])
 
   return { approve, checkApproval }
 }

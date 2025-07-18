@@ -149,8 +149,54 @@ describe.skip('Sdk - Hop - e2e - send', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Sdk - RailsGateway - e2e - single hop', () => {
-  it('should do an end to end test', async () => {
+async function watcher() {
+  const url = 'https://v2-explorer-sepolia.hop.exchange/api?pathname=%2Fexplorer&limit=10&page=1&eventName=explorer'
+  const { events } = await fetch(url).then(res => res.json())
+  const reverseEvents = events.reverse()
+  const filtered = reverseEvents.filter((event: any) => {
+    // console.log('event', event)
+    const isBonded = event.transferBondedEvents.length > 0 || event.claimWithdrawnEvents.length > 0
+    return !isBonded
+  })
+  .map((event: any) => {
+    return {
+      hash: event.context.transactionHash,
+      fromChainId: event.context.chainId,
+      toChainId: event.toChainId,
+      token: event.token.symbol,
+    }
+  })
+  console.log('events', filtered)
+  for (const event of filtered) {
+    await processTransfer(event.hash, event.fromChainId, event.toChainId, event.token)
+  }
+  await wait(5 * 1000)
+  await watcher()
+}
+
+describe.only('Sdk - e2e - bonder sim watcher', () => {
+  it('should watch and process transfer events', async () => {
+
+    // const wallet = new Wallet(privateKey).connect(baseProvider)
+    // const gateway = new RailsGateway({ chainId: '84532', signerOrProvider: wallet })
+    // const pathId = '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8'
+    // const railsPath = await gateway.getRailsPath(pathId)
+    // console.log('address', railsPath.address)
+    // const filter = railsPath.getEventFilter('TransferSent' as any, {})
+    // console.log('filter', filter)
+
+    // const sdk = new Hop({
+    //   network: 'sepolia',
+    //   signersOrProviders: Hop.getDefaultProviders('sepolia')
+    // })
+    // await sdk.getAllRailsPathAddresses('84532')
+
+    await watcher()
+    expect(true).toBeDefined()
+  }, 30 * 60 * 1000)
+})
+
+async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toChainId?: string, _token?: string) {
     // ----------------
     const token = 'MOCK'
     const fromChainId = '11155111'

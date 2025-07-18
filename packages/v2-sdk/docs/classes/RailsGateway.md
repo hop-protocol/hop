@@ -239,6 +239,7 @@ ___
 | `approveSend` | (`input`: [`ApproveSendInput`](../modules.md#approvesendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionResponse`\> |
 | `decodeBondTxInputData` | (`data`: `string`) => `Promise`\<`DecodedBondInputData`\> |
 | `decodeSendTxInputData` | (`data`: `string`) => `Promise`\<`DecodedSendInputData`\> |
+| `estimateGasCostForSend` | (`__namedParameters`: `EstimateGasCostForSendInput`) => `Promise`\<`BigNumber`\> |
 | `getBucketIndex` | (`__namedParameters`: [`GetBucketIndexInput`](../modules.md#getbucketindexinput)) => `Promise`\<`number`\> |
 | `getClaim` | (`__namedParameters`: [`GetClaimInput`](../modules.md#getclaiminput)) => `Promise`\<[`Claim`](../modules.md#claim)\> |
 | `getComputedNextHopsHash` | (`input`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
@@ -1480,13 +1481,13 @@ ___
 
 ### <a id="setproviderurls" name="setproviderurls"></a> setProviderUrls
 
-▸ **setProviderUrls**(`signersOrProviders`): `void`
+▸ **setProviderUrls**(`signersOrProvidersUrls`): `void`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `signersOrProviders` | `Record`\<`string`, `string` \| `string`[]\> |
+| `signersOrProvidersUrls` | `Record`\<`string`, `string` \| `string`[]\> |
 
 #### Returns
 

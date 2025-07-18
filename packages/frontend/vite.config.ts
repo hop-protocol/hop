@@ -113,6 +113,9 @@ const connectSrc = new Set([
   "wss://rpc.gnosischain.com/wss",
   "wss://rpc.xdaichain.com/wss",
   "wss://xdai.poanetwork.dev/wss",
+  "https://*.polygon.technology",
+  "https://public-backend.bungee.exchange",
+  "https://li.quest"
 ])
 
 for (const network of getNetworks()) {
@@ -208,7 +211,9 @@ export default defineConfig({
     "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,
     "process.env.REACT_APP_GIT_SHA": process.env.REACT_APP_GIT_SHA ? `"${process.env.REACT_APP_GIT_SHA}"` : undefined,
     "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined,
-    "process.env.REACT_APP_V2_ENABLED": process.env.REACT_APP_V2_ENABLED ? `"${process.env.REACT_APP_V2_ENABLED}"` : undefined
+    "process.env.REACT_APP_V2_ENABLED": process.env.REACT_APP_V2_ENABLED ? `"${process.env.REACT_APP_V2_ENABLED}"` : undefined,
+    "process.env.REACT_APP_ENABLE_SOCKET": process.env.REACT_APP_ENABLE_SOCKET ? `"${process.env.REACT_APP_ENABLE_SOCKET}"` : undefined,
+    "process.env.REACT_APP_ENABLE_LIFI": process.env.REACT_APP_ENABLE_LIFI ? `"${process.env.REACT_APP_ENABLE_LIFI}"` : undefined
   },
 
   resolve: {

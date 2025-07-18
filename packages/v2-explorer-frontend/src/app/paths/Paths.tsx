@@ -12,13 +12,13 @@ import SearchIcon from '@mui/icons-material/Search'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import { useTheme } from '@mui/material/styles'
+import { useTheme } from '@/app/hooks/useTheme'
 import { useQueryParams } from '@/app/hooks/useQueryParams'
 import Paper from '@mui/material/Paper'
 import RoutesIcon from '@mui/icons-material/Route'
 
 export function Paths () {
-  const theme = useTheme()
+  const { theme, dark: isDarkMode } = useTheme()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [filterBy, setFilterBy] = useState('pathId')
   const [filterValue, setFilterValue] = useState(queryParams.pathId || '')

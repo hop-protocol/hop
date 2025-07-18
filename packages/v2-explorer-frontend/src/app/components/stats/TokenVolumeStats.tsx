@@ -9,6 +9,7 @@ import {
   Divider, 
   useTheme 
 } from '@mui/material'
+import { formatNumberWithMaxDecimals } from '@/app/utils/format'
 
 export const TokenVolumeStats: React.FC = () => {
   const { volumeStats, loading, error } = useFetchVolumeStats()
@@ -93,21 +94,41 @@ export const TokenVolumeStats: React.FC = () => {
                 {tokenSymbol}
               </Typography>
               
-              <Typography 
-                variant="h5" 
-                fontWeight="bold" 
-                color="primary" 
-                sx={{ letterSpacing: '0.02em' }}
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  gap: 0.5 
+                }}
               >
-                {tokenData.totalUsdDisplay ?? '$0'}
-              </Typography>
+                <Typography 
+                  variant="h5" 
+                  fontWeight="bold" 
+                  color="primary" 
+                  sx={{ letterSpacing: '0.02em' }}
+                >
+                  {tokenData.totalUsdDisplay ?? '$0'}
+                </Typography>
+                
+                <Typography 
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ 
+                    fontWeight: 'medium',
+                    letterSpacing: '0.02em'
+                  }}
+                >
+                  {formatNumberWithMaxDecimals(tokenData.totalVolumeFormatted ?? '0')} {tokenSymbol}
+                </Typography>
+              </Box>
               
               <Typography 
                 variant="caption" 
                 color="text.secondary" 
-                sx={{ mt: 0.5 }}
+                sx={{ mt: 1 }}
               >
-                Volume
+                Total Volume
               </Typography>
             </Box>
           </Grid>

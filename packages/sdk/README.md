@@ -34,7 +34,7 @@ pnpm --filter @hop-protocol/sdk... install
 
 For getting started and examples, see [docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
 
-For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netlify.app/)
+For sdk API reference, see [sdk-docs.hop.exchange](https://sdk-docs.hop.exchange/)
 
 ## Development
 
@@ -61,6 +61,8 @@ Generate documentation
 ```bash
 pnpm run docs
 ```
+
+The markdown API reference docs are generated in `docs/`. There's is also a generated website for API reference the docs at `docs-ui/`.
 
 ## Test
 

@@ -15,71 +15,16 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import _Table from '@mui/material/Table'
 import { CopyToClipboard } from './CopyToClipboard'
-import { makeStyles } from '@mui/styles'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import FirstPageIcon from '@mui/icons-material/FirstPage'
 import LastPageIcon from '@mui/icons-material/LastPage'
 import Chip from '@mui/material/Chip'
-import { useTheme } from '@mui/material/styles'
+import { useTheme } from '@/app/hooks/useTheme'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-
-const useStyles = makeStyles((theme: any) => ({
-  titleContainer: {
-    '& > div': {
-      [theme.breakpoints.down('md')]: {
-        display: 'flex',
-        marginTop: '1rem',
-        flexDirection: 'column',
-        alignItems: 'flex-start'
-      }
-    },
-    '& > div > div': {
-      [theme.breakpoints.down('md')]: {
-        marginTop: '0.5rem'
-      }
-    },
-    [theme.breakpoints.down('md')]: {
-      flexDirection: 'column',
-      alignItems: 'flex-start'
-    }
-  },
-  paginationContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: theme.spacing(2),
-    borderTop: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-      gap: theme.spacing(2)
-    }
-  },
-  paginationControls: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1)
-  },
-  paginationInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(2),
-    [theme.breakpoints.down('sm')]: {
-      justifyContent: 'center',
-      width: '100%'
-    }
-  },
-  limitSelect: {
-    minWidth: 80,
-    '& .MuiSelect-select': {
-      paddingTop: 4,
-      paddingBottom: 4
-    }
-  }
-}))
+import { alpha } from '@mui/material/styles'
 
 export type Header = {
   key: string
@@ -132,8 +77,7 @@ export function Table (props: Props) {
     titleVariant = 'h4' 
   } = props
 
-  const styles = useStyles()
-  const theme = useTheme()
+  const { theme, dark: isDarkMode } = useTheme()
   const [copied, setCopied] = useState('')
   const [copiedKey, setCopiedKey] = useState('')
   const [pageLimit, setPageLimit] = useState(defaultLimit)
@@ -215,19 +159,130 @@ export function Table (props: Props) {
 
   return (
     <Box>
-      <Box mb={2} display="flex" alignItems="center" justifyContent="space-between" className={styles.titleContainer}>
+      <Box 
+        mb={2} 
+        display="flex" 
+        alignItems="center" 
+        justifyContent="space-between" 
+        sx={{
+          '& > div': {
+            [theme.breakpoints.down('md')]: {
+              display: 'flex',
+              marginTop: '1rem',
+              flexDirection: 'column',
+              alignItems: 'flex-start'
+            }
+          },
+          '& > div > div': {
+            [theme.breakpoints.down('md')]: {
+              marginTop: '0.5rem'
+            }
+          },
+          [theme.breakpoints.down('md')]: {
+            flexDirection: 'column',
+            alignItems: 'flex-start'
+          }
+        }}
+      >
         <Typography variant={titleVariant as any} color="textPrimary">{title}</Typography>
         {props.filters ? props.filters : null}
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between">
-        <Box width="100%" mr={4} overflow="auto">
-          <TableContainer>
+        <Box 
+          width="100%" 
+          mr={4} 
+          overflow="auto"
+          sx={{
+            // Webkit scrollbar styles
+            '&::-webkit-scrollbar': {
+              width: '12px',
+              height: '12px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: isDarkMode ? 
+                alpha(theme.palette.primary.main, 0.05) : 
+                alpha(theme.palette.primary.main, 0.03),
+              borderRadius: '6px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: isDarkMode ? 
+                alpha(theme.palette.primary.main, 0.3) : 
+                alpha(theme.palette.primary.main, 0.2),
+              borderRadius: '6px',
+              border: '3px solid transparent',
+              backgroundClip: 'padding-box',
+              '&:hover': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.4) : 
+                  alpha(theme.palette.primary.main, 0.3),
+              }
+            },
+            // Firefox scrollbar styles
+            scrollbarWidth: 'auto',
+            scrollbarColor: isDarkMode ?
+              `${alpha(theme.palette.primary.main, 0.3)} ${alpha(theme.palette.primary.main, 0.05)}` :
+              `${alpha(theme.palette.primary.main, 0.2)} ${alpha(theme.palette.primary.main, 0.03)}`,
+          }}
+        >
+          <TableContainer
+            sx={{
+              // Webkit scrollbar styles
+              '&::-webkit-scrollbar': {
+                width: '12px',
+                height: '12px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.05) : 
+                  alpha(theme.palette.primary.main, 0.03),
+                borderRadius: '6px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: isDarkMode ? 
+                  alpha(theme.palette.primary.main, 0.3) : 
+                  alpha(theme.palette.primary.main, 0.2),
+                borderRadius: '6px',
+                border: '3px solid transparent',
+                backgroundClip: 'padding-box',
+                '&:hover': {
+                  background: isDarkMode ? 
+                    alpha(theme.palette.primary.main, 0.4) : 
+                    alpha(theme.palette.primary.main, 0.3),
+                }
+              },
+              // Firefox scrollbar styles
+              scrollbarWidth: 'auto',
+              scrollbarColor: isDarkMode ?
+                `${alpha(theme.palette.primary.main, 0.3)} ${alpha(theme.palette.primary.main, 0.05)}` :
+                `${alpha(theme.palette.primary.main, 0.2)} ${alpha(theme.palette.primary.main, 0.03)}`,
+            }}
+          >
             <_Table width="100%" style={{ minWidth }}>
               <TableHead>
-                <TableRow>
+                <TableRow
+                  sx={{
+                    '& th': {
+                      borderBottom: (theme) => 
+                        `1px solid ${isDarkMode ? 
+                          alpha(theme.palette.primary.main, 0.15) : 
+                          theme.palette.divider}`,
+                      background: (theme) => isDarkMode ? 
+                        alpha(theme.palette.primary.main, 0.03) : 
+                        'transparent',
+                    }
+                  }}
+                >
                   {headers.filter(item => item.key !== 'subtable').map((header: Header, i: number) => {
                     return (
-                      <TableCell key={i}>{header.value}</TableCell>
+                      <TableCell 
+                        key={i}
+                        sx={{
+                          color: 'text.primary',
+                          fontWeight: 'medium'
+                        }}
+                      >
+                        {header.value}
+                      </TableCell>
                     )
                   })}
                 </TableRow>
@@ -235,7 +290,15 @@ export function Table (props: Props) {
               <TableBody>
                 {(!loading && !rows.length) && (
                   <TableRow>
-                    <TableCell colSpan={headers.length}>
+                    <TableCell 
+                      colSpan={headers.length}
+                      sx={{
+                        borderBottom: (theme) => 
+                          `1px solid ${isDarkMode ? 
+                            alpha(theme.palette.primary.main, 0.1) : 
+                            theme.palette.divider}`
+                      }}
+                    >
                       <Typography variant="body2"><em>No events found</em></Typography>
                     </TableCell>
                   </TableRow>
@@ -243,14 +306,31 @@ export function Table (props: Props) {
                 {loading && renderSkeletonRows()}
                 {!loading && rows.map((row: Row[], i: number) => {
                   return <React.Fragment key={i}>
-                    <TableRow key={i}>
+                    <TableRow
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: (theme) => isDarkMode ? 
+                            alpha(theme.palette.primary.main, 0.05) : 
+                            alpha(theme.palette.primary.main, 0.02)
+                        },
+                        '& td': {
+                          borderBottom: (theme) => 
+                            `1px solid ${isDarkMode ? 
+                              alpha(theme.palette.primary.main, 0.1) : 
+                              theme.palette.divider}`
+                        }
+                      }}
+                    >
                       {row.filter(row => row.key !== 'subtable').map((col: Row, j: number) => {
                         const allowClick = !!onRowClick
                         const cellKey = `${i}${j}`
                         return (
-                          <TableCell key={j} title={col.hoverTitle || col.clipboardValue || col.value}
-                            style={{
-                              cursor: allowClick ? 'pointer' : 'default'
+                          <TableCell 
+                            key={j} 
+                            title={col.hoverTitle || col.clipboardValue || col.value}
+                            sx={{
+                              cursor: allowClick ? 'pointer' : 'default',
+                              transition: 'background-color 0.2s ease'
                             }}
                             onClick={(event) => {
                               if (allowClick) {

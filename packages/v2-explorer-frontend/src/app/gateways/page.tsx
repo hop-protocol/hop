@@ -1,4 +1,4 @@
-import { ContractStates } from './ContractStates'
+import { Details } from './Details'
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 import Box from '@mui/material/Box'
@@ -89,7 +89,7 @@ const LoadingSkeleton = () => (
 export default async function ContractStatesPage() {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <ContractStates />
+      <Details />
     </Suspense>
   )
 }

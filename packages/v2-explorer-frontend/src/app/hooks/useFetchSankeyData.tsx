@@ -9,20 +9,22 @@ type SankeyDataProps = {
   tokenSymbol?: string
 }
 
+type SankeyData = {
+  nodes: Array<{
+    name: string
+  }>
+  links: Array<{
+    source: number
+    target: number
+    value: number
+    token: string
+    amountDisplay: string
+  }>
+}
+
 // Output format that mimics mockSankeyData structure
 type SankeyDataResponse = {
-  data: {
-    nodes: Array<{
-      name: string
-    }>
-    links: Array<{
-      source: number
-      target: number
-      value: number
-      token: string
-      amountDisplay: string
-    }>
-  }
+  data: SankeyData | null
   lastUpdated: string
 }
 
@@ -41,10 +43,8 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
     const response = await fetch(endpoint);
     
     if (!response.ok) {
-      // If the API endpoint doesn't exist yet, generate mock data for development
-      const mockResponse = { transferFlows: [] };
       return {
-        data: processApiResponse(mockResponse),
+        data: null,
         lastUpdated: new Date().toISOString()
       };
     }
@@ -57,56 +57,18 @@ const fetchSankeyData = async (options: SankeyDataProps = {}): Promise<SankeyDat
       lastUpdated: rawData.lastUpdated || new Date().toISOString()
     };
   } catch (error) {
-    // Create a mock response with empty transferFlows to trigger realistic mock data generation
-    const mockResponse = { transferFlows: [] };
     return {
-      data: processApiResponse(mockResponse),
+      data: null,
       lastUpdated: new Date().toISOString()
     };
   }
 }
 
 // Helper function to process API response into Sankey format
-function processApiResponse(apiData: any): typeof mockSankeyData {
-  // If the API isn't implemented yet or returns no data, use realistic mock data
+function processApiResponse(apiData: any): SankeyData | null {
+  // If the API isn't implemented yet or returns no data, return null
   if (!apiData || !apiData.transferFlows || apiData.transferFlows.length === 0) {
-    // Create realistic mock data based on the actual tokens and chains in the system
-    const realisticMockData = {
-      nodes: [
-        // Source chains
-        { name: "Ethereum" },
-        { name: "Optimism" },
-        { name: "Base" },
-        
-        // Tokens
-        { name: "USDC" },
-        { name: "MOCK" },
-        
-        // Destination chains
-        { name: "Ethereum (dest)" },
-        { name: "Optimism (dest)" },
-        { name: "Base (dest)" }
-      ],
-      links: [
-        // USDC transfers (Ethereum to Optimism)
-        { source: 0, target: 3, value: 25, token: "USDC", amountDisplay: "0.10 USDC" },
-        { source: 3, target: 6, value: 25, token: "USDC", amountDisplay: "0.10 USDC" },
-        
-        // USDC transfers (Ethereum to Base)
-        { source: 0, target: 3, value: 20, token: "USDC", amountDisplay: "0.10 USDC" },
-        { source: 3, target: 7, value: 20, token: "USDC", amountDisplay: "0.10 USDC" },
-        
-        // MOCK transfers (Ethereum to Base)
-        { source: 0, target: 4, value: 15, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        { source: 4, target: 7, value: 15, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        
-        // MOCK transfers (Base to Ethereum)
-        { source: 2, target: 4, value: 18, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        { source: 4, target: 5, value: 18, token: "MOCK", amountDisplay: "0.10 MOCK" }
-      ]
-    };
-    
-    return realisticMockData;
+    return null;
   }
   
   try {
@@ -121,6 +83,11 @@ function processApiResponse(apiData: any): typeof mockSankeyData {
       destChains.add(`${flow.destinationChainName} (dest)`);
       tokens.add(flow.tokenSymbol);
     });
+
+    // If no flows were processed (all amounts too small), return null
+    if (sourceChains.size === 0 || destChains.size === 0 || tokens.size === 0) {
+      return null;
+    }
     
     // Create nodes array
     const nodes = [
@@ -182,51 +149,21 @@ function processApiResponse(apiData: any): typeof mockSankeyData {
         amountDisplay: `${flow.formattedAmount} ${token}`
       });
     });
+
+    // If no valid links were created, return null
+    if (links.length === 0) {
+      return null;
+    }
     
     return { nodes, links };
   } catch (error) {
-    // Return realistic mock data here as well
-    const realisticMockData = {
-      nodes: [
-        // Source chains
-        { name: "Ethereum" },
-        { name: "Optimism" },
-        { name: "Base" },
-        
-        // Tokens
-        { name: "USDC" },
-        { name: "MOCK" },
-        
-        // Destination chains
-        { name: "Ethereum (dest)" },
-        { name: "Optimism (dest)" },
-        { name: "Base (dest)" }
-      ],
-      links: [
-        // USDC transfers (Ethereum to Optimism)
-        { source: 0, target: 3, value: 25, token: "USDC", amountDisplay: "0.10 USDC" },
-        { source: 3, target: 6, value: 25, token: "USDC", amountDisplay: "0.10 USDC" },
-        
-        // USDC transfers (Ethereum to Base)
-        { source: 0, target: 3, value: 20, token: "USDC", amountDisplay: "0.10 USDC" },
-        { source: 3, target: 7, value: 20, token: "USDC", amountDisplay: "0.10 USDC" },
-        
-        // MOCK transfers (Ethereum to Base)
-        { source: 0, target: 4, value: 15, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        { source: 4, target: 7, value: 15, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        
-        // MOCK transfers (Base to Ethereum)
-        { source: 2, target: 4, value: 18, token: "MOCK", amountDisplay: "0.10 MOCK" },
-        { source: 4, target: 5, value: 18, token: "MOCK", amountDisplay: "0.10 MOCK" }
-      ]
-    };
-    
-    return realisticMockData;
+    // Return null instead of mock data
+    return null;
   }
 }
 
 export const useFetchSankeyData = (options: SankeyDataProps = {}): { 
-  sankeyData: typeof mockSankeyData | null, 
+  sankeyData: SankeyData | null, 
   loading: boolean, 
   error: string | null,
   lastUpdated: string | null

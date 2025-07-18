@@ -84,6 +84,16 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
     }
 
     loadD3()
+
+    // Cleanup function
+    return () => {
+      if (chartRef.current) {
+        const d3 = (window as any).d3
+        if (d3) {
+          d3.select(chartRef.current).selectAll('*').remove()
+        }
+      }
+    }
   }, [])
 
   // Render the chart when data and D3 are available
@@ -105,6 +115,8 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       
       // Clear previous chart
       d3.select(chartRef.current).selectAll('*').remove()
+      // Also remove any tooltips that might be lingering
+      d3.selectAll('.sankey-tooltip').remove()
 
       // Chart dimensions and margins
       const margin = { top: 10, right: 30, bottom: 10, left: 30 }
@@ -335,11 +347,13 @@ const SankeyChart = ({ data, title, subtitle, height = 500 }: SankeyChartProps) 
       
       setIsLoading(false)
       
-      // Cleanup function to remove tooltip when component unmounts
+      // Cleanup function
       return () => {
-        d3.select('.sankey-tooltip').remove()
+        if (chartRef.current) {
+          d3.select(chartRef.current).selectAll('*').remove()
+          d3.selectAll('.sankey-tooltip').remove()
+        }
       }
-      
     } catch (err) {
       setError(`Error rendering chart: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setIsLoading(false)

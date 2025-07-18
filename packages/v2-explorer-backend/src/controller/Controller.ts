@@ -38,6 +38,8 @@ type EventsApiInput = {
   limit?: number
   page?: number | null
   filter: any
+  startTimestamp?: number
+  endTimestamp?: number
 }
 
 type PathsApiInput = {
@@ -110,10 +112,17 @@ export class Controller {
   }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {
-    const { eventName, limit = 10, page = 1 } = input
+    const { eventName, limit = 10, page = 1, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
-    const { items, hasNextPage } = await this.getEvents({ eventName, limit, page, filter })
+    const { items, hasNextPage } = await this.getEvents({ 
+      eventName, 
+      limit, 
+      page, 
+      filter, 
+      startTimestamp, 
+      endTimestamp 
+    })
 
     return {
       items: items.map((item: any) => this.normalizeEventForApi(item)),
@@ -122,15 +131,27 @@ export class Controller {
   }
 
   async getEvents (input: any): Promise<any> {
-    const { eventName, limit = 10, page = 1 } = input
+    const { eventName, limit = 10, page = 1, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
     if (!this.pgDb.events[eventName]) {
       throw new Error(`Event ${eventName} not found`)
     }
 
-    const items = await this.pgDb.events[eventName].getItems({ limit, filter, page })
-    const itemsNext = await this.pgDb.events[eventName].getItems({ limit, filter, page: Number(page) + 1 })
+    const items = await this.pgDb.events[eventName].getItems({ 
+      limit, 
+      filter, 
+      page,
+      startTimestamp,
+      endTimestamp 
+    })
+    const itemsNext = await this.pgDb.events[eventName].getItems({ 
+      limit, 
+      filter, 
+      page: Number(page) + 1,
+      startTimestamp,
+      endTimestamp 
+    })
     const hasNextPage = itemsNext.length > 0
     console.log('getEvents', eventName, items.length, limit, page)
 
@@ -262,10 +283,17 @@ export class Controller {
 
   // Rails Gateway
   async getExplorerEventsForApi (input: any): Promise<any> {
-    const { limit = 10, page } = input
+    const { limit = 10, page, startTimestamp, endTimestamp } = input
     const filter = this.normalizeFilters(input.filter)
 
-    const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
+    const { items, hasNextPage } = await this.getEvents({ 
+      limit, 
+      filter, 
+      eventName: 'TransferSent', 
+      page,
+      startTimestamp,
+      endTimestamp 
+    })
 
     console.log('getExplorerEventsForApi', input)
 
@@ -532,6 +560,12 @@ export class Controller {
         item.toExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.to, item.context.chainId)
       }
     }
+    if (item.fromAddress && item.fromChainId) {
+      item.fromAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.fromAddress, item.fromChainId)
+    }
+    if (item.toAddress && item.toChainId) {
+      item.toAddressExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.toAddress, item.toChainId)
+    }
     if (item.chainId) {
       item.chainName = chainNames[item.chainId]
       item.chainLabel = getChainLabel(item.chainId)
@@ -641,6 +675,15 @@ export class Controller {
       item.maxTotalSentUsdDisplay = `${formatToUSD(item.maxTotalSentUsd.toFixed(2))} USD`
     }
 
+    if (item.tokenAddress && typeof item.token === 'object') {
+      item.tokenImageUrl = item.token.imageUrl
+      item.tokenLabel = `${item.token.symbol} (${item.token.name})`
+    }
+    if (item.counterpartTokenAddress && typeof item.token === 'object') {
+      item.counterpartTokenImageUrl = item.token.imageUrl
+      item.counterpartTokenLabel = `${item.token.symbol} (${item.token.name})`
+    }
+
     if (item.totalClaimsAtHeadClaimId) {
       item.totalClaimsAtHeadClaimId = item.totalClaimsAtHeadClaimId.toString()
     }
@@ -684,6 +727,9 @@ export class Controller {
     if (item.context?.value != null && item.context?.valueFormatted != null && item.ethPriceUsd != null) {
       item.context.valueUsd = Number(item.context.valueFormatted) * Number(item.ethPriceUsd)
       item.context.valueUsdDisplay = `${formatToUSD(item.context.valueUsd.toFixed(2))} USD`
+    }
+    if (item.context?.chainId && !item.context?.chainSlug) {
+      item.context.chainSlug = this.sdk.utils.getChainSlug(item.context.chainId)
     }
     if (item.sendFee != null) {
       item.sendFeeFormatted = formatUnits(item.sendFee, 18)
@@ -756,6 +802,7 @@ export class Controller {
     if (item.hopToken) {
       item.hopTokenExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.hopToken, item.context.chainId)
       item.hopTokenTruncated = truncateString(item.hopToken, 4)
+      item.hopTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol('HOP')
     }
     if (item.pathVault) {
       item.pathVaultExplorerUrl = this.sdk.utils.getAddressExplorerUrl(item.pathVault, item.context.chainId)
@@ -824,6 +871,21 @@ export class Controller {
     if (item.hopBalance != null && item.hopBalanceFormatted != null && item.tokenPriceUsd != null) {
       item.hopBalanceUsd = Number(item.hopBalanceFormatted) * Number(item.tokenPriceUsd)
       item.hopBalanceUsdDisplay = `${formatToUSD(item.hopBalanceUsd.toFixed(2))} USD`
+    }
+    if (typeof item.counterpartToken === 'string') {
+      try {
+        item.counterpartTokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.counterpartToken, item.counterpartChainId)
+        item.counterpartTokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.counterpartTokenSymbol)
+      } catch (err: any) {
+        console.error(err)
+        item.counterpartTokenExplorerUrl = ''
+      }
+      item.counterpartTokenTruncated = truncateString(item.counterpartToken, 4)
+    }
+    if (item.counterpartChainId) {
+      item.counterpartChainName = chainNames[item.counterpartChainId] ?? ''
+      item.counterpartChainLabel = getChainLabel(item.counterpartChainId)
+      item.counterpartChainImageUrl = this.sdk.utils.getLogoForChainId(item.counterpartChainId)
     }
 
     return item
@@ -905,7 +967,7 @@ export class Controller {
     if (item.pathId) {
       item.pathIdTruncated = truncateString(item.pathId, 4)
     }
-    if (item.token) {
+    if (typeof item.token === 'string') {
       try {
         item.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token, item.chainId)
         item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.tokenSymbol)
@@ -942,6 +1004,10 @@ export class Controller {
     }
     if (item.timestamp) {
       item.timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+      item.timestampISO = DateTime.fromSeconds(item.timestamp).toISO()
+    }
+    if (item.token) {
+      item.tokenImageUrl = this.sdk.utils.getLogoForTokenSymbol(item.token)
     }
     return item
   }
@@ -1031,132 +1097,24 @@ export class Controller {
       console.log('getTransferFlowStatsForApi input:', input)
       const { days = 30, sourceChainId, destinationChainId, tokenSymbol } = input
       
-      // First, check if there are any TransferSent events in the database at all
-      const { items: anyEvents } = await this.getEvents({
-        eventName: 'TransferSent',
-        limit: 10
-      })
-      
-      console.log(`Found ${anyEvents.length} transfer events in initial check`)
-      
-      // If there are no events at all, return mock data
-      if (anyEvents.length === 0) {
-        console.log('No transfer events found in database, returning mock data')
-        return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '11155420',
-              destinationChainName: '11155420 - Optimism Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '4000000000000000000',
-              formattedAmount: '4'
-            },
-            {
-              sourceChainId: '11155420',
-              sourceChainName: '11155420 - Optimism Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '2500000000000000000',
-              formattedAmount: '2.5'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '84532',
-              destinationChainName: '84532 - Base Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3500000000000000000',
-              formattedAmount: '3.5'
-            }
-          ],
-          lastUpdated: new Date().toISOString()
-        }
-      }
-      
-      // Continue with actual data retrieval if there are events
       // Calculate timestamp filter based on days
       const now = Math.floor(Date.now() / 1000)
       const startTimestamp = now - (days * 24 * 60 * 60)
       
-      // Prepare filter for getEvents
-      const filter: any = {
-        blockTimestampGte: startTimestamp
-      }
-      
-      // Add optional filters
-      if (sourceChainId) {
-        filter.chainId = sourceChainId
-      }
-      
-      // Get TransferSent events with a more lenient filter
+      // Get TransferSent events with proper time filtering
       const { items: transferEvents } = await this.getExplorerEventsForApi({
         limit: 1000,
+        startTimestamp,
+        // ...(sourceChainId ? { chainId: sourceChainId } : {})
       })
       
       console.log(`Found ${transferEvents.length} filtered transfer events`)
       
-      // If no events match the filter, return mock data
+      // If no events match the filter, return empty result
       if (transferEvents.length === 0) {
-        console.log('No transfer events found with current filters, returning mock data')
+        console.log('No transfer events found with current filters')
         return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            },
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '11155420',
-              destinationChainName: '11155420 - Optimism Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '4000000000000000000',
-              formattedAmount: '4'
-            }
-          ],
+          transferFlows: [],
           lastUpdated: new Date().toISOString()
         }
       }
@@ -1211,120 +1169,49 @@ export class Controller {
             continue
           }
           
-          console.log(`Found valid transfer: ${sourceChainId} -> ${destChainId} (${tokenInfo.symbol})`)
+          // Get chain names
+          const sourceChainName = getChainLabel(sourceChainId)
+          const destinationChainName = getChainLabel(destChainId)
           
           // Create flow key
           const flowKey = `${sourceChainId}-${destChainId}-${tokenInfo.symbol}`
           
           // Get or create flow entry
-          if (!flowMap.has(flowKey)) {
-            flowMap.set(flowKey, {
+          let flow = flowMap.get(flowKey)
+          if (!flow) {
+            flow = {
               sourceChainId,
+              sourceChainName,
               destinationChainId: destChainId,
+              destinationChainName,
               tokenSymbol: tokenInfo.symbol,
               tokenDecimals: tokenInfo.decimals,
-              amount: BigInt(0)
-            })
+              amount: '0',
+              formattedAmount: '0'
+            }
+            flowMap.set(flowKey, flow)
           }
           
           // Add amount to flow
-          const flow = flowMap.get(flowKey)
-          flow.amount = flow.amount + BigInt(event.amount || 0)
-        } catch (err) {
-          console.error('Error processing transfer event:', err)
+          const currentAmount = BigInt(flow.amount)
+          const newAmount = currentAmount + BigInt(event.amount)
+          flow.amount = newAmount.toString()
+          flow.formattedAmount = this.formatUnits(flow.amount, flow.tokenDecimals)
+          
+        } catch (error) {
+          console.error('Error processing event:', error)
+          continue
         }
       }
-      
-      // Convert map to array and format
-      const transferFlows = Array.from(flowMap.values()).map(flow => {
-        // Format amount
-        const formattedAmount = this.formatUnits(flow.amount.toString(), flow.tokenDecimals)
-        
-        // Get chain names
-        const sourceChainName = getChainLabel(flow.sourceChainId)
-        const destChainName = getChainLabel(flow.destinationChainId)
-        
-        return {
-          sourceChainId: flow.sourceChainId,
-          sourceChainName,
-          destinationChainId: flow.destinationChainId,
-          destinationChainName: destChainName,
-          tokenSymbol: flow.tokenSymbol,
-          tokenDecimals: flow.tokenDecimals,
-          amount: flow.amount.toString(),
-          formattedAmount
-        }
-      })
-      
-      // If after all processing we still have no flows, return mock data
-      if (transferFlows.length === 0) {
-        console.log('No valid transfer flows found after processing, returning mock data')
-        return {
-          transferFlows: [
-            {
-              sourceChainId: '11155111',
-              sourceChainName: '11155111 - Sepolia',
-              destinationChainId: '421614',
-              destinationChainName: '421614 - Arbitrum Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '5000000000000000000',
-              formattedAmount: '5'
-            },
-            {
-              sourceChainId: '421614',
-              sourceChainName: '421614 - Arbitrum Sepolia',
-              destinationChainId: '11155111',
-              destinationChainName: '11155111 - Sepolia',
-              tokenSymbol: 'ETH',
-              tokenDecimals: 18,
-              amount: '3000000000000000000',
-              formattedAmount: '3'
-            }
-          ],
-          lastUpdated: new Date().toISOString()
-        }
-      }
-      
-      // Sort by amount (descending)
-      transferFlows.sort((a, b) => 
-        BigInt(b.amount) > BigInt(a.amount) ? 1 : 
-        (BigInt(b.amount) < BigInt(a.amount) ? -1 : 0)
-      )
       
       return {
-        transferFlows,
+        transferFlows: Array.from(flowMap.values()),
         lastUpdated: new Date().toISOString()
       }
+      
     } catch (error) {
       console.error('Error in getTransferFlowStatsForApi:', error)
-      
-      // Return mock data in case of error
-      return {
-        transferFlows: [
-          {
-            sourceChainId: '11155111',
-            sourceChainName: '11155111 - Sepolia',
-            destinationChainId: '421614',
-            destinationChainName: '421614 - Arbitrum Sepolia',
-            tokenSymbol: 'ETH',
-            tokenDecimals: 18,
-            amount: '5000000000000000000',
-            formattedAmount: '5'
-          },
-          {
-            sourceChainId: '11155111',
-            sourceChainName: '11155111 - Sepolia',
-            destinationChainId: '11155420',
-            destinationChainName: '11155420 - Optimism Sepolia',
-            tokenSymbol: 'ETH',
-            tokenDecimals: 18,
-            amount: '4000000000000000000',
-            formattedAmount: '4'
-          }
-        ],
-        lastUpdated: new Date().toISOString()
-      }
+      throw error
     }
   }
 
@@ -1370,7 +1257,7 @@ export class Controller {
         continue
       }
       try {
-        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const railsGateway = this.getRailsGateway(chainId)
         const [
           railsGatewayAddress,
           removeFee,
@@ -1453,7 +1340,8 @@ export class Controller {
         continue
       }
       try {
-        const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+        const railsGateway = this.getRailsGateway(chainId)
+        const stakingRegistry = railsGateway.getStakingRegistry()
         const [
           stakingRegistryAddress,
           challengePeriod,
@@ -1508,7 +1396,7 @@ export class Controller {
       }
 
       try {
-        const railsGateway = this.sdk.getRailsGateway(chainId)
+        const railsGateway = this.getRailsGateway(chainId)
 
         const isLive = await railsGateway.helpers.getIsPathIdLive({ pathId })
         console.log('isLive', isLive, pathId)
@@ -1600,6 +1488,42 @@ export class Controller {
     return result
   }
 
+  async getMessageDetailsState({ messageId }: any = {}): Promise<any> {
+    const messageSentEvents = await this.pgDb.events.MessageSent.getItems({ filter: { messageId }})
+    const messageSentEvent = messageSentEvents?.[0]
+
+    const result: any = {
+      messageId,
+    }
+
+    try {
+      if (messageSentEvent) {
+        const messageBundledEvents = await this.pgDb.events.MessageBundled.getItems({ filter: { messageId }})
+        const messageBundledEvent = messageBundledEvents?.[0]
+
+        const messageExecutedEvents = await this.pgDb.events.MessageExecuted.getItems({ filter: { messageId }})
+        const messageExecutedEvent = messageExecutedEvents?.[0]
+
+        result.fromChainId = messageSentEvent?.context?.chainId
+        result.toChainId = messageSentEvent?.toChainId
+        result.fromAddress = messageSentEvent?.context?.from
+        result.toAddress = messageSentEvent?.to
+        result.data = messageSentEvent?.data
+
+        result.bundleId = messageBundledEvent?.bundleId
+        result.treeIndex = messageBundledEvent?.treeIndex
+
+        result.messageSentEvent = messageSentEvent
+        result.messageBundledEvent = messageBundledEvent
+        result.messageExecutedEvent = messageExecutedEvent
+      }
+    } catch (err: any) {
+      console.error(`getMessageDetailsState, messageId: ${messageId}, error: ${err.message}`)
+    }
+
+    return this.addEventFields({ ...result, context: { chainId: result?.messageSentEvent?.context?.chainId }})
+  }
+
   async getBondersState({ filter }: any = {}): Promise<any> {
     const result: any = {}
     const bonderMap = new Map()
@@ -1637,7 +1561,10 @@ export class Controller {
 
       if (!bonderData.balances.has(chainId)) {
         try {
-          const stakingRegistry = this.sdk.getRailsGateway(chainId).getStakingRegistry()
+          const railsGateway = this.getRailsGateway(chainId)
+          const stakingRegistry = railsGateway.getStakingRegistry()
+          
+          console.log('fetching balances for bonder', address, chainId)
           const [stakedBalance, withdrawableBalance, hopBalance] = await Promise.all([
             stakingRegistry.getStakedBalance({ staker: address }),
             stakingRegistry.getWithdrawableBalance({ staker: address }),
@@ -1776,6 +1703,16 @@ export class Controller {
       // Group by token
       const tokenMap = new Map<string, number[]>()
       const tokenDecimalsMap = new Map<string, number>()
+      const tokenPricesMap = new Map<string, number>()
+      
+      // Get token prices for each token
+      for (const item of data) {
+        const { tokenSymbol, timestamp } = item
+        if (!tokenPricesMap.has(tokenSymbol)) {
+          const tokenPrice = await this.pgDb.priceTable.getClosestPrice(tokenSymbol, timestamp)
+          tokenPricesMap.set(tokenSymbol, tokenPrice?.priceUsd || 1) // Default to 1 for stablecoins
+        }
+      }
       
       data.forEach((item: any) => {
         const { tokenSymbol, tokenDecimals } = item
@@ -1803,6 +1740,7 @@ export class Controller {
       const datasets = Array.from(tokenMap.entries()).map(([tokenSymbol, values]) => ({
         label: tokenSymbol,
         data: values,
+        priceUsd: tokenPricesMap.get(tokenSymbol) || 1
       }))
       
       // Create raw data with formatted values
@@ -1857,6 +1795,129 @@ export class Controller {
     } catch (error) {
       console.error('Error formatting units:', error)
       return '0'
+    }
+  }
+
+  async getCumulativeTransferCountsForApi(input: DailyVolumeStatsApiInput): Promise<DailyVolumeStatsApiResult> {
+    try {
+      console.log('getCumulativeTransferCountsForApi input', input)
+      const data = await this.pgDb.events.TransferSent.getCumulativeTransferCounts(input)
+      
+      // Group by date
+      const dateMap = new Map<string, any[]>()
+      data.forEach((item: any) => {
+        if (!dateMap.has(item.date)) {
+          dateMap.set(item.date, [])
+        }
+        dateMap.get(item.date)?.push(item)
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(dateMap.keys()).sort()
+      
+      // Create a single dataset for total transfers
+      const transferCounts = sortedDates.map(() => 0)
+      
+      // Fill in data
+      data.forEach((item: any) => {
+        const { date, count } = item
+        const dateIndex = sortedDates.indexOf(date)
+        if (dateIndex >= 0) {
+          transferCounts[dateIndex] = parseInt(count)
+        }
+      })
+      
+      // Create datasets
+      const datasets = [{
+        label: 'Total Transfers',
+        data: transferCounts,
+      }]
+      
+      // Create raw data
+      const rawData = data.map((item: any) => ({
+        ...item,
+        count: parseInt(item.count)
+      }))
+      
+      return {
+        labels: sortedDates,
+        datasets,
+        rawData
+      }
+    } catch (err: any) {
+      console.error('Error getting cumulative transfer counts', err)
+      throw err
+    }
+  }
+
+  async getTotalTransferCountsForApi(input: { startTimestamp?: number, endTimestamp?: number } = {}): Promise<{ count: string }> {
+    try {
+      const result = await this.pgDb.events.TransferSent.getTotalTransferCounts(input)
+      return result
+    } catch (err: any) {
+      console.error('Error getting total transfer counts', err)
+      throw err
+    }
+  }
+
+  async getCumulativeVolumeByChainStatsForApi(req: any, res: any): Promise<void> {
+    try {
+      const days = parseInt(req.query.days as string) || 30
+      const startTimestamp = req.query.startTimestamp ? parseInt(req.query.startTimestamp as string) : undefined
+      const endTimestamp = req.query.endTimestamp ? parseInt(req.query.endTimestamp as string) : undefined
+
+      const results = await this.pgDb.events.TransferSent.getCumulativeVolumeByChainStats({
+        days,
+        startTimestamp,
+        endTimestamp
+      })
+
+      if (!results || results.length === 0) {
+        res.json({ datasets: [] })
+        return
+      }
+
+      // Group results by chain
+      const groupedResults: Record<string, any[]> = results.reduce((acc: Record<string, any[]>, curr: any) => {
+        const chainId = curr.chainId
+        if (chainId === undefined) {
+          return acc
+        }
+        if (!acc[chainId]) {
+          acc[chainId] = []
+        }
+        acc[chainId].push(curr)
+        return acc
+      }, {})
+
+      // Get token prices for each chain's data
+      const response = {
+        datasets: await Promise.all(Object.entries(groupedResults).map(async ([chainId, data]) => {
+          // Get the token symbol and timestamp for price lookup
+          const tokenSymbol = data[0].tokenSymbol
+          const timestamp = Math.floor(Date.now() / 1000) // Use current timestamp for latest price
+
+          // Get the token price from the price table
+          const priceData = await this.pgDb.priceTable.getClosestPrice(tokenSymbol, timestamp)
+          const priceUsd = priceData?.priceUsd ?? 1 // Default to 1 if no price found
+
+          return {
+            chainId: parseInt(chainId),
+            chainName: data[0].chainName,
+            data: data.map((item: any) => ({
+              date: item.date,
+              volume: item.volume,
+              volumeUsd: parseFloat(this.formatUnits(item.volume, item.tokenDecimals)) * priceUsd
+            })),
+            priceUsd
+          }
+        }))
+      }
+
+      res.json(response)
+    } catch (error) {
+      console.error('Error getting cumulative volume by chain stats:', error)
+      res.status(500).json({ error: 'Failed to get cumulative volume by chain stats' })
     }
   }
 }

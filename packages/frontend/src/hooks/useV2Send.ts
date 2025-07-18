@@ -12,7 +12,9 @@ import { getNetworks } from '#config/networks.js'
 import {
   useBalance,
   useFeeConversionsV2,
+  useTxResult
 } from '#hooks/index.js'
+import { useFeeRefund } from './useFeeRefund.js'
 
 const { formatUnits, parseUnits } = utils
 const { formatUSD } = v2Utils
@@ -93,6 +95,9 @@ type V2SendHook = {
   transferStatus: any,
   fromTokenDecimals: number,
   setFromTokenDecimals: (decimals: number) => void
+  showFeeRefund: boolean
+  feeRefundTokenSymbol: string
+  feeRefundDisplay: string
 }
 
 class Token {
@@ -121,7 +126,7 @@ class Token {
 }
 
 export function useV2Send(): V2SendHook {
-  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
+  const { v2Sdk, getNeedsApprovalForSendTokens: v2GetNeedsApprovalForSendTokens, sendTokens: v2SendTokens, estimateGasCostForSend, approveTokens: v2ApproveTokens, getEstimatedReceived, getSendData, getWillSendTokensFail, getFee, getTokenList, getTokenAddress, getTokenName, getTokenDecimals, getChainsSupportedByToken, networkSlug } = useV2()
   const {
     txConfirm
   } = useApp()
@@ -182,7 +187,7 @@ export function useV2Send(): V2SendHook {
         setParsedAmountIn('0')
       }
     } catch (err) {
-      console.error('setParsedAmountIn error', err)
+      console.error('v2 setParsedAmountIn error', err)
     }
   }, [amountIn, fromTokenDecimals])
 
@@ -423,7 +428,7 @@ export function useV2Send(): V2SendHook {
         if (fromChainId && toChainId && fromTokenAddress && toTokenAddress && parsedAmountIn != '0') {
           const requestId = ++latestRequestId.current
 
-          console.log('getSendData', {
+          console.log('v2 getSendData', {
             fromChainId,
             fromTokenAddress,
             toChainId,
@@ -465,7 +470,7 @@ export function useV2Send(): V2SendHook {
           setMaxBonderFee(BigNumber.from(0))
         }
       } catch (err) {
-        console.error('getSendData error:', err)
+        console.error('v2 getSendData error:', err)
         setIsFetchingGetSendData(false)
         // setError(formatError(err.message))
       }
@@ -572,6 +577,90 @@ export function useV2Send(): V2SendHook {
     return ''
   }, [estimatedReceived, estimatedReceivedUsdDisplay, isFetchingGetSendData])
 
+  const fromNetwork = {
+    chainId: Number(fromChainId),
+    slug: fromChain?.slug
+  } as any
+
+  const toNetwork = {
+    chainId: Number(toChainId),
+    slug: toChain?.slug
+  } as any
+
+  const fromTokenAmountBN = BigNumber.from(parsedAmountIn)
+  
+  async function estimateSend() {
+    try {
+      const estimatedGasCost = await estimateGasCostForSend({
+        fromChainId,
+        toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        to: '0x' + '1'.repeat(40),
+        amount: '1',
+        minAmountOut: '0'
+      })
+
+      console.log('v2 estimatedGasCost', estimatedGasCost)
+      return estimatedGasCost
+    } catch (err: any) {
+      console.warn('v2 estimatedGasCost error:', err)
+      return BigNumber.from(0)
+    }
+  }
+
+  const { data: estimatedGasCost, error: estimatedGasCostError } = useTxResult(
+    fromToken as any,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN,
+    estimateSend,
+    { }
+  )
+
+  const { priceUsd: ethPriceUsd } = useTokenPrice('ETH')
+
+  const totalBonderFee = useMemo(() => {
+    if (!maxBonderFee || !sendFee || !tokenPriceUsd || !fromTokenDecimals || !ethPriceUsd) {
+      return maxBonderFee || BigNumber.from(0)
+    }
+
+    try {
+      // Convert ETH fee to USD
+      const sendFeeUsd = Number(formatUnits(sendFee, 18)) * Number(ethPriceUsd)
+
+      // Convert USD amount to token amount
+      const sendFeeInToken = parseUnits(
+        (sendFeeUsd / Number(tokenPriceUsd)).toFixed(fromTokenDecimals),
+        fromTokenDecimals
+      )
+
+      console.log('v2 estimate fees', maxBonderFee.toString(), sendFeeInToken.toString())
+
+      // Add converted fee to bonder fee
+      return maxBonderFee.add(sendFeeInToken)
+    } catch (err) {
+      console.error('Error calculating total bonder fee:', err)
+      return maxBonderFee
+    }
+  }, [maxBonderFee, sendFee, tokenPriceUsd, fromTokenDecimals, ethPriceUsd])
+    
+  const {
+    showFeeRefund,
+    feeRefundTokenSymbol,
+    feeRefundDisplay,
+    feeRefund,
+    feeRefundUsd
+  } = useFeeRefund({
+    fromNetwork,
+    toNetwork,
+    fromToken,
+    fromTokenAmountBN,
+    totalBonderFee,
+    estimatedGasCost,
+    version: 'v2'
+  })
+
   return {
     parsedAmountIn,
     accountAddress,
@@ -647,6 +736,9 @@ export function useV2Send(): V2SendHook {
     hasEnoughBalance,
     transferStatus,
     fromTokenDecimals,
-    setFromTokenDecimals
+    setFromTokenDecimals,
+    showFeeRefund,
+    feeRefundTokenSymbol,
+    feeRefundDisplay
   }
 }

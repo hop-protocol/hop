@@ -69,6 +69,8 @@ jobs:
           REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
           REACT_APP_GIT_SHA: ${{ github.sha }}
           REACT_APP_V2_ENABLED: ${{ vars.REACT_APP_V2_ENABLED }}
+          REACT_APP_ENABLE_SOCKET: ${{ vars.REACT_APP_ENABLE_SOCKET }}
+          REACT_APP_ENABLE_LIFI: ${{ vars.REACT_APP_ENABLE_LIFI }}
         run: pnpm --filter frontend... build
 
       - name: Write commit file

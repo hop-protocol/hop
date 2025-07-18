@@ -50,7 +50,8 @@ export function ClaimWithdrawnEvents () {
       {
         key: 'timestamp',
         value: `${event.context.blockTimestamp} (${event.context.blockTimestampRelative})`,
-        clipboardValue: event.context.blockTimestamp
+        clipboardValue: event.context.blockTimestamp,
+        hoverTitle: `${event.context.blockTimestampISO}`
       },
       {
         key: 'transactionHash',
@@ -61,7 +62,7 @@ export function ClaimWithdrawnEvents () {
       {
         key: 'pathId',
         value: event.pathIdTruncated,
-        valueUrl: `/paths?pathId=${event.pathId}`,
+        valueUrl: `/p/${event.pathId}`,
         clipboardValue: event.pathId
       },
       {

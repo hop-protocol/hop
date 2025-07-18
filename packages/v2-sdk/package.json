@@ -33,7 +33,7 @@
     "bump-release": "pnpm bump && pnpm release",
     "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
     "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
-    "docs:ui": "typedoc --plugin typedoc-material-theme --themeColor '#be43ed' --theme 'default' --hideGenerator --disableSources --excludeExternals --excludePrivate --excludeProtected --includeVersion --readme 'none' --name 'Hop Protocol v2 SDK' --out docs-ui src/index.ts",
+    "docs:ui": "typedoc --plugin typedoc-material-theme --plugin ./typedoc-theme/theme.js --themeColor '#be43ed' --theme 'default' --hideGenerator --disableSources --excludeExternals --excludePrivate --excludeProtected --includeVersion --readme 'none' --name 'Hop Protocol v2 SDK' --out docs-ui src/index.ts",
     "docs": "pnpm docs:ui && pnpm docs:markdown"
   },
   "dependencies": {

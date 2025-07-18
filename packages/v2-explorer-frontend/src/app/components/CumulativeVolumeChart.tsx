@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { useFetchCumulativeVolumeStats } from '@/app/hooks/useFetchCumulativeVolumeStats'
+import { useQuery } from 'react-query'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -20,23 +21,24 @@ import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
 
+type TokenPrice = {
+  [symbol: string]: number
+}
+
 type CumulativeVolumeChartProps = {
   pathId?: string
-  days?: number
   title?: string
 }
 
 export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({ 
   pathId, 
-  days = 30,
   title = 'Cumulative Volume by Token'
 }) => {
-  const [periodDays, setPeriodDays] = useState<string>(String(days))
   const [useLogScale, setUseLogScale] = useState<boolean>(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
+  const [showUSD, setShowUSD] = useState<boolean>(true)
   const { cumulativeVolumeStats, loading, error } = useFetchCumulativeVolumeStats({ 
-    pathId, 
-    days: parseInt(periodDays) 
+    pathId
   })
   
   // Prepare individual token charts
@@ -63,14 +65,23 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
     }
   }
 
+  // Format USD value
+  const formatUSDValue = (value: number, tokenSymbol: string, priceUsd: number): string => {
+    if (isNaN(value) || isNaN(priceUsd)) {
+      return ''
+    }
+    const usdValue = value * priceUsd
+    return `($${usdValue.toLocaleString('en-US', { maximumFractionDigits: 2 })})`
+  }
+
   // Create refs when data changes
   useEffect(() => {
-    if (!cumulativeVolumeStats?.data?.datasets) return;
+    if (!cumulativeVolumeStats?.datasets) return;
     
     // Create refs for each token
     const newTokenData = { ...tokenData };
     
-    cumulativeVolumeStats.data.datasets.forEach(dataset => {
+    cumulativeVolumeStats.datasets.forEach((dataset) => {
       const tokenSymbol = dataset.label;
       if (!newTokenData[tokenSymbol]) {
         newTokenData[tokenSymbol] = {
@@ -81,19 +92,19 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
     });
     
     setTokenData(newTokenData);
-  }, [cumulativeVolumeStats?.data?.datasets]);
+  }, [cumulativeVolumeStats?.datasets]);
   
   // Set initial selected tokens
   useEffect(() => {
-    if (selectedTokens.length === 0 && cumulativeVolumeStats?.data?.datasets && cumulativeVolumeStats.data.datasets.length > 0) {
-      setSelectedTokens(cumulativeVolumeStats.data.datasets.map(dataset => dataset.label));
+    if (selectedTokens.length === 0 && cumulativeVolumeStats?.datasets && cumulativeVolumeStats.datasets.length > 0) {
+      setSelectedTokens(cumulativeVolumeStats.datasets.map(dataset => dataset.label));
     }
-  }, [cumulativeVolumeStats?.data?.datasets, selectedTokens.length]);
+  }, [cumulativeVolumeStats?.datasets, selectedTokens.length]);
 
   // Create a chart for each token
   useEffect(() => {
     const loadChartJs = async () => {
-      if (typeof window === 'undefined' || !cumulativeVolumeStats?.data || !cumulativeVolumeStats.data.datasets.length) {
+      if (typeof window === 'undefined' || !cumulativeVolumeStats || !cumulativeVolumeStats.datasets.length) {
         return
       }
 
@@ -102,7 +113,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
         const { Chart, registerables } = await import('chart.js')
         Chart.register(...registerables)
         
-        const { labels, datasets } = cumulativeVolumeStats.data
+        const { labels, datasets } = cumulativeVolumeStats
         
         // Assign colors to datasets
         const colorScheme = [
@@ -182,7 +193,11 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
                   },
                   ticks: {
                     callback: (value: number | string) => {
-                      return formatTokenAmount(Number(value), '')
+                      const numericValue = Number(value)
+                      if (isNaN(numericValue)) return ''
+                      const tokenAmount = formatTokenAmount(numericValue, '')
+                      const usdValue = showUSD ? formatUSDValue(numericValue, tokenSymbol, dataset.priceUsd || 1) : ''
+                      return `${tokenAmount} ${usdValue}`
                     },
                     maxTicksLimit: 5
                   },
@@ -221,7 +236,12 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
                   callbacks: {
                     label: (context: any) => {
                       if (context.raw !== undefined && context.dataset?.label) {
-                        return formatTokenAmount(context.raw, context.dataset.label)
+                        const tokenSymbol = context.dataset.label
+                        const numericValue = Number(context.raw)
+                        if (isNaN(numericValue)) return ''
+                        const tokenAmount = formatTokenAmount(numericValue, tokenSymbol)
+                        const usdValue = showUSD ? formatUSDValue(numericValue, tokenSymbol, dataset.priceUsd || 1) : ''
+                        return `${tokenAmount} ${usdValue}`
                       }
                       return '';
                     }
@@ -256,7 +276,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
     }
     
     // Only load charts when we have both data and refs
-    if (cumulativeVolumeStats?.data && Object.keys(tokenData).length > 0) {
+    if (cumulativeVolumeStats && Object.keys(tokenData).length > 0) {
       loadChartJs()
     }
     
@@ -268,11 +288,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
         }
       })
     }
-  }, [cumulativeVolumeStats?.data, tokenData, useLogScale, selectedTokens])
-
-  const handlePeriodChange = (event: SelectChangeEvent) => {
-    setPeriodDays(event.target.value)
-  }
+  }, [cumulativeVolumeStats, tokenData, useLogScale, selectedTokens, showUSD])
 
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUseLogScale(event.target.checked)
@@ -323,23 +339,6 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
           </Box>
           
           <Box display="flex" alignItems="center" gap={2}>
-            <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="period-select-label">Time Period</InputLabel>
-              <Select
-                labelId="period-select-label"
-                id="period-select"
-                value={periodDays}
-                onChange={handlePeriodChange}
-                label="Time Period"
-              >
-                <MenuItem value="7">7 days</MenuItem>
-                <MenuItem value="30">30 days</MenuItem>
-                <MenuItem value="90">90 days</MenuItem>
-                <MenuItem value="180">180 days</MenuItem>
-                <MenuItem value="365">365 days</MenuItem>
-              </Select>
-            </FormControl>
-            
             <FormControlLabel
               control={
                 <Switch
@@ -352,6 +351,21 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
               label={
                 <Typography variant="body2" color="text.secondary">
                   Log Scale
+                </Typography>
+              }
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showUSD}
+                  onChange={(e) => setShowUSD(e.target.checked)}
+                  color="primary"
+                  size="small"
+                />
+              }
+              label={
+                <Typography variant="body2" color="text.secondary">
+                  Show USD
                 </Typography>
               }
             />
@@ -369,7 +383,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
           </Box>
         )}
         
-        {!loading && cumulativeVolumeStats?.data?.datasets && (
+        {!loading && cumulativeVolumeStats?.datasets && (
           <Box>
             {/* Token filter chips */}
             <Stack 
@@ -382,7 +396,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
                 '& > *': { my: 0.5 }
               }}
             >
-              {cumulativeVolumeStats.data.datasets.map(dataset => (
+              {cumulativeVolumeStats.datasets.map(dataset => (
                 <Chip 
                   key={dataset.label}
                   label={dataset.label}
@@ -408,7 +422,7 @@ export const CumulativeVolumeChart: React.FC<CumulativeVolumeChartProps> = ({
             </Stack>
             
             <Grid container spacing={4}>
-              {cumulativeVolumeStats.data.datasets
+              {cumulativeVolumeStats.datasets
                 .filter(dataset => selectedTokens.includes(dataset.label))
                 .map(dataset => (
                 <Grid item xs={12} key={dataset.label}>

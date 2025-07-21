@@ -59,6 +59,10 @@ export type HopCCTPTransferReceivedDecoded = {
   messageBody: string
 }
 
+export enum CCTPMethodName {
+  ReceiveMessage = 'receiveMessage'
+}
+
 export enum CCTPEventName {
   CCTPTransferSent = 'CCTPTransferSent',
   MessageReceived = 'MessageReceived'

@@ -210,12 +210,14 @@ export type GetTotalSentInput = {
   pathId: string
 }
 
-export type GetIsTransferBondedInput = {
-  transferId: string
+export type GetIsClaimBondedOrWithdrawnInput = {
+  pathId: string
+  claimId: string
 }
 
-export type GetIsTransferClaimedInput = {
-  transferId: string
+export type GetIsClaimPushedInput = {
+  pathId: string
+  claimId: string
 }
 
 export type GetNextHopsHashInput = {
@@ -1440,34 +1442,44 @@ export class RailsGateway extends Base {
         return this.sendTransaction(txData)
       },
 
-      getIsTransferBonded: async ({ transferId }: GetIsTransferBondedInput): Promise<boolean> => {
+      getIsClaimPushed: async ({ pathId, claimId }: GetIsClaimPushedInput): Promise<boolean> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
 
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        // TODO: call contract state once it's available
-        return false
+        const contract = await this.getRailsGatewayContract()
+        try {
+          const claim = await contract.getClaim(pathId, claimId)
+          return claim.to !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
       },
 
-      getIsTransferClaimed: async ({ transferId }: GetIsTransferClaimedInput): Promise<boolean> => {
+      getIsClaimBondedOrWithdrawn: async ({ pathId, claimId }: GetIsClaimBondedOrWithdrawnInput): Promise<boolean> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
 
-        if (!this.utils.isValidBytes32(transferId)) {
-          throw new InputError(`Invalid transferId "${transferId}"`)
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        // TODO: call contract state once it's available
-        return false
+        const contract = await this.getRailsGatewayContract()
+        try {
+          const claim = await contract.getClaim(pathId, claimId)
+          return claim.bondedOrWithdrawnBy !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
       },
 
       getIsPathIdLive: async ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> => {

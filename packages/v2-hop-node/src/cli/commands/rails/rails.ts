@@ -22,7 +22,7 @@ async function run (): Promise<never> {
   const logger = new Logger(program.name())
 
   try {
-    const clients = Object.values(Rails.RailsClientName)
+    const clients = Object.values(Rails.RailsCLI.RailsClientName)
     const railsManager = new Rails.Rails(clients, Config.ClientConfig.rails.paths)
     await railsManager.start()
     logger.debug('Rails Manager started')

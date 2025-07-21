@@ -1,29 +1,25 @@
-import { RailsTransfer } from './transfer/RailsTransfer.js'
 import { RailsClaim } from './claim/RailsClaim.js'
 import { RailsRelayer } from './RailsRelayer.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { ClientName } from '../constants.js'
-import { type RailsPath, RailsClientName } from './types.js'
+import { getAddressesForRailsPath } from './RailsSDKWrapper.js'
+import {
+  type RailsPath,
+  type RailsPathWithAddresses,
+  type RailsPathAddresses,
+  RailsClientName
+} from './types.js'
 
 export class Rails {
-  readonly #transferClient: RailsTransfer | undefined
-  readonly #claimClient: RailsClaim | undefined
+  readonly #name: ClientName
+  readonly #clientNames: RailsClientName[]
+  readonly #paths: RailsPath[]
   #started: boolean = false
 
   constructor (clientNames: RailsClientName[], paths: RailsPath[]) {
-    const name = ClientName.Rails
-
-    // Data handler
-    const indexer = new RailsIndexer(name, paths)
-    const relayer = new RailsRelayer(name, paths)
-
-    if (clientNames.includes(RailsClientName.Transfer)) {
-      this.#transferClient = new RailsTransfer(name, indexer, relayer)
-    }
-
-    if (clientNames.includes(RailsClientName.Claim)) {
-      this.#claimClient = new RailsClaim(name, indexer, relayer)
-    }
+    this.#name = ClientName.Rails
+    this.#paths = paths
+    this.#clientNames = clientNames
   }
 
   async start (): Promise<void> {
@@ -31,12 +27,27 @@ export class Rails {
       throw new Error('Already started')
     }
 
-    if (this.#transferClient) {
-      await this.#transferClient.start()
+    const pathsWithAddresses: RailsPathWithAddresses[] = []
+    for (const path of this.#paths) {
+      const pathAddresses: RailsPathAddresses = await getAddressesForRailsPath(path)
+      pathsWithAddresses.push({
+        ...path,
+        pathAddresses
+      })
     }
 
-    if (this.#claimClient) {
-      await this.#claimClient.start()
+    const indexer = new RailsIndexer(this.#name, pathsWithAddresses)
+    const relayer = new RailsRelayer(this.#name, this.#paths)
+
+    if (this.#clientNames.includes(RailsClientName.Transfer)) {
+      // const transferClient = new RailsTransfer(this.#name, indexer, relayer)
+      // void transferClient.start()
+    }
+
+    if (this.#clientNames.includes(RailsClientName.Claim)) {
+      console.log('starting claim client')
+      const claimClient = new RailsClaim(this.#name, indexer, relayer)
+      void claimClient.start()
     }
 
     this.#started = true

@@ -27,9 +27,9 @@ import type { NextState, StateTxContext } from './types.js'
 
 // The relayer is unconcerned with the context of transactions, so
 // that is removed from the data that is relayed.
-type RelayItem<StateData extends object = object> = Omit<StateData, 'txContext'>
+type StateDataWithoutContext<StateData extends object = object> = Omit<StateData, 'txContext'>
 
-export abstract class StateMachine<State extends string, StateData extends StateTxContext> implements IStateMachine {
+export abstract class StateMachine<State extends string, StateData extends StateTxContext, RelayTxMethodName extends string> implements IStateMachine {
   readonly #states: State[]
   readonly #db: StateMachineDB<State, NextState<State>, string, StateData>
   readonly #dataAdapter: IDataAdapter<State, StateData>
@@ -52,11 +52,13 @@ export abstract class StateMachine<State extends string, StateData extends State
   // NOTE: The final state does not need to be handled since there are no more transitions after it
   protected abstract shouldAttemptTransition(state: State, value: StateData): boolean
   protected abstract getTransitionState(state: State): State
+  protected abstract getRelayChainId(state: State, value: StateData): string
+  protected abstract getRelayTxMethodFromState(state: State): RelayTxMethodName
 
   constructor (
     name: string,
     dataAdapter: IDataAdapter<State, StateData>,
-    relayer: IRelayer<RelayItem>
+    relayer: IRelayer
   ) {
     this.#db = new StateMachineDB(name)
     this.#dataAdapter = dataAdapter
@@ -156,7 +158,7 @@ export abstract class StateMachine<State extends string, StateData extends State
       await this.#transitionState(state, nextState, nextValue, key)
       // Intentionally not awaiting to avoid blocking the poller, since the relayer
       // is independent of the state machine
-      void this.#postTransitionHook(nextState, key)
+      void this.#postTransitionHook(state, key, value)
     }
   }
 
@@ -176,8 +178,7 @@ export abstract class StateMachine<State extends string, StateData extends State
     if (state !== getFirstState(this.#states)) return false
     if (await this.#db.isItemInitialized(key)) return false
 
-    const relayItem: RelayItem<StateData> = value
-    void this.#relayer.relay(relayItem)
+    void this.#sendRelay(state, key, value)
     await this.#db.initializeItem(key)
     return true
   }
@@ -210,29 +211,45 @@ export abstract class StateMachine<State extends string, StateData extends State
     return true
   }
 
-  async #postTransitionHook (nextState: State, key: string): Promise<boolean> {
-    this.logger.debug(`Post transition hook for nextState: ${nextState}, key: ${key}`)
-
-    // There is no action needed for the final state
-    const isLastStateHook = isLastState(this.#states, nextState)
-    if (isLastStateHook) return false
-
-    // The first state hook will have nothing in the DB to read
-    const relayItem: RelayItem<StateData> = await this.#getRelayItem(key)
-
-    this.logger.debug(`Relaying item for nextState: ${nextState}, key: ${key}`)
-    await this.#relayer.relay(relayItem)
+  async #postTransitionHook (state: State, key: string, value: StateData): Promise<boolean> {
+    this.logger.debug(`Post transition hook for state: ${state}, key: ${key}`)
+    await this.#sendRelay(state, key, value)
     return true
+  }
+
+  /**
+   * Utils
+   */
+
+  async #sendRelay(state: State, key: string, value: StateData): Promise<void> {
+    this.logger.debug(`Relaying item for state: ${state}, key: ${key}`)
+    let relayItem: StateDataWithoutContext<StateData>
+    if (state === getFirstState(this.#states)) {
+      // The first state hook will have nothing in the DB to read
+      relayItem = value
+    } else if (isLastState(this.#states, state)) {
+      // The final state does not need to be relayed
+      return
+    } else {
+      relayItem = await this.#getRelayItem(key)
+    }
+
+    // TODO: Optimize: Enforce the NextState<State> type in the implementation
+    const nextState = this.getTransitionState(state) as NextState<State>
+    const relayTxMethodName = this.getRelayTxMethodFromState(nextState)
+    // TODO: In theory, the state machine should not care about the chain.
+    const relayChainId: string = this.getRelayChainId(state, value)
+    return this.#relayer.relay(relayTxMethodName, relayItem, relayChainId)
   }
 
   // Aggregate all existing data to send to the relayer. The relayer
   // doesn't care about the state, only the data it needs to relay.
-  async #getRelayItem(key: string): Promise<RelayItem<StateData>> {
+  async #getRelayItem(key: string): Promise<StateDataWithoutContext<StateData>> {
     const stateAndItem: [State, StateData][] = await this.#db.getItemByKey(key, this.#states)
 
     return stateAndItem.reduce((acc, [, data]) => {
       const { txContext, ...restData } = data
-      return { ...acc, ...restData, }
-    }, {} as RelayItem<StateData>)
+      return { ...acc, ...restData }
+    }, {} as StateDataWithoutContext<StateData>)
   }
 }

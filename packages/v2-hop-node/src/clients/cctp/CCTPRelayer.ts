@@ -1,20 +1,65 @@
-import { CCTPSDK } from './CCTPSDKWrapper.js'
+import { CCTPMethodName, CCTPSDK } from './CCTPSDKWrapper.js'
 import { Relayer } from '#relayer/Relayer.js'
 import { wallets } from '#wallets/index.js'
 import type { ReceiveMessageInput, ICCTPRelayItem } from './types.js'
 import type { providers } from 'ethers'
 
-export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
+export class CCTPRelayer extends Relayer<CCTPMethodName, ICCTPRelayItem> {
 
   /**
    * Implementation
    */
 
-  protected override async shouldAttemptRelay (relayItem: ICCTPRelayItem): Promise<boolean> {
-    if (!this.#isReceiveMessageInput(relayItem)) {
-      throw new Error('Invalid relay item')
+  protected override formatRelayItem(relayTxMethodName: CCTPMethodName, relayItem: any): ICCTPRelayItem {
+    switch (relayTxMethodName) {
+      case CCTPMethodName.ReceiveMessage:
+        return this.#formatReceiveMessageInput(relayItem) as ICCTPRelayItem
+      default:
+        throw new Error('Invalid relay item')
     }
+  }
 
+  protected override async shouldAttemptRelay(
+    relayItem: ICCTPRelayItem,
+    relayTxMethodName: CCTPMethodName
+  ): Promise<boolean> {
+    switch (relayTxMethodName) {
+      case CCTPMethodName.ReceiveMessage:
+        return this.#canRelayReceiveMessageInput(relayItem)
+      default:
+        throw new Error('Invalid relay item')
+    }
+  }
+
+  /**
+   * External
+   */
+
+  override async sendRelay (
+    relayItem: ICCTPRelayItem,
+    relayTxMethodName: CCTPMethodName
+  ): Promise<providers.TransactionResponse> {
+
+    switch (relayTxMethodName) {
+      case CCTPMethodName.ReceiveMessage:
+        return this.#sendReceiveMessage(relayItem)
+      default:
+        throw new Error('Invalid relay item')
+    }
+  }
+
+  protected override isImplementationError (err: unknown): boolean {
+    return (
+      this.#isAttestationError(err) ||
+      this.#isContractError(err)
+    )
+  }
+
+  /**
+   * Internal - Validation
+   */
+
+  async #canRelayReceiveMessageInput (relayItem: ReceiveMessageInput): Promise<boolean> {
     // If the attestations are not ready, we should not attempt the relay
     try {
       await CCTPSDK.fetchAttestation(relayItem.message)
@@ -26,19 +71,6 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
     return true
   }
 
-  protected override async sendRelay (relayItem: ICCTPRelayItem): Promise<providers.TransactionResponse> {
-    if (!this.#isReceiveMessageInput(relayItem)) {
-      throw new Error('Invalid relay item')
-    }
-    return this.#sendReceiveMessage(relayItem)
-  }
-
-  protected override isImplementationError (err: unknown): boolean {
-    return (
-      this.#isAttestationError(err) ||
-      this.#isContractError(err)
-    )
-  }
 
   /**
    * Internal - Execution
@@ -67,6 +99,23 @@ export class CCTPRelayer extends Relayer<ICCTPRelayItem> {
       'message' in candidate &&
       typeof candidate.message === 'string'
     )
+  }
+
+  /**
+   * Internal - Format
+   */
+
+  // TODO: This should return a CCTPReceiveMessageInput but is not trivial since the input
+  // includes the attestation but the attestation is retrieved JIT.
+  #formatReceiveMessageInput (relayItem: any): any {
+    const isValid = this.#isReceiveMessageInput(relayItem)
+    if (!isValid) {
+      throw new Error('Invalid receive message input')
+    }
+
+    return {
+      message: relayItem.message
+    }
   }
 
   /**

@@ -1,7 +1,9 @@
 import type { BigNumber } from 'ethers'
 import type {
-  BondInputSDK,
-  PostClaimInputSDK
+  BondInput,
+  PushClaimInput,
+  RemoveClaimInput,
+  ReaddClaimInput
 } from './RailsSDKWrapper.js'
 
 export enum RailsClientName {
@@ -9,19 +11,40 @@ export enum RailsClientName {
   Claim = 'claim'
 }
 
+// TODO: Get from SDk
 export type RailsHop = {
   pathId: string
+  maxBonderFee: BigNumber
   maxTotalSent: BigNumber
   attestedClaimId: string
 }
 
 export type RailsPath = {
-  srcChainId: string
-  srcToken: string
-  destChainId: string
-  destToken: string
+  chainId: string
+  token: string
+  counterpartChainId: string
+  counterpartToken: string
+  initialReserve: string
 }
 
-export type BondInput = BondInputSDK
-export type PostClaimInput = PostClaimInputSDK
-export type RailsRelayItem = BondInput | PostClaimInput
+export type RailsPathAddresses = {
+  pathAddress: string
+  counterpartPathAddress: string
+}
+
+export type RailsPathWithAddresses = RailsPath & {
+  pathAddresses: RailsPathAddresses
+}
+
+export type {
+  BondInput,
+  PushClaimInput,
+  RemoveClaimInput,
+  ReaddClaimInput
+}
+
+export type RailsRelayItem =
+  | BondInput
+  | PushClaimInput
+  | RemoveClaimInput
+  | ReaddClaimInput

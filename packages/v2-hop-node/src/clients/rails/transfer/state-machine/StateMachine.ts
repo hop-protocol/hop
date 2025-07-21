@@ -3,12 +3,13 @@ import { StateMachine } from '#state-machine/index.js'
 import {
   type ISentRailsTransfer,
   type IRailsTransfer,
+  RailsTransferMethodName,
   RailsTransferState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import { getPathFromPathId } from '../../utils.js'
+import { getCounterpartChainIdForPathId } from '../../utils.js'
 
-export class RailsTransferStateMachine extends StateMachine<RailsTransferState, IRailsTransfer> {
+export class RailsTransferStateMachine extends StateMachine<RailsTransferState, IRailsTransfer, RailsTransferMethodName> {
 
   /**
    * Implementation
@@ -19,13 +20,37 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   }
 
   protected override getItemId(value: IRailsTransfer): string {
-    return value.transferId
+    return value.claimId
+  }
+
+  protected override getRelayChainId(state: RailsTransferState, value: IRailsTransfer): string {
+    const { pathId, txContext } = value
+    const { chainId } = txContext
+    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+
+    switch (state) {
+      case RailsTransferState.Sent:
+        return counterpartChainId
+      default:
+        throw new Error('Invalid state')
+    }
+  }
+
+  protected override getRelayTxMethodFromState(state: RailsTransferState): RailsTransferMethodName {
+    switch (state) {
+      // case RailsTransferState.Sent:
+      //   return RailsTransferMethodName.Bond
+      case RailsTransferState.Bonded:
+        return RailsTransferMethodName.Bond
+      default:
+        throw new Error('Invalid state')
+    }
   }
 
   protected override shouldAttemptTransition(state: RailsTransferState, value: IRailsTransfer): boolean {
     switch (state) {
       case RailsTransferState.Sent:
-        return this.#shouldSendBeFinalized(value as ISentRailsTransfer)
+        return this.#shouldClaimPushBeFinalized(value as ISentRailsTransfer)
       default:
         throw new Error('Invalid state')
     }
@@ -44,23 +69,20 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
    * Internal
    */
 
-  #shouldSendBeFinalized(value: ISentRailsTransfer): boolean {
-    // A bond can be finalized if enough time has passed for the post to
-    // be finalized on its own chain, for the bonder to bond the claim,
-    // and for the bond to be finalized on its own chain.
+  #shouldClaimPushBeFinalized(value: ISentRailsTransfer): boolean {
     const { pathId, txContext } = value
-    const { timestampMs } = txContext
+    const { timestampMs, chainId } = txContext
 
-    // TODO: Handle timing of post
+    const srcChainSlug = getChain(chainId).slug
+    const srcChainFinalityTimeMs = FINALITY_TIME_MS[srcChainSlug]
 
-    const { destChainId } = getPathFromPathId(pathId)
+    const destChainId = getCounterpartChainIdForPathId(chainId, pathId)
     const destChainSlug = getChain(destChainId).slug
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 
-    // We add the finality time twice because both the post and the claim
-    // must be finalized and they exist on the same chain.
     const expectedRelayTimeMs =
       timestampMs +
+      srcChainFinalityTimeMs +
       destChainFinalityTimeMs
 
     const relayFinalizedTimestampOk = expectedRelayTimeMs < Date.now()

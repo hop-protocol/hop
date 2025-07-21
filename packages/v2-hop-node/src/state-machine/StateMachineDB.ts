@@ -119,7 +119,7 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
   async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
     for await (const [key, value] of this.getSublevel(state).iterator()) {
       const filteredValue = this.normalizeDBValue(value)
-      yield [key as Key, filteredValue as StateData]
+      yield [key as Key, filteredValue]
     }
   }
 
@@ -146,7 +146,8 @@ export class StateMachineDB<State extends string, NextState extends string, Key 
         throw new Error('Invalid state or value found')
       }
 
-      return [state, value]
+      const filteredValue = this.normalizeDBValue(value)
+      return [state, filteredValue]
     })
   }
 

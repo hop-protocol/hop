@@ -1,17 +1,13 @@
 import {
   type RailsFilterInputs,
-  EventName as RailsEventName,
+  RailsEventName,
   addDecodedTypesToEvent,
+  getPathId,
   getRailsEventFilter
 } from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/index.js'
-import {
-  aggregateFilters,
-  getChainIdsForPaths,
-  getPathIdsPerChainId,
-  getRailsStartBlockNumber
-} from './utils.js'
-import type { RailsPath } from './types.js'
+import { getRailsStartBlockNumber } from './utils.js'
+import type { RailsPathWithAddresses } from './types.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import type { ClientName } from '../constants.js'
@@ -20,24 +16,22 @@ type RailsEventIndexes = (keyof NonNullable<RailsFilterInputs>)[]
 
 export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndexes> {
 
-  constructor(name: ClientName, paths: RailsPath[]) {
+  constructor(name: ClientName, pathsWithAddresses: RailsPathWithAddresses[]) {
     super(name)
 
-    this.addEventFilters(paths)
+    this.#addEventFilters(pathsWithAddresses)
   }
 
   /**
    * Implementation
    */
 
-  protected override getEventFilter(chainId: string, eventName: RailsEventName): RequiredEventFilter {
-    // We know that the filter returned will be a RequiredEventFilter since we own the SDK
-    return getRailsEventFilter(eventName, chainId) as RequiredEventFilter
-  }
-
   protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndexes {
-    // The indexer key for all events is transferId
-    return ['transferId']
+    if (eventName === RailsEventName.TransferSent) {
+      return ['transferId']
+    }
+
+    return ['claimId']
   }
 
   protected override getStartBlockNumber (chainId: string): number {
@@ -45,8 +39,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
   }
 
   protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
-    const decodedEvent = addDecodedTypesToEvent(log)
-    const eventName = decodedEvent.event!
+    const decodedEvent = addDecodedTypesToEvent(log, chainId)
+    const eventName = decodedEvent.context.eventName
     return {
       ...decodedEvent,
       context: {
@@ -58,28 +52,33 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
 
   // Internal
 
-  // In theory, this should occur here at the top level since event indexing should not be concerned
-  // with sub-implementation (i.e. transfer vs. claim) details. If there is a need for this, then implement
-  // those details in the sub-implementation and extend this class.
-  protected addEventFilters(paths: RailsPath[]): void {
-    this.addEventFilters(paths)
-    const chainIds = getChainIdsForPaths(paths)
+  #addEventFilters(paths: RailsPathWithAddresses[]): void {
     const eventNames = Object.values(RailsEventName)
 
+    // Check for duplicate pathIds
+    const pathIds = new Set<string>()
+    for (const path of paths) {
+      const pathId = getPathId(path)
+      if (pathIds.has(pathId)) {
+        throw new Error(`Duplicate pathId found: ${pathId}`)
+      }
+      pathIds.add(pathId)
+    }
+
     // All events are indexed by pathId so there is no need to filter them
-    for (const eventName of eventNames) {
-      for (const chainId of chainIds) {
-        const getPathIdsForChainId = getPathIdsPerChainId(chainId, paths)
-        const filters = getPathIdsForChainId.map(pathId => {
-          return getRailsEventFilter(eventName, chainId, { pathId }) as RequiredEventFilter
-        })
+    for (const path of paths) {
+      const pathId = getPathId(path)
+      const chainId = path.chainId
+      const counterpartChainId = path.counterpartChainId
 
-        // Aggregate the filters for each event and chainId
-        // Since we are already iterating over chainIds (and therefor addresses),
-        // we know that this method will only return a single filter.
-        const aggregatedFilters = aggregateFilters(filters)[0]!
+      for (const eventName of eventNames) {
+        const railsEventFilter = getRailsEventFilter(eventName, chainId, path.pathAddresses.pathAddress, { pathId }) as RequiredEventFilter
+        console.log('Adding event filter', eventName, chainId, path.pathAddresses.pathAddress, pathId, railsEventFilter)
+        this.addEventFilterToIndexer(eventName, chainId, railsEventFilter)
 
-        this.addEventFilterToIndexer(eventName, chainId, aggregatedFilters)
+        const railsCounterpartEventFilter = getRailsEventFilter(eventName, counterpartChainId, path.pathAddresses.counterpartPathAddress, { pathId }) as RequiredEventFilter
+        console.log('Adding event filter', eventName, counterpartChainId, path.pathAddresses.pathAddress, pathId, railsCounterpartEventFilter)
+        this.addEventFilterToIndexer(eventName, counterpartChainId, railsCounterpartEventFilter)
       }
     }
   }

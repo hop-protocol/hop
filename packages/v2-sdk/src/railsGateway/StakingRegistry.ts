@@ -72,7 +72,7 @@ export type IsStakedInput = {
   staker: string
 }
 
-export type GetStakedBalanceInput = {
+export type GetBalanceInput = {
   staker: string
 }
 
@@ -418,7 +418,7 @@ export class StakingRegistry extends Base {
     return contract.isStaked(staker)
   }
 
-  async getStakedBalance (input: GetStakedBalanceInput): Promise<BigNumber> {
+  async getBalance(input: GetBalanceInput): Promise<BigNumber> {
     const { staker } = input
 
     if (!this.utils.isValidAddress(staker)) {
@@ -426,7 +426,7 @@ export class StakingRegistry extends Base {
     }
 
     const contract = this.getStakingRegistryContract()
-    return contract.getStakedBalance(staker)
+    return contract.getBalance(staker)
   }
 
   async getWithdrawableBalance (input: GetWithdrawableBalanceInput): Promise<BigNumber> {

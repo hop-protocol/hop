@@ -246,9 +246,9 @@ describe('StakingRegistry', () => {
       signerOrProvider: signer,
     })
 
-    jest.spyOn(stakingRegistry as any, 'getStakedBalance').mockReturnValue(BigNumber.from(1))
+    jest.spyOn(stakingRegistry as any, 'getBalance').mockReturnValue(BigNumber.from(1))
 
-    const balance = await stakingRegistry.getStakedBalance({
+    const balance = await stakingRegistry.getBalance({
       staker,
     })
     console.log(balance)

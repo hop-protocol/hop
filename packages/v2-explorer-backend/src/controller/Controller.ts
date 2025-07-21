@@ -1566,7 +1566,7 @@ export class Controller {
           
           console.log('fetching balances for bonder', address, chainId)
           const [stakedBalance, withdrawableBalance, hopBalance] = await Promise.all([
-            stakingRegistry.getStakedBalance({ staker: address }),
+            stakingRegistry.getBalance({ staker: address }),
             stakingRegistry.getWithdrawableBalance({ staker: address }),
             stakingRegistry.helpers.getHopBalance({ staker: address })
           ])

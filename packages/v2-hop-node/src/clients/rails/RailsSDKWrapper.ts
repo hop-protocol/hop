@@ -32,6 +32,7 @@ import type {
 import { wallets } from '#wallets/index.js'
 import type { RailsHop, RailsPath, RailsPathAddresses } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
+import type { BigNumber } from 'ethers'
 
 export type RailsFilterInputs = &
   TransferSentIndexes &
@@ -210,4 +211,11 @@ export async function getAddressesForRailsPath (path: RailsPath): Promise<RailsP
     pathAddress: pathInstance.getRailsPathContractAddress(),
     counterpartPathAddress: counterpartPathInstance.getRailsPathContractAddress()
   }
+}
+
+export async function getBalance(chainId: string, staker: string): Promise<BigNumber> {
+  const wallet = wallets.get(chainId)
+  const gateway = new RailsGatewaySDK({ chainId, signerOrProvider: wallet, network: 'sepolia' })
+  const stakingRegistry = gateway.getStakingRegistry()
+  return stakingRegistry.getBalance({ staker })
 }

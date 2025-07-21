@@ -15,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function StakingRegistryGetStakedBalance (props: Props) {
-  const cacheKey = 'stakingRegistryGetStakedBalance'
+export function StakingRegistryGetBalance (props: Props) {
+  const cacheKey = 'stakingRegistryGetBalance'
   const { sdk } = props
   const styles = useStyles()
   const { hopInstantiateDisplayString, defaultChainIds, chainIds } = useShared()
@@ -46,7 +46,7 @@ export function StakingRegistryGetStakedBalance (props: Props) {
         staker
       }
       console.log('args', args)
-      const balance = await sdk.getRailsGateway(fromChainId).getStakingRegistry().getStakedBalance(args)
+      const balance = await sdk.getRailsGateway(fromChainId).getStakingRegistry().getBalance(args)
       setStakedBalance(balance?.toString())
     } catch (err: any) {
       console.error(err)
@@ -62,7 +62,7 @@ async function main() {
   const staker = "${staker}"
 
   ${hopInstantiateDisplayString}
-  const balance = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().getStakedBalance({
+  const balance = await hop.getRailsGateway('${fromChainId}').getStakingRegistry().getBalance({
     staker
   })
   console.log(balance)
@@ -133,4 +133,4 @@ main().catch(console.error)
   )
 }
 
-export default StakingRegistryGetStakedBalance
+export default StakingRegistryGetBalance

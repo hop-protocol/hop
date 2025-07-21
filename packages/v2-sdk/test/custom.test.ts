@@ -64,9 +64,9 @@ describe('Custom tests', () => {
     const minAmountOut = parseUnits('1', 18)
     const to = await signer.getAddress()
 
-    console.log('a0')
+    // High enough to ensure the transaction goes through quickly
     const txOptions = {
-      gasPrice: 10_000_000_000, // 100 gwei
+      gasPrice: 10_000_000_000,
     }
 
     const txData = await sdk.populateTransaction.sendTokens({
@@ -78,11 +78,9 @@ describe('Custom tests', () => {
       minAmountOut,
       to
     }, txOptions)
-    console.log('a1', txData)
     console.log(txData)
     expect(txData).toBeDefined()
 
     await sdk.sendTransaction(txData, fromChainId, signer)
-    console.log('a2')
   }, 60 * 1000)
 })

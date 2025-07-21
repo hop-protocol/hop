@@ -99,7 +99,6 @@ export type SignalPreferenceInput = {
 
 export type GetNeedsApprovalForStakeInput = {
   amount: BigNumberish
-  account: string
 }
 
 export type ApproveStakeInput = {
@@ -292,7 +291,61 @@ export class StakingRegistry extends Base {
 
   get helpers() {
     return {
-      getNeedsApprovalForStake: async ({ amount, account }: GetNeedsApprovalForStakeInput): Promise<boolean> => {
+      getBalance: async (): Promise<BigNumber> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const staker = await this.getSignerAddress(chainId)
+        if (!staker) {
+          throw new InputError('signer not set')
+        }
+        return this.getBalance({ staker })
+      },
+
+      stakeHop: async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const staker = await this.getSignerAddress(chainId)
+        if (!staker) {
+          throw new InputError('signer not set')
+        }
+        return this.stakeHop({ amount, staker })
+      },
+
+      isStaked: async (): Promise<boolean> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const staker = await this.getSignerAddress(chainId)
+        if (!staker) {
+          throw new InputError('signer not set')
+        }
+        return this.isStaked({ staker })
+      },
+
+      getNeedsApprovalForStake: async ({ amount }: GetNeedsApprovalForStakeInput): Promise<boolean> => {
         const chainId = this.chainId
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
@@ -310,12 +363,31 @@ export class StakingRegistry extends Base {
         const tokenAddress = await this.hopToken()
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const spender = this.getStakingRegistryContractAddress()
-        account ??= (await this.getSignerAddress(chainId))!
+        const account = (await this.getSignerAddress(chainId))!
         if (!account) {
           throw new InputError('signer not set')
         }
         const approved = await tokenContract.allowance(account, spender)
         return approved.lt(amount)
+      },
+
+      // TODO: Combine this and getHopBalance into overridden method
+      getHopTokenBalance: async (): Promise<BigNumber> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const staker = await this.getSignerAddress(chainId)
+        if (!staker) {
+          throw new InputError('signer not set')
+        }
+        return this.helpers.getHopBalance({ staker })
       },
 
       getHopBalance: async ({ staker }: GetHopBalanceInput): Promise<BigNumber> => {

@@ -141,6 +141,14 @@ export class RailsGateway {
     return this.#stakingRegistry.helpers.stakeHop(amount)
   }
 
+  async unstakeHop(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.unstakeHop({ amount })
+  }
+
+  async withdrawStake(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.withdrawStake({ amount })
+  }
+
   /**
    * Helpers
    */

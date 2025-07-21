@@ -742,8 +742,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | `any` |
-| `input` | [`GetEventFilterInput`](../modules.md#geteventfilterinput) |
+| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
+| `input` | `PathInitializedIndexes` |
 
 #### Returns
 

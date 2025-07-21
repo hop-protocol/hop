@@ -103,7 +103,6 @@
 - [GetIsL2TxHashExitedInput](modules.md#getisl2txhashexitedinput)
 - [GetIsMessageIdRelayedInput](modules.md#getismessageidrelayedinput)
 - [GetIsPathIdLiveInput](modules.md#getispathidliveinput)
-- [GetLastBondedClaimIdInput](modules.md#getlastbondedclaimidinput)
 - [GetMaxBundleMessageCountInput](modules.md#getmaxbundlemessagecountinput)
 - [GetMerkleProofForMessageIdInput](modules.md#getmerkleproofformessageidinput)
 - [GetMessageBundleIdFromMessageIdInput](modules.md#getmessagebundleidfrommessageidinput)
@@ -908,19 +907,6 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `pathId` | `string` |
-
-___
-
-### <a id="getlastbondedclaimidinput" name="getlastbondedclaimidinput"></a> GetLastBondedClaimIdInput
-
-Ƭ **GetLastBondedClaimIdInput**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `bonder` | `string` |
 | `pathId` | `string` |
 
 ___

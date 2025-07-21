@@ -84,3 +84,22 @@ export async function stakeHop (chainId: string, amount: BigNumber): Promise<voi
   console.log('staking HOP for amount:', utils.formatEther(amount))
   await sdk.stakeHop(amount)
 }
+
+export async function unstakeHop (chainId: string, amount: BigNumber): Promise<void> {
+  const wallet = wallets.get(chainId)
+  const sdk = new RailsGateway(chainId, wallet)
+
+  const currentStake = await sdk.getStakeBalance()
+  if (currentStake.lt(amount)) {
+    throw new Error(`Insufficient staked balance to unstake. Current stake: ${utils.formatEther(currentStake)}, Amount to unstake: ${utils.formatEther(amount)}`)
+  }
+
+  console.log('unstaking HOP for amount:', utils.formatEther(amount))
+  await sdk.unstakeHop(amount)
+
+  // TODO: Handle pendingUnstake better by checking against it, warning if unstaked but not withdrawable, etc.
+
+  // TODO: V2: separate concept of unstaking and withdrawing stake
+  // TODO: V2: Advanced checks for unstaked vs. pending amounts
+  await sdk.withdrawStake(amount)
+}

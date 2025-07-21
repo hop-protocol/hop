@@ -346,8 +346,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     const shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-        amount: minHopStake,
-        account: bonderAddress
+        amount: minHopStake
       })
 
       console.log('needsStakeApproval:', needsStakeApproval)
@@ -691,8 +690,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-        amount: minHopStake,
-        account: bonderAddress
+        amount: minHopStake
       })
 
       console.log('needsStakeApproval:', needsStakeApproval)

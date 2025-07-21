@@ -23,7 +23,7 @@ export type UnstakeHopInput = {
 }
 
 export type WithdrawStakeInput = {
-  staker: string
+  amount: BigNumber
 }
 
 export type CreateChallengeInput = {
@@ -201,14 +201,14 @@ export class StakingRegistry extends Base {
         }
       },
 
-      withdrawStake: async ({ staker }: WithdrawStakeInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      withdrawStake: async ({ amount }: WithdrawStakeInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
         if (!chainId || !this.utils.isValidChainId(chainId)) {
           throw new InputError(`Invalid chainId "${chainId}"`)
         }
 
         const contract = this.getStakingRegistryContract()
-        const txData = await contract.populateTransaction.withdraw(staker)
+        const txData = await contract.populateTransaction.withdrawStake(amount)
 
         return {
           ...txData,
@@ -291,6 +291,24 @@ export class StakingRegistry extends Base {
 
   get helpers() {
     return {
+      getWithdrawableBalance: async (): Promise<BigNumber> => {
+        const chainId = this.chainId
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        const provider = this.getProvider(chainId)
+        if (!provider) {
+          throw new ConfigError(`Provider not found for chainId: ${chainId?.toString()}`)
+        }
+
+        const staker = await this.getSignerAddress(chainId)
+        if (!staker) {
+          throw new InputError('signer not set')
+        }
+        return this.getWithdrawableBalance({ staker })
+      },
+
       getBalance: async (): Promise<BigNumber> => {
         const chainId = this.chainId
         if (!chainId || !this.utils.isValidChainId(chainId)) {

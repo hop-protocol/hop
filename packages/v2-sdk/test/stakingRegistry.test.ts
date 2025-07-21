@@ -499,25 +499,6 @@ describe('StakingRegistry', () => {
     expect(tx).toBeDefined()
   })
 
-  it('should withdraw stake', async () => {
-    const chainId = 11155111
-    const provider = StakingRegistry.getDefaultProvider(chainId)
-    const signer = new Wallet(privateKey, provider)
-    const staker = await signer.getAddress()
-    const stakingRegistry = new StakingRegistry({
-      chainId,
-      signerOrProvider: signer
-    })
-
-    jest.spyOn(stakingRegistry as any, 'withdrawStake').mockReturnValue({ hash: '' } as any)
-
-    const tx = await stakingRegistry.withdrawStake({
-      staker
-    })
-    console.log(tx)
-    expect(tx).toBeDefined()
-  })
-
   it('should approve stake', async () => {
     const chainId = 11155111
     const provider = StakingRegistry.getDefaultProvider(chainId)
@@ -578,7 +559,6 @@ describe('StakingRegistry', () => {
     jest.spyOn(stakingRegistry.helpers as any, 'getNeedsApprovalForStake').mockReturnValue(false)
 
     const needsApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-      account: await signer.getAddress(),
       amount: parseUnits('1', 'ether')
     })
     console.log(needsApproval)

@@ -21,7 +21,7 @@ export type AllEventTypes = TransferSent | ClaimBonded | FeesSentToHub | BundleC
 export enum EventName {
   TransferSent = RailsPathEventName.TransferSent,
   ClaimBonded = RailsPathEventName.ClaimBonded,
-  ClaimPushed = RailsPathEventName.ClaimPushed,
+  ClaimPosted = RailsPathEventName.ClaimPosted,
   ClaimReadded = RailsPathEventName.ClaimReadded,
   ClaimRemoved = RailsPathEventName.ClaimRemoved,
   BonderPreference = StakingRegistryEventName.BonderPreference,

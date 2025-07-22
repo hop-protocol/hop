@@ -25,26 +25,28 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "./common.js";
 
 export interface StakingRegistryInterface extends utils.Interface {
   functions: {
-    "acceptSlash(address,uint256,bytes)": FunctionFragment;
-    "addToAppeal(address,address,uint256,bytes)": FunctionFragment;
-    "addToChallenge(address,address,uint256,bytes)": FunctionFragment;
+    "acceptSlash(uint256,bytes)": FunctionFragment;
+    "addToAppeal(address,uint256,bytes)": FunctionFragment;
+    "addToChallenge(address,uint256,bytes)": FunctionFragment;
     "appealPeriod()": FunctionFragment;
     "challengePeriod()": FunctionFragment;
+    "claimEth(address,uint256,bytes)": FunctionFragment;
     "createChallenge(address,uint256,bytes)": FunctionFragment;
-    "forceSettleChallenge(bytes32,bool)": FunctionFragment;
-    "fullAppeal()": FunctionFragment;
-    "getChallengeId(address,uint256,address,bytes)": FunctionFragment;
-    "getStakedBalance(address)": FunctionFragment;
+    "forceSettleChallenge(address,uint256,bytes,bool)": FunctionFragment;
+    "fullChallenge()": FunctionFragment;
+    "getBalance(address)": FunctionFragment;
+    "getChallengeId(address,uint256,bytes)": FunctionFragment;
     "getWithdrawableBalance(address)": FunctionFragment;
     "hopToken()": FunctionFragment;
     "isStaked(address)": FunctionFragment;
     "minChallengeIncrease()": FunctionFragment;
     "minHopStake()": FunctionFragment;
-    "optimisticallySettleChallenge(address,address,uint256,bytes)": FunctionFragment;
+    "optimisticallySettleChallenge(address,uint256,bytes)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "signalPreference(bytes32,uint256,uint256)": FunctionFragment;
@@ -52,8 +54,7 @@ export interface StakingRegistryInterface extends utils.Interface {
     "transferOwnership(address)": FunctionFragment;
     "unstakeHop(uint256)": FunctionFragment;
     "windowSize()": FunctionFragment;
-    "withdrawStake(address)": FunctionFragment;
-    "withdrawableEth(address)": FunctionFragment;
+    "withdrawStake(uint256)": FunctionFragment;
   };
 
   getFunction(
@@ -63,11 +64,12 @@ export interface StakingRegistryInterface extends utils.Interface {
       | "addToChallenge"
       | "appealPeriod"
       | "challengePeriod"
+      | "claimEth"
       | "createChallenge"
       | "forceSettleChallenge"
-      | "fullAppeal"
+      | "fullChallenge"
+      | "getBalance"
       | "getChallengeId"
-      | "getStakedBalance"
       | "getWithdrawableBalance"
       | "hopToken"
       | "isStaked"
@@ -82,20 +84,27 @@ export interface StakingRegistryInterface extends utils.Interface {
       | "unstakeHop"
       | "windowSize"
       | "withdrawStake"
-      | "withdrawableEth"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "acceptSlash",
-    values: [string, BigNumberish, BytesLike]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "addToAppeal",
-    values: [string, string, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "addToChallenge",
-    values: [string, string, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "appealPeriod",
@@ -106,31 +115,55 @@ export interface StakingRegistryInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "claimEth",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "createChallenge",
-    values: [string, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "forceSettleChallenge",
-    values: [BytesLike, boolean]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
-    functionFragment: "fullAppeal",
+    functionFragment: "fullChallenge",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getChallengeId",
-    values: [string, BigNumberish, string, BytesLike]
+    functionFragment: "getBalance",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getStakedBalance",
-    values: [string]
+    functionFragment: "getChallengeId",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getWithdrawableBalance",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "hopToken", values?: undefined): string;
-  encodeFunctionData(functionFragment: "isStaked", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "isStaked",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "minChallengeIncrease",
     values?: undefined
@@ -141,7 +174,11 @@ export interface StakingRegistryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "optimisticallySettleChallenge",
-    values: [string, string, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -150,19 +187,23 @@ export interface StakingRegistryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "signalPreference",
-    values: [BytesLike, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "stakeHop",
-    values: [string, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "unstakeHop",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "windowSize",
@@ -170,11 +211,7 @@ export interface StakingRegistryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawStake",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawableEth",
-    values: [string]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
@@ -197,6 +234,7 @@ export interface StakingRegistryInterface extends utils.Interface {
     functionFragment: "challengePeriod",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "claimEth", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createChallenge",
     data: BytesLike
@@ -205,13 +243,13 @@ export interface StakingRegistryInterface extends utils.Interface {
     functionFragment: "forceSettleChallenge",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "fullAppeal", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getChallengeId",
+    functionFragment: "fullChallenge",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getStakedBalance",
+    functionFragment: "getChallengeId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -252,19 +290,60 @@ export interface StakingRegistryInterface extends utils.Interface {
     functionFragment: "withdrawStake",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawableEth",
-    data: BytesLike
-  ): Result;
 
   events: {
+    "AddedToAppeal(address,address,uint256,bytes,uint256)": EventFragment;
+    "AddedToChallenge(address,address,uint256,bytes,uint256)": EventFragment;
     "BonderPreference(address,bytes32,uint256,uint256)": EventFragment;
+    "ChallengeCreated(address,address,uint256,bytes,uint256)": EventFragment;
+    "ChallengeSettled(address,uint256,bytes,uint256,bool)": EventFragment;
+    "EthClaimed(address,uint256,bytes,uint256)": EventFragment;
+    "HopStaked(address,address,uint256)": EventFragment;
+    "HopUnstaked(address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "StakeWithdrawn(address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddedToAppeal"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AddedToChallenge"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BonderPreference"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ChallengeCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ChallengeSettled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EthClaimed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "HopStaked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "HopUnstaked"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "StakeWithdrawn"): EventFragment;
 }
+
+export interface AddedToAppealEventObject {
+  staker: string;
+  contributor: string;
+  penalty: BigNumber;
+  slashingData: string;
+  amount: BigNumber;
+}
+export type AddedToAppealEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  AddedToAppealEventObject
+>;
+
+export type AddedToAppealEventFilter = TypedEventFilter<AddedToAppealEvent>;
+
+export interface AddedToChallengeEventObject {
+  staker: string;
+  contributor: string;
+  penalty: BigNumber;
+  slashingData: string;
+  amount: BigNumber;
+}
+export type AddedToChallengeEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  AddedToChallengeEventObject
+>;
+
+export type AddedToChallengeEventFilter =
+  TypedEventFilter<AddedToChallengeEvent>;
 
 export interface BonderPreferenceEventObject {
   bonder: string;
@@ -280,6 +359,72 @@ export type BonderPreferenceEvent = TypedEvent<
 export type BonderPreferenceEventFilter =
   TypedEventFilter<BonderPreferenceEvent>;
 
+export interface ChallengeCreatedEventObject {
+  staker: string;
+  challenger: string;
+  penalty: BigNumber;
+  slashingData: string;
+  amount: BigNumber;
+}
+export type ChallengeCreatedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  ChallengeCreatedEventObject
+>;
+
+export type ChallengeCreatedEventFilter =
+  TypedEventFilter<ChallengeCreatedEvent>;
+
+export interface ChallengeSettledEventObject {
+  staker: string;
+  penalty: BigNumber;
+  slashingData: string;
+  amount: BigNumber;
+  challengeWon: boolean;
+}
+export type ChallengeSettledEvent = TypedEvent<
+  [string, BigNumber, string, BigNumber, boolean],
+  ChallengeSettledEventObject
+>;
+
+export type ChallengeSettledEventFilter =
+  TypedEventFilter<ChallengeSettledEvent>;
+
+export interface EthClaimedEventObject {
+  staker: string;
+  penalty: BigNumber;
+  slashingData: string;
+  amount: BigNumber;
+}
+export type EthClaimedEvent = TypedEvent<
+  [string, BigNumber, string, BigNumber],
+  EthClaimedEventObject
+>;
+
+export type EthClaimedEventFilter = TypedEventFilter<EthClaimedEvent>;
+
+export interface HopStakedEventObject {
+  staker: string;
+  from: string;
+  amount: BigNumber;
+}
+export type HopStakedEvent = TypedEvent<
+  [string, string, BigNumber],
+  HopStakedEventObject
+>;
+
+export type HopStakedEventFilter = TypedEventFilter<HopStakedEvent>;
+
+export interface HopUnstakedEventObject {
+  staker: string;
+  amount: BigNumber;
+}
+export type HopUnstakedEvent = TypedEvent<
+  [string, BigNumber],
+  HopUnstakedEventObject
+>;
+
+export type HopUnstakedEventFilter = TypedEventFilter<HopUnstakedEvent>;
+
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
@@ -291,6 +436,17 @@ export type OwnershipTransferredEvent = TypedEvent<
 
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface StakeWithdrawnEventObject {
+  staker: string;
+  amount: BigNumber;
+}
+export type StakeWithdrawnEvent = TypedEvent<
+  [string, BigNumber],
+  StakeWithdrawnEventObject
+>;
+
+export type StakeWithdrawnEventFilter = TypedEventFilter<StakeWithdrawnEvent>;
 
 export interface StakingRegistry extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -320,258 +476,262 @@ export interface StakingRegistry extends BaseContract {
 
   functions: {
     acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     appealPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     challengePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    claimEth(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      challengeWon: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    fullAppeal(overrides?: CallOverrides): Promise<[BigNumber]>;
+    fullChallenge(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getStakedBalance(
-      staker: string,
+    getBalance(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getChallengeId(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getWithdrawableBalance(
-      staker: string,
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     hopToken(overrides?: CallOverrides): Promise<[string]>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<[boolean]>;
+    isStaked(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     minHopStake(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     windowSize(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     withdrawStake(
-      staker: string,
-      overrides?: Overrides & { from?: string }
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
   };
 
   acceptSlash(
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   addToAppeal(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   addToChallenge(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   appealPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
   challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
+  claimEth(
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   createChallenge(
-    staker: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: PayableOverrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   forceSettleChallenge(
-    challengeId: BytesLike,
-    challengeWon: boolean,
-    overrides?: Overrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    challengeWon: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
+  fullChallenge(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getChallengeId(
-    staker: string,
-    penalty: BigNumberish,
-    challenger: string,
-    slashingData: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getStakedBalance(
-    staker: string,
+  getBalance(
+    staker: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getChallengeId(
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   getWithdrawableBalance(
-    staker: string,
+    staker: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   hopToken(overrides?: CallOverrides): Promise<string>;
 
-  isStaked(staker: string, overrides?: CallOverrides): Promise<boolean>;
+  isStaked(
+    staker: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
   minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
   optimisticallySettleChallenge(
-    staker: string,
-    challenger: string,
-    penalty: BigNumberish,
-    slashingData: BytesLike,
-    overrides?: Overrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    penalty: PromiseOrValue<BigNumberish>,
+    slashingData: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string }
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   signalPreference(
-    pathId: BytesLike,
-    feeTier: BigNumberish,
-    liquidity: BigNumberish,
-    overrides?: Overrides & { from?: string }
+    pathId: PromiseOrValue<BytesLike>,
+    feeTier: PromiseOrValue<BigNumberish>,
+    liquidity: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   stakeHop(
-    staker: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string }
+    staker: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string }
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   unstakeHop(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string }
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   windowSize(overrides?: CallOverrides): Promise<BigNumber>;
 
   withdrawStake(
-    staker: string,
-    overrides?: Overrides & { from?: string }
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  withdrawableEth(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -579,52 +739,62 @@ export interface StakingRegistry extends BaseContract {
 
     challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
+    claimEth(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string>;
 
     forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      challengeWon: PromiseOrValue<boolean>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
+    fullChallenge(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getStakedBalance(
-      staker: string,
+    getBalance(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getChallengeId(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     getWithdrawableBalance(
-      staker: string,
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     hopToken(overrides?: CallOverrides): Promise<string>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<boolean>;
+    isStaked(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
     minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -633,243 +803,353 @@ export interface StakingRegistry extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     stakeHop(
-      staker: string,
-      amount: BigNumberish,
+      staker: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     transferOwnership(
-      newOwner: string,
+      newOwner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    unstakeHop(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    unstakeHop(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     windowSize(overrides?: CallOverrides): Promise<BigNumber>;
 
-    withdrawStake(staker: string, overrides?: CallOverrides): Promise<void>;
-
-    withdrawableEth(
-      arg0: string,
+    withdrawStake(
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
   };
 
   filters: {
+    "AddedToAppeal(address,address,uint256,bytes,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      contributor?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): AddedToAppealEventFilter;
+    AddedToAppeal(
+      staker?: PromiseOrValue<string> | null,
+      contributor?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): AddedToAppealEventFilter;
+
+    "AddedToChallenge(address,address,uint256,bytes,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      contributor?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): AddedToChallengeEventFilter;
+    AddedToChallenge(
+      staker?: PromiseOrValue<string> | null,
+      contributor?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): AddedToChallengeEventFilter;
+
     "BonderPreference(address,bytes32,uint256,uint256)"(
-      bonder?: string | null,
-      pathId?: BytesLike | null,
-      feeTier?: BigNumberish | null,
+      bonder?: PromiseOrValue<string> | null,
+      pathId?: PromiseOrValue<BytesLike> | null,
+      feeTier?: PromiseOrValue<BigNumberish> | null,
       liquidity?: null
     ): BonderPreferenceEventFilter;
     BonderPreference(
-      bonder?: string | null,
-      pathId?: BytesLike | null,
-      feeTier?: BigNumberish | null,
+      bonder?: PromiseOrValue<string> | null,
+      pathId?: PromiseOrValue<BytesLike> | null,
+      feeTier?: PromiseOrValue<BigNumberish> | null,
       liquidity?: null
     ): BonderPreferenceEventFilter;
 
+    "ChallengeCreated(address,address,uint256,bytes,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      challenger?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): ChallengeCreatedEventFilter;
+    ChallengeCreated(
+      staker?: PromiseOrValue<string> | null,
+      challenger?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): ChallengeCreatedEventFilter;
+
+    "ChallengeSettled(address,uint256,bytes,uint256,bool)"(
+      staker?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null,
+      challengeWon?: null
+    ): ChallengeSettledEventFilter;
+    ChallengeSettled(
+      staker?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null,
+      challengeWon?: null
+    ): ChallengeSettledEventFilter;
+
+    "EthClaimed(address,uint256,bytes,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): EthClaimedEventFilter;
+    EthClaimed(
+      staker?: PromiseOrValue<string> | null,
+      penalty?: null,
+      slashingData?: null,
+      amount?: null
+    ): EthClaimedEventFilter;
+
+    "HopStaked(address,address,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      from?: PromiseOrValue<string> | null,
+      amount?: null
+    ): HopStakedEventFilter;
+    HopStaked(
+      staker?: PromiseOrValue<string> | null,
+      from?: PromiseOrValue<string> | null,
+      amount?: null
+    ): HopStakedEventFilter;
+
+    "HopUnstaked(address,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      amount?: null
+    ): HopUnstakedEventFilter;
+    HopUnstaked(
+      staker?: PromiseOrValue<string> | null,
+      amount?: null
+    ): HopUnstakedEventFilter;
+
     "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
+
+    "StakeWithdrawn(address,uint256)"(
+      staker?: PromiseOrValue<string> | null,
+      amount?: null
+    ): StakeWithdrawnEventFilter;
+    StakeWithdrawn(
+      staker?: PromiseOrValue<string> | null,
+      amount?: null
+    ): StakeWithdrawnEventFilter;
   };
 
   estimateGas: {
     acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     appealPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     challengePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
+    claimEth(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      challengeWon: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    fullAppeal(overrides?: CallOverrides): Promise<BigNumber>;
+    fullChallenge(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
+    getBalance(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getStakedBalance(
-      staker: string,
+    getChallengeId(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getWithdrawableBalance(
-      staker: string,
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     hopToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isStaked(staker: string, overrides?: CallOverrides): Promise<BigNumber>;
+    isStaked(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     minChallengeIncrease(overrides?: CallOverrides): Promise<BigNumber>;
 
     minHopStake(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     windowSize(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawStake(
-      staker: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     acceptSlash(
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     addToAppeal(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     addToChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     appealPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     challengePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    claimEth(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     createChallenge(
-      staker: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: PayableOverrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     forceSettleChallenge(
-      challengeId: BytesLike,
-      challengeWon: boolean,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      challengeWon: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    fullAppeal(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    fullChallenge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getChallengeId(
-      staker: string,
-      penalty: BigNumberish,
-      challenger: string,
-      slashingData: BytesLike,
+    getBalance(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getStakedBalance(
-      staker: string,
+    getChallengeId(
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getWithdrawableBalance(
-      staker: string,
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     hopToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isStaked(
-      staker: string,
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -880,52 +1160,46 @@ export interface StakingRegistry extends BaseContract {
     minHopStake(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticallySettleChallenge(
-      staker: string,
-      challenger: string,
-      penalty: BigNumberish,
-      slashingData: BytesLike,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      penalty: PromiseOrValue<BigNumberish>,
+      slashingData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     signalPreference(
-      pathId: BytesLike,
-      feeTier: BigNumberish,
-      liquidity: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      pathId: PromiseOrValue<BytesLike>,
+      feeTier: PromiseOrValue<BigNumberish>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     stakeHop(
-      staker: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      staker: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     unstakeHop(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     windowSize(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawStake(
-      staker: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawableEth(
-      arg0: string,
-      overrides?: CallOverrides
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -36,6 +36,11 @@
         "name": "_tokenFeeRecipient",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_minBucketDuration",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "nonpayable"
@@ -87,6 +92,11 @@
             "name": "attestedClaimId",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
           }
         ]
       }
@@ -146,6 +156,25 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "counterpartGateways",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -232,25 +261,6 @@
   },
   {
     "type": "function",
-    "name": "gateways",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getAmountOut",
     "inputs": [
       {
@@ -270,6 +280,11 @@
       },
       {
         "name": "sourcePool",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sourceTotalFraudulent",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -381,7 +396,7 @@
   },
   {
     "type": "function",
-    "name": "getPushClaimFee",
+    "name": "getPostClaimFee",
     "inputs": [],
     "outputs": [
       {
@@ -434,7 +449,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "gateway",
+        "name": "counterpartGateway",
         "type": "address",
         "internalType": "address"
       }
@@ -497,6 +512,43 @@
   },
   {
     "type": "function",
+    "name": "lastClaimIdPosted",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "minBucketDuration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -510,7 +562,7 @@
   },
   {
     "type": "function",
-    "name": "pushClaim",
+    "name": "postClaim",
     "inputs": [
       {
         "name": "pathId",
@@ -548,6 +600,11 @@
         "internalType": "uint256"
       },
       {
+        "name": "sourceTotalFraudulent",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "nextHopsHash",
         "type": "bytes32",
         "internalType": "bytes32"
@@ -558,7 +615,7 @@
   },
   {
     "type": "function",
-    "name": "pushClaimAndBond",
+    "name": "postClaimAndBond",
     "inputs": [
       {
         "name": "pathId",
@@ -576,7 +633,7 @@
         "internalType": "address"
       },
       {
-        "name": "amountOut",
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -592,6 +649,11 @@
       },
       {
         "name": "sourcePool",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sourceTotalFraudulent",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -624,76 +686,11 @@
             "name": "attestedClaimId",
             "type": "bytes32",
             "internalType": "bytes32"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "pushClaimAndWithdraw",
-    "inputs": [
-      {
-        "name": "pathId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "claimId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "to",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amountOut",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "maxBonderFee",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "attestedClaimId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "sourcePool",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "nextHops",
-        "type": "tuple[]",
-        "internalType": "struct Hop[]",
-        "components": [
-          {
-            "name": "pathId",
-            "type": "bytes32",
-            "internalType": "bytes32"
           },
           {
-            "name": "maxBonderFee",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maxTotalSent",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "attestedClaimId",
-            "type": "bytes32",
-            "internalType": "bytes32"
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
           }
         ]
       }
@@ -800,6 +797,11 @@
             "name": "attestedClaimId",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
           }
         ]
       }
@@ -841,6 +843,24 @@
   },
   {
     "type": "function",
+    "name": "setTokenFee",
+    "inputs": [
+      {
+        "name": "pathId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "fee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setTokenFeeRecipient",
     "inputs": [
       {
@@ -861,6 +881,38 @@
         "name": "",
         "type": "address",
         "internalType": "contract IStakingRegistry"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenFeeRecipient",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenFees",
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -899,20 +951,7 @@
   },
   {
     "type": "function",
-    "name": "updateDefaultTokenFee",
-    "inputs": [
-      {
-        "name": "fee",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "updateTokenFee",
+    "name": "updateClaim",
     "inputs": [
       {
         "name": "pathId",
@@ -920,9 +959,73 @@
         "internalType": "bytes32"
       },
       {
-        "name": "fee",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "claimId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "currentNextHops",
+        "type": "tuple[]",
+        "internalType": "struct Hop[]",
+        "components": [
+          {
+            "name": "pathId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "maxBonderFee",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTotalSent",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "attestedClaimId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "newNextHops",
+        "type": "tuple[]",
+        "internalType": "struct Hop[]",
+        "components": [
+          {
+            "name": "pathId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "maxBonderFee",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTotalSent",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "attestedClaimId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
       }
     ],
     "outputs": [],
@@ -990,6 +1093,11 @@
             "name": "attestedClaimId",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "updater",
+            "type": "address",
+            "internalType": "address"
           }
         ]
       }
@@ -1029,19 +1137,19 @@
       {
         "name": "pathId",
         "type": "bytes32",
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32"
       },
       {
         "name": "token",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "contract IERC20"
       },
       {
         "name": "counterpartChainId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       },
       {

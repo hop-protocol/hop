@@ -335,7 +335,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
 
     const stakingRegistry = sdk.getRailsGateway(toChainId).getStakingRegistry()
     const bonderAddress = await bonderSigner.getAddress()
-    const stakedBalance = await stakingRegistry.getStakedBalance({ staker: bonderAddress })
+    const stakedBalance = await stakingRegistry.getBalance({ staker: bonderAddress })
     console.log('stakedBalance:', formatUnits(stakedBalance, 18))
 
     const hopTokenAddress = await sdk.getRailsGateway(toChainId).helpers.getHopTokenAddress()
@@ -346,8 +346,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     const shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-        amount: minHopStake,
-        account: bonderAddress
+        amount: minHopStake
       })
 
       console.log('needsStakeApproval:', needsStakeApproval)
@@ -680,7 +679,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     const stakingRegistry = sdk.getRailsGateway(nextChainId).getStakingRegistry()
     const bonderAddress = await bonderSigner.getAddress()
-    const stakedBalance = await stakingRegistry.getStakedBalance({ staker: bonderAddress })
+    const stakedBalance = await stakingRegistry.getBalance({ staker: bonderAddress })
     console.log('stakedBalance:', formatUnits(stakedBalance, 18))
 
     const hopTokenAddress = await sdk.getRailsGateway(nextChainId).helpers.getHopTokenAddress()
@@ -691,8 +690,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     const shouldStake = stakedBalance.lt(minHopStake)
     if (shouldStake) {
       const needsStakeApproval = await stakingRegistry.helpers.getNeedsApprovalForStake({
-        amount: minHopStake,
-        account: bonderAddress
+        amount: minHopStake
       })
 
       console.log('needsStakeApproval:', needsStakeApproval)

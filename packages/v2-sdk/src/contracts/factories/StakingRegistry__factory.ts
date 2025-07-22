@@ -34,7 +34,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "_fullAppeal",
+        name: "_fullChallenge",
         type: "uint256",
         internalType: "uint256",
       },
@@ -56,11 +56,6 @@ const _abi = [
     name: "acceptSlash",
     inputs: [
       {
-        name: "challenger",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "penalty",
         type: "uint256",
         internalType: "uint256",
@@ -72,7 +67,7 @@ const _abi = [
       },
     ],
     outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -80,11 +75,6 @@ const _abi = [
     inputs: [
       {
         name: "staker",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "challenger",
         type: "address",
         internalType: "address",
       },
@@ -108,11 +98,6 @@ const _abi = [
     inputs: [
       {
         name: "staker",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "challenger",
         type: "address",
         internalType: "address",
       },
@@ -158,6 +143,29 @@ const _abi = [
   },
   {
     type: "function",
+    name: "claimEth",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "createChallenge",
     inputs: [
       {
@@ -190,9 +198,19 @@ const _abi = [
     name: "forceSettleChallenge",
     inputs: [
       {
-        name: "challengeId",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        internalType: "bytes",
       },
       {
         name: "challengeWon",
@@ -205,8 +223,27 @@ const _abi = [
   },
   {
     type: "function",
-    name: "fullAppeal",
+    name: "fullChallenge",
     inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getBalance",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
         name: "",
@@ -231,11 +268,6 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "challenger",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "slashingData",
         type: "bytes",
         internalType: "bytes",
@@ -249,25 +281,6 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "getStakedBalance",
-    inputs: [
-      {
-        name: "staker",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
   },
   {
     type: "function",
@@ -352,11 +365,6 @@ const _abi = [
     inputs: [
       {
         name: "staker",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "challenger",
         type: "address",
         internalType: "address",
       },
@@ -479,32 +487,87 @@ const _abi = [
     name: "withdrawStake",
     inputs: [
       {
-        name: "staker",
-        type: "address",
-        internalType: "address",
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
-    type: "function",
-    name: "withdrawableEth",
+    type: "event",
+    name: "AddedToAppeal",
     inputs: [
       {
-        name: "",
+        name: "staker",
         type: "address",
+        indexed: true,
         internalType: "address",
       },
-    ],
-    outputs: [
       {
-        name: "",
+        name: "contributor",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "penalty",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
         internalType: "uint256",
       },
     ],
-    stateMutability: "view",
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AddedToChallenge",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "contributor",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -539,6 +602,155 @@ const _abi = [
   },
   {
     type: "event",
+    name: "ChallengeCreated",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "challenger",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ChallengeSettled",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "challengeWon",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "EthClaimed",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "penalty",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "slashingData",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "HopStaked",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "HopUnstaked",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       {
@@ -556,7 +768,26 @@ const _abi = [
     ],
     anonymous: false,
   },
-] as const;
+  {
+    type: "event",
+    name: "StakeWithdrawn",
+    inputs: [
+      {
+        name: "staker",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+];
 
 export class StakingRegistry__factory {
   static readonly abi = _abi;

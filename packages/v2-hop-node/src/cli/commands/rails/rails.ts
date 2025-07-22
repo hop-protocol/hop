@@ -1,4 +1,6 @@
 import { program as relayProgram } from './relay.js'
+import { program as stakeProgram } from './stake.js'
+import { program as unstakeProgram } from './unstake.js'
 import { program as showDBProgram } from '../shared/showDB.js'
 import { Rails } from '#clients/index.js'
 import { Config } from '#config/index.js'
@@ -15,6 +17,8 @@ program
   .description('Run Rails commands')
   .addHelpText('before', getHelpTextBefore(RAILS_ART))
   .addCommand(relayProgram)
+  .addCommand(stakeProgram)
+  .addCommand(unstakeProgram)
   .addCommand(showDBProgram)
   .action(run)
 

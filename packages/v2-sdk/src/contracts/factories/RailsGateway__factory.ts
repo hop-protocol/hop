@@ -45,6 +45,11 @@ const _abi = [
         type: "address",
         internalType: "address",
       },
+      {
+        name: "_minBucketDuration",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     stateMutability: "nonpayable",
   },
@@ -95,6 +100,11 @@ const _abi = [
             name: "attestedClaimId",
             type: "bytes32",
             internalType: "bytes32",
+          },
+          {
+            name: "updater",
+            type: "address",
+            internalType: "address",
           },
         ],
       },
@@ -154,6 +164,25 @@ const _abi = [
         name: "",
         type: "uint256",
         internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "counterpartGateways",
+    inputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -240,25 +269,6 @@ const _abi = [
   },
   {
     type: "function",
-    name: "gateways",
-    inputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getAmountOut",
     inputs: [
       {
@@ -278,6 +288,11 @@ const _abi = [
       },
       {
         name: "sourcePool",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "sourceTotalFraudulent",
         type: "uint256",
         internalType: "uint256",
       },
@@ -389,7 +404,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "getPushClaimFee",
+    name: "getPostClaimFee",
     inputs: [],
     outputs: [
       {
@@ -442,7 +457,7 @@ const _abi = [
         internalType: "uint256",
       },
       {
-        name: "gateway",
+        name: "counterpartGateway",
         type: "address",
         internalType: "address",
       },
@@ -505,6 +520,43 @@ const _abi = [
   },
   {
     type: "function",
+    name: "lastClaimIdPosted",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "minBucketDuration",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "owner",
     inputs: [],
     outputs: [
@@ -518,7 +570,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "pushClaim",
+    name: "postClaim",
     inputs: [
       {
         name: "pathId",
@@ -556,6 +608,11 @@ const _abi = [
         internalType: "uint256",
       },
       {
+        name: "sourceTotalFraudulent",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "nextHopsHash",
         type: "bytes32",
         internalType: "bytes32",
@@ -566,7 +623,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "pushClaimAndBond",
+    name: "postClaimAndBond",
     inputs: [
       {
         name: "pathId",
@@ -584,7 +641,7 @@ const _abi = [
         internalType: "address",
       },
       {
-        name: "amountOut",
+        name: "amount",
         type: "uint256",
         internalType: "uint256",
       },
@@ -600,6 +657,11 @@ const _abi = [
       },
       {
         name: "sourcePool",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "sourceTotalFraudulent",
         type: "uint256",
         internalType: "uint256",
       },
@@ -633,75 +695,10 @@ const _abi = [
             type: "bytes32",
             internalType: "bytes32",
           },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "pushClaimAndWithdraw",
-    inputs: [
-      {
-        name: "pathId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "claimId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amountOut",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "maxBonderFee",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "attestedClaimId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "sourcePool",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "nextHops",
-        type: "tuple[]",
-        internalType: "struct Hop[]",
-        components: [
           {
-            name: "pathId",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "maxBonderFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "maxTotalSent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "attestedClaimId",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: "updater",
+            type: "address",
+            internalType: "address",
           },
         ],
       },
@@ -809,6 +806,11 @@ const _abi = [
             type: "bytes32",
             internalType: "bytes32",
           },
+          {
+            name: "updater",
+            type: "address",
+            internalType: "address",
+          },
         ],
       },
     ],
@@ -849,6 +851,24 @@ const _abi = [
   },
   {
     type: "function",
+    name: "setTokenFee",
+    inputs: [
+      {
+        name: "pathId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "fee",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "setTokenFeeRecipient",
     inputs: [
       {
@@ -869,6 +889,38 @@ const _abi = [
         name: "",
         type: "address",
         internalType: "contract IStakingRegistry",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "tokenFeeRecipient",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "tokenFees",
+    inputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -907,20 +959,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "updateDefaultTokenFee",
-    inputs: [
-      {
-        name: "fee",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "updateTokenFee",
+    name: "updateClaim",
     inputs: [
       {
         name: "pathId",
@@ -928,9 +967,73 @@ const _abi = [
         internalType: "bytes32",
       },
       {
-        name: "fee",
-        type: "uint256",
-        internalType: "uint256",
+        name: "claimId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "currentNextHops",
+        type: "tuple[]",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "updater",
+            type: "address",
+            internalType: "address",
+          },
+        ],
+      },
+      {
+        name: "newNextHops",
+        type: "tuple[]",
+        internalType: "struct Hop[]",
+        components: [
+          {
+            name: "pathId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "maxBonderFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "maxTotalSent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "attestedClaimId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "updater",
+            type: "address",
+            internalType: "address",
+          },
+        ],
       },
     ],
     outputs: [],
@@ -999,6 +1102,11 @@ const _abi = [
             type: "bytes32",
             internalType: "bytes32",
           },
+          {
+            name: "updater",
+            type: "address",
+            internalType: "address",
+          },
         ],
       },
     ],
@@ -1037,19 +1145,19 @@ const _abi = [
       {
         name: "pathId",
         type: "bytes32",
-        indexed: false,
+        indexed: true,
         internalType: "bytes32",
       },
       {
         name: "token",
         type: "address",
-        indexed: false,
+        indexed: true,
         internalType: "contract IERC20",
       },
       {
         name: "counterpartChainId",
         type: "uint256",
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
       },
       {
@@ -1073,7 +1181,7 @@ const _abi = [
     ],
     anonymous: false,
   },
-] as const;
+];
 
 export class RailsGateway__factory {
   static readonly abi = _abi;

@@ -21,6 +21,7 @@ import {
   EventName as RailsPathEventName,
   RailsPath as RailsPathSDK,
   RailsGateway as RailsGatewaySDK,
+  StakingRegistry as StakingRegistrySDK,
   utils as RailsUtils,
 } from '@hop-protocol/v2-sdk'
 import type {
@@ -32,6 +33,7 @@ import type {
 import { wallets } from '#wallets/index.js'
 import type { RailsHop, RailsPath, RailsPathAddresses } from './types.js'
 import type { DecodedLogWithContext } from '#types/index.js'
+import type { BigNumber } from 'ethers'
 
 export type RailsFilterInputs = &
   TransferSentIndexes &
@@ -78,10 +80,12 @@ export {
 
 export class RailsGateway {
   #sdk: RailsGatewaySDK
+  #stakingRegistry: StakingRegistrySDK
 
   constructor (chainId: string, signerOrProvider: Signer | providers.Provider) {
     const signer = signerOrProvider as Signer
     this.#sdk = new RailsGatewaySDK({ chainId, signerOrProvider: signer })
+    this.#stakingRegistry = new StakingRegistrySDK({ chainId, signerOrProvider: signer })
   }
 
   /**
@@ -98,6 +102,18 @@ export class RailsGateway {
 
   async isBonded(pathId: string, claimId: string): Promise<boolean> {
     return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ pathId, claimId })
+  }
+
+  async isStaked(): Promise<boolean> {
+    return this.#stakingRegistry.helpers.isStaked()
+  }
+
+  async minHopStake(): Promise<BigNumber> {
+    return this.#stakingRegistry.minHopStake()
+  }
+
+  async getStakeBalance(): Promise<BigNumber> {
+    return this.#stakingRegistry.helpers.getBalance()
   }
 
   /**
@@ -121,14 +137,38 @@ export class RailsGateway {
     throw new Error('Method not implemented')
   }
 
+  async stakeHop(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.helpers.stakeHop(amount)
+  }
+
+  async unstakeHop(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.unstakeHop({ amount })
+  }
+
+  async withdrawStake(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.withdrawStake({ amount })
+  }
+
   /**
    * Helpers
    */
 
-
   async getIsPathIdLive (pathId: string): Promise<boolean> {
     return this.#sdk.helpers.getIsPathIdLive({ pathId })
   }
+
+  async getNeedsApprovalForStake (amount: BigNumber): Promise<boolean> {
+    return this.#stakingRegistry.helpers.getNeedsApprovalForStake({ amount })
+  }
+
+  async getHopBalance(): Promise<BigNumber> {
+    return this.#stakingRegistry.helpers.getHopTokenBalance()
+  }
+
+  async approveStake(amount: BigNumber): Promise<providers.TransactionResponse> {
+    return this.#stakingRegistry.helpers.approveStake({ amount })
+  }
+
 }
 
 /**

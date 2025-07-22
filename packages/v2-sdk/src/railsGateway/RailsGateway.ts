@@ -245,6 +245,7 @@ export type GetTransferDataHashInput = {
   maxBonderFee?: BigNumberish
   attestedClaimId?: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   hops: HopStructInput[]
 }
 
@@ -727,10 +728,10 @@ export class RailsGateway extends Base {
     return contract.stakingRegistry()
   }
 
-  async getTransferDataHash ({ to, amount, maxBonderFee, attestedClaimId, sourcePool, hops }: GetTransferDataHashInput): Promise<string> {
+  async getTransferDataHash ({ to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, hops }: GetTransferDataHashInput): Promise<string> {
     maxBonderFee ??= hops[0].maxBonderFee
     attestedClaimId ??= hops[0].attestedClaimId
-    return getComputedTransferDataHash({ to, amount, maxBonderFee, attestedClaimId, sourcePool, hops })
+    return getComputedTransferDataHash({ to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, hops })
   }
 
   async getNextHopsHash ({ nextHops }: GetNextHopsHashInput): Promise<string> {

@@ -42,7 +42,6 @@ export class ClaimBondedEventFetcher extends Event<ClaimBonded> {
   override toTypedEvent (ethersEvent: EthersEvent): ClaimBonded {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
-    const pathId = parsed.args.pathId.toString()
     const claimId = parsed.args.claimId.toString()
     const to = parsed.args.to
     const amount = parsed.args.amount

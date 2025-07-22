@@ -4,11 +4,11 @@ import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
 // event from RailsPath
 export interface TransferSent {
-  pathId: string
   transferId: string
   to: string
   amount: BigNumber
   sourcePool: BigNumber
+  sourceTotalFraudulent: BigNumber
   hops: HopStruct[]
 }
 
@@ -21,18 +21,14 @@ export interface HopStruct {
 
 export type TransferSentIndexes = {
   transferId?: string
-  pathId?: string
   to?: string
+  amount?: BigNumber
 }
 
 export class TransferSentEventFetcher extends Event<TransferSent> {
   override eventName = 'TransferSent'
   override abi = RailsPath__factory.abi
   override factory = RailsPath__factory
-
-  getPathIdFilter (pathId: string): EventFilter {
-    return this.getFilterWithIndexes({ pathId })
-  }
 
   getTransferIdFilter (transferId: string): EventFilter {
     return this.getFilterWithIndexes({ transferId })
@@ -42,20 +38,24 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     return this.getFilterWithIndexes({ to })
   }
 
-  getFilterWithIndexes ({ pathId, transferId, to } : TransferSentIndexes): EventFilter {
+  getAmountFilter (amount: BigNumber): EventFilter {
+    return this.getFilterWithIndexes({ amount })
+  }
+
+  getFilterWithIndexes ({ transferId, to, amount } : TransferSentIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferSent(pathId ?? null, transferId ?? null, to ?? null)
+    const filter = railsGateway.filters.TransferSent(transferId ?? null, to ?? null, amount ?? null)
     return filter
   }
 
   override toTypedEvent (ethersEvent: EthersEvent): TransferSent {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
-    const pathId = parsed.args.pathId.toString()
     const transferId = parsed.args.transferId.toString()
     const to = parsed.args.to
     const amount = parsed.args.amount
     const sourcePool = parsed.args.sourcePool
+    const sourceTotalFraudulent = parsed.args.sourceTotalFraudulent
     const hops = parsed.args.hops.map((hop: any): HopStruct => {
       return {
         pathId: hop.pathId.toString(),
@@ -66,11 +66,11 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     })
 
     return {
-      pathId,
       transferId,
       to,
       amount,
       sourcePool,
+      sourceTotalFraudulent,
       hops
     }
   }

@@ -215,9 +215,9 @@ export type GetIsClaimBondedOrWithdrawnInput = {
   claimId: string
 }
 
-export type GetIsClaimPushedInput = {
-  pathId: string
+export type GetIsClaimPostedInput = {
   claimId: string
+  amountOut: BigNumberish
 }
 
 export type GetNextHopsHashInput = {
@@ -1443,7 +1443,7 @@ export class RailsGateway extends Base {
         return this.sendTransaction(txData)
       },
 
-      getIsClaimPushed: async ({ pathId, claimId }: GetIsClaimPushedInput): Promise<boolean> => {
+      getIsClaimPosted: async ({ claimId, amountOut }: GetIsClaimPostedInput): Promise<boolean> => {
         const chainId = this.chainId
 
         if (!chainId || !this.utils.isValidChainId(chainId)) {

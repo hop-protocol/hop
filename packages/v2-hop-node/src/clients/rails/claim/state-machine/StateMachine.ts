@@ -2,7 +2,7 @@ import { getChain } from '@hop-protocol/sdk'
 import { StateMachine } from '#state-machine/index.js'
 import {
   type ISentRailsClaim,
-  type IPushedRailsClaim,
+  type IPostedRailsClaim,
   type IRailsClaim,
   RailsClaimMethodName,
   RailsClaimState
@@ -39,7 +39,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
 
   protected override getRelayTxMethodFromState(state: RailsClaimState): RailsClaimMethodName {
     switch (state) {
-      case RailsClaimState.Pushed:
+      case RailsClaimState.Posted:
         return RailsClaimMethodName.PushClaim
       // case RailsClaimState.RemoveClaim:
       //   return RailsClaimMethodName.RemoveClaim
@@ -52,8 +52,8 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     switch (state) {
       case RailsClaimState.Sent:
         return this.#shouldSentTransferBeFinalized(value as ISentRailsClaim)
-      case RailsClaimState.Pushed:
-        return this.#shouldPushBeFinalized(value as IPushedRailsClaim)
+      case RailsClaimState.Posted:
+        return this.#shouldPostBeFinalized(value as IPostedRailsClaim)
       default:
         throw new Error('Invalid state')
     }
@@ -62,10 +62,10 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   protected override getTransitionState(state: RailsClaimState): RailsClaimState {
     switch (state) {
       case RailsClaimState.Sent:
-        return RailsClaimState.Pushed
-      // case RailsClaimState.Pushed: {
+        return RailsClaimState.Posted
+      // case RailsClaimState.Posted: {
       //   // TODO: Should be either confirmed or removed
-      //   return RailsClaimState.Pushed
+      //   return RailsClaimState.Posted
       //   // return RailsClaimState.Confirmed
       // }
       default:
@@ -95,7 +95,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
     )
   }
 
-  #shouldPushBeFinalized(value: IPushedRailsClaim): boolean {
+  #shouldPostBeFinalized(value: IPostedRailsClaim): boolean {
     // TODO: Implement this -- it should be a function of the exit time of the source
     // since this is sent with the send
     return true

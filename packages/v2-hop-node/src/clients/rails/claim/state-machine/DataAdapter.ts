@@ -1,7 +1,7 @@
 import { DataAdapter } from '#state-machine/index.js'
 import {
   type TransferSent,
-  type ClaimPushed,
+  type ClaimPosted,
   RailsEventName,
   getComputedNextHopsHash,
   getRailsPathAddress
@@ -9,7 +9,7 @@ import {
 import {
   type IRailsClaim,
   type ISentRailsClaim,
-  type IPushedRailsClaim,
+  type IPostedRailsClaim,
   RailsClaimEventName,
   RailsClaimState
 } from './types.js'
@@ -27,8 +27,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     switch (eventName) {
       case RailsEventName.TransferSent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsClaim
-      case RailsEventName.ClaimPushed:
-        return this.#formatClaimPushedLog(log as DecodedLogWithContext<ClaimPushed>) as IRailsClaim
+      case RailsEventName.ClaimPosted:
+        return this.#formatClaimPostedLog(log as DecodedLogWithContext<ClaimPosted>) as IRailsClaim
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -38,8 +38,8 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     switch (eventName) {
       case RailsEventName.TransferSent:
         return RailsClaimState.Sent
-      case RailsEventName.ClaimPushed:
-        return RailsClaimState.Pushed
+      case RailsEventName.ClaimPosted:
+        return RailsClaimState.Posted
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -59,12 +59,12 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
           eventName: RailsEventName.TransferSent
         }
       }
-      case RailsClaimState.Pushed: {
+      case RailsClaimState.Posted: {
         const eventAddress = await getRailsPathAddress(pathId, counterpartChainId)
         return {
           eventChainId: counterpartChainId,
           eventAddress,
-          eventName: RailsEventName.ClaimPushed
+          eventName: RailsEventName.ClaimPosted
         }
       }
       default:

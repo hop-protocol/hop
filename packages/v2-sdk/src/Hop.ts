@@ -174,7 +174,7 @@ export enum TransferState {
 // TODO: replace with actual Event type once it's available
 type ClaimWithdrawn = {
   claimId: string
-  pathId: string
+  amount: BigNumber
 }
 
 export type TransferStatus = {

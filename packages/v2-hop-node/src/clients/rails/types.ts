@@ -17,6 +17,7 @@ export type RailsHop = {
   maxBonderFee: BigNumber
   maxTotalSent: BigNumber
   attestedClaimId: string
+  updater: string
 }
 
 export type RailsPath = {

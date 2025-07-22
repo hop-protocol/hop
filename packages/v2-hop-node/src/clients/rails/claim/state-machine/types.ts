@@ -32,6 +32,7 @@ export interface ISentRailsClaim extends IRailsClaimShared {
   to: string
   amount: BigNumber
   sourcePool: BigNumber
+  sourceTotalFraudulent: BigNumber
   hops: RailsHop[]
   maxBonderFee: BigNumber
   attestedClaimId: string
@@ -47,5 +48,5 @@ export interface IPushedRailsClaim extends IRailsClaimShared {
 // export interface IReaddedRailsClaim extends IRailsClaimShared {
 // }
 
-export type IRailsClaim = ISentRailsClaim | IPushedRailsClaim
+export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim
 // export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IRemovedRailsClaim | IReaddedRailsClaim

@@ -5,7 +5,7 @@ import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.
 
 export enum RailsTransferMethodName {
   Bond = RailsMethodName.Bond,
-  PushClaim = RailsMethodName.PushClaim
+  PostClaim = RailsMethodName.PostClaim
 }
 
 export enum RailsTransferEventName {
@@ -26,6 +26,7 @@ interface IRailsTransferShared extends StateTxContext {
 
 export interface ISentRailsTransfer extends IRailsTransferShared {
   sourcePool: BigNumber
+  sourceTotalFraudulent: BigNumber
   hops: RailsHop[]
 }
 

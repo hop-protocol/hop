@@ -92,11 +92,11 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     const nextHopsHash = getComputedNextHopsHash(hops)
 
     return {
-      pathId,
       claimId: transferId,
       to,
       amount,
       sourcePool,
+      sourceTotalFraudulent,
       hops,
       maxBonderFee,
       attestedClaimId,

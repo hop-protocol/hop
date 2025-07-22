@@ -40,7 +40,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   protected override getRelayTxMethodFromState(state: RailsClaimState): RailsClaimMethodName {
     switch (state) {
       case RailsClaimState.Posted:
-        return RailsClaimMethodName.PushClaim
+        return RailsClaimMethodName.PostClaim
       // case RailsClaimState.RemoveClaim:
       //   return RailsClaimMethodName.RemoveClaim
       default:

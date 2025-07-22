@@ -325,7 +325,7 @@ export type IsPathInitializedInput = {
   pathId: string
 }
 
-export type PushClaimInput = {
+export type PostClaimInput = {
   pathId: string
   claimId: string
   to: string
@@ -333,6 +333,7 @@ export type PushClaimInput = {
   maxBonderFee: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   nextHopsHash: string
 }
 
@@ -367,7 +368,7 @@ export type GetPathInput = {
   pathId: string
 }
 
-export type PushClaimAndBondInput = {
+export type PostClaimAndBondInput = {
   pathId: string
   claimId: string
   to: string
@@ -375,11 +376,12 @@ export type PushClaimAndBondInput = {
   maxBonderFee: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   bonderFee: BigNumberish
   nextHops: HopStructInput[]
 }
 
-export type PushClaimAndWithdrawInput = {
+export type PostClaimAndWithdrawInput = {
   pathId: string
   claimId: string
   to: string
@@ -387,6 +389,7 @@ export type PushClaimAndWithdrawInput = {
   maxBonderFee: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   nextHops: HopStructInput[]
 }
 
@@ -689,11 +692,11 @@ export class RailsGateway extends Base {
     }
   }
 
-  async getPushClaimFee (): Promise<BigNumber> {
+  async getPostClaimFee (): Promise<BigNumber> {
     const contract = await this.getRailsGatewayContract()
 
     try {
-      const fee = await contract.getPushClaimFee()
+      const fee = await contract.getPostClaimFee()
       return fee
     } catch (err: unknown) {
       return this.throwError(err) as BigNumber
@@ -910,7 +913,7 @@ export class RailsGateway extends Base {
         }
       },
 
-      pushClaim: async ({ pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash }: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      postClaim: async ({ pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash }: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!this.utils.isValidBytes32(pathId)) {
@@ -941,13 +944,17 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid sourcePool "${sourcePool}"`)
         }
 
+        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
+          throw new InputError(`Invalid sourceTotalFraudulent "${sourceTotalFraudulent}"`)
+        }
+
         if (!this.utils.isValidBytes32(nextHopsHash)) {
           throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
-        const updateFee = await this.getPushClaimFee()
+        const updateFee = await this.getPostClaimFee()
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.pushClaim(pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash)
+        const txData = await contract.populateTransaction.postClaim(pathId, claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash)
 
         return {
           ...txData,
@@ -957,7 +964,7 @@ export class RailsGateway extends Base {
         }
       },
 
-      pushClaimAndBond: async ({ pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, bonderFee, nextHops }: PushClaimAndBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      postClaimAndBond: async ({ pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, bonderFee, nextHops }: PostClaimAndBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!this.utils.isValidBytes32(pathId)) {
@@ -986,6 +993,10 @@ export class RailsGateway extends Base {
 
         if (!this.utils.isValidNumericValue(sourcePool)) {
           throw new InputError(`Invalid sourcePool "${sourcePool}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
+          throw new InputError(`Invalid sourcePool "${sourceTotalFraudulent}"`)
         }
 
         if (!this.utils.isValidNumericValue(bonderFee)) {
@@ -1018,9 +1029,9 @@ export class RailsGateway extends Base {
           }
         }
 
-        const updateFee = await this.getPushClaimFee()
+        const updateFee = await this.getPostClaimFee()
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.pushClaimAndBond(pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, bonderFee, nextHops)
+        const txData = await contract.populateTransaction.postClaimAndBond(pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, bonderFee, nextHops)
 
         return {
           ...txData,
@@ -1030,7 +1041,7 @@ export class RailsGateway extends Base {
         }
       },
 
-      pushClaimAndWithdraw: async ({ pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, nextHops }: PushClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      postClaimAndWithdraw: async ({ pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHops }: PostClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!this.utils.isValidBytes32(pathId)) {
@@ -1061,6 +1072,10 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid sourcePool "${sourcePool}"`)
         }
 
+        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
+          throw new InputError(`Invalid sourceTotalFraudulent "${sourceTotalFraudulent}"`)
+        }
+
         if (!nextHops || !Array.isArray(nextHops)) {
           throw new InputError('Invalid nextHops')
         }
@@ -1087,9 +1102,9 @@ export class RailsGateway extends Base {
           }
         }
 
-        const updateFee = await this.getPushClaimFee()
+        const updateFee = await this.getPostClaimFee()
         const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.pushClaimAndWithdraw(pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, nextHops)
+        const txData = await contract.populateTransaction.postClaimAndWithdraw(pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHops)
 
         return {
           ...txData,
@@ -1251,7 +1266,7 @@ export class RailsGateway extends Base {
           throw new InputError(`Invalid claimId "${claimId}"`)
         }
 
-        const updateFee = await this.getPushClaimFee()
+        const updateFee = await this.getPostClaimFee()
         const contract = await this.getRailsGatewayContract()
         const txData = await contract.populateTransaction.removeClaim(pathId, claimId)
 
@@ -1946,8 +1961,8 @@ export class RailsGateway extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  async pushClaim (input: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.pushClaim(input, txOverrides)
+  async postClaim (input: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
@@ -1956,14 +1971,14 @@ export class RailsGateway extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  async pushClaimAndBond (input: PushClaimAndBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.pushClaimAndBond(input, txOverrides)
+  async postClaimAndBond (input: PostClaimAndBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaimAndBond(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
 
-  async pushClaimAndWithdraw (input: PushClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.pushClaimAndWithdraw(input, txOverrides)
+  async postClaimAndWithdraw (input: PostClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaimAndWithdraw(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

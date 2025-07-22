@@ -150,13 +150,14 @@ export type IsValidTransferInput = {
   claimId: string
 }
 
-export type PushClaimInput = {
+export type PostClaimInput = {
   claimId: string
   to: string
   amount: BigNumberish
   maxBonderFee: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   nextHopsHash: string
 }
 
@@ -328,7 +329,7 @@ export class RailsPath extends Base {
         }
       },
 
-      pushClaim: async ({ claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash }: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      postClaim: async ({ claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash }: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!this.utils.isValidBytes32(claimId)) {
@@ -355,13 +356,17 @@ export class RailsPath extends Base {
           throw new InputError(`Invalid sourcePool "${sourcePool}"`)
         }
 
+        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
+          throw new InputError(`Invalid sourceTotalFraudulent "${sourceTotalFraudulent}"`)
+        }
+
         if (!this.utils.isValidBytes32(nextHopsHash)) {
           throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
         const updateFee = BigNumber.from(0) // TODO
         const contract = await this.getRailsPathContract()
-        const txData = await contract.populateTransaction.pushClaim(claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash)
+        const txData = await contract.populateTransaction.postClaim(claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash)
 
         return {
           ...txData,
@@ -857,8 +862,8 @@ export class RailsPath extends Base {
     return contract.lastBondedClaimIdForBonder(bonder)
   }
 
-  async pushClaim (input: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.pushClaim(input, txOverrides)
+  async postClaim (input: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

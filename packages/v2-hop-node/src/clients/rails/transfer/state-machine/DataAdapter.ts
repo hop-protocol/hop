@@ -77,14 +77,14 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
 
   #formatTransferSentLog (log: DecodedLogWithContext<TransferSent>): Omit<ISentRailsTransfer, 'txContext'> {
     const { decoded } = log
-    const { pathId, transferId, to, amount, sourcePool, hops } = decoded
+    const { transferId, to, amount, sourcePool, sourceTotalFraudulent, hops } = decoded
 
     return {
-      pathId,
       claimId: transferId,
       to,
       amount,
       sourcePool,
+      sourceTotalFraudulent,
       hops
     }
   }

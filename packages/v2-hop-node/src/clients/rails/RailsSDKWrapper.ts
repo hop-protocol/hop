@@ -13,7 +13,7 @@ import {
   type ClaimPostedIndexes,
   type ClaimReaddedIndexes,
   type ClaimRemovedIndexes,
-  type PushClaimInput,
+  type PostClaimInput,
   type BondInput,
   type EthersEventWithDecodedTypesAndBaseContext,
   type RemoveClaimInput,
@@ -60,7 +60,7 @@ export enum RailsEventName {
 // TODO: Get this from SDK
 enum RailsMethodName {
   Bond = 'bond',
-  PushClaim = 'pushClaim',
+  PostClaim = 'postClaim',
   RemoveClaim = 'removeClaim',
   ReaddClaim = 'readdClaim'
 }
@@ -73,7 +73,7 @@ export {
   type ClaimRemoved,
   type ClaimReadded,
   type BondInput,
-  type PushClaimInput,
+  type PostClaimInput,
   type RemoveClaimInput,
   type ReaddClaimInput
 }
@@ -124,8 +124,8 @@ export class RailsGateway {
     return this.#sdk.bond({ ...input, ...overrides })
   }
 
-  async pushClaim (input: PushClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
-    return this.#sdk.pushClaim({ ...input, ...overrides })
+  async postClaim (input: PostClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.postClaim({ ...input, ...overrides })
   }
 
   async removeClaim(input: RemoveClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {

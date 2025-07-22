@@ -3,7 +3,7 @@ import { Config } from '#config/index.js'
 import {
   getPathId,
   type BondInput,
-  type PushClaimInput,
+  type PostClaimInput,
   type ReaddClaimInput,
   type RemoveClaimInput,
 } from './RailsSDKWrapper.js'
@@ -108,12 +108,12 @@ export function isValidBondTxInputData (item: unknown): item is BondInput {
 }
 
 // TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
-export function isValidPushClaimTxInputData (item: unknown): item is PushClaimInput {
+export function isValidPostClaimTxInputData (item: unknown): item is PostClaimInput {
   if (typeof item !== 'object' || item === null) {
     return false
   }
 
-  const candidate = item as Partial<PushClaimInput>
+  const candidate = item as Partial<PostClaimInput>
   return (
     'pathId' in candidate &&
     'claimId' in candidate &&

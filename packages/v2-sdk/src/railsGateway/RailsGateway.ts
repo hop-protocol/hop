@@ -381,18 +381,6 @@ export type PostClaimAndBondInput = {
   nextHops: HopStructInput[]
 }
 
-export type PostClaimAndWithdrawInput = {
-  pathId: string
-  claimId: string
-  to: string
-  amountOut: BigNumberish
-  maxBonderFee: BigNumberish
-  attestedClaimId: string
-  sourcePool: BigNumberish
-  sourceTotalFraudulent: BigNumberish
-  nextHops: HopStructInput[]
-}
-
 export type ReaddClaimInput = {
   pathId: string
   transferDataHash: string
@@ -1041,79 +1029,6 @@ export class RailsGateway extends Base {
         }
       },
 
-      postClaimAndWithdraw: async ({ pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHops }: PostClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
-        const chainId = this.chainId
-
-        if (!this.utils.isValidBytes32(pathId)) {
-          throw new InputError(`Invalid pathId "${pathId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        if (!this.utils.isValidAddress(to)) {
-          throw new InputError(`Invalid to "${to}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(amountOut)) {
-          throw new InputError(`Invalid amountOut "${amountOut}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(maxBonderFee)) {
-          throw new InputError(`Invalid maxBonderFee "${maxBonderFee}"`)
-        }
-
-        if (!this.utils.isValidBytes32(attestedClaimId)) {
-          throw new InputError(`Invalid attestedClaimId "${attestedClaimId}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(sourcePool)) {
-          throw new InputError(`Invalid sourcePool "${sourcePool}"`)
-        }
-
-        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
-          throw new InputError(`Invalid sourceTotalFraudulent "${sourceTotalFraudulent}"`)
-        }
-
-        if (!nextHops || !Array.isArray(nextHops)) {
-          throw new InputError('Invalid nextHops')
-        }
-
-        for (const hop of nextHops) {
-          if (!this.utils.isValidBytes32(hop.pathId)) {
-            throw new InputError(`Invalid pathId "${hop.pathId}"`)
-          }
-
-          if (!this.utils.isValidNumericValue(hop.maxTotalSent)) {
-            throw new InputError(`Invalid maxTotalSent "${hop.maxTotalSent}"`)
-          }
-
-          if (!this.utils.isValidNumericValue(hop.maxBonderFee)) {
-            throw new InputError(`Invalid maxBonderFee "${hop.maxBonderFee}"`)
-          }
-
-          if (hop.attestedClaimId) {
-            if (!this.utils.isValidBytes32(hop.attestedClaimId)) {
-              throw new InputError(`Invalid attestedClaimId "${hop.attestedClaimId}"`)
-            }
-          } else {
-            hop.attestedClaimId = '0x' + '0'.repeat(64)
-          }
-        }
-
-        const updateFee = await this.getPostClaimFee()
-        const contract = await this.getRailsGatewayContract()
-        const txData = await contract.populateTransaction.postClaimAndWithdraw(pathId, claimId, to, amountOut, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHops)
-
-        return {
-          ...txData,
-          value: updateFee,
-          ...txOverrides,
-          chainId: Number(chainId),
-        }
-      },
-
       readdClaim: async ({ pathId, transferDataHash, claimId }: ReaddClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
@@ -1471,6 +1386,9 @@ export class RailsGateway extends Base {
 
         const contract = await this.getRailsGatewayContract()
         try {
+          // TOOD: REMOVEEE
+          const pathId: any = ''
+          // TODO: Also add newly-used amountOut
           const claim = await contract.getClaim(pathId, claimId)
           return claim.to !== constants.AddressZero
         } catch (err: unknown) {
@@ -1973,12 +1891,6 @@ export class RailsGateway extends Base {
 
   async postClaimAndBond (input: PostClaimAndBondInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.postClaimAndBond(input, txOverrides)
-    return this.sendTransaction(populatedTx)
-  }
-
-
-  async postClaimAndWithdraw (input: PostClaimAndWithdrawInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.postClaimAndWithdraw(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 

@@ -6,7 +6,7 @@ import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { HopStruct, TransferSent } from '#railsGateway/events/TransferSent.js'
-import { TransferBonded } from '#railsGateway/events/TransferBonded.js'
+import { ClaimBonded } from '#railsGateway/events/ClaimBonded.js'
 import { PathInitialized, PathInitializedEventFetcher, PathInitializedIndexes } from '#railsGateway/events/PathInitialized.js'
 import { ConfigError, InputError, InsufficientBalanceError, InsufficientApprovalError } from '#error/index.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
@@ -36,11 +36,11 @@ export type GetTransferSentEventFromTransactionReceiptInput = {
   receipt: providers.TransactionReceipt
 }
 
-export type GetTransferBondedEventFromTransactionHashInput = {
+export type GetClaimBondedEventFromTransactionHashInput = {
   transactionHash: string
 }
 
-export type GetTransferBondedEventFromTransactionReceiptInput = {
+export type GetClaimBondedEventFromTransactionReceiptInput = {
   receipt: providers.TransactionReceipt
 }
 
@@ -49,7 +49,7 @@ export type GetTransferSentEventFromTransferIdInput = {
   fromBlock?: number
 }
 
-export type GetTransferBondedEventFromTransferIdInput = {
+export type GetClaimBondedEventFromTransferIdInput = {
   transferId: string
   fromBlock?: number
 }
@@ -1840,14 +1840,14 @@ export class RailsGateway extends Base {
         return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.TransferSent, receipt })
       },
 
-      getTransferBondedEventFromTransactionHash: async ({ transactionHash }: GetTransferBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+      getClaimBondedEventFromTransactionHash: async ({ transactionHash }: GetClaimBondedEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<ClaimBonded> | null> => {
         const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransactionHash({ eventName: RailsPathEventName.TransferBonded, transactionHash })
+        return railsPath.getEventFromTransactionHash({ eventName: RailsPathEventName.ClaimBonded, transactionHash })
       },
 
-      getTransferBondedEventFromTransactionReceipt: async ({ receipt }: GetTransferBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+      getClaimBondedEventFromTransactionReceipt: async ({ receipt }: GetClaimBondedEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<ClaimBonded> | null> => {
         const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.TransferBonded, receipt })
+        return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.ClaimBonded, receipt })
       },
 
       getTransferSentEventFromTransferId: async ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
@@ -1855,9 +1855,9 @@ export class RailsGateway extends Base {
         return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferSent, transferId })
       },
 
-      getTransferBondedEventFromTransferId: async ({ transferId }: GetTransferBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferBonded> | null> => {
+      getClaimBondedEventFromTransferId: async ({ transferId }: GetClaimBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<ClaimBonded> | null> => {
         const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferBonded, transferId })
+        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.ClaimBonded, transferId })
       },
 
       estimateGasCostForSend: async ({ from, to, amount, hops = [], fee, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> => {

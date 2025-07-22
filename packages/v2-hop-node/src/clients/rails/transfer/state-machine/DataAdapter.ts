@@ -1,13 +1,13 @@
 import { DataAdapter } from '#state-machine/index.js'
 import { getCounterpartChainIdForPathId } from '../../utils.js'
 import {
-  type TransferBonded,
+  type ClaimBonded,
   type TransferSent,
   RailsEventName,
   getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
 import {
-  type IBondedRailsTransfer,
+  type IBondedRailsClaim,
   type IRailsTransfer,
   type ISentRailsTransfer,
   RailsTransferEventName,
@@ -26,8 +26,8 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     switch (eventName) {
       case RailsEventName.TransferSent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsTransfer
-      case RailsEventName.TransferBonded:
-        return this.#formatTransferBondedLog(log as DecodedLogWithContext<TransferBonded>) as IRailsTransfer
+      case RailsEventName.ClaimBonded:
+        return this.#formatClaimBondedLog(log as DecodedLogWithContext<ClaimBonded>) as IRailsTransfer
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
@@ -37,7 +37,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     switch (eventName) {
       case RailsEventName.TransferSent:
         return RailsTransferState.Sent
-      case RailsEventName.TransferBonded:
+      case RailsEventName.ClaimBonded:
         return RailsTransferState.Bonded
       default:
         throw new Error(`Invalid event name: ${eventName}`)
@@ -45,7 +45,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
   }
 
   protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsEventName>> {
-    const { pathId, txContext } = value
+    const { txContext } = value
     const { chainId } = txContext
     const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
@@ -63,7 +63,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
         return {
           eventChainId: counterpartChainId,
           eventAddress,
-          eventName: RailsEventName.TransferBonded,
+          eventName: RailsEventName.ClaimBonded,
         }
       }
       default:
@@ -89,13 +89,16 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     }
   }
 
-  #formatTransferBondedLog (log: DecodedLogWithContext<TransferBonded>): Omit<IBondedRailsTransfer, 'txContext'> {
+  #formatClaimBondedLog (log: DecodedLogWithContext<ClaimBonded>): Omit<IBondedRailsClaim, 'txContext'> {
     const { decoded } = log
-    const { pathId, claimId } = decoded
+    const { claimId, to, amount, bonderFee } = decoded
+
 
     return {
-      pathId,
-      claimId
+      claimId,
+      to,
+      amount,
+      bonderFee
     }
   }
 }

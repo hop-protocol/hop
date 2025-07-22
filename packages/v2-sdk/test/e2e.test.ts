@@ -155,7 +155,7 @@ async function watcher() {
   const reverseEvents = events.reverse()
   const filtered = reverseEvents.filter((event: any) => {
     // console.log('event', event)
-    const isBonded = event.transferBondedEvents.length > 0 || event.claimWithdrawnEvents.length > 0
+    const isBonded = event.claimBondedEvents.length > 0 || event.claimWithdrawnEvents.length > 0
     return !isBonded
   })
   .map((event: any) => {
@@ -441,7 +441,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
       await approveTx.wait()
     }
 
-    // const isBonded = await sdk.getRailsGateway(toChainId).helpers.getIsTransferBonded({
+    // const isBonded = await sdk.getRailsGateway(toChainId).helpers.getIsClaimBonded({
     //   transferId: transferSentEvent.decoded.transferId,
     // })
 
@@ -474,7 +474,7 @@ async function processTransfer(_sendTxHash?: string, _fromChainId?: string, _toC
     // if (!bondTxHash && bondTx) {
     //   bondTxHash = bondTx.hash
     // }
-    const lastBond = await sdk.getRailsGateway(toChainId).getTransferBondedEventFromTransactionHash({
+    const lastBond = await sdk.getRailsGateway(toChainId).getClaimBondedEventFromTransactionHash({
       transactionHash: ''
     })
 
@@ -770,7 +770,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
 
     bondTxHash = bondTxHash || bondTx.hash
 
-    const lastBond1 = await sdk.getRailsGateway(nextChainId).helpers.getTransferBondedEventFromTransactionHash({
+    const lastBond1 = await sdk.getRailsGateway(nextChainId).helpers.getClaimBondedEventFromTransactionHash({
       transactionHash: bondTxHash
     })
 
@@ -849,7 +849,7 @@ describe.skip('Sdk - RailsGateway - e2e - multi hop', () => {
     //   hops: transferSentEvent2.decoded.hops,
     // })
 
-    const lastBond2 = await sdk.getRailsGateway(nextChainId).helpers.getTransferBondedEventFromTransactionHash({
+    const lastBond2 = await sdk.getRailsGateway(nextChainId).helpers.getClaimBondedEventFromTransactionHash({
       transactionHash: bondTxHash
     })
 

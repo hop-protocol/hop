@@ -90,8 +90,8 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    jest.spyOn(railsGateway as any, 'getTransferBondedEventFromTransactionReceipt').mockReturnValue({ decoded: {} } as any)
-    const event = await railsGateway.getTransferBondedEventFromTransactionReceipt({
+    jest.spyOn(railsGateway as any, 'getClaimBondedEventFromTransactionReceipt').mockReturnValue({ decoded: {} } as any)
+    const event = await railsGateway.getClaimBondedEventFromTransactionReceipt({
       receipt
     })
     expect(event).toBeDefined()
@@ -158,27 +158,27 @@ describe('RailsGateway', () => {
     expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(4)
   })
-  it('should get TransferBonded event filter', async () => {
+  it('should get ClaimBonded event filter', async () => {
     const chainId = 11155111
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const filter = railsGateway.getTransferBondedEventFilter()
+    const filter = railsGateway.getClaimBondedEventFilter()
 
     console.log(filter)
 
     expect(filter).toBeDefined()
     expect(filter.topics!.length).toBe(1)
   })
-  it('should get TransferBonded transferId event filter', async () => {
+  it('should get ClaimBonded transferId event filter', async () => {
     const chainId = 11155111
     const claimId = '0xf3aeea1f3ca2c666e582879bc7dba467ce96af3ac8183ac423d74ca0dacdd221'
     const railsGateway = new RailsGateway({
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const filter = railsGateway.getTransferBondedEventFilter({
+    const filter = railsGateway.getClaimBondedEventFilter({
       claimId
     })
 
@@ -253,7 +253,7 @@ describe('RailsGateway', () => {
     })
 
     const baseProvider = new providers.StaticJsonRpcProvider(baseRpcUrl)
-    const transferBondedEvents = await baseProvider.getLogs({
+    const claimBondedEvents = await baseProvider.getLogs({
       address: '0xb45884c7B86b588FBeb3d2fdF2AC6Ce03B1779B6',
       topics: [
         '0xe2786f275972baeb8a20a433f9e7ed69d342f446a0d75443ff47c2478f6bd0b0'
@@ -262,7 +262,7 @@ describe('RailsGateway', () => {
       toBlock: 22431491
     })
 
-    const ethersEvents = transferSentEvents.concat(transferBondedEvents)
+    const ethersEvents = transferSentEvents.concat(claimBondedEvents)
     console.log(ethersEvents)
 
     const railsGateway = new RailsGateway({
@@ -279,7 +279,7 @@ describe('RailsGateway', () => {
     expect(events[0].decoded).toBeDefined()
     expect(events[0].context).toBeDefined()
     expect(events[0].context.eventName).toBe('TransferSent')
-    expect(events[1].context.eventName).toBe('TransferBonded')
+    expect(events[1].context.eventName).toBe('ClaimBonded')
   }, 60 * 1000)
   it('should add typedEvent to event', async () => {
     const chainId = 11155111
@@ -310,7 +310,7 @@ describe('RailsGateway', () => {
     expect(event.decoded).toBeDefined()
     expect(event.context).toBeDefined()
   }, 60 * 1000)
-  it('should fetch TransferBonded events', async () => {
+  it('should fetch ClaimBonded events', async () => {
     const chainId = 11155420
     const fromBlock = 11394756
     const toBlock = 11394756
@@ -319,7 +319,7 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    const events = await railsGateway.getTransferBondedEvents({
+    const events = await railsGateway.getClaimBondedEvents({
       fromBlock,
       toBlock
     })
@@ -633,9 +633,9 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    jest.spyOn(railsGateway as any, 'addDecodedTypesToTransferBondedEvents').mockReturnValue([{ decoded: {}}] as any)
+    jest.spyOn(railsGateway as any, 'addDecodedTypesToClaimBondedEvents').mockReturnValue([{ decoded: {}}] as any)
 
-    const events = railsGateway.addDecodedTypesToTransferBondedEvents(rawEvents)
+    const events = railsGateway.addDecodedTypesToClaimBondedEvents(rawEvents)
     console.log(events)
     expect(events.length > 0).toBeTruthy()
     expect(events[0].decoded).toBeDefined()
@@ -792,8 +792,8 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    jest.spyOn(railsGateway as any, 'getTransferBondedEventFromTransactionHash').mockReturnValue({ decoded: {} } as any)
-    const event = await railsGateway.getTransferBondedEventFromTransactionHash({
+    jest.spyOn(railsGateway as any, 'getClaimBondedEventFromTransactionHash').mockReturnValue({ decoded: {} } as any)
+    const event = await railsGateway.getClaimBondedEventFromTransactionHash({
       transactionHash
     })
     expect(event).toBeDefined()
@@ -805,8 +805,8 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    jest.spyOn(railsGateway as any, 'getTransferBondedEventFromTransferId').mockReturnValue({ decoded: {} } as any)
-    const event = await railsGateway.getTransferBondedEventFromTransferId({
+    jest.spyOn(railsGateway as any, 'getClaimBondedEventFromTransferId').mockReturnValue({ decoded: {} } as any)
+    const event = await railsGateway.getClaimBondedEventFromTransferId({
       transferId
     })
     expect(event).toBeDefined()
@@ -891,7 +891,7 @@ describe('RailsGateway', () => {
       chainId,
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
-    const bonded = await railsGateway.helpers.getIsTransferBonded({
+    const bonded = await railsGateway.helpers.getIsClaimBonded({
       transferId
     })
     console.log(bonded)
@@ -1251,9 +1251,9 @@ describe('RailsGateway', () => {
       signerOrProvider: RailsGateway.getDefaultProvider(chainId)
     })
 
-    jest.spyOn(railsGateway.helpers as any, 'getIsTransferBonded').mockReturnValue(false)
+    jest.spyOn(railsGateway.helpers as any, 'getIsClaimBonded').mockReturnValue(false)
 
-    const isBonded = await railsGateway.helpers.getIsTransferBonded({
+    const isBonded = await railsGateway.helpers.getIsClaimBonded({
       transferId
     })
     console.log(isBonded)
@@ -1443,7 +1443,7 @@ describe('RailsGateway', () => {
     })
     const eventNames = railsGateway.getEventNames()
     expect(eventNames.length > 0).toBeTruthy()
-    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
+    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'ClaimBonded', 'TransferSent'])
   })
   it('should get TransferSent event signature using static method', async () => {
     const signature = RailsGateway.getTransferSentEventSignature()
@@ -1451,8 +1451,8 @@ describe('RailsGateway', () => {
     console.log(signature)
     expect(signature).toBeDefined()
   })
-  it('should get TransferBonded event signature static method', async () => {
-    const signature = RailsGateway.getTransferBondedEventSignature()
+  it('should get ClaimBonded event signature static method', async () => {
+    const signature = RailsGateway.getClaimBondedEventSignature()
 
     console.log(signature)
     expect(signature).toBeDefined()
@@ -1484,7 +1484,7 @@ describe('RailsGateway', () => {
   it('should get event names using static method', async () => {
     const eventNames = RailsGateway.getEventNames()
     expect(eventNames.length > 0).toBeTruthy()
-    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'TransferBonded', 'TransferSent'])
+    expect(eventNames).toStrictEqual(['ClaimChainUpdated', 'ClaimPosted', 'ClaimBonded', 'TransferSent'])
   })
 
   it('should add typedEvent to event using static method', async () => {
@@ -1574,9 +1574,9 @@ describe('RailsGateway', () => {
     })
     console.log(rawEvents)
 
-    jest.spyOn(RailsGateway as any, 'addDecodedTypesToTransferBondedEvents').mockReturnValue([{ decoded: {}}] as any)
+    jest.spyOn(RailsGateway as any, 'addDecodedTypesToClaimBondedEvents').mockReturnValue([{ decoded: {}}] as any)
 
-    const events = RailsGateway.addDecodedTypesToTransferBondedEvents(rawEvents)
+    const events = RailsGateway.addDecodedTypesToClaimBondedEvents(rawEvents)
     console.log(events)
     expect(events.length > 0).toBeTruthy()
     expect(events[0].decoded).toBeDefined()

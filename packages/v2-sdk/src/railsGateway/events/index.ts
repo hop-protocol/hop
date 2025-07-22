@@ -4,10 +4,10 @@ export {
   PathInitializedIndexes
 } from './PathInitialized.js'
 export {
-    TransferBonded,
-    TransferBondedEventFetcher,
-    TransferBondedIndexes
-} from './TransferBonded.js'
+    ClaimBonded,
+    ClaimBondedEventFetcher,
+    ClaimBondedIndexes
+} from './ClaimBonded.js'
 export {
   TransferSent,
   TransferSentEventFetcher,

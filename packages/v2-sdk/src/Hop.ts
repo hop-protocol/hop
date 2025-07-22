@@ -4,7 +4,7 @@ import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { Messenger, FeesSentToHub, BundleCommitted, BundleForwarded, BundleReceived, BundleSet, MessageBundled, MessageExecuted, MessageSent, EventName as MessengerEventName } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsGateway, Path, TransferBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName, PathInitialized } from '#railsGateway/index.js'
+import { RailsGateway, Path, ClaimBonded, TransferSent, HopStructInput, EventName as RailsGatewayEventName, PathInitialized } from '#railsGateway/index.js'
 import { EventName as StakingRegistryEventName } from '#railsGateway/StakingRegistry.js'
 import { EventName as RailsPathEventName, RailsPath } from '#railsGateway/RailsPath.js'
 import { Addresses } from '#addresses/types.js'
@@ -16,11 +16,11 @@ import memcache from 'memory-cache'
 
 const cache = new memcache.Cache()
 
-export type AllEventTypes = TransferSent | TransferBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent | PathInitialized
+export type AllEventTypes = TransferSent | ClaimBonded | FeesSentToHub | BundleCommitted | BundleForwarded | BundleReceived | BundleSet | MessageBundled | MessageExecuted | MessageSent | PathInitialized
 
 export enum EventName {
   TransferSent = RailsPathEventName.TransferSent,
-  TransferBonded = RailsPathEventName.TransferBonded,
+  ClaimBonded = RailsPathEventName.ClaimBonded,
   ClaimPushed = RailsPathEventName.ClaimPushed,
   ClaimReadded = RailsPathEventName.ClaimReadded,
   ClaimRemoved = RailsPathEventName.ClaimRemoved,
@@ -181,7 +181,7 @@ export type TransferStatus = {
   state: TransferState
   transferId: string
   transferSentEvent: EthersEventWithDecodedTypes<TransferSent> | null
-  transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[]
+  claimBondedEvents: EthersEventWithDecodedTypes<ClaimBonded>[]
   claimWithdrawnEvents: EthersEventWithDecodedTypes<ClaimWithdrawn>[]
 }
 
@@ -984,7 +984,7 @@ export class Hop extends Base {
         state: TransferState.NotFound,
         transferId: transferId ?? '',
         transferSentEvent: null as any,
-        transferBondedEvents: [],
+        claimBondedEvents: [],
         claimWithdrawnEvents: []
       }
     }
@@ -993,7 +993,7 @@ export class Hop extends Base {
       ...event,
       ...event.context
     }
-    const transferBondedEvents = transferSentEvent.transferBondedEvents.map((event: any) => {
+    const claimBondedEvents = transferSentEvent.claimBondedEvents.map((event: any) => {
       return {
         ...event,
         ...event.context
@@ -1002,15 +1002,15 @@ export class Hop extends Base {
 
     const claimWithdrawnEvents = event.claimWithdrawnEvents ?? []
 
-    delete transferSentEvent.transferBondedEvents
+    delete transferSentEvent.claimBondedEvents
 
     let transferState = event?.state ?? TransferState.NotFound
 
-    if (event && event.hops?.length > 0 && transferBondedEvents.length !== event.hops?.length) {
+    if (event && event.hops?.length > 0 && claimBondedEvents.length !== event.hops?.length) {
       transferState = TransferState.PendingBond
     }
 
-    if (event && transferBondedEvents.length > 0 && transferBondedEvents.length === event.hops?.length) {
+    if (event && claimBondedEvents.length > 0 && claimBondedEvents.length === event.hops?.length) {
       transferState = TransferState.Bonded
     }
 
@@ -1022,7 +1022,7 @@ export class Hop extends Base {
       state: transferState,
       transferId: event?.transferId ?? '',
       transferSentEvent,
-      transferBondedEvents,
+      claimBondedEvents,
       claimWithdrawnEvents
     }
   }
@@ -1047,7 +1047,7 @@ export class Hop extends Base {
 
     let transferSentEvent: any = originalTransferSentEvent
 
-    const transferBondedEvents: EthersEventWithDecodedTypes<TransferBonded>[] = []
+    const claimBondedEvents: EthersEventWithDecodedTypes<ClaimBonded>[] = []
     let originalHops : HopStructInput[] = []
 
     if (transferSentEvent) {
@@ -1080,20 +1080,20 @@ export class Hop extends Base {
         }
 
         const railsGateway = await this.getRailsGateway(toChainId)
-        const transferBondedEvent = await railsGateway.helpers.getTransferBondedEventFromTransferId({
+        const claimBondedEvent = await railsGateway.helpers.getClaimBondedEventFromTransferId({
           transferId: currentTransferId,
           fromBlock: earliestBlock
         })
-        if (!transferBondedEvent) {
+        if (!claimBondedEvent) {
           break
         }
-        transferBondedEvents.push(transferBondedEvent)
+        claimBondedEvents.push(claimBondedEvent)
         currentHopChainId = toChainId
-        fromBlock = await toProvider.getBlock(transferBondedEvent.blockNumber)
+        fromBlock = await toProvider.getBlock(claimBondedEvent.blockNumber)
         const railsPath = await this.getRailsPath(toChainId)
         transferSentEvent = railsPath.getEventFromTransactionHash({
           eventName: RailsPathEventName.TransferSent,
-          transactionHash: transferBondedEvent.transactionHash
+          transactionHash: claimBondedEvent.transactionHash
         })!
         if (!transferSentEvent) {
           continue
@@ -1104,15 +1104,15 @@ export class Hop extends Base {
 
     let transferState = TransferState.NotFound
 
-    if (originalTransferSentEvent && transferBondedEvents.length !== originalHops.length) {
+    if (originalTransferSentEvent && claimBondedEvents.length !== originalHops.length) {
       transferState = TransferState.PendingBond
     }
 
-    if (originalTransferSentEvent && transferBondedEvents.length === originalHops.length) {
+    if (originalTransferSentEvent && claimBondedEvents.length === originalHops.length) {
       transferState = TransferState.Bonded
     }
 
-    const bondedEvents = transferBondedEvents.map((event: any) => {
+    const bondedEvents = claimBondedEvents.map((event: any) => {
       const transactionHashExplorerUrl = this.utils.getTransactionHashExplorerUrl(event.transactionHash, event.context.chainId)
       return {
         ...event,
@@ -1127,7 +1127,7 @@ export class Hop extends Base {
       state: transferState,
       transferId: originalTransferSentEvent?.decoded.transferId ?? '',
       transferSentEvent: originalTransferSentEvent,
-      transferBondedEvents: bondedEvents,
+      claimBondedEvents: bondedEvents,
       claimWithdrawnEvents: [] // TODO
     }
   }

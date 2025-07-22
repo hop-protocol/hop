@@ -1,15 +1,15 @@
 import {
   type TransferSent,
-  type TransferBonded,
+  type ClaimBonded,
   type ClaimPushed,
   type ClaimRemoved,
   type ClaimReadded,
-  type TransferBonded as TransferBondedSDK,
+  type ClaimBonded as ClaimBondedSDK,
   type ClaimPushed as ClaimPushedSDK,
   type ClaimRemoved as ClaimRemovedSDK,
   type ClaimReadded as ClaimReaddedSDK,
   type TransferSentIndexes,
-  type TransferBondedIndexes,
+  type ClaimBondedIndexes,
   type ClaimPushedIndexes,
   type ClaimReaddedIndexes,
   type ClaimRemovedIndexes,
@@ -37,21 +37,21 @@ import type { BigNumber } from 'ethers'
 
 export type RailsFilterInputs = &
   TransferSentIndexes &
-  TransferBondedIndexes &
+  ClaimBondedIndexes &
   ClaimPushedIndexes &
   ClaimReaddedIndexes &
   ClaimRemovedIndexes
 
 export type RailsEvent = |
   TransferSent |
-  TransferBonded |
+  ClaimBonded |
   ClaimPushed |
   ClaimRemoved |
   ClaimReadded
 
 export enum RailsEventName {
   TransferSent = RailsPathEventName.TransferSent,
-  TransferBonded = RailsPathEventName.TransferBonded,
+  ClaimBonded = RailsPathEventName.ClaimBonded,
   ClaimPushed = RailsPathEventName.ClaimPushed,
   ClaimReadded = RailsPathEventName.ClaimReadded,
   ClaimRemoved = RailsPathEventName.ClaimRemoved,
@@ -68,7 +68,7 @@ enum RailsMethodName {
 export {
   RailsMethodName,
   type TransferSent,
-  type TransferBonded,
+  type ClaimBonded,
   type ClaimPushed,
   type ClaimRemoved,
   type ClaimReadded,
@@ -185,7 +185,7 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Rai
 // TODO: Consider way to not pass in chainId. Right now, SDK needs it since it has large response. However, from the perspective
 // of the hn it is not necessary and adds confusion. This is because the response to the method should not care about
 // the chainId, so the intention of the method is not clear.
-export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | TransferBondedSDK | ClaimPushedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
+export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | ClaimBondedSDK | ClaimPushedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
   const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsPathSDK.addDecodedTypesToEvent(log, chainId)
 
   // TODO: Temp do this until hn and sdk are in sync

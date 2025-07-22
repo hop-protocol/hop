@@ -3,28 +3,23 @@ import { Event } from '#events/index.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
 // event from RailsPath
-export interface TransferBonded {
-  pathId: string
+export interface ClaimBonded {
   claimId: string
   to: string
   amount: BigNumber
   bonderFee: BigNumber
 }
 
-export type TransferBondedIndexes = {
-  pathId?: string
+export type ClaimBondedIndexes = {
   claimId?: string
   to?: string
+  amount?: BigNumber
 }
 
-export class TransferBondedEventFetcher extends Event<TransferBonded> {
-  override eventName = 'TransferBonded'
+export class ClaimBondedEventFetcher extends Event<ClaimBonded> {
+  override eventName = 'ClaimBonded'
   override abi = RailsPath__factory.abi
   override factory = RailsPath__factory
-
-  getPathIdFilter (pathId: string): EventFilter {
-    return this.getFilterWithIndexes({ pathId })
-  }
 
   getClaimIdFilter (claimId: string): EventFilter {
     return this.getFilterWithIndexes({ claimId })
@@ -34,13 +29,17 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     return this.getFilterWithIndexes({ to })
   }
 
-  getFilterWithIndexes ({ pathId, claimId, to } : TransferBondedIndexes): EventFilter {
+  getAmountFilter (amount: BigNumber): EventFilter {
+    return this.getFilterWithIndexes({ amount })
+  }
+
+  getFilterWithIndexes ({ claimId, to, amount } : ClaimBondedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.TransferBonded(pathId ?? null, claimId ?? null, to ?? null)
+    const filter = railsGateway.filters.ClaimBonded(claimId ?? null, to ?? null, amount ?? null)
     return filter
   }
 
-  override toTypedEvent (ethersEvent: EthersEvent): TransferBonded {
+  override toTypedEvent (ethersEvent: EthersEvent): ClaimBonded {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const pathId = parsed.args.pathId.toString()
@@ -50,7 +49,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     const bonderFee = parsed.args.bonderFee
 
     return {
-      pathId,
       claimId,
       to,
       amount,

@@ -6,7 +6,7 @@ import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import { TransferSent, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
-import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
+import { ClaimBonded, ClaimBondedEventFetcher, ClaimBondedIndexes } from '#railsGateway/events/ClaimBonded.js'
 import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#railsGateway/events/ClaimPushed.js'
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
@@ -16,9 +16,9 @@ import { ConfigError, InputError, InsufficientBalanceError, InsufficientApproval
 
 const { getAddress: checksumAddress } = utils
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
+export type EventFetcher = TransferSentEventFetcher | ClaimBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
 
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
+export type GetEventFilterInput = TransferSentIndexes | ClaimBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
 
 export type GetEventsInBatchesInput = {
   eventName: EventName
@@ -29,7 +29,7 @@ export type GetEventsInBatchesInput = {
 
 export enum EventName {
   TransferSent = 'TransferSent',
-  TransferBonded = 'TransferBonded',
+  ClaimBonded = 'ClaimBonded',
   ClaimPushed = 'ClaimPushed',
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
@@ -971,7 +971,7 @@ export class RailsPath extends Base {
     const address = this.getRailsPathContractAddress()
     const eventFetcher: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
       [EventName.ClaimPushed]: ClaimPushedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
@@ -1099,11 +1099,11 @@ export class RailsPath extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     return RailsPath.addDecodedTypesToEvent(event, this.chainId)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     return RailsPath.addDecodedTypesToEvents(events, this.chainId)
   }
 
@@ -1134,7 +1134,7 @@ export class RailsPath extends Base {
   static getEventSignature (eventName: EventName): string {
     const eventFetchers: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
       [EventName.ClaimPushed]: ClaimPushedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
@@ -1150,16 +1150,16 @@ export class RailsPath extends Base {
     return eventFetcher.getTopic0()
   }
 
-  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     const decoded = RailsPath.addDecodedTypesToEvents([event], chainId)
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     const eventFetchers: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
+      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
       [EventName.ClaimPushed]: ClaimPushedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,

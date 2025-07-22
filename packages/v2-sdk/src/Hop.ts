@@ -68,6 +68,7 @@ export type SendTokensInput = {
   amount: BigNumberish
   minAmountOut: BigNumberish
   attestedClaimId?: string
+  updater?: string
 }
 
 export type GetEstimatedReceivedInput = {
@@ -272,7 +273,7 @@ export class Hop extends Base {
 
   get populateTransaction() {
     return {
-      sendTokensMultiHop: async ({ fromChainId: originChainId, toChainId: destChainId, fromToken: originToken, toToken: destToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      sendTokensMultiHop: async ({ fromChainId: originChainId, toChainId: destChainId, fromToken: originToken, toToken: destToken, amount, minAmountOut, to, attestedClaimId, updater }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(originChainId)) {
           throw new InputError(`Invalid fromChainId "${originChainId}"`)
         }
@@ -303,6 +304,14 @@ export class Hop extends Base {
 
         if (!this.utils.isValidAddress(to)) {
           throw new InputError(`Invalid "to" address "${to}"`)
+        }
+
+        if (!updater) {
+          throw new InputError(`No "updater" address`)
+        }
+
+        if (!this.utils.isValidAddress(updater)) {
+          throw new InputError(`Invalid "updater" address "${updater}"`)
         }
 
         const nextChainId = this.getHubChainId()
@@ -391,13 +400,15 @@ export class Hop extends Base {
             pathId: originPathId,
             maxBonderFee: nextMaxBonderFee,
             maxTotalSent: nextMaxTotalSent,
-            attestedClaimId: attestedClaimId
+            attestedClaimId: attestedClaimId,
+            updater
           },
           {
             pathId: destPathId,
             maxBonderFee: destMaxBonderFee,
             maxTotalSent: destMaxTotalSent,
-            attestedClaimId: destAttestedClaimId
+            attestedClaimId: destAttestedClaimId,
+            updater
           }
         ]
 
@@ -415,7 +426,7 @@ export class Hop extends Base {
         return populatedTx
       },
 
-      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      sendTokens: async ({ fromChainId, toChainId, fromToken, toToken, amount, minAmountOut, to, attestedClaimId, updater }: SendTokensInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
@@ -446,6 +457,14 @@ export class Hop extends Base {
 
         if (!this.utils.isValidAddress(to)) {
           throw new InputError(`Invalid "to" address "${to}"`)
+        }
+
+        if (!updater) {
+          throw new InputError(`No "updater" address`)
+        }
+
+        if (!this.utils.isValidAddress(updater)) {
+          throw new InputError(`Invalid "updater" address "${updater}"`)
         }
 
         const initialReserve = await this.getRailsGateway(fromChainId).helpers.getInitialReserveByTokenAddress({ tokenAddress: fromToken })
@@ -504,7 +523,9 @@ export class Hop extends Base {
           pathId,
           maxBonderFee,
           maxTotalSent,
-          attestedClaimId        }]
+          attestedClaimId,
+          updater
+        }]
 
         console.log('hopV2Sdk hops', hops)
 
@@ -652,12 +673,16 @@ export class Hop extends Base {
 
     const maxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
     const maxTotalSent = await this.getRailsGateway(fromChainId).helpers.getTotalSent({ pathId })
+    // TODO: V2: realistic value
+    const updater = constants.AddressZero // TODO: should be the address of the updater
+
 
     const hops: HopStructInput[] = [{
       pathId,
       attestedClaimId,
       maxBonderFee,
-      maxTotalSent
+      maxTotalSent,
+      updater
     }]
 
     const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })
@@ -1224,12 +1249,15 @@ export class Hop extends Base {
 
       const maxBonderFee = await this.getMaxBonderFee({ amountIn: amount })
       const maxTotalSent = await this.getRailsGateway(fromChainId).helpers.getTotalSent({ pathId })
+      // TODO: V2: realistic value
+      const updater = constants.AddressZero // TODO: should be the address of the updater
 
       const hops: HopStructInput[] = [{
         pathId,
         maxBonderFee,
         maxTotalSent,
-        attestedClaimId
+        attestedClaimId,
+        updater
       }]
 
       const fee = await this.getRailsGateway(toChainId).getSendFee({ pathId })

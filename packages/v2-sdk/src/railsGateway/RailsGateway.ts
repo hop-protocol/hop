@@ -80,6 +80,7 @@ export type HopStructInput = {
   maxBonderFee: BigNumberish
   maxTotalSent: BigNumberish
   attestedClaimId: string
+  updater: string
 }
 
 export type SendInput = {
@@ -1474,8 +1475,8 @@ export class RailsGateway extends Base {
         const iface = new utils.Interface(RailsGateway__factory.abi)
         const decodedData = iface.decodeFunctionData('send', data)
         const { to, amount } = decodedData
-        const hops = decodedData.hops.map(({ pathId, maxBonderFee, maxTotalSent, attestedClaimId }: HopStruct) => {
-          return { pathId, maxBonderFee, maxTotalSent, attestedClaimId }
+        const hops = decodedData.hops.map(({ pathId, maxBonderFee, maxTotalSent, attestedClaimId, updater }: HopStruct) => {
+          return { pathId, maxBonderFee, maxTotalSent, attestedClaimId, updater }
         })
         return {
           to,
@@ -1488,8 +1489,8 @@ export class RailsGateway extends Base {
         const iface = new utils.Interface(RailsGateway__factory.abi)
         const decodedData = iface.decodeFunctionData('bond', data)
         const { pathId, claimId, bonderFee } = decodedData
-        const nextHops = decodedData.nextHops.map(({ pathId, maxBonderFee, maxTotalSent, attestedClaimId }: HopStruct) => {
-          return { pathId, maxBonderFee, maxTotalSent, attestedClaimId }
+        const nextHops = decodedData.nextHops.map(({ pathId, maxBonderFee, maxTotalSent, attestedClaimId, updater }: HopStruct) => {
+          return { pathId, maxBonderFee, maxTotalSent, attestedClaimId, updater }
         })
         return {
           pathId,
@@ -1982,7 +1983,8 @@ export class RailsGateway extends Base {
         pathId: hop.pathId,
         maxBonderFee: BigNumber.from(hop.maxBonderFee?.toString()),
         maxTotalSent: BigNumber.from(hop.maxTotalSent?.toString()),
-        attestedClaimId: hop.attestedClaimId
+        attestedClaimId: hop.attestedClaimId,
+        updater: hop.updater
       }
     }))
   }

@@ -21,10 +21,10 @@ const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, numbe
     [ChainSlug.Polygon]: 0
   },
   [NetworkSlug.Sepolia]: {
-    [ChainSlug.Ethereum]: 7784611,
+    [ChainSlug.Ethereum]: 8812404,
     [ChainSlug.Optimism]: 0,
     [ChainSlug.Arbitrum]: 0,
-    [ChainSlug.Base]: 22371334
+    [ChainSlug.Base]: 28675493
   }
 }
 

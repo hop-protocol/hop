@@ -209,7 +209,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     }
     return {
       pathId: relayItem.pathId,
-      claimId: relayItem.claimId
+      claimId: relayItem.claimId,
+      transferDataHash: relayItem.transferDataHash
     }
   }
 

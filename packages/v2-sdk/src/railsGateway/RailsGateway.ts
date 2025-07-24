@@ -211,16 +211,6 @@ export type GetTotalSentInput = {
   pathId: string
 }
 
-export type GetIsClaimBondedOrWithdrawnInput = {
-  pathId: string
-  claimId: string
-}
-
-export type GetIsClaimPostedInput = {
-  claimId: string
-  amountOut: BigNumberish
-}
-
 export type GetNextHopsHashInput = {
   nextHops: HopStructInput[]
 }
@@ -736,6 +726,20 @@ export class RailsGateway extends Base {
       chainId: this.chainId,
       contractAddresses: this.contractAddresses,
       signersOrProviders: this.signersOrProviders,
+    })
+  }
+
+  // TODO: This should be named getRailsPath, but we need to remove the async one first
+  getRailsPathByAddress (address: string): RailsPath {
+    if (!this.utils.isValidAddress(address)) {
+      throw new InputError(`Invalid address "${address}"`)
+    }
+    return new RailsPath({
+      chainId: this.chainId,
+      address,
+      contractAddresses: this.contractAddresses,
+      signersOrProviders: this.signersOrProviders,
+      network: this.network
     })
   }
 
@@ -1374,49 +1378,6 @@ export class RailsGateway extends Base {
         return this.sendTransaction(txData)
       },
 
-      getIsClaimPosted: async ({ claimId, amountOut }: GetIsClaimPostedInput): Promise<boolean> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        try {
-          // TOOD: REMOVEEE
-          const pathId: any = ''
-          // TODO: Also add newly-used amountOut
-          const claim = await contract.getClaim(pathId, claimId)
-          return claim.to !== constants.AddressZero
-        } catch (err: unknown) {
-          return false
-        }
-      },
-
-      getIsClaimBondedOrWithdrawn: async ({ pathId, claimId }: GetIsClaimBondedOrWithdrawnInput): Promise<boolean> => {
-        const chainId = this.chainId
-
-        if (!chainId || !this.utils.isValidChainId(chainId)) {
-          throw new InputError(`Invalid chainId "${chainId}"`)
-        }
-
-        if (!this.utils.isValidBytes32(claimId)) {
-          throw new InputError(`Invalid claimId "${claimId}"`)
-        }
-
-        const contract = await this.getRailsGatewayContract()
-        try {
-          const claim = await contract.getClaim(pathId, claimId)
-          return claim.bondedOrWithdrawnBy !== constants.AddressZero
-        } catch (err: unknown) {
-          return false
-        }
-      },
-
       getIsPathIdLive: async ({ pathId }: GetIsPathIdLiveInput): Promise<boolean> => {
         const chainId = this.chainId
 
@@ -2031,7 +1992,7 @@ export class RailsGateway extends Base {
 
   static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<PathInitialized>[] {
     const eventFetchers: Record<EventName, any> = {
-      [EventName.PathInitialized]: PathInitializedEventFetcher,
+      [EventName.PathInitialized]: new PathInitializedEventFetcher(undefined, chainId, undefined, undefined),
     }
 
     const result = events.map(event => {

@@ -1,6 +1,6 @@
 import { Base, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, constants, utils } from 'ethers'
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
@@ -219,6 +219,14 @@ export type RailsPathConstructorInput = {
   contractAddresses?: Addresses
   chainId: BigNumberish
   signerOrProvider?: Signer | providers.Provider
+}
+
+export type GetIsClaimPostedInput = {
+  claimId: string
+}
+
+export type GetIsClaimBondedOrWithdrawnInput = {
+  claimId: string
 }
 
 export class RailsPath extends Base {
@@ -586,6 +594,50 @@ export class RailsPath extends Base {
       approveSend: async (input: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {
         const txData = await this.populateTransaction.approveSend(input, txOverrides)
         return this.sendTransaction(txData)
+      },
+
+      getIsClaimPosted: async ({ claimId }: GetIsClaimPostedInput): Promise<boolean> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsPathContract()
+        try {
+          const claim = await contract.getClaim(claimId)
+          return claim.to !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
+      },
+
+      getIsClaimBondedOrWithdrawn: async ({ claimId }: GetIsClaimBondedOrWithdrawnInput): Promise<boolean> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsPathContract()
+        try {
+          const claim = await contract.getClaim(claimId)
+          return (
+            claim.bondedBy !== constants.AddressZero ||
+            claim.withdrawnBy !== constants.AddressZero
+
+          )
+        } catch (err: unknown) {
+          return false
+        }
       },
     }
   }
@@ -1163,12 +1215,12 @@ export class RailsPath extends Base {
 
   static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     const eventFetchers: Record<EventName, any> = {
-      [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
-      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
-      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
-      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
-      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
+      [EventName.TransferSent]: new TransferSentEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimBonded]: new ClaimBondedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimPosted]: new ClaimPostedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimReadded]: new ClaimReaddedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimRemoved]: new ClaimRemovedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimWithdrawn]: new ClaimWithdrawnEventFetcher(undefined, chainId, undefined, undefined),
     }
 
     const result = events.map(event => {

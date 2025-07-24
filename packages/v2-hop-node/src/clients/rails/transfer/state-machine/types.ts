@@ -19,6 +19,7 @@ export enum RailsTransferState {
 }
 
 interface IRailsTransferShared extends StateTxContext {
+  pathId: string
   claimId: string
   to: string
   amount: BigNumber

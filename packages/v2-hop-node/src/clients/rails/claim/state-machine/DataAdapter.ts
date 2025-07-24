@@ -3,6 +3,7 @@ import {
   type TransferSent,
   type ClaimPosted,
   RailsEventName,
+  RailsGateway,
   getComputedNextHopsHash,
   getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
@@ -77,8 +78,9 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
    */
 
   #formatTransferSentLog (log: DecodedLogWithContext<TransferSent>): Omit<ISentRailsClaim, 'txContext'> {
-    const { decoded } = log
-    const { pathId, transferId, to, amount, sourcePool, hops } = decoded
+    const { decoded, address, context } = log
+    const { chainId } = context
+    const { transferId, to, amount, sourcePool, sourceTotalFraudulent, hops } = decoded
 
     if (
       hops.length === 0 ||
@@ -90,8 +92,10 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     // TODO: is this supposed to be hops[0]?
     const { maxBonderFee, attestedClaimId } = hops[0]
     const nextHopsHash = getComputedNextHopsHash(hops)
+    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
 
     return {
+      pathId,
       claimId: transferId,
       to,
       amount,
@@ -104,13 +108,16 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     }
   }
 
-  #formatClaimPushedLog(log: DecodedLogWithContext<ClaimPushed>): Omit<IPushedRailsClaim, 'txContext'> {
-    const { decoded } = log
-    const { pathId, claimId } = decoded
+  #formatClaimPostedLog(log: DecodedLogWithContext<ClaimPosted>): Omit<IPostedRailsClaim, 'txContext'> {
+    const { decoded, address, context } = log
+    const { chainId } = context
+    const { claimId, amountOut } = decoded
+    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
 
     return {
       pathId,
-      claimId
+      claimId,
+      amountOut
     }
   }
 

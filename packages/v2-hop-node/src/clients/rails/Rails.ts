@@ -2,7 +2,7 @@ import { RailsClaim } from './claim/RailsClaim.js'
 import { RailsRelayer } from './RailsRelayer.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { ClientName } from '../constants.js'
-import { getAddressesForRailsPath } from './RailsSDKWrapper.js'
+import { RailsGateway, getAddressesForRailsPath, getPathId } from './RailsSDKWrapper.js'
 import {
   type RailsPath,
   type RailsPathWithAddresses,
@@ -27,6 +27,10 @@ export class Rails {
       throw new Error('Already started')
     }
 
+    if (this.#paths.length === 0) {
+      throw new Error('No paths provided')
+    }
+
     const pathsWithAddresses: RailsPathWithAddresses[] = []
     for (const path of this.#paths) {
       const pathAddresses: RailsPathAddresses = await getAddressesForRailsPath(path)
@@ -34,6 +38,15 @@ export class Rails {
         ...path,
         pathAddresses
       })
+    }
+
+    // TODO: V2: This should be handled by the system, not in the SDK
+    for (const pathWithAddresses of pathsWithAddresses) {
+      const pathId = getPathId(pathWithAddresses)
+
+      const { chainId, counterpartChainId, pathAddresses } = pathWithAddresses
+      RailsGateway.setPathIdAddressCache(chainId, pathAddresses.pathAddress, pathId)
+      RailsGateway.setPathIdAddressCache(counterpartChainId, pathAddresses.counterpartPathAddress, pathId)
     }
 
     const indexer = new RailsIndexer(this.#name, pathsWithAddresses)

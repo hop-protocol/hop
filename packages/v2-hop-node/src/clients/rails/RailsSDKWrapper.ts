@@ -78,9 +78,12 @@ export {
   type ReaddClaimInput
 }
 
+// TODO: This should be named (or separated into) RailsPath
 export class RailsGateway {
   #sdk: RailsGatewaySDK
   #stakingRegistry: StakingRegistrySDK
+  // TODO: This should be handled within the system, not at the SDK level
+  static #pathIdAddressCache: Record<string, string> = {}
 
   constructor (chainId: string, signerOrProvider: Signer | providers.Provider) {
     const signer = signerOrProvider as Signer
@@ -89,20 +92,60 @@ export class RailsGateway {
   }
 
   /**
+   * Factory method to create a RailsPath instance
+   */
+
+  getRailsPath (pathId: string): RailsPathClass {
+    const chainId = this.#sdk.chainId
+    if (!chainId) {
+      throw new Error('Chain ID is not set in RailsGatewaySDK')
+    }
+    const address = RailsGateway.getPathIdAddressCache(String(chainId), pathId)
+    // TODO: V2: This should just be getRailsPath, but legacy code needs to be updated
+    // TODO: V2: This is hacky way to mock SDK for now. All this should live in the SDK.
+    const railsPathSDK = this.#sdk.getRailsPathByAddress(address)
+    return new RailsPathClass(railsPathSDK)
+  }
+
+  /**
+   * Cache methods
+   */
+
+  static #getCacheKey (chainId: string, address: string): string {
+    if (!chainId || !address) {
+      throw new Error('Invalid pathId or address')
+    }
+    return `${chainId}:${address}`
+  }
+
+  static setPathIdAddressCache (chainId: string, address: string, pathId: string): void {
+    if (!chainId || !address || !pathId) {
+      throw new Error('Invalid chainId, address, or pathId')
+    }
+
+    const cacheKey = this.#getCacheKey(chainId, address)
+    if (this.#pathIdAddressCache[cacheKey]) {
+      throw new Error(`Path ID already exists in cache: ${cacheKey}`)
+    }
+    this.#pathIdAddressCache[cacheKey] = pathId
+  }
+
+  static getPathIdAddressCache (chainId: string, address: string): string {
+    if (!chainId || !address) {
+      throw new Error('Invalid chainId or address')
+    }
+    const cacheKey = this.#getCacheKey(chainId, address)
+    const pathId = this.#pathIdAddressCache[cacheKey]
+    if (!pathId) {
+      throw new Error(`Path ID not found in cache for chainId: ${chainId}, address: ${address}`)
+    }
+    return pathId
+  }
+
+  /**
    * Getter methods
    */
 
-  async isPushed(pathId: string, claimId: string): Promise<boolean> {
-    return this.#sdk.helpers.getIsClaimPushed({ pathId, claimId })
-  }
-
-  // async isClaimed(pathId: string, transferId: string): Promise<boolean> {
-  //   return this.#sdk.helpers.getIsTransferClaimed({ transferId })
-  // }
-
-  async isBonded(pathId: string, claimId: string): Promise<boolean> {
-    return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ pathId, claimId })
-  }
 
   async isStaked(): Promise<boolean> {
     return this.#stakingRegistry.helpers.isStaked()
@@ -169,6 +212,27 @@ export class RailsGateway {
     return this.#stakingRegistry.helpers.approveStake({ amount })
   }
 
+}
+
+// TODO: V2: Rename when in SDK
+export class RailsPathClass {
+  #sdk: RailsPathSDK
+
+  constructor (railsPathSDK: RailsPathSDK) {
+    this.#sdk = railsPathSDK
+  }
+
+  async isPosted(claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimPosted({ claimId })
+  }
+
+  // async isClaimed(pathId: string, transferId: string): Promise<boolean> {
+  //   return this.#sdk.helpers.getIsTransferClaimed({ transferId })
+  // }
+
+  async isBonded(claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ claimId })
+  }
 }
 
 /**

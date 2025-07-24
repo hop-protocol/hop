@@ -4,7 +4,7 @@ import type { StateTxContext } from '#state-machine/index.js'
 import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.js'
 
 export enum RailsClaimMethodName {
-  PushClaim = RailsMethodName.PushClaim,
+  PostClaim = RailsMethodName.PostClaim,
   // RemoveClaim = RailsMethodName.RemoveClaim,
   // ReaddClaim = RailsMethodName.ReaddClaim
 }
@@ -39,7 +39,8 @@ export interface ISentRailsClaim extends IRailsClaimShared {
   nextHopsHash: string
 }
 
-export interface IPushedRailsClaim extends IRailsClaimShared {
+export interface IPostedRailsClaim extends IRailsClaimShared {
+  amountOut: BigNumber
 }
 
 // export interface IRemovedRailsClaim extends IRailsClaimShared {

@@ -4,6 +4,7 @@ import {
   type ClaimBonded,
   type TransferSent,
   RailsEventName,
+  RailsGateway,
   getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
 import {
@@ -45,7 +46,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
   }
 
   protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsEventName>> {
-    const { txContext } = value
+    const { pathId, txContext } = value
     const { chainId } = txContext
     const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
 
@@ -76,10 +77,13 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
    */
 
   #formatTransferSentLog (log: DecodedLogWithContext<TransferSent>): Omit<ISentRailsTransfer, 'txContext'> {
-    const { decoded } = log
+    const { decoded, address, context } = log
+    const { chainId } = context
     const { transferId, to, amount, sourcePool, sourceTotalFraudulent, hops } = decoded
+    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
 
     return {
+      pathId,
       claimId: transferId,
       to,
       amount,
@@ -90,11 +94,13 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
   }
 
   #formatClaimBondedLog (log: DecodedLogWithContext<ClaimBonded>): Omit<IBondedRailsClaim, 'txContext'> {
-    const { decoded } = log
+    const { decoded, address, context } = log
+    const { chainId } = context
     const { claimId, to, amount, bonderFee } = decoded
-
+    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
 
     return {
+      pathId,
       claimId,
       to,
       amount,

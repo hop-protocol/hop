@@ -76,7 +76,8 @@ describe('Custom tests', () => {
       toToken,
       amount,
       minAmountOut,
-      to
+      to,
+      updater: to
     }, txOptions)
     console.log(txData)
     expect(txData).toBeDefined()

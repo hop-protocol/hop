@@ -4,21 +4,21 @@ import type { StateTxContext } from '#state-machine/index.js'
 import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.js'
 
 export enum RailsClaimMethodName {
-  PushClaim = RailsMethodName.PushClaim,
+  PostClaim = RailsMethodName.PostClaim,
   // RemoveClaim = RailsMethodName.RemoveClaim,
   // ReaddClaim = RailsMethodName.ReaddClaim
 }
 
 export enum RailsClaimEventName {
   TransferSent = RailsEventName.TransferSent,
-  ClaimPushed = RailsEventName.ClaimPushed,
+  ClaimPosted = RailsEventName.ClaimPosted,
   // ClaimRemoved = RailsEventName.ClaimRemoved,
   // ClaimReadded = RailsEventName.ClaimReadded
 }
 
 export enum RailsClaimState {
   Sent = 'sent',
-  Pushed = 'pushed',
+  Posted = 'posted',
   // Removed = 'removed',
   // Readded = 'readded',
 }
@@ -32,13 +32,15 @@ export interface ISentRailsClaim extends IRailsClaimShared {
   to: string
   amount: BigNumber
   sourcePool: BigNumber
+  sourceTotalFraudulent: BigNumber
   hops: RailsHop[]
   maxBonderFee: BigNumber
   attestedClaimId: string
   nextHopsHash: string
 }
 
-export interface IPushedRailsClaim extends IRailsClaimShared {
+export interface IPostedRailsClaim extends IRailsClaimShared {
+  amountOut: BigNumber
 }
 
 // export interface IRemovedRailsClaim extends IRailsClaimShared {
@@ -47,5 +49,5 @@ export interface IPushedRailsClaim extends IRailsClaimShared {
 // export interface IReaddedRailsClaim extends IRailsClaimShared {
 // }
 
-export type IRailsClaim = ISentRailsClaim | IPushedRailsClaim
-// export type IRailsClaim = ISentRailsClaim | IPushedRailsClaim | IRemovedRailsClaim | IReaddedRailsClaim
+export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim
+// export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IRemovedRailsClaim | IReaddedRailsClaim

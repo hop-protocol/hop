@@ -9,13 +9,13 @@ import {
 import { getTxOverrides } from '#utils/getTxOverrides.js'
 import {
   isValidBondTxInputData,
-  isValidPushClaimTxInputData,
+  isValidPostClaimTxInputData,
   isValidRemoveClaimTxInputData,
   isValidReaddClaimTxInputData
 } from './utils.js'
 import type {
   BondInput,
-  PushClaimInput,
+  PostClaimInput,
   RemoveClaimInput,
   ReaddClaimInput,
   RailsRelayItem
@@ -40,8 +40,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     switch (relayTxMethodName) {
       case RailsMethodName.Bond:
         return this.#formatBondInput(relayItem)
-      case RailsMethodName.PushClaim:
-        return this.#formatPushClaimInput(relayItem)
+      case RailsMethodName.PostClaim:
+        return this.#formatPostClaimInput(relayItem)
       case RailsMethodName.RemoveClaim:
         return this.#formatRemoveClaimInput(relayItem)
       case RailsMethodName.ReaddClaim:
@@ -59,8 +59,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     switch (relayTxMethodName) {
       case RailsMethodName.Bond:
         return this.#canRelayBond(relayItem as BondInput, relayChainId)
-      case RailsMethodName.PushClaim:
-        return this.#canRelayPushClaim(relayItem as PushClaimInput, relayChainId)
+      case RailsMethodName.PostClaim:
+        return this.#canRelayPostClaim(relayItem as PostClaimInput, relayChainId)
       // TODO
       // case RailsMethodName.RemoveClaim:
       //   return this.#canRelayRemoveClaim(relayItem as RemoveClaimInput, relayChainId)
@@ -90,8 +90,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     switch (relayTxMethodName) {
       case RailsMethodName.Bond:
         return this.#sendBond(relayItem as BondInput, relayChainId)
-      case RailsMethodName.PushClaim:
-        return this.#sendPushClaim(relayItem as PushClaimInput, relayChainId)
+      case RailsMethodName.PostClaim:
+        return this.#sendPostClaim(relayItem as PostClaimInput, relayChainId)
         // TODO
       // case RailsMethodName.RemoveClaim:
       //   return this.#sendRemoveClaim(relayItem as RemoveClaimInput, relayChainId)
@@ -106,29 +106,31 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
    * Internal - Validation
    */
 
-  async #canRelayPushClaim (relayItem: PushClaimInput, relayChainId: string): Promise<boolean> {
-    const gateway = this.#railsGateways[relayChainId]
-    if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${relayChainId}`)
+  async #canRelayPostClaim (relayItem: PostClaimInput, relayChainId: string): Promise<boolean> {
+    const railsGateway = this.#railsGateways[relayChainId]
+    if (typeof railsGateway === 'undefined') {
+      throw new Error(`No railsGateway found for chainId: ${relayChainId}`)
     }
 
     const { pathId, claimId } = relayItem
-    const isPushed = await gateway.isPushed(pathId, claimId)
-    const isBonded = await gateway.isBonded(pathId, claimId)
-    return !isPushed && !isBonded
+    const railsPath = railsGateway.getRailsPath(pathId)
+    const isPosted = await railsPath.isPosted(claimId)
+    const isBonded = await railsPath.isBonded(claimId)
+    return !isPosted && !isBonded
   }
 
   async #canRelayBond (relayItem: BondInput, relayChainId: string): Promise<boolean> {
-    const gateway = this.#railsGateways[relayChainId]
-    if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${relayChainId}`)
+    const railsGateway = this.#railsGateways[relayChainId]
+    if (typeof railsGateway === 'undefined') {
+      throw new Error(`No railsGateway found for chainId: ${relayChainId}`)
     }
 
     const { pathId, claimId } = relayItem
-    const isPushed = await gateway.isPushed(pathId, claimId)
-    const isBonded = await gateway.isBonded(pathId, claimId)
+    const railsPath = railsGateway.getRailsPath(pathId)
+    const isPosted = await railsPath.isPosted(claimId)
+    const isBonded = await railsPath.isBonded(claimId)
     // TODO: If this is true, should we throw?
-    return isPushed && !isBonded
+    return isPosted && !isBonded
   }
 
   /**
@@ -137,20 +139,20 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
 
   async #sendBond (relayItem: BondInput, relayChainId: string): Promise<providers.TransactionResponse> {
     const txOverrides = await getTxOverrides(relayChainId)
-    const gateway = this.#railsGateways[relayChainId]
-    if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${relayChainId}`)
+    const railsGateway = this.#railsGateways[relayChainId]
+    if (typeof railsGateway === 'undefined') {
+      throw new Error(`No railsGateway found for chainId: ${relayChainId}`)
     }
-    return gateway.bond(relayItem, txOverrides)
+    return railsGateway.bond(relayItem, txOverrides)
   }
 
-  async #sendPushClaim (relayItem: PushClaimInput, relayChainId: string): Promise<providers.TransactionResponse> {
+  async #sendPostClaim (relayItem: PostClaimInput, relayChainId: string): Promise<providers.TransactionResponse> {
     const txOverrides = await getTxOverrides(relayChainId)
-    const gateway = this.#railsGateways[relayChainId]
-    if (typeof gateway === 'undefined') {
-      throw new Error(`No gateway found for chainId: ${relayChainId}`)
+    const railsGateway = this.#railsGateways[relayChainId]
+    if (typeof railsGateway === 'undefined') {
+      throw new Error(`No railsGateway found for chainId: ${relayChainId}`)
     }
-    return gateway.pushClaim(relayItem, txOverrides)
+    return railsGateway.postClaim(relayItem, txOverrides)
   }
 
   /**
@@ -171,8 +173,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     }
   }
 
-  #formatPushClaimInput (relayItem: any): PushClaimInput {
-    const isValid = isValidPushClaimTxInputData(relayItem)
+  #formatPostClaimInput (relayItem: any): PostClaimInput {
+    const isValid = isValidPostClaimTxInputData(relayItem)
     if (!isValid) {
       throw new Error('Invalid push claim input')
     }
@@ -184,6 +186,7 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
       maxBonderFee: relayItem.maxBonderFee,
       attestedClaimId: relayItem.attestedClaimId,
       sourcePool: relayItem.sourcePool,
+      sourceTotalFraudulent: relayItem.sourceTotalFraudulent,
       nextHopsHash: relayItem.nextHopsHash,
     }
   }
@@ -206,7 +209,8 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     }
     return {
       pathId: relayItem.pathId,
-      claimId: relayItem.claimId
+      claimId: relayItem.claimId,
+      transferDataHash: relayItem.transferDataHash
     }
   }
 

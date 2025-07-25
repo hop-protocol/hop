@@ -3,18 +3,18 @@ import { Event } from '#events/index.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 
 // event from RailsPath
-export interface ClaimWithdrawn {
+export interface ClaimPosted {
   claimId: string
-  amount: BigNumber
+  amountOut: BigNumber
 }
 
-export type ClaimWithdrawnIndexes = {
+export type ClaimPostedIndexes = {
   claimId?: string
-  amount?: BigNumber
+  amountOut?: BigNumber
 }
 
-export class ClaimWithdrawnEventFetcher extends Event<ClaimWithdrawn> {
-  override eventName = 'ClaimWithdrawn'
+export class ClaimPostedEventFetcher extends Event<ClaimPosted> {
+  override eventName = 'ClaimPosted'
   override abi = RailsPath__factory.abi
   override factory = RailsPath__factory
 
@@ -22,25 +22,25 @@ export class ClaimWithdrawnEventFetcher extends Event<ClaimWithdrawn> {
     return this.getFilterWithIndexes({ claimId })
   }
 
-  getAmountFilter (amount: BigNumber): EventFilter {
-    return this.getFilterWithIndexes({ amount })
+  getAmountOutFilter (amountOut: BigNumber): EventFilter {
+    return this.getFilterWithIndexes({ amountOut })
   }
 
-  getFilterWithIndexes ({ claimId, amount } : ClaimWithdrawnIndexes): EventFilter {
+  getFilterWithIndexes ({ claimId, amountOut } : ClaimPostedIndexes): EventFilter {
     const railsGateway = this.getContract()
-    const filter = railsGateway.filters.ClaimWithdrawn(claimId ?? null, amount ?? null)
+    const filter = railsGateway.filters.ClaimPosted(claimId ?? null, amountOut ?? null)
     return filter
   }
 
-  override toTypedEvent (ethersEvent: EthersEvent): ClaimWithdrawn {
+  override toTypedEvent (ethersEvent: EthersEvent): ClaimPosted {
     const parsed = this.parseEthersEventLog(ethersEvent)
 
     const claimId = parsed.args.claimId.toString()
-    const amount = parsed.args.amount.toString()
+    const amountOut = parsed.args.amountOut.toString()
 
     return {
       claimId,
-      amount
+      amountOut
     }
   }
 }

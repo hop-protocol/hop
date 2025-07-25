@@ -1,19 +1,19 @@
 import {
   type TransferSent,
-  type TransferBonded,
-  type ClaimPushed,
+  type ClaimBonded,
+  type ClaimPosted,
   type ClaimRemoved,
   type ClaimReadded,
-  type TransferBonded as TransferBondedSDK,
-  type ClaimPushed as ClaimPushedSDK,
+  type ClaimBonded as ClaimBondedSDK,
+  type ClaimPosted as ClaimPostedSDK,
   type ClaimRemoved as ClaimRemovedSDK,
   type ClaimReadded as ClaimReaddedSDK,
   type TransferSentIndexes,
-  type TransferBondedIndexes,
-  type ClaimPushedIndexes,
+  type ClaimBondedIndexes,
+  type ClaimPostedIndexes,
   type ClaimReaddedIndexes,
   type ClaimRemovedIndexes,
-  type PushClaimInput,
+  type PostClaimInput,
   type BondInput,
   type EthersEventWithDecodedTypesAndBaseContext,
   type RemoveClaimInput,
@@ -37,22 +37,22 @@ import type { BigNumber } from 'ethers'
 
 export type RailsFilterInputs = &
   TransferSentIndexes &
-  TransferBondedIndexes &
-  ClaimPushedIndexes &
+  ClaimBondedIndexes &
+  ClaimPostedIndexes &
   ClaimReaddedIndexes &
   ClaimRemovedIndexes
 
 export type RailsEvent = |
   TransferSent |
-  TransferBonded |
-  ClaimPushed |
+  ClaimBonded |
+  ClaimPosted |
   ClaimRemoved |
   ClaimReadded
 
 export enum RailsEventName {
   TransferSent = RailsPathEventName.TransferSent,
-  TransferBonded = RailsPathEventName.TransferBonded,
-  ClaimPushed = RailsPathEventName.ClaimPushed,
+  ClaimBonded = RailsPathEventName.ClaimBonded,
+  ClaimPosted = RailsPathEventName.ClaimPosted,
   ClaimReadded = RailsPathEventName.ClaimReadded,
   ClaimRemoved = RailsPathEventName.ClaimRemoved,
 }
@@ -60,7 +60,7 @@ export enum RailsEventName {
 // TODO: Get this from SDK
 enum RailsMethodName {
   Bond = 'bond',
-  PushClaim = 'pushClaim',
+  PostClaim = 'postClaim',
   RemoveClaim = 'removeClaim',
   ReaddClaim = 'readdClaim'
 }
@@ -68,19 +68,23 @@ enum RailsMethodName {
 export {
   RailsMethodName,
   type TransferSent,
-  type TransferBonded,
-  type ClaimPushed,
+  type ClaimBonded,
+  type ClaimPosted,
   type ClaimRemoved,
   type ClaimReadded,
   type BondInput,
-  type PushClaimInput,
+  type PostClaimInput,
   type RemoveClaimInput,
   type ReaddClaimInput
 }
 
+// TODO: This should be named (or separated into) RailsPath
 export class RailsGateway {
   #sdk: RailsGatewaySDK
   #stakingRegistry: StakingRegistrySDK
+  // TODO: This should be handled within the system, not at the SDK level
+  static #addressToPathIdCache: Record<string, string> = {}
+  static #pathIdToAddressCache: Record<string, string> = {}
 
   constructor (chainId: string, signerOrProvider: Signer | providers.Provider) {
     const signer = signerOrProvider as Signer
@@ -89,20 +93,72 @@ export class RailsGateway {
   }
 
   /**
+   * Factory method to create a RailsPath instance
+   */
+
+  getRailsPath (pathId: string): RailsPathClass {
+    // TODO: This should be cached in the SDK as to not create new instances each time
+
+    const chainId = this.#sdk.chainId
+    if (!chainId) {
+      throw new Error('Chain ID is not set in RailsGatewaySDK')
+    }
+    const address = RailsGateway.getPathCache(String(chainId), pathId)
+    // TODO: V2: This should just be getRailsPath, but legacy code needs to be updated
+    // TODO: V2: This is hacky way to mock SDK for now. All this should live in the SDK.
+    const railsPathSDK = this.#sdk.getRailsPathByAddress(address)
+    return new RailsPathClass(railsPathSDK)
+  }
+
+  /**
+   * Cache methods
+   */
+
+  // TODO: V2: Not production code, just a mock for now
+  static setPathCache (chainId: string, address: string, pathId: string): void {
+    if (!chainId || !address || !pathId) {
+      throw new Error('Invalid chainId, address, or pathId')
+    }
+
+    const addressCacheKey = `${chainId}:${address}`
+    if (this.#addressToPathIdCache[addressCacheKey]) {
+      throw new Error(`Path ID already exists in cache: ${addressCacheKey}`)
+    }
+    this.#addressToPathIdCache[addressCacheKey] = pathId
+
+    const pathIdCacheKey = `${chainId}:${pathId}`
+    if (this.#pathIdToAddressCache[pathIdCacheKey]) {
+      throw new Error(`Path address already exists in cache: ${pathIdCacheKey}`)
+    }
+    this.#pathIdToAddressCache[pathIdCacheKey] = address
+  }
+
+  // TODO: V2: Not production code, just a mock for now
+  static getPathCache(chainId: string, addressOrPathId: string): string {
+    if (!chainId || !addressOrPathId) {
+      throw new Error('Invalid chainId or addressOrPathId')
+    }
+
+    const addressKey = `${chainId}:${addressOrPathId}`
+    const pathIdKey = `${chainId}:${addressOrPathId}`
+
+    const address = this.#addressToPathIdCache[addressKey]
+    if (address && address.length > 0) {
+      return address
+    }
+
+    const pathId = this.#pathIdToAddressCache[pathIdKey]
+    if (pathId && pathId.length > 0) {
+      return pathId
+    }
+
+    throw new Error(`No cache entry found for chainId: ${chainId}, addressOrPathId: ${addressOrPathId}`)
+  }
+
+  /**
    * Getter methods
    */
 
-  async isPushed(pathId: string, claimId: string): Promise<boolean> {
-    return this.#sdk.helpers.getIsClaimPushed({ pathId, claimId })
-  }
-
-  // async isClaimed(pathId: string, transferId: string): Promise<boolean> {
-  //   return this.#sdk.helpers.getIsTransferClaimed({ transferId })
-  // }
-
-  async isBonded(pathId: string, claimId: string): Promise<boolean> {
-    return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ pathId, claimId })
-  }
 
   async isStaked(): Promise<boolean> {
     return this.#stakingRegistry.helpers.isStaked()
@@ -124,8 +180,8 @@ export class RailsGateway {
     return this.#sdk.bond({ ...input, ...overrides })
   }
 
-  async pushClaim (input: PushClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
-    return this.#sdk.pushClaim({ ...input, ...overrides })
+  async postClaim (input: PostClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
+    return this.#sdk.postClaim({ ...input, ...overrides })
   }
 
   async removeClaim(input: RemoveClaimInput, overrides: Overrides): Promise<providers.TransactionResponse> {
@@ -171,6 +227,27 @@ export class RailsGateway {
 
 }
 
+// TODO: V2: Rename when in SDK
+export class RailsPathClass {
+  #sdk: RailsPathSDK
+
+  constructor (railsPathSDK: RailsPathSDK) {
+    this.#sdk = railsPathSDK
+  }
+
+  async isPosted(claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimPosted({ claimId })
+  }
+
+  // async isClaimed(pathId: string, transferId: string): Promise<boolean> {
+  //   return this.#sdk.helpers.getIsTransferClaimed({ transferId })
+  // }
+
+  async isBonded(claimId: string): Promise<boolean> {
+    return this.#sdk.helpers.getIsClaimBondedOrWithdrawn({ claimId })
+  }
+}
+
 /**
  * Utils
  */
@@ -185,7 +262,7 @@ export function getRailsEventFilter <T extends RailsFilterInputs>(eventName: Rai
 // TODO: Consider way to not pass in chainId. Right now, SDK needs it since it has large response. However, from the perspective
 // of the hn it is not necessary and adds confusion. This is because the response to the method should not care about
 // the chainId, so the intention of the method is not clear.
-export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | TransferBondedSDK | ClaimPushedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
+export function addDecodedTypesToEvent(log: providers.Log, chainId: string): DecodedLogWithContext<TransferSent | ClaimBondedSDK | ClaimPostedSDK | ClaimRemovedSDK | ClaimReaddedSDK> {
   const res: EthersEventWithDecodedTypesAndBaseContext<any> = RailsPathSDK.addDecodedTypesToEvent(log, chainId)
 
   // TODO: Temp do this until hn and sdk are in sync

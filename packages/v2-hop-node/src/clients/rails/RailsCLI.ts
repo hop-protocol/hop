@@ -3,7 +3,7 @@ import { RelayerDB } from '#relayer/index.js'
 import { ClientName } from '../constants.js'
 import { type BigNumber, type providers, utils } from 'ethers'
 import { type RailsRelayItem, type RailsPath, RailsClientName } from './types.js'
-import { getPathFromPathId, isValidBondTxInputData, isValidPushClaimTxInputData } from './utils.js'
+import { getPathFromPathId, isValidBondTxInputData, isValidPostClaimTxInputData } from './utils.js'
 import { RailsGateway, RailsMethodName } from './RailsSDKWrapper.js'
 import { wallets } from '#wallets/index.js'
 
@@ -20,7 +20,7 @@ export async function getRelayableItems (methodName: RailsMethodName): Promise<R
   for await (const [relayableItem, ] of db.getRelayableItems()) {
     if (
       (methodName === RailsMethodName.Bond && isValidBondTxInputData(relayableItem)) ||
-      (methodName === RailsMethodName.PushClaim && isValidPushClaimTxInputData(relayableItem))
+      (methodName === RailsMethodName.PostClaim && isValidPostClaimTxInputData(relayableItem))
     ) {
       relayableItems.push(relayableItem)
     }

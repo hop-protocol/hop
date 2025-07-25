@@ -1,7 +1,7 @@
 import type { BigNumber } from 'ethers'
 import type {
   BondInput,
-  PushClaimInput,
+  PostClaimInput,
   RemoveClaimInput,
   ReaddClaimInput
 } from './RailsSDKWrapper.js'
@@ -17,6 +17,7 @@ export type RailsHop = {
   maxBonderFee: BigNumber
   maxTotalSent: BigNumber
   attestedClaimId: string
+  updater: string
 }
 
 export type RailsPath = {
@@ -38,13 +39,13 @@ export type RailsPathWithAddresses = RailsPath & {
 
 export type {
   BondInput,
-  PushClaimInput,
+  PostClaimInput,
   RemoveClaimInput,
   ReaddClaimInput
 }
 
 export type RailsRelayItem =
   | BondInput
-  | PushClaimInput
+  | PostClaimInput
   | RemoveClaimInput
   | ReaddClaimInput

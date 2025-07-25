@@ -5,12 +5,12 @@ import { RailsEventName, RailsMethodName } from '#clients/rails/RailsSDKWrapper.
 
 export enum RailsTransferMethodName {
   Bond = RailsMethodName.Bond,
-  PushClaim = RailsMethodName.PushClaim
+  PostClaim = RailsMethodName.PostClaim
 }
 
 export enum RailsTransferEventName {
   TransferSent = RailsEventName.TransferSent,
-  TransferBonded = RailsEventName.TransferBonded
+  ClaimBonded = RailsEventName.ClaimBonded
 }
 
 export enum RailsTransferState {
@@ -21,16 +21,18 @@ export enum RailsTransferState {
 interface IRailsTransferShared extends StateTxContext {
   pathId: string
   claimId: string
+  to: string
+  amount: BigNumber
 }
 
 export interface ISentRailsTransfer extends IRailsTransferShared {
-  to: string
-  amount: BigNumber
   sourcePool: BigNumber
+  sourceTotalFraudulent: BigNumber
   hops: RailsHop[]
 }
 
-export interface IBondedRailsTransfer extends IRailsTransferShared {
+export interface IBondedRailsClaim extends IRailsTransferShared {
+  bonderFee: BigNumber
 }
 
-export type IRailsTransfer = ISentRailsTransfer | IBondedRailsTransfer
+export type IRailsTransfer = ISentRailsTransfer | IBondedRailsClaim

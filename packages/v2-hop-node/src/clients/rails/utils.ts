@@ -3,12 +3,11 @@ import { Config } from '#config/index.js'
 import {
   getPathId,
   type BondInput,
-  type PushClaimInput,
+  type PostClaimInput,
   type ReaddClaimInput,
   type RemoveClaimInput,
 } from './RailsSDKWrapper.js'
 import type { RailsPath } from './types.js'
-import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   // TODO: SDK: Fill in the start block numbers
@@ -21,10 +20,10 @@ const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, numbe
     [ChainSlug.Polygon]: 0
   },
   [NetworkSlug.Sepolia]: {
-    [ChainSlug.Ethereum]: 7784611,
+    [ChainSlug.Ethereum]: 8812404,
     [ChainSlug.Optimism]: 0,
     [ChainSlug.Arbitrum]: 0,
-    [ChainSlug.Base]: 22371334
+    [ChainSlug.Base]: 28675493
   }
 }
 
@@ -108,12 +107,12 @@ export function isValidBondTxInputData (item: unknown): item is BondInput {
 }
 
 // TODO: The BigNumberish types should be checked for correctness. Possibly introduce isBigNumberish
-export function isValidPushClaimTxInputData (item: unknown): item is PushClaimInput {
+export function isValidPostClaimTxInputData (item: unknown): item is PostClaimInput {
   if (typeof item !== 'object' || item === null) {
     return false
   }
 
-  const candidate = item as Partial<PushClaimInput>
+  const candidate = item as Partial<PostClaimInput>
   return (
     'pathId' in candidate &&
     'claimId' in candidate &&

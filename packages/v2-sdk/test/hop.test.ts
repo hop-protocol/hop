@@ -181,7 +181,7 @@ describe('Hop', () => {
     // expect(transferStatus.transferId).toBe(transferId)
     // expect(transferStatus.state).toBe(TransferState.Bonded)
     // expect(transferStatus.transferSentEvent).toBeDefined()
-    // expect(transferStatus.transferBondedEvents.length).toBe(2)
+    // expect(transferStatus.claimBondedEvents.length).toBe(2)
   }, 10 * 60 * 1000)
 
   it.skip('should get transfer status for transfer Id - 2', async () => {

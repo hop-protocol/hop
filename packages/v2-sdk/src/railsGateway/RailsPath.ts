@@ -1,13 +1,13 @@
 import { Base, TxOverrides, SignersOrProviders } from '#common/index.js'
 import { Addresses } from '#addresses/types.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers, utils } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, constants, utils } from 'ethers'
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsPath__factory } from '#contracts/factories/RailsPath__factory.js'
 import { EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndBaseContext } from '#events/index.js'
 import { TransferSent, TransferSentEventFetcher, TransferSentIndexes } from '#railsGateway/events/TransferSent.js'
-import { TransferBonded, TransferBondedEventFetcher, TransferBondedIndexes } from '#railsGateway/events/TransferBonded.js'
-import { ClaimPushed, ClaimPushedEventFetcher, ClaimPushedIndexes } from '#railsGateway/events/ClaimPushed.js'
+import { ClaimBonded, ClaimBondedEventFetcher, ClaimBondedIndexes } from '#railsGateway/events/ClaimBonded.js'
+import { ClaimPosted, ClaimPostedEventFetcher, ClaimPostedIndexes } from '#railsGateway/events/ClaimPosted.js'
 import { ClaimReadded, ClaimReaddedEventFetcher, ClaimReaddedIndexes } from '#railsGateway/events/ClaimReadded.js'
 import { ClaimRemoved, ClaimRemovedEventFetcher, ClaimRemovedIndexes } from '#railsGateway/events/ClaimRemoved.js'
 import { ClaimWithdrawn, ClaimWithdrawnEventFetcher, ClaimWithdrawnIndexes } from '#railsGateway/events/ClaimWithdrawn.js'
@@ -16,9 +16,9 @@ import { ConfigError, InputError, InsufficientBalanceError, InsufficientApproval
 
 const { getAddress: checksumAddress } = utils
 
-export type EventFetcher = TransferSentEventFetcher | TransferBondedEventFetcher | ClaimPushedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
+export type EventFetcher = TransferSentEventFetcher | ClaimBondedEventFetcher | ClaimPostedEventFetcher | ClaimReaddedEventFetcher | ClaimRemovedEventFetcher | ClaimWithdrawnEventFetcher
 
-export type GetEventFilterInput = TransferSentIndexes | TransferBondedIndexes | ClaimPushedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
+export type GetEventFilterInput = TransferSentIndexes | ClaimBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
 
 export type GetEventsInBatchesInput = {
   eventName: EventName
@@ -29,8 +29,8 @@ export type GetEventsInBatchesInput = {
 
 export enum EventName {
   TransferSent = 'TransferSent',
-  TransferBonded = 'TransferBonded',
-  ClaimPushed = 'ClaimPushed',
+  ClaimBonded = 'ClaimBonded',
+  ClaimPosted = 'ClaimPosted',
   ClaimReadded = 'ClaimReadded',
   ClaimRemoved = 'ClaimRemoved',
   ClaimWithdrawn = 'ClaimWithdrawn',
@@ -150,13 +150,14 @@ export type IsValidTransferInput = {
   claimId: string
 }
 
-export type PushClaimInput = {
+export type PostClaimInput = {
   claimId: string
   to: string
   amount: BigNumberish
   maxBonderFee: BigNumberish
   attestedClaimId: string
   sourcePool: BigNumberish
+  sourceTotalFraudulent: BigNumberish
   nextHopsHash: string
 }
 
@@ -218,6 +219,14 @@ export type RailsPathConstructorInput = {
   contractAddresses?: Addresses
   chainId: BigNumberish
   signerOrProvider?: Signer | providers.Provider
+}
+
+export type GetIsClaimPostedInput = {
+  claimId: string
+}
+
+export type GetIsClaimBondedOrWithdrawnInput = {
+  claimId: string
 }
 
 export class RailsPath extends Base {
@@ -328,7 +337,7 @@ export class RailsPath extends Base {
         }
       },
 
-      pushClaim: async ({ claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash }: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
+      postClaim: async ({ claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash }: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionRequest> => {
         const chainId = this.chainId
 
         if (!this.utils.isValidBytes32(claimId)) {
@@ -355,13 +364,17 @@ export class RailsPath extends Base {
           throw new InputError(`Invalid sourcePool "${sourcePool}"`)
         }
 
+        if (!this.utils.isValidNumericValue(sourceTotalFraudulent)) {
+          throw new InputError(`Invalid sourceTotalFraudulent "${sourceTotalFraudulent}"`)
+        }
+
         if (!this.utils.isValidBytes32(nextHopsHash)) {
           throw new InputError(`Invalid nextHopsHash "${nextHopsHash}"`)
         }
 
         const updateFee = BigNumber.from(0) // TODO
         const contract = await this.getRailsPathContract()
-        const txData = await contract.populateTransaction.pushClaim(claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, nextHopsHash)
+        const txData = await contract.populateTransaction.postClaim(claimId, to, amount, maxBonderFee, attestedClaimId, sourcePool, sourceTotalFraudulent, nextHopsHash)
 
         return {
           ...txData,
@@ -581,6 +594,50 @@ export class RailsPath extends Base {
       approveSend: async (input: ApproveSendInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> => {
         const txData = await this.populateTransaction.approveSend(input, txOverrides)
         return this.sendTransaction(txData)
+      },
+
+      getIsClaimPosted: async ({ claimId }: GetIsClaimPostedInput): Promise<boolean> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsPathContract()
+        try {
+          const claim = await contract.getClaim(claimId)
+          return claim.to !== constants.AddressZero
+        } catch (err: unknown) {
+          return false
+        }
+      },
+
+      getIsClaimBondedOrWithdrawn: async ({ claimId }: GetIsClaimBondedOrWithdrawnInput): Promise<boolean> => {
+        const chainId = this.chainId
+
+        if (!chainId || !this.utils.isValidChainId(chainId)) {
+          throw new InputError(`Invalid chainId "${chainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(claimId)) {
+          throw new InputError(`Invalid claimId "${claimId}"`)
+        }
+
+        const contract = await this.getRailsPathContract()
+        try {
+          const claim = await contract.getClaim(claimId)
+          return (
+            claim.bondedBy !== constants.AddressZero ||
+            claim.withdrawnBy !== constants.AddressZero
+
+          )
+        } catch (err: unknown) {
+          return false
+        }
       },
     }
   }
@@ -857,8 +914,8 @@ export class RailsPath extends Base {
     return contract.lastBondedClaimIdForBonder(bonder)
   }
 
-  async pushClaim (input: PushClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
-    const populatedTx = await this.populateTransaction.pushClaim(input, txOverrides)
+  async postClaim (input: PostClaimInput, txOverrides: TxOverrides = {}): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.postClaim(input, txOverrides)
     return this.sendTransaction(populatedTx)
   }
 
@@ -971,8 +1028,8 @@ export class RailsPath extends Base {
     const address = this.getRailsPathContractAddress()
     const eventFetcher: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
+      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
       [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
@@ -1099,11 +1156,11 @@ export class RailsPath extends Base {
     return eventFetcher.getFilterWithIndexes(input)
   }
 
-  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  addDecodedTypesToEvent(event: any): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     return RailsPath.addDecodedTypesToEvent(event, this.chainId)
   }
 
-  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+  addDecodedTypesToEvents(events: any[]): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     return RailsPath.addDecodedTypesToEvents(events, this.chainId)
   }
 
@@ -1134,8 +1191,8 @@ export class RailsPath extends Base {
   static getEventSignature (eventName: EventName): string {
     const eventFetchers: Record<EventName, any> = {
       [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
+      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
+      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
       [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
       [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
       [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
@@ -1150,20 +1207,20 @@ export class RailsPath extends Base {
     return eventFetcher.getTopic0()
   }
 
-  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
+  static addDecodedTypesToEvent(event: any, chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn> {
     const decoded = RailsPath.addDecodedTypesToEvents([event], chainId)
 
     return decoded?.[0]
   }
 
-  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | TransferBonded | ClaimPushed | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
+  static addDecodedTypesToEvents(events: any[], chainId?: BigNumberish): EthersEventWithDecodedTypesAndBaseContext<TransferSent | ClaimBonded | ClaimPosted | ClaimReadded | ClaimRemoved | ClaimWithdrawn>[] {
     const eventFetchers: Record<EventName, any> = {
-      [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.TransferBonded]: TransferBondedEventFetcher,
-      [EventName.ClaimPushed]: ClaimPushedEventFetcher,
-      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
-      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
-      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
+      [EventName.TransferSent]: new TransferSentEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimBonded]: new ClaimBondedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimPosted]: new ClaimPostedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimReadded]: new ClaimReaddedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimRemoved]: new ClaimRemovedEventFetcher(undefined, chainId, undefined, undefined),
+      [EventName.ClaimWithdrawn]: new ClaimWithdrawnEventFetcher(undefined, chainId, undefined, undefined),
     }
 
     const result = events.map(event => {

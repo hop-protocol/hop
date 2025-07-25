@@ -67,17 +67,16 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
 
     // All events are indexed by pathId so there is no need to filter them
     for (const path of paths) {
-      const pathId = getPathId(path)
       const chainId = path.chainId
       const counterpartChainId = path.counterpartChainId
 
       for (const eventName of eventNames) {
-        const railsEventFilter = getRailsEventFilter(eventName, chainId, path.pathAddresses.pathAddress, { pathId }) as RequiredEventFilter
-        console.log('Adding event filter', eventName, chainId, path.pathAddresses.pathAddress, pathId, railsEventFilter)
+        const railsEventFilter = getRailsEventFilter(eventName, chainId, path.pathAddresses.pathAddress) as RequiredEventFilter
+        console.log('Adding event filter', eventName, chainId, path.pathAddresses.pathAddress, railsEventFilter)
         this.addEventFilterToIndexer(eventName, chainId, railsEventFilter)
 
-        const railsCounterpartEventFilter = getRailsEventFilter(eventName, counterpartChainId, path.pathAddresses.counterpartPathAddress, { pathId }) as RequiredEventFilter
-        console.log('Adding event filter', eventName, counterpartChainId, path.pathAddresses.pathAddress, pathId, railsCounterpartEventFilter)
+        const railsCounterpartEventFilter = getRailsEventFilter(eventName, counterpartChainId, path.pathAddresses.counterpartPathAddress) as RequiredEventFilter
+        console.log('Adding event filter', eventName, counterpartChainId, path.pathAddresses.pathAddress, railsCounterpartEventFilter)
         this.addEventFilterToIndexer(eventName, counterpartChainId, railsCounterpartEventFilter)
       }
     }

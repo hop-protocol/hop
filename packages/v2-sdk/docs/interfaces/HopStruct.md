@@ -8,6 +8,7 @@
 - [maxBonderFee](HopStruct.md#maxbonderfee)
 - [maxTotalSent](HopStruct.md#maxtotalsent)
 - [pathId](HopStruct.md#pathid)
+- [updater](HopStruct.md#updater)
 
 ## Properties
 
@@ -32,3 +33,9 @@ ___
 ### <a id="pathid" name="pathid"></a> pathId
 
 • **pathId**: `string`
+
+___
+
+### <a id="updater" name="updater"></a> updater
+
+• **updater**: `string`

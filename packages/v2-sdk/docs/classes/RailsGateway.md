@@ -64,11 +64,12 @@
 - [getNextHopsHash](RailsGateway.md#getnexthopshash)
 - [getPath](RailsGateway.md#getpath)
 - [getPathId](RailsGateway.md#getpathid)
+- [getPostClaimFee](RailsGateway.md#getpostclaimfee)
 - [getProvider](RailsGateway.md#getprovider)
-- [getPushClaimFee](RailsGateway.md#getpushclaimfee)
 - [getRailsGatewayContract](RailsGateway.md#getrailsgatewaycontract)
 - [getRailsGatewayContractAddress](RailsGateway.md#getrailsgatewaycontractaddress)
 - [getRailsPath](RailsGateway.md#getrailspath)
+- [getRailsPathByAddress](RailsGateway.md#getrailspathbyaddress)
 - [getRemoveFee](RailsGateway.md#getremovefee)
 - [getSendFee](RailsGateway.md#getsendfee)
 - [getSigner](RailsGateway.md#getsigner)
@@ -87,9 +88,8 @@
 - [initChain](RailsGateway.md#initchain)
 - [initPath](RailsGateway.md#initpath)
 - [isPathInitialized](RailsGateway.md#ispathinitialized)
-- [pushClaim](RailsGateway.md#pushclaim)
-- [pushClaimAndBond](RailsGateway.md#pushclaimandbond)
-- [pushClaimAndWithdraw](RailsGateway.md#pushclaimandwithdraw)
+- [postClaim](RailsGateway.md#postclaim)
+- [postClaimAndBond](RailsGateway.md#postclaimandbond)
 - [railsPathImplementation](RailsGateway.md#railspathimplementation)
 - [readdClaim](RailsGateway.md#readdclaim)
 - [removeClaim](RailsGateway.md#removeclaim)
@@ -221,7 +221,7 @@ ___
 
 ### <a id="eventname" name="eventname"></a> EventName
 
-▪ `Static` **EventName**: typeof [`RailsGatewayEventName`](../enums/RailsGatewayEventName.md) = `EventName`
+▪ `Static` **EventName**: typeof `EventName` = `EventName`
 
 ## Accessors
 
@@ -242,6 +242,9 @@ ___
 | `estimateGasCostForSend` | (`__namedParameters`: `EstimateGasCostForSendInput`) => `Promise`\<`BigNumber`\> |
 | `getBucketIndex` | (`__namedParameters`: [`GetBucketIndexInput`](../modules.md#getbucketindexinput)) => `Promise`\<`number`\> |
 | `getClaim` | (`__namedParameters`: [`GetClaimInput`](../modules.md#getclaiminput)) => `Promise`\<[`Claim`](../modules.md#claim)\> |
+| `getClaimBondedEventFromTransactionHash` | (`__namedParameters`: [`GetClaimBondedEventFromTransactionHashInput`](../modules.md#getclaimbondedeventfromtransactionhashinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`ClaimBonded`\>\> |
+| `getClaimBondedEventFromTransactionReceipt` | (`__namedParameters`: [`GetClaimBondedEventFromTransactionReceiptInput`](../modules.md#getclaimbondedeventfromtransactionreceiptinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`ClaimBonded`\>\> |
+| `getClaimBondedEventFromTransferId` | (`__namedParameters`: [`GetClaimBondedEventFromTransferIdInput`](../modules.md#getclaimbondedeventfromtransferidinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`ClaimBonded`\>\> |
 | `getComputedNextHopsHash` | (`input`: [`GetNextHopsHashInput`](../modules.md#getnexthopshashinput)) => `string` |
 | `getComputedTransferDataHash` | (`input`: `GetComputedTransferDataHashInput`) => `string` |
 | `getComputedTransferId` | (`__namedParameters`: `GetComputedTransferIdInput`) => `string` |
@@ -253,8 +256,6 @@ ___
 | `getInitialReserve` | (`__namedParameters`: [`GetInitialReserveInput`](../modules.md#getinitialreserveinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenAddress` | (`__namedParameters`: [`GetInitialReserveByTokenAddressInput`](../modules.md#getinitialreservebytokenaddressinput)) => `Promise`\<`BigNumber`\> |
 | `getInitialReserveByTokenSymbol` | (`__namedParameters`: [`GetInitialReserveByTokenSymbolInput`](../modules.md#getinitialreservebytokensymbolinput)) => `Promise`\<`BigNumber`\> |
-| `getIsClaimBondedOrWithdrawn` | (`__namedParameters`: [`GetIsClaimBondedOrWithdrawnInput`](../modules.md#getisclaimbondedorwithdrawninput)) => `Promise`\<`boolean`\> |
-| `getIsClaimPushed` | (`__namedParameters`: `GetIsClaimPushedInput`) => `Promise`\<`boolean`\> |
 | `getIsPathIdLive` | (`__namedParameters`: [`GetIsPathIdLiveInput`](../modules.md#getispathidliveinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForBond` | (`__namedParameters`: [`GetNeedsApprovalForBondInput`](../modules.md#getneedsapprovalforbondinput)) => `Promise`\<`boolean`\> |
 | `getNeedsApprovalForSend` | (`__namedParameters`: [`GetNeedsApprovalForSendInput`](../modules.md#getneedsapprovalforsendinput)) => `Promise`\<`boolean`\> |
@@ -263,9 +264,6 @@ ___
 | `getTokenContract` | (`__namedParameters`: [`GetTokenContractInput`](../modules.md#gettokencontractinput)) => `Contract` |
 | `getTokenInfo` | (`__namedParameters`: [`GetTokenInfoInput`](../modules.md#gettokeninfoinput)) => `Promise`\<[`Token`](../modules.md#token)\> |
 | `getTotalSent` | (`__namedParameters`: [`GetTotalSentInput`](../modules.md#gettotalsentinput)) => `Promise`\<`BigNumber`\> |
-| `getTransferBondedEventFromTransactionHash` | (`__namedParameters`: [`GetTransferBondedEventFromTransactionHashInput`](../modules.md#gettransferbondedeventfromtransactionhashinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
-| `getTransferBondedEventFromTransactionReceipt` | (`__namedParameters`: [`GetTransferBondedEventFromTransactionReceiptInput`](../modules.md#gettransferbondedeventfromtransactionreceiptinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
-| `getTransferBondedEventFromTransferId` | (`__namedParameters`: [`GetTransferBondedEventFromTransferIdInput`](../modules.md#gettransferbondedeventfromtransferidinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferBonded`\>\> |
 | `getTransferSentEventFromTransactionHash` | (`__namedParameters`: [`GetTransferSentEventFromTransactionHashInput`](../modules.md#gettransfersenteventfromtransactionhashinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
 | `getTransferSentEventFromTransactionReceipt` | (`__namedParameters`: [`GetTransferSentEventFromTransactionReceiptInput`](../modules.md#gettransfersenteventfromtransactionreceiptinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
 | `getTransferSentEventFromTransferId` | (`__namedParameters`: [`GetTransferSentEventFromTransferIdInput`](../modules.md#gettransfersenteventfromtransferidinput)) => `Promise`\<``null`` \| `EthersEventWithDecodedTypes`\<`TransferSent`\>\> |
@@ -292,9 +290,8 @@ ___
 | `claimFeesFromPath` | (`__namedParameters`: [`ClaimFeesFromPathInput`](../modules.md#claimfeesfrompathinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `confirmClaim` | (`__namedParameters`: [`ConfirmClaimInput`](../modules.md#confirmclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `distributeClaimedFees` | (`__namedParameters`: [`DistributeClaimedFeesInput`](../modules.md#distributeclaimedfeesinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `pushClaim` | (`__namedParameters`: [`PushClaimInput`](../modules.md#pushclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `pushClaimAndBond` | (`__namedParameters`: [`PushClaimAndBondInput`](../modules.md#pushclaimandbondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
-| `pushClaimAndWithdraw` | (`__namedParameters`: [`PushClaimAndWithdrawInput`](../modules.md#pushclaimandwithdrawinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postClaim` | (`__namedParameters`: [`PostClaimInput`](../modules.md#postclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
+| `postClaimAndBond` | (`__namedParameters`: [`PostClaimAndBondInput`](../modules.md#postclaimandbondinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `readdClaim` | (`__namedParameters`: [`ReaddClaimInput`](../modules.md#readdclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `removeClaim` | (`__namedParameters`: [`RemoveClaimInput`](../modules.md#removeclaiminput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
 | `send` | (`__namedParameters`: [`SendInput`](../modules.md#sendinput), `txOverrides`: `TxOverrides`) => `Promise`\<`TransactionRequest`\> |
@@ -742,7 +739,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
+| `eventName` | `PathInitialized` |
 | `input` | `PathInitializedIndexes` |
 
 #### Returns
@@ -799,7 +796,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`RailsGatewayGetMessageFeeInput`](../modules.md#railsgatewaygetmessagefeeinput) |
+| `«destructured»` | `GetMessageFeeInput` |
 
 #### Returns
 
@@ -855,6 +852,16 @@ ___
 
 ___
 
+### <a id="getpostclaimfee" name="getpostclaimfee"></a> getPostClaimFee
+
+▸ **getPostClaimFee**(): `Promise`\<`BigNumber`\>
+
+#### Returns
+
+`Promise`\<`BigNumber`\>
+
+___
+
 ### <a id="getprovider" name="getprovider"></a> getProvider
 
 ▸ **getProvider**(`chainId`): ``null`` \| `Provider`
@@ -872,16 +879,6 @@ ___
 #### Inherited from
 
 Base.getProvider
-
-___
-
-### <a id="getpushclaimfee" name="getpushclaimfee"></a> getPushClaimFee
-
-▸ **getPushClaimFee**(): `Promise`\<`BigNumber`\>
-
-#### Returns
-
-`Promise`\<`BigNumber`\>
 
 ___
 
@@ -922,6 +919,22 @@ ___
 
 ___
 
+### <a id="getrailspathbyaddress" name="getrailspathbyaddress"></a> getRailsPathByAddress
+
+▸ **getRailsPathByAddress**(`address`): [`RailsPath`](RailsPath.md)
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `address` | `string` |
+
+#### Returns
+
+[`RailsPath`](RailsPath.md)
+
+___
+
 ### <a id="getremovefee" name="getremovefee"></a> getRemoveFee
 
 ▸ **getRemoveFee**(): `Promise`\<`BigNumber`\>
@@ -940,7 +953,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `«destructured»` | [`RailsGatewayGetSendFeeInput`](../modules.md#railsgatewaygetsendfeeinput) |
+| `«destructured»` | `GetSendFeeInput` |
 
 #### Returns
 
@@ -1030,11 +1043,11 @@ ___
 
 ### <a id="getstakingregistry" name="getstakingregistry"></a> getStakingRegistry
 
-▸ **getStakingRegistry**(): `StakingRegistry`
+▸ **getStakingRegistry**(): [`StakingRegistry`](StakingRegistry.md)
 
 #### Returns
 
-`StakingRegistry`
+[`StakingRegistry`](StakingRegistry.md)
 
 ___
 
@@ -1227,15 +1240,15 @@ ___
 
 ___
 
-### <a id="pushclaim" name="pushclaim"></a> pushClaim
+### <a id="postclaim" name="postclaim"></a> postClaim
 
-▸ **pushClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **postClaim**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`PushClaimInput`](../modules.md#pushclaiminput) |
+| `input` | [`PostClaimInput`](../modules.md#postclaiminput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -1244,32 +1257,15 @@ ___
 
 ___
 
-### <a id="pushclaimandbond" name="pushclaimandbond"></a> pushClaimAndBond
+### <a id="postclaimandbond" name="postclaimandbond"></a> postClaimAndBond
 
-▸ **pushClaimAndBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `input` | [`PushClaimAndBondInput`](../modules.md#pushclaimandbondinput) |
-| `txOverrides` | `TxOverrides` |
-
-#### Returns
-
-`Promise`\<`TransactionResponse`\>
-
-___
-
-### <a id="pushclaimandwithdraw" name="pushclaimandwithdraw"></a> pushClaimAndWithdraw
-
-▸ **pushClaimAndWithdraw**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
+▸ **postClaimAndBond**(`input`, `txOverrides?`): `Promise`\<`TransactionResponse`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `input` | [`PushClaimAndWithdrawInput`](../modules.md#pushclaimandwithdrawinput) |
+| `input` | [`PostClaimAndBondInput`](../modules.md#postclaimandbondinput) |
 | `txOverrides` | `TxOverrides` |
 
 #### Returns
@@ -1789,7 +1785,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `eventName` | [`PathInitialized`](../enums/RailsGatewayEventName.md#pathinitialized) |
+| `eventName` | `PathInitialized` |
 
 #### Returns
 

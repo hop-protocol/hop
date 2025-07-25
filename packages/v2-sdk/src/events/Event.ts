@@ -113,6 +113,7 @@ export class Event<T> {
   }
 
   addTypedEvent(ethersEvent: EthersEvent): EthersEventWithDecodedTypesAndBaseContext<T> {
+  addTypedEvent(ethersEvent: EthersEvent, chainId?: string): EthersEventWithDecodedTypesAndBaseContext<T> {
     const decoded = this.toTypedEvent(ethersEvent)
     const eventWithDecoded = {
       ...ethersEvent,
@@ -123,6 +124,7 @@ export class Event<T> {
       ...ethersEvent,
       decoded,
       context: this.getBaseEventContext(eventWithDecoded)
+      context: this.getBaseEventContext(eventWithDecoded, chainId)
     }
   }
 
@@ -139,14 +141,17 @@ export class Event<T> {
   }
 
   getBaseEventContext(event: EthersEventWithDecodedTypes<T>): BaseEventContext {
+  getBaseEventContext(event: EthersEventWithDecodedTypes<T>, chainId?: string): BaseEventContext {
     try {
       const chainSlug = this.getChainSlug(this.chainId ?? 0)
+      const chainSlug = this.getChainSlug(chainId ?? this.chainId ?? 0)
       const { transactionHash, transactionIndex, logIndex, blockNumber } = event
 
       return {
         eventName: this.eventName,
         chainSlug,
         chainId: this.chainId.toString(),
+        chainId: chainId ?? this.chainId.toString(),
         transactionHash,
         transactionIndex,
         logIndex,

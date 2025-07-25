@@ -44,12 +44,6 @@ export type HopConstructorInput = {
   signersOrProviders: SignersOrProviders
 }
 
-export type GetEventsInput = {
-  chainId: BigNumberish
-  fromBlock: number
-  toBlock?: number
-}
-
 export type GetGeneralEventsInput = {
   eventName?: string
   eventNames?: string[]
@@ -795,119 +789,6 @@ export class Hop extends Base {
 
   getTokenContract ({ chainId, address }: GetTokenContractInput): Contract {
     return this.getRailsGateway(chainId).helpers.getTokenContract({ address })
-  }
-
-  async getEvents({
-    eventName,
-    eventNames,
-    chainId,
-    fromBlock,
-    toBlock,
-    fetchTxData
-  }: GetGeneralEventsInput): Promise<EthersEventWithDecodedTypesAndContext<AllEventTypes>[]> {
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new CustomError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const latestBlock = await provider.getBlockNumber()
-    toBlock = toBlock ?? latestBlock
-    fromBlock = fromBlock ?? (latestBlock - 1000)
-
-    if (fromBlock < 0) {
-      fromBlock = toBlock + fromBlock
-    }
-
-    if (eventName) {
-      eventNames = [eventName]
-    }
-
-    if (!eventNames?.length) {
-      throw new InputError('expected eventName or eventNames')
-    }
-
-    const filters: Filter[] = []
-    const eventFetcher = new EventFetcher({ provider, batchBlocks: this.batchBlocks })
-    const eventFetcherMap: Record<string, Event<any>> = {} // TODO: type
-
-    const messenger = this.getMessenger(chainId)
-    const railsGateway = this.getRailsGateway(chainId)
-    const stakingRegistry = railsGateway.getStakingRegistry()
-    const railsPath = await this.getRailsPath(chainId)
-
-    const allEventNames = [
-      ...messenger.getEventNames(),
-      ...railsGateway.getEventNames(),
-      ...stakingRegistry.getEventNames(),
-      ...railsPath.getEventNames(),
-    ]
-
-    // Get all RailsPath addresses for this chain
-    let railsPathAddresses: string[] = []
-    try {
-      railsPathAddresses = await this.getAllRailsPathAddresses(chainId)
-    } catch (err) {
-      console.warn('Failed to get RailsPath addresses:', err)
-    }
-
-    for (const name of eventNames) {
-      if (messenger.getEventNames().includes(name)) {
-        const fetcher = messenger.getEventFetcher(name)
-        const filter = fetcher.getFilter()
-        filters.push(filter)
-        eventFetcherMap[filter.topics?.[0] as string] = fetcher
-      } else if (name == EventName.PathInitialized) {
-        const fetcher = railsGateway.getEventFetcher(name)
-        const filter = fetcher.getFilter()
-        filters.push(filter)
-        eventFetcherMap[filter.topics?.[0] as string] = fetcher
-      } else if (railsPath.getEventNames().includes(name)) {
-        // For RailsGateway events, create fetchers for each RailsPath address
-        for (const address of railsPathAddresses) {
-          try {
-            const railsPathWithAddress = await this.getRailsPath(chainId, undefined, address)
-            const fetcher = railsPathWithAddress.getEventFetcher(name)
-            const filter = fetcher.getFilter()
-            filters.push(filter)
-            eventFetcherMap[filter.topics?.[0] as string] = fetcher
-          } catch (err) {
-            console.warn(`Failed to create fetcher for event ${name} at address ${address} for chainId ${chainId}:`, err)
-          }
-        }
-      } else if (stakingRegistry.getEventNames().includes(name)) {
-        const fetcher = stakingRegistry.getEventFetcher(name)
-        const filter = fetcher.getFilter()
-        filters.push(filter)
-        eventFetcherMap[filter.topics?.[0] as string] = fetcher
-      }
-    }
-
-    // console.log('hopV2Sdk: getEvents filters', filters)
-    const options = { fromBlock: fromBlock as number, toBlock: toBlock as number }
-    const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
-
-    const decoded: EthersEvent[] = []
-    for (const event of events) {
-      const res = await eventFetcherMap[event.topics[0] as string].populateEvents([event], fetchTxData) as EthersEvent[]
-      decoded.push(...res)
-    }
-
-    // Sort events by block number and log index
-    decoded.sort((a, b) => {
-      if (a.blockNumber === b.blockNumber) {
-        return a.logIndex - b.logIndex
-      }
-      return a.blockNumber - b.blockNumber
-    })
-
-    return decoded as EthersEventWithDecodedTypesAndContext<AllEventTypes>[]
   }
 
   override setProviderUrls (signersOrProviders: Record<string, string | string[]>): void {

@@ -1,13 +1,6 @@
-import { EventContext, Filter, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypesAndBaseContext, BaseEventContext } from './types.js'
-import { EventFetcher, InputFilter } from './eventFetcher/index.js'
-import { getChainSlug } from '#utils/index.js'
+import { EventContext, EthersEventWithDecodedTypes, EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypesAndBaseContext, BaseEventContext } from './types.js'
 import { promiseQueue } from '@hop-protocol/sdk'
-import { providers, BigNumberish, Event as EthersEvent, utils, Contract, EventFilter } from 'ethers'
-
-export type GetEventsOptions = {
-  fetchTxData?: boolean
-  returnOnFirstMatch?: boolean
-}
+import { providers, BigNumberish, Event as EthersEvent, utils, EventFilter } from 'ethers'
 
 export class Event<T> {
   provider: providers.Provider
@@ -56,46 +49,6 @@ export class Event<T> {
   getTopic0(): string {
     const iface = new utils.Interface(this.abi)
     return iface.getEventTopic(this.eventName)
-  }
-
-  async getEventsForRangeWithFilter(filter: Filter, fromBlock: number, toBlock?: number, options: GetEventsOptions = {}): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {
-    const { fetchTxData, returnOnFirstMatch } = options
-    const eventFetcher = new EventFetcher({
-      provider: this.provider,
-      batchBlocks: this.batchBlocks
-    })
-
-    const endBlock = toBlock ?? await this.provider.getBlockNumber()
-    const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock: endBlock, returnOnFirstMatch })
-    return this.populateEvents(events, fetchTxData)
-  }
-
-  async *getEventsForRangeWithFilterAsGenerator(filter: Filter, fromBlock: number, toBlock?: number): AsyncGenerator<EthersEventWithDecodedTypesAndContext<T>[]> {
-    const eventFetcher = new EventFetcher({
-      provider: this.provider,
-      batchBlocks: this.batchBlocks
-    })
-
-    const endBlock = toBlock ?? await this.provider.getBlockNumber()
-    const eventsGenerator = eventFetcher.fetchEventsAsGenerator([filter as InputFilter], { fromBlock, toBlock: endBlock })
-
-    for await (const events of eventsGenerator) {
-      const populatedEvents = await this.populateEvents(events)
-      yield populatedEvents
-    }
-  }
-
-  async getEventsForRange(fromBlock: number, toBlock?: number, fetchTxData: boolean = false): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {
-    const filter = this.getFilter()
-    return this.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { fetchTxData })
-  }
-
-  async *getEventsForRangeAsGenerator(fromBlock: number, toBlock?: number): AsyncGenerator<EthersEventWithDecodedTypesAndContext<T>[]> {
-    const eventsGenerator = this.getEventsForRangeWithFilterAsGenerator(this.getFilter(), fromBlock, toBlock)
-
-    for await (const events of eventsGenerator) {
-      yield events
-    }
   }
 
   async populateEvents(inputEvents: EthersEvent[], fetchTxData: boolean = false): Promise<EthersEventWithDecodedTypesAndContext<T>[]> {

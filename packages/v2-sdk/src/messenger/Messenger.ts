@@ -4,28 +4,23 @@ import { BigNumber, BigNumberish, providers, utils, Event as EthersEvent, Signer
 import { getNetwork, NetworkSlug } from '@hop-protocol/sdk'
 import { EthersEventWithDecodedTypesAndContext, EthersEventWithDecodedTypes } from '#events/index.js'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
-import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
-import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
-import { BundleSet, BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
+import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
+import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
+import { BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
 import { DateTime } from 'luxon'
 import { ExitRelayer } from '#exitRelayers/ExitRelayer.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 import { MerkleTree } from '#utils/MerkleTree.js'
 import { MessageBundled, MessageBundledEventFetcher } from '#messenger/events/MessageBundled.js'
-import { MessageExecuted, MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
+import { MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
 import { MessageSent, MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { MockExecutor__factory } from '#contracts/factories/MockExecutor__factory.js'
-import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
+import { FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { ConfigError, InputError, CustomError } from '#error/index.js'
 
 const { formatEther, formatUnits, parseEther } = utils
-
-export type GetEventsInput = {
-  fromBlock: number
-  toBlock?: number
-}
 
 export type BundleProof = {
   bundleId: string
@@ -308,214 +303,6 @@ export class Messenger extends Base {
     }
 
     return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
-  }
-
-  async getBundleCommittedEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleCommitted>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.BundleCommitted)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getBundleForwardedEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleForwarded>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.BundleForwarded)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getBundleReceivedEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleReceived>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.BundleReceived)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getBundleSetEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<BundleSet>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.BundleSet)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getFeesSentToHubEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<FeesSentToHub>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.FeesSentToHub)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getMessageBundledEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageBundled>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageBundled)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getMessageExecutedEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageExecuted>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageExecuted)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
-  }
-
-  async getMessageSentEvents ({ fromBlock, toBlock }: GetEventsInput): Promise<EthersEventWithDecodedTypes<MessageSent>[]> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!fromBlock) {
-      throw new InputError('fromBlock is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageSent)
-    return eventFetcher.getEventsForRange(fromBlock, toBlock)
   }
 
   async getHasAuctionStarted ({ bundleCommittedEvent }: HasAuctionStartedInput): Promise<boolean> {
@@ -1041,88 +828,6 @@ export class Messenger extends Base {
     return this.getMessageSentEventFromTransactionReceipt({ receipt })
   }
 
-  async getMessageBundledEventFromMessageId ({ messageId }: GetMessageBundledEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageBundled> | null> {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(messageId)) {
-      throw new InputError(`Invalid messageId "${messageId}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageBundled)
-    const filter = eventFetcher.getMessageIdFilter(messageId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events?.[0] ?? null
-  }
-
-  async getMessageSentEventFromMessageId ({ messageId }: GetMessageSentEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageSent> | null> {
-    const chainId = this.chainId
-    if (!chainId) {
-      throw new InputError('chainId is required')
-    }
-
-    if (!messageId) {
-      throw new InputError('messageId is required')
-    }
-
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId ${chainId}""`)
-    }
-
-    if (!this.utils.isValidBytes32(messageId)) {
-      throw new InputError(`Invalid messageId "${messageId}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageSent)
-    const filter = eventFetcher.getMessageIdFilter(messageId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
-    return events?.[0] ?? null
-  }
-
-  // note: this is broken because messageId is not indexed in event
-  async getMessageExecutedEventFromMessageId ({ messageId }: GetMessageExecutedEventFromMessageIdInput): Promise<EthersEventWithDecodedTypes<MessageExecuted> | null>{
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!messageId) {
-      throw new InputError('messageId is required')
-    }
-
-    if (!this.utils.isValidBytes32(messageId)) {
-      throw new InputError(`Invalid messageId "${messageId}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageExecuted)
-    const filter = eventFetcher.getMessageIdFilter(messageId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events?.[0] ?? null
-  }
-
   async getMessageBundledEventFromTransactionHash ({ transactionHash }: GetMessageBundledEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<MessageBundled> | null> {
     const chainId = this.chainId
     if (!this.utils.isValidChainId(chainId)) {
@@ -1244,44 +949,6 @@ export class Messenger extends Base {
     }
 
     return event.decoded.treeIndex
-  }
-
-  async getMessageBundledEventsForBundleId ({ bundleId }: GetMessageBundledEventsForBundleIdInput): Promise<EthersEventWithDecodedTypes<MessageBundled>[]> {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(bundleId)) {
-      throw new InputError(`Invalid bundleId "${bundleId}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const eventFetcher = this.getEventFetcher(EventName.MessageBundled)
-    const filter = eventFetcher.getBundleIdFilter(bundleId)
-    const fromBlock = 0
-    const toBlock = await provider.getBlockNumber()
-    const events = eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock)
-    return events
-  }
-
-  async getMessageIdsForBundleId ({ bundleId }: GetMessageIdsForBundleIdInput): Promise<string[]> {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidBytes32(bundleId)) {
-      throw new InputError(`Invalid bundleId "${bundleId}"`)
-    }
-
-    const messageEvents = await this.getMessageBundledEventsForBundleId({ bundleId })
-    const messageIds = messageEvents.map(event => event.decoded.messageId)
-    return messageIds
   }
 
   async getMerkleProofForMessageId ({ messageIds, targetMessageId }: GetMerkleProofForMessageIdInput) {

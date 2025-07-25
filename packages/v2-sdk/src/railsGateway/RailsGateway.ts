@@ -1746,16 +1746,6 @@ export class RailsGateway extends Base {
         return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.ClaimBonded, receipt })
       },
 
-      getTransferSentEventFromTransferId: async ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
-        const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferSent, transferId })
-      },
-
-      getClaimBondedEventFromTransferId: async ({ transferId }: GetClaimBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<ClaimBonded> | null> => {
-        const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.ClaimBonded, transferId })
-      },
-
       estimateGasCostForSend: async ({ from, to, amount, hops = [], fee, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> => {
         const chainId = this.chainId
 

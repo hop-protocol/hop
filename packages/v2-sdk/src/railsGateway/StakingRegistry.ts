@@ -579,30 +579,6 @@ export class StakingRegistry extends Base {
 
   /** EVENT HANDLERS */
 
-  getEventFetcher(eventName: EventName | string) {
-    const chainId = this.chainId
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const address = this.getStakingRegistryContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
-    }
-
-    const eventFetcher: Record<EventName, any> = {
-      [EventName.BonderPreference]: BonderPreferenceEventFetcher,
-    }
-
-    const EventFetcherClass = eventFetcher[eventName as EventName]
-    if (!EventFetcherClass) {
-      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
-    }
-
-    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
-  }
-
   getEventNames (): string[] {
     return StakingRegistry.getEventNames()
   }

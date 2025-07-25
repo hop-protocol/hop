@@ -39,7 +39,6 @@ export enum EventName {
 
 export type HopConstructorInput = {
   network?: string
-  batchBlocks?: number
   contractAddresses?: Addresses
   signersOrProviders: SignersOrProviders
 }

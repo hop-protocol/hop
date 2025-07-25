@@ -40,7 +40,6 @@ export class Base {
   gasPriceMultiplier: number = 0
   contractAddresses: Addresses
   l1ChainId: number
-  batchBlocks: number = 1000
   // #explorerApiBaseUrl = 'http://localhost:8000'
   #explorerApiBaseUrl = 'https://v2-explorer-api-sepolia.hop.exchange'
 

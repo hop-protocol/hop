@@ -8,7 +8,6 @@ import {
   type RemoveClaimInput,
 } from './RailsSDKWrapper.js'
 import type { RailsPath } from './types.js'
-import type { RequiredEventFilter } from '#types/index.js'
 
 const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
   // TODO: SDK: Fill in the start block numbers

@@ -83,7 +83,8 @@ export class RailsGateway {
   #sdk: RailsGatewaySDK
   #stakingRegistry: StakingRegistrySDK
   // TODO: This should be handled within the system, not at the SDK level
-  static #pathIdAddressCache: Record<string, string> = {}
+  static #addressToPathIdCache: Record<string, string> = {}
+  static #pathIdToAddressCache: Record<string, string> = {}
 
   constructor (chainId: string, signerOrProvider: Signer | providers.Provider) {
     const signer = signerOrProvider as Signer
@@ -96,11 +97,13 @@ export class RailsGateway {
    */
 
   getRailsPath (pathId: string): RailsPathClass {
+    // TODO: This should be cached in the SDK as to not create new instances each time
+
     const chainId = this.#sdk.chainId
     if (!chainId) {
       throw new Error('Chain ID is not set in RailsGatewaySDK')
     }
-    const address = RailsGateway.getPathIdAddressCache(String(chainId), pathId)
+    const address = RailsGateway.getPathCache(String(chainId), pathId)
     // TODO: V2: This should just be getRailsPath, but legacy code needs to be updated
     // TODO: V2: This is hacky way to mock SDK for now. All this should live in the SDK.
     const railsPathSDK = this.#sdk.getRailsPathByAddress(address)
@@ -111,35 +114,45 @@ export class RailsGateway {
    * Cache methods
    */
 
-  static #getCacheKey (chainId: string, address: string): string {
-    if (!chainId || !address) {
-      throw new Error('Invalid pathId or address')
-    }
-    return `${chainId}:${address}`
-  }
-
-  static setPathIdAddressCache (chainId: string, address: string, pathId: string): void {
+  // TODO: V2: Not production code, just a mock for now
+  static setPathCache (chainId: string, address: string, pathId: string): void {
     if (!chainId || !address || !pathId) {
       throw new Error('Invalid chainId, address, or pathId')
     }
 
-    const cacheKey = this.#getCacheKey(chainId, address)
-    if (this.#pathIdAddressCache[cacheKey]) {
-      throw new Error(`Path ID already exists in cache: ${cacheKey}`)
+    const addressCacheKey = `${chainId}:${address}`
+    if (this.#addressToPathIdCache[addressCacheKey]) {
+      throw new Error(`Path ID already exists in cache: ${addressCacheKey}`)
     }
-    this.#pathIdAddressCache[cacheKey] = pathId
+    this.#addressToPathIdCache[addressCacheKey] = pathId
+
+    const pathIdCacheKey = `${chainId}:${pathId}`
+    if (this.#pathIdToAddressCache[pathIdCacheKey]) {
+      throw new Error(`Path address already exists in cache: ${pathIdCacheKey}`)
+    }
+    this.#pathIdToAddressCache[pathIdCacheKey] = address
   }
 
-  static getPathIdAddressCache (chainId: string, address: string): string {
-    if (!chainId || !address) {
-      throw new Error('Invalid chainId or address')
+  // TODO: V2: Not production code, just a mock for now
+  static getPathCache(chainId: string, addressOrPathId: string): string {
+    if (!chainId || !addressOrPathId) {
+      throw new Error('Invalid chainId or addressOrPathId')
     }
-    const cacheKey = this.#getCacheKey(chainId, address)
-    const pathId = this.#pathIdAddressCache[cacheKey]
-    if (!pathId) {
-      throw new Error(`Path ID not found in cache for chainId: ${chainId}, address: ${address}`)
+
+    const addressKey = `${chainId}:${addressOrPathId}`
+    const pathIdKey = `${chainId}:${addressOrPathId}`
+
+    const address = this.#addressToPathIdCache[addressKey]
+    if (address && address.length > 0) {
+      return address
     }
-    return pathId
+
+    const pathId = this.#pathIdToAddressCache[pathIdKey]
+    if (pathId && pathId.length > 0) {
+      return pathId
+    }
+
+    throw new Error(`No cache entry found for chainId: ${chainId}, addressOrPathId: ${addressOrPathId}`)
   }
 
   /**

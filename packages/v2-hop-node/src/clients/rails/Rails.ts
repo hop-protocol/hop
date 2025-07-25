@@ -45,8 +45,8 @@ export class Rails {
       const pathId = getPathId(pathWithAddresses)
 
       const { chainId, counterpartChainId, pathAddresses } = pathWithAddresses
-      RailsGateway.setPathIdAddressCache(chainId, pathAddresses.pathAddress, pathId)
-      RailsGateway.setPathIdAddressCache(counterpartChainId, pathAddresses.counterpartPathAddress, pathId)
+      RailsGateway.setPathCache(chainId, pathAddresses.pathAddress, pathId)
+      RailsGateway.setPathCache(counterpartChainId, pathAddresses.counterpartPathAddress, pathId)
     }
 
     const indexer = new RailsIndexer(this.#name, pathsWithAddresses)

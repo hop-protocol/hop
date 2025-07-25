@@ -92,7 +92,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     // TODO: is this supposed to be hops[0]?
     const { maxBonderFee, attestedClaimId } = hops[0]
     const nextHopsHash = getComputedNextHopsHash(hops)
-    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
+    const pathId = RailsGateway.getPathCache(chainId, address)
 
     return {
       pathId,
@@ -112,7 +112,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
     const { decoded, address, context } = log
     const { chainId } = context
     const { claimId, amountOut } = decoded
-    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
+    const pathId = RailsGateway.getPathCache(chainId, address)
 
     return {
       pathId,

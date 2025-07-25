@@ -80,7 +80,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     const { decoded, address, context } = log
     const { chainId } = context
     const { transferId, to, amount, sourcePool, sourceTotalFraudulent, hops } = decoded
-    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
+    const pathId = RailsGateway.getPathCache(chainId, address)
 
     return {
       pathId,
@@ -97,7 +97,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
     const { decoded, address, context } = log
     const { chainId } = context
     const { claimId, to, amount, bonderFee } = decoded
-    const pathId = RailsGateway.getPathIdAddressCache(chainId, address)
+    const pathId = RailsGateway.getPathCache(chainId, address)
 
     return {
       pathId,

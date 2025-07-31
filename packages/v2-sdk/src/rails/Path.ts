@@ -34,11 +34,10 @@ export class Path {
   }
 
   static getPath(pathOrPathId: RailsPath | string): Path | undefined {
-    if (typeof pathOrPathId === 'string') {
-      return Path.#pathCache.get(pathOrPathId)
-    }
+    const pathId = typeof pathOrPathId === 'string'
+      ? pathOrPathId
+      : getPathId(pathOrPathId)
 
-    const pathId = getPathId(pathOrPathId)
     return Path.#pathCache.get(pathId)
   }
 
@@ -49,7 +48,7 @@ export class Path {
   static async createPathById(pathId: string, chain: Chain, counterpartChain: Chain): Promise<Path> {
     const pathContract = getRailsPath(pathId, chain.signerOrProvider)
     const pathInfo = await pathContract.getPathInfo()
-    const path: RailsPath = formatPathInfo(pathInfo)
+    const path = formatPathInfo(pathInfo)
     return Path.#createPath(path, chain, counterpartChain)
   }
 

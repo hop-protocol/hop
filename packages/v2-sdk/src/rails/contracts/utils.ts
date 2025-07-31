@@ -1,9 +1,9 @@
-import { addresses } from '#addresses/index.js'
+import { getGateway } from '#utils/gateways/index.js'
 import {  type RailsPath } from '../types.js'
 
 // TODO: Update with new config
 export function getRailsGatewayAddress(chainId: string): string {
-  const chainAddresses = addresses[chainId].addresses
+  const chainAddresses = getGateway(chainId)
   // TODO: Validate chainId
   if (!chainAddresses || !chainAddresses.railsGateway) {
     throw new Error(`RailsGateway address not found for chainId ${chainId}`)

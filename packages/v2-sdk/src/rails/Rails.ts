@@ -1,4 +1,4 @@
-import { type BigNumberish, type providers, BigNumber, constants} from 'ethers'
+import { type BigNumberish, type providers, type CallOverrides, BigNumber, constants} from 'ethers'
 import type { HopStruct, RailsPath } from './types.js'
 import type { Chain, Address, Token } from './types.js'
 import { Path } from './Path.js'
@@ -31,8 +31,9 @@ export class Rails {
   async send(
     to: Address,
     token: Token,
-    amount: BigNumberish, 
-    toChain: Chain
+    amount: BigNumberish,
+    toChain: Chain,
+    overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(toChain)
 
@@ -46,7 +47,7 @@ export class Rails {
   async getAmountOut(
     to: Address,
     token: Token,
-    amount: BigNumberish, 
+    amount: BigNumberish,
     toChain: Chain
   ): Promise<BigNumber> {
     this.#validateInput(toChain)

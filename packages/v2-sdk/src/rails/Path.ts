@@ -67,17 +67,13 @@ export class Path {
       throw new Error(`Path with id ${pathId} already exists`)
     }
 
-    // TODO: validate chainIds and path chainids
+    // TODO: validate chainIds and path chainIds
     // i.e. make sure they are unique, etc.
 
     const pathInstance = new Path(path, chain, counterpartChain)
     Path.#pathCache.set(pathId, pathInstance)
     return pathInstance
   }
-
-  /**
-   * Methods
-   */
 
   async send(
     fromChain: Chain,

@@ -292,21 +292,6 @@ describe('StakingRegistry', () => {
     console.log(balance)
     expect(balance).toBeDefined()
   })
-
-  it('should get event fetcher', async () => {
-    const chainId = 11155111
-    const provider = StakingRegistry.getDefaultProvider(chainId)
-    const signer = new Wallet(privateKey, provider)
-    const stakingRegistry = new StakingRegistry({
-      chainId,
-      signerOrProvider: signer,
-    })
-
-    const fetcher = await stakingRegistry.getEventFetcher(EventName.BonderPreference)
-    console.log(fetcher)
-    expect(fetcher).toBeDefined()
-  })
-
   it('should get event names', async () => {
     const chainId = 11155111
     const provider = StakingRegistry.getDefaultProvider(chainId)

@@ -6,8 +6,8 @@
 
 - [amount](TransferSent.md#amount)
 - [hops](TransferSent.md#hops)
-- [pathId](TransferSent.md#pathid)
 - [sourcePool](TransferSent.md#sourcepool)
+- [sourceTotalFraudulent](TransferSent.md#sourcetotalfraudulent)
 - [to](TransferSent.md#to)
 - [transferId](TransferSent.md#transferid)
 
@@ -25,15 +25,15 @@ ___
 
 ___
 
-### <a id="pathid" name="pathid"></a> pathId
-
-• **pathId**: `string`
-
-___
-
 ### <a id="sourcepool" name="sourcepool"></a> sourcePool
 
 • **sourcePool**: `BigNumber`
+
+___
+
+### <a id="sourcetotalfraudulent" name="sourcetotalfraudulent"></a> sourceTotalFraudulent
+
+• **sourceTotalFraudulent**: `BigNumber`
 
 ___
 

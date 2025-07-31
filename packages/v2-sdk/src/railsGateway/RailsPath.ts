@@ -20,12 +20,6 @@ export type EventFetcher = TransferSentEventFetcher | ClaimBondedEventFetcher | 
 
 export type GetEventFilterInput = TransferSentIndexes | ClaimBondedIndexes | ClaimPostedIndexes | ClaimReaddedIndexes | ClaimRemovedIndexes | ClaimWithdrawnIndexes
 
-export type GetEventsInBatchesInput = {
-  eventName: EventName
-  fromBlock: number
-  toBlock: number
-  fetchTxData?: boolean
-}
 
 export enum EventName {
   TransferSent = 'TransferSent',
@@ -44,12 +38,6 @@ export type GetEventFromTransactionHashInput = {
 export type GetEventFromTransactionReceiptInput = {
   eventName: EventName
   receipt: providers.TransactionReceipt
-}
-
-export type GetEventFromTransferIdInput = {
-  fromBlock?: number
-  eventName: EventName
-  transferId: string
 }
 
 export type BondInput = {
@@ -1018,141 +1006,7 @@ export class RailsPath extends Base {
     return RailsPath.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName | string): any { // TODO: return type
-    const chainId = this.chainId
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const address = this.getRailsPathContractAddress()
-    const eventFetcher: Record<EventName, any> = {
-      [EventName.TransferSent]: TransferSentEventFetcher,
-      [EventName.ClaimBonded]: ClaimBondedEventFetcher,
-      [EventName.ClaimPosted]: ClaimPostedEventFetcher,
-      [EventName.ClaimReadded]: ClaimReaddedEventFetcher,
-      [EventName.ClaimRemoved]: ClaimRemovedEventFetcher,
-      [EventName.ClaimWithdrawn]: ClaimWithdrawnEventFetcher,
-    }
-
-    const EventFetcherClass = eventFetcher[eventName as EventName]
-    if (!EventFetcherClass) {
-      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
-    }
-
-    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
-  }
-
-  async getEventFromTransactionHash<T>({ eventName, transactionHash }: GetEventFromTransactionHashInput): Promise<EthersEventWithDecodedTypes<T> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!transactionHash) {
-      throw new InputError('transactionHash is required')
-    }
-    if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const receipt = await provider.getTransactionReceipt(transactionHash)
-
-    if (!receipt) {
-      return null
-    }
-
-    return this.getEventFromTransactionReceipt<T>({
-      eventName,
-      receipt
-    })
-  }
-
-  async getEventFromTransactionReceipt<T>({ eventName, receipt }: GetEventFromTransactionReceiptInput): Promise<EthersEventWithDecodedTypes<T> | null> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!receipt) {
-      throw new InputError('receipt is required')
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-    const eventFetcher = this.getEventFetcher(eventName)
-    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
-    return events?.[0] ?? null
-  }
-
-  async getEventFromTransferId<T>({ eventName, transferId, fromBlock = 0 }: GetEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<T>> {
-    const chainId = this.chainId
-
-    if (!chainId || !this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-    if (!this.utils.isValidBytes32(transferId)) {
-      throw new InputError(`Invalid transferId "${transferId}"`)
-    }
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId "${chainId}"`)
-    }
-
-    const address = this.getRailsPathContractAddress()
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId "${chainId}"`)
-    }
-
-    const eventFetcher = this.getEventFetcher(eventName)
-    const filter = eventFetcher.getTransferIdFilter(transferId)
-    const toBlock = await provider.getBlockNumber()
-    const events = await eventFetcher.getEventsForRangeWithFilter(filter, fromBlock, toBlock, { returnOnFirstMatch: true })
-    return events?.[0] ?? null
-  }
-
-  async *getEventsInBatches({ eventName, fromBlock, toBlock }: GetEventsInBatchesInput) {
-    const chainId = this.chainId
-    if (!this.utils.isValidChainId(chainId)) {
-      throw new InputError(`Invalid chainId "${chainId}"`)
-    }
-
-    if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
-    }
-
-    if (toBlock && !this.utils.isValidFilterBlock(toBlock)) {
-      throw new InputError(`Invalid toBlock "${toBlock}"`)
-    }
-
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const latestBlock = await provider.getBlockNumber()
-    const resolvedToBlock = toBlock ?? latestBlock
-    let resolvedFromBlock = fromBlock ?? (latestBlock - 1000)
-
-    if (resolvedFromBlock < 0) {
-      resolvedFromBlock = resolvedToBlock + resolvedFromBlock
-    }
-
-    const eventFetcher = this.getEventFetcher(eventName)
-    const eventsGenerator = eventFetcher.getEventsForRangeAsGenerator(resolvedFromBlock, resolvedToBlock)
-
-    for await (const events of eventsGenerator) {
-      yield events
-    }
-  }
-
   getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(eventName)
     return eventFetcher.getFilterWithIndexes(input)
   }
 

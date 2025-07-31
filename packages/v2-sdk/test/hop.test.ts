@@ -197,24 +197,6 @@ describe('Hop', () => {
     expect(transferStatus).toBeDefined()
   }, 10 * 60 * 1000)
 
-
-  it.skip('should get events', async () => {
-    const chainId = 11155111
-    const fromBlock = 6598795
-    const toBlock = 6598796
-    const eventNames = ['MessageSent', 'TransferSent']
-    const events = await sdk.getEvents({
-      eventNames,
-      chainId,
-      fromBlock,
-      toBlock
-    })
-    console.log(events)
-    expect(events.some(event => event.context!.eventName === 'MessageSent')).toBeTruthy()
-    expect(events.some(event => event.context!.eventName === 'TransferSent')).toBeTruthy()
-    expect(events.length > 0).toBeTruthy()
-  }, 60 * 1000)
-
   it.skip('TODO should return true if send tokens transaction will fail', async () => {
     const fromChainId = 11155111
     const toChainId = 11155420

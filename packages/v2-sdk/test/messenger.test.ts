@@ -973,16 +973,6 @@ describe('Messenger', () => {
     expect(eventNames.length > 0).toBeTruthy()
     expect(eventNames).toStrictEqual(['BundleCommitted', 'BundleForwarded', 'BundleReceived', 'BundleSet', 'FeesSentToHub', 'MessageBundled', 'MessageExecuted', 'MessageSent'])
   })
-  it('should get event fetcher', async () => {
-    const chainId = 11155111
-    const messenger = new Messenger({
-      chainId,
-      signerOrProvider: Messenger.getDefaultProvider(chainId)
-    })
-    const eventFetcher = await messenger.getEventFetcher(EventName.BundleCommitted)
-    console.log(eventFetcher)
-    expect(eventFetcher).toBeDefined()
-  }, 60 * 1000)
   it('should return boolean for bundle proof validity', async () => {
     const chainId = 11155111
     const messenger = new Messenger({

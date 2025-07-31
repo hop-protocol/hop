@@ -7,7 +7,6 @@ export {
   GetBundleProofFromMessageIdInput,
   GetBundleProofFromTransactionHashInput,
   GetEventContextInput,
-  GetEventsInput,
   GetIsBundleSetInput,
   GetIsL2TxHashExitedInput,
   GetIsMessageIdRelayedInput,

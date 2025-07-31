@@ -972,16 +972,6 @@ describe('RailsGateway', () => {
     expect(typeof isLive).toBe('boolean')
     expect(isLive).toBeDefined()
   }, 60 * 1000)
-  it('should get event fetcher', async () => {
-    const chainId = 11155111
-    const railsGateway = new RailsGateway({
-      chainId,
-      signerOrProvider: RailsGateway.getDefaultProvider(chainId)
-    })
-    const eventFetcher = await railsGateway.getEventFetcher(EventName.TransferSent)
-    console.log(eventFetcher)
-    expect(eventFetcher).toBeDefined()
-  }, 60 * 1000)
   it('should get message fee for pathId', async () => {
     const chainId = 11155111
     const pathId = '0xf47a641595157206fd457efb304ec553834dffaf756de8dc6d3a639ba379557a'

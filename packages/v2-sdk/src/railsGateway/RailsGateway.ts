@@ -1746,16 +1746,6 @@ export class RailsGateway extends Base {
         return railsPath.getEventFromTransactionReceipt({ eventName: RailsPathEventName.ClaimBonded, receipt })
       },
 
-      getTransferSentEventFromTransferId: async ({ transferId }: GetTransferSentEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<TransferSent> | null> => {
-        const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.TransferSent, transferId })
-      },
-
-      getClaimBondedEventFromTransferId: async ({ transferId }: GetClaimBondedEventFromTransferIdInput): Promise<EthersEventWithDecodedTypes<ClaimBonded> | null> => {
-        const railsPath = await this.getRailsPath()
-        return railsPath.getEventFromTransferId({ eventName: RailsPathEventName.ClaimBonded, transferId })
-      },
-
       estimateGasCostForSend: async ({ from, to, amount, hops = [], fee, gasPrice }: EstimateGasCostForSendInput): Promise<BigNumber> => {
         const chainId = this.chainId
 
@@ -1892,33 +1882,7 @@ export class RailsGateway extends Base {
     return RailsGateway.getEventNames()
   }
 
-  getEventFetcher(eventName: EventName | string): any { // TODO: return type
-    const chainId = this.chainId
-    const provider = this.getProvider(chainId)
-    if (!provider) {
-      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
-    }
-
-    const address = this.getRailsGatewayContractAddress()
-
-    if (!address) {
-      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
-    }
-
-    const eventFetcher: Record<EventName, any> = {
-      [EventName.PathInitialized]: PathInitializedEventFetcher,
-    }
-
-    const EventFetcherClass = eventFetcher[eventName as EventName]
-    if (!EventFetcherClass) {
-      throw new ConfigError(`Event fetcher not found for event name: ${eventName}`)
-    }
-
-    return new EventFetcherClass(provider, chainId, this.batchBlocks, address)
-  }
-
   getEventFilter(eventName: EventName, input: GetEventFilterInput = {}) {
-    const eventFetcher = this.getEventFetcher(eventName)
     return eventFetcher.getFilterWithIndexes(input)
   }
 

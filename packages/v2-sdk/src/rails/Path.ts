@@ -6,7 +6,7 @@ import {
 import type { ClaimStruct, HopStruct, RailsPath } from './types.js'
 import { getPathId } from './utils.js'
 import type { Chain } from './types.js'
-import { getRailsGateway, getRailsPath } from './RailsFactory.js'
+import { getRailsGateway, getRailsPath, formatPathInfo } from './contracts/index.js'
 
 // TODO: Get rid of this and attach chain directly to the gateway
 type RailsGatewayContract = RailsGatewayContractWithoutChain & { chain: Chain }
@@ -29,7 +29,7 @@ export class Path {
     this.#counterpartGateway = counterpartGateway as RailsGatewayContract
   }
 
-  static getPath(pathOrPathId: RailsPath | string): Path {
+  static getPath(pathOrPathId: RailsPath | string): Path | undefined {
     let pathId: string
     if (typeof pathOrPathId === 'string') {
       pathId = pathOrPathId
@@ -37,11 +37,7 @@ export class Path {
       pathId = getPathId(pathOrPathId)
     }
 
-    const path = Path.#pathCache.get(pathId)
-    if (!path) {
-      throw new Error(`Path with id ${pathId} does not exist`)
-    }
-    return path
+    return Path.#pathCache.get(pathId)
   }
 
   static createPath(path: RailsPath, chain: Chain, counterpartChain: Chain): Path {
@@ -51,13 +47,7 @@ export class Path {
   static async createPathById(pathId: string, chain: Chain, counterpartChain: Chain): Promise<Path> {
     const pathContract = getRailsPath(pathId, chain.signerOrProvider)
     const pathInfo = await pathContract.getPathInfo()
-    const path: RailsPath = {
-      chainId: pathInfo[0].toString(),
-      token: pathInfo[1],
-      counterpartChainId: pathInfo[2].toString(),
-      counterpartToken: pathInfo[3],
-      initialReserve: pathInfo[4]
-    }
+    const path: RailsPath = formatPathInfo(pathInfo)
     return Path.#createPath(path, chain, counterpartChain)
   }
 
@@ -218,7 +208,6 @@ export class Path {
   }
 
   async #inferClaimChains (claimId: string): Promise<{ sourceChain: Chain, destinationChain: Chain }> {
-    // Look for the claim on the chain it originated from
     const pathContract = await this.#getPathContract(this.#gateway.chain)
     const transfer = await pathContract.functions.getTransfer(claimId)
     if (transfer) {

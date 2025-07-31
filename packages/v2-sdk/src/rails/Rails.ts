@@ -12,10 +12,11 @@ export class Rails {
     this.#counterpartChain = counterpartChain
   }
 
-  async #getOrCreatePath(pathOrPathId: RailsPath | string): Promise<Path> {
-    try {
-      return Path.getPath(pathOrPathId)
-    } catch (err) {}
+  async #getPath(pathOrPathId: RailsPath | string): Promise<Path> {
+    const maybePath = Path.getPath(pathOrPathId)
+    if (maybePath) {
+      return maybePath
+    }
 
     if (typeof pathOrPathId === 'string') {
       return Path.createPathById(pathOrPathId, this.#chain, this.#counterpartChain)
@@ -34,7 +35,7 @@ export class Rails {
 
     const fromChain = this.#getCounterpartChain(toChain)
     const railsPath = this.#getDefaultRailsPath(fromChain, toChain, token)
-    const path = await this.#getOrCreatePath(railsPath)
+    const path = await this.#getPath(railsPath)
     const hops = this.#getDefaultHops(path, toChain)
     return path.send(fromChain, to, amount, hops)
   }
@@ -50,7 +51,7 @@ export class Rails {
 
     const fromChain = this.#getCounterpartChain(toChain)
     const railsPath = this.#getDefaultRailsPath(fromChain, toChain, token)
-    const path = await this.#getOrCreatePath(railsPath)
+    const path = await this.#getPath(railsPath)
     const attestedClaimId = await path.getValidAttestedClaimId(fromChain)
     const sourcePool = await path.getSourcePool(fromChain, attestedClaimId)
     const sourcePoolTotalFraudulent = await path.totalFraudulent(fromChain, attestedClaimId)

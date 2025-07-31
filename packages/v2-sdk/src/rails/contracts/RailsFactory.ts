@@ -5,18 +5,8 @@ import {
   RailsGateway__factory,
   RailsPath__factory
 } from '#contracts/index.js'
-import { addresses } from '#addresses/index.js'
+import { getRailsGatewayAddress } from './utils.js'
 
-
-// TODO: Update with new config
-function getRailsGatewayAddress(chainId: string): string {
-  const chainAddresses = addresses[chainId].addresses
-  // TODO: Validate chainId
-  if (!chainAddresses || !chainAddresses.railsGateway) {
-    throw new Error(`RailsGateway address not found for chainId ${chainId}`)
-  }
-  return chainAddresses.railsGateway
-}
 
 export function getRailsGateway(chainId: string, signerOrProvider: Signer | providers.Provider): RailsGateway {
   const address = getRailsGatewayAddress(chainId)

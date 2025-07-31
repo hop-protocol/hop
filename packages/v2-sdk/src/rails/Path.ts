@@ -19,6 +19,10 @@ export class Path {
   readonly #counterpartGateway: RailsGatewayContract
 
   private constructor(path: RailsPath, chain: Chain, counterpartChain: Chain) {
+    if (chain.chainId === counterpartChain.chainId) {
+      throw new Error('Chain and counterpartChain cannot be the same')
+    }
+
     this.pathId = getPathId(path)
     this.path = path
     const gateway = { ...getRailsGateway(chain.chainId, chain.signerOrProvider), chain }
@@ -30,13 +34,11 @@ export class Path {
   }
 
   static getPath(pathOrPathId: RailsPath | string): Path | undefined {
-    let pathId: string
     if (typeof pathOrPathId === 'string') {
-      pathId = pathOrPathId
-    } else {
-      pathId = getPathId(pathOrPathId)
+      return Path.#pathCache.get(pathOrPathId)
     }
 
+    const pathId = getPathId(pathOrPathId)
     return Path.#pathCache.get(pathId)
   }
 
@@ -56,9 +58,6 @@ export class Path {
     if (Path.#pathCache.has(pathId)) {
       throw new Error(`Path with id ${pathId} already exists`)
     }
-
-    // TODO: validate chainIds and path chainIds
-    // i.e. make sure they are unique, etc.
 
     const pathInstance = new Path(path, chain, counterpartChain)
     Path.#pathCache.set(pathId, pathInstance)

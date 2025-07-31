@@ -8,6 +8,10 @@ export class Rails {
   readonly #counterpartChain: Chain
 
   constructor(chain: Chain, counterpartChain: Chain) {
+    if (chain.chainId === counterpartChain.chainId) {
+      throw new Error('Chain and counterpartChain cannot be the same')
+    }
+
     this.#chain = chain
     this.#counterpartChain = counterpartChain
   }
@@ -30,8 +34,7 @@ export class Rails {
     amount: BigNumberish, 
     toChain: Chain
   ): Promise<providers.TransactionResponse> {
-
-    // TODO: Require that the passed in chains match where appropriate
+    this.#validateInput(toChain)
 
     const fromChain = this.#getCounterpartChain(toChain)
     const railsPath = this.#getDefaultRailsPath(fromChain, toChain, token)
@@ -46,8 +49,7 @@ export class Rails {
     amount: BigNumberish, 
     toChain: Chain
   ): Promise<BigNumber> {
-
-    // TODO: Require that the passed in chains match where appropriate
+    this.#validateInput(toChain)
 
     const fromChain = this.#getCounterpartChain(toChain)
     const railsPath = this.#getDefaultRailsPath(fromChain, toChain, token)
@@ -56,6 +58,15 @@ export class Rails {
     const sourcePool = await path.getSourcePool(fromChain, attestedClaimId)
     const sourcePoolTotalFraudulent = await path.totalFraudulent(fromChain, attestedClaimId)
     return path.getAmountOut(amount, attestedClaimId, sourcePool, sourcePoolTotalFraudulent)
+  }
+
+  #validateInput(chain: Chain): void {
+    if (
+      chain.chainId !== this.#chain.chainId &&
+      chain.chainId !== this.#counterpartChain.chainId
+    ) {
+      throw new Error(`Chain ${chain.chainId} is not part of the path`)
+    }
   }
 
   #getCounterpartChain(chain: Chain): Chain {

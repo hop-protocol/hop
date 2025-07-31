@@ -1,12 +1,12 @@
 import { networks } from '../../config/networks/index.js'
-import type { Chain } from '../../config/networks/types.js'
+import type { ChainConfig } from '../../config/networks/types.js'
 
 /**
  * These utils are intended to be used internally by this module only.
  * They are not exported from the main module.
  */
 
-export function getChainByChainId(chainId: string): Chain {
+export function getChainByChainId(chainId: string): ChainConfig {
   chainId = preprocessChainId(chainId)
   for (const network of Object.values(networks)) {
     for (const chain of Object.values(network.chains)) {
@@ -15,13 +15,13 @@ export function getChainByChainId(chainId: string): Chain {
       }
     }
   }
-  throw new Error(`Chain with chainId ${chainId} not found`)
+  throw new Error(`ChainConfig with chainId ${chainId} not found`)
 }
 
-export function getChainByNetworkSlugAndChainSlug(networkSlug: string, chainSlug: string): Chain {
-  const chain: Chain | undefined = networks[networkSlug].chains?.[chainSlug]
+export function getChainByNetworkSlugAndChainSlug(networkSlug: string, chainSlug: string): ChainConfig {
+  const chain: ChainConfig | undefined = networks[networkSlug].chains?.[chainSlug]
   if (!chain) {
-    throw new Error(`Chain with networkSlug ${networkSlug} and chainSlug ${chainSlug} not found`)
+    throw new Error(`ChainConfig with networkSlug ${networkSlug} and chainSlug ${chainSlug} not found`)
   }
   return chain
 }

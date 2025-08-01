@@ -1,5 +1,4 @@
 export { Rails } from './Rails.js'
-export { Path } from './Path.js'
 export {
   getHop,
   getNextHopsHash,

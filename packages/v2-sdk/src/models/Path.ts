@@ -54,6 +54,13 @@ export class Path {
     }
     throw new Error(`Chain ${chain} is not in path ${this.pathId}`)
   }
+
+  hasChains(chain0: Chainish, chain1: Chainish): boolean {
+    return (
+      (this.chain0.eq(chain0) && this.chain1.eq(chain1)) ||
+      (this.chain1.eq(chain0) && this.chain0.eq(chain1))
+    )
+  }
 }
 
 export const getPath = Path.getPath

@@ -4,7 +4,7 @@ export type SharedChainConfig = {
   readonly image: string
   readonly nativeTokenSymbol: string
   readonly primaryColor: string
-  readonly isL1: boolean
+  readonly isLayer1: boolean
   readonly isRollup: boolean
   readonly isManualRelayOnL2: boolean
   readonly averageBlockTimeMs: number
@@ -12,8 +12,8 @@ export type SharedChainConfig = {
 
 export type ChainConfig = SharedChainConfig & {
   readonly chainId: string
-  readonly publicRpcUrl: string
-  readonly fallbackPublicRpcUrls: string[]
+  readonly rpcUrl: string
+  readonly fallbackRpcUrls: string[]
   readonly explorerUrls: string[]
   readonly subgraphUrl: string
   readonly etherscanApiUrl: string

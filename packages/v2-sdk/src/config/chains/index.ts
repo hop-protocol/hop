@@ -16,3 +16,8 @@ export const networks: Record<string, NetworkConfig> = {
     chains: sepoliaChains
   }
 }
+
+export const allChains = {
+  ...mainnetChains,
+  ...sepoliaChains
+}

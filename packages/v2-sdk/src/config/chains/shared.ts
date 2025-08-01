@@ -22,7 +22,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.ethereumImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#868dac',
-    isL1: true,
+    isLayer1: true,
     isRollup: false,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 12_000
@@ -33,7 +33,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.gnosisImage,
     nativeTokenSymbol: 'XDAI',
     primaryColor: '#46a4a1',
-    isL1: false,
+    isLayer1: false,
     isRollup: false,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 5_000
@@ -44,7 +44,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.polygonImage,
     nativeTokenSymbol: 'MATIC',
     primaryColor: '#8b57e1',
-    isL1: false,
+    isLayer1: false,
     isRollup: false,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 2_000
@@ -55,7 +55,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.arbitrumImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#289fef',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS
@@ -66,7 +66,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.optimismImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#e64b5d',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 2_000
@@ -77,7 +77,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.novaImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#ec772c',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS
@@ -88,7 +88,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.zksyncImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#8889f4',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS
@@ -99,7 +99,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.lineaImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#121212',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: 3_000
@@ -110,7 +110,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.scrollzkImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#e5d1b8',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: 3_000
@@ -121,7 +121,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.baseImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#0052ff',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 2_000
@@ -132,7 +132,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.polygonzkImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#8b57e1',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: true,
     averageBlockTimeMs: 3_000
@@ -143,7 +143,7 @@ export const sharedChain: Record<string, SharedChainConfig> = {
     image: assets.hubImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#e184b5',
-    isL1: false,
+    isLayer1: false,
     isRollup: true,
     isManualRelayOnL2: false,
     averageBlockTimeMs: 2_000

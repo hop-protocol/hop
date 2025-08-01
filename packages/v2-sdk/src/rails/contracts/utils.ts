@@ -1,4 +1,4 @@
-import { getGateway } from '#utils/gateways/index.js'
+import { getGateway } from '#utils/gateways.js'
 import {  type RailsPath } from '../types.js'
 
 // TODO: Update with new config

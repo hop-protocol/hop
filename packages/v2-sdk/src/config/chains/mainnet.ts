@@ -6,8 +6,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.ethereum,
     chainId: '1',
     parentChainId: NO_PARENT_CHAIN_ID,
-    publicRpcUrl: 'https://1rpc.io/eth',
-    fallbackPublicRpcUrls: [
+    rpcUrl: 'https://1rpc.io/eth',
+    fallbackRpcUrls: [
       'https://eth.drpc.org',
       'https://rpc.eth.gateway.fm',
       'https://rpc.ankr.com/eth',
@@ -24,8 +24,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.arbitrum,
     chainId: '42161',
     parentChainId: '1',
-    publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
-    fallbackPublicRpcUrls: [
+    rpcUrl: 'https://arb1.arbitrum.io/rpc',
+    fallbackRpcUrls: [
       'https://rpc.ankr.com/arbitrum',
       'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     ],
@@ -39,8 +39,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.optimism,
     chainId: '10',
     parentChainId: '1',
-    publicRpcUrl: 'https://1rpc.io/op',
-    fallbackPublicRpcUrls: [
+    rpcUrl: 'https://1rpc.io/op',
+    fallbackRpcUrls: [
       'https://optimism.drpc.org',
       'https://optimism-rpc.publicnode.com',
       'https://optimism.gateway.tenderly.co',
@@ -58,8 +58,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.gnosis,
     chainId: '100',
     parentChainId: '1',
-    publicRpcUrl: 'https://rpc.gnosis.gateway.fm',
-    fallbackPublicRpcUrls: [
+    rpcUrl: 'https://rpc.gnosis.gateway.fm',
+    fallbackRpcUrls: [
       'https://rpc.ankr.com/gnosis',
       'https://rpc.gnosischain.com'
     ],
@@ -76,8 +76,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.polygon,
     chainId: '137',
     parentChainId: '1',
-    publicRpcUrl: 'https://polygon-rpc.com',
-    fallbackPublicRpcUrls: [
+    rpcUrl: 'https://polygon-rpc.com',
+    fallbackRpcUrls: [
       'https://rpc.ankr.com/polygon'
     ],
     explorerUrls: ['https://polygonscan.com'],
@@ -95,8 +95,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.nova,
     chainId: '42170',
     parentChainId: '1',
-    publicRpcUrl: 'https://nova.arbitrum.io/rpc',
-    fallbackPublicRpcUrls: [],
+    rpcUrl: 'https://nova.arbitrum.io/rpc',
+    fallbackRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/nova',
     etherscanApiUrl: 'https://api-nova.arbiscan.io',
@@ -107,8 +107,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.base,
     chainId: '8453',
     parentChainId: '1',
-    publicRpcUrl: 'https://mainnet.base.org',
-    fallbackPublicRpcUrls: [],
+    rpcUrl: 'https://mainnet.base.org',
+    fallbackRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
     subgraphUrl: 'https://subgraph.hop.exchange/base',
     etherscanApiUrl: 'https://api.basescan.org',
@@ -119,8 +119,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.linea,
     chainId: '59144',
     parentChainId: '1',
-    publicRpcUrl: 'https://rpc.linea.build',
-    fallbackPublicRpcUrls: [],
+    rpcUrl: 'https://rpc.linea.build',
+    fallbackRpcUrls: [],
     explorerUrls: ['https://lineascan.build/'],
     subgraphUrl: 'https://subgraph.hop.exchange/linea',
     etherscanApiUrl: 'https://api.lineascan.build',
@@ -131,8 +131,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.polygonzk,
     chainId: '1101',
     parentChainId: '1',
-    publicRpcUrl: 'https://zkevm-rpc.com',
-    fallbackPublicRpcUrls: [],
+    rpcUrl: 'https://zkevm-rpc.com',
+    fallbackRpcUrls: [],
     explorerUrls: ['https://zkevm.polygonscan.com/'],
     subgraphUrl: 'https://subgraph.hop.exchange/polygonzk',
     etherscanApiUrl: 'https://api-zkevm.polygonscan.com',
@@ -143,8 +143,8 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.hub,
     chainId: '42069',
     parentChainId: '1',
-    publicRpcUrl: '',
-    fallbackPublicRpcUrls: [],
+    rpcUrl: '',
+    fallbackRpcUrls: [],
     explorerUrls: [],
     multicall: '',
     subgraphUrl: '',

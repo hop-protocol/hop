@@ -1,6 +1,6 @@
 import { type BigNumberish, BigNumber, constants, utils } from 'ethers'
 import type { HopStruct, RailsPath } from './types.js'
-import type { Chain, Token } from './types.js'
+import type { Chain, Token } from '#models/index.js'
 
 export function getHop(
   fromChainId: Chain,
@@ -16,9 +16,9 @@ export function getHop(
   return {
     pathId: getPathId({
       chainId: fromChainId.chainId,
-      token: fromToken.address,
+      token: fromToken.toString(),
       counterpartChainId: toChainId.chainId,
-      counterpartToken: toToken.address,
+      counterpartToken: toToken.toString(),
       initialReserve: BigNumber.from(amount)
     }),
     maxBonderFee: BigNumber.from(0),

@@ -1,13 +1,17 @@
 import { type BigNumberish, type providers, type CallOverrides, BigNumber, constants} from 'ethers'
 import type { HopStruct } from './types.js'
-import { type Chain, type Address, Token } from './types.js'
+import {
+  type Address,
+  type Chain,
+  type Path,
+  Token
+} from '#models/index.js'
 import {
   type IRailsGateway,
   type IRailsPath,
   getRailsGateway,
   getRailsPath
 } from './contracts/index.js'
-import { Path } from './types.js'
 
 export class Rails {
   readonly #gateways: Map<Chain, IRailsGateway> = new Map()
@@ -17,7 +21,7 @@ export class Rails {
       if (this.#gateways.has(chain)) {
         throw new Error(`Gateway for chain ${chain.chainId} already exists`)
       }
-      this.#gateways.set(chain, getRailsGateway(chain.chainId, chain.signerOrProvider))
+      this.#gateways.set(chain, getRailsGateway(chain.chainId, chain.provider))
     }
   }
 
@@ -26,15 +30,15 @@ export class Rails {
    */
 
   static getRailsGateway(chain: Chain): IRailsGateway {
-    return getRailsGateway(chain.chainId, chain.signerOrProvider)
+    return getRailsGateway(chain.chainId, chain.provider)
   }
 
   static getRailsPath(chain: Chain, addressOrToken: Address | Token): IRailsPath {
     const address = addressOrToken instanceof Token
-      ? addressOrToken.address
+      ? addressOrToken.addresses[chain.chainId]
       : addressOrToken
 
-    return getRailsPath(address, chain.signerOrProvider)
+    return getRailsPath(address.toString(), chain.provider)
   }
 
   #getGateway(chain: Chain): IRailsGateway {
@@ -59,7 +63,7 @@ export class Rails {
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(path, fromChain, toChain)
     const hops = this.#getDefaultHops(path, toChain)
-    return this.#getGateway(fromChain).send(to, amount, hops, overrides)
+    return this.#getGateway(fromChain).send(to.toString(), amount, hops, overrides)
   }
 
   async getAmountOut(
@@ -97,7 +101,7 @@ export class Rails {
       return false
     }
 
-    const fromChain = path.getOppositeChain(chain)
+    const fromChain = path.getCounterpartChain(chain)
     const fromPathContract = await this.#getRailsPathContract(path, fromChain)
     const isValidTransfer = fromPathContract.isValidTransfer(claimId)
     if (!isValidTransfer) {
@@ -120,7 +124,7 @@ export class Rails {
 
   async #getRailsPathContract(path: Path, chain: Chain): Promise<IRailsPath>{
     const railsPathAddress = await this.#getGateway(chain).getPath(path)
-    return getRailsPath(railsPathAddress, chain.signerOrProvider )
+    return getRailsPath(railsPathAddress, chain.provider )
   }
 
   #validateInput(path: Path, fromChain: Chain, toChain: Chain): void {

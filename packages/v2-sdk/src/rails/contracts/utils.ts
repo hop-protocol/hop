@@ -1,15 +1,4 @@
-import { getGateway } from '#utils/gateways.js'
 import {  type RailsPath } from '../types.js'
-
-// TODO: Update with new config
-export function getRailsGatewayAddress(chainId: string): string {
-  const chainAddresses = getGateway(chainId)
-  // TODO: Validate chainId
-  if (!chainAddresses || !chainAddresses.railsGateway) {
-    throw new Error(`RailsGateway address not found for chainId ${chainId}`)
-  }
-  return chainAddresses.railsGateway
-}
 
 // TODO: This should be done by the contract. Remove when it is
 export function formatPathInfo(pathInfo: any): RailsPath {

@@ -12,8 +12,8 @@ import { railsGatewayABI } from './abis/index.js'
 export type IRailsGateway = InstanceType<typeof RailsGateway>
 
 export class RailsGateway extends Contract {
-  static connect(address: string, signerOrProvider: Signer | providers.Provider): RailsGateway {
-    return new Contract(address, railsGatewayABI, signerOrProvider) as RailsGatewayContract
+  static connect(address: string, provider: Signer | providers.Provider): RailsGateway {
+    return new Contract(address, railsGatewayABI, provider) as RailsGatewayContract
   }
 
   async send(

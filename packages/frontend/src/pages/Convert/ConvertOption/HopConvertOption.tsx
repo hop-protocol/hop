@@ -123,6 +123,7 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
+    console.log('debug1')
     const isDeprecatedRouteWithdrawal = ['hUSDC.e', 'hMAGIC', 'DAI'].includes(token.symbol) && destNetwork?.slug === ChainSlug.Ethereum
 
     // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.

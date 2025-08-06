@@ -1,26 +1,35 @@
 import { type BigNumberish, BigNumber, constants, utils } from 'ethers'
-import type { HopStruct, RailsPath } from './types.js'
-import type { Chain, Token } from '#models/index.js'
+import type { HopStruct } from './contracts/index.js'
+import {
+  type Addressish,
+  type Chainish,
+  type Tokenish,
+  Chain,
+  Token
+} from '#models/index.js'
 
 export function getHop(
-  fromChainId: Chain,
-  fromToken: Token,
-  toChainId: Chain,
-  toToken: Token,
+  fromChainId: Chainish,
+  fromToken: Tokenish,
+  toChainId: Chainish,
+  toToken: Tokenish,
   amount: BigNumberish
 ): HopStruct {
+  // TODO: Correct validation??
   if (!fromChainId || !toChainId || !fromToken || !toToken) {
     throw new Error('Invalid parameters for getHop')
   }
 
+  const pathId = getPathId(
+    fromChainId,
+    fromToken.toString(),
+    toChainId,
+    toToken.toString(),
+    BigNumber.from(amount)
+  )
+
   return {
-    pathId: getPathId({
-      chainId: fromChainId.chainId,
-      token: fromToken.toString(),
-      counterpartChainId: toChainId.chainId,
-      counterpartToken: toToken.toString(),
-      initialReserve: BigNumber.from(amount)
-    }),
+    pathId,
     maxBonderFee: BigNumber.from(0),
     maxTotalSent: BigNumber.from(0),
     attestedClaimId: constants.HashZero,
@@ -55,18 +64,22 @@ export function getNextHopsHash(nextHops: HopStruct[]): string {
   return nextHopsHash
 }
 
-export function getPathId(path: RailsPath): string {
-  const { chainId, token: token0, counterpartChainId, counterpartToken: token1, initialReserve } = path
+// TODO: Maybe Path not path params?? oh wait maybe individuals
+export function getPathId(fromChainId: Chainish, fromToken: Tokenish, toChainId: Chainish, toToken: Tokenish, initialReserve: BigNumberish): string {
+  fromChainId = Chain.getChain(fromChainId).chainId
+  toChainId = Chain.getChain(toChainId).chainId
+  fromToken = Token.getToken(fromToken).toString()
+  toToken = Token.getToken(toToken).toString()
 
-  const chainId0 = Number(chainId.toString())
-  const chainId1 = Number(counterpartChainId.toString())
+  const chainId0 = Number(fromChainId.toString())
+  const chainId1 = Number(toChainId.toString())
 
   const isAscending = chainId0 < chainId1
 
   const chainIdA = isAscending ? chainId0 : chainId1
   const chainIdB = isAscending ? chainId1 : chainId0
-  const tokenA = isAscending ? token0 : token1
-  const tokenB = isAscending ? token1 : token0
+  const tokenA = isAscending ? fromToken : toToken
+  const tokenB = isAscending ? toToken : fromToken
 
   return utils.keccak256(
     utils.solidityPack(['uint256', 'address', 'uint256', 'address', 'uint256'], [
@@ -80,7 +93,7 @@ export function getPathId(path: RailsPath): string {
 }
 
 export function getTransferDataHash(
-  to: string,
+  to: Addressish,
   amount: BigNumberish,
   maxBonderFee: BigNumberish,
   attestedClaimId: string,

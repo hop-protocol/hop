@@ -1,27 +1,29 @@
 import { type BigNumberish, type providers, type CallOverrides, BigNumber, constants} from 'ethers'
-import type { HopStruct } from './types.js'
+import type { HopStruct } from './contracts/index.js'
 import {
-  type Address,
-  type Chain,
-  type Path,
-  Token
+  type Addressish,
+  type Pathish,
+  type Chainish,
+  Chain,
+  Path
 } from '#models/index.js'
 import {
-  type IRailsGateway,
-  type IRailsPath,
+  type RailsGateway,
+  type RailsPath,
   getRailsGateway,
   getRailsPath
 } from './contracts/index.js'
 
 export class Rails {
-  readonly #gateways: Map<Chain, IRailsGateway> = new Map()
+  readonly #gateways: Map<string, RailsGateway> = new Map()
 
   constructor(chains: Chain[]) {
     for (const chain of chains) {
-      if (this.#gateways.has(chain)) {
+      const chainId = chain.chainId.toString()
+      if (this.#gateways.has(chainId)) {
         throw new Error(`Gateway for chain ${chain.chainId} already exists`)
       }
-      this.#gateways.set(chain, getRailsGateway(chain.chainId, chain.provider))
+      this.#gateways.set(chainId, getRailsGateway(chain.chainId, chain.provider))
     }
   }
 
@@ -29,22 +31,11 @@ export class Rails {
    * Instantiation
    */
 
-  static getRailsGateway(chain: Chain): IRailsGateway {
-    return getRailsGateway(chain.chainId, chain.provider)
-  }
-
-  static getRailsPath(chain: Chain, addressOrToken: Address | Token): IRailsPath {
-    const address = addressOrToken instanceof Token
-      ? addressOrToken.addresses[chain.chainId]
-      : addressOrToken
-
-    return getRailsPath(address.toString(), chain.provider)
-  }
-
-  #getGateway(chain: Chain): IRailsGateway {
-    const gateway = this.#gateways.get(chain)
+  #getGateway(chain: Chainish): RailsGateway {
+    const chainId = Chain.getChain(chain).chainId.toString()
+    const gateway = this.#gateways.get(chainId)
     if (!gateway) {
-      throw new Error(`Gateway for chain ${chain.chainId} not found`)
+      throw new Error(`Gateway for chain ${chainId} not found`)
     }
     return gateway
   }
@@ -54,54 +45,55 @@ export class Rails {
    */
 
   async send(
-    path: Path,
-    fromChain: Chain,
-    toChain: Chain,
-    to: Address,
+    path: Pathish,
+    fromChain: Chainish,
+    toChain: Chainish,
+    to: Addressish,
     amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(path, fromChain, toChain)
-    const hops = this.#getDefaultHops(path, toChain)
-    return this.#getGateway(fromChain).send(to.toString(), amount, hops, overrides)
+    const hops = await this.#getDefaultHops(path, toChain)
+    return this.#getGateway(fromChain).send(to, amount, hops, overrides)
   }
 
   async getAmountOut(
-    path: Path,
-    fromChain: Chain,
-    toChain: Chain,
+    path: Pathish,
+    fromChain: Chainish,
+    toChain: Chainish,
     amount: BigNumberish,
     claimId: string,
     attestedClaimId?: string
   ): Promise<BigNumber> {
     this.#validateInput(path, fromChain, toChain)
 
-    attestedClaimId ??= await this.getValidHeadClaim(path, fromChain)
+    attestedClaimId ??= await this.getValidHeadClaimId(path, fromChain)
     const sourceGateway = this.#getGateway(fromChain)
-    const sourcePool = await sourceGateway.getSourcePool(attestedClaimId)
-    const sourcePoolTotalFraudulent = await sourceGateway.totalFraudulent()
-    return this.#getGateway(toChain).getAmountOut(path.pathId, amount, claimId, sourcePool, sourcePoolTotalFraudulent)
+    const pathContract = await this.#getRailsPathContract(path, fromChain)
+    const sourcePool = await pathContract.getSourcePool(attestedClaimId)
+    const sourcePoolTotalFraudulent = await pathContract.totalFraudulent()
+    return this.#getGateway(toChain).getAmountOut(path, amount, claimId, sourcePool, sourcePoolTotalFraudulent)
   }
 
-  async getValidHeadClaim(path: Path, chain: Chain): Promise<string> {
+  async getValidHeadClaimId(path: Pathish, chain: Chainish): Promise<string> {
     const pathContract = await this.#getRailsPathContract(path, chain)
-    const claimId = pathContract.getHeadClaim()
+    const claimId = await pathContract.getHeadClaimId()
 
     const isValid = await this.isValidClaim(path, chain, claimId)
     if (!isValid) {
-      throw new Error(`Claim ${claimId} is not valid on chain ${chain.chainId}`)
+      throw new Error(`Claim ${claimId} is not valid on chain ${Chain.getChain(chain).chainId}`)
     }
     return claimId
   }
 
-  async isValidClaim(path: Path, chain: Chain, claimId: string): Promise<boolean> {
+  async isValidClaim(path: Pathish, chain: Chainish, claimId: string): Promise<boolean> {
     const toPathContract = await this.#getRailsPathContract(path, chain)
     const isValidClaim = await toPathContract.isValidClaim(claimId)
     if (!isValidClaim) {
       return false
     }
 
-    const fromChain = path.getCounterpartChain(chain)
+    const fromChain = Path.getPath(path).getCounterpartChain(chain)
     const fromPathContract = await this.#getRailsPathContract(path, fromChain)
     const isValidTransfer = fromPathContract.isValidTransfer(claimId)
     if (!isValidTransfer) {
@@ -110,38 +102,38 @@ export class Rails {
     return true
   }
 
-  async isClaimPosted(path: Path, toChain: Chain, claimId: string): Promise<boolean> {
+  async isClaimPosted(path: Pathish, toChain: Chainish, claimId: string): Promise<boolean> {
     const railsPath = await this.#getRailsPathContract(path, toChain)
     const claim = await railsPath.getClaim(claimId)
     return claim.createdAt.gt(0)
   }
 
-  async isClaimBonded(path: Path, toChain: Chain, claimId: string): Promise<boolean> {
+  async isClaimBonded(path: Pathish, toChain: Chainish, claimId: string): Promise<boolean> {
     const railsPath = await this.#getRailsPathContract(path, toChain)
     const claim = await railsPath.getClaim(claimId)
     return claim.bondedBy !== constants.AddressZero
   }
 
-  async #getRailsPathContract(path: Path, chain: Chain): Promise<IRailsPath>{
+  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
     const railsPathAddress = await this.#getGateway(chain).getPath(path)
-    return getRailsPath(railsPathAddress, chain.provider )
+    return getRailsPath(railsPathAddress, Chain.getChain(chain).provider )
   }
 
-  #validateInput(path: Path, fromChain: Chain, toChain: Chain): void {
+  #validateInput(path: Pathish, fromChain: Chainish, toChain: Chainish): void {
     if (
-      fromChain.eq(toChain) ||
-      toChain.eq(fromChain) ||
-      !path.hasChains(fromChain, toChain)
+      Chain.getChain(fromChain).eq(toChain) ||
+      Chain.getChain(toChain).eq(fromChain) ||
+      !Path.getPath(path).hasChains(fromChain, toChain)
     ) {
-      throw new Error(`Path does not contain chains ${fromChain.chainId} and ${toChain.chainId}`)
+      throw new Error(`Path does not contain chains ${Chain.getChain(fromChain).chainId} and ${Chain.getChain(toChain).chainId}`)
     }
   }
 
-  #getDefaultHops(path: Path, toChain: Chain): HopStruct[] {
-    const attestedClaimId = this.getValidHeadClaim(path, toChain)
+  async #getDefaultHops(path: Pathish, toChain: Chainish): Promise<HopStruct[]> {
+    const attestedClaimId = await this.getValidHeadClaimId(path, toChain)
     return [
       {
-        pathId: path.pathId,
+        pathId: Path.getPath(path).pathId,
         maxBonderFee: BigNumber.from(0), // Placeholder value
         maxTotalSent: BigNumber.from(0), // Placeholder value
         attestedClaimId,

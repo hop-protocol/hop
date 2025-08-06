@@ -1,4 +1,4 @@
 export * from './RailsFactory.js'
-export type { IRailsGateway } from './RailsGateway.js'
-export type { IRailsPath } from './RailsPath.js'
-export { formatPathInfo } from './utils.js'
+export type { RailsGateway } from './RailsGateway.js'
+export type { RailsPath } from './RailsPath.js'
+export type { Claim, HopStruct } from './types.js'

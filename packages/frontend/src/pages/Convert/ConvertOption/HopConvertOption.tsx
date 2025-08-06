@@ -69,6 +69,7 @@ class HopConvertOption extends ConvertOption {
 
     // note: USDC.E out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
     // note: MAGIC out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    console.log('debug0')
     const isDeprecatedRouteWithdrawal = ['USDC.e', 'MAGIC', 'DAI'].includes(l1TokenSymbol) && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
     if (isDeprecatedRouteWithdrawal) {
       if (BigNumber.from(bonderFee ?? 0).eq(0)) {
@@ -122,7 +123,8 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
-    const isDeprecatedRouteWithdrawal = ['hUSDC.e', 'hMAGIC'].includes(token.symbol) && destNetwork?.slug === ChainSlug.Ethereum
+    console.log('debug1')
+    const isDeprecatedRouteWithdrawal = ['hUSDC.e', 'hMAGIC', 'DAI'].includes(token.symbol) && destNetwork?.slug === ChainSlug.Ethereum
 
     // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
     if (isDeprecatedRouteWithdrawal) {

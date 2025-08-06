@@ -6,11 +6,11 @@ import {
   type Addressish,
   type Chainish,
   Address,
-  Chain
+  getChain
 } from '#models/index.js'
 
 export function getRailsGateway(chainId: Chainish, provider: Signer | providers.Provider): RailsGateway {
-  const address = getGateway(Chain.getChain(chainId).chainId)
+  const address = getGateway(getChain(chainId).chainId)
   if (!address || !address.railsGateway) {
     throw new Error(`RailsGateway address not found for chainId ${chainId}`)
   }

@@ -4,8 +4,8 @@ import {
   type Addressish,
   type Pathish,
   type Chainish,
-  Chain,
-  Path
+  getChain,
+  getPath
 } from '#models/index.js'
 import {
   type RailsGateway,
@@ -17,8 +17,9 @@ import {
 export class Rails {
   readonly #gateways: Map<string, RailsGateway> = new Map()
 
-  constructor(chains: Chain[]) {
-    for (const chain of chains) {
+  constructor(chains: Chainish[]) {
+    for (let chain of chains) {
+      chain = getChain(chain)
       const chainId = chain.chainId.toString()
       if (this.#gateways.has(chainId)) {
         throw new Error(`Gateway for chain ${chain.chainId} already exists`)
@@ -32,7 +33,7 @@ export class Rails {
    */
 
   #getGateway(chain: Chainish): RailsGateway {
-    const chainId = Chain.getChain(chain).chainId.toString()
+    const chainId = getChain(chain).chainId
     const gateway = this.#gateways.get(chainId)
     if (!gateway) {
       throw new Error(`Gateway for chain ${chainId} not found`)
@@ -81,7 +82,7 @@ export class Rails {
 
     const isValid = await this.isValidClaim(path, chain, claimId)
     if (!isValid) {
-      throw new Error(`Claim ${claimId} is not valid on chain ${Chain.getChain(chain).chainId}`)
+      throw new Error(`Claim ${claimId} is not valid on chain ${getChain(chain).chainId}`)
     }
     return claimId
   }
@@ -93,7 +94,7 @@ export class Rails {
       return false
     }
 
-    const fromChain = Path.getPath(path).getCounterpartChain(chain)
+    const fromChain = getPath(path).getCounterpartChain(chain)
     const fromPathContract = await this.#getRailsPathContract(path, fromChain)
     const isValidTransfer = fromPathContract.isValidTransfer(claimId)
     if (!isValidTransfer) {
@@ -116,16 +117,16 @@ export class Rails {
 
   async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
     const railsPathAddress = await this.#getGateway(chain).getPath(path)
-    return getRailsPath(railsPathAddress, Chain.getChain(chain).provider )
+    return getRailsPath(railsPathAddress, getChain(chain).provider )
   }
 
   #validateInput(path: Pathish, fromChain: Chainish, toChain: Chainish): void {
     if (
-      Chain.getChain(fromChain).eq(toChain) ||
-      Chain.getChain(toChain).eq(fromChain) ||
-      !Path.getPath(path).hasChains(fromChain, toChain)
+      getChain(fromChain).eq(toChain) ||
+      getChain(toChain).eq(fromChain) ||
+      !getPath(path).hasChains(fromChain, toChain)
     ) {
-      throw new Error(`Path does not contain chains ${Chain.getChain(fromChain).chainId} and ${Chain.getChain(toChain).chainId}`)
+      throw new Error(`Path does not contain chains ${getChain(fromChain).chainId} and ${getChain(toChain).chainId}`)
     }
   }
 
@@ -133,7 +134,7 @@ export class Rails {
     const attestedClaimId = await this.getValidHeadClaimId(path, toChain)
     return [
       {
-        pathId: Path.getPath(path).pathId,
+        pathId: getPath(path).pathId,
         maxBonderFee: BigNumber.from(0), // Placeholder value
         maxTotalSent: BigNumber.from(0), // Placeholder value
         attestedClaimId,

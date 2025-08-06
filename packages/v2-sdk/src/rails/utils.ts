@@ -4,8 +4,8 @@ import {
   type Addressish,
   type Chainish,
   type Tokenish,
-  Chain,
-  Token
+  getChain,
+  getToken
 } from '#models/index.js'
 
 export function getHop(
@@ -66,10 +66,10 @@ export function getNextHopsHash(nextHops: HopStruct[]): string {
 
 // TODO: Maybe Path not path params?? oh wait maybe individuals
 export function getPathId(fromChainId: Chainish, fromToken: Tokenish, toChainId: Chainish, toToken: Tokenish, initialReserve: BigNumberish): string {
-  fromChainId = Chain.getChain(fromChainId).chainId
-  toChainId = Chain.getChain(toChainId).chainId
-  fromToken = Token.getToken(fromToken).toString()
-  toToken = Token.getToken(toToken).toString()
+  fromChainId = getChain(fromChainId).chainId
+  toChainId = getChain(toChainId).chainId
+  fromToken = getToken(fromToken).toString()
+  toToken = getToken(toToken).toString()
 
   const chainId0 = Number(fromChainId.toString())
   const chainId1 = Number(toChainId.toString())

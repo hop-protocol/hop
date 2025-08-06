@@ -10,7 +10,8 @@ import {
   type Addressish,
   type Pathish,
   Address,
-  Path
+  Path,
+  getPath
 } from '#models/index.js'
 import type { RailsGateway as RailsGatewayContract, HopStruct } from './types/index.js'
 import { railsGatewayABI } from './abis/index.js'
@@ -52,7 +53,7 @@ export class RailsGateway {
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.postClaim(
-      Path.getPath(pathId).pathId,
+      getPath(pathId).pathId,
       claimId,
       Address.getAddress(to).toString(),
       amount,
@@ -92,7 +93,7 @@ export class RailsGateway {
   ): Promise<BigNumber> {
     // TODO: Validation and logging
     return this.#contract.getAmountOut(
-      Path.getPath(pathId).pathId,
+      getPath(pathId).pathId,
       amount,
       attestedClaimId,
       sourcePool,
@@ -103,6 +104,6 @@ export class RailsGateway {
 
   async getPath(pathId: Pathish, overrides?: CallOverrides): Promise<string> {
     // TODO: Validation and logging
-    return this.#contract.getPath(Path.getPath(pathId).pathId, overrides)
+    return this.#contract.getPath(getPath(pathId).pathId, overrides)
   }
 }

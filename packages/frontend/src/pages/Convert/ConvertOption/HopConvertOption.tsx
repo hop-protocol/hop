@@ -69,7 +69,7 @@ class HopConvertOption extends ConvertOption {
 
     // note: USDC.E out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
     // note: MAGIC out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
-    const isDeprecatedRouteWithdrawal = ['USDC.e', 'MAGIC'].includes(l1TokenSymbol) && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
+    const isDeprecatedRouteWithdrawal = ['USDC.e', 'MAGIC', 'DAI'].includes(l1TokenSymbol) && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
     if (isDeprecatedRouteWithdrawal) {
       if (BigNumber.from(bonderFee ?? 0).eq(0)) {
         const isHTokenSend = true

@@ -1,6 +1,6 @@
 import { Address } from './Address.js'
 import type { TokenConfig } from '#config/tokens/types.js'
-import { tokenConfigs } from '../config/tokens/tokens.js'
+import { tokenConfigs } from '#config/tokens/tokens.js'
 
 export type Tokenish = Token | TokenConfig | string
 

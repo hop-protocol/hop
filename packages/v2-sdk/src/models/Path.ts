@@ -1,7 +1,7 @@
 import type { BigNumber } from 'ethers'
-import type { PathConfig } from '../config/paths/types.js'
+import type { PathConfig } from '#config/paths/types.js'
 import { Address } from './Address.js'
-import { allPaths } from '../config/paths/index.js'
+import { allPaths } from '#config/paths/index.js'
 import { type Chainish, Chain } from './Chain.js'
 
 export type Pathish = Path | PathConfig | string

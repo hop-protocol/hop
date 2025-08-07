@@ -15,11 +15,6 @@ export function getHop(
   toToken: Tokenish,
   amount: BigNumberish
 ): HopStruct {
-  // TODO: Correct validation??
-  if (!fromChainId || !toChainId || !fromToken || !toToken) {
-    throw new Error('Invalid parameters for getHop')
-  }
-
   const pathId = getPathId(
     fromChainId,
     fromToken.toString(),

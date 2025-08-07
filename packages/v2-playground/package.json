@@ -68,6 +68,6 @@
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix"
+    "lint": "eslint ."
   }
 }

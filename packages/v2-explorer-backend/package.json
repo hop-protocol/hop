@@ -24,7 +24,7 @@
     "start:worker": "node ./dist/cli worker --api-server --env=.env",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
     "build": "tsc -p tsconfig.json && rm -rf dist/pgDb/migrations/sql && cp -r src/pgDb/migrations/sql dist/pgDb/migrations && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/package.json",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "version": "pnpm version",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf test-db"

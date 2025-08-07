@@ -2,7 +2,7 @@ import { NO_PARENT_CHAIN_ID, sharedChain } from './shared.js'
 import type { ChainConfig } from './types.js'
 
 export const chains: Record<string, ChainConfig> = {
-  ethereum: {
+  '1': {
     ...sharedChain.ethereum,
     chainId: '1',
     parentChainId: NO_PARENT_CHAIN_ID,
@@ -20,7 +20,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  arbitrum: {
+  '42161': {
     ...sharedChain.arbitrum,
     chainId: '42161',
     parentChainId: '1',
@@ -35,7 +35,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  optimism: {
+  '10': {
     ...sharedChain.optimism,
     chainId: '10',
     parentChainId: '1',
@@ -54,7 +54,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  gnosis: {
+  '100': {
     ...sharedChain.gnosis,
     chainId: '100',
     parentChainId: '1',
@@ -72,7 +72,7 @@ export const chains: Record<string, ChainConfig> = {
       minGasPrice: 1500000000 // 1.5 gwei
     }
   },
-  polygon: {
+  '137': {
     ...sharedChain.polygon,
     chainId: '137',
     parentChainId: '1',
@@ -91,7 +91,7 @@ export const chains: Record<string, ChainConfig> = {
     },
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
-  nova: {
+  '42170': {
     ...sharedChain.nova,
     chainId: '42170',
     parentChainId: '1',
@@ -103,7 +103,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  base: {
+  '8453': {
     ...sharedChain.base,
     chainId: '8453',
     parentChainId: '1',
@@ -115,7 +115,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     txOverrides: {}
   },
-  linea: {
+  '59144': {
     ...sharedChain.linea,
     chainId: '59144',
     parentChainId: '1',
@@ -127,7 +127,7 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  polygonzk: {
+  '1101': {
     ...sharedChain.polygonzk,
     chainId: '1101',
     parentChainId: '1',
@@ -139,17 +139,18 @@ export const chains: Record<string, ChainConfig> = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {}
   },
-  hub: {
-    ...sharedChain.hub,
-    chainId: '42069',
-    parentChainId: '1',
-    rpcUrl: '',
-    fallbackRpcUrls: [],
-    explorerUrls: [],
-    multicall: '',
-    subgraphUrl: '',
-    etherscanApiUrl: '',
-    isRollup: true,
-    txOverrides: {}
-  }
+  // TODO: Update chainId so it does not overwrite the hub on Sepolia
+  // '42069': {
+  //   ...sharedChain.hub,
+  //   chainId: '42069',
+  //   parentChainId: '1',
+  //   rpcUrl: '',
+  //   fallbackRpcUrls: [],
+  //   explorerUrls: [],
+  //   multicall: '',
+  //   subgraphUrl: '',
+  //   etherscanApiUrl: '',
+  //   isRollup: true,
+  //   txOverrides: {}
+  // }
 }

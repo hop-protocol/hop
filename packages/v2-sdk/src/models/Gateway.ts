@@ -1,4 +1,4 @@
-import { type GatewayConfig, gateways } from '#config/gateways/index.js'
+import { type GatewayConfig, allGateways } from '#config/gateways/index.js'
 import { type Chain, getChain } from './Chain.js'
 import { type Address, getAddress } from './Address.js'
 
@@ -30,7 +30,7 @@ export class Gateway {
       return gateway
     }
     if (typeof gateway === 'string') {
-      const gatewayConfig = gateways[gateway]
+      const gatewayConfig = allGateways[gateway]
       if (!gatewayConfig) {
         throw new Error(`Gateway with chainId "${gateway}" not found`)
       }
@@ -40,7 +40,7 @@ export class Gateway {
   }
 
   static getGateways(): Gateway[] {
-    return Object.values(gateways).map(config => new Gateway(config))
+    return Object.values(allGateways).map(config => new Gateway(config))
   }
 }
 

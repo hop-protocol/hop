@@ -4,7 +4,7 @@ import { gateways as sepoliaGateways } from './sepolia.js'
 
 export type { GatewayConfig }
 
-export const gateways: Record<string, GatewayConfig> = {
+export const allGateways: Record<string, GatewayConfig> = {
   ...mainnetGateways,
   ...sepoliaGateways
 }

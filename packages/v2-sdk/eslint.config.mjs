@@ -1,6 +1,8 @@
 import baseConfig from '../../eslint.config.mjs'
 import tseslint from 'typescript-eslint'
 
+// TODO: All to be moved to top-level after discussion.
+
 export default tseslint.config(
   ...baseConfig,
   {

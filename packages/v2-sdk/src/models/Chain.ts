@@ -90,11 +90,11 @@ export class Chain {
     )
   }
 
-  toString() {
+  toString(): string {
     return this.name
   }
 
-  eq(otherChain: Chainish) {
+  eq(otherChain: Chainish): boolean {
     return this.chainId === Chain.getChain(otherChain).chainId
   }
 }

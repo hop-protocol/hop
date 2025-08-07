@@ -69,6 +69,8 @@ export default tseslint.config(
       '@stylistic/semi': ['error', 'never', { 'beforeStatementContinuationChars': 'never'}],
       'no-constant-condition': ['error', { 'checkLoops': false }],
       '@typescript-eslint/unbound-method': ['error', { 'ignoreStatic': true, }],
+      '@typescript-eslint/explicit-function-return-type': 'error',
+
       /**
        * Custom
        */

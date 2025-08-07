@@ -50,7 +50,7 @@ export class Token {
     return tokenConfigs[symbol] !== undefined
   }
 
-  eq(otherToken: Token) {
+  eq(otherToken: Token): boolean {
     return otherToken.symbol === this.symbol
   }
 }

@@ -16,7 +16,7 @@ export function getProviderWithFallbacks (rpcUrls: string[]): any {
   // https://github.com/ethers-io/ethers.js/discussions/3500
 
   for (const url of rpcUrls) {
-    const provider = () => new RetryProvider({
+    const provider = (): RetryProvider => new RetryProvider({
       url,
       timeout,
       throttleLimit,
@@ -44,7 +44,7 @@ export class FallbackProvider implements providers.Provider {
     return getProviderWithFallbacks(urls)
   }
 
-  get providers () {
+  get providers (): any[] {
     return this._providersFn.map((p: any) => {
       if (typeof p === 'function') {
         return p()
@@ -53,7 +53,7 @@ export class FallbackProvider implements providers.Provider {
     })
   }
 
-  get connection () {
+  get connection (): providers.Provider {
     return (this.getActiveProvider() as any).connection
   }
 
@@ -71,7 +71,7 @@ export class FallbackProvider implements providers.Provider {
     return this._providers[this.activeIndex]
   }
 
-  async tryProvider (fn: any) {
+  async tryProvider (fn: any): Promise<any> {
     return fn().catch((err: any) => {
       if (/(noNetwork|rate limit|SERVER_ERROR)/gi.test(err.message)) {
         // console.error('tryProvider error:', err)

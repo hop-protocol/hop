@@ -103,7 +103,7 @@ export class Rails {
 
     const fromChain = getPath(path).getCounterpartChain(chain)
     const fromPathContract = await this.#getRailsPathContract(path, fromChain)
-    const isValidTransfer = fromPathContract.isValidTransfer(claimId)
+    const isValidTransfer = await fromPathContract.isValidTransfer(claimId)
     if (!isValidTransfer) {
       return false
     }

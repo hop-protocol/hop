@@ -9,7 +9,4 @@ export default tseslint.config(
        * Overrides from base
        */
       '@typescript-eslint/consistent-type-imports': 'error',
-    }
-  }
-)
-
+      '@typescript-eslint/no-base-to-string': 'error',

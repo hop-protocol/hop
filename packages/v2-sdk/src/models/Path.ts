@@ -52,7 +52,7 @@ export class Path {
     } else if (_chain.chainId === this.chain1.chainId) {
       return this.chain0
     }
-    throw new Error(`Chain ${chain} is not in path ${this.pathId}`)
+    throw new Error(`Chain ${JSON.stringify(chain)} is not in path ${this.pathId}`)
   }
 
   hasChains(chain0: Chainish, chain1: Chainish): boolean {

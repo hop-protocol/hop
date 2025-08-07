@@ -1,6 +1,4 @@
-import { ethers } from 'ethers'
 import { ChainConfig } from '#config/chains/types.js'
-import { FallbackProvider } from '#provider/index.js'
 import { networks, allChains } from '#config/chains/index.js'
 
 export type Chainish = Chain | ChainConfig | string
@@ -17,7 +15,6 @@ export class Chain {
   readonly averageBlockTimeMs: number
 
   readonly chainId: string
-  readonly provider: ethers.providers.Provider
   readonly rpcUrl: string
   readonly fallbackRpcUrls: string[]
   readonly explorerUrl: string
@@ -42,7 +39,6 @@ export class Chain {
     this.averageBlockTimeMs = config.averageBlockTimeMs
 
     this.chainId = config.chainId
-    this.provider = FallbackProvider.fromUrls([config.rpcUrl, ...config.fallbackRpcUrls])
     this.rpcUrl = config.rpcUrl
     this.fallbackRpcUrls = config.fallbackRpcUrls ?? []
     this.explorerUrl = config.explorerUrls[0]

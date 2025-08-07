@@ -1,5 +1,5 @@
 import { utils } from 'ethers'
-import { PathConfig } from './types.js'
+import type { PathConfig } from './types.js'
 
 export const paths: Record<string, PathConfig> = {
   // MOCK: Sepolia to Optimism Sepolia

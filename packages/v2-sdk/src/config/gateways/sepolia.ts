@@ -1,4 +1,4 @@
-import { GatewayConfig } from './types.js'
+import type { GatewayConfig } from './types.js'
 
 export const gateways: Record<string, GatewayConfig> = {
   '11155111': { // Seploia

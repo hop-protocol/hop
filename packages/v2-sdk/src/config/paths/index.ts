@@ -1,4 +1,4 @@
-import { PathConfig } from './types.js'
+import type { PathConfig } from './types.js'
 import { paths as mainnetPaths } from './mainnet.js'
 import { paths as sepoliaPaths } from './sepolia.js'
 

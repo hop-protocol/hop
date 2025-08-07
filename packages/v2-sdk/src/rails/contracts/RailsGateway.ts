@@ -1,9 +1,9 @@
 import {
+  type BigNumber,
   type BigNumberish,
+  type providers,
   type CallOverrides,
-  BigNumber,
-  Contract,
-  providers
+  Contract
 } from 'ethers'
 import {
   type Addressish,

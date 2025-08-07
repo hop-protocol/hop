@@ -1,4 +1,4 @@
-import { ChainConfig } from '#config/chains/types.js'
+import type { ChainConfig } from '#config/chains/types.js'
 import { allNetworks, allChains } from '#config/chains/index.js'
 
 export type Chainish = Chain | ChainConfig | string

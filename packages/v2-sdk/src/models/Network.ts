@@ -1,5 +1,5 @@
 import { Chain } from './Chain.js'
-import { NetworkConfig } from '../config/chains/types.js'
+import type { NetworkConfig } from '../config/chains/types.js'
 import { allNetworks } from '../config/chains/index.js'
 
 export type Networkish = Network | NetworkConfig | string

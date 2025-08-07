@@ -1,2 +1,15 @@
 import baseConfig from '../../eslint.config.mjs'
-export default baseConfig
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  ...baseConfig,
+  {
+    rules: {
+      /**
+       * Overrides from base
+       */
+      '@typescript-eslint/consistent-type-imports': 'error',
+    }
+  }
+)
+

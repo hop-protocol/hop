@@ -64,7 +64,6 @@ export function getNextHopsHash(nextHops: HopStruct[]): string {
   return nextHopsHash
 }
 
-// TODO: Maybe Path not path params?? oh wait maybe individuals
 export function getPathId(fromChainId: Chainish, fromToken: Tokenish, toChainId: Chainish, toToken: Tokenish, initialReserve: BigNumberish): string {
   fromChainId = getChain(fromChainId).chainId
   toChainId = getChain(toChainId).chainId

@@ -297,6 +297,7 @@ export const abi = [
       },
     ],
     stateMutability: "view",
+  // eslint-disable-next-line max-lines
   },
   {
     type: "function",

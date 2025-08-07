@@ -2,9 +2,11 @@ import { promiseTimeout } from './promiseTimeout.js'
 import { RATE_LIMIT_MAX_RETRIES, RPC_TIMEOUT_SECONDS } from '#config/index.js'
 import { wait } from './wait.js'
 
+// eslint-disable-next-line max-lines-per-function
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${Date.now()}`
   const logPrefix = `ratelimitRetry-${id}`
+  // eslint-disable-next-line
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
     const retry = (): any => promiseTimeout(fn(...args), RPC_TIMEOUT_SECONDS * 1000)

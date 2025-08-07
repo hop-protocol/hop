@@ -72,7 +72,7 @@ export class Chain {
       }
       return decimal.toString()
     }
-  
+
     const decimal = parseInt(chainId, 10)
     if (isNaN(decimal)) {
       throw new Error(`Invalid decimal chainId: ${chainId}`)

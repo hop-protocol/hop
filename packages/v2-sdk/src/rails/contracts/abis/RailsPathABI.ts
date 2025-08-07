@@ -297,6 +297,7 @@ export const abi = [
         type: "tuple",
         internalType: "struct Claim",
         components: [
+          // eslint-disable-next-line max-lines
           {
             name: "createdAt",
             type: "uint256",

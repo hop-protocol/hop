@@ -1,4 +1,4 @@
-import { type BigNumberish, type providers, type CallOverrides, BigNumber, constants} from 'ethers'
+import { type BigNumberish, type providers, type CallOverrides, BigNumber, constants } from 'ethers'
 import type { HopStruct } from './contracts/index.js'
 import {
   type Addressish,
@@ -10,21 +10,28 @@ import {
 import {
   type RailsGateway,
   type RailsPath,
-  getRailsGateway,
-  getRailsPath
+  getRailsGateway
 } from './contracts/index.js'
+import { type RPCClient } from './types.js'
 
 export class Rails {
   readonly #gateways: Map<string, RailsGateway> = new Map()
 
-  constructor(chains: Chainish[]) {
-    for (let chain of chains) {
-      chain = getChain(chain)
-      const chainId = chain.chainId.toString()
-      if (this.#gateways.has(chainId)) {
+  // TODO: Validate chainIds match RPC client chainIds. This is an async operation
+  // so it might be better to do this in the constructor.
+  constructor(chains: Chainish[], rpcClients: RPCClient[]) {
+    if (chains.length !== rpcClients.length) {
+      throw new Error('Chains and RPC clients must have the same length')
+    }
+
+    for (let i = 0; i < chains.length; i++) {
+      const chain = getChain(chains[i])
+      const rpcClient = rpcClients[i]
+
+      if (this.#gateways.has(chain.chainId)) {
         throw new Error(`Gateway for chain ${chain.chainId} already exists`)
       }
-      this.#gateways.set(chainId, getRailsGateway(chain.chainId, chain.provider))
+      this.#gateways.set(chain.chainId, getRailsGateway(chain.chainId, rpcClient))
     }
   }
 
@@ -116,8 +123,7 @@ export class Rails {
   }
 
   async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
-    const railsPathAddress = await this.#getGateway(chain).getPath(path)
-    return getRailsPath(railsPathAddress, getChain(chain).provider )
+    return this.#getGateway(chain).getPath(path)
   }
 
   #validateInput(path: Pathish, fromChain: Chainish, toChain: Chainish): void {

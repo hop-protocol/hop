@@ -1,5 +1,4 @@
 import {
-  type Signer,
   type BigNumberish,
   type CallOverrides,
   BigNumber,
@@ -9,19 +8,21 @@ import {
 import {
   type Addressish,
   type Pathish,
-  Path,
   getPath,
   getAddress
 } from '#models/index.js'
 import type { RailsGateway as RailsGatewayContract, HopStruct } from './types/index.js'
+import type { RailsPath } from './RailsPath.js'
 import { railsGatewayABI } from './abis/index.js'
+import type { RPCClient } from '../types.js'
+import { getRailsPath } from './RailsFactory.js'
 
 export class RailsGateway {
   readonly #contract: RailsGatewayContract
 
-  constructor(address: Addressish, provider: Signer | providers.Provider) {
+  constructor(address: Addressish, rpcClient: RPCClient) {
     address = getAddress(address).toString()
-    this.#contract = new Contract(address, railsGatewayABI, provider) as RailsGatewayContract
+    this.#contract = new Contract(address, railsGatewayABI, rpcClient) as RailsGatewayContract
   }
 
   async send(
@@ -75,7 +76,7 @@ export class RailsGateway {
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.bond(
-      Path.getPath(pathId).pathId,
+      getPath(pathId).pathId,
       claimId,
       bonderFee,
       nextHops,
@@ -102,8 +103,9 @@ export class RailsGateway {
     )
   }
 
-  async getPath(pathId: Pathish, overrides?: CallOverrides): Promise<string> {
+  async getPath(pathId: Pathish, overrides?: CallOverrides): Promise<RailsPath> {
     // TODO: Validation and logging
-    return this.#contract.getPath(getPath(pathId).pathId, overrides)
+    const pathAddress = await this.#contract.getPath(getPath(pathId).pathId, overrides)
+    return getRailsPath(pathAddress, this.#contract.signer)
   }
 }

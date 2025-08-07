@@ -7,7 +7,7 @@ import {
 } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
-import { type Addressish, Address } from '#models/index.js'
+import { type Addressish, getAddress } from '#models/index.js'
 
 import { railsPathABI } from './abis/index.js'
 
@@ -15,7 +15,7 @@ export class RailsPath {
   readonly #contract: RailsPathContract
 
   constructor(address: Addressish, provider: Signer | providers.Provider) {
-    address = Address.getAddress(address).toString()
+    address = getAddress(address).toString()
     this.#contract = new Contract(address, railsPathABI, provider) as RailsPathContract
   }
   async getClaim(claimId: string, overrides?: CallOverrides): Promise<Claim> {

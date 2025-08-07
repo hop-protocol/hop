@@ -1,5 +1,6 @@
 export * from './Address.js'
 export * from './Chain.js'
+export * from './Gateway.js'
 export * from './Network.js'
 export * from './Path.js'
 export * from './Token.js'

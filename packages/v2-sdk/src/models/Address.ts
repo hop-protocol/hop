@@ -35,3 +35,5 @@ export class Address {
     return Address.getAddress(address).toLowercase() === this.toLowercase()
   }
 }
+
+export const getAddress = Address.getAddress

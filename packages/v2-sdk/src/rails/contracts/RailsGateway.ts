@@ -9,9 +9,9 @@ import {
 import {
   type Addressish,
   type Pathish,
-  Address,
   Path,
-  getPath
+  getPath,
+  getAddress
 } from '#models/index.js'
 import type { RailsGateway as RailsGatewayContract, HopStruct } from './types/index.js'
 import { railsGatewayABI } from './abis/index.js'
@@ -20,7 +20,7 @@ export class RailsGateway {
   readonly #contract: RailsGatewayContract
 
   constructor(address: Addressish, provider: Signer | providers.Provider) {
-    address = Address.getAddress(address).toString()
+    address = getAddress(address).toString()
     this.#contract = new Contract(address, railsGatewayABI, provider) as RailsGatewayContract
   }
 
@@ -32,7 +32,7 @@ export class RailsGateway {
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.send(
-      Address.getAddress(to).toString(),
+      getAddress(to).toString(),
       amount,
       hops,
       overrides
@@ -55,7 +55,7 @@ export class RailsGateway {
     return this.#contract.postClaim(
       getPath(pathId).pathId,
       claimId,
-      Address.getAddress(to).toString(),
+      getAddress(to).toString(),
       amount,
       maxBonderFee,
       attestedClaimId,

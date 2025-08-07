@@ -11,7 +11,7 @@ export class Token {
   readonly image: string
   readonly coingeckoId: string
   readonly isStableCoin: boolean
-  readonly addresses: { [key: string]: Address } = {}
+  readonly addresses: Record<string, Address> = {}
 
   constructor(props: TokenConfig) {
     this.symbol = props.symbol

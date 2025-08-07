@@ -7,7 +7,7 @@ export type Networkish = Network | NetworkConfig | string
 export class Network {
   readonly slug: string
   readonly isMainnet: boolean
-  readonly chains: { [key: string]: Chain }
+  readonly chains: Record<string, Chain>
 
   constructor(config: NetworkConfig) {
     this.slug = config.slug

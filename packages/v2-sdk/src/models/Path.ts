@@ -37,8 +37,8 @@ export class Path {
     return new Path(path)
   }
 
-  static getPaths(): PathConfig[] {
-    return Object.values(allPaths)
+  static getPaths(): Path[] {
+    return Object.values(allPaths).map(config => new Path(config))
   }
 
   eq(otherPath: Pathish): boolean {

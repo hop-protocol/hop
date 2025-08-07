@@ -12,7 +12,7 @@ import {
   type RailsPath,
   getRailsGateway
 } from './contracts/index.js'
-import { type RPCClient } from './types.js'
+import type { RPCClient } from './types.js'
 
 export class Rails {
   readonly #gateways: Map<string, RailsGateway> = new Map()

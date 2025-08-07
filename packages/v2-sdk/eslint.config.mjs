@@ -10,3 +10,4 @@ export default tseslint.config(
        */
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-base-to-string': 'error',
+      '@typescript-eslint/no-import-type-side-effects': 'error',

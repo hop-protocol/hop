@@ -2,7 +2,7 @@ import { type BigNumber, type CallOverrides, Contract } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
 import { type Addressish, getAddress } from '#models/index.js'
-import { type RPCClient } from '../types.js'
+import type { RPCClient } from '../types.js'
 
 import { railsPathABI } from './abis/index.js'
 

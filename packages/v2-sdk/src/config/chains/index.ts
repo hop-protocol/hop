@@ -4,7 +4,7 @@ import { chains as sepoliaChains } from './sepolia.js'
 
 export type { ChainConfig, NetworkConfig }
 
-export const networks: Record<string, NetworkConfig> = {
+export const allNetworks : Record<string, NetworkConfig> = {
   'mainnet': {
     slug:'mainnet',
     isMainnet: true,
@@ -17,7 +17,7 @@ export const networks: Record<string, NetworkConfig> = {
   }
 }
 
-export const allChains = {
+export const allChains: Record<string, ChainConfig> = {
   ...mainnetChains,
   ...sepoliaChains
 }

@@ -1,10 +1,10 @@
-export * from './types.js'
+import { PathConfig } from './types.js'
 import { paths as mainnetPaths } from './mainnet.js'
 import { paths as sepoliaPaths } from './sepolia.js'
 
-export { mainnetPaths, sepoliaPaths }
+export type { PathConfig }
 
-export const allPaths = {
+export const allPaths: Record<string, PathConfig> = {
   ...mainnetPaths,
   ...sepoliaPaths
 }

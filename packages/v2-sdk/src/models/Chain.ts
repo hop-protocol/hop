@@ -1,5 +1,5 @@
 import { ChainConfig } from '#config/chains/types.js'
-import { networks, allChains } from '#config/chains/index.js'
+import { allNetworks, allChains } from '#config/chains/index.js'
 
 export type Chainish = Chain | ChainConfig | string
 
@@ -75,7 +75,7 @@ export class Chain {
   
     const decimal = parseInt(chainId, 10)
     if (isNaN(decimal)) {
-      throw new Error(`Invalid hexadecimal chainId: ${chainId}`)
+      throw new Error(`Invalid decimal chainId: ${chainId}`)
     }
 
     return chainId
@@ -83,7 +83,7 @@ export class Chain {
 
   static isValidChainSlug(slug: string): boolean {
     // return true if some network has some chain with the given slug
-    return Object.values(networks).some(network =>
+    return Object.values(allNetworks).some(network =>
       Object.values(network.chains).some(chain =>
         chain.slug === slug
       )

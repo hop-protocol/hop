@@ -18,7 +18,7 @@ const BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS = 250
 export const sharedChain: Record<string, SharedChainConfig> = {
   ethereum: {
     name: 'Ethereum',
-    slug: 'wthereum',
+    slug: 'ethereum',
     image: assets.ethereumImage,
     nativeTokenSymbol: 'ETH',
     primaryColor: '#868dac',

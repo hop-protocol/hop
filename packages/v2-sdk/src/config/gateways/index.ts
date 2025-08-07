@@ -11,7 +11,7 @@ export type { GatewayConfig }
 /**
  * All gateway configurations merged from different networks
  */
-export const gateways: Record<string, Record<string, GatewayConfig>> = {
-  'mainnet': mainnetGateways,
-  'sepolia': sepoliaGateways
+export const gateways: Record<string, GatewayConfig> = {
+  ...mainnetGateways,
+  ...sepoliaGateways
 }

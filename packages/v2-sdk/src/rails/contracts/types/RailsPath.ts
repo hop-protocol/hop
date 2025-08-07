@@ -723,7 +723,7 @@ export type TransferSentEvent = TypedEvent<
 export type TransferSentEventFilter = TypedEventFilter<TransferSentEvent>;
 
 export interface RailsPath extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
+  connect(provider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 

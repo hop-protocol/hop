@@ -1,18 +1,19 @@
-import type { Signer, providers } from 'ethers'
-import { 
-  type RailsPath,
-  type RailsGateway,
-  RailsGateway__factory,
-  RailsPath__factory
-} from '#contracts/index.js'
-import { getRailsGatewayAddress } from './utils.js'
+import type { RPCClient } from '../types.js'
+import { RailsGateway } from './RailsGateway.js'
+import { RailsPath } from './RailsPath.js'
+import {
+  type Addressish,
+  type Chainish,
+  getAddress,
+  getChain,
+  getGateway,
+} from '#models/index.js'
 
-
-export function getRailsGateway(chainId: string, signerOrProvider: Signer | providers.Provider): RailsGateway {
-  const address = getRailsGatewayAddress(chainId)
-  return RailsGateway__factory.connect(address, signerOrProvider)
+export function getRailsGateway(chainId: Chainish, rpcClient: RPCClient): RailsGateway {
+  const address = getGateway(getChain(chainId).chainId).railsGateway
+  return new RailsGateway(address, rpcClient)
 }
 
-export function getRailsPath(address: string, signerOrProvider: Signer | providers.Provider): RailsPath {
-  return RailsPath__factory.connect(address, signerOrProvider)
+export function getRailsPath(address: Addressish, rpcClient: RPCClient): RailsPath {
+  return new RailsPath(getAddress(address).toString(), rpcClient)
 }

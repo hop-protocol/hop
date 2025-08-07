@@ -527,7 +527,7 @@ export type PathInitializedEvent = TypedEvent<
 export type PathInitializedEventFilter = TypedEventFilter<PathInitializedEvent>;
 
 export interface RailsGateway extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
+  connect(provider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 

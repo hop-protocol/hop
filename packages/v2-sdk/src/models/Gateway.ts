@@ -43,7 +43,7 @@ export class Gateway {
   }
 
   static getGateways(): Gateway[] {
-    return Object.values(gateways).map(gatewayConfig => new Gateway(gatewayConfig))
+    return Object.values(gateways).map(config => new Gateway(config))
   }
 }
 

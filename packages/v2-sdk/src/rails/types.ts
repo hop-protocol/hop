@@ -4,3 +4,4 @@ type RPCUrl = string
 
 // TODO: Add web3 and viem versions
 export type RPCish = Signer | providers.Provider | RPCUrl
+export type RPC = Signer | providers.Provider

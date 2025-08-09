@@ -1,28 +1,26 @@
 import { type GatewayConfig, allGateways } from '#config/gateways/index.js'
-import { type Chain, getChain } from './Chain.js'
-import { type Address, getAddress } from './Address.js'
 
 export type Gatewayish = Gateway | GatewayConfig | string
 
 export class Gateway {
-  readonly chainId: Chain
+  readonly chainId: string
   readonly startBlock: number
-  readonly transporter: Address
-  readonly dispatcher: Address
-  readonly executor: Address
-  readonly railsGateway: Address
-  readonly stakingRegistry: Address
-  readonly hopToken: Address
+  readonly transporter: string
+  readonly dispatcher: string
+  readonly executor: string
+  readonly railsGateway: string
+  readonly stakingRegistry: string
+  readonly hopToken: string
 
   constructor(config: GatewayConfig) {
-    this.chainId = getChain(config.chainId)
+    this.chainId = config.chainId
     this.startBlock = config.startBlock
-    this.transporter = getAddress(config.transporter)
-    this.dispatcher = getAddress(config.dispatcher)
-    this.executor = getAddress(config.executor)
-    this.railsGateway = getAddress(config.railsGateway)
-    this.stakingRegistry = getAddress(config.stakingRegistry)
-    this.hopToken = getAddress(config.hopToken)
+    this.transporter = config.transporter
+    this.dispatcher = config.dispatcher
+    this.executor = config.executor
+    this.railsGateway = config.railsGateway
+    this.stakingRegistry = config.stakingRegistry
+    this.hopToken = config.hopToken
   }
 
   static getGateway(gateway: Gatewayish): Gateway {

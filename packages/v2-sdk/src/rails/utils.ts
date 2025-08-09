@@ -7,9 +7,9 @@ import {
   getChain,
   getToken
 } from '#models/index.js'
-import type { RPCish } from './types.js'
+import type { RPC, RPCish } from './types.js'
 
-export function getRPC(rpc: RPCish): Signer | providers.Provider {
+export function getRPC(rpc: RPCish): RPC {
   if (typeof rpc === 'string') {
     return new providers.JsonRpcProvider(rpc)
   } else if (rpc instanceof Signer) {

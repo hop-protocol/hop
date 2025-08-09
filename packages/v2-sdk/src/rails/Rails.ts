@@ -4,6 +4,7 @@ import {
   type Addressish,
   type Pathish,
   type Chainish,
+  getAddress,
   getChain,
   getPath
 } from '#models/index.js'
@@ -12,6 +13,7 @@ import {
   type RailsPath,
   getRailsGateway
 } from './contracts/index.js'
+import { getRPC } from './utils.js'
 import type { RPCish } from './types.js'
 
 export class Rails {
@@ -24,13 +26,13 @@ export class Rails {
       throw new Error('Chains and RPC clients must have the same length')
     }
     for (let i = 0; i < chains.length; i++) {
-      const chain = getChain(chains[i])
-      const rpc = rpcs[i]
+      const chainId = getChain(chains[i]).chainId
+      const rpc = getRPC(rpcs[i])
 
-      if (this.#gateways.has(chain.chainId)) {
-        throw new Error(`Gateway for chain ${chain.chainId} already exists`)
+      if (this.#gateways.has(chainId)) {
+        throw new Error(`Gateway for chain ${chainId} already exists`)
       }
-      this.#gateways.set(chain.chainId, getRailsGateway(chain.chainId, rpc))
+      this.#gateways.set(chainId, getRailsGateway(chainId, rpc))
     }
   }
 
@@ -61,7 +63,12 @@ export class Rails {
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(path, fromChain, toChain)
     const hops = await this.#getDefaultHops(path, toChain)
-    return this.#getGateway(fromChain).send(to, amount, hops, overrides)
+    return this.#getGateway(fromChain).send(
+      getAddress(to).toString(),
+      BigNumber.from(amount),
+      hops,
+      overrides
+    )
   }
 
   async getAmountOut(
@@ -75,11 +82,16 @@ export class Rails {
     this.#validateInput(path, fromChain, toChain)
 
     attestedClaimId ??= await this.getValidHeadClaimId(path, fromChain)
-    const sourceGateway = this.#getGateway(fromChain)
     const pathContract = await this.#getRailsPathContract(path, fromChain)
     const sourcePool = await pathContract.getSourcePool(attestedClaimId)
     const sourcePoolTotalFraudulent = await pathContract.totalFraudulent()
-    return this.#getGateway(toChain).getAmountOut(path, amount, claimId, sourcePool, sourcePoolTotalFraudulent)
+    return this.#getGateway(toChain).getAmountOut(
+      getPath(path).pathId,
+      BigNumber.from(amount),
+      claimId,
+      sourcePool,
+      sourcePoolTotalFraudulent
+    )
   }
 
   async getValidHeadClaimId(path: Pathish, chain: Chainish): Promise<string> {

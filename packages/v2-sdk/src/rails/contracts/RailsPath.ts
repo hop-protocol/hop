@@ -1,18 +1,15 @@
 import { type BigNumber, Contract } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
-import { type Addressish, getAddress } from '#models/index.js'
-import type { RPCish } from '../types.js'
-import { getRPC } from '../utils.js'
+import type { RPC } from '../types.js'
 
 import { railsPathABI } from './abis/index.js'
 
 export class RailsPath {
   readonly #contract: RailsPathContract
 
-  constructor(address: Addressish, rpc: RPCish) {
-    address = getAddress(address).toString()
-    this.#contract = new Contract(address, railsPathABI, getRPC(rpc)) as RailsPathContract
+  constructor(address: string, rpc: RPC) {
+    this.#contract = new Contract(address, railsPathABI, rpc) as RailsPathContract
   }
   async getClaim(claimId: string): Promise<Claim> {
     // TODO: Validation & logging

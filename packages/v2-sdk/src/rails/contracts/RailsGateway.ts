@@ -91,8 +91,7 @@ export class RailsGateway {
     amount: BigNumberish,
     attestedClaimId: string,
     sourcePool: BigNumberish,
-    sourceTotalFraudulent: BigNumberish,
-    overrides?: CallOverrides
+    sourceTotalFraudulent: BigNumberish
   ): Promise<BigNumber> {
     // TODO: Validation and logging
     return this.#contract.getAmountOut(
@@ -100,14 +99,13 @@ export class RailsGateway {
       amount,
       attestedClaimId,
       sourcePool,
-      sourceTotalFraudulent,
-      overrides
+      sourceTotalFraudulent
     )
   }
 
-  async getPath(pathId: Pathish, overrides?: CallOverrides): Promise<RailsPath> {
+  async getPath(pathId: string): Promise<RailsPath> {
     // TODO: Validation and logging
-    const pathAddress = await this.#contract.getPath(getPath(pathId).pathId, overrides)
-    return getRailsPath(pathAddress, this.#contract.signer)
+    const pathAddress = await this.#contract.getPath(pathId)
+    return getRailsPath(pathAddress, this.#contract.provider)
   }
 }

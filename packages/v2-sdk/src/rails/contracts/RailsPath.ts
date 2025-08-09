@@ -1,4 +1,4 @@
-import { type BigNumber, type CallOverrides, Contract } from 'ethers'
+import { type BigNumber, Contract } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
 import { type Addressish, getAddress } from '#models/index.js'
@@ -14,9 +14,39 @@ export class RailsPath {
     address = getAddress(address).toString()
     this.#contract = new Contract(address, railsPathABI, getRPC(rpc)) as RailsPathContract
   }
-  async getClaim(claimId: string, overrides?: CallOverrides): Promise<Claim> {
+  async getClaim(claimId: string): Promise<Claim> {
     // TODO: Validation & logging
-    const claim = await this.#contract.getClaim(claimId, overrides)
+    const claim = await this.#contract.getClaim(claimId)
+    return this.#normalizeClaim(claim)
+  }
+
+  async getHeadClaimId(): Promise<string> {
+    // TODO: Validation & logging
+    return this.#contract.getHeadClaimId()
+  }
+
+  async isValidClaim(claimId: string): Promise<boolean> {
+    // TODO: Validation & logging
+    return this.#contract.isValidClaim(claimId)
+  }
+
+  async isValidTransfer(claimId: string): Promise<boolean> {
+    // TODO: Validation & logging
+    return this.#contract.isValidTransfer(claimId)
+  }
+
+  async getSourcePool(attestedClaimId: string): Promise<BigNumber> {
+    // TODO: Validation & logging
+    return this.#contract.getSourcePool(attestedClaimId,)
+  }
+
+  async totalFraudulent(): Promise<BigNumber> {
+    // TODO: Validation & logging
+    return this.#contract.totalFraudulent()
+  }
+
+  #normalizeClaim(claim: Claim): Claim {
+    // Normalize Typechain struct from tuple+object to object
     return {
       createdAt: claim.createdAt,
       index: claim.index,
@@ -30,30 +60,5 @@ export class RailsPath {
       bondedBy: claim.bondedBy,
       withdrawnBy: claim.withdrawnBy
     }
-  }
-
-  async getHeadClaimId(overrides?: CallOverrides): Promise<string> {
-    // TODO: Validation & logging
-    return this.#contract.getHeadClaimId(overrides)
-  }
-
-  async isValidClaim(claimId: string, overrides?: CallOverrides): Promise<boolean> {
-    // TODO: Validation & logging
-    return this.#contract.isValidClaim(claimId, overrides)
-  }
-
-  async isValidTransfer(claimId: string, overrides?: CallOverrides): Promise<boolean> {
-    // TODO: Validation & logging
-    return this.#contract.isValidTransfer(claimId, overrides)
-  }
-
-  async getSourcePool(attestedClaimId: string, overrides?: CallOverrides): Promise<BigNumber> {
-    // TODO: Validation & logging
-    return this.#contract.getSourcePool(attestedClaimId, overrides)
-  }
-
-  async totalFraudulent(overrides?: CallOverrides): Promise<BigNumber> {
-    // TODO: Validation & logging
-    return this.#contract.totalFraudulent(overrides)
   }
 }

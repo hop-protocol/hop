@@ -1,5 +1,4 @@
 export type GatewayConfig = {
-  network: string
   chainId: string
   startBlock: number
   transporter: string

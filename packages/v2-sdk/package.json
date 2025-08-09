@@ -17,7 +17,7 @@
   "main": "dist/cjs/index.js",
   "scripts": {
     "clean": "rm -rf node_modules dist tsconfig.tsbuildinfo tsconfig.cjs.tsbuildinfo tsconfig.esm.tsbuildinfo ./addresses ./config ./metadata ./networks",
-    "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "test": "pnpm build:esm && node --env-file .env --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",

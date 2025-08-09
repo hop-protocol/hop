@@ -1,4 +1,4 @@
-import { type BigNumberish, BigNumber, constants, utils } from 'ethers'
+import { type BigNumberish, BigNumber, Signer, constants, providers, utils } from 'ethers'
 import type { HopStruct } from './contracts/index.js'
 import {
   type Addressish,
@@ -7,6 +7,19 @@ import {
   getChain,
   getToken
 } from '#models/index.js'
+import type { RPCish } from './types.js'
+
+export function getRPC(rpc: RPCish): Signer | providers.Provider {
+  if (typeof rpc === 'string') {
+    return new providers.JsonRpcProvider(rpc)
+  } else if (rpc instanceof Signer) {
+    return rpc
+  } else if (rpc instanceof providers.JsonRpcProvider) {
+    return rpc
+  } else {
+    throw new Error('Invalid RPC provider')
+  }
+}
 
 export function getHop(
   fromChainId: Chainish,

@@ -2,16 +2,17 @@ import { type BigNumber, type CallOverrides, Contract } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
 import { type Addressish, getAddress } from '#models/index.js'
-import type { RPCClient } from '../types.js'
+import type { RPCish } from '../types.js'
+import { getRPC } from '../utils.js'
 
 import { railsPathABI } from './abis/index.js'
 
 export class RailsPath {
   readonly #contract: RailsPathContract
 
-  constructor(address: Addressish, rpcClient: RPCClient) {
+  constructor(address: Addressish, rpc: RPCish) {
     address = getAddress(address).toString()
-    this.#contract = new Contract(address, railsPathABI, rpcClient) as RailsPathContract
+    this.#contract = new Contract(address, railsPathABI, getRPC(rpc)) as RailsPathContract
   }
   async getClaim(claimId: string, overrides?: CallOverrides): Promise<Claim> {
     // TODO: Validation & logging

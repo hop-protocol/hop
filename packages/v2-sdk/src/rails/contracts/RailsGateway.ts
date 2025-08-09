@@ -11,12 +11,13 @@ import {
   getPath,
   getAddress
 } from '#models/index.js'
-import type { RailsGateway as RailsGatewayContract, HopStruct } from './types/index.js'
+import type { RailsGateway as RailsGatewayContract } from './types/index.js'
 import type { RailsPath } from './RailsPath.js'
 import { railsGatewayABI } from './abis/index.js'
 import type { RPCish } from '../types.js'
 import { getRailsPath } from './RailsFactory.js'
 import { getRPC } from '../utils.js'
+import type { HopStruct } from './types.js'
 
 export class RailsGateway {
   readonly #contract: RailsGatewayContract

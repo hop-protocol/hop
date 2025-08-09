@@ -1,6 +1,6 @@
 import { Address } from './Address.js'
-import { TokenConfig } from '#config/tokens/types.js'
-import { tokenConfigs } from '../config/tokens/tokens.js'
+import type { TokenConfig } from '#config/tokens/types.js'
+import { tokenConfigs } from '#config/tokens/tokens.js'
 
 export type Tokenish = Token | TokenConfig | string
 
@@ -11,7 +11,7 @@ export class Token {
   readonly image: string
   readonly coingeckoId: string
   readonly isStableCoin: boolean
-  readonly addresses: { [key: string]: Address } = {}
+  readonly addresses: Record<string, Address> = {}
 
   constructor(props: TokenConfig) {
     this.symbol = props.symbol
@@ -50,7 +50,7 @@ export class Token {
     return tokenConfigs[symbol] !== undefined
   }
 
-  eq(otherToken: Token) {
+  eq(otherToken: Token): boolean {
     return otherToken.symbol === this.symbol
   }
 }

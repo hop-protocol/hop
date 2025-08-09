@@ -1,2 +1,2 @@
-export type { RailsPath, ClaimStruct } from './RailsPath.js'
-export type { RailsGateway, HopStruct } from './RailsGateway.js'
+export type { RailsPath } from './RailsPath.js'
+export type { RailsGateway } from './RailsGateway.js'

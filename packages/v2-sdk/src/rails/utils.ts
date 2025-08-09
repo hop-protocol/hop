@@ -1,4 +1,4 @@
-import { type BigNumberish, BigNumber, constants, utils } from 'ethers'
+import { type BigNumberish, BigNumber, Signer, constants, providers, utils } from 'ethers'
 import type { HopStruct } from './contracts/index.js'
 import {
   type Addressish,
@@ -7,6 +7,19 @@ import {
   getChain,
   getToken
 } from '#models/index.js'
+import type { RPCish } from './types.js'
+
+export function getRPC(rpc: RPCish): Signer | providers.Provider {
+  if (typeof rpc === 'string') {
+    return new providers.JsonRpcProvider(rpc)
+  } else if (rpc instanceof Signer) {
+    return rpc
+  } else if (rpc instanceof providers.JsonRpcProvider) {
+    return rpc
+  } else {
+    throw new Error('Invalid RPC provider')
+  }
+}
 
 export function getHop(
   fromChainId: Chainish,
@@ -17,9 +30,9 @@ export function getHop(
 ): HopStruct {
   const pathId = getPathId(
     fromChainId,
-    fromToken.toString(),
+    fromToken,
     toChainId,
-    toToken.toString(),
+    toToken,
     BigNumber.from(amount)
   )
 
@@ -59,21 +72,21 @@ export function getNextHopsHash(nextHops: HopStruct[]): string {
   return nextHopsHash
 }
 
-export function getPathId(fromChainId: Chainish, fromToken: Tokenish, toChainId: Chainish, toToken: Tokenish, initialReserve: BigNumberish): string {
-  fromChainId = getChain(fromChainId).chainId
-  toChainId = getChain(toChainId).chainId
-  fromToken = getToken(fromToken).toString()
-  toToken = getToken(toToken).toString()
+export function getPathId(fromChain: Chainish, fromToken: Tokenish, toChain: Chainish, toToken: Tokenish, initialReserve: BigNumberish): string {
+  const fromChainId = getChain(fromChain).chainId
+  const toChainId = getChain(toChain).chainId
+  const fromTokenAddress = getToken(fromToken).addresses[fromChainId]
+  const toTokenAddress = getToken(toToken).addresses[toChainId]
 
-  const chainId0 = Number(fromChainId.toString())
-  const chainId1 = Number(toChainId.toString())
+  const chainId0 = Number(fromChainId)
+  const chainId1 = Number(toChainId)
 
   const isAscending = chainId0 < chainId1
 
   const chainIdA = isAscending ? chainId0 : chainId1
   const chainIdB = isAscending ? chainId1 : chainId0
-  const tokenA = isAscending ? fromToken : toToken
-  const tokenB = isAscending ? toToken : fromToken
+  const tokenA = isAscending ? fromTokenAddress : toTokenAddress
+  const tokenB = isAscending ? toTokenAddress : fromTokenAddress
 
   return utils.keccak256(
     utils.solidityPack(['uint256', 'address', 'uint256', 'address', 'uint256'], [

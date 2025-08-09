@@ -1,5 +1,5 @@
 import * as assets from './assets/index.js'
-import { TokenConfig } from './types.js'
+import type { TokenConfig } from './types.js'
 
 export const tokenConfigs: Record<string, TokenConfig> = {
   ETH: {

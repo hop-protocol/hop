@@ -1,4 +1,4 @@
-import type { RPCClient } from '../types.js'
+import type { RPCish } from '../types.js'
 import { RailsGateway } from './RailsGateway.js'
 import { RailsPath } from './RailsPath.js'
 import {
@@ -8,12 +8,13 @@ import {
   getChain,
   getGateway,
 } from '#models/index.js'
+import { getRPC } from '../utils.js'
 
-export function getRailsGateway(chainId: Chainish, rpcClient: RPCClient): RailsGateway {
+export function getRailsGateway(chainId: Chainish, rpc: RPCish): RailsGateway {
   const address = getGateway(getChain(chainId).chainId).railsGateway
-  return new RailsGateway(address, rpcClient)
+  return new RailsGateway(address, getRPC(rpc))
 }
 
-export function getRailsPath(address: Addressish, rpcClient: RPCClient): RailsPath {
-  return new RailsPath(getAddress(address).toString(), rpcClient)
+export function getRailsPath(address: Addressish, rpc: RPCish): RailsPath {
+  return new RailsPath(getAddress(address).toString(), getRPC(rpc))
 }

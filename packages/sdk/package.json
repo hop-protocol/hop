@@ -18,7 +18,7 @@
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "prebuild": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version": "pnpm version",
     "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",

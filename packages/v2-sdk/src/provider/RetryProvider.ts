@@ -1,9 +1,9 @@
 
 import { providers } from 'ethers'
-import { BigNumber, type BigNumberish } from '@ethersproject/bignumber'
-import { Block, BlockTag, BlockWithTransactions, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
-import { type Deferrable } from '@ethersproject/properties'
-import { type Network } from '@ethersproject/networks'
+import type { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import type { Block, BlockTag, BlockWithTransactions, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
+import type { Deferrable } from '@ethersproject/properties'
+import type { Network } from '@ethersproject/networks'
 import { rateLimitRetry } from '#utils/index.js'
 
 export class RetryProvider extends providers.StaticJsonRpcProvider implements providers.Provider {

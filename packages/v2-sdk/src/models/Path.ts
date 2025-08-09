@@ -1,8 +1,8 @@
-import { BigNumber } from 'ethers'
-import { PathConfig } from '../config/paths/types.js'
+import type { BigNumber } from 'ethers'
+import type { PathConfig } from '#config/paths/types.js'
 import { Address } from './Address.js'
-import { allPaths } from '../config/paths/index.js'
-import { Chain, Chainish } from './Chain.js'
+import { allPaths } from '#config/paths/index.js'
+import { type Chainish, Chain } from './Chain.js'
 
 export type Pathish = Path | PathConfig | string
 
@@ -37,8 +37,8 @@ export class Path {
     return new Path(path)
   }
 
-  static getPaths(): PathConfig[] {
-    return Object.values(allPaths)
+  static getPaths(): Path[] {
+    return Object.values(allPaths).map(config => new Path(config))
   }
 
   eq(otherPath: Pathish): boolean {
@@ -52,7 +52,7 @@ export class Path {
     } else if (_chain.chainId === this.chain1.chainId) {
       return this.chain0
     }
-    throw new Error(`Chain ${chain} is not in path ${this.pathId}`)
+    throw new Error(`Chain ${JSON.stringify(chain)} is not in path ${this.pathId}`)
   }
 
   hasChains(chain0: Chainish, chain1: Chainish): boolean {

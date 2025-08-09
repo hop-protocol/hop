@@ -9,7 +9,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
-  nodePlugin.configs['flat/recommended-script'],
+  nodePlugin.configs['flat/recommended-module'],
   {
     languageOptions: {
       parserOptions: {
@@ -69,6 +69,8 @@ export default tseslint.config(
       '@stylistic/semi': ['error', 'never', { 'beforeStatementContinuationChars': 'never'}],
       'no-constant-condition': ['error', { 'checkLoops': false }],
       '@typescript-eslint/unbound-method': ['error', { 'ignoreStatic': true, }],
+      '@typescript-eslint/explicit-function-return-type': 'error',
+
       /**
        * Custom
        */
@@ -107,6 +109,7 @@ export default tseslint.config(
       }],
       // Remove when we have more graceful shutdown logic
       'n/no-process-exit': 'off',
+      'n/prefer-node-protocol': 'error',
     },
     // Explicitly include all files that should be linted
     files: [

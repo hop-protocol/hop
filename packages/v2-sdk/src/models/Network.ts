@@ -1,13 +1,13 @@
 import { Chain } from './Chain.js'
-import { NetworkConfig } from '../config/chains/types.js'
-import { networks } from '../config/chains/index.js'
+import type { NetworkConfig } from '#config/chains/types.js'
+import { allNetworks } from '#config/chains/index.js'
 
 export type Networkish = Network | NetworkConfig | string
 
 export class Network {
   readonly slug: string
   readonly isMainnet: boolean
-  readonly chains: { [key: string]: Chain }
+  readonly chains: Record<string, Chain>
 
   constructor(config: NetworkConfig) {
     this.slug = config.slug
@@ -24,7 +24,7 @@ export class Network {
     if (network instanceof Network) {
       return network
     } else if (typeof network === 'string') {
-      const networkConfig = networks[network]
+      const networkConfig = allNetworks[network]
       if (!networkConfig) {
         throw new Error(`Network with slug "${network}" not found`)
       }
@@ -36,7 +36,7 @@ export class Network {
   }
 
   static isValidNetworkSlug(slug: string): boolean {
-    return networks[slug] !== undefined
+    return allNetworks[slug] !== undefined
   }
 
   getChain(chainSlug: string): Chain {

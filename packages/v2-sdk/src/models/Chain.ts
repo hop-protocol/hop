@@ -1,7 +1,5 @@
-import { ethers } from 'ethers'
-import { ChainConfig } from '#config/chains/types.js'
-import { FallbackProvider } from '#provider/index.js'
-import { networks, allChains } from '#config/chains/index.js'
+import type { ChainConfig } from '#config/chains/types.js'
+import { allNetworks, allChains } from '#config/chains/index.js'
 
 export type Chainish = Chain | ChainConfig | string
 
@@ -17,7 +15,6 @@ export class Chain {
   readonly averageBlockTimeMs: number
 
   readonly chainId: string
-  readonly provider: ethers.providers.Provider
   readonly rpcUrl: string
   readonly fallbackRpcUrls: string[]
   readonly explorerUrl: string
@@ -42,7 +39,6 @@ export class Chain {
     this.averageBlockTimeMs = config.averageBlockTimeMs
 
     this.chainId = config.chainId
-    this.provider = FallbackProvider.fromUrls([config.rpcUrl, ...config.fallbackRpcUrls])
     this.rpcUrl = config.rpcUrl
     this.fallbackRpcUrls = config.fallbackRpcUrls ?? []
     this.explorerUrl = config.explorerUrls[0]
@@ -76,10 +72,10 @@ export class Chain {
       }
       return decimal.toString()
     }
-  
+
     const decimal = parseInt(chainId, 10)
     if (isNaN(decimal)) {
-      throw new Error(`Invalid hexadecimal chainId: ${chainId}`)
+      throw new Error(`Invalid decimal chainId: ${chainId}`)
     }
 
     return chainId
@@ -87,18 +83,18 @@ export class Chain {
 
   static isValidChainSlug(slug: string): boolean {
     // return true if some network has some chain with the given slug
-    return Object.values(networks).some(network =>
+    return Object.values(allNetworks).some(network =>
       Object.values(network.chains).some(chain =>
         chain.slug === slug
       )
     )
   }
 
-  toString() {
+  toString(): string {
     return this.name
   }
 
-  eq(otherChain: Chainish) {
+  eq(otherChain: Chainish): boolean {
     return this.chainId === Chain.getChain(otherChain).chainId
   }
 }

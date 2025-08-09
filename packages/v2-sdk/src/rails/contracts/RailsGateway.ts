@@ -1,9 +1,9 @@
 import {
+  type BigNumber,
   type BigNumberish,
+  type providers,
   type CallOverrides,
-  BigNumber,
-  Contract,
-  providers
+  Contract
 } from 'ethers'
 import {
   type Addressish,
@@ -11,18 +11,20 @@ import {
   getPath,
   getAddress
 } from '#models/index.js'
-import type { RailsGateway as RailsGatewayContract, HopStruct } from './types/index.js'
+import type { RailsGateway as RailsGatewayContract } from './types/index.js'
 import type { RailsPath } from './RailsPath.js'
 import { railsGatewayABI } from './abis/index.js'
-import type { RPCClient } from '../types.js'
+import type { RPCish } from '../types.js'
 import { getRailsPath } from './RailsFactory.js'
+import { getRPC } from '../utils.js'
+import type { HopStruct } from './types.js'
 
 export class RailsGateway {
   readonly #contract: RailsGatewayContract
 
-  constructor(address: Addressish, rpcClient: RPCClient) {
+  constructor(address: Addressish, rpc: RPCish) {
     address = getAddress(address).toString()
-    this.#contract = new Contract(address, railsGatewayABI, rpcClient) as RailsGatewayContract
+    this.#contract = new Contract(address, railsGatewayABI, getRPC(rpc)) as RailsGatewayContract
   }
 
   async send(

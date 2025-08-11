@@ -7,7 +7,7 @@ import {
   RailsTransferState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import { getCounterpartChainIdForPathId } from '../../utils.js'
+import { getPath } from '@hop-protocol/v2-sdk'
 
 export class RailsTransferStateMachine extends StateMachine<RailsTransferState, IRailsTransfer, RailsTransferMethodName> {
 
@@ -26,7 +26,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
   protected override getRelayChainId(state: RailsTransferState, value: IRailsTransfer): string {
     const { pathId, txContext } = value
     const { chainId } = txContext
-    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+    const counterpartChainId = getPath(pathId).getCounterpartChain(chainId).chainId
 
     switch (state) {
       case RailsTransferState.Sent:
@@ -76,7 +76,7 @@ export class RailsTransferStateMachine extends StateMachine<RailsTransferState, 
     const srcChainSlug = getChain(chainId).slug
     const srcChainFinalityTimeMs = FINALITY_TIME_MS[srcChainSlug]
 
-    const destChainId = getCounterpartChainIdForPathId(chainId, pathId)
+    const destChainId = getPath(pathId).getCounterpartChain(chainId).chainId
     const destChainSlug = getChain(destChainId).slug
     const destChainFinalityTimeMs = FINALITY_TIME_MS[destChainSlug]
 

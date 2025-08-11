@@ -1,5 +1,4 @@
 import { DataAdapter } from '#state-machine/index.js'
-import { getCounterpartChainIdForPathId } from '../../utils.js'
 import {
   type ClaimBonded,
   type TransferSent,
@@ -15,6 +14,7 @@ import {
   RailsTransferState
 } from './types.js'
 import type { DecodedLogWithContext, EventContext } from '#types/index.js'
+import { getPath } from '@hop-protocol/v2-sdk'
 
 export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
 
@@ -48,7 +48,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
   protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsEventName>> {
     const { pathId, txContext } = value
     const { chainId } = txContext
-    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+    const counterpartChainId = getPath(pathId).getCounterpartChain(chainId).chainId
 
     switch (state) {
       case RailsTransferState.Sent: {

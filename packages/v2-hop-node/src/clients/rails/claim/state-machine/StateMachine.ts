@@ -8,7 +8,7 @@ import {
   RailsClaimState
 } from './types.js'
 import { FINALITY_TIME_MS } from '#constants/index.js'
-import { getCounterpartChainIdForPathId } from '../../utils.js'
+import { getPath } from '@hop-protocol/v2-sdk'
 
 export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRailsClaim, RailsClaimMethodName> {
 
@@ -27,7 +27,7 @@ export class RailsClaimStateMachine extends StateMachine<RailsClaimState, IRails
   protected override getRelayChainId(state: RailsClaimState, value: IRailsClaim): string {
     const { pathId, txContext } = value
     const { chainId } = txContext
-    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+    const counterpartChainId = getPath(pathId).getCounterpartChain(chainId).chainId
 
     switch (state) {
       case RailsClaimState.Sent:

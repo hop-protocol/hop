@@ -4,7 +4,7 @@ import {
   type ClaimPosted,
   RailsEventName,
   RailsGateway,
-  getComputedNextHopsHash,
+  getNextHopsHash,
   getRailsPathAddress
 } from '../../RailsSDKWrapper.js'
 import {
@@ -14,8 +14,8 @@ import {
   RailsClaimEventName,
   RailsClaimState
 } from './types.js'
-import { getCounterpartChainIdForPathId } from '../../utils.js'
 import type { DecodedLogWithContext, EventContext } from '#types/index.js'
+import { getPath } from '@hop-protocol/v2-sdk'
 
 export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsClaim, RailsEventName> {
 
@@ -49,7 +49,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
   protected override async getEventContextFromState (state: RailsClaimState, value: IRailsClaim): Promise<EventContext<RailsEventName>> {
     const { pathId, txContext } = value
     const { chainId } = txContext
-    const counterpartChainId = getCounterpartChainIdForPathId(chainId, pathId)
+    const counterpartChainId = getPath(pathId).getCounterpartChain(chainId).chainId
 
     switch (state) {
       case RailsClaimState.Sent: {
@@ -91,7 +91,7 @@ export class RailsClaimDataAdapter extends DataAdapter<RailsClaimState, IRailsCl
 
     // TODO: is this supposed to be hops[0]?
     const { maxBonderFee, attestedClaimId } = hops[0]
-    const nextHopsHash = getComputedNextHopsHash(hops)
+    const nextHopsHash = getNextHopsHash(hops)
     const pathId = RailsGateway.getPathCache(chainId, address)
 
     return {

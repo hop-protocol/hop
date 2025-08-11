@@ -12,7 +12,7 @@ import {
   getMessageTransmitterContract,
   getAttestationTimeFromChainIdMs,
 } from './utils.js'
-import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
+import type { RequiredEventFilter } from '#types/index.js'
 import { NetworkSlug, ChainSlug, getChain } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { Config } from '#config/index.js'
@@ -157,27 +157,9 @@ export class CCTPSDK {
     })
   }
 
-  static getDecodedLogWithContext (log: providers.Log, chainId: string): DecodedLogWithContext {
-    let eventName: string = ''
-    let decoded: DecodedEventLogs
-    if (log.topics[0] === CCTPSDK.getCCTPTransferSentEventFilter(chainId).topics[0]) {
-      eventName = 'CCTPTransferSent'
-      decoded = CCTPSDK.parseHopCCTPTransferSentLog(log, chainId)
-    } else if (log.topics[0] === CCTPSDK.getMessageReceivedEventFilter(chainId).topics[0]) {
-      eventName = 'MessageReceived'
-      decoded = CCTPSDK.parseHopCCTPTransferReceivedLog(log)
-    } else {
-      throw new Error('Unknown typed log')
-    }
-
-    return {
-      ...log,
-      context: {
-        eventName,
-        chainId
-      },
-      decoded
-    }
+  static getDecodedLog (log: providers.Log): utils.LogDescription {
+    const iface = getHopCCTPInterface()
+    return iface.parseLog(log)
   }
 
   // Returns the CCTP message as well as the Hop-specific data

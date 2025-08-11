@@ -43,3 +43,17 @@ export type RailsRelayItem =
   | PostClaimInput
   | RemoveClaimInput
   | ReaddClaimInput
+export enum RailsBonderMethodName {
+  Bond = 'bond',
+  PostClaim = 'postClaim',
+  RemoveClaim = 'removeClaim',
+  ReaddClaim = 'readdClaim',
+}
+
+export enum RailsBonderEventName {
+  TransferSent = 'TransferSent',
+  ClaimBonded = 'ClaimBonded',
+  ClaimPosted = 'ClaimPosted',
+  ClaimReadded = 'ClaimReadded',
+  ClaimRemoved = 'ClaimRemoved'
+}

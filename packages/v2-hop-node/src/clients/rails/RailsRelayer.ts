@@ -17,10 +17,9 @@ import type {
 import type { Signer, providers } from 'ethers'
 import type { ClientName } from '../constants.js'
 import { type Path, Rails } from '@hop-protocol/v2-sdk'
+import { RailsBonderMethodName } from './types.js'
 
-type RailsMethodName = 'bond' | 'postClaim' | 'removeClaim' | 'readdClaim'
-
-export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
+export class RailsRelayer extends Relayer<RailsBonderMethodName, RailsRelayItem> {
   readonly #rails: Rails
 
   constructor (name: ClientName, railsPaths: Path[]) {
@@ -41,15 +40,15 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
     this.#rails = new Rails(Array.from(chains), Array.from(rpcs))
   }
 
-  protected override formatRelayItem(relayTxMethodName: RailsMethodName, relayItem: any): RailsRelayItem {
+  protected override formatRelayItem(relayTxMethodName: RailsBonderMethodName, relayItem: any): RailsRelayItem {
     switch (relayTxMethodName) {
-      case RailsMethodName.Bond:
+      case RailsBonderMethodName.Bond:
         return this.#formatBondInput(relayItem)
-      case RailsMethodName.PostClaim:
+      case RailsBonderMethodName.PostClaim:
         return this.#formatPostClaimInput(relayItem)
-      case RailsMethodName.RemoveClaim:
+      case RailsBonderMethodName.RemoveClaim:
         return this.#formatRemoveClaimInput(relayItem)
-      case RailsMethodName.ReaddClaim:
+      case RailsBonderMethodName.ReaddClaim:
         return this.#formatReaddClaimInput(relayItem)
       default:
         throw new Error('Invalid relay item')
@@ -58,18 +57,18 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
 
   protected override async shouldAttemptRelay (
     relayItem: RailsRelayItem,
-    relayTxMethodName: RailsMethodName,
+    relayTxMethodName: RailsBonderMethodName,
     relayChainId: string
   ): Promise<boolean> {
     switch (relayTxMethodName) {
-      case RailsMethodName.Bond:
+      case RailsBonderMethodName.Bond:
         return this.#canRelayBond(relayItem as BondInput, relayChainId)
-      case RailsMethodName.PostClaim:
+      case RailsBonderMethodName.PostClaim:
         return this.#canRelayPostClaim(relayItem as PostClaimInput, relayChainId)
       // TODO
-      // case RailsMethodName.RemoveClaim:
+      // case RailsBonderMethodName.RemoveClaim:
       //   return this.#canRelayRemoveClaim(relayItem as RemoveClaimInput, relayChainId)
-      // case RailsMethodName.ReaddClaim:
+      // case RailsBonderMethodName.ReaddClaim:
       //   return this.#canRelayReaddClaim(relayItem as ReaddClaimInput, relayChainId)
       default:
         throw new Error('Invalid relay item')
@@ -89,18 +88,18 @@ export class RailsRelayer extends Relayer<RailsMethodName, RailsRelayItem> {
 
   override async sendRelay (
     relayItem: RailsRelayItem,
-    relayTxMethodName: RailsMethodName,
+    relayTxMethodName: RailsBonderMethodName,
     relayChainId: string
   ): Promise<providers.TransactionResponse> {
     switch (relayTxMethodName) {
-      case RailsMethodName.Bond:
+      case RailsBonderMethodName.Bond:
         return this.#sendBond(relayItem as BondInput, relayChainId)
-      case RailsMethodName.PostClaim:
+      case RailsBonderMethodName.PostClaim:
         return this.#sendPostClaim(relayItem as PostClaimInput, relayChainId)
         // TODO
-      // case RailsMethodName.RemoveClaim:
+      // case RailsBonderMethodName.RemoveClaim:
       //   return this.#sendRemoveClaim(relayItem as RemoveClaimInput, relayChainId)
-      // case RailsMethodName.ReaddClaim:
+      // case RailsBonderMethodName.ReaddClaim:
       //   return this.#sendReaddClaim(relayItem as ReaddClaimInput, relayChainId)
       default:
         throw new Error('Invalid relay item')

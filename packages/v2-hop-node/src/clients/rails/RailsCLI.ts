@@ -1,26 +1,25 @@
 import { RailsRelayer } from './RailsRelayer.js'
 import { RelayerDB } from '#relayer/index.js'
 import { ClientName } from '../constants.js'
-import { type BigNumber, type providers, utils } from 'ethers'
-import { type RailsRelayItem, type RailsPath, RailsClientName } from './types.js'
-import { getPathFromPathId, isValidBondTxInputData, isValidPostClaimTxInputData } from './utils.js'
-import { RailsGateway, RailsMethodName } from './RailsSDKWrapper.js'
-import { wallets } from '#wallets/index.js'
+import type { BigNumber, providers } from 'ethers'
+import { type RailsRelayItem, RailsClientName } from './types.js'
+import { isValidBondTxInputData, isValidPostClaimTxInputData } from './utils.js'
+import { getPath } from '@hop-protocol/v2-sdk'
+import { RailsBonderMethodName } from './types.js'
 
 export {
   RailsClientName,
-  RailsMethodName
 }
 
-export async function getRelayableItems (methodName: RailsMethodName): Promise<RailsRelayItem[]> {
+export async function getRelayableItems (methodName: RailsBonderMethodName): Promise<RailsRelayItem[]> {
   const name = ClientName.Rails
   const db = getRelayerDB(name)
 
   const relayableItems: RailsRelayItem[] = []
   for await (const [relayableItem, ] of db.getRelayableItems()) {
     if (
-      (methodName === RailsMethodName.Bond && isValidBondTxInputData(relayableItem)) ||
-      (methodName === RailsMethodName.PostClaim && isValidPostClaimTxInputData(relayableItem))
+      (methodName === RailsBonderMethodName.Bond && isValidBondTxInputData(relayableItem)) ||
+      (methodName === RailsBonderMethodName.PostClaim && isValidPostClaimTxInputData(relayableItem))
     ) {
       relayableItems.push(relayableItem)
     }
@@ -43,8 +42,8 @@ export async function relayItem (relayItem: RailsRelayItem): Promise<providers.T
   return relayer.sendRelay(relayItem, relayTxMethodName, relayChainId)
 }
 
-function getRelayerDB (name: ClientName): RelayerDB<RailsMethodName, RailsRelayItem> {
-  const db = new RelayerDB<RailsMethodName, RailsRelayItem>(name)
+function getRelayerDB (name: ClientName): RelayerDB<RailsBonderMethodName, RailsRelayItem> {
+  const db = new RelayerDB<RailsBonderMethodName, RailsRelayItem>(name)
   if (!db) {
     throw new Error(`DB not found for client: ${name}`)
   }

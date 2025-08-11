@@ -8,19 +8,20 @@ import {
 } from './types.js'
 import type { DecodedLogWithContext, EventContext } from '#types/index.js'
 import { getPath } from '@hop-protocol/v2-sdk'
+import { RailsBonderEventName } from '../../types.js'
 
-export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsEventName> {
+export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IRailsTransfer, RailsBonderEventName> {
 
-  protected isValidEventName(eventName: RailsEventName | string): eventName is RailsEventName {
+  protected isValidEventName(eventName: RailsBonderEventName | string): eventName is RailsBonderEventName {
     return Object.values(RailsTransferEventName).includes(eventName as RailsTransferEventName)
   }
 
   protected override formatDecodedLog (log: DecodedLogWithContext): IRailsTransfer {
     const { eventName } = log.context
     switch (eventName) {
-      case RailsEventName.TransferSent:
+      case RailsBonderEventName.TransferSent:
         return this.#formatTransferSentLog(log as DecodedLogWithContext<TransferSent>) as IRailsTransfer
-      case RailsEventName.ClaimBonded:
+      case RailsBonderEventName.ClaimBonded:
         return this.#formatClaimBondedLog(log as DecodedLogWithContext<ClaimBonded>) as IRailsTransfer
       default:
         throw new Error(`Invalid event name: ${eventName}`)
@@ -29,16 +30,16 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
 
   protected override getStateFromEventName (eventName: string): RailsTransferState {
     switch (eventName) {
-      case RailsEventName.TransferSent:
+      case RailsBonderEventName.TransferSent:
         return RailsTransferState.Sent
-      case RailsEventName.ClaimBonded:
+      case RailsBonderEventName.ClaimBonded:
         return RailsTransferState.Bonded
       default:
         throw new Error(`Invalid event name: ${eventName}`)
     }
   }
 
-  protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsEventName>> {
+  protected override async getEventContextFromState (state: RailsTransferState, value: IRailsTransfer): Promise<EventContext<RailsBonderEventName>> {
     const { pathId, txContext } = value
     const { chainId } = txContext
     const counterpartChainId = getPath(pathId).getCounterpartChain(chainId).chainId
@@ -49,7 +50,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
         return {
           eventChainId: chainId,
           eventAddress,
-          eventName: RailsEventName.TransferSent,
+          eventName: RailsBonderEventName.TransferSent,
         }
       }
       case RailsTransferState.Bonded: {
@@ -57,7 +58,7 @@ export class RailsTransferDataAdapter extends DataAdapter<RailsTransferState, IR
         return {
           eventChainId: counterpartChainId,
           eventAddress,
-          eventName: RailsEventName.ClaimBonded,
+          eventName: RailsBonderEventName.ClaimBonded,
         }
       }
       default:

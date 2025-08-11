@@ -4,10 +4,13 @@ import type { RailsPathWithAddresses } from './types.js'
 import type { providers } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import type { ClientName } from '../constants.js'
+import type { utils } from 'ethers'
+import { Rails } from '@hop-protocol/v2-sdk'
+import { RailsBonderEventName } from './types.js'
 
-type RailsEventIndexes = (keyof NonNullable<RailsFilterInputs>)[]
 
-export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEventIndexes> {
+
+export class RailsIndexer extends OnchainEventIndexer<RailsBonderEventName, RailsEventIndexes> {
 
   constructor(name: ClientName, pathsWithAddresses: RailsPathWithAddresses[]) {
     super(name)
@@ -19,8 +22,8 @@ export class RailsIndexer extends OnchainEventIndexer<RailsEventName, RailsEvent
    * Implementation
    */
 
-  protected override getDesiredEventIndexes (eventName: RailsEventName): RailsEventIndexes {
-    if (eventName === RailsEventName.TransferSent) {
+  protected override getDesiredEventIndexes (eventName: RailsBonderEventName): RailsEventIndexes {
+    if (eventName === RailsBonderEventName.TransferSent) {
       return ['transferId']
     }
 

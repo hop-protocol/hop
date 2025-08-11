@@ -1,18 +1,18 @@
-import type { RailsHop } from '../../types.js'
+import { type RailsHop, RailsBonderEventName, RailsBonderMethodName } from '../../types.js'
 import type { BigNumber } from 'ethers'
 import type { StateTxContext } from '#state-machine/index.js'
 
 export enum RailsClaimMethodName {
-  PostClaim = RailsMethodName.PostClaim,
-  // RemoveClaim = RailsMethodName.RemoveClaim,
-  // ReaddClaim = RailsMethodName.ReaddClaim
+  PostClaim = RailsBonderMethodName.PostClaim,
+  // RemoveClaim = RailsBonderMethodName.RemoveClaim,
+  // ReaddClaim = RailsBonderMethodName.ReaddClaim
 }
 
 export enum RailsClaimEventName {
-  TransferSent = RailsEventName.TransferSent,
-  ClaimPosted = RailsEventName.ClaimPosted,
-  // ClaimRemoved = RailsEventName.ClaimRemoved,
-  // ClaimReadded = RailsEventName.ClaimReadded
+  TransferSent = RailsBonderEventName.TransferSent,
+  ClaimPosted = RailsBonderEventName.ClaimPosted,
+  // ClaimRemoved = RailsBonderEventName.ClaimRemoved,
+  // ClaimReadded = RailsBonderEventName.ClaimReadded
 }
 
 export enum RailsClaimState {

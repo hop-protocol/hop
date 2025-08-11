@@ -1,15 +1,15 @@
-import type { RailsHop } from '../../types.js'
+import { type RailsHop, RailsBonderEventName, RailsBonderMethodName } from '../../types.js'
 import type { BigNumber } from 'ethers'
 import type { StateTxContext } from '#state-machine/index.js'
 
 export enum RailsTransferMethodName {
-  Bond = RailsMethodName.Bond,
-  PostClaim = RailsMethodName.PostClaim
+  Bond = RailsBonderMethodName.Bond,
+  PostClaim = RailsBonderMethodName.PostClaim
 }
 
 export enum RailsTransferEventName {
-  TransferSent = RailsEventName.TransferSent,
-  ClaimBonded = RailsEventName.ClaimBonded
+  TransferSent = RailsBonderEventName.TransferSent,
+  ClaimBonded = RailsBonderEventName.ClaimBonded
 }
 
 export enum RailsTransferState {

@@ -60,12 +60,12 @@ export class Rails {
 
   async send(
     path: Pathish,
-    fromChain: Chainish,
     toChain: Chainish,
     to: Addressish,
     amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
+    const fromChain = getPath(path).getCounterpartChain(toChain)
     this.#validateInput(path, fromChain, toChain)
     this.#requireTwoChains()
 
@@ -74,6 +74,58 @@ export class Rails {
       getAddress(to).toString(),
       BigNumber.from(amount),
       hops,
+      overrides
+    )
+  }
+
+  async bond(
+    path: Pathish,
+    toChain: Chainish,
+    claimId: string,
+    bonderFee: BigNumberish,
+    nextHops: HopStruct[],
+    overrides?: CallOverrides
+  ): Promise<providers.TransactionResponse> {
+    const fromChain = getPath(path).getCounterpartChain(toChain)
+    this.#validateInput(path, fromChain, toChain)
+    this.#requireTwoChains()
+
+    return this.#getGateway(toChain).bond(
+      getPath(path).pathId,
+      claimId,
+      BigNumber.from(bonderFee),
+      nextHops,
+      overrides
+    )
+  }
+
+  async postClaim(
+    path: Pathish,
+    toChain: Chainish,
+    claimId: string,
+    to: Addressish,
+    amount: BigNumberish,
+    maxBonderFee: BigNumberish,
+    attestedClaimId: string,
+    sourcePool: BigNumberish,
+    sourceTotalFraudulent: BigNumberish,
+    nextHopsHash: string,
+    overrides?: CallOverrides
+  ): Promise<providers.TransactionResponse> {
+    const fromChain = getPath(path).getCounterpartChain(toChain)
+    this.#validateInput(path, fromChain, toChain)
+    this.#requireTwoChains()
+
+    return this.#getGateway(toChain).postClaim(
+      getPath(path).pathId,
+      claimId,
+      getAddress(to).toString(),
+      BigNumber.from(amount),
+      BigNumber.from(maxBonderFee),
+      getAddress(attestedClaimId).toString(),
+      BigNumber.from(sourcePool),
+      BigNumber.from(sourceTotalFraudulent),
+      getAddress(nextHopsHash).toString(),
       overrides
     )
   }

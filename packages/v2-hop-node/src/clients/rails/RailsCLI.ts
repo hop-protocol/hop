@@ -38,7 +38,7 @@ export async function relayItem (relayItem: RailsRelayItem): Promise<providers.T
 
   const { relayChainId, relayTxMethodName } = await db.getTxContextByRelayItem(relayItem)
 
-  const path: RailsPath = getPathFromPathId(relayItem.pathId)
+  const path = getPath(relayItem.pathId)
   const relayer = new RailsRelayer(name, [path])
   return relayer.sendRelay(relayItem, relayTxMethodName, relayChainId)
 }

@@ -24,7 +24,7 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.arbitrum,
     chainId: '421614',
     parentChainId: '11155111',
-    rpcUrl: 'https://arbitrum-sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
     fallbackRpcUrls: [],
     explorerUrls: ['https://sepolia.arbiscan.io'],
     subgraphUrl: '',
@@ -36,7 +36,7 @@ export const chains: Record<string, ChainConfig> = {
     ...sharedChain.optimism,
     chainId: '11155420',
     parentChainId: '11155111',
-    rpcUrl: 'https://optimism-sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    rpcUrl: 'https://sepolia.optimism.io',
     fallbackRpcUrls: [],
     explorerUrls: ['https://sepolia-optimism.etherscan.io'],
     subgraphUrl: '',

@@ -10,9 +10,7 @@ export const chains: Record<string, ChainConfig> = {
     fallbackRpcUrls: [
       'https://eth.drpc.org',
       'https://rpc.eth.gateway.fm',
-      'https://rpc.ankr.com/eth',
       'https://rpc.flashbots.net',
-      'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     ],
     explorerUrls: ['https://etherscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/ethereum',
@@ -25,10 +23,7 @@ export const chains: Record<string, ChainConfig> = {
     chainId: '42161',
     parentChainId: '1',
     rpcUrl: 'https://arb1.arbitrum.io/rpc',
-    fallbackRpcUrls: [
-      'https://rpc.ankr.com/arbitrum',
-      'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
-    ],
+    fallbackRpcUrls: [],
     explorerUrls: ['https://arbiscan.io'],
     subgraphUrl: 'https://subgraph.hop.exchange/arbitrum',
     etherscanApiUrl: 'https://api.arbiscan.io',
@@ -44,8 +39,6 @@ export const chains: Record<string, ChainConfig> = {
       'https://optimism.drpc.org',
       'https://optimism-rpc.publicnode.com',
       'https://optimism.gateway.tenderly.co',
-      //'https://rpc.ankr.com/optimism',
-      'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
       'https://mainnet.optimism.io'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
@@ -60,7 +53,6 @@ export const chains: Record<string, ChainConfig> = {
     parentChainId: '1',
     rpcUrl: 'https://rpc.gnosis.gateway.fm',
     fallbackRpcUrls: [
-      'https://rpc.ankr.com/gnosis',
       'https://rpc.gnosischain.com'
     ],
     explorerUrls: ['https://gnosisscan.io'],

@@ -1,5 +1,5 @@
 import { OnchainEventIndexer } from '#indexer/index.js'
-import type { providers } from 'ethers'
+import type { providers, utils } from 'ethers'
 import type { DecodedLogWithContext, RequiredEventFilter } from '#types/index.js'
 import {
   type HopCCTPTransferSentDecodedWithMessage,
@@ -45,8 +45,8 @@ export class CCTPIndexer extends OnchainEventIndexer<CCTPEventName, CCTPEventInd
     return CCTPSDK.getStartBlockNumber(chainId)
   }
 
-  protected override getDecodedLogWithContext(log: providers.Log, chainId: string): DecodedLogWithContext {
-    return CCTPSDK.getDecodedLogWithContext(log, chainId)
+  protected override getDecodedLog (log: providers.Log): utils.LogDescription {
+    return CCTPSDK.getDecodedLog(log)
   }
 
   // NOTE: This only exists here since some CCTP logs can be sent to unsupported chains. This will

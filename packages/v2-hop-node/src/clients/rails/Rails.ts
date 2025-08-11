@@ -2,7 +2,6 @@ import { RailsClaim } from './claim/RailsClaim.js'
 import { RailsRelayer } from './RailsRelayer.js'
 import { RailsIndexer } from './RailsIndexer.js'
 import { ClientName } from '../constants.js'
-import { RailsGateway, getAddressesForRailsPath, getPathId } from './RailsSDKWrapper.js'
 import {
   type RailsPath,
   type RailsPathWithAddresses,

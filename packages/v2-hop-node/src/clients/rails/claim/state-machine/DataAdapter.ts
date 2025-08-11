@@ -1,13 +1,5 @@
 import { DataAdapter } from '#state-machine/index.js'
 import {
-  type TransferSent,
-  type ClaimPosted,
-  RailsEventName,
-  RailsGateway,
-  getNextHopsHash,
-  getRailsPathAddress
-} from '../../RailsSDKWrapper.js'
-import {
   type IRailsClaim,
   type ISentRailsClaim,
   type IPostedRailsClaim,

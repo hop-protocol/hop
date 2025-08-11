@@ -1,10 +1,3 @@
-import {
-  type RailsFilterInputs,
-  RailsEventName,
-  addDecodedTypesToEvent,
-  getPathId,
-  getRailsEventFilter
-} from './RailsSDKWrapper.js'
 import { OnchainEventIndexer } from '#indexer/index.js'
 import { getRailsStartBlockNumber } from './utils.js'
 import type { RailsPathWithAddresses } from './types.js'

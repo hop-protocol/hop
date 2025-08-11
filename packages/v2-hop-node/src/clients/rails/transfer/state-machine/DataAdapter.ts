@@ -1,12 +1,5 @@
 import { DataAdapter } from '#state-machine/index.js'
 import {
-  type ClaimBonded,
-  type TransferSent,
-  RailsEventName,
-  RailsGateway,
-  getRailsPathAddress
-} from '../../RailsSDKWrapper.js'
-import {
   type IBondedRailsClaim,
   type IRailsTransfer,
   type ISentRailsTransfer,

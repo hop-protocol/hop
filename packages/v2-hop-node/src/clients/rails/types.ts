@@ -1,10 +1,4 @@
 import type { BigNumber } from 'ethers'
-import type {
-  BondInput,
-  PostClaimInput,
-  RemoveClaimInput,
-  ReaddClaimInput
-} from './RailsSDKWrapper.js'
 
 export enum RailsClientName {
   Transfer = 'transfer',

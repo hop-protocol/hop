@@ -55,6 +55,10 @@ export class Path {
     throw new Error(`Chain ${JSON.stringify(chain)} is not in path ${this.pathId}`)
   }
 
+  hasChain(chain: Chainish): boolean {
+    return this.chain0.eq(chain) || this.chain1.eq(chain)
+  }
+
   hasChains(chain0: Chainish, chain1: Chainish): boolean {
     return (
       (this.chain0.eq(chain0) && this.chain1.eq(chain1)) ||

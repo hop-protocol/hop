@@ -1,41 +1,32 @@
 import {
   type BigNumber,
-  type BigNumberish,
   type providers,
   type CallOverrides,
   Contract
 } from 'ethers'
-import {
-  type Addressish,
-  type Pathish,
-  getPath,
-  getAddress
-} from '#models/index.js'
 import type { RailsGateway as RailsGatewayContract } from './types/index.js'
 import type { RailsPath } from './RailsPath.js'
 import { railsGatewayABI } from './abis/index.js'
-import type { RPCish } from '../types.js'
+import type { RPC } from '../types.js'
 import { getRailsPath } from './RailsFactory.js'
-import { getRPC } from '../utils.js'
 import type { HopStruct } from './types.js'
 
 export class RailsGateway {
   readonly #contract: RailsGatewayContract
 
-  constructor(address: Addressish, rpc: RPCish) {
-    address = getAddress(address).toString()
-    this.#contract = new Contract(address, railsGatewayABI, getRPC(rpc)) as RailsGatewayContract
+  constructor(address: string, rpc: RPC) {
+    this.#contract = new Contract(address, railsGatewayABI, rpc) as RailsGatewayContract
   }
 
   async send(
-    to: Addressish,
-    amount: BigNumberish,
+    to: string,
+    amount: BigNumber,
     hops: HopStruct[],
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.send(
-      getAddress(to).toString(),
+      to,
       amount,
       hops,
       overrides
@@ -43,22 +34,22 @@ export class RailsGateway {
   }
 
   async postClaim(
-    pathId: Pathish,
+    pathId: string,
     claimId: string,
-    to: Addressish,
-    amount: BigNumberish,
-    maxBonderFee: BigNumberish,
+    to: string,
+    amount: BigNumber,
+    maxBonderFee: BigNumber,
     attestedClaimId: string,
-    sourcePool: BigNumberish,
-    sourceTotalFraudulent: BigNumberish,
+    sourcePool: BigNumber,
+    sourceTotalFraudulent: BigNumber,
     nextHopsHash: string,
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.postClaim(
-      getPath(pathId).pathId,
+      pathId,
       claimId,
-      getAddress(to).toString(),
+      to,
       amount,
       maxBonderFee,
       attestedClaimId,
@@ -70,15 +61,15 @@ export class RailsGateway {
   }
 
   async bond(
-    pathId: Pathish,
+    pathId: string,
     claimId: string,
-    bonderFee: BigNumberish,
+    bonderFee: BigNumber,
     nextHops: HopStruct[],
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     // TODO: Validation and logging
     return this.#contract.bond(
-      getPath(pathId).pathId,
+      pathId,
       claimId,
       bonderFee,
       nextHops,
@@ -87,27 +78,25 @@ export class RailsGateway {
   }
 
   async getAmountOut(
-    pathId: Pathish,
-    amount: BigNumberish,
+    pathId: string,
+    amount: BigNumber,
     attestedClaimId: string,
-    sourcePool: BigNumberish,
-    sourceTotalFraudulent: BigNumberish,
-    overrides?: CallOverrides
+    sourcePool: BigNumber,
+    sourceTotalFraudulent: BigNumber
   ): Promise<BigNumber> {
     // TODO: Validation and logging
     return this.#contract.getAmountOut(
-      getPath(pathId).pathId,
+      pathId,
       amount,
       attestedClaimId,
       sourcePool,
-      sourceTotalFraudulent,
-      overrides
+      sourceTotalFraudulent
     )
   }
 
-  async getPath(pathId: Pathish, overrides?: CallOverrides): Promise<RailsPath> {
+  async getPath(pathId: string): Promise<RailsPath> {
     // TODO: Validation and logging
-    const pathAddress = await this.#contract.getPath(getPath(pathId).pathId, overrides)
-    return getRailsPath(pathAddress, this.#contract.signer)
+    const pathAddress = await this.#contract.getPath(pathId)
+    return getRailsPath(pathAddress, this.#contract.provider)
   }
 }

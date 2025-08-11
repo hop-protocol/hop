@@ -34,7 +34,7 @@ export class RailsPath {
 
   async getSourcePool(attestedClaimId: string): Promise<BigNumber> {
     // TODO: Validation & logging
-    return this.#contract.getSourcePool(attestedClaimId,)
+    return this.#contract.getSourcePool(attestedClaimId)
   }
 
   async totalFraudulent(): Promise<BigNumber> {

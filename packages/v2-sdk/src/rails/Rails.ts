@@ -25,6 +25,11 @@ export class Rails {
     if (chains.length !== rpcs.length) {
       throw new Error('Chains and RPC clients must have the same length')
     }
+    // TODO: It should be possible to do this with just one (i.e. for isClaimBonded())
+    if (chains.length < 2) {
+      throw new Error('Rails instance requires at least two chains')
+    }
+
     for (let i = 0; i < chains.length; i++) {
       const chainId = getChain(chains[i]).chainId
       const rpc = getRPC(rpcs[i])

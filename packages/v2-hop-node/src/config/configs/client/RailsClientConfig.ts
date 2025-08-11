@@ -1,7 +1,7 @@
-import { Rails } from '#clients/index.js'
+import type { Rails } from '#clients/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { RailsGateway } from '#clients/rails/RailsSDKWrapper.js'
 import { validateRequiredKeys } from '../../utils.js'
+import { Rails as RailsSDK, getPath } from '@hop-protocol/v2-sdk'
 
 export interface IRailsClientConfig {
   paths: Rails.RailsPath[]
@@ -14,28 +14,27 @@ export async function validate(config: IRailsClientConfig): Promise<void> {
   const { paths } = config
 
   // Validate that the paths are fully live
-  for (const path of paths) {
-    const pathId = Rails.getPathId(path)
+  for (const _path of paths) {
+    const path = getPath(_path)
+    const chains = path.getChains()
+    const rpcs = chains.map(chain => getRpcProvider(chain.chainId))
 
-    const chainIds = Rails.getChainIdsForPaths([path])
-    for (const chainId of chainIds) {
-      const provider = getRpcProvider(chainId)
-      const railsGateway = new RailsGateway(chainId, provider)
-      // const isLive = await railsGateway.getIsPathIdLive(pathId)
-      // if (!isLive) {
-      //   throw new Error(`Path is not live: ${pathId}`)
-      // }
+    const railsGateway = new RailsSDK(chains, rpcs)
+    const isLive = await railsGateway.isPathInitialized(path)
+    if (!isLive) {
+      throw new Error(`Path is not live: ${path.pathId}`)
     }
   }
 
   // Validate that the correct rpcs are supplied
-  for (const path of paths) {
+  for (const _path of paths) {
+    const path = getPath(_path)
     try {
-      const chainIds = [path.chainId, path.counterpartChainId]
-      for (const chainId of chainIds) {
-        const provider = getRpcProvider(chainId)
+      const chains = path.getChains()
+      for (const chain of chains) {
+        const provider = getRpcProvider(chain.chainId)
         const retrievedChainId = (await provider.getNetwork()).chainId.toString()
-        if (chainId !== retrievedChainId) {
+        if (chain.chainId !== retrievedChainId) {
           throw new Error(`ChainId mismatch for path: ${JSON.stringify(path)}`)
         }
       }

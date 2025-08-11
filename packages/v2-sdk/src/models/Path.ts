@@ -45,6 +45,10 @@ export class Path {
     return this.pathId === Path.getPath(otherPath).pathId
   }
 
+  getChains(): Chain[] {
+    return [this.chain0, this.chain1]
+  }
+
   getCounterpartChain(chain: Chainish): Chain {
     const _chain = Chain.getChain(chain)
     if (_chain.chainId === this.chain0.chainId) {

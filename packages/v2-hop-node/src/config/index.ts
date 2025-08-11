@@ -2,6 +2,7 @@ import { type IClientConfig, validate as validateClientConfig} from './configs/c
 import { type ISignerConfig, validate as validateSignerConfig } from './configs/signer/index.js'
 import { type IGlobalConfig, validate as validateGlobalConfig } from './configs/global/index.js'
 import { parseUserDefinedConfigFile, validateRequiredKeys } from './utils.js'
+import { BigNumber } from 'ethers'
 import { mkdirp } from 'mkdirp'
 import type { IConfig } from './types.js'
 
@@ -39,6 +40,13 @@ export class Config {
     }
 
     const config: IConfig = await parseUserDefinedConfigFile(configPath)
+    //TODO: Better way to modify user-inputted types to match expected types
+    if (config.client.rails.paths.length !== 0) {
+      for (const path of config.client.rails.paths) {
+        path.initialReserve = BigNumber.from(path.initialReserve)
+      }
+    }
+
     validateRequiredKeys<IConfig>(config, Object.values(ConfigNames))
 
     Config.#globalConfig = config[ConfigNames.Global]

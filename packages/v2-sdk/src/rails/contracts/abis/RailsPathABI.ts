@@ -1,6 +1,19 @@
 export const abi = [
   {
     type: "function",
+    name: "attestedAndRemoved",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "bond",
     inputs: [
       {
@@ -284,6 +297,7 @@ export const abi = [
   {
     type: "function",
     name: "getClaim",
+    // eslint-disable-next-line max-lines
     inputs: [
       {
         name: "claimId",
@@ -297,7 +311,6 @@ export const abi = [
         type: "tuple",
         internalType: "struct Claim",
         components: [
-          // eslint-disable-next-line max-lines
           {
             name: "createdAt",
             type: "uint256",
@@ -1019,25 +1032,6 @@ export const abi = [
   },
   {
     type: "function",
-    name: "removedBalance",
-    inputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "send",
     inputs: [
       {
@@ -1359,19 +1353,6 @@ export const abi = [
         internalType: "address",
       },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "withdrawnAndRemoved",
-    inputs: [],
     outputs: [
       {
         name: "",

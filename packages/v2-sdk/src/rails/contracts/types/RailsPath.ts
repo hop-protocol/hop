@@ -110,6 +110,7 @@ export type TransferStructOutput = [BigNumber, BigNumber] & {
 
 export interface RailsPathInterface extends utils.Interface {
   functions: {
+    "attestedAndRemoved()": FunctionFragment;
     "bond(bytes32,uint256,(bytes32,uint256,uint256,bytes32,address)[],address)": FunctionFragment;
     "claimChain(uint256)": FunctionFragment;
     "confirmClaim(bytes32)": FunctionFragment;
@@ -149,7 +150,6 @@ export interface RailsPathInterface extends utils.Interface {
     "postClaim(bytes32,address,uint256,uint256,bytes32,uint256,uint256,bytes32)": FunctionFragment;
     "readdClaim(bytes32,bytes32)": FunctionFragment;
     "removeClaim(bytes32)": FunctionFragment;
-    "removedBalance(address)": FunctionFragment;
     "send(address,uint256,(bytes32,uint256,uint256,bytes32,address)[])": FunctionFragment;
     "token()": FunctionFragment;
     "totalClaims()": FunctionFragment;
@@ -161,11 +161,11 @@ export interface RailsPathInterface extends utils.Interface {
     "withdrawBonds(bytes32,address)": FunctionFragment;
     "withdrawClaim(bytes32,(bytes32,uint256,uint256,bytes32,address)[],address)": FunctionFragment;
     "withdrawn(address)": FunctionFragment;
-    "withdrawnAndRemoved()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "attestedAndRemoved"
       | "bond"
       | "claimChain"
       | "confirmClaim"
@@ -205,7 +205,6 @@ export interface RailsPathInterface extends utils.Interface {
       | "postClaim"
       | "readdClaim"
       | "removeClaim"
-      | "removedBalance"
       | "send"
       | "token"
       | "totalClaims"
@@ -217,9 +216,12 @@ export interface RailsPathInterface extends utils.Interface {
       | "withdrawBonds"
       | "withdrawClaim"
       | "withdrawn"
-      | "withdrawnAndRemoved"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "attestedAndRemoved",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "bond",
     values: [
@@ -412,10 +414,6 @@ export interface RailsPathInterface extends utils.Interface {
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "removedBalance",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "send",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, HopStruct[]]
   ): string;
@@ -453,11 +451,11 @@ export interface RailsPathInterface extends utils.Interface {
     functionFragment: "withdrawn",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawnAndRemoved",
-    values?: undefined
-  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "attestedAndRemoved",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "bond", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimChain", data: BytesLike): Result;
   decodeFunctionResult(
@@ -587,10 +585,6 @@ export interface RailsPathInterface extends utils.Interface {
     functionFragment: "removeClaim",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "removedBalance",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(
@@ -623,10 +617,6 @@ export interface RailsPathInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdrawn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawnAndRemoved",
-    data: BytesLike
-  ): Result;
 
   events: {
     "ClaimBonded(bytes32,address,uint256,uint256)": EventFragment;
@@ -723,7 +713,7 @@ export type TransferSentEvent = TypedEvent<
 export type TransferSentEventFilter = TypedEventFilter<TransferSentEvent>;
 
 export interface RailsPath extends BaseContract {
-  connect(provider: Signer | Provider | string): this;
+  connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
@@ -749,6 +739,8 @@ export interface RailsPath extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    attestedAndRemoved(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     bond(
       claimId: PromiseOrValue<BytesLike>,
       bonderFee: PromiseOrValue<BigNumberish>,
@@ -945,11 +937,6 @@ export interface RailsPath extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    removedBalance(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     send(
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -1000,9 +987,9 @@ export interface RailsPath extends BaseContract {
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    withdrawnAndRemoved(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  attestedAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
 
   bond(
     claimId: PromiseOrValue<BytesLike>,
@@ -1194,11 +1181,6 @@ export interface RailsPath extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  removedBalance(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   send(
     to: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
@@ -1250,9 +1232,9 @@ export interface RailsPath extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  withdrawnAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
-
   callStatic: {
+    attestedAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
+
     bond(
       claimId: PromiseOrValue<BytesLike>,
       bonderFee: PromiseOrValue<BigNumberish>,
@@ -1443,11 +1425,6 @@ export interface RailsPath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    removedBalance(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     send(
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -1498,8 +1475,6 @@ export interface RailsPath extends BaseContract {
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    withdrawnAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -1576,6 +1551,8 @@ export interface RailsPath extends BaseContract {
   };
 
   estimateGas: {
+    attestedAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
+
     bond(
       claimId: PromiseOrValue<BytesLike>,
       bonderFee: PromiseOrValue<BigNumberish>,
@@ -1764,11 +1741,6 @@ export interface RailsPath extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    removedBalance(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     send(
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -1819,11 +1791,13 @@ export interface RailsPath extends BaseContract {
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    withdrawnAndRemoved(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    attestedAndRemoved(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     bond(
       claimId: PromiseOrValue<BytesLike>,
       bonderFee: PromiseOrValue<BigNumberish>,
@@ -2018,11 +1992,6 @@ export interface RailsPath extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    removedBalance(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     send(
       to: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -2071,10 +2040,6 @@ export interface RailsPath extends BaseContract {
 
     withdrawn(
       arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    withdrawnAndRemoved(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

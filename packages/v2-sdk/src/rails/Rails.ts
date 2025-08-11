@@ -25,10 +25,10 @@ export class Rails {
     if (chains.length !== rpcs.length) {
       throw new Error('Chains and RPC clients must have the same length')
     }
-    // TODO: It should be possible to do this with just one (i.e. for isClaimBonded())
-    if (chains.length < 2) {
-      throw new Error('Rails instance requires at least two chains')
-    }
+    // // TODO: It should be possible to do this with just one (i.e. for isClaimBonded())
+    // if (chains.length < 2) {
+    //   throw new Error('Rails instance requires at least two chains')
+    // }
 
     for (let i = 0; i < chains.length; i++) {
       const chainId = getChain(chains[i]).chainId
@@ -67,6 +67,8 @@ export class Rails {
     overrides?: CallOverrides
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(path, fromChain, toChain)
+    this.#requireTwoChains()
+
     const hops = await this.#getDefaultHops(path, toChain)
     return this.#getGateway(fromChain).send(
       getAddress(to).toString(),
@@ -85,6 +87,7 @@ export class Rails {
     attestedClaimId?: string
   ): Promise<BigNumber> {
     this.#validateInput(path, fromChain, toChain)
+    this.#requireTwoChains()
 
     attestedClaimId ??= await this.getValidHeadClaimId(path, fromChain)
     const pathContract = await this.#getRailsPathContract(path, fromChain)
@@ -101,6 +104,8 @@ export class Rails {
 
   async getValidHeadClaimId(path: Pathish, chain: Chainish): Promise<string> {
     this.#validateInput(path, chain)
+    this.#requireTwoChains()
+
     const pathContract = await this.#getRailsPathContract(path, chain)
     const claimId = await pathContract.getHeadClaimId()
 
@@ -113,6 +118,8 @@ export class Rails {
 
   async isValidClaim(path: Pathish, chain: Chainish, claimId: string): Promise<boolean> {
     this.#validateInput(path, chain)
+    this.#requireTwoChains()
+
     const toPathContract = await this.#getRailsPathContract(path, chain)
     const isValidClaim = await toPathContract.isValidClaim(claimId)
     if (!isValidClaim) {
@@ -140,6 +147,21 @@ export class Rails {
     const railsPath = await this.#getRailsPathContract(path, toChain)
     const claim = await railsPath.getClaim(claimId)
     return claim.bondedBy !== constants.AddressZero
+  }
+
+  async isPathInitialized(path: Pathish): Promise<boolean> {
+    this.#requireTwoChains()
+
+    path = getPath(path)
+    const chains = path.getChains()
+    for (const chain of chains) {
+      const gateway = this.#getGateway(chain)
+      const isInitialized = await gateway.isPathInitialized(path.pathId)
+      if (!isInitialized) {
+        return false
+      }
+    }
+    return true
   }
 
   async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
@@ -178,6 +200,13 @@ export class Rails {
         updater: constants.AddressZero // Placeholder value
       }
     ]
+  }
+
+  // TODO: More native way to do this
+  #requireTwoChains(): void {
+    if (this.#gateways.size < 2) {
+      throw new Error('Rails instance requires at least two chains')
+    }
   }
 }
 

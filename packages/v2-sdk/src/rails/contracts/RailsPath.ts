@@ -11,6 +11,7 @@ export class RailsPath {
   constructor(address: string, rpc: RPC) {
     this.#contract = new Contract(address, railsPathABI, rpc) as RailsPathContract
   }
+
   async getClaim(claimId: string): Promise<Claim> {
     // TODO: Validation & logging
     const claim = await this.#contract.getClaim(claimId)

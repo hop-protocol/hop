@@ -126,7 +126,8 @@ export default tseslint.config(
     ignores: [
       '**/*.{js,mjs,cjs,jsx,d.ts}',
       '!eslint.config.mjs',
-      '!jest.config.mjs'
+      '!jest.config.mjs',
+      '**/test/**'
     ]
   }
 )

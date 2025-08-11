@@ -45,7 +45,7 @@ export class Path {
     return this.pathId === Path.getPath(otherPath).pathId
   }
 
-  getChains(): Chain[] {
+  getChains(): [Chain, Chain] {
     return [this.chain0, this.chain1]
   }
 

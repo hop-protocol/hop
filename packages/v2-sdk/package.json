@@ -34,12 +34,6 @@
   "dependencies": {
     "ethers": "5.7.2"
   },
-  "devDependencies": {
-    "ts-jest": "29.1.2"
-  },
-  "peerDependencies": {
-    "ethers": "^5"
-  },
   "imports": {
     "#*": {
       "import": "./dist/esm/*",

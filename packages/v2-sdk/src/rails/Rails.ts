@@ -56,10 +56,9 @@ export class Rails {
     return gateway
   }
 
-  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
-    const pathId = getPath(path).pathId
+  #getRailsPathContract(path: Pathish, chain: Chainish): RailsPath{
     const gateway = getGateway(getChain(chain).chainId)
-    const pathAddress = gateway.getPathContractAddress(pathId)
+    const pathAddress = gateway.getPathContractAddress(getPath(path).pathId)
     return this.#getRailsGatewayContract(chain).getPathContract(pathAddress)
   }
 
@@ -151,7 +150,7 @@ export class Rails {
     this.#requireTwoChains()
 
     attestedClaimId ??= await this.getValidHeadClaimId(path, fromChain)
-    const pathContract = await this.#getRailsPathContract(path, fromChain)
+    const pathContract = this.#getRailsPathContract(path, fromChain)
     const sourcePool = await pathContract.getSourcePool(attestedClaimId)
     const sourcePoolTotalFraudulent = await pathContract.totalFraudulent()
     return this.#getRailsGatewayContract(toChain).getAmountOut(
@@ -167,7 +166,7 @@ export class Rails {
     this.#validateInput(path, chain)
     this.#requireTwoChains()
 
-    const pathContract = await this.#getRailsPathContract(path, chain)
+    const pathContract = this.#getRailsPathContract(path, chain)
     const claimId = await pathContract.getHeadClaimId()
 
     const isValid = await this.isValidClaim(path, chain, claimId)
@@ -181,14 +180,14 @@ export class Rails {
     this.#validateInput(path, chain)
     this.#requireTwoChains()
 
-    const toPathContract = await this.#getRailsPathContract(path, chain)
+    const toPathContract = this.#getRailsPathContract(path, chain)
     const isValidClaim = await toPathContract.isValidClaim(claimId)
     if (!isValidClaim) {
       return false
     }
 
     const fromChain = getPath(path).getCounterpartChain(chain)
-    const fromPathContract = await this.#getRailsPathContract(path, fromChain)
+    const fromPathContract = this.#getRailsPathContract(path, fromChain)
     const isValidTransfer = await fromPathContract.isValidTransfer(claimId)
     if (!isValidTransfer) {
       return false
@@ -198,14 +197,14 @@ export class Rails {
 
   async isClaimPosted(path: Pathish, toChain: Chainish, claimId: string): Promise<boolean> {
     this.#validateInput(path, toChain)
-    const railsPath = await this.#getRailsPathContract(path, toChain)
+    const railsPath = this.#getRailsPathContract(path, toChain)
     const claim = await railsPath.getClaim(claimId)
     return claim.createdAt.gt(0)
   }
 
   async isClaimBonded(path: Pathish, toChain: Chainish, claimId: string): Promise<boolean> {
     this.#validateInput(path, toChain)
-    const railsPath = await this.#getRailsPathContract(path, toChain)
+    const railsPath = this.#getRailsPathContract(path, toChain)
     const claim = await railsPath.getClaim(claimId)
     return claim.bondedBy !== constants.AddressZero
   }

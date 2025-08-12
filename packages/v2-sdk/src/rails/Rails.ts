@@ -225,15 +225,6 @@ export class Rails {
     return true
   }
 
-  getFilters(chain: Chainish): RailsGatewayFilters {
-    return this.#getGateway(chain).filters
-  }
-
-  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
-    const pathId = getPath(path).pathId
-    return this.#getGateway(chain).getPath(pathId)
-  }
-
   #validateInput(path: Pathish, chain: Chainish): void
   #validateInput(path: Pathish, fromChain: Chainish, toChain: Chainish): void
   #validateInput(path: Pathish, chainOrFromChain: Chainish, toChain?: Chainish): void {

@@ -43,8 +43,8 @@ export const paths: Record<string, PathConfig> = {
   },
 
   // USDC: Sepolia to Base Sepolia
-  '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8': {
-    pathId: '0x1da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
+  '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8': {
+    pathId: '0x01da48538be012466f4dd90504bb95a5b22e96796fd4d78b4fde7a4ee9dc4aa8',
     chainId0: '11155111', // Sepolia
     tokenAddress0: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
     chainId1: '84532', // Base Sepolia

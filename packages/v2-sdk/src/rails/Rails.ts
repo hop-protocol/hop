@@ -6,6 +6,7 @@ import {
   type Chainish,
   getAddress,
   getChain,
+  getGateway,
   getPath
 } from '#models/index.js'
 import {
@@ -46,13 +47,20 @@ export class Rails {
    * Instantiation
    */
 
-  #getGateway(chain: Chainish): RailsGateway {
+  #getRailsGatewayContract(chain: Chainish): RailsGateway {
     const chainId = getChain(chain).chainId
     const gateway = this.#gateways.get(chainId)
     if (!gateway) {
       throw new Error(`Gateway for chain ${chainId} not found`)
     }
     return gateway
+  }
+
+  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
+    const pathId = getPath(path).pathId
+    const gateway = getGateway(getChain(chain).chainId)
+    const pathAddress = gateway.getPathContractAddress(pathId)
+    return this.#getRailsGatewayContract(chain).getPathContract(pathAddress)
   }
 
   /**
@@ -71,7 +79,7 @@ export class Rails {
     this.#requireTwoChains()
 
     const hops = await this.#getDefaultHops(path, toChain)
-    return this.#getGateway(fromChain).send(
+    return this.#getRailsGatewayContract(fromChain).send(
       getAddress(to).toString(),
       BigNumber.from(amount),
       hops,
@@ -91,7 +99,7 @@ export class Rails {
     this.#validateInput(path, fromChain, toChain)
     this.#requireTwoChains()
 
-    return this.#getGateway(toChain).bond(
+    return this.#getRailsGatewayContract(toChain).bond(
       getPath(path).pathId,
       claimId,
       BigNumber.from(bonderFee),
@@ -117,7 +125,7 @@ export class Rails {
     this.#validateInput(path, fromChain, toChain)
     this.#requireTwoChains()
 
-    return this.#getGateway(toChain).postClaim(
+    return this.#getRailsGatewayContract(toChain).postClaim(
       getPath(path).pathId,
       claimId,
       getAddress(to).toString(),
@@ -146,7 +154,7 @@ export class Rails {
     const pathContract = await this.#getRailsPathContract(path, fromChain)
     const sourcePool = await pathContract.getSourcePool(attestedClaimId)
     const sourcePoolTotalFraudulent = await pathContract.totalFraudulent()
-    return this.#getGateway(toChain).getAmountOut(
+    return this.#getRailsGatewayContract(toChain).getAmountOut(
       getPath(path).pathId,
       BigNumber.from(amount),
       claimId,
@@ -208,7 +216,7 @@ export class Rails {
     path = getPath(path)
     const chains = path.getChains()
     for (const chain of chains) {
-      const gateway = this.#getGateway(chain)
+      const gateway = this.#getRailsGatewayContract(chain)
       const isInitialized = await gateway.isPathInitialized(path.pathId)
       if (!isInitialized) {
         return false

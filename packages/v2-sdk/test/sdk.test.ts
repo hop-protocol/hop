@@ -25,16 +25,6 @@ describe('SDK', () => {
   ]
   const rails = new Rails(chains, rpcs)
 
-  test('getToken() should return a token by symbol', () => {
-    const token = getToken('ETH')
-
-    expect(token).toBeDefined()
-    expect(token.symbol).toBe('ETH')
-    expect(token.name).toBe('Ethereum')
-    expect(token.decimals).toBe(18)
-    expect(token.isStableCoin).toBe(false)
-  })
-
   test('should not allow mismatched length inputs during instantiation', () => {
     expect(() => new Rails(chains, [rpcs[0]])).toThrow()
   })

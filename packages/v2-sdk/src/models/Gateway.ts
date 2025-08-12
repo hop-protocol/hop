@@ -1,4 +1,5 @@
 import { type GatewayConfig, allGateways } from '#config/gateways/index.js'
+import { utils } from 'ethers'
 
 export type Gatewayish = Gateway | GatewayConfig | string
 
@@ -11,6 +12,7 @@ export class Gateway {
   readonly railsGateway: string
   readonly stakingRegistry: string
   readonly hopToken: string
+  readonly railsPathImplementation: string
 
   constructor(config: GatewayConfig) {
     this.chainId = config.chainId
@@ -21,6 +23,7 @@ export class Gateway {
     this.railsGateway = config.railsGateway
     this.stakingRegistry = config.stakingRegistry
     this.hopToken = config.hopToken
+    this.railsPathImplementation = config.railsPathImplementation
   }
 
   static getGateway(gateway: Gatewayish): Gateway {
@@ -39,6 +42,28 @@ export class Gateway {
 
   static getGateways(): Gateway[] {
     return Object.values(allGateways).map(config => new Gateway(config))
+  }
+
+  getPathContractAddress(pathId: string): string {
+    // The deployer is the factory contract, not an EOA
+    const deployer = this.railsGateway
+    const initCode = this.#getMinimalProxyBytecode(this.railsPathImplementation)
+    return utils.getCreate2Address(
+      deployer,
+      utils.solidityPack(['bytes32'], [pathId]),
+      utils.keccak256(initCode),
+    )
+  }
+
+  // Calculate the bytecode for a minimal proxy contract
+  // https://blog.openzeppelin.com/deep-dive-into-the-minimal-proxy-contract
+  // Can be verified by comparing against a debug_traceTransaction RPC call of the creation tx.
+  #getMinimalProxyBytecode(implementationAddress: string): string {
+    return (
+      '0x3d602d80600a3d3981f3363d3d373d3d3d363d73' +
+      implementationAddress.slice(2).toLowerCase() +
+      '5af43d82803e903d91602b57fd5bf3'
+    )
   }
 }
 

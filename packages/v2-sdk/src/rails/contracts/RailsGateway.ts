@@ -100,10 +100,14 @@ export class RailsGateway {
     )
   }
 
-  async getPath(pathId: string): Promise<RailsPath> {
+  async getPath(pathId: string): Promise<string> {
     // TODO: Validation and logging
-    const pathAddress = await this.#contract.getPath(pathId)
-    return getRailsPath(pathAddress, this.#contract.provider)
+    return this.#contract.getPath(pathId)
+  }
+
+  getPathContract(pathContractAddress: string): RailsPath {
+    const rpc = this.#contract.provider
+    return getRailsPath(pathContractAddress, rpc)
   }
 
   async isPathInitialized(pathId: string): Promise<boolean> {

@@ -209,6 +209,13 @@ export class Rails {
     return claim.bondedBy !== constants.AddressZero
   }
 
+  async getRailsPathAddress(path: Pathish, chain: Chainish): Promise<string> {
+    this.#validateInput(path, chain)
+
+    const gateway = this.#getRailsGatewayContract(chain)
+    return gateway.getPath(getPath(path).pathId)
+  }
+
   async isPathInitialized(path: Pathish): Promise<boolean> {
     this.#requireTwoChains()
 

@@ -7,4 +7,5 @@ export type GatewayConfig = {
   railsGateway: string
   stakingRegistry: string
   hopToken: string
+  railsPathImplementation: string
 }

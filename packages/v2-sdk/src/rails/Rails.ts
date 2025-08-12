@@ -142,9 +142,16 @@ export class Rails {
     return claim.bondedBy !== constants.AddressZero
   }
 
+  async getRailsPathAddress(path: Pathish, chain: Chainish): Promise<string> {
+    this.#validateInput(path, chain)
+
+    const gateway = this.#getGateway(chain)
+    return gateway.getPath(getPath(path).pathId)
+  }
+
   async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
     const pathId = getPath(path).pathId
-    return this.#getGateway(chain).getPath(pathId)
+    return this.#getGateway(chain).getPathContract(pathId)
   }
 
   #validateInput(path: Pathish, chain: Chainish): void

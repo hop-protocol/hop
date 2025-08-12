@@ -9,7 +9,8 @@ export const gateways: Record<string, GatewayConfig> = {
     executor: '0x32F1f3Fc0fB907791dC5c15EF8111808231cA608',
     railsGateway: '0x638BE68765dE7eb4574eb60B4AF79D7AD75edcdF',
     stakingRegistry: '0x48013162D54DF91Fa0916D107366FE9D0D2b1D39',
-    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab'
+    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab',
+    railsPathImplementation: '0x26D54d7743deaEFdad6f3F60CaA62c434DB5523E'
   },
   '11155420': { // Optimism Seploia
     chainId: '11155420',
@@ -19,7 +20,8 @@ export const gateways: Record<string, GatewayConfig> = {
     executor: '0x32F1f3Fc0fB907791dC5c15EF8111808231cA608',
     railsGateway: '0x638BE68765dE7eb4574eb60B4AF79D7AD75edcdF',
     stakingRegistry: '0x48013162D54DF91Fa0916D107366FE9D0D2b1D39',
-    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab'
+    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab',
+    railsPathImplementation: '0x26D54d7743deaEFdad6f3F60CaA62c434DB5523E'
   },
   '84532': { // Base Seploia
     chainId: '84532',
@@ -29,6 +31,7 @@ export const gateways: Record<string, GatewayConfig> = {
     executor: '0x32F1f3Fc0fB907791dC5c15EF8111808231cA608',
     railsGateway: '0x638BE68765dE7eb4574eb60B4AF79D7AD75edcdF',
     stakingRegistry: '0x48013162D54DF91Fa0916D107366FE9D0D2b1D39',
-    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab'
+    hopToken: '0x236F2dD02A8dd1DbdC62C648cCE0F3615278beab',
+    railsPathImplementation: '0x26D54d7743deaEFdad6f3F60CaA62c434DB5523E'
   }
 }

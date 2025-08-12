@@ -10,6 +10,7 @@ import {
 } from '#models/index.js'
 import {
   type RailsGateway,
+  type RailsGatewayFilters,
   type RailsPath,
   getRailsGateway
 } from './contracts/index.js'
@@ -214,6 +215,10 @@ export class Rails {
       }
     }
     return true
+  }
+
+  getFilters(chain: Chainish): RailsGatewayFilters {
+    return this.#getGateway(chain).filters
   }
 
   async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{

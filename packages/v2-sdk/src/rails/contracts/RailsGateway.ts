@@ -11,11 +11,17 @@ import type { RPC } from '../types.js'
 import { getRailsPath } from './RailsFactory.js'
 import type { HopStruct } from './types.js'
 
+export type RailsGatewayFilters = RailsGatewayContract['filters']
+
 export class RailsGateway {
   readonly #contract: RailsGatewayContract
 
   constructor(address: string, rpc: RPC) {
     this.#contract = new Contract(address, railsGatewayABI, rpc) as RailsGatewayContract
+  }
+
+  get filters(): RailsGatewayFilters {
+    return this.#contract.filters
   }
 
   async send(

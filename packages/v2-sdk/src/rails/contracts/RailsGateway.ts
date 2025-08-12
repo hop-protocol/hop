@@ -5,11 +5,11 @@ import {
   Contract
 } from 'ethers'
 import type { RailsGateway as RailsGatewayContract } from './types/index.js'
-import type { RailsPath } from './RailsPath.js'
 import { railsGatewayABI } from './abis/index.js'
 import type { RPC } from '../types.js'
-import { getRailsPath } from './RailsFactory.js'
 import type { HopStruct } from './types.js'
+import { getRailsPath } from './RailsFactory.js'
+import type { RailsPath } from './RailsPath.js'
 
 export type RailsGatewayFilters = RailsGatewayContract['filters']
 

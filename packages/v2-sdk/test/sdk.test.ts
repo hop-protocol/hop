@@ -1,5 +1,5 @@
 import { getChain, getPath } from '#models/index.js'
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
 import { Rails } from '#rails/index.js'
 
 describe('SDK', () => {
@@ -29,9 +29,10 @@ describe('SDK', () => {
     expect(claimId).toBeDefined()
   })
 
-  test('should retrieve a filtered event with indexes', async () => {
+  test.only('should retrieve a filtered event with indexes', async () => {
     const indexAddress = '0x0000000000000000000000000000000000000123'
-    const filter = rails.getFilters(chains[0]).OwnershipTransferred(
+    const path = getPath('0xf2562f695ac4ba9361f3c5f05041d5f53ec86062b47561fe0d9f29e1675b5ace')
+    const filter = rails.getFilters(path, chains[0]).OwnershipTransferred(
       null,
       indexAddress
     )

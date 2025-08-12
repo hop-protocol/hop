@@ -5,11 +5,17 @@ import type { RPC } from '../types.js'
 
 import { railsPathABI } from './abis/index.js'
 
+export type RailsPathFilters = RailsPathContract['filters']
+
 export class RailsPath {
   readonly #contract: RailsPathContract
 
   constructor(address: string, rpc: RPC) {
     this.#contract = new Contract(address, railsPathABI, rpc) as RailsPathContract
+  }
+
+  get filters(): RailsPathFilters {
+    return this.#contract.filters
   }
 
   async getClaim(claimId: string): Promise<Claim> {

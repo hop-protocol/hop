@@ -13,10 +13,13 @@ import {
   type RailsGateway,
   type RailsGatewayFilters,
   type RailsPath,
+  type RailsPathFilters,
   getRailsGateway
 } from './contracts/index.js'
 import { getRPC } from './utils.js'
 import type { RPCish } from './types.js'
+
+type RailsFilters = RailsGatewayFilters & RailsPathFilters
 
 export class Rails {
   readonly #gateways: Map<string, RailsGateway> = new Map()
@@ -229,6 +232,17 @@ export class Rails {
       }
     }
     return true
+  }
+
+  // Aggregates filters from all Rails system contracts
+  getFilters(path: Pathish, chain: Chainish): RailsFilters {
+    const gatewayContract = this.#getRailsGatewayContract(chain)
+    const pathContract = this.#getRailsPathContract(path, chain)
+
+    return {
+      ...gatewayContract.filters,
+      ...pathContract.filters
+    }
   }
 
   #validateInput(path: Pathish, chain: Chainish): void

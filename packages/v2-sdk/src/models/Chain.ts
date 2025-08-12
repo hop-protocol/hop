@@ -1,5 +1,5 @@
 import type { ChainConfig } from '#config/chains/types.js'
-import { allNetworks, allChains } from '#config/chains/index.js'
+import { allChains } from '#config/chains/index.js'
 
 export type Chainish = Chain | ChainConfig | string
 
@@ -81,15 +81,6 @@ export class Chain {
     return chainId
   }
 
-  static isValidChainSlug(slug: string): boolean {
-    // return true if some network has some chain with the given slug
-    return Object.values(allNetworks).some(network =>
-      Object.values(network.chains).some(chain =>
-        chain.slug === slug
-      )
-    )
-  }
-
   toString(): string {
     return this.name
   }
@@ -100,4 +91,3 @@ export class Chain {
 }
 
 export const getChain = Chain.getChain
-export const isValidChainSlug = Chain.isValidChainSlug

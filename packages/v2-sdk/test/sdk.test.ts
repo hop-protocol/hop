@@ -29,14 +29,13 @@ describe('SDK', () => {
     expect(claimId).toBeDefined()
   })
 
-  test.only('should retrieve a filtered event with indexes', async () => {
+  test('should retrieve a filtered event with indexes', async () => {
     const indexAddress = '0x0000000000000000000000000000000000000123'
     const path = getPath('0xf2562f695ac4ba9361f3c5f05041d5f53ec86062b47561fe0d9f29e1675b5ace')
-    const filter = rails.getFilters(path, chains[0]).OwnershipTransferred(
+    const filter = rails.getFilters(path, chains[0]).ClaimBonded(
       null,
       indexAddress
     )
-
     expect(filter.address).toBeDefined()
     expect(filter.topics?.[0]).toBeDefined()
     expect(filter.topics?.[1]).toBeNull()

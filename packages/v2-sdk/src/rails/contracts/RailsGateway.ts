@@ -100,7 +100,7 @@ export class RailsGateway {
   }
 
   getPathContract(pathContractAddress: string): RailsPath {
-    const rpc = this.#contract.signer
+    const rpc = this.#contract.provider
     return getRailsPath(pathContractAddress, rpc)
   }
 }

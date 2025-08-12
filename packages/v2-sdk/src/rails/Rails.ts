@@ -6,6 +6,7 @@ import {
   type Chainish,
   getAddress,
   getChain,
+  getGateway,
   getPath
 } from '#models/index.js'
 import {
@@ -45,13 +46,20 @@ export class Rails {
    * Instantiation
    */
 
-  #getGateway(chain: Chainish): RailsGateway {
+  #getRailsGatewayContract(chain: Chainish): RailsGateway {
     const chainId = getChain(chain).chainId
     const gateway = this.#gateways.get(chainId)
     if (!gateway) {
       throw new Error(`Gateway for chain ${chainId} not found`)
     }
     return gateway
+  }
+
+  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
+    const pathId = getPath(path).pathId
+    const gateway = getGateway(getChain(chain).chainId)
+    const pathAddress = gateway.getPathContractAddress(pathId)
+    return this.#getRailsGatewayContract(chain).getPathContract(pathAddress)
   }
 
   /**
@@ -68,7 +76,7 @@ export class Rails {
   ): Promise<providers.TransactionResponse> {
     this.#validateInput(path, fromChain, toChain)
     const hops = await this.#getDefaultHops(path, toChain)
-    return this.#getGateway(fromChain).send(
+    return this.#getRailsGatewayContract(fromChain).send(
       getAddress(to).toString(),
       BigNumber.from(amount),
       hops,
@@ -90,7 +98,7 @@ export class Rails {
     const pathContract = await this.#getRailsPathContract(path, fromChain)
     const sourcePool = await pathContract.getSourcePool(attestedClaimId)
     const sourcePoolTotalFraudulent = await pathContract.totalFraudulent()
-    return this.#getGateway(toChain).getAmountOut(
+    return this.#getRailsGatewayContract(toChain).getAmountOut(
       getPath(path).pathId,
       BigNumber.from(amount),
       claimId,
@@ -145,13 +153,8 @@ export class Rails {
   async getRailsPathAddress(path: Pathish, chain: Chainish): Promise<string> {
     this.#validateInput(path, chain)
 
-    const gateway = this.#getGateway(chain)
+    const gateway = this.#getRailsGatewayContract(chain)
     return gateway.getPath(getPath(path).pathId)
-  }
-
-  async #getRailsPathContract(path: Pathish, chain: Chainish): Promise<RailsPath>{
-    const pathId = getPath(path).pathId
-    return this.#getGateway(chain).getPathContract(pathId)
   }
 
   #validateInput(path: Pathish, chain: Chainish): void

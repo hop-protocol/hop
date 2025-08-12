@@ -1,18 +1,8 @@
-import { Rails } from '@hop-protocol/v2-sdk'
-import { getToken, getGateway, getChain, getPath } from '#models/index.js'
-import { providers } from 'ethers'
+import { getToken, getGateway, getPath } from '#models/index.js'
+import { setUpRails } from './fixture.js'
 
 describe('Models', () => {
-
-  const chains = [
-    getChain('11155111'),
-    getChain('11155420'),
-  ]
-  const rpcs = [
-    new providers.JsonRpcProvider(process.env.ETHEREUM_RPC_PROVIDER),
-    new providers.JsonRpcProvider(process.env.OPTIMISM_RPC_PROVIDER)
-  ]
-  const rails = new Rails(chains, rpcs)
+  const { rails, chains } = setUpRails()
 
   test('getToken() should return a token by symbol', () => {
     const token = getToken('ETH')

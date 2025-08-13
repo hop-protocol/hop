@@ -24,4 +24,16 @@ describe('Models', () => {
 
     expect(calculatedPathAddress).toBe(pathAddress)
   })
+
+  test('The gateway should return all of its known pathIds', () => {
+    const chainId = chains[0].chainId
+    const gateway = getGateway(chainId)
+    const pathIds = gateway.pathIds
+    for (const pathId of pathIds) {
+      const path = getPath(pathId)
+      expect(path).toBeDefined()
+      expect(path.pathId).toBe(pathId)
+    }
+    expect(pathIds.length).toBeGreaterThan(0)
+  })
 })

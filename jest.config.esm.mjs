@@ -7,5 +7,11 @@ const presetConfig = createDefaultEsmPreset({
 
 export default {
   ...baseConfig,
-  ...presetConfig
+  ...presetConfig,
+
+  // Allows for relative imports of *.js files
+  // https://github.com/kulshekhar/ts-jest/issues/1057#issuecomment-1441733977
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  }
 }

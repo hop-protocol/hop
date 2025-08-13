@@ -48,5 +48,4 @@ export interface IPostedRailsClaim extends IRailsClaimShared {
 // export interface IReaddedRailsClaim extends IRailsClaimShared {
 // }
 
-export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim
-// export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim | IRemovedRailsClaim | IReaddedRailsClaim
+export type IRailsClaim = ISentRailsClaim | IPostedRailsClaim // | IRemovedRailsClaim | IReaddedRailsClaim

@@ -10,7 +10,7 @@ import type { RPC } from '../types.js'
 type RailsEvent<T extends BaseContract> = T['interface']['events']
 type RailsEventFilter<T extends BaseContract> = T['filters']
 
-export abstract class BaseRailsContract<RailsContract extends BaseContract> {
+export abstract class RailsContractBase<RailsContract extends BaseContract> {
   protected readonly contract: RailsContract
 
   constructor(address: string, abi: ContractInterface, rpc?: RPC) {

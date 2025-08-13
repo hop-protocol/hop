@@ -5,13 +5,13 @@ import type {
 } from 'ethers'
 import { type RailsGateway as RailsGatewayType, railsGatewayABI } from './static/index.js'
 import type { HopStruct } from './types.js'
-import { BaseRailsContract } from './BaseRailsContract.js'
+import { RailsContractBase } from './RailsContractBase.js'
 import type { RPC } from '../types.js'
 
 export type RailsGatewayContractEvent = RailsGatewayType['interface']['events']
 export type RailsGatewayContractFilter = RailsGatewayType['filters']
 
-export class RailsGatewayContract extends BaseRailsContract<RailsGatewayType> {
+export class RailsGatewayContract extends RailsContractBase<RailsGatewayType> {
 
   constructor(address: string, rpc?: RPC) {
     super(address, railsGatewayABI, rpc)

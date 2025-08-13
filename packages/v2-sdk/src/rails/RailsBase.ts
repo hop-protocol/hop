@@ -14,7 +14,7 @@ import {
 import { getRPC } from './utils.js'
 import type { RPCish } from './types.js'
 
-export abstract class BaseRails {
+export abstract class RailsBase {
   readonly #gateways: Map<string, RailsGatewayContract> = new Map()
   readonly #paths: Map<string, Map<string, RailsPathContract>> = new Map()
 

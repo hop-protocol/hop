@@ -25,13 +25,13 @@ import {
   getGateway,
   getPath
 } from '#models/index.js'
-import { BaseRails } from './BaseRails.js'
+import { RailsBase } from './RailsBase.js'
 
 
 type RailsContractEvent = RailsGatewayContractEvent & RailsPathContractEvent
 type RailsContractFilter = RailsGatewayContractFilter & RailsPathContractFilter
 
-export class Rails extends BaseRails {
+export class Rails extends RailsBase {
 
   async send(
     path: Pathish,

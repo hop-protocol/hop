@@ -2,12 +2,12 @@ import type { BigNumber } from 'ethers'
 import { type RailsPath as RailsPathType, railsPathABI } from './static/index.js'
 import type { Claim } from './types.js'
 import type { RPC } from '../types.js'
-import { BaseRailsContract } from './BaseRailsContract.js'
+import { RailsContractBase } from './RailsContractBase.js'
 
 export type RailsPathContractEvent = RailsPathType['interface']['events']
 export type RailsPathContractFilter = RailsPathType['filters']
 
-export class RailsPathContract extends BaseRailsContract<RailsPathType> {
+export class RailsPathContract extends RailsContractBase<RailsPathType> {
 
   constructor(address: string, rpc?: RPC) {
     super(address, railsPathABI, rpc)

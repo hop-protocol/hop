@@ -256,7 +256,6 @@ export class Rails extends RailsBase {
       ...pathContract.filters
     }
   }
-
   static parseLog(chain: Chainish, log: providers.Log): utils.LogDescription {
     const chainId = getChain(chain).chainId
     const gatewayContract = getGateway(chainId)

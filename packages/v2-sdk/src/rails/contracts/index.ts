@@ -1,4 +1,4 @@
-export * from './RailsFactory.js'
-export type { RailsGateway, RailsGatewayFilter, RailsGatewayEvent } from './RailsGateway.js'
-export type { RailsPath, RailsPathFilter, RailsPathEvent } from './RailsPath.js'
+export * from './RailsContractFactory.js'
+export type { RailsGatewayContract, RailsGatewayContractFilter, RailsGatewayContractEvent } from './RailsGatewayContract.js'
+export type { RailsPathContract, RailsPathContractFilter, RailsPathContractEvent } from './RailsPathContract.js'
 export type { Claim, HopStruct } from './types.js'

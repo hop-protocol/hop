@@ -8,10 +8,10 @@ import {
 } from 'ethers'
 import {
   type HopStruct,
-  type RailsGatewayEvent,
-  type RailsGatewayFilter,
-  type RailsPathEvent,
-  type RailsPathFilter,
+  type RailsGatewayContractEvent,
+  type RailsGatewayContractFilter,
+  type RailsPathContractEvent,
+  type RailsPathContractFilter,
   getRailsGateway,
   getRailsPath
 } from './contracts/index.js'
@@ -28,8 +28,8 @@ import {
 import { BaseRails } from './BaseRails.js'
 
 
-type RailsEvent = RailsGatewayEvent & RailsPathEvent
-type RailsFilter = RailsGatewayFilter & RailsPathFilter
+type RailsContractEvent = RailsGatewayContractEvent & RailsPathContractEvent
+type RailsContractFilter = RailsGatewayContractFilter & RailsPathContractFilter
 
 export class Rails extends BaseRails {
 
@@ -231,7 +231,7 @@ export class Rails extends BaseRails {
     ]
   }
 
-  static getEvents(path: Pathish, chain: Chainish): RailsEvent {
+  static getEvents(path: Pathish, chain: Chainish): RailsContractEvent {
     const gatewayContract = getRailsGateway(chain)
     const pathContract = getRailsPath(path, chain)
     return {
@@ -240,7 +240,7 @@ export class Rails extends BaseRails {
     }
   }
 
-  static getFilters(path: Pathish, chain: Chainish): RailsFilter {
+  static getFilters(path: Pathish, chain: Chainish): RailsContractFilter {
     const gatewayContract = getRailsGateway(chain)
     const pathContract = getRailsPath(path, chain)
     return {
@@ -249,7 +249,7 @@ export class Rails extends BaseRails {
     }
   }
 
-  static getFilterForEvent(path: Pathish, chain: Chainish): RailsFilter {
+  static getFilterForEvent(path: Pathish, chain: Chainish): RailsContractFilter {
     const gatewayContract = getRailsGateway(chain)
     const pathContract = getRailsPath(path, chain)
     return {

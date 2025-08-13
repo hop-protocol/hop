@@ -3,16 +3,15 @@ import type {
   providers,
   CallOverrides
 } from 'ethers'
-import type { RailsGateway as RailsGatewayContract } from './types/index.js'
+import { type RailsGateway as RailsGatewayType, railsGatewayABI } from './static/index.js'
 import type { HopStruct } from './types.js'
 import { BaseRailsContract } from './BaseRailsContract.js'
 import type { RPC } from '../types.js'
-import { railsGatewayABI } from './abis/index.js'
 
-export type RailsGatewayEvent = RailsGatewayContract['interface']['events']
-export type RailsGatewayFilter = RailsGatewayContract['filters']
+export type RailsGatewayContractEvent = RailsGatewayType['interface']['events']
+export type RailsGatewayContractFilter = RailsGatewayType['filters']
 
-export class RailsGateway extends BaseRailsContract<RailsGatewayContract> {
+export class RailsGatewayContract extends BaseRailsContract<RailsGatewayType> {
 
   constructor(address: string, rpc?: RPC) {
     super(address, railsGatewayABI, rpc)

@@ -6,8 +6,8 @@ import {
   getPath
 } from '#models/index.js'
 import {
-  type RailsGateway,
-  type RailsPath,
+  type RailsGatewayContract,
+  type RailsPathContract,
   getRailsGateway,
   getRailsPath
 } from './contracts/index.js'
@@ -15,8 +15,8 @@ import { getRPC } from './utils.js'
 import type { RPCish } from './types.js'
 
 export abstract class BaseRails {
-  readonly #gateways: Map<string, RailsGateway> = new Map()
-  readonly #paths: Map<string, Map<string, RailsPath>> = new Map()
+  readonly #gateways: Map<string, RailsGatewayContract> = new Map()
+  readonly #paths: Map<string, Map<string, RailsPathContract>> = new Map()
 
   constructor(chains: Chainish[], rpcs: RPCish[]) {
     if (chains.length !== rpcs.length) {
@@ -45,7 +45,7 @@ export abstract class BaseRails {
     }
   }
 
-  protected getRailsGatewayContract(chain: Chainish): RailsGateway {
+  protected getRailsGatewayContract(chain: Chainish): RailsGatewayContract {
     const chainId = getChain(chain).chainId
     const gateway = this.#gateways.get(chainId)
     if (!gateway) {
@@ -54,7 +54,7 @@ export abstract class BaseRails {
     return gateway
   }
 
-  protected getRailsPathContract(path: Pathish, chain: Chainish): RailsPath {
+  protected getRailsPathContract(path: Pathish, chain: Chainish): RailsPathContract {
     const chainId = getChain(chain).chainId
     const pathId = getPath(path).pathId
     const pathContract = this.#paths.get(chainId)?.get(pathId)

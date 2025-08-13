@@ -1,17 +1,11 @@
+import { createDefaultEsmPreset } from 'ts-jest'
 import baseConfig from './jest.config.base.mjs'
+
+const presetConfig = createDefaultEsmPreset({
+  tsconfig: './tsconfig.jest.json'
+})
 
 export default {
   ...baseConfig,
-
-  // ESM transformation config
-  // https://kulshekhar.github.io/ts-jest/docs/guides/esm-support#examples
-  extensionsToTreatAsEsm: ['.ts'],
-  transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        useESM: true
-      }
-    ]
-  }
+  ...presetConfig
 }

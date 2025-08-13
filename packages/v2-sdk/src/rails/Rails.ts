@@ -27,7 +27,6 @@ import {
 } from '#models/index.js'
 import { RailsBase } from './RailsBase.js'
 
-
 type RailsContractEvent = RailsGatewayContractEvent & RailsPathContractEvent
 type RailsContractFilter = RailsGatewayContractFilter & RailsPathContractFilter
 

@@ -1,8 +1,5 @@
 export default {
   roots: ['test'],
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest']
-  },
-  bail: 1,
+  bail: true,
   verbose: true
 }

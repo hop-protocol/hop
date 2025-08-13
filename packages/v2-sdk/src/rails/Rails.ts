@@ -99,7 +99,7 @@ export class Rails extends RailsBase {
       attestedClaimId,
       BigNumber.from(sourcePool),
       BigNumber.from(sourceTotalFraudulent),
-      getAddress(nextHopsHash).toString(),
+      nextHopsHash,
       overrides
     )
   }

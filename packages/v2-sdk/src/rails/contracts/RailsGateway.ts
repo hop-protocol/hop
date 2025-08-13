@@ -5,8 +5,6 @@ import type {
 } from 'ethers'
 import type { RailsGateway as RailsGatewayContract } from './types/index.js'
 import type { HopStruct } from './types.js'
-import { getRailsPath } from './RailsFactory.js'
-import type { RailsPath } from './RailsPath.js'
 import { BaseRailsContract } from './BaseRailsContract.js'
 import type { RPC } from '../types.js'
 import { railsGatewayABI } from './abis/index.js'
@@ -16,7 +14,7 @@ export type RailsGatewayFilter = RailsGatewayContract['filters']
 
 export class RailsGateway extends BaseRailsContract<RailsGatewayContract> {
 
-  constructor(address: string, rpc: RPC) {
+  constructor(address: string, rpc?: RPC) {
     super(address, railsGatewayABI, rpc)
   }
 
@@ -99,11 +97,6 @@ export class RailsGateway extends BaseRailsContract<RailsGatewayContract> {
   async getPath(pathId: string): Promise<string> {
     // TODO: Validation and logging
     return this.contract.getPath(pathId)
-  }
-
-  getPathContract(pathContractAddress: string): RailsPath {
-    const rpc = this.contract.provider
-    return getRailsPath(pathContractAddress, rpc)
   }
 
   async isPathInitialized(pathId: string): Promise<boolean> {

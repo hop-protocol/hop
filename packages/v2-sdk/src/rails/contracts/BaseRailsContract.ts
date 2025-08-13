@@ -3,7 +3,7 @@ import {
   type BaseContract,
   type utils,
   type ContractInterface,
-  Contract
+  Contract,
 } from 'ethers'
 import type { RPC } from '../types.js'
 
@@ -13,7 +13,7 @@ type RailsEventFilter<T extends BaseContract> = T['filters']
 export abstract class BaseRailsContract<RailsContract extends BaseContract> {
   protected readonly contract: RailsContract
 
-  constructor(address: string, abi: ContractInterface, rpc: RPC) {
+  constructor(address: string, abi: ContractInterface, rpc?: RPC) {
     this.contract = new Contract(address, abi, rpc) as RailsContract
   }
 
@@ -25,9 +25,12 @@ export abstract class BaseRailsContract<RailsContract extends BaseContract> {
     return this.contract.interface.events
   }
 
-  hasEvent(nameOrSignatureOrTopic: string): boolean {
+  getEvent(nameOrSignatureOrTopic: string): utils.EventFragment {
     const event = this.contract.interface.getEvent(nameOrSignatureOrTopic)
-    return !!event
+    if (!event) {
+      throw new Error(`Event ${nameOrSignatureOrTopic} not found in contract ${this.contract.address}`)
+    }
+    return event
   }
 
   parseLog(log: providers.Log): utils.LogDescription {

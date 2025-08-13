@@ -10,7 +10,7 @@ export type RailsPathFilter = RailsPathContract['filters']
 
 export class RailsPath extends BaseRailsContract<RailsPathContract> {
 
-  constructor(address: string, rpc: RPC) {
+  constructor(address: string, rpc?: RPC) {
     super(address, railsPathABI, rpc)
   }
 

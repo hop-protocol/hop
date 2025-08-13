@@ -2,19 +2,34 @@ import {
   type BigNumberish,
   type providers,
   type CallOverrides,
+  type utils,
   BigNumber,
   constants
 } from 'ethers'
-import type { HopStruct } from './contracts/index.js'
+import {
+  type HopStruct,
+  type RailsGatewayEvent,
+  type RailsGatewayFilter,
+  type RailsPathEvent,
+  type RailsPathFilter,
+  getRailsGateway,
+  getRailsPath
+} from './contracts/index.js'
 import {
   type Addressish,
   type Pathish,
   type Chainish,
+  Path,
   getAddress,
   getChain,
+  getGateway,
   getPath
 } from '#models/index.js'
 import { BaseRails } from './BaseRails.js'
+
+
+type RailsEvent = RailsGatewayEvent & RailsPathEvent
+type RailsFilter = RailsGatewayFilter & RailsPathFilter
 
 export class Rails extends BaseRails {
 
@@ -215,5 +230,43 @@ export class Rails extends BaseRails {
       }
     ]
   }
-}
 
+  static getEvents(path: Pathish, chain: Chainish): RailsEvent {
+    const gatewayContract = getRailsGateway(chain)
+    const pathContract = getRailsPath(path, chain)
+    return {
+      ...gatewayContract.events,
+      ...pathContract.events
+    }
+  }
+
+  static getFilters(path: Pathish, chain: Chainish): RailsFilter {
+    const gatewayContract = getRailsGateway(chain)
+    const pathContract = getRailsPath(path, chain)
+    return {
+      ...gatewayContract.filters,
+      ...pathContract.filters
+    }
+  }
+
+  static getFilterForEvent(path: Pathish, chain: Chainish): RailsFilter {
+    const gatewayContract = getRailsGateway(chain)
+    const pathContract = getRailsPath(path, chain)
+    return {
+      ...gatewayContract.filters,
+      ...pathContract.filters
+    }
+  }
+
+  static parseLog(chain: Chainish, log: providers.Log): utils.LogDescription {
+    const chainId = getChain(chain).chainId
+    const gatewayContract = getGateway(chainId)
+    const logAddress = getAddress(log.address)
+    if (logAddress.eq(gatewayContract.railsGateway)) {
+      return getRailsGateway(chain).parseLog(log)
+    }
+
+    const path = Path.getPathByChainAndPathAddress(chain, log.address)
+    return getRailsPath(path, chainId).parseLog(log)
+  }
+}

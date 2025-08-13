@@ -1,8 +1,9 @@
 import type { BigNumber } from 'ethers'
 import type { PathConfig } from '#config/paths/types.js'
-import { Address } from './Address.js'
+import { type Address, type Addressish, getAddress } from './Address.js'
 import { allPaths } from '#config/paths/index.js'
-import { type Chainish, Chain } from './Chain.js'
+import { type Chain, type Chainish, getChain } from './Chain.js'
+import { getGateway } from './Gateway.js'
 
 export type Pathish = Path | PathConfig | string
 
@@ -16,10 +17,10 @@ export class Path {
 
   constructor(config: PathConfig) {
     this.pathId = config.pathId
-    this.chain0 = Chain.getChain(config.chainId0)
-    this.tokenAddress0 = Address.getAddress(config.tokenAddress0)
-    this.chain1 = Chain.getChain(config.chainId1)
-    this.tokenAddress1 = Address.getAddress(config.tokenAddress1)
+    this.chain0 = getChain(config.chainId0)
+    this.tokenAddress0 = getAddress(config.tokenAddress0)
+    this.chain1 = getChain(config.chainId1)
+    this.tokenAddress1 = getAddress(config.tokenAddress1)
     this.initialReserve = config.initialReserve
   }
 
@@ -41,6 +42,20 @@ export class Path {
     return Object.values(allPaths).map(config => new Path(config))
   }
 
+  static getPathByChainAndPathAddress(chain: Chainish, address: Addressish): Path {
+    const gateway = getGateway(getChain(chain).chainId)
+    for (const path of Path.getPaths()) {
+      if (path.chain0.eq(chain) || path.chain1.eq(chain)) {
+        const pathAddress = gateway.getPathContractAddress(path.pathId)
+        if (getAddress(address).eq(pathAddress)) {
+          return path
+        }
+      }
+    }
+
+    throw new Error(`Path not found for chain ${getChain(chain).chainId} and address ${getAddress(address).address}`)
+  }
+
   eq(otherPath: Pathish): boolean {
     return this.pathId === Path.getPath(otherPath).pathId
   }
@@ -50,7 +65,7 @@ export class Path {
   }
 
   getCounterpartChain(chain: Chainish): Chain {
-    const _chain = Chain.getChain(chain)
+    const _chain = getChain(chain)
     if (_chain.chainId === this.chain0.chainId) {
       return this.chain1
     } else if (_chain.chainId === this.chain1.chainId) {

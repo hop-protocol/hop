@@ -40,7 +40,7 @@ export abstract class BaseRails {
         if (!this.#paths.has(chainId)) {
           this.#paths.set(chainId, new Map())
         }
-        this.#paths.get(chainId)!.set(pathId, getRailsPath(pathId, rpc))
+        this.#paths.get(chainId)!.set(pathId, getRailsPath(pathId, chainId, rpc))
       }
     }
   }

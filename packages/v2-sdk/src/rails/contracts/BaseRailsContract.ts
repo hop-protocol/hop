@@ -12,7 +12,6 @@ type RailsEventFilter<T extends BaseContract> = T['filters']
 
 export abstract class BaseRailsContract<RailsContract extends BaseContract> {
   protected readonly contract: RailsContract
-  protected static readonly a: string
 
   constructor(address: string, abi: ContractInterface, rpc: RPC) {
     this.contract = new Contract(address, abi, rpc) as RailsContract

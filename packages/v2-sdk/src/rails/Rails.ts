@@ -96,7 +96,7 @@ export class Rails extends RailsBase {
       getAddress(to).toString(),
       BigNumber.from(amount),
       BigNumber.from(maxBonderFee),
-      getAddress(attestedClaimId).toString(),
+      attestedClaimId,
       BigNumber.from(sourcePool),
       BigNumber.from(sourceTotalFraudulent),
       getAddress(nextHopsHash).toString(),

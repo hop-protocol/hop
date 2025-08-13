@@ -1,19 +1,11 @@
-import { getChain, getPath } from '#models/index.js'
-import { providers, utils } from 'ethers'
+import { getPath } from '#models/index.js'
+import { utils } from 'ethers'
 import { Rails } from '#rails/index.js'
+import { setUpRails } from './fixture.js'
 
 describe('SDK', () => {
-  const chains = [
-    getChain('11155111'),
-    getChain('11155420'),
-  ]
 
-  const rpcs = [
-    new providers.JsonRpcProvider(process.env.ETHEREUM_RPC_PROVIDER),
-    new providers.JsonRpcProvider(process.env.OPTIMISM_RPC_PROVIDER)
-  ]
-
-  const rails = new Rails(chains, rpcs)
+  const { chains, rpcs, rails } = setUpRails()
 
   test('should not allow mismatched length inputs during instantiation', () => {
     expect(() => new Rails(chains, [rpcs[0]])).toThrow()

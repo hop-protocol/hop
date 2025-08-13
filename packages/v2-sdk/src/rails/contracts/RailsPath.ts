@@ -1,52 +1,48 @@
-import { type BigNumber, Contract } from 'ethers'
+import type { BigNumber } from 'ethers'
 import type { RailsPath as RailsPathContract } from './types/index.js'
 import type { Claim } from './types.js'
 import type { RPC } from '../types.js'
-
+import { BaseRailsContract } from './BaseRailsContract.js'
 import { railsPathABI } from './abis/index.js'
 
-export type RailsPathFilters = RailsPathContract['filters']
+export type RailsPathEvent = RailsPathContract['interface']['events']
+export type RailsPathFilter = RailsPathContract['filters']
 
-export class RailsPath {
-  readonly #contract: RailsPathContract
+export class RailsPath extends BaseRailsContract<RailsPathContract> {
 
   constructor(address: string, rpc: RPC) {
-    this.#contract = new Contract(address, railsPathABI, rpc) as RailsPathContract
-  }
-
-  get filters(): RailsPathFilters {
-    return this.#contract.filters
+    super(address, railsPathABI, rpc)
   }
 
   async getClaim(claimId: string): Promise<Claim> {
     // TODO: Validation & logging
-    const claim = await this.#contract.getClaim(claimId)
+    const claim = await this.contract.getClaim(claimId)
     return this.#normalizeClaim(claim)
   }
 
   async getHeadClaimId(): Promise<string> {
     // TODO: Validation & logging
-    return this.#contract.getHeadClaimId()
+    return this.contract.getHeadClaimId()
   }
 
   async isValidClaim(claimId: string): Promise<boolean> {
     // TODO: Validation & logging
-    return this.#contract.isValidClaim(claimId)
+    return this.contract.isValidClaim(claimId)
   }
 
   async isValidTransfer(claimId: string): Promise<boolean> {
     // TODO: Validation & logging
-    return this.#contract.isValidTransfer(claimId)
+    return this.contract.isValidTransfer(claimId)
   }
 
   async getSourcePool(attestedClaimId: string): Promise<BigNumber> {
     // TODO: Validation & logging
-    return this.#contract.getSourcePool(attestedClaimId)
+    return this.contract.getSourcePool(attestedClaimId)
   }
 
   async totalFraudulent(): Promise<BigNumber> {
     // TODO: Validation & logging
-    return this.#contract.totalFraudulent()
+    return this.contract.totalFraudulent()
   }
 
   #normalizeClaim(claim: Claim): Claim {

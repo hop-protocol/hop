@@ -1,5 +1,7 @@
 import { type GatewayConfig, allGateways } from '#config/gateways/index.js'
 import { utils } from 'ethers'
+import { getChain } from './Chain.js'
+import { Path } from './Path.js'
 
 export type Gatewayish = Gateway | GatewayConfig | string
 
@@ -42,6 +44,18 @@ export class Gateway {
 
   static getGateways(): Gateway[] {
     return Object.values(allGateways).map(config => new Gateway(config))
+  }
+
+  get pathIds(): string[] {
+    const chain = getChain(this.chainId)
+    const pathIds: string[] = []
+    for (const path of Path.getPaths()) {
+      if (chain.eq(path.chain0.chainId) || chain.eq(path.chain1.chainId)) {
+        pathIds.push(path.pathId)
+      }
+    }
+
+    return pathIds
   }
 
   getPathContractAddress(pathId: string): string {

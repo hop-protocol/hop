@@ -28,7 +28,7 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 
     const validNetworks = ['mainnet', 'goerli']
     if (!validNetworks.includes(network)) {
-      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.join(',')}`)
+      throw new Error(`"${network}" is a network. Valid networks are: ${validNetworks.join(',')}`)
     }
 
     if (!amount) {
@@ -129,7 +129,7 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
 
     const validNetworks = ['mainnet', 'goerli']
     if (!validNetworks.includes(network)) {
-      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.join(',')}`)
+      throw new Error(`"${network}" is a network. Valid networks are: ${validNetworks.join(',')}`)
     }
 
     const tId = transferId || transactionHash

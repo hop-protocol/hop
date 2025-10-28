@@ -1108,7 +1108,7 @@ export class HopBridge extends Base {
       toToken: destToken,
       fromAmount: amountIn.toString(),
       fromAddress: userAddress,
-      slippage: slippageTolerance.toString() // e.g. '1'=1%, '0.5'=0.5%, etc
+      slippage: (slippageTolerance / 100).toString() // Convert percentage to decimal: 0.5% -> 0.005, 1% -> 0.01
     })
 
     const baseUrl = 'https://li.quest/v1/quote'

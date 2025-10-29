@@ -50,7 +50,7 @@ Build distribution build:
 pnpm build
 ```
 
-Allowed environment variable need be configured in `vite.config.ts` and in at the root `.github/workflows/ui-deploy.yml` for the build to work correctly.
+Allowed environment variables need be configured in `vite.config.ts` and in at the root `.github/workflows/ui-deploy.yml` for the build to work correctly.
 
 ## Deployments
 

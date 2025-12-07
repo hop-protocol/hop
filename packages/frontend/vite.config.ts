@@ -101,7 +101,7 @@ const connectSrc = new Set([
   "https://meebits.app",
   "https://gateway.pinata.cloud",
   "https://hop.mypinata.cloud",
-  "https://ipfs.io",
+  "https://ipfs.tech/",
   "https://gateway.ipfs.io",
   "https://media-exp1.licdn.com",
   "https://iris-api.circle.com",

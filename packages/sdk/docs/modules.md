@@ -794,7 +794,7 @@ ___
 
 ### <a id="getusdcswapparams" name="getusdcswapparams"></a> getUSDCSwapParams
 
-▸ **getUSDCSwapParams**(`options`): `Promise`\<\{ `quotedAmountOut`: `any` ; `quotedAmountOutFormatted`: `any` ; `swapParams`: \{ `amountIn`: `string` ; `amountOutMinimum`: `string` ; `path`: `string` ; `recipient`: `any` = recipient }  }\>
+▸ **getUSDCSwapParams**(`options`): `Promise`\<\{ `quotedAmountOut`: `any` ; `quotedAmountOutFormatted`: `any` ; `swapParams`: \{ `amounting, amount in`: `string` ; `amountOutMinimum`: `string` ; `path`: `string` ; `recipient`: `any` = recipient }  }\>
 
 #### Parameters
 
@@ -804,7 +804,7 @@ ___
 
 #### Returns
 
-`Promise`\<\{ `quotedAmountOut`: `any` ; `quotedAmountOutFormatted`: `any` ; `swapParams`: \{ `amountIn`: `string` ; `amountOutMinimum`: `string` ; `path`: `string` ; `recipient`: `any` = recipient }  }\>
+`Promise`\<\{ `quotedAmountOut`: `any` ; `quotedAmountOutFormatted`: `any` ; `swapParams`: \{ `amounting, amount in`: `string` ; `amountOutMinimum`: `string` ; `path`: `string` ; `recipient`: `any` = recipient }  }\>
 
 ___
 

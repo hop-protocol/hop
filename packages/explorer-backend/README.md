@@ -18,7 +18,7 @@ pnpm run dev
 
 Serve
 
-First run Postgres in seperate terminal:
+First run Postgres in separate terminal:
 
 ```sh
 cd scripts/

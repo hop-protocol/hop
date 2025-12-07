@@ -39,7 +39,7 @@ Example response
   "amountOutMin": "743633",
   "destinationAmountOutMin": "742915",
   "bonderFee": "250515",
-  "estimatedRecieved": "747908",
+  "estimatedReceived": "747908",
   "deadline": 1679862208,
   "destinationDeadline": 1679862208
 }

@@ -109,6 +109,12 @@ class ChallengeWatcher extends BaseWatcher {
     const challengeMsg = `TransferRoot should be challenged! Root id: ${transferRootId}. Root hash: ${transferRootHash} Total amt: ${totalAmount}.`
     logger.debug(challengeMsg)
     await this.notifier.warn(challengeMsg)
+
+    const challengeTx = await l1Bridge.challengeTransferRootBond(transferRootHash, totalAmount, destinationChainId)
+    if (challengeTx) {
+      logger.info(`Challenge transaction sent: ${challengeTx.hash}`)
+    }
+
     await this.db.transferRoots.update(transferRootId, {
       challenged: true
     })

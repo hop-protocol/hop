@@ -4,6 +4,7 @@ import { Hop } from '@hop-protocol/sdk'
 import { gitRev, port, trustProxy } from './config.js'
 import { ipRateLimitMiddleware } from './rateLimit.js'
 import { responseCache } from './responseCache.js'
+import { assertSafeRpcUrl } from './rpcUrlSafety.js'
 
 const app = express()
 
@@ -60,14 +61,16 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
         }
         const url = (rpcUrl as any)[chain]
         try {
-          customRpcProviderUrls[chain] = new URL(url).toString()
-        } catch (err) {
-          throw new Error(`"rpcUrl[${chain}]" has an invalid url "${url}"`)
+          // Block private/link-local/metadata targets: these URLs are installed as
+          // ethers providers and fetched during getSendData (SSRF).
+          customRpcProviderUrls[chain] = await assertSafeRpcUrl(url)
+        } catch (err: any) {
+          throw new Error(`"rpcUrl[${chain}]" ${err?.message || 'is not allowed'}`)
         }
       }
     }
 
-    if (Object.keys(customRpcProviderUrls)) {
+    if (Object.keys(customRpcProviderUrls).length) {
       instance.setChainProviderUrls(customRpcProviderUrls)
     }
 
